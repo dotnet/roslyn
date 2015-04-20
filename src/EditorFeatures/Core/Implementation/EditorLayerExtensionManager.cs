@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor
                             () => { EnableProvider(provider); IgnoreProvider(provider); });
                     }
                 }
-
                 else
                 {
                     if (_optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))

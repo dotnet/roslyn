@@ -67,10 +67,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00002\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.DiaSymReader">
       <HintPath>..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
@@ -81,9 +81,6 @@
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\PortableCustomDebugInfoKinds.cs">
-      <Link>Shared\PortableCustomDebugInfoKinds.cs</Link>
     </Compile>
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
@@ -99,6 +96,7 @@
     <Compile Include="Shared\CustomDebugInfoReader.cs" />
     <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
+    <Compile Include="Shared\IMetadataImport.cs" />
     <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
@@ -109,12 +107,6 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\PortablePdb\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
-      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
-      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

@@ -34,6 +34,7 @@
     </Compile>
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
+    <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
     <Compile Include="Placeholders.cs" />
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />
@@ -68,16 +69,12 @@
     <Compile Include="RuntimeInspectionContext.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
-    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00002\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\PortablePdb\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
-      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
-      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
       <Name>Concord</Name>

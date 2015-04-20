@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function WithLocation(location As Location) As Diagnostic
             If location Is Nothing Then
-                Throw New ArgumentNullException("location")
+                Throw New ArgumentNullException(NameOf(location))
             End If
 
             If location IsNot Me.Location Then

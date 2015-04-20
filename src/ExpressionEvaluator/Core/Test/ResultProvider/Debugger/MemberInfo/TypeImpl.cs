@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected override bool HasElementTypeImpl()
         {
-            throw new NotImplementedException();
+            return this.Type.HasElementType;
         }
 
         protected override bool IsArrayImpl()

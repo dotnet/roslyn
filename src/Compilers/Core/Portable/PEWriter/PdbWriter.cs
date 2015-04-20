@@ -36,7 +36,7 @@ namespace Microsoft.Cci
 
         private static Type s_lazyCorSymWriterSxSType;
 
-        private readonly Func<Stream> _streamProvider;
+        private readonly Stream _stream;
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
         private MetadataWriter _metadataWriter;
@@ -54,10 +54,10 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        public PdbWriter(Func<Stream> streamProvider, string fileName, Func<object> symWriterFactory = null)
+        public PdbWriter(Stream stream, string fileName, Func<object> symWriterFactory = null)
         {
-            Debug.Assert(streamProvider != null);
-            _streamProvider = streamProvider;
+            Debug.Assert(stream != null);
+            _stream = stream;
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
             CreateSequencePointBuffers(capacity: 64);
@@ -65,19 +65,19 @@ namespace Microsoft.Cci
 
         public void Dispose()
         {
-            this.WritePdbToOutput();
+            Close();
             GC.SuppressFinalize(this);
         }
 
         ~PdbWriter()
         {
-            this.WritePdbToOutput();
+            Close();
         }
 
         /// <summary>
-        /// Close the PDB writer and write the PDB data to the stream provided by <see cref="_streamProvider"/>.
+        /// Close the PDB writer and write the PDB data to <see cref="_stream"/>.
         /// </summary>
-        public void WritePdbToOutput()
+        private void Close()
         {
             try
             {
@@ -541,17 +541,15 @@ namespace Microsoft.Cci
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
-            Stream stream = _streamProvider() ?? new System.IO.MemoryStream();
-
             try
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
 
                 // Important: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
-                Debug.Assert(stream.Length == 0);
+                Debug.Assert(_stream.Length == 0);
 
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, new ComStreamWrapper(stream), fullBuild: true);
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, new ComStreamWrapper(_stream), fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;

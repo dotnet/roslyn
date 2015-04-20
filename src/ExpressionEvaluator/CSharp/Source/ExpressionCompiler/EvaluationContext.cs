@@ -568,6 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         }
                     }
                     break;
+                case ErrorCode.ERR_NoSuchMemberOrExtension: // Commonly, but not always, caused by absence of System.Core.
                 case ErrorCode.ERR_DynamicAttributeMissing:
                 case ErrorCode.ERR_DynamicRequiredTypesMissing:
                 // MSDN says these might come from System.Dynamic.Runtime

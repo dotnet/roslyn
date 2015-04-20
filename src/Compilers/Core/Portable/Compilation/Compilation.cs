@@ -1530,7 +1530,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(peStreamProvider != null);
 
-            DiagnosticBag diagnostics = new DiagnosticBag();
+            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             if (options != null)
             {
                 options.ValidateOptions(diagnostics, this.MessageProvider);
@@ -1570,8 +1570,8 @@ namespace Microsoft.CodeAnalysis
                 return ToEmitResultAndFree(diagnostics, success: false);
             }
 
-            var win32Resources = win32ResourcesStreamProvider?.GetStream(diagnostics);
-            var xmlDocumentationStream = xmlDocumentationStreamProvider?.GetStream(diagnostics);
+            var win32Resources = win32ResourcesStreamProvider?.GetOrCreateStream(diagnostics);
+            var xmlDocumentationStream = xmlDocumentationStreamProvider?.GetOrCreateStream(diagnostics);
             if (!this.Compile(
                 moduleBeingBuilt,
                 win32Resources,
@@ -1624,7 +1624,6 @@ namespace Microsoft.CodeAnalysis
             Stream signingInputStream = null;
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
-            Stream pdbStream = null;
             Stream pdbTempStream = null;
             Stream peStream = null;
             Stream peTempStream = null;
@@ -1635,35 +1634,25 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
+                metadataDiagnostics = DiagnosticBag.GetInstance();
+
                 if (!emitPortablePdb && pdbStreamProvider != null)
                 {
-                    Func<Stream> getNativePdbStream = () =>
+                    var nativePdbStream = pdbStreamProvider.Stream;
+
+                    // Native PDB writer is able to update an existing stream.
+                    // It checks for length to determine whether the given stream has existing data to be updated,
+                    // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream,
+                    // we have to create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
+                    if (nativePdbStream == null || !nativePdbStream.CanSeek || nativePdbStream.Length != 0)
                     {
-                        pdbStream = pdbStreamProvider.GetStream(diagnostics);
-                        if (pdbStream == null)
-                        {
-                            Debug.Assert(diagnostics.HasAnyErrors());
-                            return null;
-                        }
-
-                        var retStream = pdbStream;
-
-                        // Native PDB writer is able to update an existing stream.
-                        // It checks for length to determine whether the given stream has existing data to be updated,
-                        // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream,
-                        // we have to create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
-                        if (!retStream.CanSeek || retStream.Length != 0)
-                        {
-                            retStream = pdbTempStream = new MemoryStream();
-                        }
-
-                        return retStream;
-                    };
+                        nativePdbStream = pdbTempStream = new MemoryStream();
+                    }
 
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
-                    nativePdbWriter = new Cci.PdbWriter(getNativePdbStream, pdbPath, testSymWriterFactory);
+                    nativePdbWriter = new Cci.PdbWriter(nativePdbStream, pdbPath, testSymWriterFactory);
                 }
 
                 Func<Stream> getPortablePdbStream;
@@ -1694,10 +1683,15 @@ namespace Microsoft.CodeAnalysis
 
                 Func<Stream> getPeStream = () =>
                 {
-                    peStream = peStreamProvider.GetStream(diagnostics);
+                    if (metadataDiagnostics.HasAnyErrors())
+                    {
+                        return null;
+                    }
+
+                    peStream = peStreamProvider.GetOrCreateStream(metadataDiagnostics);
                     if (peStream == null)
                     {
-                        Debug.Assert(diagnostics.HasAnyErrors());
+                        Debug.Assert(metadataDiagnostics.HasAnyErrors());
                         return null;
                     }
 
@@ -1730,10 +1724,9 @@ namespace Microsoft.CodeAnalysis
                     return retStream;
                 };
 
-                metadataDiagnostics = DiagnosticBag.GetInstance();
                 try
                 {
-                    Cci.PeWriter.WritePeToStream(
+                    if (Cci.PeWriter.WritePeToStream(
                         new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
@@ -1742,22 +1735,30 @@ namespace Microsoft.CodeAnalysis
                         pdbPath,
                         metadataOnly,
                         deterministic,
-                        cancellationToken);
-
-                    if (peTempStream != null)
+                        cancellationToken))
                     {
-                        peTempStream.Position = 0;
-                        peTempStream.CopyTo(peStream);
-                    }
+                        if (peTempStream != null)
+                        {
+                            peTempStream.Position = 0;
+                            peTempStream.CopyTo(peStream);
+                        }
 
-                    if (pdbTempStream != null)
-                    {
-                        // Note: Native PDB writer may operate on the underlying stream during disposal.
-                        // So close it here before we read data from the underlying stream.
-                        nativePdbWriter?.WritePdbToOutput();
+                        if (pdbTempStream != null)
+                        {
+                            // Note: Native PDB writer may operate on the underlying stream during disposal.
+                            // So close it here before we read data from the underlying stream.
+                            nativePdbWriter?.Dispose();
+                            nativePdbWriter = null;
 
-                        pdbTempStream.Position = 0;
-                        pdbTempStream.CopyTo(pdbStream);
+                            var pdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                            Debug.Assert(pdbStream != null || metadataDiagnostics.HasAnyErrors());
+
+                            if (pdbStream != null)
+                            {
+                                pdbTempStream.Position = 0;
+                                pdbTempStream.CopyTo(pdbStream);
+                            }
+                        }
                     }
                 }
                 catch (Cci.PdbWritingException ex)
@@ -1799,9 +1800,9 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
+                nativePdbWriter?.Dispose();
                 peTempStream?.Dispose();
                 pdbTempStream?.Dispose();
-                nativePdbWriter?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
@@ -1824,7 +1825,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             using (var pdbWriter = new Cci.PdbWriter(
-                () => pdbStream,
+                pdbStream,
                 moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                 testSymWriterFactory))
             {

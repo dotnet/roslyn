@@ -24,7 +24,7 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.CodeAnalysis.Sdk.UI.dll</HintPath>
     </Reference>

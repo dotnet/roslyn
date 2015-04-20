@@ -18,7 +18,7 @@ Friend NotInheritable Class Vbi
     Friend Const InteractiveResponseFileName As String = "vbi.rsp"
 
     Friend Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing) ' TODO: what to pass as additionalReferencePaths?
+        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing) ' TODO: what to pass as additionalReferencePaths?
     End Sub
 
     Public Shared Function Main(args As String()) As Integer

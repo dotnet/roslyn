@@ -131,8 +131,10 @@ namespace RunTests
 
             if (processOutput.ExitCode != 0)
             {
-                // On occasion we get a non-0 output but no actual data in the result file.  Switch to output in this 
-                // case.
+                // On occasion we get a non-0 output but no actual data in the result file.  The could happen
+                // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
+                // To avoid losing information, write the process output to the console.  In addition, delete the results
+                // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
                 var all = string.Empty;
                 try
                 {
@@ -143,10 +145,14 @@ namespace RunTests
                     // Happens if xunit didn't produce a log file
                 }
 
-                if (all.Length == 0)
+                bool noResultsData = (all.Length == 0);
+                if (noResultsData)
                 {
                     var output = processOutput.OutputLines.Concat(processOutput.ErrorLines).ToArray();
-                    File.WriteAllLines(resultsPath, output);
+                    Console.Write(output);
+
+                    // Delete the output file.
+                    File.Delete(resultsPath);
                 }
 
                 errorOutput = processOutput.ErrorLines.Any()
@@ -156,8 +162,13 @@ namespace RunTests
                 errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString())
                     + Environment.NewLine
                     + errorOutput;
-
-                Process.Start(resultsPath);
+                    
+                // If the results are html, use Process.Start to open in the browser.
+                
+                if (_useHtml && !noResultsData)
+                {
+                    Process.Start(resultsPath);
+                }
             }
 
             return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);

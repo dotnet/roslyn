@@ -6169,30 +6169,81 @@ class Program
             var dir = Temp.CreateDirectory();
 
             var source1 = dir.CreateFile("program1.cs").WriteAllText(@"
-class Program1
+class " + new string('a', 10000) + @"
 {
-        public static void Main() { }
+    public static void Main()
+    { 
+    }
 }");
             var source2 = dir.CreateFile("program2.cs").WriteAllText(@"
 class Program2
 {
         public static void Main() { }
 }");
+            var source3 = dir.CreateFile("program3.cs").WriteAllText(@"
+class Program3
+{
+        public static void Main() { }
+}");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
+            int oldSize = 16 * 1024;
+
+            var exe = dir.CreateFile("Program.exe");
+            using (var stream = File.OpenWrite(exe.Path))
+            {
+                byte[] buffer = new byte[oldSize];
+                stream.Write(buffer, 0, buffer.Length);
+            }
+
+            var pdb = dir.CreateFile("Program.pdb");
+            using (var stream = File.OpenWrite(pdb.Path))
+            {
+                byte[] buffer = new byte[oldSize];
+                stream.Write(buffer, 0, buffer.Length);
+            }
+
             int exitCode1 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source1.Path }).Run(outWriter);
-            Assert.Equal(0, exitCode1);
+            Assert.NotEqual(0, exitCode1);
+
+            ValidateZeroes(exe.Path, oldSize);
+            ValidateZeroes(pdb.Path, oldSize);
 
             int exitCode2 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source2.Path }).Run(outWriter);
             Assert.Equal(0, exitCode2);
 
-            var pePath = Path.Combine(dir.Path, "Program.exe");
-            var pdbPath = Path.Combine(dir.Path, "Program.pdb");
+            using (var peFile = File.OpenRead(exe.Path))
+            {
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+            }
 
-            using (var peFile = File.OpenRead(pePath))
+            Assert.True(new FileInfo(exe.Path).Length < oldSize);
+            Assert.True(new FileInfo(pdb.Path).Length < oldSize);
+
+            int exitCode3 = new MockCSharpCompiler(null, dir.Path, new[] { "/debug:full", "/out:Program.exe", source3.Path }).Run(outWriter);
+            Assert.Equal(0, exitCode3);
+
+            using (var peFile = File.OpenRead(exe.Path))
             {
                 SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath, isPortable: false);
+            }
+        }
+
+        private static void ValidateZeroes(string path, int count)
+        {
+            using (var stream = File.OpenRead(path))
+            {
+                byte[] buffer = new byte[count];
+                stream.Read(buffer, 0, buffer.Length);
+
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    if (buffer[i] != 0)
+                    {
+                        Assert.True(false);
+                    }
+                }
             }
         }
 

@@ -21,8 +21,8 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
-    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.1.0-alpha-00002\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
@@ -34,10 +34,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{DFA21CA1-7F96-47EE-940C-069858E81727}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
@@ -61,10 +57,6 @@
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
     <VsdConfigXml Include="BasicExpressionCompiler.vsdconfigxml">
       <SubType>Designer</SubType>
     </VsdConfigXml>
@@ -74,7 +66,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binders\EENamedTypeBinder.vb" />
-    <Compile Include="Binders\IgnoreAccessibilityBinder.vb" />
     <Compile Include="Binders\ParametersAndLocalsBinder.vb" />
     <Compile Include="Binders\SuppressObsoleteDiagnosticsBinder.vb" />
     <Compile Include="CompilationContext.vb" />

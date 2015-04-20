@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             ' TODO: should this be a Require?
-            Throw New ArgumentOutOfRangeException("span")
+            Throw New ArgumentOutOfRangeException(NameOf(span))
         End Function
 #End Region
 

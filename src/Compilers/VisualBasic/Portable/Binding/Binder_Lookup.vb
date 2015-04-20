@@ -2020,7 +2020,7 @@ ExitForFor:
                     ' Only named types have members that are types. Go through all the types in this type and
                     ' validate them. If there's multiple, give an error.
                     If TypeOf container Is NamedTypeSymbol Then
-                        members = ImmutableArray.Create(Of Symbol, NamedTypeSymbol)(container.GetTypeMembers(name))
+                        members = ImmutableArray(Of Symbol).CastUp(container.GetTypeMembers(name))
                     End If
                 ElseIf (options And LookupOptions.LabelsOnly) = 0 Then
                     members = container.GetMembers(name)

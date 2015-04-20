@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -24,20 +25,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
         }
 
-        private ImmutableArray<SuggestedActionSet> _actionSets;
-        public override IEnumerable<SuggestedActionSet> ActionSets
+        public override bool HasActionSets
         {
             get
             {
+                // HasActionSets is called synchronously on the UI thread. In order to avoid blocking the UI thread,
+                // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
+                // answer is expensive (because we will need to call CodeAction.GetPreivewOperationsAsync() (to
+                // compute whether or not we should display the flavored action for 'Preview Changes') which in turn
+                // will involve computing the changed solution for the ApplyChangesOperation for the fix / refactoring
+                // So we always return 'true' here (so that platform will call GetActionSetsAsync() below). Platform
+                // guarantees that nothing bad will happen if we return 'true' here and later return 'null' / empty
+                // collection from within GetPreviewAsync().
+
+                return true;
+            }
+        }
+
+        private ImmutableArray<SuggestedActionSet> _actionSets;
+        public async override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Light bulb will always invoke this property on the UI thread.
+            AssertIsForeground();
+
                 if (_actionSets == null)
+                {
+                var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+
+                _actionSets = await extensionManager.PerformFunctionAsync(Provider, async () =>
                 {
                     var builder = ImmutableArray.CreateBuilder<SuggestedActionSet>();
 
-                    var previewChangesSuggestedActionSet = GetPreviewChangesSuggestedActionSet();
+                    // We use ConfigureAwait(true) to stay on the UI thread.
+                    var previewChangesSuggestedActionSet = await GetPreviewChangesSuggestedActionSetAsync(cancellationToken).ConfigureAwait(true);
                     if (previewChangesSuggestedActionSet != null)
                     {
                         builder.Add(previewChangesSuggestedActionSet);
                     }
+
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var fixAllSuggestedActionSet = GetFixAllSuggestedActionSet();
                     if (fixAllSuggestedActionSet != null)
@@ -45,17 +73,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         builder.Add(fixAllSuggestedActionSet);
                     }
 
-                    _actionSets = builder.ToImmutable();
+                    return builder.ToImmutable();
+                    // We use ConfigureAwait(true) to stay on the UI thread.
+                }).ConfigureAwait(true);
                 }
 
                 return _actionSets;
             }
-        }
 
-        private SuggestedActionSet GetPreviewChangesSuggestedActionSet()
+        private async Task<SuggestedActionSet> GetPreviewChangesSuggestedActionSetAsync(CancellationToken cancellationToken)
         {
-            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            var previewResult = extensionManager.PerformFunction(this.Provider, () => GetPreviewResult(CancellationToken.None));
+            var previewResult = await GetPreviewResultAsync(cancellationToken).ConfigureAwait(true);
             if (previewResult == null)
             {
                 return null;

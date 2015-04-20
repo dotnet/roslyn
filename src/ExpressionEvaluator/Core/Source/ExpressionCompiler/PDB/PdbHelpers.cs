@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     stack.Push(nested);
                 }
             }
+
+            stack.Free();
         }
 
         /// <summary>

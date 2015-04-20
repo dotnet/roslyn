@@ -22,7 +22,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
 
     Private Function GetAncestor(Of T As VisualBasicSyntaxNode)(node As VisualBasicSyntaxNode) As T
         If node Is Nothing Then
-            Throw New ArgumentNullException("node")
+            Throw New ArgumentNullException(NameOf(node))
         End If
 
         Dim parent = node.Parent

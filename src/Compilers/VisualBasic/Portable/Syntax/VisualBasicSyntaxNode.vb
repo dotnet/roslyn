@@ -566,7 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'PERF: it is very important to keep this method fast.
 
             If Not FullSpan.Contains(position) Then
-                Throw New ArgumentOutOfRangeException("position")
+                Throw New ArgumentOutOfRangeException(NameOf(position))
             End If
 
             Dim childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(Me, position)

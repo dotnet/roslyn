@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -36,9 +37,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
         }
 
-        string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo CustomTypeInfo)
+        string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo typeInfo)
         {
-            return GetTypeName(type.GetLmrType());
+            return GetTypeName(new TypeAndCustomInfo(type.GetLmrType(), typeInfo));
         }
 
         bool IDkmClrFormatter.HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)

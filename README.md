@@ -1,8 +1,9 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
-|Windows|Linux|
-|:--:|:--:|
-|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|
+|Windows|Linux|Mac OSX|
+|:--:|:--:|:--:|
+|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/)|
+
 
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -23,8 +24,7 @@ which has the latest features built-in.
 [prebuilt Azure VM images](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx) 
 with VS 2015 Preview already installed.
 
-* You can also try April's [End User Preview](http://go.microsoft.com/fwlink/?LinkId=394641), 
-which installs on top of Visual Studio 2013. *(Note: The VS 2013 preview is quite out of date, and is no longer being updated.)*
+* Roslyn is no longer available for Visual Studio 2013.
 
 ### Build tools that understand C# and Visual Basic
 

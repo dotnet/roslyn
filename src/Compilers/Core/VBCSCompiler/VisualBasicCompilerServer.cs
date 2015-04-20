@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
-        internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string sdkDirectory, string libDirectory)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, sdkDirectory, libDirectory)
+        internal VisualBasicCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory)
+            : base(VisualBasicCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory)
         {
         }
 
         public static int RunCompiler(
-            string responseFileDirectory,
+            string clientDirectory,
             string[] args,
             string baseDirectory,
             string sdkDirectory,
@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CancellationToken cancellationToken,
             out bool utf8output)
         {
-            var responseFile = Path.Combine(responseFileDirectory, VisualBasicCompiler.ResponseFileName);
-            var compiler = new VisualBasicCompilerServer(responseFile, args, baseDirectory, sdkDirectory, libDirectory);
+            var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }

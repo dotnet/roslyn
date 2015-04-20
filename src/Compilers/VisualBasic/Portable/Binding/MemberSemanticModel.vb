@@ -545,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
             If identifierSyntax Is Nothing Then
-                Throw New ArgumentNullException("identifierSyntax")
+                Throw New ArgumentNullException(NameOf(identifierSyntax))
             End If
             If Not IsInTree(identifierSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -579,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
             If anonymousObjectCreationExpressionSyntax Is Nothing Then
-                Throw New ArgumentNullException("anonymousObjectCreationExpressionSyntax")
+                Throw New ArgumentNullException(NameOf(anonymousObjectCreationExpressionSyntax))
             End If
             If Not IsInTree(anonymousObjectCreationExpressionSyntax) Then
                 Throw New ArgumentException(VBResources.AnonymousObjectCreationExpressionSyntaxNotWithinTree)
@@ -595,7 +595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As IPropertySymbol
             If fieldInitializerSyntax Is Nothing Then
-                Throw New ArgumentNullException("fieldInitializerSyntax")
+                Throw New ArgumentNullException(NameOf(fieldInitializerSyntax))
             End If
             If Not IsInTree(fieldInitializerSyntax) Then
                 Throw New ArgumentException(VBResources.FieldInitializerSyntaxNotWithinSyntaxTree)
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -651,7 +651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -1777,7 +1777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' In this case, however, we only add the single bound node we found to the map, not any child bound nodes,
             ' to avoid duplicates in the map if a parent of this node comes through this code path also.
             If TypeOf node Is ExpressionSyntax OrElse TypeOf node Is StatementSyntax Then
-                Dim binder = GetEnclosingBinder(node)
+                Dim binder = New IncrementalBinder(Me, GetEnclosingBinder(node))
 
                 _rwLock.EnterWriteLock()
                 Try

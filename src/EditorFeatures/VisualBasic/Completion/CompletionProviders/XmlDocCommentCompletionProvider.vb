@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             If nameSyntax.LocalName.ValueText = name Then
                 Return startTag.Attributes.OfType(Of XmlNameAttributeSyntax)() _
-                    .Where(Function(a) a.Name.ToString() = "name") _
+                    .Where(Function(a) a.Name.ToString() = NameOf(name)) _
                     .Select(Function(a) a.Reference.Identifier.ValueText) _
                     .FirstOrDefault()
             End If

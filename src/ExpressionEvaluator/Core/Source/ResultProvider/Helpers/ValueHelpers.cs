@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return string.Format(
                 Resources.ExceptionThrown,
                 fullNameWithoutFormatSpecifiers,
-                formatter.GetTypeName(value.Type.GetLmrType()));
+                formatter.GetTypeName(new TypeAndCustomInfo(value.Type)));
         }
     }
 }

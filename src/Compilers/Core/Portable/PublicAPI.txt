@@ -208,6 +208,7 @@ Microsoft.CodeAnalysis.CompilationReference.WithProperties(Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.ControlFlowAnalysis
 Microsoft.CodeAnalysis.CustomModifier
 Microsoft.CodeAnalysis.DataFlowAnalysis
+Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
 Microsoft.CodeAnalysis.Diagnostic
 Microsoft.CodeAnalysis.Diagnostic.IsWarningAsError.get -> bool
 Microsoft.CodeAnalysis.DiagnosticDescriptor
@@ -1904,6 +1905,7 @@ static Microsoft.CodeAnalysis.ChildSyntaxList.operator !=(Microsoft.CodeAnalysis
 static Microsoft.CodeAnalysis.ChildSyntaxList.operator ==(Microsoft.CodeAnalysis.ChildSyntaxList list1, Microsoft.CodeAnalysis.ChildSyntaxList list2) -> bool
 static Microsoft.CodeAnalysis.CompilationOptions.operator !=(Microsoft.CodeAnalysis.CompilationOptions left, Microsoft.CodeAnalysis.CompilationOptions right) -> bool
 static Microsoft.CodeAnalysis.CompilationOptions.operator ==(Microsoft.CodeAnalysis.CompilationOptions left, Microsoft.CodeAnalysis.CompilationOptions right) -> bool
+static Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer.LoadFromXml(System.IO.Stream input) -> Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
 static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations, System.Collections.Immutable.ImmutableDictionary<string, string> properties, params object[] messageArgs) -> Microsoft.CodeAnalysis.Diagnostic
 static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations, params object[] messageArgs) -> Microsoft.CodeAnalysis.Diagnostic
 static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, System.Collections.Immutable.ImmutableDictionary<string, string> properties, params object[] messageArgs) -> Microsoft.CodeAnalysis.Diagnostic
@@ -2042,6 +2044,7 @@ static Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(int start, int end) -> Mi
 static Microsoft.CodeAnalysis.Text.TextSpan.operator !=(Microsoft.CodeAnalysis.Text.TextSpan left, Microsoft.CodeAnalysis.Text.TextSpan right) -> bool
 static Microsoft.CodeAnalysis.Text.TextSpan.operator ==(Microsoft.CodeAnalysis.Text.TextSpan left, Microsoft.CodeAnalysis.Text.TextSpan right) -> bool
 static readonly Microsoft.CodeAnalysis.AssemblyIdentityComparer.Default -> Microsoft.CodeAnalysis.AssemblyIdentityComparer
+static readonly Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer.Default -> Microsoft.CodeAnalysis.DesktopAssemblyIdentityComparer
 static readonly Microsoft.CodeAnalysis.DocumentationProvider.Default -> Microsoft.CodeAnalysis.DocumentationProvider
 static readonly Microsoft.CodeAnalysis.MetadataReferenceProperties.Assembly -> Microsoft.CodeAnalysis.MetadataReferenceProperties
 static readonly Microsoft.CodeAnalysis.MetadataReferenceProperties.GlobalAlias -> string

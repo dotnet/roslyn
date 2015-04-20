@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,11 +24,21 @@ namespace Microsoft.CodeAnalysis
         internal abstract class EmitStreamProvider
         {
             /// <summary>
-            /// This method will be called once during Emit at the time the Compilation needs the
-            /// associated <see cref="Stream"/> for writing.  It will not be called in the case of
-            /// user errors in code.
+            /// Returns an existing open stream or null if no stream has been open.
             /// </summary>
-            public abstract Stream GetStream(DiagnosticBag diagnostics);
+            public abstract Stream Stream { get; }
+
+            /// <summary>
+            /// This method will be called once during Emit at the time the Compilation needs 
+            /// to create a stream for writing. It will not be called in the case of
+            /// user errors in code. Shall not be called when <see cref="Stream"/> returns non-null.
+            /// </summary>
+            public abstract Stream CreateStream(DiagnosticBag diagnostics);
+
+            public Stream GetOrCreateStream(DiagnosticBag diagnostics)
+            {
+                return Stream ?? CreateStream(diagnostics);
+            }
         }
 
         internal sealed class SimpleEmitStreamProvider : EmitStreamProvider
@@ -39,9 +51,11 @@ namespace Microsoft.CodeAnalysis
                 _stream = stream;
             }
 
-            public override Stream GetStream(DiagnosticBag diagnostics)
+            public override Stream Stream => _stream;
+
+            public override Stream CreateStream(DiagnosticBag diagnostics)
             {
-                return _stream;
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }
