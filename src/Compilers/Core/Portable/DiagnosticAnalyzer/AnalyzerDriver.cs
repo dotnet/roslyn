@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const int MaxSymbolKind = 100;
 
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
-        private readonly CancellationTokenRegistration _queueRegistration;
         protected readonly AnalyzerManager analyzerManager;
         
         // Lazy fields initialized in Initialize() API
@@ -267,11 +266,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             this.CompilationEventQueue = new AsyncQueue<CompilationEvent>();
             this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
-            _queueRegistration = cancellationToken.Register(() =>
-            {
-                // this.CompilationEventQueue.TryComplete();
-                // this.DiagnosticQueue.TryComplete();
-            });
         }
 
         /// <summary>
@@ -720,7 +714,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             this.CompilationEventQueue.TryComplete();
             this.DiagnosticQueue.TryComplete();
-            _queueRegistration.Dispose();
         }
     }
 
