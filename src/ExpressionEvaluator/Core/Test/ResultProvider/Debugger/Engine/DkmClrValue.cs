@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 value = e;
                 evalFlags |= DkmEvaluationResultFlags.ExceptionThrown;
             }
-            var valueType = new DkmClrType(this.Type.RuntimeInstance, (value == null) ? elementType : (TypeImpl)value.GetType());
+            var valueType = new DkmClrType(this.Type.RuntimeInstance, (value == null || elementType.IsPointer) ? elementType : (TypeImpl)value.GetType());
             return new DkmClrValue(
                 value,
                 value,
@@ -489,13 +489,13 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             {
                 unsafe
                 {
-                    if (Marshal.SizeOf(typeof(void*)) == 4)
+                    if (Environment.Is64BitProcess)
                     {
-                        value = (int)System.Reflection.Pointer.Unbox(value);
+                        value = (long)System.Reflection.Pointer.Unbox(value);
                     }
                     else
                     {
-                        value = (long)System.Reflection.Pointer.Unbox(value);
+                        value = (int)System.Reflection.Pointer.Unbox(value);
                     }
                 }
                 type = declaredType;
@@ -711,7 +711,10 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         throw new InvalidOperationException("Dereferencing null");
                     }
-                    return Marshal.PtrToStructure(ptr, ((TypeImpl)elementType).Type);
+                    var destinationType = elementType.IsPointer
+                        ? (Environment.Is64BitProcess ? typeof(long) : typeof(int))
+                        : ((TypeImpl)elementType).Type;
+                    return Marshal.PtrToStructure(ptr, destinationType);
                 default:
                     throw new InvalidOperationException();
             }

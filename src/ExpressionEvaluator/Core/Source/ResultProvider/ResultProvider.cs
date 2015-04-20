@@ -819,7 +819,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 // If this ever happens, the element type info is just .SkipOne().
                 Debug.Assert(!new DynamicFlagsCustomTypeInfo(declaredTypeAndInfo.Info).Any());
-                return !value.IsNull ? new PointerDereferenceExpansion(new TypeAndCustomInfo(declaredType.GetElementType())) : null;
+                var elementType = declaredType.GetElementType();
+                return value.IsNull || elementType.IsVoid()
+                    ? null
+                    : new PointerDereferenceExpansion(new TypeAndCustomInfo(elementType));
             }
 
             if (value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown) &&
