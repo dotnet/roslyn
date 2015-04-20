@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 whenHasValue = WrapInNullable(whenHasValue, resultType)
             End If
 
-            Debug.Assert(whenHasValue.Type.IsSameTypeIgnoringCustomModifiers(resultType), "result type must be same as resultType")
+            Debug.Assert(whenHasValue.Type.IsSameTypeIgnoringCustomModifiers(resultType), "result type must be same as " & NameOf(resultType))
 
             ' RESULT
 
