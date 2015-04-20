@@ -640,7 +640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VisualBasicCompilation) As VisualBasicCompilation
             If Not IsSubmission Then
-                Throw New NotSupportedException("Can't have a previousSubmission when not a submission")
+                Throw New NotSupportedException("Can't have a " & NameOf(newPreviousSubmission) & " when not a submission")
             End If
 
             ' Reference binding doesn't depend on previous submission so we can reuse it.
@@ -964,7 +964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function ReplaceSyntaxTree(oldTree As SyntaxTree, newTree As SyntaxTree) As VisualBasicCompilation
             If oldTree Is Nothing Then
-                Throw New ArgumentNullException("oldSyntaxTree")
+                Throw New ArgumentNullException(NameOf(oldTree))
             End If
 
             If newTree Is Nothing Then
