@@ -16,7 +16,7 @@ The easiest way to acquire Mono on Ubuntu, or any Debian based system, is to use
 
 ```
 $> cd roslyn
-$roslyn> ./build/linux/setup-snapshot.sh
+$roslyn> sudo ./build/linux/setup-snapshot.sh
 ```
 
 After this script runs you can enable the latest mono snapshot from a shell prompt by running the following:
@@ -38,6 +38,17 @@ $> cd mono
 $mono> git remote add jaredpar git@github.com:jaredpar/mono.git
 $mono> git checkout -b build-roslyn jaredpar/build-roslyn
 ```
+
+# Installing the Portable Class Libraries
+
+The standard Mono installation needs to be patched with the Portable Class Libraries in order to build parts of Roslyn.  The [setup-pcl.sh] script takes care of this.  Simply point it to the directory where mono is installed and it will take care of the rest.  
+
+```
+$> ./roslyn/builds/linux/setup-pcl.sh ~/builds/mono 
+```
+
+Note: This script may need to be used with `sudo` depending on where mono was installed. 
+
 
 # Building Roslyn on Linux / Mac 
 
