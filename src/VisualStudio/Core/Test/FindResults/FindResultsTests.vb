@@ -37,12 +37,12 @@ class $$C
 
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
-                    New TestFindResult($"[CSharpAssembly1] C.C() ({ServicesVSResources.ReferenceCountSingular})",
-                        New TestFindResult("CSharpAssembly1\Test1.cs - (11, 21) : var a = new C();")),
-                    New TestFindResult($"[CSharpAssembly1] C.C(int) ({ServicesVSResources.ReferenceCountSingular})",
-                        New TestFindResult("CSharpAssembly1\Test1.cs - (12, 21) : var b = new C(5);")),
-                    New TestFindResult($"[CSharpAssembly1] class C ({ServicesVSResources.ReferenceCountSingular})",
-                        New TestFindResult("CSharpAssembly1\Test1.cs - (13, 17) : var c = C.z;"))
+                    TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C() ({ServicesVSResources.ReferenceCountSingular})",
+                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (11, 21) : var a = new C();")),
+                    TestFindResult.CreateDefinition($"[CSharpAssembly1] C.C(int) ({ServicesVSResources.ReferenceCountSingular})",
+                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (12, 21) : var b = new C(5);")),
+                    TestFindResult.CreateDefinition($"[CSharpAssembly1] class C ({ServicesVSResources.ReferenceCountSingular})",
+                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (13, 17) : var c = C.z;"))
                 }
 
             Verify(markup, LanguageNames.CSharp, expectedResults)
@@ -70,16 +70,56 @@ End Class"]]></Text>
 
             Dim expectedResults = New List(Of AbstractTreeItem) From
                 {
-                    New TestFindResult($"[VisualBasicAssembly1] Class C ({ServicesVSResources.ReferenceCountSingular})",
-                        New TestFindResult("VisualBasicAssembly1\Test1.vb - (14, 17) : Dim d = C.z")),
-                    New TestFindResult($"[VisualBasicAssembly1] Sub C.New() ({ServicesVSResources.ReferenceCountSingular})",
-                        New TestFindResult("VisualBasicAssembly1\Test1.vb - (12, 21) : Dim a = New C()")),
-                    New TestFindResult($"[VisualBasicAssembly1] Sub C.New(Integer) ({ServicesVSResources.ReferenceCountSingular})",
-                        New TestFindResult("VisualBasicAssembly1\Test1.vb - (13, 21) : Dim b = New C(5)"))
+                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Class C ({ServicesVSResources.ReferenceCountSingular})",
+                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (14, 17) : Dim d = C.z")),
+                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New() ({ServicesVSResources.ReferenceCountSingular})",
+                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (12, 21) : Dim a = New C()")),
+                    TestFindResult.CreateDefinition($"[VisualBasicAssembly1] Sub C.New(Integer) ({ServicesVSResources.ReferenceCountSingular})",
+                        TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (13, 21) : Dim b = New C(5)"))
                 }
 
             Verify(markup, LanguageNames.VisualBasic, expectedResults)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestSourceNamespace()
+            Dim markup = <Text><![CDATA[
+namespace NS$$
+{
+}
+
+namespace NS
+{
+}
+]]></Text>
+
+            Dim expectedResults = New List(Of AbstractTreeItem) From
+                {
+                    TestFindResult.CreateUnnavigable($"namespace NS ({String.Format(ServicesVSResources.ReferenceCountPlural, 2)})",
+                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (2, 11) : namespace NS"),
+                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (6, 11) : namespace NS"))
+                }
+
+            Verify(markup, LanguageNames.CSharp, expectedResults)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestMetadataNamespace()
+            Dim markup = <Text><![CDATA[
+using System$$;
+using System.Threading;
+]]></Text>
+
+            Dim expectedResults = New List(Of AbstractTreeItem) From
+                {
+                    TestFindResult.CreateUnnavigable($"namespace System ({String.Format(ServicesVSResources.ReferenceCountPlural, 2)})",
+                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (2, 7) : using System;"),
+                        TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (3, 7) : using System.Threading;"))
+                }
+
+            Verify(markup, LanguageNames.CSharp, expectedResults)
+        End Sub
+
 
         Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
@@ -130,6 +170,8 @@ Actual Items:
                 Dim actualItem = findReferencesTree(index)
 
                 Assert.Equal(expectedItem.DisplayText, actualItem.DisplayText)
+                Assert.Equal(expectedItem.CanGoToDefinition, actualItem.CanGoToDefinition)
+                Assert.Equal(expectedItem.CanGoToReference, actualItem.CanGoToReference)
 
                 Dim expectedHasChildren = expectedItem.Children IsNot Nothing AndAlso expectedItem.Children.Count > 0
                 Dim actualHasChildren = actualItem.Children IsNot Nothing AndAlso actualItem.Children.Count > 0
@@ -142,22 +184,27 @@ Actual Items:
             Next
         End Sub
 
-        Private Function GetResultText(references As IList(Of AbstractTreeItem)) As String
+        Private Function GetResultText(items As IList(Of AbstractTreeItem)) As String
             Dim indentString = String.Empty
             Dim stringBuilder = New StringBuilder()
 
-            GetResultTextWorker(references, stringBuilder, indentString)
+            GetResultTextWorker(items, stringBuilder, indentString)
 
             Return stringBuilder.ToString()
         End Function
 
-        Private Sub GetResultTextWorker(references As IList(Of AbstractTreeItem), stringBuilder As StringBuilder, indentString As String)
-            For Each reference In references
+        Private Sub GetResultTextWorker(items As IList(Of AbstractTreeItem), stringBuilder As StringBuilder, indentString As String)
+            For Each item In items
                 stringBuilder.Append(indentString)
-                stringBuilder.AppendLine(reference.DisplayText)
+                stringBuilder.Append(item.DisplayText)
+                stringBuilder.Append(" [Kind: " &
+                                     If(item.CanGoToDefinition, "Def", String.Empty) &
+                                     If(item.CanGoToReference, "Ref", String.Empty) &
+                                     If(item.CanGoToDefinition OrElse item.CanGoToDefinition, "None", String.Empty) &
+                                     "]")
 
-                If reference.Children IsNot Nothing AndAlso reference.Children.Any() Then
-                    GetResultTextWorker(reference.Children, stringBuilder, indentString + "  ")
+                If item.Children IsNot Nothing AndAlso item.Children.Any() Then
+                    GetResultTextWorker(item.Children, stringBuilder, indentString + "  ")
                 End If
             Next
         End Sub
@@ -165,10 +212,39 @@ Actual Items:
         Private Class TestFindResult
             Inherits AbstractTreeItem
 
-            Public Sub New(displayText As String, ParamArray children As TestFindResult())
+            Public ReadOnly expectedCanGoToDefinition As Boolean?
+            Public ReadOnly expectedCanGoToReference As Boolean?
+
+            Public Overrides Function CanGoToDefinition() As Boolean
+                Return If(expectedCanGoToDefinition, True)
+            End Function
+
+            Public Overrides Function CanGoToReference() As Boolean
+                Return If(expectedCanGoToReference, True)
+            End Function
+
+            Public Shared Function CreateDefinition(displayText As String, ParamArray children As TestFindResult()) As TestFindResult
+                Return New TestFindResult(displayText, children, expectedCanGoToDefinition:=True, expectedCanGoToReference:=False)
+            End Function
+
+            Public Shared Function CreateReference(displayText As String, ParamArray children As TestFindResult()) As TestFindResult
+                Return New TestFindResult(displayText, children, expectedCanGoToDefinition:=False, expectedCanGoToReference:=True)
+            End Function
+
+            Public Shared Function CreateUnnavigable(displayText As String, ParamArray children As TestFindResult()) As TestFindResult
+                Return New TestFindResult(displayText, children, expectedCanGoToDefinition:=False, expectedCanGoToReference:=False)
+            End Function
+
+            Private Sub New(displayText As String,
+                            children As TestFindResult(),
+                            expectedCanGoToDefinition As Boolean,
+                            expectedCanGoToReference As Boolean)
+
                 MyBase.New(0)
                 Me.DisplayText = displayText
-                Me.Children = If(children.Length > 0, children, Nothing)
+                Me.expectedCanGoToDefinition = expectedCanGoToDefinition
+                Me.expectedCanGoToReference = expectedCanGoToReference
+                Me.Children = If(children IsNot Nothing AndAlso children.Length > 0, children, Nothing)
             End Sub
 
             Public Overrides Function GoToSource() As Integer
