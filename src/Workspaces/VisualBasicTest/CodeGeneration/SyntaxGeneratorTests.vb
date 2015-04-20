@@ -698,6 +698,22 @@ End Sub</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub MethodDeclarationCanRoundTrip()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+<x>
+Public Sub Test()
+End Sub</x>.Value)
+            Dim compilation = VisualBasicCompilation.Create("AssemblyName", syntaxTrees:={tree})
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().First()
+            Dim symbol = CType(model.GetDeclaredSymbol(node), IMethodSymbol)
+            VerifySyntax(Of MethodBlockSyntax)(
+                _g.MethodDeclaration(symbol),
+<x>Public Sub Test()
+End Sub</x>.Value)
+        End Sub
+
+        <Fact>
         Public Sub TestPropertyDeclarations()
             VerifySyntax(Of PropertyStatementSyntax)(
                 _g.PropertyDeclaration("p", _g.IdentifierName("x"), modifiers:=DeclarationModifiers.Abstract + DeclarationModifiers.ReadOnly),
