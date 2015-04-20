@@ -562,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub CheckSyntaxNode(node As VisualBasicSyntaxNode)
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If Not IsInTree(node) Then
@@ -572,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckModelAndSyntaxNodeToSpeculate(node As VisualBasicSyntaxNode)
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If Me.IsSpeculativeSemanticModel Then
@@ -750,7 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    bindingOption As SpeculativeBindingOption,
                                                    <Out> ByRef binder As Binder) As BoundNodeSummary
             If expression Is Nothing Then
-                Throw New ArgumentNullException("expression")
+                Throw New ArgumentNullException(NameOf(expression))
             End If
 
             Dim standalone = SyntaxFactory.GetStandaloneExpression(expression)
@@ -833,7 +833,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function GetSpeculativelyBoundAttributeSummary(position As Integer, attribute As AttributeSyntax, <Out> ByRef binder As Binder) As BoundNodeSummary
             If attribute Is Nothing Then
-                Throw New ArgumentNullException("attribute")
+                Throw New ArgumentNullException(NameOf(attribute))
             End If
 
             Dim bnode = GetSpeculativelyBoundAttribute(position, attribute, binder)
@@ -1809,7 +1809,7 @@ _Default:
                  options As LookupOptions,
                  useBaseReferenceAccessibility As Boolean) As ImmutableArray(Of Symbol)
 
-            Debug.Assert((options And LookupOptions.UseBaseReferenceAccessibility) = 0, "Use the useBaseReferenceAccessibility parameter.")
+            Debug.Assert((options And LookupOptions.UseBaseReferenceAccessibility) = 0, "Use the " & NameOf(useBaseReferenceAccessibility) & " parameter.")
             If useBaseReferenceAccessibility Then
                 options = options Or LookupOptions.UseBaseReferenceAccessibility
             End If
@@ -1827,8 +1827,8 @@ _Default:
                 Dim containingType = binder.ContainingType
                 Dim baseType = If(containingType Is Nothing, Nothing, containingType.BaseTypeNoUseSiteDiagnostics)
                 If baseType Is Nothing Then
-                    Throw New ArgumentException("position",
-                            "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)")
+                    Throw New ArgumentException(NameOf(position),
+                            $"Not a valid position for a call to {NameOf(LookupBaseMembers)} (must be in a type with a base type)")
                 End If
                 container = baseType
             End If
@@ -2058,10 +2058,10 @@ _Default:
             CheckPosition(position)
 
             If symbol Is Nothing Then
-                Throw New ArgumentNullException("symbol")
+                Throw New ArgumentNullException(NameOf(symbol))
             End If
 
-            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)("symbol")
+            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol))
 
             Dim binder = Me.GetEnclosingBinder(position)
             If binder IsNot Nothing Then
@@ -2311,10 +2311,10 @@ _Default:
         ''' type), use Compilation.ClassifyConversion.</remarks>
         Public Shadows Function ClassifyConversion(position As Integer, expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
             If destination Is Nothing Then
-                Throw New ArgumentNullException("destination")
+                Throw New ArgumentNullException(NameOf(destination))
             End If
 
-            Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)("destination")
+            Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             CheckPosition(position)
             Dim binder = Me.GetEnclosingBinder(position)
@@ -2343,7 +2343,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
             If identifierSyntax Is Nothing Then
-                Throw New ArgumentNullException("identifierSyntax")
+                Throw New ArgumentNullException(NameOf(identifierSyntax))
             End If
             If Not IsInTree(identifierSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -2387,7 +2387,7 @@ _Default:
         ''' if the field initializer was not part of an anonymous type creation.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As CancellationToken = Nothing) As IPropertySymbol
             If fieldInitializerSyntax Is Nothing Then
-                Throw New ArgumentNullException("fieldInitializerSyntax")
+                Throw New ArgumentNullException(NameOf(fieldInitializerSyntax))
             End If
             If Not IsInTree(fieldInitializerSyntax) Then
                 Throw New ArgumentException(VBResources.FieldInitializerSyntaxNotWithinSyntaxTree)
@@ -2403,7 +2403,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
             If anonymousObjectCreationExpressionSyntax Is Nothing Then
-                Throw New ArgumentNullException("anonymousObjectCreationExpressionSyntax")
+                Throw New ArgumentNullException(NameOf(anonymousObjectCreationExpressionSyntax))
             End If
             If Not IsInTree(anonymousObjectCreationExpressionSyntax) Then
                 Throw New ArgumentException(VBResources.AnonymousObjectCreationExpressionSyntaxNotWithinTree)
@@ -2419,7 +2419,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.RangeVariableSyntaxNotWithinSyntaxTree)
@@ -2435,7 +2435,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.RangeVariableSyntaxNotWithinSyntaxTree)
@@ -2451,7 +2451,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.RangeVariableSyntaxNotWithinSyntaxTree)
@@ -2467,7 +2467,7 @@ _Default:
         ''' <returns>The label symbol, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(declarationSyntax As LabelStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ILabelSymbol
             If declarationSyntax Is Nothing Then
-                Throw New ArgumentNullException("declarationSyntax")
+                Throw New ArgumentNullException(NameOf(declarationSyntax))
             End If
             If Not IsInTree(declarationSyntax) Then
                 Throw New ArgumentException(VBResources.DeclarationSyntaxNotWithinSyntaxTree)
@@ -3068,7 +3068,7 @@ _Default:
 
         Private Function GetTypeInfoForNode(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim expressionSyntax = TryCast(node, expressionSyntax)
@@ -3086,7 +3086,7 @@ _Default:
 
         Private Function GetMemberGroupForNode(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim expressionSyntax = TryCast(node, expressionSyntax)
@@ -3130,7 +3130,7 @@ _Default:
 
         Protected NotOverridable Overrides Function GetAliasInfoCore(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim nameSyntax = TryCast(node, IdentifierNameSyntax)
@@ -3181,7 +3181,7 @@ _Default:
 
             Dim result = TryCast(container, NamespaceOrTypeSymbol)
             If result Is Nothing Then
-                Throw New ArgumentException(VBResources.NotAVbSymbol, "container")
+                Throw New ArgumentException(VBResources.NotAVbSymbol, NameOf(container))
             End If
             Return result
         End Function
@@ -3318,7 +3318,7 @@ _Default:
         Protected NotOverridable Overrides Function AnalyzeDataFlowCore(statementOrExpression As SyntaxNode) As DataFlowAnalysis
 
             If statementOrExpression Is Nothing Then
-                Throw New ArgumentNullException("statementOrExpression")
+                Throw New ArgumentNullException(NameOf(statementOrExpression))
             End If
 
             If TypeOf statementOrExpression Is ExecutableStatementSyntax Then
@@ -3337,12 +3337,12 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As ControlFlowAnalysis
-            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, "firstStatement"),
-                                                   SafeCastArgument(Of StatementSyntax)(lastStatement, "lastStatement"))
+            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
+                                                   SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(lastStatement)))
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(statement As SyntaxNode) As ControlFlowAnalysis
-            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(statement, "statement"))
+            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(statement, NameOf(statement)))
         End Function
 
         Private Shared Function SafeCastArgument(Of T As Class)(node As SyntaxNode, argName As String) As T
@@ -3359,7 +3359,7 @@ _Default:
         Protected NotOverridable Overrides Function GetConstantValueCore(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As [Optional](Of Object)
 
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If TypeOf node Is ExpressionSyntax Then
@@ -3374,7 +3374,7 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
-            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of symbol)("symbol"))
+            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol)))
         End Function
 
         Protected NotOverridable Overrides Function IsEventUsableAsFieldCore(position As Integer, symbol As IEventSymbol) As Boolean
@@ -3442,50 +3442,50 @@ _Default:
         ' case we decide we need more verbose logging in certain cases for debugging.
 
         Friend Function GetMessage(position As Integer) As String
-            Return String.Format("{0}: at {1}", Me.SyntaxTree.FilePath, position)
+            Return $"{Me.SyntaxTree.FilePath}: at {position}"
         End Function
 
         Friend Function GetMessage(node As VisualBasicSyntaxNode) As String
             If node Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2})", Me.SyntaxTree.FilePath, node.Kind.ToString(), node.Position)
+            Return $"{Me.SyntaxTree.FilePath}: {node.Kind.ToString} ({node.Position})"
         End Function
 
         Friend Function GetMessage(node As VisualBasicSyntaxNode, position As Integer) As String
             If node Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) at {3}", Me.SyntaxTree.FilePath, node.Kind.ToString(), node.Position, position)
+            Return $"{Me.SyntaxTree.FilePath}: {node.Kind.ToString()} ({node.Position}) at {position}"
         End Function
 
         Friend Function GetMessage(firstStatement As StatementSyntax, lastStatement As StatementSyntax) As String
             If firstStatement Is Nothing OrElse lastStatement Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} to {2}", Me.SyntaxTree.FilePath, firstStatement.Position, lastStatement.EndPosition)
+            Return $"{Me.SyntaxTree.FilePath}: {firstStatement.Position} to {lastStatement.EndPosition}"
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, type As TypeSymbol) As String
             If expression Is Nothing OrElse type Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) -> {3} {4}", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name)
+            Return $"{Me.SyntaxTree.FilePath}: {expression.Kind.ToString()} ({expression.Position}) -> {type.TypeKind.ToString()} {type.Name}"
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, type As TypeSymbol, position As Integer) As String
             If expression Is Nothing OrElse type Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) -> {3} {4} at {5}", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name, position)
+            Return $"{Me.SyntaxTree.FilePath}: {expression.Kind.ToString()} ({expression.Position}) -> { type.TypeKind.ToString()} {type.Name} at {position}"
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, [option] As SpeculativeBindingOption, position As Integer) As String
             If expression Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) at {3} ({4})", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, position, [option].ToString())
+            Return $"{Me.SyntaxTree.FilePath}: {expression.Kind.ToString()} ({expression.Position}) at {position} ({[option].ToString()})"
         End Function
 
         Friend Function GetMessage(name As String, [option] As LookupOptions, position As Integer) As String
-            Return String.Format("{0}: {1} at {2} ({3})", Me.SyntaxTree.FilePath, name, position, [option].ToString())
+            Return $"{Me.SyntaxTree.FilePath}: {name} at {position} ({[option].ToString()})"
         End Function
 
         Friend Function GetMessage(symbol As Symbol, position As Integer) As String
             If symbol Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} {2} at {3}", Me.SyntaxTree.FilePath, symbol.Kind.ToString(), symbol.Name, position)
+            Return $"{Me.SyntaxTree.FilePath}: {symbol.Kind.ToString()} {symbol.Name} at {position}"
         End Function
 
         Friend Function GetMessage(stage As CompilationStage) As String
-            Return String.Format("{0} ({1})", Me.SyntaxTree.FilePath, stage.ToString())
+            Return $"{Me.SyntaxTree.FilePath} ({stage.ToString()})"
         End Function
 #End Region
     End Class

@@ -460,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If result Is Nothing Then
                     result = version
                 ElseIf result <> version Then
-                    Throw New ArgumentException("inconsistent language versions", "syntaxTrees")
+                    Throw New ArgumentException("inconsistent language versions", NameOf(syntaxTrees))
                 End If
             Next
 
@@ -640,7 +640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VisualBasicCompilation) As VisualBasicCompilation
             If Not IsSubmission Then
-                Throw New NotSupportedException("Can't have a previousSubmission when not a submission")
+                Throw New NotSupportedException("Can't have a " & NameOf(newPreviousSubmission) & " when not a submission")
             End If
 
             ' Reference binding doesn't depend on previous submission so we can reuse it.
@@ -797,7 +797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shadows Function ContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
             If syntaxTree Is Nothing Then
-                Throw New ArgumentNullException("syntaxTree")
+                Throw New ArgumentNullException(NameOf(syntaxTree))
             End If
 
             Dim vbtree = syntaxTree
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function AddSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VisualBasicCompilation
             If trees Is Nothing Then
-                Throw New ArgumentNullException("trees")
+                Throw New ArgumentNullException(NameOf(trees))
             End If
 
             If Not trees.Any() Then
@@ -892,7 +892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function RemoveSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VisualBasicCompilation
             If trees Is Nothing Then
-                Throw New ArgumentNullException("trees")
+                Throw New ArgumentNullException(NameOf(trees))
             End If
 
             If Not trees.Any() Then
@@ -964,7 +964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function ReplaceSyntaxTree(oldTree As SyntaxTree, newTree As SyntaxTree) As VisualBasicCompilation
             If oldTree Is Nothing Then
-                Throw New ArgumentNullException("oldSyntaxTree")
+                Throw New ArgumentNullException(NameOf(oldTree))
             End If
 
             If newTree Is Nothing Then
@@ -974,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not newTree.HasCompilationUnitRoot Then
-                Throw New ArgumentException(VBResources.TreeMustHaveARootNodeWithCompilationUnit, "newTree")
+                Throw New ArgumentException(VBResources.TreeMustHaveARootNodeWithCompilationUnit, NameOf(newTree))
             End If
 
             Dim vbOldTree = oldTree
@@ -1182,7 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend Shadows Function GetAssemblyOrModuleSymbol(reference As MetadataReference) As Symbol
             If (reference Is Nothing) Then
-                Throw New ArgumentNullException("reference")
+                Throw New ArgumentNullException(NameOf(reference))
             End If
 
             If reference.Properties.Kind = MetadataImageKind.Assembly Then
@@ -1321,7 +1321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function GetCompilationNamespace(namespaceSymbol As INamespaceSymbol) As NamespaceSymbol
             If namespaceSymbol Is Nothing Then
-                Throw New ArgumentNullException("namespaceSymbol")
+                Throw New ArgumentNullException(NameOf(namespaceSymbol))
             End If
 
             Dim vbNs = TryCast(namespaceSymbol, NamespaceSymbol)
@@ -1707,15 +1707,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shadows Function ClassifyConversion(source As ITypeSymbol, destination As ITypeSymbol) As Conversion
             If source Is Nothing Then
-                Throw New ArgumentNullException("source")
+                Throw New ArgumentNullException(NameOf(source))
             End If
 
             If destination Is Nothing Then
-                Throw New ArgumentNullException("destination")
+                Throw New ArgumentNullException(NameOf(destination))
             End If
 
-            Dim vbsource = source.EnsureVbSymbolOrNothing(Of TypeSymbol)("source")
-            Dim vbdest = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)("destination")
+            Dim vbsource = source.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(source))
+            Dim vbdest = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             If vbsource.IsErrorType() OrElse vbdest.IsErrorType() Then
                 Return New Conversion(Nothing) ' No conversion
@@ -1801,7 +1801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shadows Function CreateArrayTypeSymbol(elementType As TypeSymbol, Optional rank As Integer = 1) As ArrayTypeSymbol
             If elementType Is Nothing Then
-                Throw New ArgumentNullException("elementType")
+                Throw New ArgumentNullException(NameOf(elementType))
             End If
 
             Return New ArrayTypeSymbol(elementType, Nothing, rank, Me)
@@ -1961,7 +1961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               includeEarlierStages As Boolean,
                                               Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             If Not SyntaxTrees.Contains(tree) Then
-                Throw New ArgumentException("Cannot GetDiagnosticsForSyntax for a tree that is not part of the compilation", "tree")
+                Throw New ArgumentException("Cannot GetDiagnosticsForSyntax for a tree that is not part of the compilation", NameOf(tree))
             End If
 
             Dim builder = DiagnosticBag.GetInstance()
@@ -2506,7 +2506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If trees Is Nothing Then
-                Throw New ArgumentNullException("trees")
+                Throw New ArgumentNullException(NameOf(trees))
             End If
 
             Return Me.AddSyntaxTrees(trees.Cast(Of SyntaxTree)())
@@ -2519,7 +2519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If trees Is Nothing Then
-                Throw New ArgumentNullException("trees")
+                Throw New ArgumentNullException(NameOf(trees))
             End If
 
             Return Me.RemoveSyntaxTrees(trees.Cast(Of SyntaxTree)())
@@ -2582,7 +2582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer) As IArrayTypeSymbol
-            Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)("elementType"), rank)
+            Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
