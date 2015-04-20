@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Exit Select
                         End If
 
-                        Debug.Assert(namedType IsNot Nothing, "Structure which is not a NamedTypeSymbol??")
+                        Debug.Assert(namedType IsNot Nothing, "Structure which is not a " & NameOf(NamedTypeSymbol) & "??")
 
                         ' Prevent cycles
                         Me._typesNeedingClearingCache.Add(type, True)
