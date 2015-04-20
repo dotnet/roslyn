@@ -105,11 +105,6 @@
     <Compile Include="ServerDispatcher.MemoryHelper.cs" />
     <Compile Include="VisualBasicCompilerServer.cs" />
   </ItemGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Helpers\InMemoryAssemblyProvider.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
-    </Compile>
-  </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
