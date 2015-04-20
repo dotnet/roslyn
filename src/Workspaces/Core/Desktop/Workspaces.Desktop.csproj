@@ -62,6 +62,9 @@
     <Compile Include="..\..\..\Compilers\Core\Desktop\AssemblyReferenceResolver.cs">
       <Link>InternalUtilities\AssemblyReferenceResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Desktop\CodePage1252Encoding.cs">
+      <Link>InternalUtilities\CodePage1252Encoding.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Desktop\MetadataFileReferenceResolver.cs">
       <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
     </Compile>
