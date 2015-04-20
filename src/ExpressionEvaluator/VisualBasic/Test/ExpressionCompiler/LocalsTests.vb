@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -119,6 +120,108 @@ End Class"
   IL_0002:  ret
 }")
 
+            locals.Free()
+        End Sub
+
+        <Fact>
+        Public Sub LocalsAndPseudoVariables()
+            Const source =
+"Class C
+    Sub M(o As Object)
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, methodName:="C.M")
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim builder = ArrayBuilder(Of [Alias]).GetInstance()
+            builder.Add(New [Alias](AliasKind.Exception, "Error", "$exception", GetType(System.IO.IOException).AssemblyQualifiedName))
+            builder.Add(New [Alias](AliasKind.ReturnValue, "F returned", "$ReturnValue2", GetType(String).AssemblyQualifiedName))
+            builder.Add(New [Alias](AliasKind.ReturnValue, "G returned", "$ReturnValue", GetType(Object).AssemblyQualifiedName))
+            builder.Add(New [Alias](AliasKind.ObjectId, "2", "2", GetType(Boolean).AssemblyQualifiedName))
+            builder.Add(New [Alias](AliasKind.DeclaredLocal, "o", "o", "C"))
+            Dim aliases = New ReadOnlyCollection(Of [Alias])(builder.ToArrayAndFree())
+
+            Dim testData = New CompilationTestData()
+            context.CompileGetLocals(
+                aliases,
+                locals,
+                argumentsOnly:=True,
+                diagnostics:=diagnostics,
+                typeName:=typeName,
+                testData:=testData)
+            Assert.Equal(1, locals.Count)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "o")
+            locals.Clear()
+
+            testData = New CompilationTestData()
+            context.CompileGetLocals(
+                aliases,
+                locals,
+                argumentsOnly:=False,
+                diagnostics:=diagnostics,
+                typeName:=typeName,
+                testData:=testData)
+            Assert.Equal(7, locals.Count)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "$exception", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException() As System.Exception""
+  IL_0005:  castclass  ""System.IO.IOException""
+  IL_000a:  ret
+}")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "$ReturnValue2", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
+  IL_0006:  castclass  ""String""
+  IL_000b:  ret
+}")
+            VerifyLocal(testData, typeName, locals(2), "<>m2", "$ReturnValue", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
+  IL_0006:  ret
+}")
+            VerifyLocal(testData, typeName, locals(3), "<>m3", "2", expectedILOpt:=
+"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldstr      ""2""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
+  IL_000a:  unbox.any  ""Boolean""
+  IL_000f:  ret
+}")
+            VerifyLocal(testData, typeName, locals(4), "<>m4", "o", expectedILOpt:=
+"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldstr      ""o""
+  IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
+  IL_000a:  castclass  ""C""
+  IL_000f:  ret
+}")
+            VerifyLocal(testData, typeName, locals(5), "<>m5", "Me", expectedILOpt:=
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}")
+            VerifyLocal(testData, typeName, locals(6), "<>m6", "o", expectedILOpt:=
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}")
             locals.Free()
         End Sub
 

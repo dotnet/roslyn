@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -366,6 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(new byte[0]);
 
         internal override ReadOnlyCollection<byte> CompileGetLocals(
+            ReadOnlyCollection<Alias> aliases,
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
             DiagnosticBag diagnostics,
@@ -373,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
         {
             var context = this.CreateCompilationContext(null);
-            var moduleBuilder = context.CompileGetLocals(TypeName, locals, argumentsOnly, testData, diagnostics);
+            var moduleBuilder = context.CompileGetLocals(aliases, TypeName, locals, argumentsOnly, testData, diagnostics);
             ReadOnlyCollection<byte> assembly = null;
 
             if ((moduleBuilder != null) && (locals.Count > 0))
