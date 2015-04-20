@@ -49,7 +49,7 @@ To build Roslyn run the following:
 
 ```
 $> xbuild /p:SignAssembly=False /p:DebugSymbols=False src/Compilers/CSharp/csc/csc.csproj
-$> xbuild /p:SignAssembly=False /p:DebugSymbols=Fales src/Compilers/VisualBasic/vbc/vbc.csproj
+$> xbuild /p:SignAssembly=False /p:DebugSymbols=False src/Compilers/VisualBasic/vbc/vbc.csproj
 ```
 
 This will produce `csc.exe` and `vbc.exe` in `Binaries\Debug`.  
