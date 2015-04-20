@@ -266,5 +266,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(0, encodedText.Length);
             }
         }
+
+        [Fact, WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
+        public void HorizontalEllipsis()
+        {
+            // Character 0x85 in CodePage 1252 is a horizontal ellipsis.
+            // If decoded as Latin-1, then it's incorrectly treated as \u0085 which
+            // is a line break ('NEXT LINE').
+            byte[] srcBytes = new[] { (byte)0x85 };
+            using (var ms = new MemoryStream(srcBytes))
+            {
+                var sourceText = EncodedStringText.Create(ms);
+                Assert.Equal('\u2026', sourceText[0]);
+            }
+        }
     }
 }
