@@ -561,8 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             position = CheckAndAdjustPosition(position);
 
             Binder binder = GetEnclosingBinder(position);
-            if (binder != null &&
-                (binder.Flags.Includes(BinderFlags.Cref) || binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType)))
+            if (binder?.InCref == true)
             {
                 speculativeModel = SpeculativeSyntaxTreeSemanticModel.Create(parentModel, crefSyntax, binder, position);
                 return true;
