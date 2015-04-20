@@ -195,11 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException("Must resolve overloads on PropertySymbol or MethodSymbol", NameOf(TMember))
             End If
             If isProperties And Not typeArguments.IsEmpty Then
-<<<<<<< .merge_file_a03564
                 Throw New ArgumentException(VBResources.PropertiesCanNotHaveTypeArguments, NameOf(typeArguments))
-=======
-                Throw New ArgumentException(VBResources.PropertiesCanNotHaveTypeArguments, NameOf(ArrayWithOffset))
->>>>>>> .merge_file_a02828
             End If
 
             Dim boundArguments As ImmutableArray(Of BoundExpression) = Nothing
