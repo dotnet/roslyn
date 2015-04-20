@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<Location> _locations;
         private NamespaceSymbol _globalNamespace;
 
+        private bool _hasBadAttributes;
+
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
             DeclarationTable declarations,
@@ -47,6 +49,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _assemblySymbol = assemblySymbol;
             _sources = declarations;
             _name = moduleName;
+        }
+
+        internal void RecordPresenceOfBadAttributes()
+        {
+            _hasBadAttributes = true;
+        }
+
+        internal bool HasBadAttributes
+        {
+            get
+            {
+                return _hasBadAttributes;
+            }
         }
 
         internal override int Ordinal
