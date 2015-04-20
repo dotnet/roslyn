@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 trivia,
                 GetDeclarationDepth((SyntaxToken)trivia.ElementAt(0).Token),
                 isTrailing: false,
-                mustBeIndented: false,
+                indentAfterLineBreak: false,
                 mustHaveSeparator: false,
                 lineBreaksAfter: 0);
             normalizer.Free();
@@ -89,42 +89,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 var tk = token;
 
                 var depth = GetDeclarationDepth(token);
-                var needsIndentation = _indentNext || (LineBreaksAfter(_previousToken, token) > 0);
-                var lineBreaksAfter = LineBreaksAfter(token);
-                _indentNext = false;
 
                 tk = tk.WithLeadingTrivia(RewriteTrivia(
                     token.LeadingTrivia,
                     depth,
                     isTrailing: false,
-                    mustBeIndented: needsIndentation,
+                    indentAfterLineBreak: NeedsIndentAfterLineBreak(token),
                     mustHaveSeparator: false,
-                    lineBreaksAfter: lineBreaksAfter));
+                    lineBreaksAfter: 0));
 
                 var nextToken = this.GetNextRelevantToken(token);
 
-                _afterLineBreak = EndsInLineBreak(token);
+                _afterLineBreak = IsLineBreak(token);
                 _afterIndentation = false;
 
-                lineBreaksAfter = LineBreaksAfter(token, nextToken);
+                var lineBreaksAfter = LineBreaksAfter(token, nextToken);
                 var needsSeparatorAfter = NeedsSeparator(token, nextToken);
                 tk = tk.WithTrailingTrivia(RewriteTrivia(
                     token.TrailingTrivia,
                     depth,
                     isTrailing: true,
-                    mustBeIndented: false,
+                    indentAfterLineBreak: false,
                     mustHaveSeparator: needsSeparatorAfter,
                     lineBreaksAfter: lineBreaksAfter));
-
-                if (lineBreaksAfter > 0)
-                {
-                    _indentNext = true;
-                }
 
                 return tk;
             }
             finally
             {
+                // to help debugging
                 _previousToken = token;
             }
         }
@@ -171,13 +164,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return _indentations[count];
         }
 
-        private static int LineBreaksAfter(SyntaxToken token)
+        private static bool NeedsIndentAfterLineBreak(SyntaxToken token)
         {
-            return token.Kind() == SyntaxKind.EndOfDirectiveToken ? 1 : 0;
+            return !token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
         private int LineBreaksAfter(SyntaxToken currentToken, SyntaxToken nextToken)
         {
+            if (currentToken.IsKind(SyntaxKind.EndOfDirectiveToken))
+            {
+                return 1;
+            }
+
             if (nextToken.Kind() == SyntaxKind.None)
             {
                 return 0;
@@ -207,7 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         return 1;
                     }
-
                     break;
                 case SyntaxKind.SemicolonToken:
                     return LineBreaksAfterSemicolon(currentToken, nextToken);
@@ -254,26 +251,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterCloseBrace(SyntaxToken nextToken)
         {
-            if (nextToken.Kind() == SyntaxKind.CloseBraceToken)
+            var kind = nextToken.Kind();
+            switch (kind)
             {
-                return 1;
-            }
-            else if (
-                nextToken.Kind() == SyntaxKind.CatchKeyword ||
-                nextToken.Kind() == SyntaxKind.FinallyKeyword ||
-                nextToken.Kind() == SyntaxKind.ElseKeyword)
-            {
-                return 1;
-            }
-            else if (
-                nextToken.Kind() == SyntaxKind.WhileKeyword &&
-                nextToken.Parent.Kind() == SyntaxKind.DoStatement)
-            {
-                return 1;
-            }
-            else
-            {
-                return 2;
+                case SyntaxKind.EndOfFileToken:
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.CatchKeyword:
+                case SyntaxKind.FinallyKeyword:
+                case SyntaxKind.ElseKeyword:
+                    return 1;
+                default:
+                    if (kind == SyntaxKind.WhileKeyword &&
+                        nextToken.Parent.IsKind(SyntaxKind.DoStatement))
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return 2;
+                    }
             }
         }
 
@@ -462,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             SyntaxTriviaList triviaList,
             int depth,
             bool isTrailing,
-            bool mustBeIndented,
+            bool indentAfterLineBreak,
             bool mustHaveSeparator,
             int lineBreaksAfter)
         {
@@ -481,7 +477,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     var needsSeparator =
                         (currentTriviaList.Count > 0 && NeedsSeparatorBetween(currentTriviaList.Last())) ||
                             (currentTriviaList.Count == 0 && isTrailing);
-                    var needsLineBreak = NeedsLineBreakBefore(trivia) || (currentTriviaList.Count > 0 && NeedsLineBreakBetween(currentTriviaList.Last(), trivia, isTrailing));
+
+                    var needsLineBreak = NeedsLineBreakBefore(trivia, isTrailing) 
+                        || (currentTriviaList.Count > 0 && NeedsLineBreakBetween(currentTriviaList.Last(), trivia, isTrailing));
 
                     if (needsLineBreak && !_afterLineBreak)
                     {
@@ -520,7 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         currentTriviaList.Add(trivia);
                     }
 
-                    if (NeedsLineBreakAfter(trivia, isTrailing))
+                    if (NeedsLineBreakAfter(trivia, isTrailing) 
+                        && (currentTriviaList.Count == 0 || !EndsInLineBreak(currentTriviaList.Last())))
                     {
                         currentTriviaList.Add(GetCarriageReturnLineFeed());
                         _afterLineBreak = true;
@@ -530,7 +529,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 if (lineBreaksAfter > 0)
                 {
-                    if (currentTriviaList.Count > 0 && EndsInLineBreak(currentTriviaList.Last()))
+                    if (currentTriviaList.Count > 0 
+                        && EndsInLineBreak(currentTriviaList.Last()))
                     {
                         lineBreaksAfter--;
                     }
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         _afterIndentation = false;
                     }
                 }
-                else if (mustBeIndented)
+                else if (indentAfterLineBreak && _afterLineBreak && !_afterIndentation)
                 {
                     currentTriviaList.Add(this.GetIndentation(depth));
                     _afterIndentation = true;
@@ -616,43 +616,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool NeedsLineBreakBetween(SyntaxTrivia trivia, SyntaxTrivia next, bool isTrailingTrivia)
         {
-            if (EndsInLineBreak(trivia))
-            {
-                return false;
-            }
+            return NeedsLineBreakAfter(trivia, isTrailingTrivia)
+                || NeedsLineBreakBefore(next, isTrailingTrivia);
+        }
 
-            switch (next.Kind())
+        private static bool NeedsLineBreakBefore(SyntaxTrivia trivia, bool isTrailingTrivia)
+        {
+            var kind = trivia.Kind();
+            switch (kind)
             {
-                case SyntaxKind.SingleLineCommentTrivia:
-                case SyntaxKind.MultiLineCommentTrivia:
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
                     return !isTrailingTrivia;
                 default:
-                    return false;
-            }
-        }
-
-        private static bool NeedsLineBreakBefore(SyntaxTrivia trivia)
-        {
-            switch (trivia.Kind())
-            {
-                case SyntaxKind.DocumentationCommentExteriorTrivia:
-                    return true;
-                default:
-                    return false;
+                    return SyntaxFacts.IsPreprocessorDirective(kind);
             }
         }
 
         private static bool NeedsLineBreakAfter(SyntaxTrivia trivia, bool isTrailingTrivia)
         {
-            switch (trivia.Kind())
+            var kind = trivia.Kind();
+            switch (kind)
             {
                 case SyntaxKind.SingleLineCommentTrivia:
                     return true;
                 case SyntaxKind.MultiLineCommentTrivia:
                     return !isTrailingTrivia;
                 default:
-                    return false;
+                    return SyntaxFacts.IsPreprocessorDirective(kind);
             }
         }
 
@@ -671,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private static bool EndsInLineBreak(SyntaxToken token)
+        private static bool IsLineBreak(SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
         }
@@ -687,6 +677,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var text = trivia.ToFullString();
                 return text.Length > 0 && SyntaxFacts.IsNewLine(text.Last());
+            }
+
+            if (trivia.HasStructure)
+            {
+                var node = trivia.GetStructure();
+                var trailing = node.GetTrailingTrivia();
+                if (trailing.Count > 0)
+                {
+                    return EndsInLineBreak(trailing.Last());
+                }
+                else
+                {
+                    return IsLineBreak(node.GetLastToken());
+                }
             }
 
             return false;

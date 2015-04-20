@@ -308,9 +308,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        [WorkItem(1066, "github")]
         public void TestNormalizePreprocessorDirectives()
         {
+            // directive as node
             TestNormalize(SyntaxFactory.DefineDirectiveTrivia(SyntaxFactory.Identifier("a"), false), "#define a\r\n");
+
+            // directive as trivia
             TestNormalizeTrivia("  #  define a", "#define a\r\n");
             TestNormalizeTrivia("#if(a||b)", "#if (a || b)\r\n");
             TestNormalizeTrivia("#if(a&&b)", "#if (a && b)\r\n");
@@ -324,7 +328,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         SyntaxFactory.EndIfDirectiveTrivia(false))),
                 "#if a\r\n#endif\r\n");
 
-            // red factories for structured trivia needs to return SyntaxTrivia, not structured node types?
+            TestNormalizeTrivia("#endregion foo", "#endregion foo\r\n");
+
+            TestNormalizeDeclaration(
+@"#pragma warning disable 123
+
+namespace foo {
+}
+
+#pragma warning restore 123",
+@"#pragma warning disable 123
+namespace foo
+{
+}
+#pragma warning restore 123
+");
         }
 
         [Fact]
