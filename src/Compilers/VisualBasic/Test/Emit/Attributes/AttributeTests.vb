@@ -4273,5 +4273,69 @@ End Class
             CompileAndVerify(compilation3, symbolValidator:=validator)
         End Sub
 
+        <Fact, WorkItem(1144603, "DevDiv")>
+        Public Sub EmitMetadataOnlyInPresenceOfErrors()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DiagnosticAnalyzerAttribute
+    Inherits System.Attribute
+    Public Sub New(firstLanguage As String, ParamArray additionalLanguages As String())
+    End Sub
+End Class
+
+Public Class LanguageNames
+    Public Const CSharp As xyz = "C#"
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.DebugDll)
+
+            AssertTheseDiagnostics(compilation1, <![CDATA[
+BC30002: Type 'xyz' is not defined.
+    Public Const CSharp As xyz = "C#"
+                           ~~~
+]]>)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<DiagnosticAnalyzer(LanguageNames.CSharp)>
+Class CSharpCompilerDiagnosticAnalyzer
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugDll.WithModuleName("Test.dll"))
+            Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols(1))
+            AssertTheseDiagnostics(compilation2)
+
+            Dim emitResult2 = compilation2.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
+            Assert.False(emitResult2.Success)
+            AssertTheseDiagnostics(emitResult2.Diagnostics, <![CDATA[
+BC36970: Failed to emit module 'Test.dll'.
+]]>)
+
+            ' Use different mscorlib to test retargeting scenario
+            Dim compilation3 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugDll)
+            Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols(1))
+            AssertTheseDiagnostics(compilation3, <![CDATA[
+BC30002: Type 'xyz' is not defined.
+<DiagnosticAnalyzer(LanguageNames.CSharp)>
+                    ~~~~~~~~~~~~~~~~~~~~
+]]>)
+
+            Dim emitResult3 = compilation3.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
+            Assert.False(emitResult3.Success)
+            AssertTheseDiagnostics(emitResult3.Diagnostics, <![CDATA[
+BC30002: Type 'xyz' is not defined.
+<DiagnosticAnalyzer(LanguageNames.CSharp)>
+                    ~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
     End Class
 End Namespace
