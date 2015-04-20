@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -290,6 +292,109 @@ namespace @return
             Assert.Equal("@return.@yield<@async>", yieldType.GetTypeName(escapeKeywordIdentifiers: true));
             Assert.Equal("@return.@yield<@return.@false.@null>", constructedYieldType.GetTypeName(escapeKeywordIdentifiers: true));
             Assert.Equal("@return.@yield<@return.@false.@null>.@await", constructedAwaitType.GetTypeName(escapeKeywordIdentifiers: true));
+        }
+
+        [WorkItem(1087216)]
+        [Fact]
+        public void DynamicAttribute_KeywordEscaping()
+        {
+            var attributes = new[] { true };
+            Assert.Equal("dynamic", typeof(object).GetTypeName(attributes, escapeKeywordIdentifiers: false));
+            Assert.Equal("dynamic", typeof(object).GetTypeName(attributes, escapeKeywordIdentifiers: true));
+        }
+
+        [WorkItem(1087216)]
+        [Fact]
+        public void DynamicAttribute_Locations()
+        {
+            // Standalone.
+            Assert.Equal("dynamic", typeof(object).GetTypeName(new[] { true }));
+
+            // Array element type.
+            Assert.Equal("dynamic[]", typeof(object[]).GetTypeName(new[] { false, true }));
+            Assert.Equal("dynamic[][]", typeof(object[][]).GetTypeName(new[] { false, false, true }));
+
+            // Type argument of top-level type.
+            Assert.Equal("System.Func<dynamic>", typeof(Func<object>).GetTypeName(new[] { false, true }));
+
+            var source = @"
+namespace N
+{
+    public struct A<T>
+    {
+        public struct B<U>
+        {
+        }
+    }
+
+    public struct C
+    {
+    }
+}
+";
+            var assembly = GetAssembly(source);
+            var typeA = assembly.GetType("N.A`1");
+            var typeB = typeA.GetNestedType("B`1");
+            var typeBConstructed = typeB.MakeGenericType(typeof(object), typeof(object));
+
+            // Type argument of nested type.
+            Assert.Equal("N.A<object>.B<dynamic>", typeBConstructed.GetTypeName(new[] { false, false, true }));
+            Assert.Equal("N.A<dynamic>.B<object>", typeBConstructed.GetTypeName(new[] { false, true, false }));
+            Assert.Equal("N.A<dynamic>.B<dynamic>[]", typeBConstructed.MakeArrayType().GetTypeName(new[] { false, false, true, true }));
+        }
+
+        [WorkItem(1087216)]
+        [Fact]
+        public void DynamicAttribute_InvalidFlags()
+        {
+            // Invalid true.
+            Assert.Equal("int", typeof(int).GetTypeName(new[] { true }));
+            Assert.Equal("dynamic[]", typeof(object[]).GetTypeName(new[] { true, true }));
+
+            // Too many.
+            Assert.Equal("dynamic", typeof(object).GetTypeName(new[] { true, true }));
+            Assert.Equal("object", typeof(object).GetTypeName(new[] { false, true }));
+
+            // Too few.
+            Assert.Equal("object[]", typeof(object[]).GetTypeName(new[] { true }));
+            Assert.Equal("object[]", typeof(object[]).GetTypeName(new[] { false }));
+
+            // Type argument of top-level type.
+            Assert.Equal("System.Func<object>", typeof(Func<object>).GetTypeName(new[] { true }));
+
+            var source = @"
+namespace N
+{
+    public struct A<T>
+    {
+        public struct B<U>
+        {
+        }
+    }
+
+    public struct C
+    {
+    }
+}
+";
+            var assembly = GetAssembly(source);
+            var typeA = assembly.GetType("N.A`1");
+            var typeB = typeA.GetNestedType("B`1");
+            var typeBConstructed = typeB.MakeGenericType(typeof(object), typeof(object));
+
+            // Type argument of nested type.
+            Assert.Equal("N.A<object>.B<object>", typeBConstructed.GetTypeName(new[] { false }));
+            Assert.Equal("N.A<dynamic>.B<object>", typeBConstructed.GetTypeName(new[] { false, true }));
+            Assert.Equal("N.A<dynamic>.B<object>[]", typeBConstructed.MakeArrayType().GetTypeName(new[] { false, false, true }));
+        }
+
+        [WorkItem(1087216)]
+        [Fact]
+        public void DynamicAttribute_OtherGuid()
+        {
+            var typeInfo = DkmClrCustomTypeInfo.Create(Guid.NewGuid(), new ReadOnlyCollection<byte>(new byte[] { 1 }));
+            Assert.Equal("object", typeof(object).GetTypeName(typeInfo));
+            Assert.Equal("object[]", typeof(object[]).GetTypeName(typeInfo));
         }
     }
 }

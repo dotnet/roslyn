@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             string name,
-            Type typeDeclaringMemberOpt,
-            Type declaredType,
+            TypeAndCustomInfo typeDeclaringMemberAndInfoOpt,
+            TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
             bool childShouldParenthesize,
             string fullName,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
                     {
-                        var rawView = CreateRawView(resultProvider, inspectionContext, declaredType, value);
+                        var rawView = CreateRawView(resultProvider, inspectionContext, declaredTypeAndInfo, value);
                         Debug.Assert(rawView != null);
                         return rawView;
                     }
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             inspectionContext,
                             proxyValue,
                             name,
-                            typeDeclaringMemberOpt,
-                            declaredType,
+                            typeDeclaringMemberAndInfoOpt,
+                            declaredTypeAndInfo,
                             value,
                             childShouldParenthesize,
                             fullName,
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private readonly EvalResultDataItem _proxyItem;
         private readonly string _name;
-        private readonly Type _typeDeclaringMemberOpt;
-        private readonly Type _declaredType;
+        private readonly TypeAndCustomInfo _typeDeclaringMemberAndInfoOpt;
+        private readonly TypeAndCustomInfo _declaredTypeAndInfo;
         private readonly DkmClrValue _value;
         private readonly bool _childShouldParenthesize;
         private readonly string _fullName;
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmInspectionContext inspectionContext,
             DkmClrValue proxyValue,
             string name,
-            Type typeDeclaringMemberOpt,
-            Type declaredType,
+            TypeAndCustomInfo typeDeclaringMemberAndInfoOpt,
+            TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
             bool childShouldParenthesize,
             string fullName,
@@ -111,9 +111,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Debug.Assert(proxyValue != null);
             var proxyType = proxyValue.Type.GetLmrType();
+            var proxyTypeAndInfo = new TypeAndCustomInfo(proxyType);
             var proxyMembers = MemberExpansion.CreateExpansion(
                 inspectionContext,
-                proxyType,
+                proxyTypeAndInfo,
                 proxyValue,
                 ExpansionFlags.IncludeBaseMembers,
                 TypeHelpers.IsPublic,
@@ -122,12 +123,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var proxyMemberFullNamePrefix = (childFullNamePrefix == null) ?
                     null :
-                    formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), childFullNamePrefix);
+                    formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), childFullNamePrefix);
                 _proxyItem = new EvalResultDataItem(
                     ExpansionKind.Default,
                     name: string.Empty,
-                    typeDeclaringMember: null,
-                    declaredType: proxyType,
+                    typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                    declaredTypeAndInfo: proxyTypeAndInfo,
                     parent: null,
                     value: proxyValue,
                     displayValue: null,
@@ -143,8 +144,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             _name = name;
-            _typeDeclaringMemberOpt = typeDeclaringMemberOpt;
-            _declaredType = declaredType;
+            _typeDeclaringMemberAndInfoOpt = typeDeclaringMemberAndInfoOpt;
+            _declaredTypeAndInfo = declaredTypeAndInfo;
             _value = value;
             _childShouldParenthesize = childShouldParenthesize;
             _fullName = fullName;
@@ -185,12 +186,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new EvalResultDataItem(
                 ExpansionKind.RawView,
                 _name,
-                _typeDeclaringMemberOpt,
-                _declaredType,
+                _typeDeclaringMemberAndInfoOpt,
+                _declaredTypeAndInfo,
                 parent: null,
                 value: _value,
                 displayValue: null,
-                expansion: CreateRawView(resultProvider, inspectionContext, _declaredType, _value),
+                expansion: CreateRawView(resultProvider, inspectionContext, _declaredTypeAndInfo, _value),
                 childShouldParenthesize: _childShouldParenthesize,
                 fullName: _fullName,
                 childFullNamePrefixOpt: _childFullNamePrefix,
@@ -204,10 +205,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static Expansion CreateRawView(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
-            Type declaredType,
+            TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value)
         {
-            return resultProvider.GetTypeExpansion(inspectionContext, declaredType, value, ExpansionFlags.IncludeBaseMembers);
+            return resultProvider.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, ExpansionFlags.IncludeBaseMembers);
         }
     }
 }

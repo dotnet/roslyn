@@ -27,9 +27,17 @@ namespace Microsoft.VisualStudio.Debugger
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public enum DkmEvaluationResultAccessType { }
-    public enum DkmEvaluationResultStorageType { }
-    public enum DkmEvaluationResultTypeModifierFlags { }
+    public enum DkmEvaluationResultAccessType
+    {
+        None = 0,
+        Public,
+        Private,
+        Protected,
+        Internal,
+    }
+
+    public enum DkmEvaluationResultStorageType { None = 0 }
+    public enum DkmEvaluationResultTypeModifierFlags { None = 0 }
     public class DkmDataAddress { }
 }
 

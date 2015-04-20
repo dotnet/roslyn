@@ -4,6 +4,7 @@ Imports System.Collections.ObjectModel
 Imports System.Globalization
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Roslyn.Utilities
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
 
@@ -20,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub AppendEnumTypeAndName(builder As StringBuilder, typeToDisplayOpt As Type, name As String)
             If typeToDisplayOpt IsNot Nothing Then
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, escapeKeywordIdentifiers:=True)
+                Dim index As Integer = 0
+                AppendQualifiedTypeName(builder, typeToDisplayOpt, Nothing, index, escapeKeywordIdentifiers:=True)
                 builder.Append("."c)
             End If
 

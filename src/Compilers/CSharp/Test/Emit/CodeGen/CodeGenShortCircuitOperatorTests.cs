@@ -6593,5 +6593,307 @@ True");
 }");
         }
 
+        [WorkItem(1)]
+        [Fact]
+        public void Bug1()
+        {
+            var source = @"
+using System;
+
+class Test
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        M1(c1);
+        M2(c1);
+    }
+    static void M1(C1 c1)
+    {
+        if (c1?.P == 1) Console.WriteLine(1);
+    }
+    static void M2(C1 c1)
+    {
+        if (c1 != null && c1.P == 1) Console.WriteLine(1);
+    }
+}
+class C1
+{
+    public int P => 1;
+}
+
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"1
+1");
+            comp.VerifyIL("Test.M1", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  call       ""int C1.P.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  bne.un.s   IL_0012
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  ret
+}
+");
+            comp.VerifyIL("Test.M2", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int C1.P.get""
+  IL_0009:  ldc.i4.1
+  IL_000a:  bne.un.s   IL_0012
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  ret
+}
+");
+        }
+        [Fact]
+        public void ConditionalBoolExpr02ba()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(NotHasLength(null, 0));
+        System.Console.Write(NotHasLength(null, 3));
+        System.Console.Write(NotHasLength(1, 2));
+    }
+
+    static bool NotHasLength(int? s, int len)
+    {
+        return s?.GetHashCode() + 1 != len;
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"TrueTrueFalse");
+
+            verifier.VerifyIL("C.NotHasLength", @"
+{
+  // Code size      106 (0x6a)
+  .maxstack  2
+  .locals init (int? V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4,
+                int V_5)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool int?.HasValue.get""
+  IL_0007:  brtrue.s   IL_0015
+  IL_0009:  ldloca.s   V_4
+  IL_000b:  initobj    ""int?""
+  IL_0011:  ldloc.s    V_4
+  IL_0013:  br.s       IL_002a
+  IL_0015:  ldarga.s   V_0
+  IL_0017:  call       ""int int?.GetValueOrDefault()""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  call       ""int int.GetHashCode()""
+  IL_0025:  newobj     ""int?..ctor(int)""
+  IL_002a:  stloc.2
+  IL_002b:  ldc.i4.1
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""bool int?.HasValue.get""
+  IL_0034:  brtrue.s   IL_0042
+  IL_0036:  ldloca.s   V_4
+  IL_0038:  initobj    ""int?""
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  br.s       IL_0050
+  IL_0042:  ldloca.s   V_2
+  IL_0044:  call       ""int int?.GetValueOrDefault()""
+  IL_0049:  ldloc.3
+  IL_004a:  add
+  IL_004b:  newobj     ""int?..ctor(int)""
+  IL_0050:  stloc.0
+  IL_0051:  ldarg.1
+  IL_0052:  stloc.1
+  IL_0053:  ldloca.s   V_0
+  IL_0055:  call       ""int int?.GetValueOrDefault()""
+  IL_005a:  ldloc.1
+  IL_005b:  beq.s      IL_005f
+  IL_005d:  ldc.i4.1
+  IL_005e:  ret
+  IL_005f:  ldloca.s   V_0
+  IL_0061:  call       ""bool int?.HasValue.get""
+  IL_0066:  ldc.i4.0
+  IL_0067:  ceq
+  IL_0069:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalBoolExpr02bb()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(NotHasLength(null, 0));
+        System.Console.Write(NotHasLength(null, 3));
+        System.Console.Write(NotHasLength(1, 2));
+        System.Console.Write(NotHasLength(null, null));
+    }
+
+    static bool NotHasLength(int? s, int? len)
+    {
+        return s?.GetHashCode() + 1 != len;
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"TrueTrueFalseFalse");
+
+            verifier.VerifyIL("C.NotHasLength", @"
+{
+  // Code size      121 (0x79)
+  .maxstack  2
+  .locals init (int? V_0,
+                int? V_1,
+                int? V_2,
+                int V_3,
+                int? V_4,
+                int V_5)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool int?.HasValue.get""
+  IL_0007:  brtrue.s   IL_0015
+  IL_0009:  ldloca.s   V_4
+  IL_000b:  initobj    ""int?""
+  IL_0011:  ldloc.s    V_4
+  IL_0013:  br.s       IL_002a
+  IL_0015:  ldarga.s   V_0
+  IL_0017:  call       ""int int?.GetValueOrDefault()""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  call       ""int int.GetHashCode()""
+  IL_0025:  newobj     ""int?..ctor(int)""
+  IL_002a:  stloc.2
+  IL_002b:  ldc.i4.1
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""bool int?.HasValue.get""
+  IL_0034:  brtrue.s   IL_0042
+  IL_0036:  ldloca.s   V_4
+  IL_0038:  initobj    ""int?""
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  br.s       IL_0050
+  IL_0042:  ldloca.s   V_2
+  IL_0044:  call       ""int int?.GetValueOrDefault()""
+  IL_0049:  ldloc.3
+  IL_004a:  add
+  IL_004b:  newobj     ""int?..ctor(int)""
+  IL_0050:  stloc.0
+  IL_0051:  ldarg.1
+  IL_0052:  stloc.1
+  IL_0053:  ldloca.s   V_0
+  IL_0055:  call       ""int int?.GetValueOrDefault()""
+  IL_005a:  ldloca.s   V_1
+  IL_005c:  call       ""int int?.GetValueOrDefault()""
+  IL_0061:  beq.s      IL_0065
+  IL_0063:  ldc.i4.1
+  IL_0064:  ret
+  IL_0065:  ldloca.s   V_0
+  IL_0067:  call       ""bool int?.HasValue.get""
+  IL_006c:  ldloca.s   V_1
+  IL_006e:  call       ""bool int?.HasValue.get""
+  IL_0073:  ceq
+  IL_0075:  ldc.i4.0
+  IL_0076:  ceq
+  IL_0078:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalUnary()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        var x = - - -((string)null)?.Length  ??  - - -string.Empty?.Length;
+
+        System.Console.WriteLine(x);
+    }
+}
+
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"0");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      135 (0x87)
+  .maxstack  2
+  .locals init (int? V_0,
+                int? V_1,
+                int? V_2)
+  IL_0000:  ldloca.s   V_2
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloc.2
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""bool int?.HasValue.get""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloca.s   V_2
+  IL_0015:  initobj    ""int?""
+  IL_001b:  ldloc.2
+  IL_001c:  br.s       IL_002d
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  call       ""int int?.GetValueOrDefault()""
+  IL_0025:  neg
+  IL_0026:  neg
+  IL_0027:  neg
+  IL_0028:  newobj     ""int?..ctor(int)""
+  IL_002d:  stloc.0
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  call       ""bool int?.HasValue.get""
+  IL_0035:  brtrue.s   IL_007b
+  IL_0037:  ldsfld     ""string string.Empty""
+  IL_003c:  dup
+  IL_003d:  brtrue.s   IL_004b
+  IL_003f:  pop
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  initobj    ""int?""
+  IL_0048:  ldloc.2
+  IL_0049:  br.s       IL_0055
+  IL_004b:  call       ""int string.Length.get""
+  IL_0050:  newobj     ""int?..ctor(int)""
+  IL_0055:  stloc.1
+  IL_0056:  ldloca.s   V_1
+  IL_0058:  call       ""bool int?.HasValue.get""
+  IL_005d:  brtrue.s   IL_006a
+  IL_005f:  ldloca.s   V_2
+  IL_0061:  initobj    ""int?""
+  IL_0067:  ldloc.2
+  IL_0068:  br.s       IL_007c
+  IL_006a:  ldloca.s   V_1
+  IL_006c:  call       ""int int?.GetValueOrDefault()""
+  IL_0071:  neg
+  IL_0072:  neg
+  IL_0073:  neg
+  IL_0074:  newobj     ""int?..ctor(int)""
+  IL_0079:  br.s       IL_007c
+  IL_007b:  ldloc.0
+  IL_007c:  box        ""int?""
+  IL_0081:  call       ""void System.Console.WriteLine(object)""
+  IL_0086:  ret
+}
+");
+        }
+
     }
 }

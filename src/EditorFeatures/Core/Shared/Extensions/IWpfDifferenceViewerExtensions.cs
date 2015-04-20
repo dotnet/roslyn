@@ -3,7 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class IWpfDifferenceViewerExtensions
     {
-        private class SizeToFitHelper
+        private class SizeToFitHelper : ForegroundThreadAffinitizedObject
         {
             private int _calculationStarted;
             private readonly IWpfDifferenceViewer _diffViewer;
@@ -31,8 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 _taskCompletion = new TaskCompletionSource<object>();
             }
 
-            public void SizeToFit()
+            public async Task SizeToFitAsync()
             {
+                // The following work must always happen on UI thread.
+                AssertIsForeground();
+
                 // We won't know how many lines there will be in the inline diff or how
                 // wide the widest line in the inline diff will be until the inline diff
                 // snapshot has been computed. We register an event handler here that will
@@ -49,16 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 // Since we are already on the UI thread, we need to yield control so that the
                 // inline diff snapshot computation (and the event handler we registered above to
                 // calculate required width and height) get a chance to run and we need to wait until
-                // this computation is complete.
-                if (!_taskCompletion.Task.IsCompleted)
-                {
-                    do
-                    {
-                        Action action = delegate { };
-                        new FrameworkElement().Dispatcher.Invoke(action, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-                    }
-                    while (!_taskCompletion.Task.Wait(15));
-                }
+                // this computation is complete. Once computation is complete, the width and height
+                // need to be set from the UI thread. We use ConfigureAwait(true) to stay on the UI thread.
+                await _taskCompletion.Task.ConfigureAwait(true);
+
+                // The following work must always happen on UI thread.
+                AssertIsForeground();
 
                 // We have the height and width required to display the inline diff snapshot now.
                 // Set the height and width of the IWpfDifferenceViewer accordingly.
@@ -68,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             private void SnapshotDifferenceChanged(object sender, SnapshotDifferenceChangeEventArgs args)
             {
+                // The following work must always happen on UI thread.
+                AssertIsForeground();
+
                 // This event handler will only be called when the inline diff snapshot computation is complete.
                 Contract.ThrowIfNull(_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot);
 
@@ -77,6 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             private void CalculateSize()
             {
+                // The following work must always happen on UI thread.
+                AssertIsForeground();
+
                 if ((_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot == null) ||
                     (Interlocked.CompareExchange(ref _calculationStarted, 1, 0) == 1))
                 {
@@ -133,10 +138,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        public static void SizeToFit(this IWpfDifferenceViewer diffViewer, double minWidth = 400.0)
+        public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, double minWidth = 400.0)
         {
             var helper = new SizeToFitHelper(diffViewer, minWidth);
-            helper.SizeToFit();
+            return helper.SizeToFitAsync();
         }
     }
 }

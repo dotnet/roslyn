@@ -1097,6 +1097,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return LookupResult.NotInvocable(unwrappedSymbol, symbol, diagnose);
             }
+            else if (InCref && !this.IsCrefAccessible(unwrappedSymbol))
+            {
+                var unwrappedSymbols = ImmutableArray.Create<Symbol>(unwrappedSymbol);
+                diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, unwrappedSymbols, additionalLocations: ImmutableArray<Location>.Empty) : null;
+                return LookupResult.Inaccessible(symbol, diagInfo);
+            }
             else if (!InCref &&
                      !this.IsAccessible(unwrappedSymbol,
                                         RefineAccessThroughType(options, accessThroughType),
@@ -1210,7 +1216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else if (!InCref && !this.IsAccessible(symbol, ref useSiteDiagnostics, RefineAccessThroughType(options, accessThroughType)))
+            else if (InCref ? !this.IsCrefAccessible(symbol)
+                            : !this.IsAccessible(symbol, ref useSiteDiagnostics, RefineAccessThroughType(options, accessThroughType)))
             {
                 return false;
             }
@@ -1243,6 +1250,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((options & LookupOptions.UseBaseReferenceAccessibility) != 0)
                 ? null
                 : accessThroughType;
+        }
+
+        /// <summary>
+        /// A symbol is accessible for referencing in a cref if it is in the same assembly as the reference
+        /// or the symbols's effective visibility is not private.
+        /// </summary>
+        private bool IsCrefAccessible(Symbol symbol)
+        {
+            return !IsEffectivelyPrivate(symbol) || symbol.ContainingAssembly == this.Compilation.Assembly;
+        }
+
+        private static bool IsEffectivelyPrivate(Symbol symbol)
+        {
+            for (Symbol s = symbol; (object)s != null; s = s.ContainingSymbol)
+            {
+                if (s.DeclaredAccessibility == Accessibility.Private)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

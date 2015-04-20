@@ -36,22 +36,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             string shellFolder;
             if (TryGetRootAndShellFolder(extensionManager, out shellFolder, out rootFolder))
             {
-                var builder = ImmutableArray.CreateBuilder<HostDiagnosticAnalyzerPackage>();
-                foreach (var extension in extensionManager.GetEnabledExtensions(AnalyzerContentTypeName))
-                {
-                    var name = extension.Header.LocalizedName;
-                    var assemblies = extension.Content.Where(ShouldInclude)
-                                                      .Select(c => GetContentLocation(shellFolder, rootFolder, extension.InstallPath, c.RelativePath))
-                                                      .WhereNotNull();
-
-                    builder.Add(new HostDiagnosticAnalyzerPackage(name, assemblies.ToImmutableArray()));
-                }
-
-                _hostDiagnosticAnalyzerInfo = builder.ToImmutable();
+                _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackagesWithName(extensionManager, rootFolder, shellFolder);
                 return;
             }
 
-            // if we can't get package name, use old style.
+            // if we can't get rootFolder/shellFolder location, use old behavior.
+            _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackages(extensionManager);
+        }
+
+        public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
+        {
+            return _hostDiagnosticAnalyzerInfo;
+        }
+
+        // internal for testing purpose
+        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackagesWithName(IVsExtensionManager extensionManager, string rootFolder, string shellFolder)
+        {
+            var builder = ImmutableArray.CreateBuilder<HostDiagnosticAnalyzerPackage>();
+            foreach (var extension in extensionManager.GetEnabledExtensions(AnalyzerContentTypeName))
+            {
+                var name = extension.Header.LocalizedName;
+                var assemblies = extension.Content.Where(ShouldInclude)
+                                                  .Select(c => GetContentLocation(shellFolder, rootFolder, extension.InstallPath, c.RelativePath))
+                                                  .WhereNotNull();
+
+                builder.Add(new HostDiagnosticAnalyzerPackage(name, assemblies.ToImmutableArray()));
+            }
+
+            return builder.ToImmutable();
+        }
+
+        // internal for testing purpose
+        internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackages(IVsExtensionManager extensionManager)
+        {
             var references = ImmutableArray.CreateBuilder<string>();
             foreach (var reference in extensionManager.GetEnabledExtensionContentLocations(AnalyzerContentTypeName))
             {
@@ -63,15 +80,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 references.Add(reference);
             }
 
-            _hostDiagnosticAnalyzerInfo = ImmutableArray.Create(new HostDiagnosticAnalyzerPackage(name: null, assemblies: references.ToImmutable()));
+            return ImmutableArray.Create(new HostDiagnosticAnalyzerPackage(name: null, assemblies: references.ToImmutable()));
         }
 
-        public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
-        {
-            return _hostDiagnosticAnalyzerInfo;
-        }
-
-        private bool TryGetRootAndShellFolder(IVsExtensionManager extensionManager, out string shellFolder, out string rootFolder)
+        private static bool TryGetRootAndShellFolder(IVsExtensionManager extensionManager, out string shellFolder, out string rootFolder)
         {
             // use reflection to get this information. currently there is no other way to get this information
             shellFolder = GetProperty(extensionManager, "ShellFolder");
@@ -80,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return !string.IsNullOrEmpty(rootFolder) && !string.IsNullOrEmpty(shellFolder);
         }
 
-        private string GetContentLocation(string shellFolder, string rootFolder, string installPath, string relativePath)
+        private static string GetContentLocation(string shellFolder, string rootFolder, string installPath, string relativePath)
         {
             // extension manager should expose an API that doesnt require this.
             const string ShellFolderToken = "$ShellFolder$";
@@ -109,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return contentLocation;
         }
 
-        private string GetProperty(IVsExtensionManager extensionManager, string propertyName)
+        private static string GetProperty(IVsExtensionManager extensionManager, string propertyName)
         {
             try
             {
@@ -121,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
         }
 
-        private bool ShouldInclude(IExtensionContent content)
+        private static bool ShouldInclude(IExtensionContent content)
         {
             return string.Equals(content.ContentTypeName, AnalyzerContentTypeName, StringComparison.InvariantCultureIgnoreCase);
         }

@@ -323,6 +323,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         End Sub
 
         <Fact>
+        Public Sub TestAwaitExpressions()
+            VerifySyntax(Of AwaitExpressionSyntax)(_g.AwaitExpression(_g.IdentifierName("x")), "Await x")
+        End Sub
+
+        <Fact>
         Public Sub TestReturnStatements()
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(), "Return")
             VerifySyntax(Of ReturnStatementSyntax)(_g.ReturnStatement(_g.IdentifierName("x")), "Return x")
@@ -689,6 +694,22 @@ End Function</x>.Value)
             VerifySyntax(Of MethodBlockSyntax)(
                 _g.MethodDeclaration("m", accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Partial),
 <x>Private Partial Sub m()
+End Sub</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub MethodDeclarationCanRoundTrip()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+<x>
+Public Sub Test()
+End Sub</x>.Value)
+            Dim compilation = VisualBasicCompilation.Create("AssemblyName", syntaxTrees:={tree})
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes().First()
+            Dim symbol = CType(model.GetDeclaredSymbol(node), IMethodSymbol)
+            VerifySyntax(Of MethodBlockSyntax)(
+                _g.MethodDeclaration(symbol),
+<x>Public Sub Test()
 End Sub</x>.Value)
         End Sub
 
