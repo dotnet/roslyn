@@ -101,7 +101,7 @@ class C
     {
         Foo {|DeclConflict:x|} = new Foo(FooMeth);
         int [|$$z|] = 1; // Rename z to x
-        {|unresolve1:x|}({|unresolve2:z|});
+        x({|unresolve2:z|});
     }
 }
                             </Document>
@@ -109,7 +109,6 @@ class C
                     </Workspace>, renameTo:="x")
 
                 result.AssertLabeledSpansAre("DeclConflict", type:=RelatedLocationType.UnresolvedConflict)
-                result.AssertLabeledSpansAre("unresolve1", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("unresolve2", "x", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
