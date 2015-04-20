@@ -1,7 +1,5 @@
 This guide will walk you through setting up a Linux / Mac box for Roslyn development.  
 
-*** THIS PAGE IS UNDER CONSTRUCTION *** 
-
 # Caveats
 
 Linux and Mac support for developing Roslyn is very much a work in progress.  Not everything is supported at the moment and the steps detailed on this page will change very frequently.  If this is an are you are interested in then please check back frequently for updates. 
