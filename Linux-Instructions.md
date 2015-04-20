@@ -2,7 +2,7 @@ This guide will walk you through setting up a Linux / Mac box for Roslyn develop
 
 # Caveats
 
-Linux and Mac support for developing Roslyn is very much a work in progress.  Not everything is supported at the moment and the steps detailed on this page will change very frequently.  If this is an are you are interested in then please check back frequently for updates. 
+Linux and Mac support for developing Roslyn is very much a work in progress.  Not everything is supported at the moment and the steps detailed on this page will change very frequently.  If this is an area you are interested in then please check back frequently for updates. 
 
 # Acquiring Mono 
 
@@ -22,7 +22,7 @@ $roslyn> ./build/linux/setup-snapshot.sh
 After this script runs you can enable the latest mono snapshot from a shell prompt by running the following:
 
 ```
-$> . mono-snaphsot mono
+$> . mono-snapshot mono
 ```
 
 ### Mac
