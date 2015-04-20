@@ -121,37 +121,37 @@
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="ClassLayout" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>classlayout.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>ClassLayout.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="CustomAttributeTableDeclaredUnsorted" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>customattributetabledeclaredunsorted.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>CustomAttributeTableDeclaredUnsorted.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="CustomAttributeTableUnsorted" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>customattributetableunsorted.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>CustomAttributeTableUnsorted.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="EmptyModuleTable" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>emptymoduletable.netmodule;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>EmptyModuleTable.netmodule;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="IncorrectCustomAssemblyTableSize_TooManyMethodSpecs" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>incorrectcustomassemblytablesize_toomanymethodspecs.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>IncorrectCustomAssemblyTableSize_TooManyMethodSpecs.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="InvalidDynamicAttributeArgs" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>invaliddynamicattributeargs.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>InvalidDynamicAttributeArgs.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="InvalidFuncDelegateName" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>invalidfuncdelegatename.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>InvalidFuncDelegateName.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="InvalidGenericType" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>invalidgenerictype.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>InvalidGenericType.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="InvalidModuleName" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>invalidmodulename.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>InvalidModuleName.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="LongTypeFormInSignature" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>longtypeforminsignature.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>LongTypeFormInSignature.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ManyMethodSpecs" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>manymethodspecs.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+    <value>ManyMethodSpecs.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="Obfuscated" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Obfuscated.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

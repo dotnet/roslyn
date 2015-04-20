@@ -489,6 +489,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function ShouldEmitAttribute(target As Symbol, isReturnType As Boolean, emittingAssemblyAttributesInNetModule As Boolean) As Boolean
             Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse TypeOf target.ContainingAssembly Is SourceAssemblySymbol)
 
+            If HasErrors Then
+                Throw ExceptionUtilities.Unreachable
+            End If
+
             ' Attribute type is conditionally omitted if both the following are true:
             '  (a) It has at least one applied conditional attribute AND
             '  (b) None of conditional symbols are true at the attribute source location.

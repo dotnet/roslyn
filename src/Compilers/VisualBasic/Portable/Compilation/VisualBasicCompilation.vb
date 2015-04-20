@@ -2208,6 +2208,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
+                If moduleBeingBuilt.SourceModule.HasBadAttributes Then
+                    ' If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name)
+                    Return False
+                End If
+
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
 

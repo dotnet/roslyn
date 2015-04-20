@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t = SyntaxFactory.PragmaChecksumDirectiveTrivia(makeStringLiteral("file"), makeStringLiteral("guid"), makeStringLiteral("bytes"), true);
             Assert.Equal(SyntaxKind.PragmaChecksumDirectiveTrivia, t.Kind());
             Assert.Equal("#pragmachecksum\"file\"\"guid\"\"bytes\"", t.ToString());
-            Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToString());
+            Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToFullString());
         }
 
         [Fact]
