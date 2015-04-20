@@ -48,12 +48,13 @@ namespace Microsoft.CodeAnalysis
                 projectId = documentId.ProjectId;
             }
 
-            if (_eventMap.HasEventHandlers<EventHandler<WorkspaceChangeEventArgs>>(WorkspaceChangeEventName))
+            var ev = _eventMap.GetEventHandlers<EventHandler<WorkspaceChangeEventArgs>>(WorkspaceChangeEventName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                    _eventMap.RaiseEvent<EventHandler<WorkspaceChangeEventArgs>>(WorkspaceChangeEventName, handler => handler(this, args));
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.WorkspaceChanged");
             }
             else
@@ -81,10 +82,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
-            if (_eventMap.HasEventHandlers<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName))
+            var ev = _eventMap.GetEventHandlers<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName);
+            if (ev.HasHandlers)
             {
                 var args = new WorkspaceDiagnosticEventArgs(diagnostic);
-                _eventMap.RaiseEvent<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName, handler => handler(this, args));
+                ev.RaiseEvent(handler => handler(this, args));
             }
         }
 
@@ -106,12 +108,13 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentOpenedEventAsync(Document document)
         {
-            if (_eventMap.HasEventHandlers<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName))
+            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    _eventMap.RaiseEvent<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName, handler => handler(this, args));
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.WorkspaceChanged");
             }
             else
@@ -138,12 +141,13 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentClosedEventAsync(Document document)
         {
-            if (_eventMap.HasEventHandlers<EventHandler<DocumentEventArgs>>(DocumentClosedEventName))
+            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentClosedEventName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    _eventMap.RaiseEvent<EventHandler<DocumentEventArgs>>(DocumentClosedEventName, handler => handler(this, args));
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.DocumentClosed");
             }
             else
@@ -171,12 +175,13 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         {
-            if (_eventMap.HasEventHandlers<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName))
+            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    _eventMap.RaiseEvent<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName, handler => handler(this, args));
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.WorkspaceChanged");
             }
             else

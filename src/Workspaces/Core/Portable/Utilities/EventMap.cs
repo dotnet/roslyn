@@ -53,23 +53,10 @@ namespace Roslyn.Utilities
             }
         }
 
-        public bool HasEventHandlers<TEventHandler>(string eventName)
+        public EventHandlerSet<TEventHandler> GetEventHandlers<TEventHandler>(string eventName)
             where TEventHandler : class
         {
-            return this.GetRegistries<TEventHandler>(eventName).Length > 0;
-        }
-
-        public void RaiseEvent<TEventHandler>(string eventName, Action<TEventHandler> invoker)
-            where TEventHandler : class
-        {
-            var registries = GetRegistries<TEventHandler>(eventName);
-            if (registries.Length > 0)
-            {
-                foreach (var registry in registries)
-                {
-                    registry.Invoke(invoker);
-                }
-            }
+            return new EventHandlerSet<TEventHandler>(this.GetRegistries<TEventHandler>(eventName));
         }
 
         private ImmutableArray<Registry<TEventHandler>> GetRegistries<TEventHandler>(string eventName)
@@ -145,6 +132,33 @@ namespace Roslyn.Utilities
             public override int GetHashCode()
             {
                 return this.handler.GetHashCode();
+            }
+        }
+
+        internal struct EventHandlerSet<TEventHandler>
+            where TEventHandler : class
+        {
+            private ImmutableArray<Registry<TEventHandler>> registries;
+
+            internal EventHandlerSet(object registries)
+            {
+                this.registries = (ImmutableArray<Registry<TEventHandler>>) registries;
+            }
+
+            public bool HasHandlers
+            {
+                get { return this.registries != null && this.registries.Length > 0; }
+            }
+
+            public void RaiseEvent(Action<TEventHandler> invoker)
+            {
+                if (this.HasHandlers)
+                {
+                    foreach (var registry in registries)
+                    {
+                        registry.Invoke(invoker);
+                    }
+                }
             }
         }
     }
