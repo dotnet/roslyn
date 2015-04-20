@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="nodesAndTokens">A sequence of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(nodesAndTokens As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxNodeOrTokenList
             If nodesAndTokens Is Nothing Then
-                Throw New ArgumentNullException("nodesAndTokens")
+                Throw New ArgumentNullException(NameOf(nodesAndTokens))
             End If
 
             Dim builder = New SyntaxNodeOrTokenListBuilder(8)
