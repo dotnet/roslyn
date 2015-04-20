@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// to Latin1 except some of the code points in the control set 1 range (0x80 to 0x9F) are
     /// replaced with typographic characters.
     /// </summary>
-    internal class CodePage1252Encoding : Encoding
+    internal sealed class CodePage1252Encoding : Encoding
     {
         public static readonly CodePage1252Encoding Instance = new CodePage1252Encoding();
 
