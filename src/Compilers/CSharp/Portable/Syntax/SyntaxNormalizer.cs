@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private bool _isInStructuredTrivia;
 
         private SyntaxToken _previousToken;
-        private bool _indentNext;
 
         private bool _afterLineBreak;
         private bool _afterIndentation;
@@ -191,21 +190,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 case SyntaxKind.None:
                     return 0;
+
                 case SyntaxKind.OpenBraceToken:
+                    return currentToken.Parent.IsKind(SyntaxKind.Interpolation) ? 0 : 1;
+
                 case SyntaxKind.FinallyKeyword:
                     return 1;
+
                 case SyntaxKind.CloseBraceToken:
-                    return LineBreaksAfterCloseBrace(nextToken);
+                    return currentToken.Parent.IsKind(SyntaxKind.Interpolation) 
+                        ? 0 
+                        : LineBreaksAfterCloseBrace(nextToken);
 
                 case SyntaxKind.CloseParenToken:
                     return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
                         || nextToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
+
                 case SyntaxKind.CloseBracketToken:
                     if (currentToken.Parent is AttributeListSyntax)
                     {
                         return 1;
                     }
                     break;
+
                 case SyntaxKind.SemicolonToken:
                     return LineBreaksAfterSemicolon(currentToken, nextToken);
 
@@ -237,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.CloseBraceToken:
+                    return nextToken.Parent.IsKind(SyntaxKind.Interpolation) ? 0 : 1;
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.FinallyKeyword:
                     return 1;

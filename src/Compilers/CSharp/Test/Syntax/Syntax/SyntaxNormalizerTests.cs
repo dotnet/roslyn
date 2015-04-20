@@ -254,6 +254,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "#region /*comment*/\r\n#endregion\r\n");
         }
 
+        [WorkItem(2076, "github")]
+        [Fact]
+        public void TestNormalizeInterpolatedString()
+        {
+            TestNormalizeExpression(@"$""Message is {a}""", @"$""Message is {a}""");
+        }
+
         [WorkItem(528584, "DevDiv")]
         [Fact]
         public void TestNormalizeRegion2()
