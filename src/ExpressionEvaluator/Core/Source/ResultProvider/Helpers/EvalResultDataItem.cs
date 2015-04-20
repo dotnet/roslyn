@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal enum ExpansionKind
     {
         Default,
+        DynamicView,
         Error,
         NativeView,
         NonPublicMembers,
@@ -149,6 +150,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (!value.IsError() && value.HasUnderlyingString(inspectionContext))
             {
                 resultFlags |= DkmEvaluationResultFlags.RawString;
+            }
+
+            // As in the old EE, we won't allow editing members of a DynamicView expansion.
+            if (type.IsDynamicProperty())
+            {
+                resultFlags |= DkmEvaluationResultFlags.ReadOnly;
             }
 
             return resultFlags;
