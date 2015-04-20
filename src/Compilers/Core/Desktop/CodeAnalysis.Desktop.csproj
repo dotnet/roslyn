@@ -49,6 +49,7 @@
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AbstractAnalyzerAssemblyLoader.cs" />
     <Compile Include="AdditionalTextFile.cs" />
     <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
