@@ -269,8 +269,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
             _queueRegistration = cancellationToken.Register(() =>
             {
-                this.CompilationEventQueue.TryComplete();
-                this.DiagnosticQueue.TryComplete();
+                // this.CompilationEventQueue.TryComplete();
+                // this.DiagnosticQueue.TryComplete();
             });
         }
 
