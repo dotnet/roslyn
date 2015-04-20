@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -33,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
             utf8output = compiler.Arguments.Utf8Output;
+
+            foreach (var analyzer in compiler.Arguments.AnalyzerReferences)
+            {
+                CompilerServerFileWatcher.AddPath(analyzer.FilePath);
+            }
+
             return compiler.Run(output, cancellationToken);
         }
 

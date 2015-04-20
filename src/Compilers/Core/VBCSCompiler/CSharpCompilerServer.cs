@@ -2,12 +2,9 @@
 
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -31,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var compiler = new CSharpCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
             utf8output = compiler.Arguments.Utf8Output;
+
+            foreach (var analyzer in compiler.Arguments.AnalyzerReferences)
+            {
+                CompilerServerFileWatcher.AddPath(analyzer.FilePath);
+            }
+
             return compiler.Run(output, cancellationToken);
         }
 
