@@ -270,8 +270,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function MakeAnonymousTypeTemplateName(prefix As String, index As Integer, submissionSlotIndex As Integer, moduleId As String) As String
             Return If(submissionSlotIndex >= 0,
-                           String.Format("{0}{1}_{2}{3}", prefix, submissionSlotIndex, index, moduleId),
-                           String.Format("{0}{1}{2}", prefix, index, moduleId))
+                           $"{prefix}{submissionSlotIndex}_{index}{moduleId}",
+                           $"{prefix}{index}{moduleId}")
         End Function
 
         Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
