@@ -1662,7 +1662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For Each location As Location In symbol.Locations
-                If Not location.SourceTree.IsEmbeddedOrMyTemplateTree Then
+                If location.SourceTree?.IsEmbeddedOrMyTemplateTree <> True Then
                     Return True
                 End If
             Next
