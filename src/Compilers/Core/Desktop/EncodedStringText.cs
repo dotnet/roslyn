@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// from <see cref="SourceText.From(Stream, Encoding, SourceHashAlgorithm, bool)"/> in two ways:
         /// 1. It attempts to minimize allocations by trying to read the stream into a byte array.
         /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF8 and, if that fails, it will
-        ///    try extended ASCII (code page Latin1).
+        ///    try CodePage 1252.
         /// </summary>
         /// <param name="stream">The stream containing encoded text.</param>
         /// <param name="defaultEncoding">
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? Encoding.GetEncoding(name: "Latin1"), checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? CodePage1252Encoding.Instance, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {

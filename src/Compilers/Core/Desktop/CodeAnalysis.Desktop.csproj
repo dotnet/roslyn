@@ -57,6 +57,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CodeAnalysisDesktopResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="CodePage1252Encoding.cs" />
     <Compile Include="CommandLine\CommandLineReference.cs" />
     <Compile Include="CommandLine\CommandLineSourceFile.cs" />
     <Compile Include="CommandLine\CommonCommandLineArguments.cs" />

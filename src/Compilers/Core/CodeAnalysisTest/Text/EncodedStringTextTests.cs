@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Decode_NonUtf8()
         {
             var utf8 = new UTF8Encoding(false, true);
-            var encoding = Encoding.GetEncoding(name: "Latin1");
+            var encoding = Encoding.Default;
             var text = "abc def baz aeiouy " + encoding.GetString(new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF });
             var bytes = encoding.GetBytesWithPreamble(text);
 
@@ -112,12 +112,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.True(stream.CanRead);
             }
 
-            // Detect encoding should correctly pick Encoding.Default
+            // Detect encoding should correctly pick Encoding.Default (CodePage 1252)
             using (var stream = new MemoryStream(bytes))
             {
                 var sourceText = EncodedStringText.Create(stream);
                 Assert.Equal(text, sourceText.ToString());
-                Assert.Equal(encoding, sourceText.Encoding);
+                Assert.Equal(encoding.CodePage, sourceText.Encoding.CodePage);
                 Assert.True(stream.CanRead);
             }
         }
