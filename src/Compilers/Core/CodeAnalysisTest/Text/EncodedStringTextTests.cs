@@ -96,12 +96,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Decode_NonUtf8()
         {
-            var utf8 = new UTF8Encoding(false, true);
-            var encoding = Encoding.Default;
-            var text = "abc def baz aeiouy " + encoding.GetString(new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF });
-            var bytes = encoding.GetBytesWithPreamble(text);
+            // Unicode text with extended characters that map to interesting code points in CodePage 1252.
+            var text = "abc def baz aeiouy \u20ac\u2019\u00a4\u00b6\u00c9\u00db\u00ed\u00ff";
 
-            // Encoding.Default should not decode to UTF-8
+            // The same text encoded in CodePage 1252 which happens to be an illegal sequence if decoded as Utf-8.
+            var bytes = new byte[]
+            {
+                0x61, 0x62, 0x63, 0x20, 0x64, 0x65, 0x66, 0x20, 0x62, 0x61, 0x7a, 0x20, 0x61, 0x65, 0x69, 0x6f, 0x75, 0x79, 0x20,
+                0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF
+            };
+
+            var utf8 = new UTF8Encoding(false, true);
+
+            // bytes should not decode to UTF-8
             using (var stream = new MemoryStream(bytes))
             {
                 Assert.Throws(typeof(DecoderFallbackException), () =>
@@ -112,12 +119,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.True(stream.CanRead);
             }
 
-            // Detect encoding should correctly pick Encoding.Default (CodePage 1252)
+            // Detect encoding should correctly pick CodePage 1252
             using (var stream = new MemoryStream(bytes))
             {
                 var sourceText = EncodedStringText.Create(stream);
                 Assert.Equal(text, sourceText.ToString());
-                Assert.Equal(encoding.CodePage, sourceText.Encoding.CodePage);
+                Assert.Equal(1252, sourceText.Encoding.CodePage);
                 Assert.True(stream.CanRead);
             }
         }
