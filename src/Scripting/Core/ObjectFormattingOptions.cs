@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (!memberFormat.IsValid())
             {
-                throw new ArgumentOutOfRangeException("memberFormat");
+                throw new ArgumentOutOfRangeException(nameof(memberFormat));
             }
 
             this.MemberFormat = memberFormat;

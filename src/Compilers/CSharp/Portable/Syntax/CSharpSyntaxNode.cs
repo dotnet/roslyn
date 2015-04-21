@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!FullSpan.Contains(position))
             {
-                throw new ArgumentOutOfRangeException("position");
+                throw new ArgumentOutOfRangeException(nameof(position));
             }
 
             SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.FullSpan.Contains(position))
             {
-                throw new ArgumentOutOfRangeException("position");
+                throw new ArgumentOutOfRangeException(nameof(position));
             }
 
             return this.FindTokenInternal(position);

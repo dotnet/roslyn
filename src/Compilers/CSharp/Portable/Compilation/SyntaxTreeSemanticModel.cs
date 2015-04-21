@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
             {
-                throw new ArgumentOutOfRangeException("tree", CSharpResources.TreeNotPartOfCompilation);
+                throw new ArgumentOutOfRangeException(nameof(syntaxTree), CSharpResources.TreeNotPartOfCompilation);
             }
 
             _binderFactory = compilation.GetBinderFactory(SyntaxTree);
