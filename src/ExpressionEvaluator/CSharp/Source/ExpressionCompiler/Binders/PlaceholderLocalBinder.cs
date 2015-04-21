@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return new ObjectAddressLocalSymbol(_containingMethod, name, this.Compilation.GetSpecialType(SpecialType.System_Object), address);
             }
 
-            PseudoVariableKind kind;
+            AliasKind kind;
             string id;
             int index;
             if (!PseudoVariableUtilities.TryParseVariableName(name, caseSensitive: true, kind: out kind, id: out id, index: out index))
@@ -109,25 +109,40 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return null;
             }
 
+            return CreatePlaceholderLocal(_typeNameDecoder, _containingMethod, new Alias(kind, id, id, typeName));
+        }
+
+        internal static PlaceholderLocalSymbol CreatePlaceholderLocal(
+            TypeNameDecoder<PEModuleSymbol, TypeSymbol> typeNameDecoder,
+            MethodSymbol containingMethod,
+            Alias alias)
+        {
+            var typeName = alias.Type;
             Debug.Assert(typeName.Length > 0);
 
-            var type = _typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
+            var type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
             Debug.Assert((object)type != null);
 
-            switch (kind)
+            var id = alias.FullName;
+            switch (alias.Kind)
             {
-                case PseudoVariableKind.Exception:
-                    return new ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName);
-                case PseudoVariableKind.StowedException:
-                    return new ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName);
-                case PseudoVariableKind.ReturnValue:
-                    return new ReturnValueLocalSymbol(_containingMethod, id, type, index);
-                case PseudoVariableKind.ObjectId:
-                    return new ObjectIdLocalSymbol(_containingMethod, type, id, isWritable: false);
-                case PseudoVariableKind.DeclaredLocal:
-                    return new ObjectIdLocalSymbol(_containingMethod, type, id, isWritable: true);
+                case AliasKind.Exception:
+                    return new ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName);
+                case AliasKind.StowedException:
+                    return new ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName);
+                case AliasKind.ReturnValue:
+                    {
+                        int index;
+                        PseudoVariableUtilities.TryParseReturnValueIndex(id, out index);
+                        Debug.Assert(index >= 0);
+                        return new ReturnValueLocalSymbol(containingMethod, id, type, index);
+                    }
+                case AliasKind.ObjectId:
+                    return new ObjectIdLocalSymbol(containingMethod, type, id, isWritable: false);
+                case AliasKind.DeclaredLocal:
+                    return new ObjectIdLocalSymbol(containingMethod, type, id, isWritable: true);
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                    throw ExceptionUtilities.UnexpectedValue(alias.Kind);
             }
         }
     }

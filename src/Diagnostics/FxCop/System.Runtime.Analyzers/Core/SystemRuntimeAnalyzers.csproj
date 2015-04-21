@@ -81,6 +81,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SystemRuntimeAnalyzersResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposed.Fixer.cs" />
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposed.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.cs" />
     <Compile Include="WellKnownTypes.cs" />

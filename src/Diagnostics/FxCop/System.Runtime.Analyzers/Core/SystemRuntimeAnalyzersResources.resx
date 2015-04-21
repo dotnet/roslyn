@@ -228,4 +228,7 @@
   <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
     <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
   </data>
+  <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
+    <value>Disposable fields should be disposed</value>
+  </data>
 </root>

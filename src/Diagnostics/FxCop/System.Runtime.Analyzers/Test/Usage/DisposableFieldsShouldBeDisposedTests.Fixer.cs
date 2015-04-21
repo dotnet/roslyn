@@ -1,16 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public partial class CA2213FixerTests : CodeFixTestBase
+    public partial class DisposableFieldsShouldBeDisposedFixerTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new CA2213BasicCodeFixProvider();
+            return new DisposableFieldsShouldBeDisposedFixer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CA2213CSharpCodeFixProvider();
+            return new DisposableFieldsShouldBeDisposedFixer();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -115,6 +113,50 @@ public class B : IDisposable
     void IDisposable.Dispose()
     {
         a.Dispose();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2213CSharpCodeFixDisposeMethodCallsExplicitImplementation()
+        {
+            VerifyCSharpFix(@"
+using System;
+
+public class A : IDisposable
+{
+    void IDisposable.Dispose()
+    {
+    }
+}
+
+public class B : IDisposable
+{
+    A a = new A();
+
+    void IDisposable.Dispose()
+    {
+    }
+}
+",
+@"
+using System;
+
+public class A : IDisposable
+{
+    void IDisposable.Dispose()
+    {
+    }
+}
+
+public class B : IDisposable
+{
+    A a = new A();
+
+    void IDisposable.Dispose()
+    {
+        ((IDisposable)a).Dispose();
     }
 }
 ");

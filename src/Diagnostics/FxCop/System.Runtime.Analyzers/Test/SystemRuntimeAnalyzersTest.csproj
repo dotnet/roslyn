@@ -100,6 +100,8 @@
   <ItemGroup>
     <Compile Include="Globalization\UseOrdinalStringComparisonTests.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparisonTests.cs" />
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposedTests.Fixer.cs" />
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposedTests.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributesTests.cs" />
     <Compile Include="Design\MarkAllAssembliesWithComVisibleTests.cs" />
     <Compile Include="Design\MarkAssembliesWithCLSCompliantAttributeTests.cs" />
