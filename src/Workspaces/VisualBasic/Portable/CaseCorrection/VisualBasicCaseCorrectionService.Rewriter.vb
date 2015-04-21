@@ -132,6 +132,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                     Return newToken
                 End If
 
+                Dim expression = TryCast(token.Parent, ExpressionSyntax)
+                If expression IsNot Nothing AndAlso SyntaxFacts.IsInNamespaceOrTypeContext(expression) AndAlso Not IsNamespaceOrTypeRelatedSymbol(symbol) Then
+                    Return newToken
+                End If
+
                 If TypeOf symbol Is ITypeSymbol AndAlso DirectCast(symbol, ITypeSymbol).TypeKind = TypeKind.Error Then
                     Return newToken
                 End If
@@ -148,6 +153,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 End If
 
                 Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, symbol)
+            End Function
+
+            Private Shared Function IsNamespaceOrTypeRelatedSymbol(symbol As ISymbol) As Boolean
+                Return TypeOf symbol Is INamespaceOrTypeSymbol OrElse
+                    (TypeOf symbol Is IAliasSymbol AndAlso TypeOf DirectCast(symbol, IAliasSymbol).Target Is INamespaceOrTypeSymbol) OrElse
+                    (symbol.IsKind(SymbolKind.Method) AndAlso DirectCast(symbol, IMethodSymbol).MethodKind = MethodKind.Constructor)
             End Function
 
             Private Function GetAliasOrAnySymbol(model As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol
