@@ -19,11 +19,28 @@ namespace Microsoft.CodeAnalysis.Text
         private static readonly Encoding s_fallbackEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
+        /// Encoding to use when UTF-8 fails. If available, we use CodePage 1252. If not, we use Latin1.
+        /// </summary>
+        private static readonly Encoding s_defaultEncoding = GetDefaultEncoding();
+
+        private static Encoding GetDefaultEncoding()
+        {
+            try
+            {
+                return Encoding.GetEncoding(codepage: 1252);
+            }
+            catch (NotSupportedException)
+            {
+                return Encoding.GetEncoding(name: "Latin1");
+            }
+        }
+
+        /// <summary>
         /// Initializes an instance of <see cref="SourceText"/> from the provided stream. This version differs
         /// from <see cref="SourceText.From(Stream, Encoding, SourceHashAlgorithm, bool)"/> in two ways:
         /// 1. It attempts to minimize allocations by trying to read the stream into a byte array.
         /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF8 and, if that fails, it will
-        ///    try CodePage 1252.
+        ///    try CodePage 1252. If CodePage 1252 is not available on the system, then it will try Latin1.
         /// </summary>
         /// <param name="stream">The stream containing encoded text.</param>
         /// <param name="defaultEncoding">
@@ -57,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? CodePage1252Encoding.Instance, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? s_defaultEncoding, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {
