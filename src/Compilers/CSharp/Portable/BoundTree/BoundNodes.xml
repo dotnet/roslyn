@@ -971,6 +971,7 @@
   <Node Name="BoundLoweredConditionalAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="HasValueMethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="WhenNotNull" Type="BoundExpression"/>
     <Field Name="WhenNullOpt" Type="BoundExpression" Null="allow"/>
     <!-- 

@@ -898,7 +898,7 @@
     <Compile Include="Syntax\SyntaxExtensions.vb" />
     <Compile Include="Syntax\SyntaxFactory.vb" />
     <Compile Include="Syntax\SyntaxFacts.vb" />
-    <Compile Include="Syntax\SyntaxFormatter.vb" />
+    <Compile Include="Syntax\SyntaxNormalizer.vb" />
     <Compile Include="Syntax\SyntaxKind.vb" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
     <Compile Include="Syntax\SyntaxKindExtensions.vb" />

@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (whenNotNullBuilder == null && whenNullBuilder == null)
             {
-                return UpdateExpression(receiverBuilder, node.Update(receiver, whenNotNull, whenNullOpt, node.Id, node.Type));
+                return UpdateExpression(receiverBuilder, node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.Type));
             }
 
             if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder();
@@ -910,16 +910,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             
 
             BoundExpression condition;
-            if (receiver.Type.IsReferenceType || receiverRefKind == RefKind.None)
+            if (receiver.Type.IsReferenceType || receiver.Type.IsValueType || receiverRefKind == RefKind.None)
             {
                 // spill to a clone
                 receiver = Spill(receiverBuilder, receiver, RefKind.None);
-                condition = _F.ObjectNotEqual(
-                    _F.Convert(_F.SpecialType(SpecialType.System_Object), receiver),
-                    _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                var hasValueOpt = node.HasValueMethodOpt;
+
+                if (hasValueOpt == null)
+                {
+                    condition = _F.ObjectNotEqual(
+                        _F.Convert(_F.SpecialType(SpecialType.System_Object), receiver),
+                        _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                }
+                else
+                {
+                    condition = _F.Call(receiver, hasValueOpt);
+                }
             }
             else
             {
+                Debug.Assert(node.HasValueMethodOpt == null);
                 receiver = Spill(receiverBuilder, receiver, RefKind.Ref);
 
                 var clone = _F.SynthesizedLocal(receiver.Type, _F.Syntax, refKind: RefKind.None, kind: SynthesizedLocalKind.AwaitSpill);
@@ -976,17 +986,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class ConditionalReceiverReplacer: BoundTreeRewriter
         {
             private readonly BoundExpression _receiver;
-            private readonly int _receiverID;
+            private readonly int _receiverId;
 
 #if DEBUG
             // we must replace exatly one node
             private int _replaced;
 #endif
                        
-            private ConditionalReceiverReplacer(BoundExpression receiver, int receiverID)
+            private ConditionalReceiverReplacer(BoundExpression receiver, int receiverId)
             {
                 this._receiver = receiver;
-                this._receiverID = receiverID;
+                this._receiverId = receiverId;
             }
 
             public static BoundStatement Replace(BoundNode node, BoundExpression receiver, int receiverID)
@@ -1002,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
             {
-                if (node.Id == this._receiverID)
+                if (node.Id == this._receiverId)
                 {
 #if DEBUG
                     _replaced++;
