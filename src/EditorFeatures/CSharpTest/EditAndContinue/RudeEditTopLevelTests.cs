@@ -4039,6 +4039,23 @@ class B
                 Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()"));
         }
 
+        [WorkItem(2068)]
+        [Fact]
+        public void Insert_ExternConstruct()
+        {
+            var src1 = "class C { }";
+            var src2 = "class C { public extern C(); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [public extern C();]@10",
+                "Insert [()]@25");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertExtern, "public extern C()", "constructor"));
+        }
+
         #endregion
 
         #region Fields and Properties with Initializers
