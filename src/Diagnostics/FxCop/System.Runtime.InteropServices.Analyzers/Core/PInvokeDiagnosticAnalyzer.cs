@@ -2,11 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
+namespace System.Runtime.InteropServices.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PInvokeDiagnosticAnalyzer : DiagnosticAnalyzer
@@ -14,28 +13,28 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
         public const string CA1401 = "CA1401";
         public const string CA2101 = "CA2101";
 
-        private static LocalizableString s_localizableTitleCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokesShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessageCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokeMethodShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleCA1401 = new LocalizableResourceString(nameof(SystemRuntimeInteropServicesAnalyzersResources.PInvokesShouldNotBeVisible), SystemRuntimeInteropServicesAnalyzersResources.ResourceManager, typeof(SystemRuntimeInteropServicesAnalyzersResources));
+        private static LocalizableString s_localizableMessageCA1401 = new LocalizableResourceString(nameof(SystemRuntimeInteropServicesAnalyzersResources.PInvokeMethodShouldNotBeVisible), SystemRuntimeInteropServicesAnalyzersResources.ResourceManager, typeof(SystemRuntimeInteropServicesAnalyzersResources));
         internal static DiagnosticDescriptor RuleCA1401 = new DiagnosticDescriptor(CA1401,
                                                                          s_localizableTitleCA1401,
                                                                          s_localizableMessageCA1401,
-                                                                         FxCopDiagnosticCategory.Interoperability,
+                                                                         DiagnosticCategory.Interoperability,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182209.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString s_localizableMessageAndTitleCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescriptionCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArgumentsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitleCA2101 = new LocalizableResourceString(nameof(SystemRuntimeInteropServicesAnalyzersResources.SpecifyMarshalingForPInvokeStringArguments), SystemRuntimeInteropServicesAnalyzersResources.ResourceManager, typeof(SystemRuntimeInteropServicesAnalyzersResources));
+        private static LocalizableString s_localizableDescriptionCA2101 = new LocalizableResourceString(nameof(SystemRuntimeInteropServicesAnalyzersResources.SpecifyMarshalingForPInvokeStringArgumentsDescription), SystemRuntimeInteropServicesAnalyzersResources.ResourceManager, typeof(SystemRuntimeInteropServicesAnalyzersResources));
         internal static DiagnosticDescriptor RuleCA2101 = new DiagnosticDescriptor(CA2101,
                                                                          s_localizableMessageAndTitleCA2101,
                                                                          s_localizableMessageAndTitleCA2101,
-                                                                         FxCopDiagnosticCategory.Globalization,
+                                                                         DiagnosticCategory.Globalization,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          description: s_localizableDescriptionCA2101,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182319.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics = ImmutableArray.Create(RuleCA1401, RuleCA2101);
 
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                 // CA1401 - PInvoke methods should not be visible
                 if (methodSymbol.DeclaredAccessibility == Accessibility.Public || methodSymbol.DeclaredAccessibility == Accessibility.Protected)
                 {
-                    context.ReportDiagnostic(context.Symbol.CreateDiagnostic(RuleCA1401, methodSymbol.Name));
+                    context.ReportDiagnostic(Diagnostic.Create(RuleCA1401, context.Symbol.Locations.First(l => l.IsInSource), methodSymbol.Name));
                 }
 
                 // CA2101 - Specify marshalling for PInvoke string arguments
@@ -142,13 +141,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                                 {
                                     // track the diagnostic on the [MarshalAs] attribute
                                     var marshalAsLocation = GetAttributeLocation(marshalAsAttribute);
-                                    context.ReportDiagnostic(marshalAsLocation.CreateDiagnostic(RuleCA2101));
+                                    context.ReportDiagnostic(Diagnostic.Create(RuleCA2101, marshalAsLocation));
                                 }
                                 else if (!appliedCA2101ToMethod)
                                 {
                                     // track the diagnostic on the [DllImport] attribute
                                     appliedCA2101ToMethod = true;
-                                    context.ReportDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
+                                    context.ReportDiagnostic(Diagnostic.Create(RuleCA2101, defaultLocation));
                                 }
                             }
                         }
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                     if (!appliedCA2101ToMethod && dllImportData.CharacterSet != CharSet.Unicode &&
                         (methodSymbol.ReturnType.SpecialType == SpecialType.System_String || methodSymbol.ReturnType.Equals(_stringBuilderType)))
                     {
-                        context.ReportDiagnostic(defaultLocation.CreateDiagnostic(RuleCA2101));
+                        context.ReportDiagnostic(Diagnostic.Create(RuleCA2101, defaultLocation));
                     }
                 }
             }
@@ -200,9 +199,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                     case UnmanagedType.ByValTStr:
                     case UnmanagedType.LPTStr:
                     case UnmanagedType.TBStr:
-                        return CharSet.Auto;
                     default:
-                        return CharSet.None;
+                        // CharSet.Auto and CharSet.None are not available in the portable
+                        // profiles. We are not interested in those values for our analysis and so simply
+                        // return null
+                        return null;
                 }
             }
 

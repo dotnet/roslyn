@@ -107,7 +107,6 @@
     <Compile Include="Design\CA1008DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1012DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1024DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CA1060DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CodeFixes\CA1008CodeFixProviderBase.cs" />
     <Compile Include="Design\CodeFixes\CA1012CodeFixProvider.cs" />
     <Compile Include="Design\StaticTypeRulesDiagnosticAnalyzer.cs" />
@@ -124,8 +123,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FxCopRulesResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Globalization\CodeFixes\CA2101CodeFixProviderBase.cs" />
-    <Compile Include="Interoperability\PInvokeDiagnosticAnalyzer.cs" />
     <Compile Include="MultipleCodeFixProviderBase.cs" />
     <Compile Include="Naming\CA1708DiagnosticAnalyzer.cs" />
     <Compile Include="Naming\CA1715DiagnosticAnalyzer.cs" />

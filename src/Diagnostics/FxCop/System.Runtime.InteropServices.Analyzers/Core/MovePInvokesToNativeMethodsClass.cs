@@ -4,46 +4,48 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace System.Runtime.InteropServices.Analyzers
 {
     /// <summary>
     /// CA1060 - Move P/Invokes to native methods class
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class CA1060DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
+    public sealed class MovePInvokesToNativeMethodsClassAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1060";
-        private static LocalizableString s_localizableTitleAndMessage = new LocalizableResourceString(nameof(FxCopRulesResources.MovePInvokesToNativeMethodsClass), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitleAndMessage = new LocalizableResourceString(nameof(SystemRuntimeInteropServicesAnalyzersResources.MovePInvokesToNativeMethodsClass), SystemRuntimeInteropServicesAnalyzersResources.ResourceManager, typeof(SystemRuntimeInteropServicesAnalyzersResources));
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitleAndMessage,
                                                                          s_localizableTitleAndMessage,
-                                                                         FxCopDiagnosticCategory.Design,
+                                                                         DiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182161.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
         private const string NativeMethodsText = "NativeMethods";
         private const string SafeNativeMethodsText = "SafeNativeMethods";
         private const string UnsafeNativeMethodsText = "UnsafeNativeMethods";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+
+        public override void Initialize(AnalysisContext context)
         {
-            get
+            context.RegisterSymbolAction(symbolContext =>
             {
-                return ImmutableArray.Create(Rule);
-            }
+                AnalyzeSymbol((INamedTypeSymbol)symbolContext.Symbol, symbolContext.Compilation, symbolContext.ReportDiagnostic);
+            }, SymbolKind.NamedType);
         }
 
-        protected override void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
             if (symbol.GetMembers().Any(member => IsDllImport(member)) && !IsTypeNamedCorrectly(symbol.Name))
             {
-                addDiagnostic(symbol.CreateDiagnostic(Rule));
+                addDiagnostic(Diagnostic.Create(Rule, symbol.Locations.First(l => l.IsInSource)));
             }
         }
 
