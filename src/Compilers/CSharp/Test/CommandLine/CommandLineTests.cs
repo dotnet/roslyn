@@ -149,7 +149,7 @@ a.cs
             CleanupAllGeneratedFiles(rsp);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFiles_RelativePaths()
         {
             var parentDir = Temp.CreateDirectory();
@@ -202,7 +202,7 @@ d.cs
             Assert.Equal(basePath, args.BaseDirectory);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {
             var parser = new TestCommandLineParser(
@@ -267,7 +267,7 @@ d.cs
 
         [WorkItem(546009, "DevDiv")]
         [WorkItem(545991, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns2()
         {
             var folder = Temp.CreateDirectory();
@@ -499,7 +499,7 @@ d.cs
             Assert.Equal(@"d:\abc def\ab cd\a.manifest", args.Win32Manifest);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ParseResources()
         {
             var diags = new List<Diagnostic>();
@@ -807,7 +807,7 @@ d.cs
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/link-:"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void Recurse_SimpleTests()
         {
             var dir = Temp.CreateDirectory();
@@ -1253,7 +1253,7 @@ d.cs
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/debug-:"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void Pdb()
         {
             var parsedArgs = DefaultParse(new[] { "/pdb:something", "a.cs" }, _baseDirectory);
@@ -2132,7 +2132,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DiagnosticFormatting()
         {
             string source = @"
@@ -2231,7 +2231,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         }
 
         [WorkItem(540891, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ParseOut()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -2479,7 +2479,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.CompilationOptions.ModuleName);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ParseDoc()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -2581,7 +2581,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode); //Even though the format was incorrect
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ParseErrorLog()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -2660,7 +2660,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.ErrorLogPath);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void AppConfigParse()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -2723,7 +2723,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             CleanupAllGeneratedFiles(appConfigFile.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void AppConfigBasicFail()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class A { static void Main(string[] args) { } }");
@@ -2740,7 +2740,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ParseDocAndOut()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -2764,7 +2764,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Equal("d.exe", parsedArgs.OutputFileName);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ParseErrorLogAndOut()
         {
             const string baseDirectory = @"C:\abc\def\baz";
@@ -3032,7 +3032,7 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("123"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void SdkPathAndLibEnvVariable()
         {
             var parsedArgs = DefaultParse(new[] { @"/lib:c:lib2", @"/lib:o:\sdk1", "a.cs" }, _baseDirectory);
@@ -3787,7 +3787,7 @@ class Test { static void Main() {} }").Path;
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/utf8output:"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CscUtf8Output_WithRedirecting_Off()
         {
             var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
@@ -3802,7 +3802,7 @@ class Test { static void Main() {} }").Path;
             CleanupAllGeneratedFiles(tempOut.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CscUtf8Output_WithRedirecting_On()
         {
             var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
@@ -3818,7 +3818,7 @@ class Test { static void Main() {} }").Path;
         }
 
         [WorkItem(546653, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NoSourcesWithModule()
         {
             var folder = Temp.CreateDirectory();
@@ -3838,7 +3838,7 @@ class Test { static void Main() {} }").Path;
         }
 
         [WorkItem(546653, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NoSourcesWithResource()
         {
             var folder = Temp.CreateDirectory();
@@ -3852,7 +3852,7 @@ class Test { static void Main() {} }").Path;
         }
 
         [WorkItem(546653, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NoSourcesWithLinkResource()
         {
             var folder = Temp.CreateDirectory();
@@ -4032,7 +4032,7 @@ public class CS1698_a {}
 
 
         [WorkItem(530221, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void Bug15538()
         {
             // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
@@ -4283,7 +4283,7 @@ class myClass
             AssertEx.Equal(new[] { @"/o:foo.cs", @"/o:abc def\baz", @"/o:baz barbing" }, args);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         private void SourceFileQuoting()
         {
             string[] responseFile = new string[] {
@@ -4684,7 +4684,7 @@ class C
         }
 
         [WorkItem(545025, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_01()
         {
             string source = @"
@@ -4711,7 +4711,7 @@ public class C
         }
 
         [WorkItem(545025, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWarnAsError_02()
         {
             string source = @"
@@ -4758,7 +4758,7 @@ public class C
         }
 
         [WorkItem(545247, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithNonExistingOutPath()
         {
             string source = @"
@@ -4840,7 +4840,7 @@ public class C
         }
 
         [WorkItem(545247, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CompilationWithWrongOutPath_03()
         {
             string source = @"
@@ -4966,7 +4966,7 @@ public class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void SpecifyProperCodePage()
         {
             byte[] source = {
@@ -5002,7 +5002,7 @@ a.cs(1,10): error CS1022: Type or namespace definition, or end-of-file expected"
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DefaultWin32ResForExe()
         {
             var source = @"
@@ -5030,7 +5030,7 @@ class C
 </ManifestResource>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DefaultManifestForDll()
         {
             var source = @"
@@ -5042,7 +5042,7 @@ class C
             CheckManifestString(source, OutputKind.DynamicallyLinkedLibrary, explicitManifest: null, expectedManifest: null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DefaultManifestForWinExe()
         {
             var source = @"
@@ -5070,7 +5070,7 @@ class C
 </ManifestResource>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DefaultManifestForAppContainerExe()
         {
             var source = @"
@@ -5098,7 +5098,7 @@ class C
 </ManifestResource>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DefaultManifestForWinMD()
         {
             var source = @"
@@ -5110,7 +5110,7 @@ class C
             CheckManifestString(source, OutputKind.WindowsRuntimeMetadata, explicitManifest: null, expectedManifest: null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void DefaultWin32ResForModule()
         {
             var source = @"
@@ -5122,7 +5122,7 @@ class C
             CheckManifestString(source, OutputKind.NetModule, explicitManifest: null, expectedManifest: null);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ExplicitWin32ResForExe()
         {
             var source = @"
@@ -5159,7 +5159,7 @@ explicitManifest +
         }
 
         // DLLs don't get the default manifest, but they do respect explicitly set manifests.
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ExplicitWin32ResForDll()
         {
             var source = @"
@@ -5195,7 +5195,7 @@ explicitManifest +
         }
 
         // Modules don't have manifests, even if one is explicitly specified.
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ExplicitWin32ResForModule()
         {
             var source = @"
@@ -5360,7 +5360,7 @@ public class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_02()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -5394,7 +5394,7 @@ public class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_03()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -5428,7 +5428,7 @@ public class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResponseFilesWithNoconfig_04()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -5700,7 +5700,8 @@ warning CS2029: Invalid value for '/define'; 'TRACE=TRUE' is not a valid identif
             CleanupAllGeneratedFiles(src.Path);
         }
 
-        [Fact, WorkItem(733242, "DevDiv")]
+        [WorkItem(733242, "DevDiv")]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void Bug733242()
         {
             var dir = Temp.CreateDirectory();
@@ -5743,7 +5744,8 @@ class C {} ");
             CleanupAllGeneratedFiles(xml.Path);
         }
 
-        [Fact, WorkItem(768605, "DevDiv")]
+        [WorkItem(768605, "DevDiv")]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void Bug768605()
         {
             var dir = Temp.CreateDirectory();
@@ -6136,7 +6138,7 @@ class Program
             CleanupAllGeneratedFiles(source);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ExistingPdb()
         {
             var dir = Temp.CreateDirectory();
@@ -6415,7 +6417,8 @@ public class C { }
             CleanupAllGeneratedFiles(xmlPath);
         }
 
-        [Fact, WorkItem(546468, "DevDiv")]
+        [WorkItem(546468, "DevDiv")]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CS2002WRN_FileAlreadyIncluded()
         {
             const string cs2002 = @"warning CS2002: Source file '{0}' specified multiple times";
@@ -6691,7 +6694,7 @@ using System.Diagnostics; // Unused.
         }
 
         [WorkItem(715339, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void WRN_InvalidSearchPathDir()
         {
             var baseDir = Temp.CreateDirectory();
@@ -6727,7 +6730,8 @@ using System.Diagnostics; // Unused.
             CleanupAllGeneratedFiles(sourceFile.Path);
         }
 
-        [Fact, WorkItem(650083, "DevDiv")]
+        [WorkItem(650083, "DevDiv")]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ReservedDeviceNameAsFileName()
         {
             var parsedArgs = DefaultParse(new[] { "com9.cs", "/t:library " }, _baseDirectory);
@@ -7599,7 +7603,9 @@ public class C
                     .WithWarningAsError(false));
         }
 
-        [Fact, WorkItem(1091972, "DevDiv"), WorkItem(444, "CodePlex")]
+        [WorkItem(1091972, "DevDiv")]
+        [WorkItem(444, "CodePlex")]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void Bug1091972()
         {
             var dir = Temp.CreateDirectory();
