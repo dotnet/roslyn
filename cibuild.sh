@@ -1,10 +1,58 @@
 #!/bin/bash
 
+XUNIT_VERSION=2.0.0-alpha-build2576
+FULL_RUN=true
+OS_NAME=$(uname -s)
+while [[ $# > 0 ]]
+do
+    opt="$1"
+    case $opt in
+        -h|--help)
+        usage
+        exit 1
+        ;;
+        --mono-path)
+        CUSTOM_MONO_PATH=$2
+        shift 2
+        ;;
+		--os)
+		OS_NAME=$2
+		shift 2
+		;;
+        --minimal)
+        FULL_RUN=false
+        shift 1
+        ;;
+        *)
+        usage 
+        exit 1
+        ;;
+    esac
+done
+
 run_xbuild()
 {
     xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
     if [ $? -ne 0 ]; then
         echo Compilation failed
+        exit 1
+    fi
+}
+
+# NuGet crashes on occasion during restore.  This isn't a fatal action so 
+# we re-run it a number of times.  
+run_nuget()
+{
+    i=5
+    while [ $i -gt 0 ]; do
+        mono src/.nuget/NuGet.exe "$@"
+        if [ $? -eq 0 ]; then
+            i=0
+        fi
+    done
+
+    if [ $? -ne 0 ]; then
+        echo NuGet Failed
         exit 1
     fi
 }
@@ -72,6 +120,22 @@ build_roslyn()
     if [ "$FULL_RUN" = "true" ]; then
         echo -e "\tCompiling the VB compiler"
         run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/vbc/vbc.csproj
+        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/Test/Syntax/CSharpCompilerSyntaxTest.csproj
+    fi
+}
+
+test_roslyn()
+{
+    if [ "$FULL_RUN" != "true" ]; then
+        return
+    fi
+    
+    XUNIT_RUNNER=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
+    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll -noshadow
+
+    if [ $? -ne 0 ]; then
+        echo Unit tests failed
+        exit 1
     fi
 }
 
@@ -85,35 +149,6 @@ usage()
 	echo "  --os <os>			OS to run (Linux / Darwin)"
 	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
 }
-
-FULL_RUN=true
-OS_NAME=$(uname -s)
-while [[ $# > 0 ]]
-do
-    opt="$1"
-    case $opt in
-        -h|--help)
-        usage
-        exit 1
-        ;;
-        --mono-path)
-        CUSTOM_MONO_PATH=$2
-        shift 2
-        ;;
-		--os)
-		OS_NAME=$2
-		shift 2
-		;;
-        --minimal)
-        FULL_RUN=false
-        shift 1
-        ;;
-        *)
-        usage 
-        exit 1
-        ;;
-    esac
-done
 
 # As a bootstrap mechanism in Jenkins we assume that Linux is a
 # minimal run.  It is not yet updated to the latest mono build
@@ -145,20 +180,12 @@ fi
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
 echo Restoring NuGet packages
-i=5
-while [ $i -gt 0 ]; do
-    mono src/.nuget/NuGet.exe restore src/Roslyn.sln
-    if [ $? -eq 0 ]; then
-        i=0
-    fi
-done
-if [ $? -ne 0 ]; then
-    echo NuGet Failed
-    exit 1
-fi
+run_nuget restore src/Roslyn.sln
+run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 compile_toolset
 save_toolset
 clean_roslyn
 build_roslyn
+test_roslyn
 

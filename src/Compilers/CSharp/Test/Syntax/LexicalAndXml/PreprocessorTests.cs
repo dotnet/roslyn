@@ -2011,7 +2011,7 @@ return (i);
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         [Trait("Feature", "Directives")]
         public void TestRegionWithSingleLineComment()
         {
@@ -2033,7 +2033,7 @@ return (i);
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         [Trait("Feature", "Directives")]
         public void TestRegionWithInvalidSingleLineComment()
         {
