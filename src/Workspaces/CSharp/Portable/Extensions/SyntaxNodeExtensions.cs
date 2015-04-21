@@ -1201,5 +1201,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return null;
         }
+
+        public static ConditionalAccessExpressionSyntax GetInnerMostConditionalAccessExpression(this SyntaxNode node)
+        {
+            if (!(node is ConditionalAccessExpressionSyntax))
+            {
+                return null;
+            }
+
+            var result = (ConditionalAccessExpressionSyntax)node;
+            while (result.WhenNotNull is ConditionalAccessExpressionSyntax)
+            {
+                result = (ConditionalAccessExpressionSyntax)result.WhenNotNull;
+            }
+
+            return result;
+        }
     }
 }
