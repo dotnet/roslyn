@@ -121,6 +121,8 @@ build_roslyn()
         echo -e "\tCompiling the VB compiler"
         run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/vbc/vbc.csproj
         run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/Test/Syntax/CSharpCompilerSyntaxTest.csproj
+        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/Test/CommandLine/CSharpCommandLineTest.csproj
+        run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/Test/Syntax/BasicCompilerSyntaxTest.vbproj
     fi
 }
 
@@ -132,6 +134,8 @@ test_roslyn()
     
     XUNIT_RUNNER=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
     mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll -noshadow
+    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll -noshadow
+    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll -noshadow
 
     if [ $? -ne 0 ]; then
         echo Unit tests failed
