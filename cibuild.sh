@@ -1,9 +1,78 @@
 #!/bin/bash
 
-# Run the compilation.  Can pass additional build arguments as parameters
-docompile()
+run_xbuild()
 {
-    xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false /p:DefineConstants=COMPILERCORE,DEBUG $1 src/Compilers/CSharp/csc/csc.csproj
+    xbuild /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+    if [ $? -ne 0 ]; then
+        echo Compilation failed
+        exit 1
+    fi
+}
+
+# Run the compilation.  Can pass additional build arguments as parameters
+compile_toolset()
+{
+    echo Compiling the toolset compilers
+    echo -e "\tCompiling the C# compiler"
+    run_xbuild src/Compilers/CSharp/csc/csc.csproj
+
+    if [ "$FULL_RUN" = "true" ]; then
+        echo -e "\tCompiling VB compiler"
+        run_xbuild src/Compilers/VisualBasic/vbc/vbc.csproj
+    fi
+}
+
+# Save the toolset binaries from Binaries/Debug to Binaries/Bootstrap
+save_toolset()
+{
+    compiler_binaries=(
+        csc.exe
+        Microsoft.CodeAnalysis.dll
+        Microsoft.CodeAnalysis.Desktop.dll
+        Microsoft.CodeAnalysis.CSharp.dll
+        Microsoft.CodeAnalysis.CSharp.Desktop.dll
+        System.Collections.Immutable.dll
+        System.Reflection.Metadata.dll)
+
+    if [ "$FULL_RUN" = "true" ]; then
+        compiler_binaries=(
+            ${compiler_binaries[@]} 
+            vbc.exe
+            Microsoft.CodeAnalysis.VisualBasic.dll
+            Microsoft.CodeAnalysis.VisualBasic.Desktop.dll)
+    fi
+
+    mkdir Binaries/Bootstrap
+    for i in ${compiler_binaries[@]}; do
+        cp Binaries/Debug/${i} Binaries/Bootstrap/${i}
+        if [ $? -ne 0 ]; then
+            echo Saving bootstrap binaries failed
+            exit 1
+        fi
+    done
+}
+
+# Clean out all existing binaries.  This ensures the bootstrap phase forces
+# a rebuild instead of picking up older binaries.
+clean_roslyn()
+{
+    echo Cleaning the enlistment
+    xbuild /v:m /t:Clean src/Toolset.sln
+    rm -rf Binaries/Debug
+}
+
+build_roslyn()
+{
+    BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
+
+    echo Running the bootstrap build 
+    echo -e "\tCompiling the C# compiler"
+    run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/csc/csc.csproj
+
+    if [ "$FULL_RUN" = "true" ]; then
+        echo -e "\tCompiling the VB compiler"
+        run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/vbc/vbc.csproj
+    fi
 }
 
 usage()
@@ -14,8 +83,10 @@ usage()
     echo "Options"
     echo "  --mono-path <path>  Path to the mono installation to use for the run" 
 	echo "  --os <os>			OS to run (Linux / Darwin)"
+	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
 }
 
+FULL_RUN=true
 OS_NAME=$(uname -s)
 while [[ $# > 0 ]]
 do
@@ -33,12 +104,25 @@ do
 		OS_NAME=$2
 		shift 2
 		;;
+        --minimal)
+        FULL_RUN=false
+        shift 1
+        ;;
         *)
         usage 
         exit 1
         ;;
     esac
 done
+
+# As a bootstrap mechanism in Jenkins we assume that Linux is a
+# minimal run.  It is not yet updated to the latest mono build
+# nor is the --minimal switch present for us to take advantage
+# of.  This block will be deleted once everything gets pushed
+# through. 
+if [ "$OS_NAME" = "Linux" ]; then
+    FULL_RUN=false
+fi
 
 if [ "$CUSTOM_MONO_PATH" != "" ]; then
     if [ ! -d "$CUSTOM_MONO_PATH" ]; then
@@ -73,36 +157,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo Compiling using toolset compiler 
-docompile
-if [ $? -ne 0 ]; then
-    echo Compilation failed
-    exit 1
-fi
-
-compiler_binaries=(
-    csc.exe
-    Microsoft.CodeAnalysis.dll
-    Microsoft.CodeAnalysis.Desktop.dll
-    Microsoft.CodeAnalysis.CSharp.dll
-    Microsoft.CodeAnalysis.CSharp.Desktop.dll
-    System.Collections.Immutable.dll
-    System.Reflection.Metadata.dll)
-
-mkdir Binaries/Bootstrap
-for i in ${compiler_binaries[@]}; do
-    cp Binaries/Debug/${i} Binaries/Bootstrap/${i}
-    if [ $? -ne 0 ]; then
-        echo Compilation failed
-        exit 1
-    fi
-done
-rm -rf Binaries/Debug
-
-echo Compiling using bootstrap compiler 
-docompile /p:BootstrapBuild="$(pwd)/Binaries/Bootstrap"
-if [ $? -ne 0 ]; then
-    echo Compilation failed
-    exit 1
-fi
+compile_toolset
+save_toolset
+clean_roslyn
+build_roslyn
 
