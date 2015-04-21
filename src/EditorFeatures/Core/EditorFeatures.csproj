@@ -144,6 +144,8 @@
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.QuickInfoSource.cs" />
     <Compile Include="CommandHandlers\SignatureHelpCommandHandler.cs" />
+    <Compile Include="Commands\MoveSelectedLinesDownCommandArgs.cs" />
+    <Compile Include="Commands\MoveSelectedLinesUpCommandArgs.cs" />
     <Compile Include="Commands\AutomaticLineEnderCommandArgs.cs" />
     <Compile Include="Commands\BackspaceKeyCommandArgs.cs" />
     <Compile Include="Commands\BackTabKeyCommandArgs.cs" />
@@ -401,6 +403,8 @@
     <Compile Include="Implementation\InlineRename\AbstractInlineRenameUndoManager.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_BackspaceDeleteHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_RefactoringWithCommandHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_MoveSelectedLinesHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_EscapeHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_LineStartEndHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_OpenLineBelowHandler.cs" />
@@ -410,6 +414,7 @@
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SaveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TabHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_OpenLineAboveHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_CutPasteHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TypeCharHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_UndoRedoHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_WordDeleteHandler.cs" />
