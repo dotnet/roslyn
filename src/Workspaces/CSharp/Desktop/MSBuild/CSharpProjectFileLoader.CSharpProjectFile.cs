@@ -246,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 compilerInputs.SetReferences(this.GetMetadataReferencesFromModel(executedProject).ToArray());
                 compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
+                compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray());
                 compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
 
                 string errorMessage;
