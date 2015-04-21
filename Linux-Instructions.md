@@ -54,6 +54,12 @@ Note: This script may need to be used with `sudo` depending on where mono was in
 
 The first step is to ensure that the custom installed version of mono is first on your path.  This is what `xbuild` will grab when running our tools and compilers during the build.  
 
+Next we need to restore NuGet packages.  Roslyn compiles itself via a NuGet package and it must be installed before the build will succeed:
+
+```
+$> mono src/.nuget/NuGet.exe restore src/Roslyn.sln -packagesdirectory packages
+```
+
 To build Roslyn run the following:
 
 ```
