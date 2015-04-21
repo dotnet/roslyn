@@ -160,15 +160,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Disposable fields should be disposed.
-        /// </summary>
-        internal static string DisposableFieldsShouldBeDisposed {
-            get {
-                return ResourceManager.GetString("DisposableFieldsShouldBeDisposed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Do not call overridable methods in constructors.
         /// </summary>
         internal static string DoNotCallOverridableMethodsInConstructors {

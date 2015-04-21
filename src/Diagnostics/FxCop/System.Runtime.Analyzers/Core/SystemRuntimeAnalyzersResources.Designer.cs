@@ -224,6 +224,15 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disposable fields should be disposed.
+        /// </summary>
+        internal static string DisposableFieldsShouldBeDisposed {
+            get {
+                return ResourceManager.GetString("DisposableFieldsShouldBeDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Equality and Comparison methods and operators.
         /// </summary>
         internal static string ImplementComparable {

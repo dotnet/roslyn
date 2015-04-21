@@ -149,9 +149,7 @@
     <Compile Include="Shared\WordParserOptions.cs" />
     <Compile Include="SolutionChangeAction.cs" />
     <Compile Include="Usage\CA2200DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CA2213DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2214DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CodeFixes\CA2213CodeFixProviderBase.cs" />
     <Compile Include="Usage\CodeFixes\CA2229CodeFixProvider.cs" />
     <Compile Include="Usage\CodeFixes\CA2235CodeFixProviderBase.cs" />
     <Compile Include="Usage\CodeFixes\CA2237CodeFixProvider.cs" />

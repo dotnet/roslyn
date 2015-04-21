@@ -147,9 +147,6 @@
   <data name="SerializationCtorAccessibilityForUnSealedType" xml:space="preserve">
     <value>Declare serialization constructor for unsealed type {0} as protected</value>
   </data>
-  <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
-    <value>Disposable fields should be disposed</value>
-  </data>
   <data name="RemoveEmptyFinalizers" xml:space="preserve">
     <value>Remove empty finalizers</value>
   </data>

@@ -3,10 +3,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+namespace System.Runtime.Analyzers
 {
     /// <summary>
     /// CA2213: Disposable fields should be disposed
@@ -15,20 +15,20 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// dispose operations occur on every path through the dispose method. Flow analysis
     /// is not yet implemented.
     /// </summary>
-    public abstract class CA2213DiagnosticAnalyzer : DiagnosticAnalyzer
+    public abstract class DisposableFieldsShouldBeDisposedAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA2213";
         internal const string Dispose = "Dispose";
-        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DisposableFieldsShouldBeDisposed), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DisposableFieldsShouldBeDisposed), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableMessageAndTitle,
                                                                          s_localizableMessageAndTitle,
-                                                                         FxCopDiagnosticCategory.Usage,
+                                                                         DiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182328.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         protected abstract class AbstractAnalyzer
         {
-            private INamedTypeSymbol _disposableType;
+            protected INamedTypeSymbol _disposableType;
             private ConcurrentDictionary<IFieldSymbol, bool> _fieldDisposedMap = new ConcurrentDictionary<IFieldSymbol, bool>();
 
             public AbstractAnalyzer(INamedTypeSymbol disposableType)
