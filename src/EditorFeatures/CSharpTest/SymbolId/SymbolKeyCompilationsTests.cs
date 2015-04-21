@@ -131,6 +131,51 @@ namespace NS
             Assert.Equal(implementation, ResolveSymbol(implementation, comp, comp, SymbolKeyComparison.None));
         }
 
+        [Fact]
+        [WorkItem(916341)]
+        public void ExplicitIndexerImplementationResolvesCorrectly()
+        {
+            var src = @"
+interface I
+{
+    object this[int index] { get; }
+}
+interface I<T>
+{
+    T this[int index] { get; }
+}
+class C<T> : I<T>, I
+{
+    object I.this[int index]
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+    T I<T>.this[int index]
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(src, assemblyName: "Test");
+
+            var type = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single() as NamedTypeSymbol;
+            var indexer1 = type.GetMembers().Where(m => m.MetadataName == "I.Item").Single() as IPropertySymbol;
+            var indexer2 = type.GetMembers().Where(m => m.MetadataName == "I<T>.Item").Single() as IPropertySymbol;
+
+            AssertSymbolKeysEqual(indexer1, compilation, indexer2, compilation, SymbolKeyComparison.None, expectEqual: false);
+
+            Assert.Equal(indexer1, ResolveSymbol(indexer1, compilation, compilation, SymbolKeyComparison.None));
+            Assert.Equal(indexer2, ResolveSymbol(indexer2, compilation, compilation, SymbolKeyComparison.None));
+        }
+
         #endregion
 
         #region "Change to symbol"
