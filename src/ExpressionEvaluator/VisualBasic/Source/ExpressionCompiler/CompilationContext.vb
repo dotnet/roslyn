@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             For Each [alias] In aliases
                                 Dim methodName = GetNextMethodName(methodBuilder)
                                 Dim method = GetPseudoVariableMethod(typeNameDecoder, container, methodName, [alias])
-                                localBuilder.Add(New LocalAndMethod([alias].FullName, methodName, [alias].GetLocalResultFlags()))
+                                localBuilder.Add(New VisualBasicLocalAndMethod([alias].FullName, methodName, [alias].GetLocalResultFlags()))
                                 methodBuilder.Add(method)
                             Next
                         End If
@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         If Not m.IsShared AndAlso (Not m.ContainingType.IsClosureOrStateMachineType() OrElse _displayClassVariables.ContainsKey(GeneratedNames.MakeStateMachineCapturedMeName())) Then
                             Dim methodName = GetNextMethodName(methodBuilder)
                             Dim method = Me.GetMeMethod(container, methodName)
-                            localBuilder.Add(New LocalAndMethod("Me", methodName, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
+                            localBuilder.Add(New VisualBasicLocalAndMethod("Me", methodName, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
                             methodBuilder.Add(method)
                         End If
                     End If
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             Dim methodName = GetNextMethodName(methodBuilder)
                             Dim returnType = typeVariablesType.Construct(ImmutableArrayExtensions.Cast(Of TypeParameterSymbol, TypeSymbol)(allTypeParameters))
                             Dim method = Me.GetTypeVariableMethod(container, methodName, returnType)
-                            localBuilder.Add(New LocalAndMethod(ExpressionCompilerConstants.TypeVariablesLocalName, methodName, DkmClrCompilationResultFlags.ReadOnlyResult))
+                            localBuilder.Add(New VisualBasicLocalAndMethod(ExpressionCompilerConstants.TypeVariablesLocalName, methodName, DkmClrCompilationResultFlags.ReadOnlyResult))
                             methodBuilder.Add(method)
                         End If
                     End If
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             name = SyntaxHelpers.EscapeKeywordIdentifiers(name)
             Dim methodName = GetNextMethodName(methodBuilder)
             Dim method = getMethod(container, methodName, name, localOrParameterIndex)
-            localBuilder.Add(New LocalAndMethod(name, methodName, resultFlags))
+            localBuilder.Add(New VisualBasicLocalAndMethod(name, methodName, resultFlags))
             methodBuilder.Add(method)
         End Sub
 

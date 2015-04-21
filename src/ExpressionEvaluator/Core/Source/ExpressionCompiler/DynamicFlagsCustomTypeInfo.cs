@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        public DkmClrCustomTypeInfo GetCustomTypeInfo()
+        internal ReadOnlyCollection<byte> GetCustomTypeInfoPayload()
         {
             if (!Any())
             {
@@ -69,7 +69,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            return DkmClrCustomTypeInfo.Create(PayloadTypeId, new ReadOnlyCollection<byte>(bytes));
+            return new ReadOnlyCollection<byte>(bytes);
+        }
+
+        public DkmClrCustomTypeInfo GetCustomTypeInfo()
+        {
+            var payload = GetCustomTypeInfoPayload();
+            return payload == null ? null : DkmClrCustomTypeInfo.Create(PayloadTypeId, payload);
         }
 
         public DynamicFlagsCustomTypeInfo SkipOne()
