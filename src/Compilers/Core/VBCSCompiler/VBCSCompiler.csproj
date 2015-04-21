@@ -90,6 +90,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
+      <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="Assembly.cs" />
     <Compile Include="BuildProtocol.cs" />
     <Compile Include="CompilerRequestHandler.cs" />

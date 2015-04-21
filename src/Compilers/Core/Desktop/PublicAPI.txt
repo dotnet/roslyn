@@ -1,6 +1,3 @@
-Microsoft.CodeAnalysis.AbstractAnalyzerAssemblyLoader
-Microsoft.CodeAnalysis.AbstractAnalyzerAssemblyLoader.AddDependencyLocation(string fullPath) -> void
-Microsoft.CodeAnalysis.AbstractAnalyzerAssemblyLoader.LoadFromPath(string fullPath) -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference.CommandLineAnalyzerReference(string path) -> void
 Microsoft.CodeAnalysis.CommandLineAnalyzerReference.Equals(Microsoft.CodeAnalysis.CommandLineAnalyzerReference other) -> bool
@@ -78,9 +75,6 @@ Microsoft.CodeAnalysis.RuleSetInclude.Action.get -> Microsoft.CodeAnalysis.Repor
 Microsoft.CodeAnalysis.RuleSetInclude.IncludePath.get -> string
 Microsoft.CodeAnalysis.RuleSetInclude.LoadRuleSet(Microsoft.CodeAnalysis.RuleSet parent) -> Microsoft.CodeAnalysis.RuleSet
 Microsoft.CodeAnalysis.RuleSetInclude.RuleSetInclude(string includePath, Microsoft.CodeAnalysis.ReportDiagnostic action) -> void
-Microsoft.CodeAnalysis.ShadowCopyAnalyzerAssemblyLoader
-Microsoft.CodeAnalysis.ShadowCopyAnalyzerAssemblyLoader.ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null) -> void
-Microsoft.CodeAnalysis.SimpleAnalyzerAssemblyLoader
 Microsoft.CodeAnalysis.SourceFileResolver
 Microsoft.CodeAnalysis.SourceFileResolver.BaseDirectory.get -> string
 Microsoft.CodeAnalysis.SourceFileResolver.SearchPaths.get -> System.Collections.Immutable.ImmutableArray<string>
@@ -89,7 +83,6 @@ Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.
 Microsoft.CodeAnalysis.XmlFileResolver
 Microsoft.CodeAnalysis.XmlFileResolver.BaseDirectory.get -> string
 Microsoft.CodeAnalysis.XmlFileResolver.XmlFileResolver(string baseDirectory) -> void
-abstract Microsoft.CodeAnalysis.AbstractAnalyzerAssemblyLoader.LoadCore(string fullPath) -> System.Reflection.Assembly
 abstract Microsoft.CodeAnalysis.CommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions
 abstract Microsoft.CodeAnalysis.CommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions
 abstract Microsoft.CodeAnalysis.CommandLineParser.RegularFileExtension.get -> string
@@ -106,8 +99,6 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.FullPath.get -
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
-override Microsoft.CodeAnalysis.ShadowCopyAnalyzerAssemblyLoader.LoadCore(string fullPath) -> System.Reflection.Assembly
-override Microsoft.CodeAnalysis.SimpleAnalyzerAssemblyLoader.LoadCore(string fullPath) -> System.Reflection.Assembly
 override Microsoft.CodeAnalysis.SourceFileResolver.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.SourceFileResolver.GetHashCode() -> int
 override Microsoft.CodeAnalysis.SourceFileResolver.NormalizePath(string path, string baseFilePath) -> string

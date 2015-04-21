@@ -49,7 +49,6 @@
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AbstractAnalyzerAssemblyLoader.cs" />
     <Compile Include="AdditionalTextFile.cs" />
     <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
@@ -95,8 +94,6 @@
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />
-    <Compile Include="ShadowCopyAnalyzerAssemblyLoader.cs" />
-    <Compile Include="SimpleAnalyzerAssemblyLoader.cs" />
     <Compile Include="SourceFileResolver.cs" />
     <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="XmlFileResolver.cs" />
