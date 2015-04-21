@@ -444,6 +444,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static DkmClrType GetProxyType(this DkmClrType type)
         {
+            // CONSIDER: If needed, we could probably compute a new DynamicAttribute for
+            // the proxy type based on the DynamicAttribute of the argument.
             DkmClrType attributeTarget;
             DkmClrDebuggerTypeProxyAttribute attribute;
             if (type.TryGetEvalAttribute(out attributeTarget, out attribute))
@@ -611,6 +613,61 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(!string.IsNullOrEmpty(name));
             return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal) &&
                 string.Equals(type.Name, name, StringComparison.Ordinal);
+        }
+
+        internal static MemberInfo GetOriginalDefinition(this MemberInfo member)
+        {
+            var declaringType = member.DeclaringType;
+            if (!declaringType.IsGenericType)
+            {
+                return member;
+            }
+
+            var declaringTypeOriginalDefinition = declaringType.GetGenericTypeDefinition();
+            if (declaringType.Equals(declaringTypeOriginalDefinition))
+            {
+                return member;
+            }
+
+            foreach (var candidate in declaringTypeOriginalDefinition.GetMember(member.Name, MemberBindingFlags))
+            {
+                var memberType = candidate.MemberType;
+                if (memberType != member.MemberType) continue;
+
+                switch(memberType)
+                {
+                    case MemberTypes.Field:
+                        return candidate;
+                    case MemberTypes.Property:
+                        Debug.Assert(((PropertyInfo)member).GetIndexParameters().Length == 0);
+                        if (((PropertyInfo)candidate).GetIndexParameters().Length == 0)
+                        {
+                            return candidate;
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(memberType);
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal static Type GetInterfaceListEntry(this Type interfaceType, Type declaration)
+        {
+            Debug.Assert(interfaceType.IsInterface);
+
+            if (!interfaceType.IsGenericType || !declaration.IsGenericType)
+            {
+                return interfaceType;
+            }
+
+            var index = Array.IndexOf(declaration.GetInterfacesOnType(), interfaceType);
+            Debug.Assert(index >= 0);
+
+            var result = declaration.GetGenericTypeDefinition().GetInterfacesOnType()[index];
+            Debug.Assert(interfaceType.GetGenericTypeDefinition().Equals(result.GetGenericTypeDefinition()));
+            return result;
         }
     }
 }

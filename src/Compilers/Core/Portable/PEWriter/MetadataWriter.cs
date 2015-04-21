@@ -453,7 +453,6 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
             rowCounts[(int)TableIndex.Constant] = _constantTable.Count;
             rowCounts[(int)TableIndex.CustomAttribute] = _customAttributeTable.Count;
-            rowCounts[(int)TableIndex.TypeRef] = _typeRefTable.Count;
             rowCounts[(int)TableIndex.DeclSecurity] = _declSecurityTable.Count;
             rowCounts[(int)TableIndex.EncLog] = _encLogTable.Count;
             rowCounts[(int)TableIndex.EncMap] = _encMapTable.Count;

@@ -275,7 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
-            Debug.Assert(!receiverType.IsValueType, "conditional receiver cannot be a struct");
+            Debug.Assert(!receiverType.IsValueType || 
+                (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
             if (receiverConstant != null)
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // labels
             object whenNotNullLabel = new object();
             object doneLabel = new object();
-            LocalDefinition temp = null;
+            LocalDefinition cloneTemp = null;
 
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once)
@@ -302,10 +303,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
                                    (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 
+            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
+
+
+            // ===== RECEIVER
             if (nullCheckOnCopy)
             {
-                EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
-                if (!receiverType.IsReferenceType)
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
+                if (unconstrainedReceiver)
                 {
                     // unconstrained case needs to handle case where T is actually a struct.
                     // such values are never nulls
@@ -326,10 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
                     EmitLoadIndirect(receiverType, receiver.Syntax);
 
-                    temp = AllocateTemp(receiverType, receiver.Syntax);
-                    _builder.EmitLocalStore(temp);
-                    _builder.EmitLocalAddress(temp);
-                    _builder.EmitLocalLoad(temp);
+                    cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
+                    _builder.EmitLocalStore(cloneTemp);
+                    _builder.EmitLocalAddress(cloneTemp);
+                    _builder.EmitLocalLoad(cloneTemp);
                     EmitBox(receiver.Type, receiver.Syntax);
 
                     // here we have loaded a ref to a temp and its boxed value { &T, O }
@@ -337,22 +342,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     _builder.EmitOpCode(ILOpCode.Dup);
-                    // here we have loaded two copies of a reference   { O, O }
+                    // here we have loaded two copies of a reference   { O, O }  or  {&nub, &nub}
                 }
             }
             else
             {
-                EmitExpression(receiver, true);
-                if (!receiverType.IsReferenceType)
-                {
-                    EmitBox(receiverType, receiver.Syntax);
-                }
-                // here we have loaded just { O }
-                // we have the most trivial case where we can just reload O when needed
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: false);
+                // here we have loaded just { O } or  {&nub}
+                // we have the most trivial case where we can just reload receiver when needed again
+            }
+
+            // ===== CONDITION
+
+            var hasValueOpt = expression.HasValueMethodOpt;
+            if (hasValueOpt != null)
+            {
+                Debug.Assert(receiver.Type.IsNullableType());
+                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                EmitSymbolToken(hasValueOpt, expression.Syntax, null);
             }
 
             _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
 
+            // no longer need the temp if we are not holding a copy
+            if (receiverTemp != null && !nullCheckOnCopy)
+            {
+                FreeTemp(receiverTemp);
+                receiverTemp = null;
+            }
+
+            // ===== WHEN NULL
             if (nullCheckOnCopy)
             {
                 _builder.EmitOpCode(ILOpCode.Pop);
@@ -370,6 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
 
+
+            // ===== WHEN NOT NULL 
             if (nullCheckOnCopy)
             {
                 // notNull branch pops copy of receiver off the stack when nullCheckOnCopy
@@ -390,16 +411,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!nullCheckOnCopy)
             {
-                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+                Debug.Assert(receiverTemp == null);
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
                 Debug.Assert(receiverTemp == null);
             }
 
             EmitExpression(expression.WhenNotNull, used);
+
+            // ===== DONE
             _builder.MarkLabel(doneLabel);
 
-            if (temp != null)
+            if (cloneTemp != null)
             {
-                FreeTemp(temp);
+                FreeTemp(cloneTemp);
             }
 
             if (receiverTemp != null)

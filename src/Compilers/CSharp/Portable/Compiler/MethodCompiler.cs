@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we depend on an invalid type or constant from another module), then explicitly add a diagnostic.
             // This diagnostic is not very helpful to the user, but it will prevent us from emitting an invalid
             // module or crashing.
-            if (moduleBeingBuiltOpt != null && methodCompiler._globalHasErrors && !diagnostics.HasAnyErrors() && !hasDeclarationErrors)
+            if (moduleBeingBuiltOpt != null && (methodCompiler._globalHasErrors || moduleBeingBuiltOpt.SourceModule.HasBadAttributes) && !diagnostics.HasAnyErrors() && !hasDeclarationErrors)
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name);
             }

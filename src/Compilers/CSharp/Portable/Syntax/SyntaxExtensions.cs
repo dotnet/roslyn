@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxToken NormalizeWhitespace(this SyntaxToken token, string indentation = DefaultIndentation, bool elasticTrivia = false)
         {
-            return SyntaxFormatter.Format(token, indentation, elasticTrivia);
+            return SyntaxNormalizer.Normalize(token, indentation, elasticTrivia);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxTriviaList NormalizeWhitespace(this SyntaxTriviaList list, string indentation = DefaultIndentation, bool elasticTrivia = false)
         {
-            return SyntaxFormatter.Format(list, indentation, elasticTrivia);
+            return SyntaxNormalizer.Normalize(list, indentation, elasticTrivia);
         }
 
         public static SyntaxTriviaList ToSyntaxTriviaList(this IEnumerable<SyntaxTrivia> sequence)

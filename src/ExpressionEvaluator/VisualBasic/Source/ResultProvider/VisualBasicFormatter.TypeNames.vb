@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Text
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
         End Sub
 
-        Protected Overrides Sub AppendGenericTypeArgumentList(builder As StringBuilder, typeArguments() As Type, typeArgumentOffset As Integer, arity As Integer, escapeKeywordIdentifiers As Boolean)
+        Protected Overrides Sub AppendGenericTypeArgumentList(builder As StringBuilder, typeArguments() As Type, typeArgumentOffset As Integer, dynamicFlags As DynamicFlagsCustomTypeInfo, ByRef index As Integer, arity As Integer, escapeKeywordIdentifiers As Boolean)
             builder.Append("(Of ")
             For i = 0 To arity - 1
                 If i > 0 Then
@@ -30,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End If
 
                 Dim typeArgument As Type = typeArguments(typeArgumentOffset + i)
-                AppendQualifiedTypeName(builder, typeArgument, escapeKeywordIdentifiers)
+                AppendQualifiedTypeName(builder, typeArgument, dynamicFlags, index, escapeKeywordIdentifiers)
             Next
             builder.Append(")"c)
         End Sub
@@ -43,7 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             builder.Append(")"c)
         End Sub
 
-        Protected Overrides Function AppendSpecialTypeName(builder As StringBuilder, type As Type, escapeKeywordIdentifiers As Boolean) As Boolean
+        Protected Overrides Function AppendSpecialTypeName(builder As StringBuilder, type As Type, isDynamic As Boolean, escapeKeywordIdentifiers As Boolean) As Boolean
+            ' NOTE: isDynamic is ignored in VB.
+
             If type.IsPredefinedType() Then
                 builder.Append(type.GetPredefinedTypeName()) ' Not an identifier, does not require escaping.
                 Return True

@@ -185,7 +185,7 @@ class B : A
         }
 
         [WorkItem(1022157)]
-        [Fact(Skip = "1022157")]
+        [Fact]
         public void Covariance()
         {
             var source =
@@ -214,16 +214,16 @@ class C
                 EvalResult("H", "{B[1]}", "I[] {B[]}", "o.H", DkmEvaluationResultFlags.Expandable));
             var moreChildren = GetChildren(children[0]);
             Verify(moreChildren,
-                EvalResult("[0]", "{A}", "object {A}", "o.F[0]", DkmEvaluationResultFlags.Expandable));
+                EvalResult("[0]", "{A}", "object {A}", "((A[])o.F)[0]", DkmEvaluationResultFlags.Expandable));
             moreChildren = GetChildren(moreChildren[0]);
             Verify(moreChildren,
-                EvalResult("F", "1", "object {int}", "((A)o.F[0]).F"));
+                EvalResult("F", "1", "object {int}", "((A)((A[])o.F)[0]).F"));
             moreChildren = GetChildren(children[1]);
             Verify(moreChildren,
-                EvalResult("[0]", "{B}", "A {B}", "o.G[0]", DkmEvaluationResultFlags.Expandable));
+                EvalResult("[0]", "{B}", "A {B}", "((B[])o.G)[0]", DkmEvaluationResultFlags.Expandable));
             moreChildren = GetChildren(children[2]);
             Verify(moreChildren,
-                EvalResult("[0]", "{B}", "I {B}", "o.H[0]", DkmEvaluationResultFlags.Expandable));
+                EvalResult("[0]", "{B}", "I {B}", "((B[])o.H)[0]", DkmEvaluationResultFlags.Expandable));
         }
 
         [WorkItem(1001844)]

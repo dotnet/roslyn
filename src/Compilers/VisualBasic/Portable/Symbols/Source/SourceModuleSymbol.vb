@@ -51,6 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         'Private m_diagnosticBagCompile As New DiagnosticBag()
         'Private m_diagnosticBagEmit As New DiagnosticBag()
 
+        Private _hasBadAttributes As Boolean
+
         Friend ReadOnly Property Options As VisualBasicCompilationOptions
             Get
                 Return _options
@@ -933,6 +935,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(attributesBag IsNot Nothing)
             Debug.Assert(Not attributesToStore.IsDefault)
 
+            RecordPresenceOfBadAttributes(attributesToStore)
+
             If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
                 attributesBag.SetAttributes(attributesToStore)
             Else
@@ -954,6 +958,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End SyncLock
             End If
         End Sub
+
+        Private Sub RecordPresenceOfBadAttributes(attributes As ImmutableArray(Of VisualBasicAttributeData))
+            If Not _hasBadAttributes Then
+                For Each attribute In attributes
+                    If attribute.HasErrors Then
+                        _hasBadAttributes = True
+                        Exit For
+                    End If
+                Next
+            End If
+        End Sub
+
+        Friend ReadOnly Property HasBadAttributes As Boolean
+            Get
+                Return _hasBadAttributes
+            End Get
+        End Property
 
         ' same as AtomicStoreReferenceAndDiagnostics, but without storing any references
         Friend Sub AddDiagnostics(diagBag As DiagnosticBag, stage As CompilationStage)

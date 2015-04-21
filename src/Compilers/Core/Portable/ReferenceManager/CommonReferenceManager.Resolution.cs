@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = definitionOffset; i < definitions.Length; i++)
                 {
-                    if (IsWindowsRuntime(definitions[i]))
+                    if (definitions[i].Identity.IsWindowsRuntime())
                     {
                         return new AssemblyReferenceBinding(reference, i);
                     }
@@ -861,19 +861,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new AssemblyReferenceBinding(reference);
-        }
-
-        private static bool IsWindowsRuntime(AssemblyData definition)
-        {
-            if (!definition.Identity.IsWindowsRuntime())
-            {
-                return false;
-            }
-            int majorVersion;
-            int minorVersion;
-            return definition.GetWinMdVersion(out majorVersion, out minorVersion) &&
-                (majorVersion == 1) &&
-                (minorVersion >= 4);
         }
     }
 }

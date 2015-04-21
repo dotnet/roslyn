@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static Assembly GetAssembly(string source)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
+            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 
         public static Assembly GetUnsafeAssembly(string source)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.UnsafeReleaseDll);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 

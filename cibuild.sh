@@ -13,8 +13,10 @@ usage()
     echo ""
     echo "Options"
     echo "  --mono-path <path>  Path to the mono installation to use for the run" 
+	echo "  --os <os>			OS to run (Linux / Darwin)"
 }
 
+OS_NAME=$(uname -s)
 while [[ $# > 0 ]]
 do
     opt="$1"
@@ -27,6 +29,10 @@ do
         CUSTOM_MONO_PATH=$2
         shift 2
         ;;
+		--os)
+		OS_NAME=$2
+		shift 2
+		;;
         *)
         usage 
         exit 1

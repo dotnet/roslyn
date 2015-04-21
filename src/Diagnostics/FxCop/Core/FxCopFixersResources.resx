@@ -135,12 +135,6 @@
   <data name="EnumsShouldZeroValueNotFlagsNoZeroValueCodeFix" xml:space="preserve">
     <value>Add a zero-valued member 'None' to enum.</value>
   </data>
-  <data name="MarkEnumsWithFlagsCodeFix" xml:space="preserve">
-    <value>Apply FlagsAttribute to enum.</value>
-  </data>
-  <data name="DoNotMarkEnumsWithFlagsCodeFix" xml:space="preserve">
-    <value>Remove FlagsAttribute from enum.</value>
-  </data>
   <data name="ImplementSerializationConstructor" xml:space="preserve">
     <value>Implement Serialization constructor</value>
   </data>

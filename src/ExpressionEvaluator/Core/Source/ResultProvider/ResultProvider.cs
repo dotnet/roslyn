@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Formatter = formatter;
         }
 
-        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo customTypeInfo, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
+        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo declaredTypeInfo, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
             // TODO: Use full name
             var wl = new WorkList(workList, e => completionRoutine(DkmEvaluationAsyncResult.CreateErrorResult(e)));
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 value,
                 wl,
                 declaredType,
+                declaredTypeInfo,
                 inspectionContext,
                 resultName,
                 result => wl.ContinueWith(() => completionRoutine(new DkmEvaluationAsyncResult(result))));
@@ -271,7 +273,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     GetResultAndContinue(
                         dataItem,
                         workList,
-                        declaredType: DkmClrType.Create(dataItem.Value.Type.AppDomain, dataItem.DeclaredType),
+                        declaredType: DkmClrType.Create(dataItem.Value.Type.AppDomain, dataItem.DeclaredTypeAndInfo.Type),
+                        declaredTypeInfo: dataItem.DeclaredTypeAndInfo.Info,
                         inspectionContext: inspectionContext,
                         parent: dataItem.Parent,
                         completionRoutine: completionRoutine);
@@ -344,27 +347,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// The qualified name (i.e. including containing types and namespaces) of a named, pointer,
         /// or array type followed by the qualified name of the actual runtime type, if provided.
         /// </returns>
-        private static string GetTypeName(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType declaredType, ExpansionKind kind)
+        private static string GetTypeName(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, ExpansionKind kind)
         {
             var declaredLmrType = declaredType.GetLmrType();
             var runtimeType = value.Type;
             var runtimeLmrType = runtimeType.GetLmrType();
+            var declaredTypeName = inspectionContext.GetTypeName(declaredType, Formatter.NoFormatSpecifiers, declaredTypeInfo);
+            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, Formatter.NoFormatSpecifiers, CustomTypeInfo: null);
             var includeRuntimeTypeName =
-                !declaredLmrType.Equals(runtimeLmrType) &&
+                !string.Equals(declaredTypeName, runtimeTypeName, StringComparison.OrdinalIgnoreCase) && // Names will reflect "dynamic", types will not.
                 !declaredLmrType.IsPointer &&
                 (kind != ExpansionKind.PointerDereference) &&
                 (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
-            var declaredTypeName = inspectionContext.GetTypeName(declaredType, Formatter.NoFormatSpecifiers, CustomTypeInfo: null);
             return includeRuntimeTypeName ?
-                string.Format("{0} {{{1}}}", declaredTypeName, inspectionContext.GetTypeName(runtimeType, Formatter.NoFormatSpecifiers, CustomTypeInfo: null)) :
+                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) : 
                 declaredTypeName;
         }
 
         internal EvalResultDataItem CreateDataItem(
             DkmInspectionContext inspectionContext,
             string name,
-            Type typeDeclaringMember,
-            Type declaredType,
+            TypeAndCustomInfo typeDeclaringMemberAndInfo,
+            TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
             EvalResultDataItem parent,
             ExpansionFlags expansionFlags,
@@ -383,6 +387,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Expansion expansion;
             // If the declared type is Nullable<T>, the value should
             // have no expansion if null, or be expanded as a T.
+            var declaredType = declaredTypeAndInfo.Type;
             var lmrNullableTypeArg = declaredType.GetNullableTypeArgument();
             if (lmrNullableTypeArg != null && !value.HasExceptionThrown())
             {
@@ -403,7 +408,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     value = nullableValue;
                     Debug.Assert(lmrNullableTypeArg.Equals(value.Type.GetLmrType())); // If this is not the case, add a test for includeRuntimeTypeIfNecessary.
-                    expansion = this.GetTypeExpansion(inspectionContext, lmrNullableTypeArg, value, ExpansionFlags.IncludeResultsView);
+                    // CONSIDER: The DynamicAttribute for the type argument should just be Skip(1) of the original flag array.
+                    expansion = this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(lmrNullableTypeArg), value, ExpansionFlags.IncludeResultsView);
                 }
             }
             else if (value.IsError() || (inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoExpansion) != 0)
@@ -416,8 +422,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     this,
                     inspectionContext,
                     name,
-                    typeDeclaringMember,
-                    declaredType,
+                    typeDeclaringMemberAndInfo,
+                    declaredTypeAndInfo,
                     value,
                     childShouldParenthesize,
                     fullName,
@@ -427,16 +433,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     this.Formatter.GetEditableValue(value, inspectionContext));
                 if (expansion == null)
                 {
-                    var expansionType = value.HasExceptionThrown() ? value.Type.GetLmrType() : declaredType;
-                    expansion = this.GetTypeExpansion(inspectionContext, expansionType, value, expansionFlags);
+                    expansion = value.HasExceptionThrown()
+                        ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags)
+                        : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags);
                 }
             }
 
             return new EvalResultDataItem(
                 ExpansionKind.Default,
                 name,
-                typeDeclaringMember,
-                declaredType,
+                typeDeclaringMemberAndInfo,
+                declaredTypeAndInfo,
                 parent: parent,
                 value: value,
                 displayValue: null,
@@ -451,17 +458,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 inspectionContext: inspectionContext);
         }
 
-        private void GetRootResultAndContinue(DkmClrValue value, WorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, string name, CompletionRoutine<DkmEvaluationResult> completionRoutine)
+        private void GetRootResultAndContinue(
+            DkmClrValue value, 
+            WorkList workList, 
+            DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
+            DkmInspectionContext inspectionContext, 
+            string name, 
+            CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
             var type = value.Type.GetLmrType();
             if (type.IsTypeVariables())
             {
-                var expansion = new TypeVariablesExpansion(type);
+                Debug.Assert(type.Equals(declaredType.GetLmrType()));
+                var declaredTypeAndInfo = new TypeAndCustomInfo(type, declaredTypeInfo);
+                var expansion = new TypeVariablesExpansion(declaredTypeAndInfo);
                 var dataItem = new EvalResultDataItem(
                     ExpansionKind.Default,
                     name,
-                    typeDeclaringMember: null,
-                    declaredType: type,
+                    typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                    declaredTypeAndInfo: declaredTypeAndInfo,
                     parent: null,
                     value: value,
                     displayValue: null,
@@ -499,8 +515,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ResultsOnly) != 0)
             {
+                var dataItem = ResultsViewExpansion.CreateResultsOnlyRow(
+                    inspectionContext, 
+                    name, 
+                    declaredType, 
+                    declaredTypeInfo, 
+                    value, 
+                    this.Formatter);
                 CreateEvaluationResultAndContinue(
-                    ResultsViewExpansion.CreateResultsOnlyRow(inspectionContext, name, declaredType, value, this.Formatter), 
+                    dataItem, 
                     workList,
                     inspectionContext,
                     value.StackFrame,
@@ -508,7 +531,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else
             {
-                var dataItem = ResultsViewExpansion.CreateResultsOnlyRowIfSynthesizedEnumerable(inspectionContext, name, declaredType, value, this.Formatter);
+                var dataItem = ResultsViewExpansion.CreateResultsOnlyRowIfSynthesizedEnumerable(
+                    inspectionContext, 
+                    name, 
+                    declaredType, 
+                    declaredTypeInfo, 
+                    value, 
+                    this.Formatter);
                 if (dataItem != null)
                 {
                     CreateEvaluationResultAndContinue(
@@ -525,8 +554,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     dataItem = CreateDataItem(
                         inspectionContext,
                         name,
-                        typeDeclaringMember: null,
-                        declaredType: declaredType.GetLmrType(),
+                        typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                        declaredTypeAndInfo: new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo),
                         value: value,
                         parent: null,
                         expansionFlags: ExpansionFlags.All,
@@ -536,12 +565,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         category: DkmEvaluationResultCategory.Other,
                         flags: value.EvalFlags,
                         evalFlags: inspectionContext.EvaluationFlags);
-                    GetResultAndContinue(dataItem, workList, declaredType, inspectionContext, parent: null, completionRoutine: completionRoutine);
+                    GetResultAndContinue(dataItem, workList, declaredType, declaredTypeInfo, inspectionContext, parent: null, completionRoutine: completionRoutine);
                 }
             }
         }
 
-        private void GetResultAndContinue(EvalResultDataItem dataItem, WorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, EvalResultDataItem parent, CompletionRoutine<DkmEvaluationResult> completionRoutine)
+        private void GetResultAndContinue(
+            EvalResultDataItem dataItem, 
+            WorkList workList, 
+            DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
+            DkmInspectionContext inspectionContext, 
+            EvalResultDataItem parent, 
+            CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
             var value = dataItem.Value; // Value may have been replaced (specifically, for Nullable<T>).
             DebuggerDisplayInfo displayInfo;
@@ -557,7 +593,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         displayValue => EvaluateDebuggerDisplayStringAndContinue(value, workList, inspectionContext, targetType, attribute.TypeName,
                             displayType =>
                             {
-                                completionRoutine(GetResult(inspectionContext, dataItem, declaredType, displayName.Result, displayValue.Result, displayType.Result, parent));
+                                completionRoutine(GetResult(inspectionContext, dataItem, declaredType, declaredTypeInfo, displayName.Result, displayValue.Result, displayType.Result, parent));
                                 workList.Execute();
                             },
                             onException),
@@ -566,7 +602,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else
             {
-                completionRoutine(GetResult(inspectionContext, dataItem, declaredType, displayName: null, displayValue: null, displayType: null, parent: parent));
+                completionRoutine(GetResult(inspectionContext, dataItem, declaredType, declaredTypeInfo, displayName: null, displayValue: null, displayType: null, parent: parent));
             }
         }
 
@@ -601,11 +637,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private DkmEvaluationResult GetResult(DkmInspectionContext inspectionContext, EvalResultDataItem dataItem, DkmClrType declaredType, string displayName, string displayValue, string displayType, EvalResultDataItem parent)
+        private DkmEvaluationResult GetResult(
+            DkmInspectionContext inspectionContext, 
+            EvalResultDataItem dataItem, 
+            DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
+            string displayName, 
+            string displayValue, 
+            string displayType, 
+            EvalResultDataItem parent)
         {
             var name = dataItem.Name;
             Debug.Assert(name != null);
-            var typeDeclaringMember = dataItem.TypeDeclaringMember;
+            var typeDeclaringMemberAndInfo = dataItem.TypeDeclaringMemberAndInfo;
 
             // Note: Don't respect the debugger display name on the root element:
             //   1) In the Watch window, that's where the user's text goes.
@@ -617,11 +661,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 name = displayName;
             }
-            else if (typeDeclaringMember != null)
+            else if (typeDeclaringMemberAndInfo.Type != null)
             {
-                if (typeDeclaringMember.IsInterface)
+                if (typeDeclaringMemberAndInfo.Type.IsInterface)
                 {
-                    var interfaceTypeName = this.Formatter.GetTypeName(typeDeclaringMember, escapeKeywordIdentifiers: true);
+                    var interfaceTypeName = this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true);
                     name = string.Format("{0}.{1}", interfaceTypeName, name);
                 }
                 else
@@ -630,7 +674,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var builder = pooled.Builder;
                     builder.Append(name);
                     builder.Append(" (");
-                    builder.Append(this.Formatter.GetTypeName(typeDeclaringMember));
+                    builder.Append(this.Formatter.GetTypeName(typeDeclaringMemberAndInfo));
                     builder.Append(')');
                     name = pooled.ToStringAndFree();
                 }
@@ -651,7 +695,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 display = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
             }
 
-            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, dataItem.Kind);
+            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, declaredTypeInfo, dataItem.Kind);
 
             return CreateEvaluationResult(inspectionContext, value, name, typeName, display, dataItem);
         }
@@ -723,8 +767,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal Expansion GetTypeExpansion(DkmInspectionContext inspectionContext, Type declaredType, DkmClrValue value, ExpansionFlags flags)
+        internal Expansion GetTypeExpansion(
+            DkmInspectionContext inspectionContext, 
+            TypeAndCustomInfo declaredTypeAndInfo,
+            DkmClrValue value, 
+            ExpansionFlags flags)
         {
+            var declaredType = declaredTypeAndInfo.Type;
             Debug.Assert(!declaredType.IsTypeVariables());
 
             if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoExpansion) != 0)
@@ -744,7 +793,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return null;
                 }
                 var lowerBounds = value.ArrayLowerBounds;
-                return ArrayExpansion.CreateExpansion(sizes, lowerBounds);
+
+                Type elementType;
+                DkmClrCustomTypeInfo elementTypeInfo;
+                if (declaredType.IsArray)
+                {
+                    elementType = declaredType.GetElementType();
+                    elementTypeInfo = new DynamicFlagsCustomTypeInfo(declaredTypeAndInfo.Info).SkipOne().GetCustomTypeInfo();
+                }
+                else
+                {
+                    elementType = runtimeType.GetElementType();
+                    elementTypeInfo = null;
+                }
+
+                return ArrayExpansion.CreateExpansion(new TypeAndCustomInfo(elementType, elementTypeInfo), sizes, lowerBounds);
             }
 
             if (this.Formatter.IsPredefinedType(runtimeType))
@@ -754,7 +817,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (declaredType.IsPointer)
             {
-                return !value.IsNull ? new PointerDereferenceExpansion(declaredType.GetElementType()) : null;
+                // If this ever happens, the element type info is just .SkipOne().
+                Debug.Assert(!new DynamicFlagsCustomTypeInfo(declaredTypeAndInfo.Info).Any());
+                var elementType = declaredType.GetElementType();
+                return value.IsNull || elementType.IsVoid()
+                    ? null
+                    : new PointerDereferenceExpansion(new TypeAndCustomInfo(elementType));
             }
 
             if (value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown) &&
@@ -767,7 +835,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 flags &= ~ExpansionFlags.IncludeBaseMembers;
             }
 
-            return MemberExpansion.CreateExpansion(inspectionContext, declaredType, value, flags, TypeHelpers.IsVisibleMember, this.Formatter);
+            return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this.Formatter);
         }
 
         private static DkmEvaluationResult CreateEvaluationResultFromException(Exception e, EvalResultDataItem dataItem, DkmInspectionContext inspectionContext)

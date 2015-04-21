@@ -89,8 +89,6 @@
     <Compile Include="Design\CA1053Tests.cs" />
     <Compile Include="Design\CodeFixes\CA1008FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1012FixerTests.cs" />
-    <Compile Include="Design\CodeFixes\EnumWithFlagsAttributesRulesFixerTests.cs" />
-    <Compile Include="Design\EnumWithFlagsAttributeRulesTests.cs" />
     <Compile Include="HardeningAnalyzer\HardeningAnalyzerTests.cs" />
     <Compile Include="Naming\CA1708Tests.cs" />
     <Compile Include="Naming\CA1715Tests.cs" />
@@ -98,21 +96,19 @@
     <Compile Include="Performance\CodeFixes\CA1821FixerTests.cs" />
     <Compile Include="Reliability\CA2002Tests.cs" />
     <Compile Include="Usage\CA2200Tests.cs" />
-    <Compile Include="Usage\CA2213Tests.cs" />
     <Compile Include="Usage\CA2214Tests.cs" />
     <Compile Include="Usage\CA2229Tests.cs" />
     <Compile Include="Usage\CA2235Tests.cs" />
     <Compile Include="Usage\CA2237Tests.cs" />
-    <Compile Include="Usage\CodeFixes\CA2213FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2229FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2235FixerTests.cs" />
     <Compile Include="Usage\CodeFixes\CA2237FixerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.34.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.34-rc\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="xunit">
       <HintPath>..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>

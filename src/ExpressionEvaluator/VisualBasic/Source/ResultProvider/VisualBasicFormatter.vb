@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                        staticMembersString:=Resources.SharedMembers)
         End Sub
 
-        Private Function IDkmClrFormatter_GetTypeName(inspectionContext As DkmInspectionContext, clrType As DkmClrType, formatSpecifiers As ReadOnlyCollection(Of String), customTypeInfo As DkmClrCustomTypeInfo) As String Implements IDkmClrFormatter.GetTypeName
-            Return GetTypeName(clrType.GetLmrType())
+        Private Function IDkmClrFormatter_GetTypeName(inspectionContext As DkmInspectionContext, clrType As DkmClrType, formatSpecifiers As ReadOnlyCollection(Of String), clrTypeInfo As DkmClrCustomTypeInfo) As String Implements IDkmClrFormatter.GetTypeName
+            Return GetTypeName(New TypeAndCustomInfo(clrType.GetLmrType(), clrTypeInfo))
         End Function
 
         Private Function IDkmClrFormatter_GetUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As String Implements IDkmClrFormatter.GetUnderlyingString
