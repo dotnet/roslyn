@@ -1780,5 +1780,59 @@ class C
             Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
             VerifyItemWithReferenceWorker(markup, {expectedDescription}, False)
         End Sub
+
+        <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
+        <WorkItem(1068424)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericParameters1()
+            Dim markup = <a><![CDATA[
+Class C
+    Sub M()
+        Foo(""$$)
+    End Sub
+
+    Sub Foo(Of T)(a As T)
+    End Sub
+
+    Sub Foo(Of T, U)(a As T, b As U)
+    End Sub
+End Class
+]]></a>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem) From
+            {
+                New SignatureHelpTestItem("C.Foo(Of String)(a As String)", String.Empty, String.Empty, currentParameterIndex:=0),
+                New SignatureHelpTestItem("C.Foo(Of T, U)(a As T, b As U)", String.Empty)
+            }
+
+            Test(markup, expectedOrderedItems)
+        End Sub
+
+        <WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")>
+        <WorkItem(1068424)>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestGenericParameters2()
+            Dim markup = <a><![CDATA[
+Class C
+    Sub M()
+        Foo("", $$)
+    End Sub
+
+    Sub Foo(Of T)(a As T)
+    End Sub
+
+    Sub Foo(Of T, U)(a As T, b As U)
+    End Sub
+End Class
+]]></a>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem) From
+            {
+                New SignatureHelpTestItem("C.Foo(Of T)(a As T)", String.Empty),
+                New SignatureHelpTestItem("C.Foo(Of T, U)(a As T, b As U)", String.Empty, String.Empty, currentParameterIndex:=1)
+            }
+
+            Test(markup, expectedOrderedItems)
+        End Sub
     End Class
 End Namespace
