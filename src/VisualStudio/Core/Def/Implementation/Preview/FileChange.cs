@@ -83,8 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var diff = ComputeDiffSpans(diffService, left, right, cancellationToken);
             if (diff.Differences.Count == 0)
             {
-                // There are no changes. Just show the whole document.
-                return GetEntireDocumentAsSpanChange(left);
+                // There are no changes.
+                return ChangeList.Empty;
             }
 
             return GetChangeList(diff, right.Id, oldText, newText);
@@ -240,8 +240,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var oldText = left.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var newText = right.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
+            var oldString = oldText.ToString();
+            var newString = newText.ToString();
+
             // first try, cheapest way.
-            var diffResult = diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
+            var diffResult = diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
             {
                 DifferenceType = StringDifferenceTypes.Line | StringDifferenceTypes.Word,
                 WordSplitBehavior = WordSplitBehavior.WhiteSpaceAndPunctuation
@@ -253,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
 
             // second, try a bit more expansive way
-            return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
+            return diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
             {
                 DifferenceType = StringDifferenceTypes.Word,
                 WordSplitBehavior = WordSplitBehavior.WhiteSpaceAndPunctuation
