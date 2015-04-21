@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmInspectionContext inspectionContext,
             string name,
             DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
             DkmClrValue value,
             Formatter formatter)
         {
@@ -47,7 +49,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var expansion = CreateExpansion(inspectionContext, value, enumerableType, formatter);
                     if (expansion != null)
                     {
-                        return expansion.CreateResultsViewRow(inspectionContext, name, declaredType.GetLmrType(), value, includeResultsFormatSpecifier: true, formatter: formatter);
+                        return expansion.CreateResultsViewRow(
+                            inspectionContext, 
+                            name, 
+                            new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
+                            value, 
+                            includeResultsFormatSpecifier: true, 
+                            formatter: formatter);
                     }
                     errorMessage = Resources.ResultsViewNoSystemCore;
                 }
@@ -69,6 +77,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmInspectionContext inspectionContext,
             string name,
             DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
             DkmClrValue value,
             Formatter formatter)
         {
@@ -90,7 +99,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
-            return expansion.CreateResultsViewRow(inspectionContext, name, declaredType.GetLmrType(), value, includeResultsFormatSpecifier: false, formatter: formatter);
+            return expansion.CreateResultsViewRow(
+                inspectionContext, 
+                name, 
+                new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
+                value, 
+                includeResultsFormatSpecifier: false, 
+                formatter: formatter);
         }
 
         private static DkmClrType GetEnumerableType(DkmClrValue value)
@@ -154,11 +169,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var proxyMembers = MemberExpansion.CreateExpansion(
                 inspectionContext,
-                proxyValue.Type.GetLmrType(),
+                new TypeAndCustomInfo(proxyValue.Type),
                 proxyValue,
-                ExpansionFlags.None,
-                TypeHelpers.IsPublic,
-                formatter);
+                flags: ExpansionFlags.None,
+                predicate: TypeHelpers.IsPublic,
+                formatter: formatter);
             return new ResultsViewExpansion(proxyValue, proxyMembers);
         }
 
@@ -196,16 +211,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private EvalResultDataItem CreateResultsViewRow(DkmInspectionContext inspectionContext, EvalResultDataItem parent, Formatter formatter)
         {
             Debug.Assert(parent != null);
-            var proxyType = _proxyValue.Type.GetLmrType();
+            var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var fullName = parent.ChildFullNamePrefix;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), fullName);
+                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), fullName);
             return new EvalResultDataItem(
                 ExpansionKind.ResultsView,
                 Resources.ResultsView,
-                typeDeclaringMember: null,
-                declaredType: proxyType,
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: proxyTypeAndInfo,
                 parent: null,
                 value: _proxyValue,
                 displayValue: Resources.ResultsViewValueWarning,
@@ -223,24 +238,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private EvalResultDataItem CreateResultsViewRow(
             DkmInspectionContext inspectionContext,
             string name,
-            Type declaredType,
+            TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
             bool includeResultsFormatSpecifier,
             Formatter formatter)
         {
-            var proxyType = _proxyValue.Type.GetLmrType();
+            var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             ReadOnlyCollection<string> formatSpecifiers;
             var fullName = formatter.TrimAndGetFormatSpecifiers(name, out formatSpecifiers);
             if (includeResultsFormatSpecifier)
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, ResultsFormatSpecifier);
             }
-            var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), fullName);
+            var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), fullName);
             return new EvalResultDataItem(
                 ExpansionKind.Default,
                 name,
-                typeDeclaringMember: null,
-                declaredType: declaredType,
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: declaredTypeAndInfo,
                 parent: null,
                 value: value,
                 displayValue: name,
@@ -277,7 +292,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 bool visitAll,
                 ref int index)
             {
-                _expansion.GetRows(resultProvider, rows, inspectionContext, parent, _proxyValue, startIndex, count, visitAll, ref index);
+                _expansion.GetRows(
+                    resultProvider, 
+                    rows, 
+                    inspectionContext, 
+                    parent, 
+                    _proxyValue, 
+                    startIndex: startIndex, 
+                    count: count, 
+                    visitAll: visitAll, 
+                    index: ref index);
             }
         }
     }

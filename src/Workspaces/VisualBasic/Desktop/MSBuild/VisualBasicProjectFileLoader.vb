@@ -238,6 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 compilerInputs.SetReferences(Me.GetMetadataReferencesFromModel(executedProject).ToArray())
                 compilerInputs.SetAnalyzers(Me.GetAnalyzerReferencesFromModel(executedProject).ToArray())
+                compilerInputs.SetAdditionalFiles(Me.GetAdditionalFilesFromModel(executedProject).ToArray())
                 compilerInputs.SetSources(Me.GetDocumentsFromModel(executedProject).ToArray())
 
                 compilerInputs.EndInitialization()

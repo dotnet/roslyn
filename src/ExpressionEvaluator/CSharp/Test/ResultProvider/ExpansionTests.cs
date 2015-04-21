@@ -710,8 +710,51 @@ unsafe class C
                     EvalResult(fullName, "{4}", "System.IntPtr", fullName, DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult("m_value", PointerToString(new IntPtr(i)), "void*", string.Format("({0}).m_value", fullName), DkmEvaluationResultFlags.Expandable),
+                    EvalResult("m_value", PointerToString(new IntPtr(i)), "void*", string.Format("({0}).m_value", fullName)),
                     EvalResult("Static members", null, "", "System.IntPtr", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            }
+        }
+
+        [WorkItem(1154608)]
+        [Fact]
+        public void VoidPointer()
+        {
+            var source = @"
+using System;
+
+unsafe class C
+{
+    internal C(long p)
+    {
+        this.v = (void*)p;
+        this.vv = (void**)p;
+    }
+    void* v;
+    void** vv;
+}";
+            var assembly = GetUnsafeAssembly(source);
+            unsafe
+            {
+                // NOTE: We're depending on endian-ness to put
+                // the interesting bytes first when we run this
+                // test as 32-bit.
+                long i = 4;
+                long p = (long)&i;
+                long pp = (long)&p;
+                var type = assembly.GetType("C");
+                var rootExpr = $"new C({pp})";
+                var value = CreateDkmClrValue(type.Instantiate(pp));
+                var evalResult = FormatResult(rootExpr, value);
+                Verify(evalResult,
+                    EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("v", PointerToString(new IntPtr(pp)), "void*", $"({rootExpr}).v"),
+                    EvalResult("vv", PointerToString(new IntPtr(pp)), "void**", $"({rootExpr}).vv", DkmEvaluationResultFlags.Expandable));
+                string fullName = $"*({rootExpr}).vv";
+                children = GetChildren(children[1]);
+                Verify(children,
+                    EvalResult(fullName, PointerToString(new IntPtr(p)), "void*", fullName));
             }
         }
 

@@ -442,6 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
 
         Friend Overrides Function CompileGetLocals(
+            aliases As ReadOnlyCollection(Of [Alias]),
             locals As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
             diagnostics As DiagnosticBag,
@@ -449,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             testData As CompilationTestData) As ReadOnlyCollection(Of Byte)
 
             Dim context = Me.CreateCompilationContext(Nothing)
-            Dim modulebuilder = context.CompileGetLocals(EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
+            Dim modulebuilder = context.CompileGetLocals(aliases, EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
             Dim assembly As ReadOnlyCollection(Of Byte) = Nothing
 
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then
@@ -632,6 +633,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             ' across different versions of (desktop) windows.
                             Dim identity = New AssemblyIdentity($"{containingNamespace.ToDisplayString}.{namespaceName}", contentType:=AssemblyContentType.WindowsRuntime)
                             Return ImmutableArray.Create(identity)
+                        Else
+                            ' Maybe it's a missing Linq extension method.  Let's try adding System.Core and see if that helps.
+                            Return ImmutableArray.Create(SystemCoreIdentity)
                         End If
                     End If
                 Case ERRID.ERR_UndefinedType1

@@ -3615,9 +3615,22 @@ class C
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
+
+            ResultProperties resultProperties;
             string error;
-            var result = context.CompileExpression("o.First()", out error);
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var result = context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "o.First()",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
             Assert.Equal(error, "error CS1061: 'object[]' does not contain a definition for 'First' and no extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)");
+            AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
         }
 
         [Fact]
@@ -3816,12 +3829,46 @@ class C
                 methodName: "C.M");
 
             // Expression references ambiguous modules.
+            ResultProperties resultProperties;
             string error;
-            context.CompileExpression("x.F0 + y.F0", out error);
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "x.F0 + y.F0",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
             Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
-            context.CompileExpression("y.F0", out error);
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "y.F0",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
             Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
-            context.CompileExpression("z.F1", out error);
+
+            context.CompileExpression(
+                DefaultInspectionContext.Instance,
+                "z.F1",
+                DkmEvaluationFlags.TreatAsExpression,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData: null);
+            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal("error CS7079: The type 'A1' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
 
             // Expression does not reference ambiguous modules.
@@ -5259,7 +5306,7 @@ class C
             ResultProperties resultProperties;
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var result = context.CompileExpression(
+            context.CompileExpression(
                 DefaultInspectionContext.Instance,
                 "from c in \"ABC\" select c",
                 DkmEvaluationFlags.TreatAsExpression,

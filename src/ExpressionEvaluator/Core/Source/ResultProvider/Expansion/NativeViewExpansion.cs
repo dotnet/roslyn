@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new EvalResultDataItem(
                 ExpansionKind.NativeView,
                 name: name,
-                typeDeclaringMember: null,
-                declaredType: comObject.Type.GetLmrType(),
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: new TypeAndCustomInfo(comObject.Type), // DkmClrValue types don't have attributes.
                 parent: null,
                 value: comObject,
                 displayValue: null,

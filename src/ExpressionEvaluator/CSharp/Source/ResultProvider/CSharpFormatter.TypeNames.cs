@@ -23,7 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builder.Append(identifier);
         }
 
-        protected override void AppendGenericTypeArgumentList(StringBuilder builder, Type[] typeArguments, int typeArgumentOffset, int arity, bool escapeKeywordIdentifiers)
+        protected override void AppendGenericTypeArgumentList(
+            StringBuilder builder, 
+            Type[] typeArguments,
+            int typeArgumentOffset, 
+            DynamicFlagsCustomTypeInfo dynamicFlags,
+            ref int index,
+            int arity, 
+            bool escapeKeywordIdentifiers)
         {
             builder.Append('<');
             for (int i = 0; i < arity; i++)
@@ -34,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 Type typeArgument = typeArguments[typeArgumentOffset + i];
-                AppendQualifiedTypeName(builder, typeArgument, escapeKeywordIdentifiers);
+                AppendQualifiedTypeName(builder, typeArgument, dynamicFlags, ref index, escapeKeywordIdentifiers);
             }
             builder.Append('>');
         }
@@ -48,8 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builder.Append(']');
         }
 
-        protected override bool AppendSpecialTypeName(StringBuilder builder, Type type, bool escapeKeywordIdentifiers)
+        protected override bool AppendSpecialTypeName(StringBuilder builder, Type type, bool isDynamic, bool escapeKeywordIdentifiers)
         {
+            if (isDynamic)
+            {
+                Debug.Assert(type.IsObject());
+                builder.Append("dynamic"); // Not a keyword, does not require escaping.
+                return true;
+            }
+
             if (type.IsPredefinedType())
             {
                 builder.Append(type.GetPredefinedTypeName()); // Not an identifier, does not require escaping.

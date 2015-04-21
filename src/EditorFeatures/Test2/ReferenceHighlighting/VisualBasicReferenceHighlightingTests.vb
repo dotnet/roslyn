@@ -272,5 +272,27 @@ End Class
 
             VerifyHighlights(input)
         End Sub
+
+        <WorkItem(1904, "https://github.com/dotnet/roslyn/issues/1904")>
+        <WorkItem(2079, "https://github.com/dotnet/roslyn/issues/2079")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub VerifyHighlightsForVisualBasicGlobalImportAliasedNamespace()
+            VerifyHighlights(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <CompilationOptions><GlobalImport>VB = Microsoft.VisualBasic</GlobalImport></CompilationOptions>
+                        <Document>
+                            Class Test
+                                Public Sub TestMethod()
+                                    ' Add reference tags to verify after #2079 is fixed
+                                    Console.Write(NameOf($$VB))
+                                    Console.Write(NameOf(VB))
+                                    Console.Write(NameOf(Microsoft.VisualBasic))
+                                End Sub
+                            End Class
+                        </Document>
+                    </Project>
+                </Workspace>)
+        End Sub
     End Class
 End Namespace

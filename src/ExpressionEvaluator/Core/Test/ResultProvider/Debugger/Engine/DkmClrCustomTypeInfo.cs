@@ -5,18 +5,28 @@
 #endregion
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
+    [DebuggerDisplay("{DebuggerDisplay, nq}")]
     public class DkmClrCustomTypeInfo
     {
         public readonly Guid PayloadTypeId;
         public readonly ReadOnlyCollection<byte> Payload;
 
-        public DkmClrCustomTypeInfo(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
+        private DkmClrCustomTypeInfo(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
         {
             PayloadTypeId = payloadTypeId;
             Payload = payload;
         }
+
+        public static DkmClrCustomTypeInfo Create(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
+        {
+            return new DkmClrCustomTypeInfo(payloadTypeId, payload);
+        }
+
+        private string DebuggerDisplay => $"[{string.Join(", ", Payload.Select(b => $"0x{b:x2}"))}] from {PayloadTypeId}";
     }
 }

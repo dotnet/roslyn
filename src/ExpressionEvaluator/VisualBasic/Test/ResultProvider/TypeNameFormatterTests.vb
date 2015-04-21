@@ -2,7 +2,9 @@
 
 Imports System
 Imports System.Collections.Generic
+Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
@@ -262,6 +264,21 @@ End Namespace
             Assert.Equal("[Return].[From](Of [Async])", fromType.GetTypeName(escapeKeywordIdentifiers:=True))
             Assert.Equal("[Return].[From](Of [Return].[False].[Nothing])", constructedYieldType.GetTypeName(escapeKeywordIdentifiers:=True))
             Assert.Equal("[Return].[From](Of [Return].[False].[Nothing]).[Await]", constructedAwaitType.GetTypeName(escapeKeywordIdentifiers:=True))
+        End Sub
+
+        <WorkItem(1087216)>
+        <Fact>
+        Public Sub DynamicAttribute_ValidFlags()
+            Assert.Equal("Object", GetType(Object).GetTypeName({True}))
+            Assert.Equal("Object()", GetType(Object()).GetTypeName({False, True}))
+        End Sub
+
+        <WorkItem(1087216)>
+        <Fact>
+        Public Sub DynamicAttribute_OtherGuid()
+            Dim typeInfo = DkmClrCustomTypeInfo.Create(Guid.NewGuid(), New ReadOnlyCollection(Of Byte)({1}))
+            Assert.Equal("Object", GetType(Object).GetTypeName(typeInfo))
+            Assert.Equal("Object()", GetType(Object()).GetTypeName(typeInfo))
         End Sub
 
     End Class

@@ -25,7 +25,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.34-rc\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -147,9 +147,7 @@
     <Compile Include="Shared\WordParserOptions.cs" />
     <Compile Include="SolutionChangeAction.cs" />
     <Compile Include="Usage\CA2200DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CA2213DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2214DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CodeFixes\CA2213CodeFixProviderBase.cs" />
     <Compile Include="Usage\CodeFixes\CA2229CodeFixProvider.cs" />
     <Compile Include="Usage\CodeFixes\CA2235CodeFixProviderBase.cs" />
     <Compile Include="Usage\CodeFixes\CA2237CodeFixProvider.cs" />
