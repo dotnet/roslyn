@@ -98,10 +98,8 @@
   <ItemGroup>
     <Compile Include="Design\BasicCA1003DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicCA1024DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicEnumWithFlagsDiagnosticAnalyzer.vb" />
     <Compile Include="Design\CodeFixes\CA1008BasicCodeFixProvider.vb" />
     <Compile Include="Design\CodeFixes\CA1052BasicCodeFixProvider.vb" />
-    <Compile Include="Design\CodeFixes\EnumWithFlagsBasicCodeFixProvider.vb" />
     <Compile Include="Globalization\CodeFixes\CA2101BasicCodeFixProvider.vb" />
     <Compile Include="Performance\BasicCA1821DiagnosticAnalyzer.vb" />
     <Compile Include="Reliability\BasicCA2002DiagnosticAnalyzer.vb" />

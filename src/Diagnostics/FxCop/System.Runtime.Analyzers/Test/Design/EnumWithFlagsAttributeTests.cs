@@ -1,27 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public class EnumWithFlagsAttributesRulesTests : DiagnosticAnalyzerTestBase
+    public class EnumWithFlagsAttributeTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicEnumWithFlagsDiagnosticAnalyzer();
+            return new EnumWithFlagsAttributeAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpEnumWithFlagsDiagnosticAnalyzer();
+            return new EnumWithFlagsAttributeAnalyzer();
         }
 
         private static string GetCSharpCode_EnumWithFlagsAttributes(string code, bool hasFlags)
@@ -487,22 +483,22 @@ End Enum
 
         private static DiagnosticResult GetCA1027CSharpResultAt(int line, int column, string enumTypeName)
         {
-            return GetCSharpResultAt(line, column, EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags, string.Format(FxCopRulesResources.MarkEnumsWithFlagsMessage, enumTypeName));
+            return GetCSharpResultAt(line, column, EnumWithFlagsAttributeAnalyzer.RuleIdMarkEnumsWithFlags, string.Format(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsMessage, enumTypeName));
         }
 
         private static DiagnosticResult GetCA1027BasicResultAt(int line, int column, string enumTypeName)
         {
-            return GetBasicResultAt(line, column, EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags, string.Format(FxCopRulesResources.MarkEnumsWithFlagsMessage, enumTypeName));
+            return GetBasicResultAt(line, column, EnumWithFlagsAttributeAnalyzer.RuleIdMarkEnumsWithFlags, string.Format(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsMessage, enumTypeName));
         }
 
         private static DiagnosticResult GetCA2217CSharpResultAt(int line, int column, string enumTypeName, string missingValuesString)
         {
-            return GetCSharpResultAt(line, column, EnumWithFlagsDiagnosticAnalyzer.RuleIdDoNotMarkEnumsWithFlags, string.Format(FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage, enumTypeName, missingValuesString));
+            return GetCSharpResultAt(line, column, EnumWithFlagsAttributeAnalyzer.RuleIdDoNotMarkEnumsWithFlags, string.Format(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsMessage, enumTypeName, missingValuesString));
         }
 
         private static DiagnosticResult GetCA2217BasicResultAt(int line, int column, string enumTypeName, string missingValuesString)
         {
-            return GetBasicResultAt(line, column, EnumWithFlagsDiagnosticAnalyzer.RuleIdDoNotMarkEnumsWithFlags, string.Format(FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage, enumTypeName, missingValuesString));
+            return GetBasicResultAt(line, column, EnumWithFlagsAttributeAnalyzer.RuleIdDoNotMarkEnumsWithFlags, string.Format(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsMessage, enumTypeName, missingValuesString));
         }
     }
 }

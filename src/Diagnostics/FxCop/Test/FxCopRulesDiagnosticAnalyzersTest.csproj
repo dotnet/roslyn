@@ -90,8 +90,6 @@
     <Compile Include="Design\CA1060Tests.cs" />
     <Compile Include="Design\CodeFixes\CA1008FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1012FixerTests.cs" />
-    <Compile Include="Design\CodeFixes\EnumWithFlagsAttributesRulesFixerTests.cs" />
-    <Compile Include="Design\EnumWithFlagsAttributeRulesTests.cs" />
     <Compile Include="Globalization\CodeFixes\CA2101FixerTests.cs" />
     <Compile Include="HardeningAnalyzer\HardeningAnalyzerTests.cs" />
     <Compile Include="Interoperability\PInvokeDiagnosticAnalyzerTests.cs" />

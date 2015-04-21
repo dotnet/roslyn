@@ -10,7 +10,7 @@ using Xunit;
 namespace System.Runtime.Analyzers.UnitTests
 {
     [WorkItem(858659)]
-    public class CA1309FixerTests : CodeFixTestBase
+    public class UseOrdinalStringComparisonFixerTests : CodeFixTestBase
     {
         #region Helper methods
 

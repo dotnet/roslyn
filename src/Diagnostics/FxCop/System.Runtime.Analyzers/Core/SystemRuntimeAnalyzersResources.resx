@@ -231,4 +231,28 @@
   <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
     <value>Disposable fields should be disposed</value>
   </data>
+  <data name="DoNotMarkEnumsWithFlags" xml:space="preserve">
+    <value>Do not mark Enum with FlagsAttribute</value>
+  </data>
+  <data name="DoNotMarkEnumsWithFlagsDescription" xml:space="preserve">
+    <value>The enumeration does not appear to contain a consistent set values that can be combined using  the OR (|) and AND (&amp;amp;amp;amp;) operators. Using the Flags attribute on an enumeration suggests that the enumeration values are meant to be combined using the AND and OR operators. Typically, a flags enumeration uses values that are either powers of two, or combine other values that are powers of two.</value>
+  </data>
+  <data name="DoNotMarkEnumsWithFlagsMessage" xml:space="preserve">
+    <value>'{0}' is marked with FlagsAttribute but a discrete member cannot be found for every settable bit that is used across the range of enum values. Remove FlagsAttribute from the type or define new members for the following (currently missing) values: '{1}'.</value>
+  </data>
+  <data name="MarkEnumsWithFlags" xml:space="preserve">
+    <value>Mark Enum with FlagsAttribute</value>
+  </data>
+  <data name="MarkEnumsWithFlagsDescription" xml:space="preserve">
+    <value>The enumeration appears to be made up of combinable flags. If this true, apply the Flags attribute to the enumeration.</value>
+  </data>
+  <data name="MarkEnumsWithFlagsMessage" xml:space="preserve">
+    <value>The constituent members of '{0}' appear to represent flags that can be combined rather than discrete values. If this is correct, mark the enumeration with FlagsAttribute.</value>
+  </data>
+  <data name="DoNotMarkEnumsWithFlagsCodeFix" xml:space="preserve">
+    <value>Remove FlagsAttribute from enum.</value>
+  </data>
+  <data name="MarkEnumsWithFlagsCodeFix" xml:space="preserve">
+    <value>Apply FlagsAttribute to enum.</value>
+  </data>
 </root>

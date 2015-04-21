@@ -9,7 +9,6 @@
     <CodeAnalysisRuleSetOverrides>$(CodeAnalysisRuleSetOverrides);
       -Microsoft.Design#CA1003;
       -Microsoft.Design#CA1024;
-      -Microsoft.Design#CA1027;
 
       -Microsoft.Performance#CA1821;
 
@@ -17,7 +16,6 @@
 
       -Microsoft.Usage#CA2200;
       -Microsoft.Usage#CA2214;
-      -Microsoft.Usage#CA2217;
     </CodeAnalysisRuleSetOverrides>
   </PropertyGroup>
 </Project>
