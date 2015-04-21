@@ -16,76 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
-            // check for common trivial cases like  arr?.Length > 0
-            // in such situations we can fuse two operations and thus
-            // avoid doing lifting.
-            // In the given example if "arr" is null then the result is false, 
-            // otherwise we can do unlifted ">" directly on arr.Length
-            if (node.OperatorKind.IsLifted() ||
-                node.OperatorKind == BinaryOperatorKind.NullableNullEqual ||
-                node.OperatorKind == BinaryOperatorKind.NullableNullNotEqual)
-            {
-                BoundExpression foldedWithConditionalAccess = TryFoldWithConditionalAccess(node);
-                if (foldedWithConditionalAccess != null)
-                {
-                    return foldedWithConditionalAccess;
-                }
-            }
-
             return VisitBinaryOperator(node, null);
-        }
-
-        private BoundExpression TryFoldWithConditionalAccess(BoundBinaryOperator node)
-        {
-            var syntax = node.Syntax;
-            var left = node.Left;
-            var right = node.Right;
-            BoundConditionalAccess conditionalAccess;
-
-            if (!node.OperatorKind.IsLifted())
-            {
-                var operatorKind = node.OperatorKind;
-                if (operatorKind == BinaryOperatorKind.NullableNullEqual || operatorKind == BinaryOperatorKind.NullableNullNotEqual)
-                {
-                    var leftAlwaysNull = NullableNeverHasValue(left);
-                    var rightAlwaysNull = NullableNeverHasValue(right);
-
-                    if (leftAlwaysNull || rightAlwaysNull)
-                    {
-                        BoundExpression maybeNull = leftAlwaysNull ? right : left;
-
-                        if (TryGetOptimizableNullableConditionalAccess(maybeNull, out conditionalAccess))
-                        {
-                            BoundExpression accessExpression = conditionalAccess.AccessExpression;
-                            accessExpression = _factory.Sequence(accessExpression, MakeBooleanConstant(syntax, operatorKind == BinaryOperatorKind.NullableNullNotEqual));
-                            conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, accessExpression, accessExpression.Type);
-                            var whenNull = operatorKind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
-                            return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                var unliftedOperatorKind = node.OperatorKind.Unlifted();
-                if (unliftedOperatorKind.IsComparison() && TryGetOptimizableNullableConditionalAccess(left, out conditionalAccess))
-                {
-                    var rightAlwaysHasValue = NullableAlwaysHasValue(VisitExpression(right));
-
-                    // reading rightAlwaysHasValue should not have sideeffects here
-                    // otherwise we would need to read it even when we knew that LHS is null
-                    if (rightAlwaysHasValue != null && !ReadIsSideeffecting(rightAlwaysHasValue))
-                    {
-                        BoundExpression accessExpression = conditionalAccess.AccessExpression;
-                        accessExpression = node.Update(unliftedOperatorKind, accessExpression, rightAlwaysHasValue, null, node.MethodOpt, node.ResultKind, node.Type);
-                        conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, accessExpression, accessExpression.Type);
-                        var whenNull = unliftedOperatorKind.Operator() == BinaryOperatorKind.NotEqual ? MakeBooleanConstant(syntax, true) : null;
-                        return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
-                    }
-                }
-            }
-
-            return null;
         }
 
         public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
@@ -511,6 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 result = conditionalLeft.Update(
                     conditionalLeft.Receiver,
+                    conditionalLeft.HasValueMethodOpt,
                     whenNotNull: result,
                     whenNullOpt: whenNullOpt,
                     id: conditionalLeft.Id,
@@ -757,21 +689,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization #3: If one side is null and the other is definitely not, then we generate the side effects
             // of the non-null side and result in true (for not-equals) or false (for everything else.)
-            //
-            // TODO: If we know that the "side effect" has no effect then that can be optimized away as well.
-
+            
             BinaryOperatorKind operatorKind = kind.Operator();
 
             if (leftAlwaysNull && rightNonNull != null || rightAlwaysNull && leftNonNull != null)
             {
+                BoundExpression result = MakeLiteral(syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.NotEqual), boolType);
+
                 BoundExpression nonNull = leftAlwaysNull ? rightNonNull : leftNonNull;
-                BoundExpression literal = MakeLiteral(syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.NotEqual), boolType);
-                return new BoundSequence(
-                    syntax: syntax,
-                    locals: ImmutableArray<LocalSymbol>.Empty,
-                    sideEffects: ImmutableArray.Create<BoundExpression>(nonNull),
-                    value: literal,
-                    type: boolType);
+
+                if (ReadIsSideeffecting(nonNull))
+                {
+                    result = new BoundSequence(
+                                    syntax: syntax,
+                                    locals: ImmutableArray<LocalSymbol>.Empty,
+                                    sideEffects: ImmutableArray.Create<BoundExpression>(nonNull),
+                                    value: result,
+                                    type: boolType);
+                }
+
+                return result;
             }
 
             // Optimization #4: If one side is null and the other is unknown, then we have three cases:
@@ -785,8 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (operatorKind == BinaryOperatorKind.Equal || operatorKind == BinaryOperatorKind.NotEqual)
                 {
-                    MethodSymbol hasValue = GetNullableMethod(syntax, maybeNull.Type, SpecialMember.System_Nullable_T_get_HasValue);
-                    BoundExpression callHasValue = BoundCall.Synthesized(syntax, maybeNull, hasValue);
+                    BoundExpression callHasValue = MakeNullableHasValue(syntax, maybeNull);
                     BoundExpression result = operatorKind == BinaryOperatorKind.Equal ?
                         MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, callHasValue, boolType) :
                         callHasValue;
@@ -826,10 +762,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so return constant true.
             if (expression.Type.IsNullableType())
             {
-                return BoundCall.Synthesized(syntax, expression, GetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
+                return MakeNullableHasValue(syntax, expression);
             }
 
             return MakeBooleanConstant(syntax, true);
+        }
+
+        private BoundExpression MakeNullableHasValue(CSharpSyntaxNode syntax, BoundExpression expression)
+        {
+            return BoundCall.Synthesized(syntax, expression, GetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
         }
 
         private BoundExpression LowerLiftedBuiltInComparisonOperator(
@@ -1636,14 +1577,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol getValueOrDefaultX = GetNullableMethod(syntax, boundTempX.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
             MethodSymbol getValueOrDefaultY = GetNullableMethod(syntax, boundTempY.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol hasValueX = GetNullableMethod(syntax, boundTempX.Type, SpecialMember.System_Nullable_T_get_HasValue);
 
             // tempx.GetValueOrDefault()
             BoundExpression callX_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempX, getValueOrDefaultX);
             // tempy.GetValueOrDefault()
             BoundExpression callY_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempY, getValueOrDefaultY);
             // tempx.HasValue
-            BoundExpression callX_HasValue = BoundCall.Synthesized(syntax, boundTempX, hasValueX);
+            BoundExpression callX_HasValue = MakeNullableHasValue(syntax, boundTempX);
 
             // (tempy.GetValueOrDefault || tempx.HasValue)
             BoundExpression innerOr = MakeBinaryOperator(
@@ -1748,16 +1688,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     kind,
                     conditionalAccess.WhenNotNull,
-                    _factory.Null(conditionalAccess.WhenNotNull.Type),
+                    loweredLeft.IsLiteralNull() ? loweredLeft : loweredRight,
                     returnType);
 
                 var whenNull = kind == BinaryOperatorKind.NullableNullEqual ? MakeBooleanConstant(syntax, true) : null;
 
-                return conditionalAccess.Update(conditionalAccess.Receiver, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
+                return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.HasValueMethodOpt, whenNotNull, whenNull, conditionalAccess.Id, whenNotNull.Type);
             }
 
-            MethodSymbol get_HasValue = GetNullableMethod(syntax, nullable.Type, SpecialMember.System_Nullable_T_get_HasValue);
-            BoundExpression call = BoundCall.Synthesized(syntax, nullable, get_HasValue);
+            BoundExpression call = MakeNullableHasValue(syntax, nullable);
             BoundExpression result = kind == BinaryOperatorKind.NullableNullNotEqual ?
                 call :
                 new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, null, LookupResultKind.Viable, returnType);

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ConditionalReceiver:
                     // do nothing receiver ref must be already pushed
                     Debug.Assert(!expression.Type.IsReferenceType);
-                    Debug.Assert(!expression.Type.IsValueType);
+                    Debug.Assert(!expression.Type.IsValueType || expression.Type.IsNullableType());
                     break;
 
                 case BoundKind.ComplexConditionalReceiver:
