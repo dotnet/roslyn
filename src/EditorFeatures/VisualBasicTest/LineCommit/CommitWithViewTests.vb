@@ -278,6 +278,37 @@ End Class
             End Using
         End Sub
 
+        <WorkItem(1945, "https://github.com/dotnet/roslyn/issues/1945")>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub RenameFormatsOnlyModifiedSpan()
+            Using testData = New CommitTestData(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document><![CDATA[
+Class Foo
+    Sub M([|abc$$|] As Integer)
+        Dim a     = 7
+        Dim bbbbb = 7
+    End Sub
+End Class
+                        ]]></Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.Backspace()
+                testData.EditorOperations.Backspace()
+                testData.EditorOperations.Backspace()
+                testData.EditorOperations.InsertText("def")
+                testData.EditorOperations.MoveLineDown(extendSelection:=False)
+
+                testData.AssertHadCommit(True)
+
+                Dim originalText = testData.Workspace.Documents.Single().InitialTextSnapshot.GetLineFromLineNumber(3).GetText()
+                Assert.Equal(originalText, testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(3).GetText())
+
+            End Using
+        End Sub
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(539599)>

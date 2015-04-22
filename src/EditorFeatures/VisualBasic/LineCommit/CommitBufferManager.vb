@@ -153,6 +153,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim finalSpanStart = dirtySpan.Start.Position
             Dim finalSpanEnd = dirtySpan.End.Position
 
+            ' If an identifier is modified then we should format just around the identifier
+            If ContainingStatementInfo.isIdentifierDirty(dirtySpan, tree, cancellationToken) Then
+                formattingInfo.SpanToFormat = New SnapshotSpan(dirtySpan.Snapshot, Span.FromBounds(finalSpanStart, finalSpanEnd))
+                Return True
+            End If
+
             ' Find the containing statements
             Dim startingStatementInfo = ContainingStatementInfo.GetInfo(dirtySpan.Start, tree, cancellationToken)
             If startingStatementInfo IsNot Nothing Then

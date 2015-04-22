@@ -183,5 +183,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' attributes
             Return New ContainingStatementInfo(node, TextSpan.FromBounds(attributes.Last.Span.End, node.Span.End))
         End Function
+
+        Friend Shared Function isIdentifierDirty(dirtySpan As SnapshotSpan, tree As SyntaxTree, cancellationToken As CancellationToken) As Boolean
+            Dim token = tree.GetRoot(cancellationToken).FindToken(dirtySpan.Start, findInsideTrivia:=True)
+            Return token.SpanStart = dirtySpan.Start.Position AndAlso token.Span.End = dirtySpan.End.Position AndAlso
+                token.Parent.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso token.Parent.Parent.IsKind(SyntaxKind.Parameter)
+        End Function
     End Class
 End Namespace
