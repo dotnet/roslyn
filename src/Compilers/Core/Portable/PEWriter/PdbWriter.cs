@@ -55,8 +55,23 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        [DllImport("shlwapi.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
-        private extern static IStream SHCreateMemStream([In] IntPtr pInit, [In] uint cbInit);
+        [DllImport("shlwapi", ExactSpelling = true)]
+        private extern static IStream SHCreateMemStream(IntPtr pInit, uint cbInit);
+
+        [DllImport("Ole32", ExactSpelling = true)]
+        private static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream stream);
+
+        private static IStream CreateNativeStream()
+        {
+            // Try SHCreateMemStream first, since it's faster. If that fails, then fall back to CreateStreamOnHGlobal.
+            IStream stream = SHCreateMemStream(IntPtr.Zero, 0u);
+            if (stream == null)
+            {
+                Marshal.ThrowExceptionForHR(CreateStreamOnHGlobal(IntPtr.Zero, fDeleteOnRelease: true, stream: out stream));
+            }
+
+            return stream;
+        }
 
         public PdbWriter(string fileName, Func<object> symWriterFactory = null)
         {
@@ -600,7 +615,7 @@ namespace Microsoft.Cci
                 // and the resulting PDB has Age = existing_age + 1.
                 // PERF: Use a native stream for the write and copy it at the end. This reduces the total GC
                 // allocations for the COM interop and geometric growth of the underlying managed stream.
-                _nativeStream = SHCreateMemStream(IntPtr.Zero, 0u);
+                _nativeStream = CreateNativeStream();
 
                 instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _nativeStream, fullBuild: true);
 
