@@ -1662,7 +1662,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             For Each location As Location In symbol.Locations
-                If location.SourceTree?.IsEmbeddedOrMyTemplateTree <> True Then
+                If location.SourceTree IsNot Nothing Then
+                    Debug.Assert(AllSyntaxTrees.Contains(location.SourceTree))
                     Return True
                 End If
             Next
