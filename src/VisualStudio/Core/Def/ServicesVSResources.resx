@@ -462,4 +462,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="EnableAndIgnore" xml:space="preserve">
     <value>Enable and ignore future errors</value>
   </data>
+  <data name="NoChanges" xml:space="preserve">
+    <value>No Changes</value>
+  </data>
 </root>
