@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Assignment(
                                 F.Field(null, frame.SingletonCache),
                                 F.New(frame.Constructor)),
-                            F.Return());
+                            new BoundReturnStatement(syntax, RefKind.None, null));
 
                     CompilationState.AddSynthesizedMethod(frame.StaticConstructor, body);
                 }

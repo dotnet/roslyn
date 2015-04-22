@@ -2353,6 +2353,114 @@ class Program
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
         }
 
+        [Fact]
+        public void RefReturningDelegateCreation()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    int field = 0;
+
+    ref int M()
+    {
+        return ref field;
+    }
+
+    void Test()
+    {
+        new D(M)();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReturningDelegateCreationBad()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    int field = 0;
+
+    int M()
+    {
+        return field;
+    }
+
+    void Test()
+    {
+        new D(M)();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReturningDelegateArgument()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    int field = 0;
+
+    ref int M()
+    {
+        return ref field;
+    }
+
+    void M(D d)
+    {
+    }
+
+    void Test()
+    {
+        M(M);
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReturningDelegateArgumentBad()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    int field = 0;
+
+    int M()
+    {
+        return field;
+    }
+
+    void M(D d)
+    {
+    }
+
+    void Test()
+    {
+        M(M);
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(1078958, "DevDiv")]
         public void Bug1078958()
         {

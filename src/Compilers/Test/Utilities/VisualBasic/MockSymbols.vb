@@ -573,6 +573,12 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property ReturnsByRef As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property ReturnType As TypeSymbol
         Get
             Return Nothing ' Not really kosher, but its a MOCK...

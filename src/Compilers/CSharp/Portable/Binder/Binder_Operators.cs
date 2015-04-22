@@ -2136,12 +2136,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             BoundLocal localAccess = (BoundLocal)expr;
                             LocalSymbol localSymbol = localAccess.LocalSymbol;
-                            Debug.Assert(localSymbol.RefKind == RefKind.None);
                             accessedLocalOrParameterOpt = localSymbol;
                             // NOTE: The spec says that this is moveable if it is captured by an anonymous function,
                             // but that will be reported separately and error-recovery is better if we say that
                             // such locals are not moveable.
-                            return true;
+                            return localSymbol.RefKind == RefKind.None;
                         }
                     case BoundKind.PointerIndirectionOperator: //Covers ->, since the receiver will be one of these.
                     case BoundKind.PointerElementAccess:

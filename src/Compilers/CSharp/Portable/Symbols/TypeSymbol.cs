@@ -951,6 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.CallingConvention,
                     interfaceMethod.TypeParameters,
                     interfaceMethod.Parameters,
+                    interfaceMethod.RefKind,
                     interfaceMethod.ReturnType,
                     interfaceMethod.ReturnTypeCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
@@ -1025,37 +1026,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, DiagnosticBag diagnostics)
         {
             // Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
-            Location interfacelocation = null;
+            Location interfaceLocation = null;
             if ((object)implementingType != null)
             {
                 var @interface = interfaceMember.ContainingType;
                 SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                interfacelocation = snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+                interfaceLocation = snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
             }
             else
             {
-                interfacelocation = implementingType.Locations[0];
+                interfaceLocation = implementingType.Locations[0];
             }
 
             if (closestMismatch.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, interfacelocation, implementingType, interfaceMember, closestMismatch);
+                diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, interfaceLocation, implementingType, interfaceMember, closestMismatch);
             }
             else if (closestMismatch.DeclaredAccessibility != Accessibility.Public)
             {
                 ErrorCode errorCode = interfaceMember.IsAccessor() ? ErrorCode.ERR_UnimplementedInterfaceAccessor : ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic;
-                diagnostics.Add(errorCode, interfacelocation, implementingType, interfaceMember, closestMismatch);
+                diagnostics.Add(errorCode, interfaceLocation, implementingType, interfaceMember, closestMismatch);
             }
-            else //return type doesn't match
+            else //return ref kind or type doesn't match
             {
+                RefKind interfaceMemberRefKind = RefKind.None;
                 TypeSymbol interfaceMemberReturnType;
                 switch (interfaceMember.Kind)
                 {
                     case SymbolKind.Method:
-                        interfaceMemberReturnType = ((MethodSymbol)interfaceMember).ReturnType;
+                        var method = (MethodSymbol)interfaceMember;
+                        interfaceMemberRefKind = method.RefKind;
+                        interfaceMemberReturnType = method.ReturnType;
                         break;
                     case SymbolKind.Property:
-                        interfaceMemberReturnType = ((PropertySymbol)interfaceMember).Type;
+                        var property = (PropertySymbol)interfaceMember;
+                        interfaceMemberRefKind = property.RefKind;
+                        interfaceMemberReturnType = property.Type;
                         break;
                     case SymbolKind.Event:
                         interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type;
@@ -1064,16 +1070,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
                 }
 
+                bool hasRefReturnMismatch = false;
+                switch (closestMismatch.Kind)
+                {
+                    case SymbolKind.Method:
+                        hasRefReturnMismatch = (((MethodSymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        break;
+
+                    case SymbolKind.Property:
+                        hasRefReturnMismatch = (((PropertySymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        break;
+                }
+
                 DiagnosticInfo useSiteDiagnostic;
                 if ((object)interfaceMemberReturnType != null &&
                     (useSiteDiagnostic = interfaceMemberReturnType.GetUseSiteDiagnostic()) != null &&
                     useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)
                 {
-                    diagnostics.Add(useSiteDiagnostic, interfacelocation);
+                    diagnostics.Add(useSiteDiagnostic, interfaceLocation);
+                }
+                else if (hasRefReturnMismatch)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberRefKind != RefKind.None ? "reference" : "value");
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, interfacelocation, implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberReturnType);
                 }
             }
         }

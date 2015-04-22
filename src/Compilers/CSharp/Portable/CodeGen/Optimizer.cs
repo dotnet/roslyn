@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // must not have locals on stack when returning
             EnsureOnlyEvalStack();
 
-            return node.Update(expressionOpt);
+            return node.Update(node.RefKind, expressionOpt);
         }
 
         // Ensures that there are no stack locals.

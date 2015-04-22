@@ -392,9 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(vector.HasUnsupportedMetadata);
 
             //unsupported MD in the return type should propagate up to the method.
-            var front = vector.GetMember("front");
-            Assert.True(front.HasUnsupportedMetadata);
-
             var begin = vector.GetMember("begin");
             Assert.True(begin.HasUnsupportedMetadata);
 
@@ -403,10 +400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var typeX = compilation1.GetTypeByMetadataName("X");
             //unsupported MD in members doesn't propagate up to the type.
             Assert.False(typeX.HasUnsupportedMetadata);
-
-            //unsupported MD in the return type should propagate up to the method.
-            var tok = typeX.GetMember("Token");
-            Assert.True(tok.HasUnsupportedMetadata);
         }
     }
 }

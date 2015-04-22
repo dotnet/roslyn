@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (returnLabel == null)
                 {
-                    unpendReturn = new BoundReturnStatement(_F.Syntax, pendingValue);
+                    unpendReturn = new BoundReturnStatement(_F.Syntax, RefKind.None, pendingValue);
                 }
                 else
                 {

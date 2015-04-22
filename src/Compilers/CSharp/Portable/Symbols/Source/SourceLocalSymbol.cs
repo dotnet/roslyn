@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly SyntaxToken _identifierToken;
         private readonly ImmutableArray<Location> _locations;
+        private readonly RefKind _refKind;
         private readonly TypeSyntax _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
         private TypeSymbol _type;
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SourceLocalSymbol(
             Symbol containingSymbol,
             Binder binder,
+            RefKind refKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
@@ -55,10 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
 
             this.binder = binder;
-            _containingSymbol = containingSymbol;
-            _identifierToken = identifierToken;
-            _typeSyntax = typeSyntax;
-            _declarationKind = declarationKind;
+            this._containingSymbol = containingSymbol;
+            this._identifierToken = identifierToken;
+            this._refKind = refKind;
+            this._typeSyntax = typeSyntax;
+            this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
@@ -77,15 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
             Binder binder,
+            RefKind refKind,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
-            EqualsValueClauseSyntax initializer = null)
+            EqualsClauseSyntax initializer = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return (initializer == null) ?
-                new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind) :
-                new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
+                new SourceLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind) :
+                new LocalWithInitializer(containingSymbol, binder, refKind, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
@@ -307,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override RefKind RefKind
         {
-            get { return RefKind.None; }
+            get { return _refKind; }
         }
 
         public sealed override bool Equals(object obj)
@@ -330,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class LocalWithInitializer : SourceLocalSymbol
         {
-            private readonly EqualsValueClauseSyntax _initializer;
+            private readonly EqualsClauseSyntax _initializer;
 
             /// <summary>
             /// Store the constant value and the corresponding diagnostics together
@@ -342,11 +346,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public LocalWithInitializer(
                 Symbol containingSymbol,
                 Binder binder,
+                RefKind refKind,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
-                EqualsValueClauseSyntax initializer,
+                EqualsClauseSyntax initializer,
                 LocalDeclarationKind declarationKind) :
-                base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
                 Debug.Assert(initializer != null);
@@ -357,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
                 var newBinder = new ImplicitlyTypedLocalBinder(this.binder, this);
-                var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, _initializer, _initializer);
+                var initializerOpt = newBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
                 if (initializerOpt != null)
                 {
                     return initializerOpt.Type;
@@ -384,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (boundInitValue == null)
                     {
                         var inProgressBinder = new LocalInProgressBinder(this, this.binder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, type, diagnostics);
+                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, this.RefKind, type, diagnostics);
                     }
 
                     value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
@@ -427,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
+                    base(containingSymbol, binder, RefKind.None, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
                 _collection = collection;

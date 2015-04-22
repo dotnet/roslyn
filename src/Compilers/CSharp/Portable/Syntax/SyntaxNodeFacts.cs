@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
+
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static bool IsInTypeOnlyContext(ExpressionSyntax node)
         {
-            node = SyntaxFactory.GetStandaloneExpression(node);
+            node = (ExpressionSyntax)SyntaxFactory.GetStandaloneExpression(node);
             var parent = node.Parent;
             if (parent != null)
             {
@@ -164,9 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case EventDeclaration:
                         return ((EventDeclarationSyntax)parent).Type == node;
-
-                    case LocalFunctionStatement:
-                        return ((LocalFunctionStatementSyntax)parent).ReturnType == node;
 
                     case SimpleBaseType:
                         return true;
@@ -305,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Public:
                     return SyntaxFacts.GetText(PublicKeyword);
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(accessibility);
+                    System.Diagnostics.Debug.Assert(false, $"Unknown accessibility '{accessibility}'");
+                    return null;
             }
         }
 
@@ -369,10 +367,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [System.Obsolete("IsLambdaBody API is obsolete", true)]
+        /// <summary>
+        /// Returns true if the specified <paramref name="node"/> is a body of an anonymous method, lambda, 
+        /// or a part of a query clause that is syntactically translated to a lambda body.
+        /// </summary>
         public static bool IsLambdaBody(SyntaxNode node)
         {
-            return LambdaUtilities.IsLambdaBody(node);
+            if (node == null)
+            {
+                return false;
+            }
+
+            var parent = node.Parent;
+            if (parent == null)
+            {
+                return false;
+            }
+
+            switch (parent.Kind())
+            {
+                case ParenthesizedLambdaExpression:
+                case SimpleLambdaExpression:
+                case AnonymousMethodExpression:
+                    return true;
+
+                case FromClause:
+                    var fromClause = (FromClauseSyntax)parent;
+                    return fromClause.Expression == node && fromClause.Parent is QueryBodySyntax;
+
+                case JoinClause:
+                    var joinClause = (JoinClauseSyntax)parent;
+                    return joinClause.LeftExpression == node || joinClause.RightExpression == node;
+
+                case LetClause:
+                    var letClause = (LetClauseSyntax)parent;
+                    return letClause.Expression == node;
+
+                case WhereClause:
+                    var whereClause = (WhereClauseSyntax)parent;
+                    return whereClause.Condition == node;
+
+                case AscendingOrdering:
+                case DescendingOrdering:
+                    var ordering = (OrderingSyntax)parent;
+                    return ordering.Expression == node;
+
+                case SelectClause:
+                    var selectClause = (SelectClauseSyntax)parent;
+                    return selectClause.Expression == node;
+
+                case GroupClause:
+                    var groupClause = (GroupClauseSyntax)parent;
+                    return groupClause.GroupExpression == node || groupClause.ByExpression == node;
+            }
+
+            return false;
         }
     }
 }
