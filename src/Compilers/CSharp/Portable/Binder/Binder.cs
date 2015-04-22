@@ -711,6 +711,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is the receiver of a fixed buffer field access
             /// </summary>
             FixedReceiver,
+
+            /// <summary>
+            /// Expression is returned or assigned by reference.
+            /// </summary>
+            RefReturnOrAssign,
         }
 
         /// <summary>

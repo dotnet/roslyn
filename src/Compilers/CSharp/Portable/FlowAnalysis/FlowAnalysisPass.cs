@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement ret = method.IsIterator
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
-                : BoundReturnStatement.Synthesized(syntax, null);
+                : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
                 // Implicitly added return for async method does not need sequence points since lowering would add one.
             if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)

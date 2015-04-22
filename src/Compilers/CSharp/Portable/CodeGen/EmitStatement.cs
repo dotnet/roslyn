@@ -677,8 +677,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitReturnStatement(BoundReturnStatement boundReturnStatement)
         {
             var expressionOpt = boundReturnStatement.ExpressionOpt;
-
-            this.EmitExpression(expressionOpt, used: true);
+            if (boundReturnStatement.RefKind == RefKind.None)
+            {
+                this.EmitExpression(expressionOpt, true);
+            }
+            else
+            {
+                this.EmitAddress(expressionOpt, AddressKind.Writeable);
+            }
 
             if (ShouldUseIndirectReturn())
             {
@@ -1509,11 +1515,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Allocates a temp without identity.
         /// </summary>
-        private LocalDefinition AllocateTemp(TypeSymbol type, SyntaxNode syntaxNode)
+        private LocalDefinition AllocateTemp(TypeSymbol type, SyntaxNode syntaxNode, LocalSlotConstraints slotConstraints = LocalSlotConstraints.None)
         {
             return _builder.LocalSlotManager.AllocateSlot(
                 _module.Translate(type, syntaxNode, _diagnostics),
-                LocalSlotConstraints.None);
+                slotConstraints);
         }
 
         /// <summary>

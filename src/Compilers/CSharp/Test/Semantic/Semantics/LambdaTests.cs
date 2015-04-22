@@ -1099,6 +1099,182 @@ class C
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
 
+        [Fact]
+        public void RefLambdaInferenceMethodArgument()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    static void MD(D d) { }
+
+    static int i = 0;
+    static void M()
+    {
+        MD(() => ref i);
+        MD(() => { return ref i; });
+        MD(delegate { return ref i; });
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+
+        [Fact]
+        public void RefLambdaInferenceDelegateCreation()
+        {
+            var text = @"
+delegate ref int D();
+
+class C
+{
+    static int i = 0;
+    static void M()
+    {
+        var d = new D(() => ref i);
+        d = new D(() => { return ref i; });
+        d = new D(delegate { return ref i; });
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLambdaInferenceOverloadedDelegateType()
+        {
+            var text = @"
+delegate ref int D();
+delegate int E();
+
+class C
+{
+    static void M(D d) { }
+    static void M(E e) { }
+
+    static int i = 0;
+    static void M()
+    {
+        M(() => ref i);
+        M(() => { return ref i; });
+        M(delegate { return ref i; });
+        M(() => i);
+        M(() => { return i; });
+        M(delegate { return i; });
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLambdaInferenceArgumentBadRefReturn()
+        {
+            var text = @"
+delegate int E();
+
+class C
+{
+    static void ME(E e) { }
+
+    static int i = 0;
+    static void M()
+    {
+        ME(() => ref i);
+        ME(() => { return ref i; });
+        ME(delegate { return ref i; });
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (11,22): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         ME(() => ref i);
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
+                // (12,20): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         ME(() => { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(12, 20),
+                // (13,23): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         ME(delegate { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(13, 23));
+        }
+
+        [Fact]
+        public void RefLambdaInferenceDelegateCreationBadRefReturn()
+        {
+            var text = @"
+delegate int E();
+
+class C
+{
+    static int i = 0;
+    static void M()
+    {
+        var e = new E(() => ref i);
+        e = new E(() => { return ref i; });
+        e = new E(delegate { return ref i; });
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (9,33): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         var e = new E(() => ref i);
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
+                // (10,27): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         e = new E(() => { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(10, 27),
+                // (11,30): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         e = new E(delegate { return ref i; });
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(11, 30));
+        }
+
+        [Fact]
+        public void RefLambdaInferenceMixedByValueAndByRefReturns()
+        {
+            var text = @"
+delegate ref int D();
+delegate int E();
+
+class C
+{
+    static void MD(D e) { }
+    static void ME(E e) { }
+
+    static int i = 0;
+    static void M()
+    {
+        MD(() => {
+            if (i == 0)
+            {
+                return ref i;
+            }
+            return i;
+        });
+        ME(() => {
+            if (i == 0)
+            {
+                return ref i;
+            }
+            return i;
+        });
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (18,13): error CS8084: By-value returns may only be used in by-value returning methods.
+                //             return i;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
+                // (23,17): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //                 return ref i;
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(23, 17));
+        }
+
+        [WorkItem(1112875, "DevDiv")]
         [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
         [Fact]
         public void Bug1112875_1()
@@ -1561,3 +1737,4 @@ class C { C() { Unbound2.Select(x => Unbound1); } }";
         }
     }
 }
+

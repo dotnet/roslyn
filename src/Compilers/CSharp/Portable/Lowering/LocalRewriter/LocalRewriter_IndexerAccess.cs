@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundIndexerAccess oldNodeOpt,
             bool isLeftOfAssignment)
         {
-            if (isLeftOfAssignment)
+            if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
                 // This is an indexer set access. We return a BoundIndexerAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.

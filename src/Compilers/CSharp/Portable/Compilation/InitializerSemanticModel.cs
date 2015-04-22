@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.VariableDeclarator:
-                    equalsValue = ((VariableDeclaratorSyntax)node).Initializer;
+                    equalsValue = ((VariableDeclaratorSyntax)node).Initializer as EqualsValueClauseSyntax;
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
@@ -196,17 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return new BoundFieldEqualsValue(equalsValue, field, result);
                         }
+                        return binder.BindVariableOrAutoPropInitializer(equalsValue, RefKind.None, fieldType, diagnostics);
                         break;
                     }
 
                 case SymbolKind.Property:
                     {
                         var property = (PropertySymbol)this.MemberSymbol;
-                        BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, property.Type, diagnostics);
-                        if (result != null)
-                        {
-                            return new BoundPropertyEqualsValue(equalsValue, property, result);
-                        }
+                        BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, RefKind.None, property.Type, diagnostics);
                         break;
                     }
 

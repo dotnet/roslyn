@@ -28,10 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<LocalSymbol>.Empty;
             }
 
+            var refKind = _syntax.RefKeyword.Kind().GetRefKind();
+
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var variable in declaration.Variables)
             {
-                var localSymbol = MakeLocal(declaration,
+                var localSymbol = MakeLocal(refKind,
+                                            declaration,
                                             variable,
                                             LocalDeclarationKind.ForInitializerVariable);
                 locals.Add(localSymbol);

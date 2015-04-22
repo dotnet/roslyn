@@ -1474,16 +1474,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var left = (BoundPropertyAccess)node.Left;
                 var property = left.PropertySymbol;
-                var method = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
-                VisitReceiverBeforeCall(left.ReceiverOpt, method);
-                VisitRvalue(node.Right);
-                PropertySetter(node, left.ReceiverOpt, method, node.Right);
+                if (property.RefKind == RefKind.None)
+                {
+                    var method = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
+                    VisitReceiverBeforeCall(left.ReceiverOpt, method);
+                    VisitRvalue(node.Right);
+                    PropertySetter(node, left.ReceiverOpt, method, node.Right);
+                    return null;
+                }
             }
-            else
-            {
-                VisitLvalue(node.Left);
-                VisitRvalue(node.Right);
-            }
+
+            VisitLvalue(node.Left);
+            VisitRvalue(node.Right);
 
             return null;
         }
@@ -1495,23 +1497,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var left = (BoundPropertyAccess)node.Left;
                 var property = left.PropertySymbol;
-                var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
-                var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
-                Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
-                VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
-                if (_trackExceptions) NotePossibleException(node);
-                VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
-                VisitRvalue(node.Right);
-                PropertySetter(node, left.ReceiverOpt, writeMethod);
-                if (_trackExceptions) NotePossibleException(node);
-                VisitReceiverAfterCall(left.ReceiverOpt, writeMethod);
+                if (property.RefKind == RefKind.None)
+                {
+                    var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
+                    var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
+                    Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
+                    VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
+                    if (_trackExceptions) NotePossibleException(node);
+                    VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
+                    VisitRvalue(node.Right);
+                    PropertySetter(node, left.ReceiverOpt, writeMethod);
+                    if (_trackExceptions) NotePossibleException(node);
+                    VisitReceiverAfterCall(left.ReceiverOpt, writeMethod);
+                    return null;
+                }
             }
-            else
-            {
-                VisitRvalue(node.Left);
-                VisitRvalue(node.Right);
-                if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
-            }
+
+            VisitRvalue(node.Left);
+            VisitRvalue(node.Right);
+            if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
 
             return null;
         }
@@ -1958,19 +1962,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var left = (BoundPropertyAccess)node.Operand;
                 var property = left.PropertySymbol;
-                var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
-                var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
-                Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
-                VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
-                if (_trackExceptions) NotePossibleException(node); // a read
-                VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
-                PropertySetter(node, left.ReceiverOpt, writeMethod); // followed by a write
+                if (property.RefKind == RefKind.None)
+                {
+                    var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
+                    var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
+                    Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
+                    VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
+                    if (_trackExceptions) NotePossibleException(node); // a read
+                    VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
+                    PropertySetter(node, left.ReceiverOpt, writeMethod); // followed by a write
+                    return null;
+                }
             }
-            else
-            {
-                VisitRvalue(node.Operand);
-                if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
-            }
+
+            VisitRvalue(node.Operand);
+            if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
 
             return null;
         }

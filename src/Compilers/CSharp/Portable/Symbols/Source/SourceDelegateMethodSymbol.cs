@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
+            RefKind refKind = syntax.RefKeyword.Kind().GetRefKind();
             TypeSymbol returnType = binder.BindType(syntax.ReturnType, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // A delegate has the following members: (see CLI spec 13.6)
             // (1) a method named Invoke with the specified signature
-            var invoke = new InvokeMethod(delegateType, returnType, syntax, binder, diagnostics);
+            var invoke = new InvokeMethod(delegateType, refKind, returnType, syntax, binder, diagnostics);
             invoke.CheckDelegateVarianceSafety(diagnostics);
             symbols.Add(invoke);
 
@@ -204,6 +205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.InstanceConstructorName; }
             }
 
+            internal override RefKind RefKind
+            {
+                get { return RefKind.None; }
+            }
+
             internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
             {
                 // Constructors don't have return type attributes
@@ -224,14 +230,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
+            private readonly RefKind refKind;
+
             internal InvokeMethod(
                 SourceMemberContainerTypeSymbol delegateType,
+                RefKind refKind,
                 TypeSymbol returnType,
                 DelegateDeclarationSyntax syntax,
                 Binder binder,
                 DiagnosticBag diagnostics)
                 : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
+                this.refKind = refKind;
+
                 SyntaxToken arglistToken;
                 var parameters = ParameterHelpers.MakeParameters(binder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
@@ -248,6 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override string Name
             {
                 get { return WellKnownMemberNames.DelegateInvokeName; }
+            }
+
+            internal override RefKind RefKind
+            {
+                get { return refKind; }
             }
 
             internal override LexicalSortKey GetLexicalSortKey()
@@ -291,6 +307,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.DelegateBeginInvokeName; }
             }
 
+            internal override RefKind RefKind
+            {
+                get { return RefKind.None; }
+            }
+
             internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
             {
                 // BeginInvoke method doesn't have return type attributes
@@ -302,12 +323,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EndInvokeMethod : SourceDelegateMethodSymbol
         {
+            private readonly RefKind refKind;
+
             internal EndInvokeMethod(
                 InvokeMethod invoke,
                 TypeSymbol iAsyncResultType,
                 DelegateDeclarationSyntax syntax)
                 : base((SourceNamedTypeSymbol)invoke.ContainingType, invoke.ReturnType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
+                this.refKind = invoke.RefKind;
+
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 int ordinal = 0;
 
@@ -336,6 +361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override string Name
             {
                 get { return WellKnownMemberNames.DelegateEndInvokeName; }
+            }
+
+            internal override RefKind RefKind
+            {
+                get { return refKind; }
             }
         }
 

@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.OutParameter:
                 case BindValueKind.AddressOf:
                 case BindValueKind.Assignment:
+                case BindValueKind.RefReturnOrAssign:
                     return false;
 
                 default:
@@ -270,6 +271,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.OutParameter:
                 case BindValueKind.AddressOf:
                 case BindValueKind.Assignment:
+                case BindValueKind.RefReturnOrAssign:
+                    return true;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private static bool RequiresAddressableValue(BindValueKind kind)
+        {
+            switch (kind)
+            {
+                case BindValueKind.RValue:
+                case BindValueKind.RValueOrMethodGroup:
+                case BindValueKind.CompoundAssignment:
+                case BindValueKind.IncrementDecrement:
+                case BindValueKind.Assignment:
+                    return false;
+
+                case BindValueKind.OutParameter:
+                case BindValueKind.AddressOf:
+                case BindValueKind.RefReturnOrAssign:
                     return true;
 
                 default:
@@ -296,7 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BoundExpression BindVariableOrAutoPropInitializer(
-            EqualsValueClauseSyntax initializerOpt,
+            EqualsClauseSyntax initializerOpt,
+            RefKind refKind,
             TypeSymbol varType,
             DiagnosticBag diagnostics)
         {
@@ -305,7 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var initializer = BindPossibleArrayInitializer(initializerOpt.Value, varType, diagnostics);
+            BindValueKind valueKind;
+            IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
+            var initializer = BindPossibleArrayInitializer(initializerOpt.Value, varType, valueKind, diagnostics);
             return GenerateConversionForAssignment(varType, initializer, diagnostics);
         }
 
@@ -577,6 +603,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.InterpolatedStringExpression:
                     return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.ReferenceAssignmentExpression:
+                    return BindReferenceAssignment((ReferenceAssignmentExpressionSyntax)node, diagnostics);
 
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
@@ -1040,6 +1069,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private bool IsBadLocalOrParameterCapture(Symbol symbol, RefKind refKind)
+        {
+            if (refKind != RefKind.None)
+            {
+                var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
+                if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
+                {
+                    // Not expecting symbol from constructed method.
+                    Debug.Assert(!symbol.ContainingSymbol.Equals(containingMethod));
+
+                    // Captured in a lambda.
+                    return containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction; // false in EE evaluation method
+            }
+            }
+            return false;
+        }
+
         private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics, LookupResultKind resultKind, bool isError)
         {
             // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
@@ -1174,6 +1220,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            if (IsBadLocalOrParameterCapture(localSymbol, localSymbol.RefKind))
+                            {
+                                Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
+                            }
+
                             type = localSymbol.Type;
                         }
 
@@ -1183,23 +1234,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (parameter.RefKind != RefKind.None)
-                        {
-                            var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-                            if (((object)containingMethod != null) &&
-                                ((object)parameter.ContainingSymbol != (object)containingMethod))
-                            {
-                                // Not expecting parameter from constructed method.
-                                Debug.Assert(!parameter.ContainingSymbol.Equals(containingMethod));
-
-                                // Captured in a lambda.
-                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) // false in EE evaluation method
+                        if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
                                 {
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                                 }
-                            }
-                        }
-
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 

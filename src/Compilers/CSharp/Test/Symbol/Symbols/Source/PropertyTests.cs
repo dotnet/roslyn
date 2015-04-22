@@ -299,6 +299,22 @@ Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
         }
 
+        [Fact]
+        public void AutoRefReturn()
+        {
+            var text = @"class C
+{
+    public ref int P { get; }
+}";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions);
+
+            comp.VerifyDiagnostics(
+// (3,20): error CS8080: Auto-implemented properties cannot return by reference
+//     public ref int P { get; }
+Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P").WithArguments("C.P").WithLocation(3, 20));
+        }
+
+        [WorkItem(542745, "DevDiv")]
         [WorkItem(542745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542745")]
         [Fact()]
         public void AutoImplementedAccessorNotImplicitlyDeclared()
@@ -1711,6 +1727,41 @@ class C : I
         }
 
         [Fact]
+        public void ExplicitInterfaceImplementationRefReturn()
+        {
+            string text = @"
+interface I
+{
+    ref int P { get; }
+}
+
+class C : I
+{
+    int field;
+    ref int I.P { get { return ref field; } }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(Parse(text));
+
+            var globalNamespace = comp.GlobalNamespace;
+
+            var @interface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("I").Single();
+            Assert.Equal(TypeKind.Interface, @interface.TypeKind);
+
+            var interfaceProperty = (PropertySymbol)@interface.GetMembers("P").Single();
+
+            var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
+            Assert.Equal(TypeKind.Class, @class.TypeKind);
+            Assert.True(@class.Interfaces.Contains(@interface));
+
+            var classProperty = (PropertySymbol)@class.GetMembers("I.P").Single();
+            Assert.Equal(RefKind.Ref, classProperty.RefKind);
+
+            CheckRefPropertyExplicitImplementation(@class, classProperty, interfaceProperty);
+        }
+
+        [Fact]
         public void ExplicitInterfaceImplementationGeneric()
         {
             string text = @"
@@ -2435,6 +2486,38 @@ End Class";
             context.Diagnostics.Verify();
         }
 
+        private static void CheckRefPropertyExplicitImplementation(NamedTypeSymbol @class, PropertySymbol classProperty, PropertySymbol interfaceProperty)
+        {
+            var interfacePropertyGetter = interfaceProperty.GetMethod;
+            Assert.NotNull(interfacePropertyGetter);
+            var interfacePropertySetter = interfaceProperty.SetMethod;
+            Assert.Null(interfacePropertySetter);
+
+            Assert.Equal(interfaceProperty, classProperty.ExplicitInterfaceImplementations.Single());
+
+            var classPropertyGetter = classProperty.GetMethod;
+            Assert.NotNull(classPropertyGetter);
+            var classPropertySetter = classProperty.SetMethod;
+            Assert.Null(classPropertySetter);
+
+            Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
+
+            var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
+            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
+                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+
+            var context = new EmitContext(module, null, new DiagnosticBag());
+            var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
+            Assert.Equal(1, explicitOverrides.Count());
+            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
+
+            // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
+            var getterOverride = explicitOverrides.Single();
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
+        }
+
         private static void VerifyAccessibility(PEPropertySymbol property, Accessibility propertyAccessibility, Accessibility getAccessibility, Accessibility setAccessibility)
         {
             Assert.Equal(property.DeclaredAccessibility, propertyAccessibility);
@@ -2782,6 +2865,39 @@ unsafe class Test
     Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test").WithLocation(2, 14)
                 );
         }
+        [Fact]
+        public void RefPropertyWithoutGetter()
+        {
+            var source = @"
+    class C
+    {
+        ref int P { set { } }
+    }
+    ";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,17): error CS8080: Properties with by-reference returns must have a get accessor.
+                //         ref int P { set { } }
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "P").WithArguments("C.P").WithLocation(4, 17));
+        }
+
+        [Fact]
+        public void RefPropertyWithGetterAndSetter()
+        {
+            var source = @"
+    class C
+    {
+        int field = 0;
+        ref int P { get { return ref field; } set { } } 
+    }
+    ";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,47): error CS8081: Properties with by-reference returns cannot have set accessors.
+                //         ref int P { get { return ref field; } set { } } 
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P.set").WithLocation(5, 47));
+        }
+    }
 
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
