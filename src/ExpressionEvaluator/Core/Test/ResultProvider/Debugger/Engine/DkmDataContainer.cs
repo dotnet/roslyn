@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Debugger
             {
                 if (_dataItems.ContainsKey(key))
                 {
-                    throw new ArgumentException("Data item already exists", "item");
+                    throw new ArgumentException("Data item already exists", nameof(item));
                 }
             }
 

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                throw new ArgumentException("Path must be absolute", "path");
+                throw new ArgumentException("Path must be absolute", nameof(path));
             }
 
             try
