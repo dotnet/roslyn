@@ -50,5 +50,46 @@ namespace System.Runtime.Analyzers
                    method.ReturnType.SpecialType == SpecialType.System_Int32 &&
                    method.Parameters.Length == 0;
         }
+
+        public static bool Inherits(this ITypeSymbol type, ITypeSymbol possibleBase)
+        {
+            if (type == null || possibleBase == null)
+            {
+                return false;
+            }
+
+            if (type.Equals(possibleBase))
+            {
+                return true;
+            }
+
+            switch (possibleBase.TypeKind)
+            {
+                case TypeKind.Class:
+                    for (ITypeSymbol t = type.BaseType; t != null; t = t.BaseType)
+                    {
+                        if (t.Equals(possibleBase))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+
+                case TypeKind.Interface:
+                    foreach (var i in type.AllInterfaces)
+                    {
+                        if (i.Equals(possibleBase))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+
+                default:
+                    return false;
+            }
+        }
     }
 }

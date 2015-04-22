@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Function LookupPlaceholder(canonicalName As String) As PlaceholderLocalSymbol
             Debug.Assert(canonicalName = Canonicalize(canonicalName))
 
-            Dim kind = PseudoVariableKind.None
+            Dim kind = AliasKind.None
             Dim id As String = Nothing
             Dim index = 0
             If Not PseudoVariableUtilities.TryParseVariableName(canonicalName, caseSensitive:=False, kind:=kind, id:=id, index:=index) Then
@@ -113,24 +113,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return Nothing
             End If
 
+            Return CreatePlaceholderLocal(_typeNameDecoder, _containingMethod, New [Alias](kind, id, id, typeName))
+        End Function
+
+        Friend Shared Function CreatePlaceholderLocal(
+            typeNameDecoder As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol),
+            containingMethod As MethodSymbol,
+            [alias] As [Alias]) As PlaceholderLocalSymbol
+
+            Dim typeName = [alias].Type
             Debug.Assert(typeName.Length > 0)
 
-            Dim type = _typeNameDecoder.GetTypeSymbolForSerializedType(typeName)
+            Dim type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName)
             Debug.Assert(type IsNot Nothing)
 
-            Select Case kind
-                Case PseudoVariableKind.Exception
-                    Return New ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName)
-                Case PseudoVariableKind.StowedException
-                    Return New ExceptionLocalSymbol(_containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName)
-                Case PseudoVariableKind.ReturnValue
-                    Return New ReturnValueLocalSymbol(_containingMethod, id, type, index)
-                Case PseudoVariableKind.ObjectId
-                    Return New ObjectIdLocalSymbol(_containingMethod, type, id, isReadOnly:=True)
-                Case PseudoVariableKind.DeclaredLocal
-                    Return New ObjectIdLocalSymbol(_containingMethod, type, id, isReadOnly:=False)
+            Dim id = [alias].FullName
+            Select Case [alias].Kind
+                Case AliasKind.Exception
+                    Return New ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName)
+                Case AliasKind.StowedException
+                    Return New ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName)
+                Case AliasKind.ReturnValue
+                    Dim index As Integer = 0
+                    PseudoVariableUtilities.TryParseReturnValueIndex(id, index)
+                    Return New ReturnValueLocalSymbol(containingMethod, id, type, index)
+                Case AliasKind.ObjectId
+                    Return New ObjectIdLocalSymbol(containingMethod, type, id, isReadOnly:=True)
+                Case AliasKind.DeclaredLocal
+                    Return New ObjectIdLocalSymbol(containingMethod, type, id, isReadOnly:=False)
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(kind)
+                    Throw ExceptionUtilities.UnexpectedValue([alias].Kind)
             End Select
         End Function
 

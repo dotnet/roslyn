@@ -308,9 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isNullableValueType)
             {
-                MethodSymbol hasValue = GetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_get_HasValue);
                 // local.HasValue
-                ifCondition = BoundCall.Synthesized(syntax, local, hasValue);
+                ifCondition = MakeNullableHasValue(syntax, local);
             }
             else if (local.Type.IsValueType)
             {

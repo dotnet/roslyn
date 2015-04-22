@@ -2,6 +2,7 @@
 
 Imports System
 Imports System.Collections.Immutable
+Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
@@ -11,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-Imports Microsoft.DiaSymReader
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -189,6 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' the set of arguments and locals at the current scope.
         ''' </summary>
         Friend Function CompileGetLocals(
+            aliases As ReadOnlyCollection(Of [Alias]),
             typeName As String,
             localBuilder As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
@@ -230,6 +231,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Dim methodBuilder = ArrayBuilder(Of MethodSymbol).GetInstance()
 
                     If Not argumentsOnly Then
+                        ' Pseudo-variables: $exception, $ReturnValue, etc.
+                        If aliases.Count > 0 Then
+                            Dim typeNameDecoder = New EETypeNameDecoder(Compilation, _metadataDecoder.ModuleSymbol)
+                            For Each [alias] In aliases
+                                Dim methodName = GetNextMethodName(methodBuilder)
+                                Dim method = GetPseudoVariableMethod(typeNameDecoder, container, methodName, [alias])
+                                localBuilder.Add(New LocalAndMethod([alias].FullName, methodName, [alias].GetLocalResultFlags()))
+                                methodBuilder.Add(method)
+                            Next
+                        End If
+
                         ' "Me" for non-shared methods that are not display class methods
                         ' or display class methods where the display class contains "$VB$Me".
                         If Not m.IsShared AndAlso (Not m.ContainingType.IsClosureOrStateMachineType() OrElse _displayClassVariables.ContainsKey(GeneratedNames.MakeStateMachineCapturedMeName())) Then
@@ -368,6 +380,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 generateMethodBody)
         End Function
 
+        Private Function GetPseudoVariableMethod(
+            typeNameDecoder As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol),
+            container As EENamedTypeSymbol,
+            methodName As String,
+            [alias] As [Alias]) As EEMethodSymbol
+            Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
+            Return Me.CreateMethod(
+                container,
+                methodName,
+                syntax,
+                Function(method, diagnostics)
+                    Dim local = PlaceholderLocalBinder.CreatePlaceholderLocal(typeNameDecoder, method, [alias])
+                    Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type)
+                    Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
+                End Function)
+        End Function
+
         Private Function GetLocalMethod(container As EENamedTypeSymbol, methodName As String, localName As String, localIndex As Integer) As EEMethodSymbol
             Dim syntax = SyntaxFactory.IdentifierName(localName)
             Return Me.CreateMethod(
@@ -376,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 syntax,
                 Function(method, diagnostics)
                     Dim local = method.LocalsForBinding(localIndex)
-                    Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type).MakeCompilerGenerated()
+                    Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type)
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function
@@ -389,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 syntax,
                 Function(method, diagnostics)
                     Dim parameter = method.Parameters(parameterIndex)
-                    Dim expression = New BoundParameter(syntax, parameter, isLValue:=False, type:=parameter.Type).MakeCompilerGenerated()
+                    Dim expression = New BoundParameter(syntax, parameter, isLValue:=False, type:=parameter.Type)
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function
@@ -401,20 +430,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 methodName,
                 syntax,
                 Function(method, diagnostics)
-                    Dim expression = New BoundMeReference(syntax, GetNonClosureOrStateMachineContainer(container.SubstitutedSourceType)).MakeCompilerGenerated()
+                    Dim expression = New BoundMeReference(syntax, GetNonClosureOrStateMachineContainer(container.SubstitutedSourceType))
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function
 
         Private Function GetTypeVariableMethod(container As EENamedTypeSymbol, methodName As String, typeVariablesType As NamedTypeSymbol) As EEMethodSymbol
-            Dim syntax = SyntaxFactory.IdentifierName("")
+            Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
             Return Me.CreateMethod(
                 container,
                 methodName,
                 syntax,
                 Function(method, diagnostics)
                     Dim type = method.TypeMap.SubstituteNamedType(typeVariablesType)
-                    Dim expression = New BoundObjectCreationExpression(syntax, type.InstanceConstructors(0), ImmutableArray(Of BoundExpression).Empty, Nothing, type).MakeCompilerGenerated()
+                    Dim expression = New BoundObjectCreationExpression(syntax, type.InstanceConstructors(0), ImmutableArray(Of BoundExpression).Empty, Nothing, type)
                     Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
                 End Function)
         End Function

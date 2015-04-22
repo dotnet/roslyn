@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -47,6 +48,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return null;
         }
 
+        public static bool IsRunningOnMono()
+        {
+            return Type.GetType ("Mono.Runtime") != null;
+        }
+
+        public static object GetRuntimeInterfaceAsObject(Guid clsid, Guid riid)
+        {
+            // This API isn't available on Mono hence we must use reflection to access it.  
+            Debug.Assert(!IsRunningOnMono());
+
+            var getRuntimeInterfaceAsObject = typeof(RuntimeEnvironment).GetMethod("GetRuntimeInterfaceAsObject", BindingFlags.Public | BindingFlags.Static);
+            return getRuntimeInterfaceAsObject.Invoke(null, new object[] { clsid, riid });
+        }
+
         /// <summary>
         /// Verifies the specified image. Subscribe to <see cref="ReflectionOnlyAssemblyResolve"/> to provide a loader for dependent assemblies.
         /// </summary>
@@ -68,6 +83,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static string[] PeVerify(byte[] peImage, int domainId, string assemblyPath)
         {
+            if (IsRunningOnMono())
+            {
+                // PEverify is currently unsupported on Mono hence return an empty 
+                // set of messages
+                return new string[] { };
+            }
+
             lock (s_guard)
             {
                 GCHandle pinned = GCHandle.Alloc(peImage, GCHandleType.Pinned);
@@ -75,10 +97,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     IntPtr buffer = pinned.AddrOfPinnedObject();
 
-                    ICLRValidator validator = (ICLRValidator)RuntimeEnvironment.GetRuntimeInterfaceAsObject(s_clsIdClrRuntimeHost, typeof(ICLRRuntimeHost).GUID);
+                    ICLRValidator validator = (ICLRValidator)GetRuntimeInterfaceAsObject(s_clsIdClrRuntimeHost, typeof(ICLRRuntimeHost).GUID);
                     ValidationErrorHandler errorHandler = new ValidationErrorHandler(validator);
 
-                    IMetaDataDispenser dispenser = (IMetaDataDispenser)RuntimeEnvironment.GetRuntimeInterfaceAsObject(s_clsIdCorMetaDataDispenser, typeof(IMetaDataDispenser).GUID);
+                    IMetaDataDispenser dispenser = (IMetaDataDispenser)GetRuntimeInterfaceAsObject(s_clsIdCorMetaDataDispenser, typeof(IMetaDataDispenser).GUID);
 
                     // the buffer needs to be pinned during validation
                     Guid riid = typeof(IMetaDataImport).GUID;

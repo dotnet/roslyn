@@ -1893,5 +1893,59 @@ class C
             var expectedDescription = new SignatureHelpTestItem($"void C.Do(int x)", currentParameterIndex: 0);
             VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
         }
+
+        [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
+        [WorkItem(1068424)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestGenericParameters1()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        Foo(""""$$);
+    }
+
+    void Foo<T>(T a) { }
+    void Foo<T, U>(T a, U b) { }
+}
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>()
+            {
+                new SignatureHelpTestItem("void C.Foo<string>(string a)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C.Foo<T, U>(T a, U b)", string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
+        [WorkItem(1068424)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestGenericParameters2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        Foo("""", $$);
+    }
+
+    void Foo<T>(T a) { }
+    void Foo<T, U>(T a, U b) { }
+}
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>()
+            {
+                new SignatureHelpTestItem("void C.Foo<T>(T a)", string.Empty),
+                new SignatureHelpTestItem("void C.Foo<T, U>(T a, U b)", string.Empty, string.Empty, currentParameterIndex: 1)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
     }
 }

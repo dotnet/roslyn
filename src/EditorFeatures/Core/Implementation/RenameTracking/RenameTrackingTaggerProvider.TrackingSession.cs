@@ -71,6 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         _cancellationToken,
                         TaskScheduler.Default);
 
+                    var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask");
+
+                    _isRenamableIdentifierTask.SafeContinueWith(
+                        t => stateMachine.UpdateTrackingSessionIfRenamable(),
+                        _cancellationToken,
+                       TaskContinuationOptions.OnlyOnRanToCompletion,
+                       ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+
                     QueueUpdateToStateMachine(stateMachine, _isRenamableIdentifierTask);
                 }
                 else
@@ -86,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private void QueueUpdateToStateMachine(StateMachine stateMachine, Task task)
             {
-                var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".Start");
+                var asyncToken = _asyncListener.BeginAsyncOperation($"{GetType().Name}.{nameof(QueueUpdateToStateMachine)}");
 
                 task.SafeContinueWith(t =>
                    {

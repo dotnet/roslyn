@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 unusedDiagnostics.Free();
                 return null;
             }
-            else if (binder.Flags.Includes(BinderFlags.Cref))
+            else if (binder.InCref)
             {
                 if (expression.IsKind(SyntaxKind.QualifiedName))
                 {
@@ -321,8 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal SymbolInfo GetCrefSymbolInfo(int position, CrefSyntax crefSyntax, SymbolInfoOptions options, bool hasParameterList)
         {
             var binder = this.GetEnclosingBinder(position);
-            if (binder != null &&
-                (binder.Flags.Includes(BinderFlags.Cref) || binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType)))
+            if (binder?.InCref == true)
             {
                 ImmutableArray<Symbol> symbols = BindCref(crefSyntax, binder);
                 return GetCrefSymbolInfo(symbols, options, hasParameterList);

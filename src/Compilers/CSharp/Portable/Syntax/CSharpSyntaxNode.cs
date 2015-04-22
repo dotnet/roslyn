@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, bool elasticTrivia)
         {
-            return SyntaxFormatter.Format(this, indentation, elasticTrivia);
+            return SyntaxNormalizer.Normalize(this, indentation, elasticTrivia);
         }
 
         protected override bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false)

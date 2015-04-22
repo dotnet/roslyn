@@ -1023,7 +1023,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
                         memberAccess.Name.Identifier,
                         semanticModel)) _
-                            .WithLeadingTrivia(memberAccess.GetLeadingTrivia())
+                    .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
+                    .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
                 issueSpan = memberAccess.Expression.Span
 
                 If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
@@ -1038,6 +1039,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
+        End Function
+
+        <Extension>
+        Private Function GetLeadingTriviaForSimplifiedMemberAccess(memberAccess As MemberAccessExpressionSyntax) As SyntaxTriviaList
+            ' We want to include any user-typed trivia that may be present between the 'Expression', 'OperatorToken' and 'Identifier' of the MemberAccessExpression.
+            ' However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering
+            ' aggressive formatting. Otherwise, formatter will see this elastic trivia added by the expander And use that as a cue to introduce unnecessary blank lines
+            ' etc. around the user's original code.
+            Return memberAccess.GetLeadingTrivia().
+                AddRange(memberAccess.Expression.GetTrailingTrivia().WithoutElasticTrivia()).
+                AddRange(memberAccess.OperatorToken.LeadingTrivia.WithoutElasticTrivia()).
+                AddRange(memberAccess.OperatorToken.TrailingTrivia.WithoutElasticTrivia()).
+                AddRange(memberAccess.Name.GetLeadingTrivia().WithoutElasticTrivia())
+        End Function
+
+        <Extension>
+        Private Function WithoutElasticTrivia(list As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Return list.Where(Function(t) Not t.IsElastic())
         End Function
 
         Private Function InsideCrefReference(expr As ExpressionSyntax) As Boolean

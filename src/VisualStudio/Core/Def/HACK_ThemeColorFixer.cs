@@ -2,60 +2,44 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
-    // This is a dirty, filthy, shameful hack to work around the fact that shell
-    // theme changes are not fully propagated into a editor classification format map
-    // unless a classification type is registered as a font and color item in that
-    // format map's font and color category. So, for example, the "Keyword" classification
-    // type in the "tooltip" classification format map is never is never updated from its
-    // default blue. As a work around, we listen to theme changes and update the
-    // classification format maps that we care about.
+    /// <summary>
+    /// This class works around the fact that shell theme changes are not fully propagated into an
+    /// editor classification format map unless a classification type is registered as a font and
+    /// color item in that format map's font and color category. So, for example, the "Keyword"
+    /// classification type in the "tooltip" classification format map is never is never updated
+    /// from its default blue. As a work around, we listen to <see cref="IClassificationFormatMap.ClassificationFormatMappingChanged"/>
+    /// and update the classification format maps that we care about.
+    /// </summary>
     [Export]
-    internal sealed class HACK_ThemeColorFixer : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
+    internal sealed class HACK_ThemeColorFixer
     {
-        private const uint WM_SYSCOLORCHANGED = 0x0015;
-        private const uint WM_THEMECHANGED = 0x031A;
-
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
 
         [ImportingConstructor]
         private HACK_ThemeColorFixer(
-            SVsServiceProvider serviceProvider,
             IClassificationTypeRegistryService classificationTypeRegistryService,
-            IClassificationFormatMapService classificationFormatMapService) : base(assertIsForeground: true)
+            IClassificationFormatMapService classificationFormatMapService)
         {
             _classificationTypeRegistryService = classificationTypeRegistryService;
             _classificationFormatMapService = classificationFormatMapService;
 
-            var shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-
-            // Note: We never unhook this event sink. It lives for the lifetime of VS.
-            uint cookie;
-            shell.AdviseBroadcastMessages(this, out cookie);
+            // Note: We never unsubscribe from this event. This service lives for the lifetime of VS.
+            _classificationFormatMapService.GetClassificationFormatMap("text").ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
 
             // make this to run on UI thread when there is no work for the application
             VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
         }
 
-        public int OnBroadcastMessage(uint msg, IntPtr wParam, IntPtr lParam)
+        private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
         {
-            if (msg == WM_THEMECHANGED ||
-                msg == WM_SYSCOLORCHANGED)
-            {
-                VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
-            }
-
-            return VSConstants.S_OK;
+            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
         }
 
         public void RefreshThemeColors()
