@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string DocumentationComments = "Documentation Comments Command Handler";
 
         /// <summary>
+        /// Command handler name for Encapsulate Field.
+        /// </summary>
+        public const string EncapsulateField = "EncapsulateField";
+
+        /// <summary>
         /// Command handler name for End Construct.
         /// </summary>
         public const string EndConstruct = "End Construct Command Handler";

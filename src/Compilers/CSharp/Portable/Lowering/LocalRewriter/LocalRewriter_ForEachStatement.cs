@@ -319,9 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A BoundExpression representing the call.</returns>
         private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
         {
-            if (receiver.Type.TypeKind == TypeKind.Struct && method.ContainingType.IsInterface)
+            if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
             {
-                Debug.Assert(receiverConversion.IsBoxing);
+                Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
 
                 // NOTE: The spec says that disposing of a struct enumerator won't cause any 
                 // unnecessary boxing to occur.  However, Dev10 extends this improvement to the

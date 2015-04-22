@@ -1455,7 +1455,8 @@ class A { }
             Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind());
         }
 
-        [Fact, WorkItem(536995, "DevDiv")]
+        [WorkItem(536995, "DevDiv")]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestTextAndSpanWithTrivia1()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -1472,7 +1473,8 @@ class A { }
             Assert.Equal(false, rootNode.ToString().Contains("/*START*/"));
         }
 
-        [Fact, WorkItem(536996, "DevDiv")]
+        [WorkItem(536996, "DevDiv")]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestTextAndSpanWithTrivia2()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -2303,7 +2305,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestRemove_KeepUnbalancedDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -2336,7 +2338,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestRemove_KeepDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"

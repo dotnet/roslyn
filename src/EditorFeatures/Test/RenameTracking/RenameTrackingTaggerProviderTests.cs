@@ -1118,5 +1118,27 @@ class C
                 state.AssertNoTag();
             }
         }
+
+        [Fact]
+        [WorkItem(762964)]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_NoTagWhenFirstEditChangesReferenceToAnotherSymbol()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int abc = 7;
+        int ab = 8;
+        int z = abc$$;
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.AssertNoTag();
+            }
+        }
     }
 }

@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         [WorkItem(1066, "github")]
         public void TestNormalizePreprocessorDirectives()
         {
@@ -352,7 +352,7 @@ namespace foo
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         [WorkItem(531607, "DevDiv")]
         public void TestNormalizeLineDirectiveTrivia()
         {
@@ -388,7 +388,7 @@ namespace foo
         }
 
         [WorkItem(542887, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestFormattingForBlockSyntax()
         {
             var code =
@@ -415,7 +415,7 @@ int i = 1;
         }
 
         [WorkItem(1079042, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestNormalizeDocumentationComments()
         {
             var code =
@@ -441,7 +441,7 @@ int i = 1;
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestNormalizeDocumentationComments2()
         {
             var code =

@@ -4684,5 +4684,47 @@ BC30439: Constant expression not representable in type 'Integer?'.
             AssertTheseDiagnostics(compilation, expectedError)
         End Sub
 
+        <WorkItem(2094, "https://github.com/dotnet/roslyn/issues/2094")>
+        <Fact()>
+        Public Sub DirectCastNothingToAStructure()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class Program
+    Shared Sub Main()
+        Try
+            Dim val = DirectCast(Nothing, S)
+            System.Console.WriteLine("Unexpected - 1 !!!")
+        Catch e as System.NullReferenceException
+            System.Console.WriteLine("Expected - 1")
+        End Try
+
+        Try
+            M(DirectCast(Nothing, S))
+            System.Console.WriteLine("Unexpected - 2 !!!")
+        Catch e as System.NullReferenceException
+            System.Console.WriteLine("Expected - 2")
+        End Try
+    End Sub
+
+    Shared Sub M(val as S)
+    End Sub
+End Class
+
+Structure S
+End Structure
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            Dim expectedOutput = <![CDATA[
+Expected - 1
+Expected - 2
+]]>
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace

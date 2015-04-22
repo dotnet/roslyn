@@ -58,18 +58,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
         {
-            var handlers = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (handlers.Length > 0)
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (ev.HasHandlers)
             {
                 var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
                 _eventQueue.ScheduleTask(() =>
                 {
                     UpdateDataMap(sender, args);
-
-                    foreach (var handler in handlers)
-                    {
-                        handler(sender, args);
-                    }
+                    ev.RaiseEvent(handler => handler(sender, args));
                 }).CompletesAsyncOperation(eventToken);
             }
         }
