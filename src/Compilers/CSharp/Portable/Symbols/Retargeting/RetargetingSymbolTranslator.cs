@@ -899,6 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         method.CallingConvention,
                         IndexedTypeParameterSymbol.Take(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
+                        method.RefKind,
                         translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         translator.RetargetModifiers(method.ReturnTypeCustomModifiers, out modifiersHaveChanged),
                         ImmutableArray<MethodSymbol>.Empty);
@@ -952,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     property.Name,
                     retargetedType,
                     targetParamsBuilder.ToImmutableAndFree(),
+                    property.RefKind,
                     Retarget(property.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                     RetargetModifiers(property.TypeCustomModifiers, out modifiersHaveChanged),
                     property.IsStatic,

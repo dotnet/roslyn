@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
-                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(RefKind.None, _syntax.Declaration, declarator, LocalDeclarationKind.UsingVariable));
                 }
 
                 return locals.ToImmutable();

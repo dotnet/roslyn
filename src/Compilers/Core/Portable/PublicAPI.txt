@@ -510,6 +510,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMethod(Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.IMethodSymbol.ReducedFrom.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnTypeCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsVoid.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.TypeArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol>
 Microsoft.CodeAnalysis.IMethodSymbol.TypeParameters.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeParameterSymbol>
@@ -579,6 +580,7 @@ Microsoft.CodeAnalysis.IPropertySymbol.IsWriteOnly.get -> bool
 Microsoft.CodeAnalysis.IPropertySymbol.OriginalDefinition.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.IPropertySymbol.OverriddenProperty.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.IPropertySymbol.Parameters.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IParameterSymbol>
+Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.IPropertySymbol.SetMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.IPropertySymbol.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IPropertySymbol.TypeCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>

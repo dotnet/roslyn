@@ -1251,6 +1251,33 @@ class Derived : Base
         }
 
         [Fact]
+        public void TestChangeMethodRefReturn()
+        {
+            var text = @"
+class Base
+{
+    public virtual int Method1() { return 0; }
+    public virtual ref int Method2(ref int i) { return ref i; }
+    public virtual ref int Method3(ref int i) { return ref i; }
+}
+
+class Derived : Base
+{
+    int field = 0;
+
+    public override ref int Method1() { return ref field; }
+    public override int Method2(ref int i) { return i; }
+    public override ref int Method3(ref int i) { return ref i; }
+}
+";
+
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 13, Column = 29 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 14, Column = 25 },
+            });
+        }
+
+        [Fact]
         public void TestChangeMethodParameters()
         {
             // Tests:
@@ -1365,6 +1392,34 @@ class Derived : Base
         }
 
         [Fact]
+        public void TestChangePropertyRefReturn()
+        {
+            var text = @"
+class Base
+{
+    int field = 0;
+
+    public virtual int Proprty1 { get { return 0; } }
+    public virtual ref int Property2 { get { return ref field; } }
+    public virtual ref int Property3 { get { return ref field; } }
+}
+
+class Derived : Base
+{
+    int field = 0;
+
+    public override ref int Proprty1 { get { return ref field; } }
+    public override int Property2 { get { return 0; } }
+    public override ref int Property3 { get { return ref field; } }
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 15, Column = 29 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 16, Column = 25 },
+            });
+        }
+
+        [Fact]
         public void TestChangeIndexerType()
         {
             var text = @"
@@ -1389,6 +1444,34 @@ class Derived : Base
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 16, Column = 28 }, //3
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 17, Column = 25 }, //4
+            });
+        }
+
+        [Fact]
+        public void TestChangeIndexerRefReturn()
+        {
+            var text = @"
+class Base
+{
+    int field = 0;
+
+    public virtual int this[int x, int y] { get { return field; } }
+    public virtual ref int this[int x, string y] { get { return ref field; } }
+    public virtual ref int this[string x, int y] { get { return ref field; } }
+}
+
+class Derived : Base
+{
+    int field = 0;
+
+    public override ref int this[int x, int y] { get { return ref field; } }
+    public override int this[int x, string y] { get { return field; } }
+    public override ref int this[string x, int y] { get { return ref field; } }
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 15, Column = 29 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 16, Column = 25 },
             });
         }
 
@@ -1942,6 +2025,8 @@ abstract class Base
     public abstract object Method2();
     public abstract object Method3();
     public abstract object Method4(int i);
+    public abstract ref object Method5(ref object o);
+    public abstract object Method6(ref object o);
 }
 
 class Derived : Base
@@ -1950,16 +2035,21 @@ class Derived : Base
     public object Method2() { return null; } //missed override keyword
     public int Method3() { return 0; } //wrong return type
     public object Method4(long l) { return 0; } //wrong signature
+    public override object Method5(ref object o) { return null; } //wrong by-value return
+    public override ref object Method6(ref object o) { return ref o; } //wrong by-ref return
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 7 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 12, Column = 7 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 12, Column = 7 },
 
-                new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 13, Column = 19, IsWarning = true },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 14, Column = 16, IsWarning = true },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 15, Column = 19, IsWarning = true },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 16, Column = 16, IsWarning = true },
+
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 18, Column = 28 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 19, Column = 32 },
             });
         }
 
@@ -1979,6 +2069,9 @@ abstract class Base
     public abstract object Property7 { get; }
     public abstract object Property8 { set; }
     public abstract object Property9 { set; }
+
+    public abstract object Property10 { get; }
+    public abstract ref object Property11 { get; }
 }
 
 class Derived : Base
@@ -1994,28 +2087,38 @@ class Derived : Base
     public override object Property7 { set { } }
     public override object Property8 { get; set; }
     public override object Property9 { get { return null; } }
+
+    //wrong by-{value,ref} return
+    object o = null;
+    public override ref object Property10 { get { return ref o; } }
+    public override object Property11 { get { return null; } }
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //1.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //1.set
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //2.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //2.set
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //2.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //2.set
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //4.set
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //5.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //7.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 16, Column = 7 }, //9.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //1.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //1.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //2.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //2.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //2.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //2.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //4.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //5.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //7.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //9.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //10.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 19, Column = 7 }, //11.set
 
-                new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 19, Column = 19, IsWarning = true }, //2
+                new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 22, Column = 19, IsWarning = true }, //2
 
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 20, Column = 25 }, //3
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeTypeOnOverride, Line = 23, Column = 25 }, //3
 
-                new ErrorDescription { Code = (int)ErrorCode.ERR_NoSetToOverride, Line = 25, Column = 45 }, //6.set
-                new ErrorDescription { Code = (int)ErrorCode.ERR_NoSetToOverride, Line = 26, Column = 40 }, //7.set
-                new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 27, Column = 40 }, //8.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 28, Column = 40 }, //9.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_NoSetToOverride, Line = 28, Column = 45 }, //6.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_NoSetToOverride, Line = 29, Column = 40 }, //7.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 30, Column = 40 }, //8.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 31, Column = 40 }, //9.get
+
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 35, Column = 32 }, //10.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeRefReturnOnOverride, Line = 36, Column = 28 }, //11.get
             });
         }
 
@@ -2035,6 +2138,9 @@ abstract class Base
     public abstract object this[int w, string x, string y , int z] { get; }
     public abstract object this[int w, string x, string y , string z] { set; }
     public abstract object this[string w, int x, int y , int z] { set; }
+
+    public abstract object this[string w, int x, int y, string z] { get; }
+    public abstract ref object this[string w, int x, string y, int z] { get; }
 }
 
 class Derived : Base
@@ -2050,41 +2156,77 @@ class Derived : Base
     public override object this[int w, string x, string y , int z] { set { } }
     public override object this[int w, string x, string y , string z] { get { return 0; } set { } }
     public override object this[string w, int x, int y , int z] { get { return null; } }
+
+    //wrong by-{value,ref} return
+    object o = null;
+    public override ref object this[string w, int x, int y, string z] { get { return ref o; } }
+    public override object this[string w, int x, string y, int z] { get; }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (19,19): warning CS0114: 'Derived.this[int, int, int, string]' hides inherited member 'Base.this[int, int, int, string]'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "this").WithArguments("Derived.this[int, int, int, string]", "Base.this[int, int, int, string]"),
-                // (20,25): error CS1715: 'Derived.this[int, int, string, int]': type must be 'object' to match overridden member 'Base.this[int, int, string, int]'
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "this").WithArguments("Derived.this[int, int, string, int]", "Base.this[int, int, string, int]", "object"),
-                // (25,88): error CS0546: 'Derived.this[int, string, int, string].set': cannot override because 'Base.this[int, string, int, string]' does not have an overridable set accessor
-                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.this[int, string, int, string].set", "Base.this[int, string, int, string]"),
-                // (26,70): error CS0546: 'Derived.this[int, string, string, int].set': cannot override because 'Base.this[int, string, string, int]' does not have an overridable set accessor
-                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.this[int, string, string, int].set", "Base.this[int, string, string, int]"),
-                // (27,73): error CS0545: 'Derived.this[int, string, string, string].get': cannot override because 'Base.this[int, string, string, string]' does not have an overridable get accessor
-                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.this[int, string, string, string].get", "Base.this[int, string, string, string]"),
-                // (28,67): error CS0545: 'Derived.this[string, int, int, int].get': cannot override because 'Base.this[string, int, int, int]' does not have an overridable get accessor
-                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.this[string, int, int, int].get", "Base.this[string, int, int, int]"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].get'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].get"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, string].get'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].get"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, int].get'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, int].get"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, int, int].get'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, int, int].get"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, string, int].get'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, string, int].get"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].set'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].set"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, string].set'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].set"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, int].set'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, int].set"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, string].set'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, string].set"),
-                // (16,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, int, int].set'
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, int, int].set"));
+                // (36,69): error CS0501: 'Derived.this[string, int, string, int].get' must declare a body because it is not marked abstract, extern, or partial
+                //     public override object this[string w, int x, string y, int z] { get; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("Derived.this[string, int, string, int].get").WithLocation(36, 69),
+                // (23,25): error CS1715: 'Derived.this[int, int, string, int]': type must be 'object' to match overridden member 'Base.this[int, int, string, int]'
+                //     public override int this[int w, int x, string y , int z] { get { return 0; } set { } } //wrong type
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "this").WithArguments("Derived.this[int, int, string, int]", "Base.this[int, int, string, int]", "object").WithLocation(23, 25),
+                // (28,88): error CS0546: 'Derived.this[int, string, int, string].set': cannot override because 'Base.this[int, string, int, string]' does not have an overridable set accessor
+                //     public override object this[int w, string x, int y , string z] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.this[int, string, int, string].set", "Base.this[int, string, int, string]").WithLocation(28, 88),
+                // (29,70): error CS0546: 'Derived.this[int, string, string, int].set': cannot override because 'Base.this[int, string, string, int]' does not have an overridable set accessor
+                //     public override object this[int w, string x, string y , int z] { set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived.this[int, string, string, int].set", "Base.this[int, string, string, int]").WithLocation(29, 70),
+                // (30,73): error CS0545: 'Derived.this[int, string, string, string].get': cannot override because 'Base.this[int, string, string, string]' does not have an overridable get accessor
+                //     public override object this[int w, string x, string y , string z] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.this[int, string, string, string].get", "Base.this[int, string, string, string]").WithLocation(30, 73),
+                // (31,67): error CS0545: 'Derived.this[string, int, int, int].get': cannot override because 'Base.this[string, int, int, int]' does not have an overridable get accessor
+                //     public override object this[string w, int x, int y , int z] { get { return null; } }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("Derived.this[string, int, int, int].get", "Base.this[string, int, int, int]").WithLocation(31, 67),
+                // (35,32): error CS8082: 'Derived.this[string, int, int, string]' must not have a by-reference return to match overridden member 'Base.this[string, int, int, string]'
+                //     public override ref object this[string w, int x, int y, string z] { get { return ref o; } }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[string, int, int, string]", "Base.this[string, int, int, string]", "not ").WithLocation(35, 32),
+                // (36,28): error CS8082: 'Derived.this[string, int, string, int]' must have a by-reference return to match overridden member 'Base.this[string, int, string, int]'
+                //     public override object this[string w, int x, string y, int z] { get; }
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[string, int, string, int]", "Base.this[string, int, string, int]", "").WithLocation(36, 28),
+                // (22,19): warning CS0114: 'Derived.this[int, int, int, string]' hides inherited member 'Base.this[int, int, int, string]'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public object this[int w, int x, int y , string z] { get { return 0; } set { } } //missed override keyword
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "this").WithArguments("Derived.this[int, int, int, string]", "Base.this[int, int, int, string]").WithLocation(22, 19),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, int, string].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, int, string].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, string].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, string].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, int].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, string, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, string, int].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, int, int].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, int, int].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, string].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, string, int, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, string, int, int].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, int].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[string, int, string, int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[string, int, string, int].get").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, string, int].set'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, string, int].set").WithLocation(19, 7),
+                // (19,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int, int, int, string].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int, int, int, string].get").WithLocation(19, 7));
         }
 
         [Fact]
@@ -2273,17 +2415,23 @@ interface Interface
 {
     object Method1();
     object Method2(int i);
+    ref object Method3(ref object o);
+    object Method4(ref object o);
 }
 
 class Class : Interface
 {
     //missed Method1 entirely
     public object Method2(long l) { return 0; } //wrong signature
+    public object Method3(ref object o) { return null; } //wrong by-value return
+    public ref object Method4(ref object o) { return ref o; } //wrong by-ref return
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 15 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 10, Column = 15 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 10, Column = 15 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, Line = 10, Column = 15 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, Line = 10, Column = 15 },
             });
         }
 
@@ -2301,6 +2449,9 @@ interface Interface
     object Property5 { get; }
     object Property6 { set; }
     object Property7 { set; }
+
+    ref object Property8 { get; }
+    object Property9 { get; }
 }
 
 class Class : Interface
@@ -2314,14 +2465,21 @@ class Class : Interface
     public object Property5 { set { } }
     public object Property6 { get; set; }
     public object Property7 { get { return null; } }
+
+    //wrong by-{value,ref} return
+    object o = null;
+    public object Property8 { get { return null; } }
+    public ref object Property9 { get { return ref o; } }
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 14, Column = 15 }, //1
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 14, Column = 15 }, //2.set
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 14, Column = 15 }, //3.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 14, Column = 15 }, //5.get
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 14, Column = 15 }, //7.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //1
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //2.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //3.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //5.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 17, Column = 15 }, //7.set
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, Line = 17, Column = 15 }, //8.get
+                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, Line = 17, Column = 15 }, //9.get
             });
         }
 
@@ -2331,14 +2489,17 @@ class Class : Interface
             var text = @"
 interface Interface
 {
-    object this[int x, int y, string z] { get; set; }
+    object this[int w, int x, int y, string z] { get; set; }
 
-    object this[int x, string y, int z] { get; set; }
-    object this[int x, string y, string z] { get; set; }
-    object this[string x, int y, int z] { get; }
-    object this[string x, int y, string z] { get; }
-    object this[string x, string y, int z] { set; }
-    object this[string x, string y, string z] { set; }
+    object this[int w, int x, string y, int z] { get; set; }
+    object this[int w, int x, string y, string z] { get; set; }
+    object this[int w, string x, int y, int z] { get; }
+    object this[int w, string x, int y, string z] { get; }
+    object this[int w, string x, string y, int z] { set; }
+    object this[int w, string x, string y, string z] { set; }
+
+    ref object this[string w, int x, int y, int z] { get; }
+    object this[string w, int x, int y, string z] { get; }
 }
 
 class Class : Interface
@@ -2346,25 +2507,41 @@ class Class : Interface
     //missed first indexer entirely
 
     //wrong accessors
-    public object this[int x, string y, int z] { get { return null; } }
-    public object this[int x, string y, string z] { set { } }
-    public object this[string x, int y, int z] { get { return 0; } set { } }
-    public object this[string x, int y, string z] { set { } }
-    public object this[string x, string y, int z] { get { return 0; } set { } }
-    public object this[string x, string y, string z] { get { return null; } }
+    public object this[int w, int x, string y, int z] { get { return null; } }
+    public object this[int w, int x, string y, string z] { set { } }
+    public object this[int w, string x, int y, int z] { get { return 0; } set { } }
+    public object this[int w, string x, int y, string z] { set { } }
+    public object this[int w, string x, string y, int z] { get { return 0; } set { } }
+    public object this[int w, string x, string y, string z] { get { return null; } }
+
+    // wrong by-{value,ref} return
+    object o = null;
+    public object this[string w, int x, int y, int z] { get { return null; } }
+    public ref object this[string w, int x, int y, string z] { get { return ref o; } }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (14,7): error CS0535: 'Class' does not implement interface member 'Interface.this[int, int, string]'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, int, string]"),
-                // (14,7): error CS0535: 'Class' does not implement interface member 'Interface.this[int, string, string].get'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string].get"),
-                // (14,7): error CS0535: 'Class' does not implement interface member 'Interface.this[string, int, string].get'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[string, int, string].get"),
-                // (14,7): error CS0535: 'Class' does not implement interface member 'Interface.this[int, string, int].set'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, int].set"),
-                // (14,7): error CS0535: 'Class' does not implement interface member 'Interface.this[string, string, string].set'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[string, string, string].set"));
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, string, string, string].set'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string, string].set").WithLocation(17, 15),
+                // (17,15): error CS8086: 'Class' does not implement interface member 'Interface.this[string, int, int, int]'. 'Class.this[string, int, int, int]' cannot implement 'Interface.this[string, int, int, int]' because it does not return by reference.
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, int]", "Class.this[string, int, int, int]", "reference").WithLocation(17, 15),
+                // (17,15): error CS8086: 'Class' does not implement interface member 'Interface.this[string, int, int, string]'. 'Class.this[string, int, int, string]' cannot implement 'Interface.this[string, int, int, string]' because it does not return by value.
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.this[string, int, int, string]", "Class.this[string, int, int, string]", "value").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, int, string, string].get'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, int, string, string].get").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, string, int, string].get'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, int, string].get").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, int, string, int].set'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, int, string, int].set").WithLocation(17, 15),
+                // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, int, int, string]'
+                // class Class : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, int, int, string]").WithLocation(17, 15));
         }
 
         [Fact]

@@ -738,6 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
                                 name: null,
+                                refKind: RefKind.None,
                                 returnType: null,
                                 returnTypeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
@@ -752,6 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
                                 name: null,
+                                refKind: RefKind.None,
                                 type: null,
                                 typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 isStatic: false,

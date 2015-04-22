@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.Type, used);
+            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.RefKind, node.Type, used);
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isChecked).ToExpression();
 
                 default:
-                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, type, used);
+                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, RefKind.None, type, used);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeStaticAssignmentOperator(CSharpSyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type, bool used)
+        private BoundExpression MakeStaticAssignmentOperator(CSharpSyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, RefKind refKind, TypeSymbol type, bool used)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PropertyAccess:
                     {
+                        Debug.Assert(refKind == RefKind.None);
                         BoundPropertyAccess propertyAccess = (BoundPropertyAccess)rewrittenLeft;
                         BoundExpression rewrittenReceiver = propertyAccess.ReceiverOpt;
                         PropertySymbol property = propertyAccess.PropertySymbol;
@@ -164,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
+                        Debug.Assert(refKind == RefKind.None);
                         BoundIndexerAccess indexerAccess = (BoundIndexerAccess)rewrittenLeft;
                         BoundExpression rewrittenReceiver = indexerAccess.ReceiverOpt;
                         ImmutableArray<BoundExpression> rewrittenArguments = indexerAccess.Arguments;
@@ -182,8 +184,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             used);
                     }
 
+                case BoundKind.Local:
+                    {
+                        Debug.Assert(refKind == RefKind.None || ((BoundLocal)rewrittenLeft).LocalSymbol.RefKind != RefKind.None);
+                        return new BoundAssignmentOperator(
+                            syntax,
+                            rewrittenLeft,
+                            rewrittenRight,
+                            type,
+                            refKind: refKind);
+                    }
+
                 default:
                     {
+                        Debug.Assert(refKind == RefKind.None);
                         return new BoundAssignmentOperator(
                             syntax,
                             rewrittenLeft,

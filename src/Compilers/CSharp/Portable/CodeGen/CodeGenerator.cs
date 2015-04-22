@@ -116,6 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (result == null)
                 {
                     Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
+                    var slotConstraints = _method.RefKind == RefKind.None
+                        ? LocalSlotConstraints.None
+                        : LocalSlotConstraints.ByRef;
+
 
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_optimizations == OptimizationLevel.Debug && bodySyntax != null)
@@ -130,14 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             kind: localSymbol.SynthesizedKind,
                             id: new LocalDebugId(syntaxOffset, ordinal: 0),
                             pdbAttributes: localSymbol.SynthesizedKind.PdbAttributes(),
-                            constraints: LocalSlotConstraints.None,
+                            constraints: slotConstraints,
                             isDynamic: false,
                             dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
                             isSlotReusable: localSymbol.SynthesizedKind.IsSlotReusable(_optimizations));
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax);
+                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;

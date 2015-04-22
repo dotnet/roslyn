@@ -1232,6 +1232,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                    Get
+                        Return ClonedFrom.ReturnsByRef
+                    End Get
+                End Property
+
                 Public Overrides ReadOnly Property ReturnType As TypeSymbol
                     Get
                         Return ClonedFrom.ReturnType
@@ -1755,6 +1761,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Public Overrides ReadOnly Property SetMethod As MethodSymbol
                     Get
                         Return _setter
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                    Get
+                        Return _clonedFrom.ReturnsByRef
                     End Get
                 End Property
 

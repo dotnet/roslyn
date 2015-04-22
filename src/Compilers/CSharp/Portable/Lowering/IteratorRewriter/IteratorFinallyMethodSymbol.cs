@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbol ReturnType
         {
             get { return ContainingAssembly.GetSpecialType(SpecialType.System_Void); }

@@ -913,6 +913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      method.CallingConvention,
                                                                      IndexedTypeParameterSymbol.Take(method.Arity),
                                                                      targetParamsBuilder.ToImmutableAndFree(),
+                                                                     method.ReturnsByRef,
                                                                      translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                                                                      translator.RetargetModifiers(method.ReturnTypeCustomModifiers, modifiersHaveChanged),
                                                                      ImmutableArray(Of MethodSymbol).Empty)
@@ -1017,6 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      [property].IsReadOnly,
                                                                      [property].IsWriteOnly,
                                                                      targetParamsBuilder.ToImmutableAndFree(),
+                                                                     [property].ReturnsByRef,
                                                                      Retarget([property].Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                                                                      RetargetModifiers([property].TypeCustomModifiers, modifiersHaveChanged))
 

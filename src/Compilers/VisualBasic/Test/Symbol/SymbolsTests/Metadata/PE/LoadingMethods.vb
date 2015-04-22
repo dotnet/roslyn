@@ -371,8 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(CS_Modifiers3_M4.IsOverrides)
 
             Dim byrefReturnMethod = byrefReturn.GlobalNamespace.GetTypeMembers("ByRefReturn").Single().GetMembers("M").OfType(Of MethodSymbol)().Single()
-            Assert.Equal(TypeKind.Error, byrefReturnMethod.ReturnType.TypeKind)
-            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(byrefReturnMethod.ReturnType)
+            Assert.True(byrefReturnMethod.ReturnsByRef)
         End Sub
 
         <Fact>

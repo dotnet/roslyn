@@ -491,9 +491,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundReturnStatement
     {
-        public static BoundReturnStatement Synthesized(CSharpSyntaxNode syntax, BoundExpression expression, bool hasErrors = false)
+        public static BoundReturnStatement Synthesized(CSharpSyntaxNode syntax, RefKind refKind, BoundExpression expression, bool hasErrors = false)
         {
-            return new BoundReturnStatement(syntax, expression, hasErrors) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(syntax, refKind, expression, hasErrors) { WasCompilerGenerated = true };
         }
     }
 

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement ret = method.IsIterator
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
-                : BoundReturnStatement.Synthesized(syntax, null);
+                : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
             if (syntax.Kind() == SyntaxKind.Block)
             {

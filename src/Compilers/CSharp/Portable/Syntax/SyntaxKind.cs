@@ -528,5 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringText = 8919,
         InterpolationAlignmentClause = 8920,
         InterpolationFormatClause = 8921,
+
+        ReferenceAssignmentExpression = 8950,
+        EqualsReferenceClause = 8951,
     }
 }
