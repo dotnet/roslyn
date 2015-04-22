@@ -38,10 +38,10 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         //     '16' and '10'.
         public readonly uint Radix;
 
-        public string GetTypeName(DkmClrType clrType, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo CustomTypeInfo)
+        public string GetTypeName(DkmClrType ClrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> FormatSpecifiers)
         {
             // The real version does some sort of dynamic dispatch that ultimately calls this method.
-            return _formatter.GetTypeName(this, clrType, formatSpecifiers, CustomTypeInfo);
+            return _formatter.GetTypeName(this, ClrType, CustomTypeInfo, FormatSpecifiers);
         }
     }
 }
