@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             var service = document.Project.LanguageServices.GetService<ISyntaxFormattingService>();
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             var service = workspace.Services.GetLanguageServices(language).GetService<ISyntaxFormattingService>();
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -126,12 +126,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             if (spans == null)
             {
-                throw new ArgumentNullException("spans");
+                throw new ArgumentNullException(nameof(spans));
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             if (annotation == null)
             {
-                throw new ArgumentNullException("annotation");
+                throw new ArgumentNullException(nameof(annotation));
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -185,17 +185,17 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             if (annotation == null)
             {
-                throw new ArgumentNullException("annotation");
+                throw new ArgumentNullException(nameof(annotation));
             }
 
             var spans = (annotation == SyntaxAnnotation.ElasticAnnotation)
@@ -222,12 +222,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             return Format(node, new TextSpan[] { node.FullSpan }, workspace, options, rules, cancellationToken);
@@ -246,12 +246,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             return Format(node, new TextSpan[] { span }, workspace, options, cancellationToken);
@@ -275,17 +275,17 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             if (spans == null)
             {
-                throw new ArgumentNullException("spans");
+                throw new ArgumentNullException(nameof(spans));
             }
 
             var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
@@ -315,12 +315,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();

@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Debugger
         {
             if (item == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
             }
 
             Guid key = item.GetType().GUID;

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (exportProvider == null)
             {
-                throw new ArgumentNullException("exportProvider");
+                throw new ArgumentNullException(nameof(exportProvider));
             }
 
             return new MefV1HostServices(exportProvider);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (assemblies == null)
             {
-                throw new ArgumentNullException("assemblies");
+                throw new ArgumentNullException(nameof(assemblies));
             }
 
             var catalog = new AggregateCatalog(assemblies.Select(a => new AssemblyCatalog(a)));

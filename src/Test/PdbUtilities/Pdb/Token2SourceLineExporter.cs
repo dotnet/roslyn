@@ -540,7 +540,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 if (nvalue == null)
                 {
-                    throw new ArgumentNullException("nvalue", "ArgumentNull_Value");
+                    throw new ArgumentNullException(nameof(nvalue), "ArgumentNull_Value");
                 }
                 if (_count >= _loadsize)
                 {

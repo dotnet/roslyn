@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 if (assemblyPath == null)
                 {
-                    throw new ArgumentNullException("assemblyPath");
+                    throw new ArgumentNullException(nameof(assemblyPath));
                 }
 
                 assemblyPath = Path.ChangeExtension(assemblyPath, "xml");

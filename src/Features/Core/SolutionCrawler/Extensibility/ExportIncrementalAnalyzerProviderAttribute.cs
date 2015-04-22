@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (workspaceKinds == null)
             {
-                throw new ArgumentNullException("workspaceKinds");
+                throw new ArgumentNullException(nameof(workspaceKinds));
             }
 
             this.WorkspaceKinds = workspaceKinds;

@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (oldProject == null)
             {
-                throw new ArgumentNullException("oldProject");
+                throw new ArgumentNullException(nameof(oldProject));
             }
 
             return new ProjectChanges(this, oldProject);

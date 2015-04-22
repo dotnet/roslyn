@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             using (_guard.DisposableWait())

@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             if (solution == null)
             {
-                throw new ArgumentNullException("solution");
+                throw new ArgumentNullException(nameof(solution));
             }
 
             if (symbol == null)
             {
-                throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
             }
 
             if (string.IsNullOrEmpty(newName))
