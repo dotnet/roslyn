@@ -458,12 +458,106 @@ public class B
             }
         }
 
+        /// <summary>
+        /// mscorlib.dll is not directly referenced from an assembly
+        /// compiled against portable framework assemblies.
+        /// </summary>
+        [WorkItem(1150981)]
+        [Fact(Skip = "1150981")]
+        public void MissingMscorlib()
+        {
+            var sourceA =
+@"public class A
+{
+}
+class B
+{
+}
+class C
+{
+}";
+            var sourceB =
+@"public class B : A
+{
+}";
+            var assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName();
+            var compilationA = CreateCompilation(
+                sourceA,
+                references: new MetadataReference[] { SystemRuntimePP7Ref },
+                options: TestOptions.DebugDll,
+                assemblyName: assemblyNameA);
+            byte[] exeBytesA;
+            byte[] pdbBytesA;
+            ImmutableArray<MetadataReference> referencesA;
+            compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
+            var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
+            var identityA = referenceA.GetAssemblyIdentity();
+            var moduleA = referenceA.ToModuleInstance(exeBytesA, new SymReader(pdbBytesA));
+
+            var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
+            var compilationB = CreateCompilation(
+                sourceB,
+                references: new MetadataReference[] { SystemRuntimePP7Ref, referenceA },
+                options: TestOptions.DebugDll,
+                assemblyName: assemblyNameB);
+            byte[] exeBytesB;
+            byte[] pdbBytesB;
+            ImmutableArray<MetadataReference> referencesB;
+            compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
+            var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
+            var moduleB = referenceB.ToModuleInstance(exeBytesB, new SymReader(pdbBytesB));
+
+            // At runtime System.Runtime.dll contract assembly is replaced
+            // by mscorlib.dll and System.Runtime.dll facade assemblies.
+            var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
+            moduleBuilder.Add(MscorlibFacadeRef.ToModuleInstance(null, null));
+            moduleBuilder.Add(SystemRuntimeFacadeRef.ToModuleInstance(null, null));
+            moduleBuilder.Add(moduleA);
+            moduleBuilder.Add(moduleB);
+            var modules = moduleBuilder.ToImmutableAndFree();
+
+            using (var runtime = new RuntimeInstance(modules))
+            {
+                ImmutableArray<MetadataBlock> blocks;
+                Guid moduleVersionId;
+                ISymUnmanagedReader symReader;
+                int typeToken;
+                int localSignatureToken;
+                GetContextState(runtime, "C", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
+                string errorMessage;
+                CompilationTestData testData;
+                int attempts = 0;
+                ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+                {
+                    attempts++;
+                    return EvaluationContext.CreateTypeContext(
+                        ToCompilation(b, u, moduleVersionId),
+                        moduleVersionId,
+                        typeToken);
+                };
+
+                // Compile: [DebuggerDisplay("{new B()}")]
+                const string expr = "new B()";
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, expr, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                Assert.Null(errorMessage);
+                Assert.Equal(2, attempts);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""B..ctor()""
+  IL_0005:  ret
+}");
+            }
+        }
+
         private static ExpressionCompiler.CreateContextDelegate CreateTypeContextFactory(
             Guid moduleVersionId,
             int typeToken)
         {
             return (blocks, useReferencedModulesOnly) => EvaluationContext.CreateTypeContext(
-                useReferencedModulesOnly ? blocks.ToCompilationReferencedModulesOnly(moduleVersionId) : blocks.ToCompilation(),
+                ToCompilation(blocks, useReferencedModulesOnly, moduleVersionId),
                 moduleVersionId,
                 typeToken);
         }
@@ -475,13 +569,21 @@ public class B
             int localSignatureToken)
         {
             return (blocks, useReferencedModulesOnly) => EvaluationContext.CreateMethodContext(
-                useReferencedModulesOnly ? blocks.ToCompilationReferencedModulesOnly(moduleVersionId) : blocks.ToCompilation(),
+                ToCompilation(blocks, useReferencedModulesOnly, moduleVersionId),
                 symReader,
                 moduleVersionId,
                 methodToken,
                 methodVersion: 1,
                 ilOffset: 0,
                 localSignatureToken: localSignatureToken);
+        }
+
+        private static CSharpCompilation ToCompilation(
+            ImmutableArray<MetadataBlock> blocks,
+            bool useReferencedModulesOnly,
+            Guid moduleVersionId)
+        {
+            return useReferencedModulesOnly ? blocks.ToCompilationReferencedModulesOnly(moduleVersionId) : blocks.ToCompilation();
         }
     }
 }
