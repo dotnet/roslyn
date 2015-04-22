@@ -8,8 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
 {
-    [ExportCommandHandler("EncapsulateField",
-        ContentTypeNames.CSharpContentType)]
+    [ExportCommandHandler(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
     internal class EncapsulateFieldCommandHandler : AbstractEncapsulateFieldCommandHandler
     {

@@ -100,16 +100,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     {
                         // Continuing an existing tracking session. If there may have been a tag
                         // showing, then update the tags.
-                        if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
-                        {
-                            this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
-                            TrackingSessionUpdated();
-                        }
+                        UpdateTrackingSessionIfRenamable();
                     }
                     else
                     {
                         StartTrackingSession(e);
                     }
+                }
+            }
+
+            public void UpdateTrackingSessionIfRenamable()
+            {
+                AssertIsForeground();
+                if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
+                {
+                    this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
+                    TrackingSessionUpdated();
                 }
             }
 

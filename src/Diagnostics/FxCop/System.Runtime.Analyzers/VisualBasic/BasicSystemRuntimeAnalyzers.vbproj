@@ -79,6 +79,7 @@
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.vb" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.vb" />
     <Compile Include="Globalization\UseOrdinalStringComparison.vb" />
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposed.vb" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.vb" />
   </ItemGroup>
   <ImportGroup Label="Targets">

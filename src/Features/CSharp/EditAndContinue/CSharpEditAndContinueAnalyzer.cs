@@ -1669,12 +1669,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // Allow adding parameterless constructor.
                         // Semantic analysis will determine if it's an actual addition or 
                         // just an update of an existing implicit constructor.
+                        var modifiers = ((BaseMethodDeclarationSyntax)node).Modifiers;
                         if (SyntaxUtilities.IsParameterlessConstructor(node))
                         {
+                            // Disallow adding an extern constructor
+                            if (modifiers.Any(SyntaxKind.ExternKeyword))
+                            {
+                                ReportError(RudeEditKind.InsertExtern);
+                            }
+
                             return;
                         }
 
-                        ClassifyModifiedMemberInsert(((BaseMethodDeclarationSyntax)node).Modifiers);
+                        ClassifyModifiedMemberInsert(modifiers);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:

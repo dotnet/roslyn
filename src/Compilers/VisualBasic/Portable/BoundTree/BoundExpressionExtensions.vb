@@ -39,8 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return constValue IsNot Nothing AndAlso constValue.IsNothing
 
                 Case BoundKind.DirectCast
-                    constValue = DirectCast(node, BoundDirectCast).Operand.ConstantValueOpt
-                    Return constValue IsNot Nothing AndAlso constValue.IsNothing
+                    ' DirectCast(Nothing, <ValueType>) is emitted as an unbox on a null reference.
+                    ' It is not equivalent to a default value
+                    If node.Type.IsTypeParameter() OrElse Not node.Type.IsValueType Then
+                        constValue = DirectCast(node, BoundDirectCast).Operand.ConstantValueOpt
+                        Return constValue IsNot Nothing AndAlso constValue.IsNothing
+                    End If
 
                 Case BoundKind.TryCast
                     constValue = DirectCast(node, BoundTryCast).Operand.ConstantValueOpt
