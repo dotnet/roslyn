@@ -1192,7 +1192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If sourceMethod IsNot Nothing AndAlso sourceMethod.SetDiagnostics(diagsForCurrentMethod.ToReadOnly()) Then
                 Dim compilation = compilationState.Compilation
-                If compilation.EventQueue IsNot Nothing Then
+                If compilation.ShouldAddEvent(method) Then
                     If block Is Nothing Then
                         compilation.SymbolDeclaredEvent(sourceMethod)
                     Else

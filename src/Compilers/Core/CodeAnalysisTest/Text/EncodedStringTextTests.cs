@@ -124,7 +124,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 var sourceText = EncodedStringText.Create(stream);
                 Assert.Equal(text, sourceText.ToString());
+
+                // Check for a complete Encoding implementation.
                 Assert.Equal(1252, sourceText.Encoding.CodePage);
+                Assert.NotNull(sourceText.Encoding.GetEncoder());
+                Assert.NotNull(sourceText.Encoding.GetDecoder());
+                Assert.Equal(2, sourceText.Encoding.GetMaxByteCount(1));
+                Assert.Equal(1, sourceText.Encoding.GetMaxCharCount(1));
+                Assert.Equal(text, sourceText.Encoding.GetString(bytes));
+
                 Assert.True(stream.CanRead);
             }
         }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -79,13 +80,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             diffService = diffService ?? diffSelector.DefaultTextDifferencingService;
 
-            var diff = ComputeDiffSpans(oldText, newText, diffService, cancellationToken);
-            if (!diff.Differences.Any())
+            var diff = ComputeDiffSpans(diffService, left, right, cancellationToken);
+            if (diff.Differences.Count == 0)
             {
-                // There are no changes. Just show the whole document.
-                return GetEntireDocumentAsSpanChange(left);
+                // There are no changes.
+                return ChangeList.Empty;
             }
 
+            return GetChangeList(diff, right.Id, oldText, newText);
+        }
+
+        private ChangeList GetChangeList(IHierarchicalDifferenceCollection diff, DocumentId id, SourceText oldText, SourceText newText)
+        {
             var spanChanges = new List<SpanChange>();
             foreach (var difference in diff)
             {
@@ -100,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 var isDeletion = difference.DifferenceType == DifferenceType.Remove;
                 var displayText = isDeletion ? GetDisplayText(leftText) : GetDisplayText(rightText);
 
-                var spanChange = new SpanChange(trackingSpan, _buffer, right.Id, displayText, leftText, rightText, difference.DifferenceType == DifferenceType.Remove, this, engine);
+                var spanChange = new SpanChange(trackingSpan, _buffer, id, displayText, leftText, rightText, isDeletion, this, engine);
 
                 spanChanges.Add(spanChange);
             }
@@ -225,14 +231,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphLibrary;
         }
 
-        public static IHierarchicalDifferenceCollection ComputeDiffSpans(SourceText oldText, SourceText newText, ITextDifferencingService diffService, CancellationToken cancellationToken)
+        private static IHierarchicalDifferenceCollection ComputeDiffSpans(ITextDifferencingService diffService, TextDocument left, TextDocument right, CancellationToken cancellationToken)
         {
-            var diffResult = diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
+            // TODO: it would be nice to have a syntax based differ for presentation here, 
+            //       current way of just using text differ has its own issue, and using syntax differ in compiler that are for incremental parser
+            //       has its own drawbacks.
+
+            var oldText = left.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var newText = right.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var oldString = oldText.ToString();
+            var newString = newText.ToString();
+
+            // first try, cheapest way.
+            var diffResult = diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
             {
-                DifferenceType = StringDifferenceTypes.Line
+                DifferenceType = StringDifferenceTypes.Line | StringDifferenceTypes.Word,
+                WordSplitBehavior = WordSplitBehavior.WhiteSpaceAndPunctuation
             });
 
-            return diffResult;
+            if (!ContainsBetterDiff(left, right, diffResult, cancellationToken))
+            {
+                return diffResult;
+            }
+
+            // second, try a bit more expansive way
+            return diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
+            {
+                DifferenceType = StringDifferenceTypes.Word,
+                WordSplitBehavior = WordSplitBehavior.WhiteSpaceAndPunctuation
+            });
+        }
+
+        private static bool ContainsBetterDiff(TextDocument left, TextDocument right, IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
+        {
+            var textDiffCount = diffResult.Differences.Count;
+
+            var leftDocument = left as Document;
+            var rightDocument = right as Document;
+            if (leftDocument == null || rightDocument == null)
+            {
+                return false;
+            }
+
+            var syntaxDiffCount = rightDocument.GetTextChangesAsync(leftDocument, cancellationToken).WaitAndGetResult(cancellationToken).Count();
+            return syntaxDiffCount > textDiffCount;
         }
     }
 }

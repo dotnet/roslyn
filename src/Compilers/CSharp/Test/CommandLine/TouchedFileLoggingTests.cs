@@ -7,9 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CompilerServer;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
@@ -30,7 +31,7 @@ class C
     }
 }";
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TrivialSourceFileOnlyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -58,7 +59,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void AppConfigCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -104,7 +105,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StrongNameKeyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -139,7 +140,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void XmlDocumentFileCsc()
         {
             var sourcePath = Temp.CreateFile().WriteAllText(@"
@@ -196,7 +197,7 @@ public class C { }").Path;
             CleanupAllGeneratedFiles(sourcePath);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TrivialMetadataCaching()
         {
             List<String> filelist = new List<string>();

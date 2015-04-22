@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const int MaxSymbolKind = 100;
 
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        private readonly CancellationTokenRegistration _queueRegistration;
         protected readonly AnalyzerManager analyzerManager;
         
         // Lazy fields initialized in Initialize() API
@@ -44,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private Task _primaryTask;
 
+        private object _analysisLock = new object();
+
         /// <summary>
         /// Driver task which initializes all analyzers.
         /// </summary>
@@ -60,6 +63,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// The compilation queue to create the compilation with via WithEventQueue.
         /// </summary>
         public AsyncQueue<CompilationEvent> CompilationEventQueue { get; }
+
+        private bool _analysisCancelled = false;
 
         /// <summary>
         /// An async queue that is fed the diagnostics as they are computed.
@@ -84,9 +89,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _compilation = comp;
                 this.analyzerExecutor = analyzerExecutor;
 
-                // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var analyzerActionsTask = GetAnalyzerActionsAsync(_analyzers, analyzerManager, analyzerExecutor);
-                var initializeTask = analyzerActionsTask.ContinueWith(t =>
+                // Compute the set of effective actions based on suppression, and running the initial analyzers.
+                _initializeTask = GetAnalyzerActionsAsync(_analyzers, analyzerManager, analyzerExecutor).ContinueWith(t =>
                 {
                     this.analyzerActions = t.Result;
                     _symbolActionsByKind = MakeSymbolActionsByKind();
@@ -96,12 +100,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
 
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // Start the initialize task.
-                _initializeTask = Task.Run(async () =>
-                    {
-                        await initializeTask.ConfigureAwait(false);
-                    }, cancellationToken);
 
                 _initializeTaskStarted = true;
             }
@@ -127,15 +125,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void StartCompleteAnalysis(ImmutableHashSet<SyntaxTree> syntaxTreesToSkip, CancellationToken cancellationToken)
         {
-            if (_initializeTaskStarted && _primaryTask == null)
+            lock (_analysisLock)
             {
-                _primaryTask = Task.Run(async () =>
-                    {
-                        await _initializeTask.ConfigureAwait(false);
-                        await ProcessCompilationEventsAsync(true, cancellationToken).ConfigureAwait(false);
-                        await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !syntaxTreesToSkip.Contains(tree)), cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken)
-                    .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                if (_initializeTaskStarted && _primaryTask == null)
+                {
+                    _primaryTask = Task.Run(async () =>
+                        {
+                            await _initializeTask.ConfigureAwait(false);
+                            // Compilation start actions execute as part of the initialize task, not as part of the compilation events task,
+                            // so executing the syntax tree actions here puts them between compilation start actions and other actions.
+                            await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !syntaxTreesToSkip.Contains(tree)), cancellationToken).ConfigureAwait(false);
+                            await ProcessCompilationEventsAsync(true, cancellationToken).ConfigureAwait(false);
+                        }, cancellationToken)
+                        .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                }
             }
         }
 
@@ -266,6 +269,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             this.CompilationEventQueue = new AsyncQueue<CompilationEvent>();
             this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
+            _queueRegistration = cancellationToken.Register(() =>
+            {
+                _analysisCancelled = true;
+            });
         }
 
         /// <summary>
@@ -407,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<CompilationCompletedEvent> ProcessCompilationEventsCoreAsync(bool runToCompletion, CancellationToken cancellationToken)
         {
-            while ((runToCompletion && !CompilationEventQueue.IsCompleted) || CompilationEventQueue.Count > 0)
+            while ((runToCompletion && !CompilationEventQueue.IsCompleted && !_analysisCancelled) || CompilationEventQueue.Count > 0)
             {
                 CompilationEvent e;
                 try
@@ -714,6 +721,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             this.CompilationEventQueue.TryComplete();
             this.DiagnosticQueue.TryComplete();
+            _queueRegistration.Dispose();
         }
     }
 

@@ -594,9 +594,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     ConcurrentDictionary<DocumentId, ImmutableArray<Diagnostic>> diagnosticMap = _diagnosticsPerDocuments;
                     foreach (Diagnostic diagnostic in diagnostics)
                     {
-                        DocumentId diagnosticId = LocationId(diagnostic.Location);
+                        DocumentId documentId = LocationId(diagnostic.Location);
                         ImmutableArray<Diagnostic> diagnosticsPerDocument;
-                        if (diagnosticMap.TryGetValue(diagnosticId, out diagnosticsPerDocument))
+                        if (diagnosticMap.TryGetValue(documentId, out diagnosticsPerDocument))
                         {
                             diagnosticsPerDocument = diagnosticsPerDocument.Add(diagnostic);
                         }
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             diagnosticsPerDocument = ImmutableArray.Create(diagnostic);
                         }
 
-                        diagnosticMap[diagnosticId] = diagnosticsPerDocument;
+                        diagnosticMap[documentId] = diagnosticsPerDocument;
                     }
                 }
             }
