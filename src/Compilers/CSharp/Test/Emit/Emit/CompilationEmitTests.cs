@@ -2892,7 +2892,7 @@ class C6
         /// metadata should be deterministic.
         /// </summary>
         [WorkItem(1440, "https://github.com/dotnet/roslyn/issues/1440")]
-        [Fact(Skip = "1440")]
+        [Fact]
         public void SynthesizedDelegateMetadataOrder()
         {
             var source =
@@ -2934,9 +2934,9 @@ class C4
                     {
                         "<Module>",
                         "<>A{00000004}`3",
+                        "<>A{00000018}`5",
                         "<>F{00000004}`5",
                         "<>F{00000008}`5",
-                        "<>A{00000018}`5",
                         "C1",
                         "C2",
                         "C3",
