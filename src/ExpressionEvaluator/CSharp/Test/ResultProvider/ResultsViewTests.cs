@@ -1431,36 +1431,39 @@ class C
         get { throw new E(); }
     }
 }";
-            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)));
-            using (runtime.Load())
+            using (new EnsureEnglishUICulture())
             {
-                var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
-                var evalResult = FormatResult("o", value);
-                Verify(evalResult,
-                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
-                var children = GetChildren(evalResult);
-                Verify(children,
-                    EvalResult(
-                        "P",
-                        "'o.P' threw an exception of type 'System.NotImplementedException'",
-                        "System.Collections.IEnumerable {System.NotImplementedException}",
-                        "o.P",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                    EvalResult(
-                        "Q",
-                        "'o.Q' threw an exception of type 'E'",
-                        "System.Collections.IEnumerable {E}",
-                        "o.Q",
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown));
-                children = GetChildren(children[1]);
-                Verify(children[6],
-                    EvalResult(
-                        "Message",
-                        "\"Exception of type 'E' was thrown.\"",
-                        "string",
-                        null,
-                        DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
+                var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)));
+                using (runtime.Load())
+                {
+                    var type = runtime.GetType("C");
+                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var evalResult = FormatResult("o", value);
+                    Verify(evalResult,
+                        EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
+                    var children = GetChildren(evalResult);
+                    Verify(children,
+                        EvalResult(
+                            "P",
+                            "'o.P' threw an exception of type 'System.NotImplementedException'",
+                            "System.Collections.IEnumerable {System.NotImplementedException}",
+                            "o.P",
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
+                        EvalResult(
+                            "Q",
+                            "'o.Q' threw an exception of type 'E'",
+                            "System.Collections.IEnumerable {E}",
+                            "o.Q",
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown));
+                    children = GetChildren(children[1]);
+                    Verify(children[6],
+                        EvalResult(
+                            "Message",
+                            "\"Exception of type 'E' was thrown.\"",
+                            "string",
+                            null,
+                            DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
+                }
             }
         }
 

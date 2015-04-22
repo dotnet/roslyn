@@ -367,6 +367,7 @@ class C
                 ImmutableArray.Create(WinRtRefs),
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI", "Windows.UI.Xaml")));  
             string errorMessage;
+            DiagnosticBag diagnostics;
             var testData = new CompilationTestData();
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.SelectAsArray(m => m.MetadataBlock),
@@ -382,6 +383,7 @@ class C
                     throw ExceptionUtilities.Unreachable;
                 },
                 out errorMessage,
+                out diagnostics,
                 out testData);
             Assert.Null(errorMessage);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
