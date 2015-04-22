@@ -232,31 +232,48 @@ End Class"
 
                 ' Duplicate type in namespace, at type scope.
                 Dim testData As CompilationTestData = Nothing
+                Dim diagnostics As DiagnosticBag = Nothing
                 Dim errorMessage As String = Nothing
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
+                ' (1,6): error BC30560: 'N.C1' is ambiguous in the namespace 'N'.
+                diagnostics.Verify(
+                    Diagnostic(ERRID.ERR_AmbiguousInNamespace2, "N.C1").WithArguments("C1", "N").WithLocation(1, 6),
+                    Diagnostic(ERRID.ERR_AmbiguousInNamespace2, "N.C1").WithArguments("C1", "N").WithLocation(1, 6))
 
                 GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
 
                 ' Duplicate type in namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
+                '(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.
+                diagnostics.Verify(
+                    Diagnostic(ERRID.ERR_AmbiguousInNamespace2, "C1").WithArguments("C1", "N").WithLocation(1, 6),
+                    Diagnostic(ERRID.ERR_AmbiguousInNamespace2, "C1").WithArguments("C1", "N").WithLocation(1, 6))
 
                 ' Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "(1,6): error BC30554: 'C2' is ambiguous.")
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
+                ' (1,6): error BC30554: 'C2' is ambiguous.
+                diagnostics.Verify(
+                    Diagnostic(ERRID.ERR_AmbiguousInUnnamedNamespace1, "C2").WithArguments("C2").WithLocation(1, 6),
+                    Diagnostic(ERRID.ERR_AmbiguousInUnnamedNamespace1, "C2").WithArguments("C2").WithLocation(1, 6))
 
                 ' Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.True(errorMessage.StartsWith("(1,4): error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:"))
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
+                ' (1,4): error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:
+                diagnostics.Verify(
+                    Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "F").WithArguments("F", "
+    Extension method 'Public Function F() As A' defined in 'E': Not most specific.
+    Extension method 'Public Function F() As Integer' defined in 'E': Not most specific.").WithLocation(1, 4),
+                    Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "F").WithArguments("F", "
+    Extension method 'Public Function F() As A' defined in 'E': Not most specific.
+    Extension method 'Public Function F() As Integer' defined in 'E': Not most specific.").WithLocation(1, 4))
 
                 ' Same tests as above but in library that does not directly reference duplicates.
                 GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
                 contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
 
                 ' Duplicate type in namespace, at type scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
                 Assert.Null(errorMessage)
                 Dim methodData = testData.GetMethodData("<>x.<>m0")
                 methodData.VerifyIL(
@@ -272,7 +289,7 @@ End Class"
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
 
                 ' Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
                 Assert.Null(errorMessage)
                 methodData = testData.GetMethodData("<>x.<>m0")
                 methodData.VerifyIL(
@@ -287,7 +304,7 @@ End Class"
                 Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
 
                 ' Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
                 Assert.Null(errorMessage)
                 methodData = testData.GetMethodData("<>x.<>m0")
                 methodData.VerifyIL(
@@ -373,11 +390,12 @@ End Class"
                     localSignatureToken:=localSignatureToken)
                 Dim errorMessage As String = Nothing
                 Dim testData As New CompilationTestData()
+                Dim diagnostics As DiagnosticBag = Nothing
                 context.CompileExpression("F()", errorMessage, testData)
                 Assert.Equal(errorMessage, "(1,2): error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
 
                 Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, diagnosticBag:=diagnostics, testData:=testData)
                 Assert.Null(errorMessage)
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{

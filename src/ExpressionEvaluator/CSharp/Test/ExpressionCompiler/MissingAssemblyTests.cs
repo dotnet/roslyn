@@ -591,6 +591,8 @@ class C
  
             var numRetries = 0; 
             string errorMessage;
+
+            DiagnosticBag diagnosticBag = DiagnosticBag.GetInstance();
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry( 
                 runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(), 
                 context, 
@@ -599,6 +601,7 @@ class C
                     numRetries++;
                     Assert.InRange(numRetries, 0, 2); // We don't want to loop forever... 
                     diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
+                    diagnosticBag.AddRange(diagnostics);
                     return default(CompileResult);   
                 }, 
                 (AssemblyIdentity assemblyIdentity, out uint uSize) => 
@@ -609,7 +612,11 @@ class C
                 out errorMessage); 
  
             Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-            Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage); 
+            diagnosticBag.Verify(
+                // error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("MissingType", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1),
+                // error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("MissingType", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
         } 
 
         private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, params MetadataReference[] references)

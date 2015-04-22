@@ -128,8 +128,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ExpressionCompiler.CreateContextDelegate createContext,
             DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
             out string errorMessage,
+            out DiagnosticBag diagnosticBag,
             out CompilationTestData testData)
         {
+            DiagnosticBag diaBag = DiagnosticBag.GetInstance();
             var r = ExpressionCompiler.CompileWithRetry(
                 metadataBlocks,
                 DiagnosticFormatter.Instance,
@@ -145,11 +147,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         diagnostics,
                         out resultProperties,
                         td);
+                    diaBag.AddRange(diagnostics);
                     return new CompileExpressionResult(compileResult, td);
                 },
                 getMetaDataBytesPtr,
                 out errorMessage);
             testData = r.TestData;
+            diagnosticBag = diaBag;
             return r.CompileResult;
         }
 

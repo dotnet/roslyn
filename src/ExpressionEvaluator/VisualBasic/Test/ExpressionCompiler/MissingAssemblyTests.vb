@@ -480,6 +480,7 @@ End Class
 
             Dim numRetries = 0
             Dim errorMessage As String = Nothing
+            Dim diagnosticBag As DiagnosticBag = DiagnosticBag.GetInstance()
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                 context,
@@ -487,6 +488,7 @@ End Class
                     numRetries += 1
                     Assert.InRange(numRetries, 0, 2) ' We don't want to loop forever... 
                     diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, missingIdentity, "MissingType"), Location.None))
+                    diagnosticBag.AddRange(diagnostics)
                     Return Nothing
                 End Function,
                 Function(assemblyIdentity, ByRef uSize)
@@ -496,7 +498,10 @@ End Class
                 errorMessage)
 
             Assert.Equal(2, numRetries) ' Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-            Assert.Equal($"error BC30652: Reference required to assembly '{missingIdentity}' containing the type 'MissingType'. Add one to your project.", errorMessage)
+            ' error BC30652: Reference required to assembly '{missingIdentity}' containing the type 'MissingType'. Add one to your project.
+            diagnosticBag.Verify(
+                Diagnostic(ERRID.ERR_UnreferencedAssembly3).WithArguments("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "MissingType").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_UnreferencedAssembly3).WithArguments("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "MissingType").WithLocation(1, 1))
         End Sub
 
         Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, ParamArray references As MetadataReference()) As EvaluationContext
