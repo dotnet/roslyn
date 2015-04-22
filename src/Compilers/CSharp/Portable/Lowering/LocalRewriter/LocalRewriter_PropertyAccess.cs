@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (isLeftOfAssignment)
+            if (isLeftOfAssignment && propertySymbol.RefKind == RefKind.None)
             {
                 // This is a property set access. We return a BoundPropertyAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.

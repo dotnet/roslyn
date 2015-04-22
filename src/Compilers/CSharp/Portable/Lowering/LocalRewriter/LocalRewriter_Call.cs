@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 foreach (VariableDeclaratorSyntax varDecl in fieldDecl.Declaration.Variables)
                                 {
-                                    EqualsValueClauseSyntax initializer = varDecl.Initializer;
+                                    EqualsClauseSyntax initializer = varDecl.Initializer;
 
                                     if (initializer != null && initializer.Span.Contains(syntax.Span))
                                     {

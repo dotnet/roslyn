@@ -231,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this IndexerDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
+            SyntaxToken refKeyword,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken thisKeyword,
@@ -240,6 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
+                refKeyword,
                 type,
                 explicitInterfaceSpecifier,
                 thisKeyword,
@@ -276,6 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this MethodDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
+            SyntaxToken refKeyword,
             TypeSyntax returnType,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken identifier,
@@ -288,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax.Update(
                 attributeLists,
                 modifiers,
+                refKeyword,
                 returnType,
                 explicitInterfaceSpecifier,
                 identifier,
@@ -297,6 +301,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block,
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
+        }
+
+        public static EqualsClauseSyntax WithValue(
+            this EqualsClauseSyntax syntax,
+            ExpressionSyntax valueSyntax)
+        {
+            var equalsValueClauseSyntax = syntax as EqualsValueClauseSyntax;
+            if (equalsValueClauseSyntax != null)
+            {
+                return equalsValueClauseSyntax.WithValue(valueSyntax);
+            }
+
+            return ((EqualsReferenceClauseSyntax)syntax).WithValue(valueSyntax);
         }
     }
 }

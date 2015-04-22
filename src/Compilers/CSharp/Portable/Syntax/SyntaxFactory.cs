@@ -1894,6 +1894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static PropertyDeclarationSyntax PropertyDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
+            SyntaxToken refKeyword,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken identifier,
@@ -1902,17 +1903,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.PropertyDeclaration(
                 attributeLists,
                 modifiers,
+                refKeyword,
                 type,
                 explicitInterfaceSpecifier,
                 identifier,
                 accessorList,
                 default(ArrowExpressionClauseSyntax),
-                default(EqualsValueClauseSyntax));
+                default(EqualsValueClauseSyntax),
+                default(SyntaxToken));
         }
 
         public static MethodDeclarationSyntax MethodDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
+            SyntaxToken refKeyword,
             TypeSyntax returnType,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken identifier,
@@ -1925,6 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.MethodDeclaration(
                 attributeLists,
                 modifiers,
+                refKeyword,
                 returnType,
                 explicitInterfaceSpecifier,
                 identifier,
@@ -1983,19 +1988,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IndexerDeclarationSyntax IndexerDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
+            SyntaxToken refKeyword,
             TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, 
             BracketedParameterListSyntax parameterList,
             AccessorListSyntax accessorList)
         {
             return SyntaxFactory.IndexerDeclaration(
                 attributeLists: attributeLists,
                 modifiers: modifiers,
+                refKeyword: refKeyword,
                 type: type,
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 parameterList: parameterList,
-                accessorList: accessorList,
-                expressionBody: default(ArrowExpressionClauseSyntax));
+                accessorList: accessorList);
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>

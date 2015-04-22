@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
 
                             var initializerBinder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, declarator.Initializer, declarator);
+                            var initializerOpt = initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind.None, (EqualsValueClauseSyntax)declarator.Initializer, declarator);
 
                             if (initializerOpt != null)
                             {
@@ -355,10 +355,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics)
         {
-            EqualsValueClauseSyntax initializer;
-            return !this.IsConst || ((initializer = VariableDeclaratorNode.Initializer) == null)
-                ? null
-                : ConstantValueUtils.EvaluateFieldConstant(this, initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
+            if (!this.IsConst || VariableDeclaratorNode.Initializer == null)
+            {
+                return null;
+            }
+
+            return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
         }
 
         public override int FixedSize

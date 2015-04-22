@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (accessor.MethodKind == MethodKind.PropertyGet)
             {
-                statement = new BoundReturnStatement(syntax, fieldAccess) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(syntax, RefKind.None, fieldAccess) { WasCompilerGenerated = true };
             }
             else
             {
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // {
                 //     return EventRegistrationTokenTable<Event>.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).AddHandler(value);
                 // }   
-                BoundStatement returnStatement = BoundReturnStatement.Synthesized(syntax, processHandlerCall);
+                BoundStatement returnStatement = BoundReturnStatement.Synthesized(syntax, RefKind.None, processHandlerCall);
                 return BoundBlock.SynthesizedNoLocals(syntax, returnStatement);
             }
             else
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return;
                 // }  
                 BoundStatement callStatement = new BoundExpressionStatement(syntax, processHandlerCall);
-                BoundStatement returnStatement = new BoundReturnStatement(syntax, expressionOpt: null);
+                BoundStatement returnStatement = new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null);
                 return BoundBlock.SynthesizedNoLocals(syntax, callStatement, returnStatement);
             }
         }
@@ -347,6 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol updateMethod = (MethodSymbol)compilation.GetSpecialTypeMember(updateMethodId);
 
             BoundStatement @return = new BoundReturnStatement(syntax,
+                refKind: RefKind.None,
                 expressionOpt: null)
             { WasCompilerGenerated = true };
 

@@ -234,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new ExecutableCodeBinder(unexpectedAnonymousFunction,
                                                   new LambdaSymbol(binder.ContainingMemberOrLambda,
                                                                    ImmutableArray<ParameterSymbol>.Empty,
+                                                                   RefKind.None,
                                                                    ErrorTypeSymbol.UnknownResultType,
                                                                    unexpectedAnonymousFunction.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
                                                                    unexpectedAnonymousFunction,
