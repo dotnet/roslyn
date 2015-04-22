@@ -23,6 +23,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         End Sub
 
         <Fact>
+        <WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub DontCommitOnMultiLinePasteWithPrettyListingOff()
+            Using testData = New CommitTestData(<Workspace>
+                                                    <Project Language="Visual Basic" CommonReferences="true">
+                                                        <Document>$$
+                                                        </Document>
+                                                    </Project>
+                                                </Workspace>)
+                testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                testData.CommandHandler.ExecuteCommand(New PasteCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertText("Class Program" & vbCrLf & "    Sub M(abc As Integer)" & vbCrLf & "        Dim a  = 7" & vbCrLf & "    End Sub" & vbCrLf & "End Class"))
+                Assert.Equal("        Dim a  = 7", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
+            End Using
+        End Sub
+
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(545493)>
         Public Sub NoCommitOnSingleLinePaste()
@@ -51,6 +67,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 testData.Buffer.Insert(0, "  imports  system")
                 testData.CommandHandler.ExecuteCommand(New SaveCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
                 Assert.Equal("Imports System", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(0).GetText())
+            End Using
+        End Sub
+
+        <Fact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub DontCommitOnSavePrettyListingOff()
+            Using testData = New CommitTestData(<Workspace>
+                                                    <Project Language="Visual Basic" CommonReferences="true">
+                                                        <Document>
+Class Program
+    Sub M(abc As Integer)
+        Dim a $$= 7
+    End Sub
+End Class
+                                                        </Document>
+                                                    </Project>
+                                                </Workspace>)
+                testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                testData.Buffer.Insert(57, "    ")
+                testData.CommandHandler.ExecuteCommand(New SaveCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
+                Assert.Equal("        Dim a     = 7", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(3).GetText())
             End Using
         End Sub
 
