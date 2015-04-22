@@ -39,7 +39,7 @@ $mono> git remote add jaredpar git@github.com:jaredpar/mono.git
 $mono> git checkout -b build-roslyn jaredpar/build-roslyn
 ```
 
-# Installing the Portable Class Libraries
+# Configuring Mono
 
 The standard Mono installation needs to be patched with the Portable Class Libraries in order to build parts of Roslyn.  The [setup-pcl.sh] script takes care of this.  Simply point it to the directory where mono is installed and it will take care of the rest.  
 
@@ -49,6 +49,11 @@ $> ./roslyn/builds/linux/setup-pcl.sh ~/builds/mono
 
 Note: This script may need to be used with `sudo` depending on where mono was installed. 
 
+Additionally we need to update the certificate store so that NuGet can function correctly.  
+
+```
+$> sudo roslyn/builds/linux/setup-certs.sh
+```
 
 # Building Roslyn on Linux / Mac 
 
