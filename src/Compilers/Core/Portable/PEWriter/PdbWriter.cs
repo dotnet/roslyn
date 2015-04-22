@@ -55,21 +55,13 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        [DllImport("shlwapi", ExactSpelling = true)]
-        private extern static IStream SHCreateMemStream(IntPtr pInit, uint cbInit);
-
         [DllImport("Ole32", ExactSpelling = true)]
         private static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream stream);
 
         private static IStream CreateNativeStream()
         {
-            // Try SHCreateMemStream first, since it's faster. If that fails, then fall back to CreateStreamOnHGlobal.
-            IStream stream = SHCreateMemStream(IntPtr.Zero, 0u);
-            if (stream == null)
-            {
-                Marshal.ThrowExceptionForHR(CreateStreamOnHGlobal(IntPtr.Zero, fDeleteOnRelease: true, stream: out stream));
-            }
-
+            IStream stream = null;
+            Marshal.ThrowExceptionForHR(CreateStreamOnHGlobal(IntPtr.Zero, fDeleteOnRelease: true, stream: out stream));
             return stream;
         }
 
