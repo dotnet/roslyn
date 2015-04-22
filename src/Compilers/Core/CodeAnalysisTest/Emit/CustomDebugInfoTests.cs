@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
 
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using PDB::Microsoft.CodeAnalysis;
@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Emit
 {
-    public class CustomDebugInfoReaderTests
+    public class CustomDebugInfoTests
     {
         [Fact]
         public void TryGetCustomDebugInfoRecord1()
@@ -283,6 +283,89 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             AssertEx.Equal(closures, deserialized.Closures);
             AssertEx.Equal(lambdas, deserialized.Lambdas);
+        }
+
+        [Fact]
+        public void EncCdiAlignment()
+        {
+            var slots = ImmutableArray.Create(
+               new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, new LocalDebugId(-1, 10)),
+               new LocalSlotDebugInfo(SynthesizedLocalKind.TryAwaitPendingCaughtException, new LocalDebugId(-20000, 10)));
+
+            var closures = ImmutableArray.Create(
+               new ClosureDebugInfo(-100, 0),
+               new ClosureDebugInfo(10, 0),
+               new ClosureDebugInfo(-200, 0));
+
+            var lambdas = ImmutableArray.Create(
+                new LambdaDebugInfo(20, 1, 0),
+                new LambdaDebugInfo(-50, 0, 0),
+                new LambdaDebugInfo(-180, LambdaDebugInfo.StaticClosureOrdinal, 0));
+
+            var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
+            var records = new ArrayBuilder<Cci.MemoryStream>();
+
+            Cci.CustomDebugInfoWriter.SerializeCustomDebugInformation(debugInfo, records);
+            var cdi = Cci.CustomDebugInfoWriter.SerializeCustomDebugMetadata(records);
+
+            Assert.Equal(2, records.Count);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04, // version
+                0x06, // record kind
+                0x00,
+                0x02, // alignment size
+
+                // aligned record size
+                0x18, 0x00, 0x00, 0x00,
+
+                // payload (4B aligned)
+                0xFF, 0xC0, 0x00, 0x4E,
+                0x20, 0x81, 0xC0, 0x00,
+                0x4E, 0x1F, 0x0A, 0x9A,
+                0x00, 0x0A, 0x00, 0x00
+            }, records[0].ToArray());
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04, // version
+                0x07, // record kind
+                0x00,
+                0x00, // alignment size
+
+                // aligned record size
+                0x18, 0x00, 0x00, 0x00,
+
+                // payload (4B aligned)
+                0x02, 0x80, 0xC8, 0x03,
+                0x64, 0x80, 0xD2, 0x00,
+                0x80, 0xDC, 0x03, 0x80,
+                0x96, 0x02, 0x14, 0x01
+            }, records[1].ToArray());
+
+            var deserialized = CustomDebugInfoReader.GetCustomDebugInfoRecords(cdi).ToArray();
+            Assert.Equal(CustomDebugInfoKind.EditAndContinueLocalSlotMap, deserialized[0].Kind);
+            Assert.Equal(4, deserialized[0].Version);
+
+            Assert.Equal(new byte[]
+            {
+                0xFF, 0xC0, 0x00, 0x4E,
+                0x20, 0x81, 0xC0, 0x00,
+                0x4E, 0x1F, 0x0A, 0x9A,
+                0x00, 0x0A
+            }, deserialized[0].Data);
+
+            Assert.Equal(CustomDebugInfoKind.EditAndContinueLambdaMap, deserialized[1].Kind);
+            Assert.Equal(4, deserialized[1].Version);
+
+            Assert.Equal(new byte[]
+            {
+                0x02, 0x80, 0xC8, 0x03,
+                0x64, 0x80, 0xD2, 0x00,
+                0x80, 0xDC, 0x03, 0x80,
+                0x96, 0x02, 0x14, 0x01
+            }, deserialized[1].Data);
         }
     }
 }
