@@ -55,8 +55,8 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        [DllImport("shlwapi.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
-        private extern static IStream SHCreateMemStream([In] IntPtr pInit, [In] uint cbInit);
+        [DllImport("shlwapi", ExactSpelling = true)]
+        private extern static IStream SHCreateMemStream(IntPtr pInit, uint cbInit);
 
         [DllImport("Ole32", ExactSpelling = true)]
         private static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream stream);
