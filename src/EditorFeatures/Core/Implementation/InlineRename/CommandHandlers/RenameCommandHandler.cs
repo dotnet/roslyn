@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
@@ -14,6 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     // Line commit and rename are both executed on Save. Ensure any rename session is committed
     // before line commit runs to ensure changes from both are correctly applied.
     [Order(Before = PredefinedCommandHandlerNames.Commit)]
+    // Commit rename before invoking command-based refactorings
+    [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
+    [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
+    [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
     [ExportCommandHandler(PredefinedCommandHandlerNames.Rename, ContentTypeNames.RoslynContentType)]
     internal partial class RenameCommandHandler
     {
@@ -69,18 +74,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
             else
             {
-                var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
                 // It's in a read-only area, so let's commit the rename and then let the character go
                 // through
+
+                CommitIfActiveAndCallNextHandler(args, nextHandler);
+            }
+        }
+
+        private void CommitIfActiveAndCallNextHandler(CommandArgs args, Action nextHandler)
+        {
+            if (_renameService.ActiveSession != null)
+            {
+                var selection = args.TextView.Selection.VirtualSelectedSpans.First();
+
                 _renameService.ActiveSession.Commit();
 
                 var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
                 args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
                 args.TextView.Caret.MoveTo(translatedSelection.End);
-
-                nextHandler();
             }
+
+            nextHandler();
         }
     }
 }

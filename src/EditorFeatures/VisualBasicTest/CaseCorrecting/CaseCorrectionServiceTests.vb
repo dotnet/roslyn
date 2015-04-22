@@ -841,6 +841,24 @@ End Class
             Test(input, expected)
         End Sub
 
+        <WorkItem(1949, "https://github.com/dotnet/roslyn/issues/1949")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        Public Sub TestUnResolvedTypeDoesNotBindToAnyAccessibleSymbol()
+            Dim unchangeCode = <Code>
+Option Strict On
+Class C
+    Property prop As Integer
+    Sub GetIt(arg As Integer)
+        Dim var1 As Var1
+        Dim var2 As Arg
+        Dim var3 As Prop
+    End Sub
+End Class
+</Code>
+
+            Test(unchangeCode, unchangeCode)
+        End Sub
+
 #End Region
 
 #Region "Keywords and type suffixes"

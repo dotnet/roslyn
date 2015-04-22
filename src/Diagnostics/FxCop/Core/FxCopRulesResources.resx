@@ -147,20 +147,8 @@
   <data name="SerializationCtorAccessibilityForUnSealedType" xml:space="preserve">
     <value>Declare serialization constructor for unsealed type {0} as protected</value>
   </data>
-  <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
-    <value>Disposable fields should be disposed</value>
-  </data>
   <data name="RemoveEmptyFinalizers" xml:space="preserve">
     <value>Remove empty finalizers</value>
-  </data>
-  <data name="PInvokeMethodShouldNotBeVisible" xml:space="preserve">
-    <value>P/Invoke method '{0}' should not be visible</value>
-  </data>
-  <data name="SpecifyMarshalingForPInvokeStringArguments" xml:space="preserve">
-    <value>Specify marshaling for P/Invoke string arguments</value>
-  </data>
-  <data name="MovePInvokesToNativeMethodsClass" xml:space="preserve">
-    <value>Move P/Invokes to native methods class</value>
   </data>
   <data name="DoNotLockOnWeakIdentity" xml:space="preserve">
     <value>Do not lock on a reference of type '{0}' as it has weak identity. Replace that with a lock against an object with strong identity.</value>
@@ -176,12 +164,6 @@
   </data>
   <data name="ChangeToAPropertyIfAppropriate" xml:space="preserve">
     <value>Change '{0}' to a property if appropriate.</value>
-  </data>
-  <data name="MarkEnumsWithFlagsMessage" xml:space="preserve">
-    <value>The constituent members of '{0}' appear to represent flags that can be combined rather than discrete values. If this is correct, mark the enumeration with FlagsAttribute.</value>
-  </data>
-  <data name="DoNotMarkEnumsWithFlagsMessage" xml:space="preserve">
-    <value>'{0}' is marked with FlagsAttribute but a discrete member cannot be found for every settable bit that is used across the range of enum values. Remove FlagsAttribute from the type or define new members for the following (currently missing) values: '{1}'.</value>
   </data>
   <data name="ImplementSerializationConstructor" xml:space="preserve">
     <value>Implement Serialization constructor</value>
@@ -204,9 +186,6 @@
   <data name="MarkISerializableTypesWithAttribute" xml:space="preserve">
     <value>Mark ISerializable types with SerializableAttribute.</value>
   </data>
-  <data name="PInvokesShouldNotBeVisible" xml:space="preserve">
-    <value>P/Invokes should not be visible.</value>
-  </data>
   <data name="RethrowToPreserveStackDetails" xml:space="preserve">
     <value>Rethrow to preserve stack details.</value>
   </data>
@@ -221,12 +200,6 @@
   </data>
   <data name="AbstractTypesShouldNotHavePublicConstructors" xml:space="preserve">
     <value>Abstract classes should not have public constructors</value>
-  </data>
-  <data name="DoNotMarkEnumsWithFlags" xml:space="preserve">
-    <value>Do not mark Enum with FlagsAttribute</value>
-  </data>
-  <data name="MarkEnumsWithFlags" xml:space="preserve">
-    <value>Mark Enum with FlagsAttribute</value>
   </data>
   <data name="StaticHolderTypesShouldBeStaticOrNotInheritable" xml:space="preserve">
     <value>Static holder types should be Static or NotInheritable</value>
@@ -255,9 +228,6 @@
   <data name="DoNotCallOverridableMethodsInConstructorsDescription" xml:space="preserve">
     <value>Virtual methods defined on the class should not be called from constructors. If a derived class has overridden the method, the derived class version will be called (before the derived class constructor is called).</value>
   </data>
-  <data name="DoNotMarkEnumsWithFlagsDescription" xml:space="preserve">
-    <value>The enumeration does not appear to contain a consistent set values that can be combined using  the OR (|) and AND (&amp;amp;amp;amp;) operators. Using the Flags attribute on an enumeration suggests that the enumeration values are meant to be combined using the AND and OR operators. Typically, a flags enumeration uses values that are either powers of two, or combine other values that are powers of two.</value>
-  </data>
   <data name="IdentifiersShouldDifferByMoreThanCaseDescription" xml:space="preserve">
     <value>Do not use names that require case sensitivity for uniqueness. Components must be fully usable from both case-sensitive and case-insensitive languages. Since case-insensitive languages cannot distinguish between two names within the same context that differ only by case, components must avoid this situation.</value>
   </data>
@@ -267,17 +237,11 @@
   <data name="MarkAllNonSerializableFieldsDescription" xml:space="preserve">
     <value>All fields that cannot be serialized directly should have the NonSerializedAttribute. Types that have the SerializableAttribute should not have fields of types that do not have the SerializableAttribute unless the fields are marked with the NonSerializedAttribute.</value>
   </data>
-  <data name="MarkEnumsWithFlagsDescription" xml:space="preserve">
-    <value>The enumeration appears to be made up of combinable flags. If this true, apply the Flags attribute to the enumeration.</value>
-  </data>
   <data name="MarkISerializableTypesWithAttributeDescription" xml:space="preserve">
     <value>The System.Runtime.Serialization.ISerializable interface allows the type to customize its serialization, while the Serializable attribute enables the runtime to recognize the type as being serializable.</value>
   </data>
   <data name="RemoveEmptyFinalizersDescription" xml:space="preserve">
     <value>Finalizers should be avoided where possible, to avoid the additional performance overhead involved in tracking object lifetime.</value>
-  </data>
-  <data name="SpecifyMarshalingForPInvokeStringArgumentsDescription" xml:space="preserve">
-    <value>When marshaling strings as ANSI (or as Auto on Win9x), some characters may be changed. If best-fit mapping is on, strings that appear different in Unicode will be marshaled to identical ANSI strings, which may lead to incorrect security decisions. Turning best-fit mapping off reduces this risk, as all characters without equivalents are mapped to '?'. Also, note that CharSet.Ansi is the default setting for all string marshaling; Unicode marshaling must be specified explicitly, either as a CharSet setting of DllImport or StructLayout, or as a MarshalAs attribute with a Unicode (or system-dependent) UnmanagedType.</value>
   </data>
   <data name="CategoryDesign" xml:space="preserve">
     <value>Design</value>

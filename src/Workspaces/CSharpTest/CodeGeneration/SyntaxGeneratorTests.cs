@@ -344,6 +344,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         }
 
         [Fact]
+        public void TestAwaitExpressions()
+        {
+            VerifySyntax<AwaitExpressionSyntax>(_g.AwaitExpression(_g.IdentifierName("x")), "await x");
+        }
+
+        [Fact]
         public void TestReturnStatements()
         {
             VerifySyntax<ReturnStatementSyntax>(_g.ReturnStatement(), "return;");

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             FatalError.Handler = FailFast.OnFatalException;
         }
 
+        private static readonly ReadOnlyCollection<Alias> s_NoAliases = new ReadOnlyCollection<Alias>(new Alias[0]);
+
         DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
             DkmInspectionContext inspectionContext,
             DkmClrInstructionAddress instructionAddress,
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
+                var aliases = argumentsOnly ? null : s_NoAliases;
                 string error;
                 var r = this.CompileWithRetry(
                     moduleInstance,
@@ -45,6 +49,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
                         string typeName;
                         var assembly = context.CompileGetLocals(
+                            aliases,
                             builder,
                             argumentsOnly,
                             diagnostics,
@@ -290,6 +295,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             errorMessage = null;
             TResult compileResult;
 
+            PooledHashSet<AssemblyIdentity> assembliesLoadedInRetryLoop = null;
             bool tryAgain;
             do
             {
@@ -322,11 +328,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                     else
                     {
-                        tryAgain = ShouldTryAgainWithMoreMetadataBlocks(getMetaDataBytesPtr, missingAssemblyIdentities, ref metadataBlocks);
+                        if (!missingAssemblyIdentities.IsEmpty)
+                        {
+                            if (assembliesLoadedInRetryLoop == null)
+                            {
+                                assembliesLoadedInRetryLoop = PooledHashSet<AssemblyIdentity>.GetInstance();
+                            }
+                            // If any identities failed to add (they were already in the list), then don't retry. 
+                            if (assembliesLoadedInRetryLoop.AddAll(missingAssemblyIdentities))
+                            {
+                                tryAgain = ShouldTryAgainWithMoreMetadataBlocks(getMetaDataBytesPtr, missingAssemblyIdentities, ref metadataBlocks);
+                            }
+                        }
                     }
                 }
                 diagnostics.Free();
             } while (tryAgain);
+            assembliesLoadedInRetryLoop?.Free();
 
             return compileResult;
         }

@@ -1233,10 +1233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
+                // compensate for the whenNull that we are not visiting.
                 _counter += 1;
             }
 
-            return node.Update(receiver, whenNotNull, whenNull, node.Id, node.Type);
+            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.Type);
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)

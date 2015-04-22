@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
+        private static readonly ReadOnlyCollection<Alias> s_NoAliases = new ReadOnlyCollection<Alias>(new Alias[0]);
+
         internal static ReadOnlyCollection<byte> CompileGetLocals(
             this EvaluationContextBase context,
             ArrayBuilder<LocalAndMethod> locals,
@@ -92,7 +94,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DiagnosticDescription[] expectedDiagnostics = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = context.CompileGetLocals(locals, argumentsOnly, diagnostics, out typeName, testData);            
+            var result = context.CompileGetLocals(
+                argumentsOnly ? null : s_NoAliases,
+                locals,
+                argumentsOnly,
+                diagnostics,
+                out typeName,
+                testData);
             diagnostics.Verify(expectedDiagnostics ?? DiagnosticDescription.None);
             diagnostics.Free();
             return result;
@@ -100,8 +108,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static CompileResult CompileExpressionWithRetry(
             ImmutableArray<MetadataBlock> metadataBlocks,
+            EvaluationContextBase context,
+            ExpressionCompiler.CompileDelegate<CompileResult> compile,
+            DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
+            out string errorMessage)
+        {
+            return ExpressionCompiler.CompileWithRetry(
+                metadataBlocks,
+                DiagnosticFormatter.Instance,
+                (blocks, useReferencedModulesOnly) => context,
+                compile,
+                getMetaDataBytesPtr,
+                out errorMessage);
+        }
+
+        internal static CompileResult CompileExpressionWithRetry(
+            ImmutableArray<MetadataBlock> metadataBlocks,
             string expr,
             ExpressionCompiler.CreateContextDelegate createContext,
+            DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
             out string errorMessage,
             out CompilationTestData testData)
         {
@@ -122,8 +147,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         td);
                     return new CompileExpressionResult(compileResult, td);
                 },
-                getMetaDataBytesPtr: null,
-                errorMessage: out errorMessage);
+                getMetaDataBytesPtr,
+                out errorMessage);
             testData = r.TestData;
             return r.CompileResult;
         }

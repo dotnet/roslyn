@@ -869,6 +869,24 @@ End Class
             GetCA1036BasicResultAt(8, 18));
         }
 
+        [WorkItem(1994, "https://github.com/dotnet/roslyn/issues/1994")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void Bug1994CSharp()
+        {
+            VerifyCSharp("enum MyEnum {}");
+        }
+
+        [WorkItem(1994, "https://github.com/dotnet/roslyn/issues/1994")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void Bug1994VisualBasic()
+        {
+            VerifyBasic(@"
+Enum MyEnum
+    ValueOne
+    ValueTwo
+End Enum");
+        }
+
         internal static string CA1036Name = "CA1036";
         internal static string CA1036Message = "Overload operator Equals and comparison operators when implementing System.IComparable";
 

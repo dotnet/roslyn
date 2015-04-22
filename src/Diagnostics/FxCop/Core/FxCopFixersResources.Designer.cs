@@ -106,15 +106,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove FlagsAttribute from enum..
-        /// </summary>
-        internal static string DoNotMarkEnumsWithFlagsCodeFix {
-            get {
-                return ResourceManager.GetString("DoNotMarkEnumsWithFlagsCodeFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove all members that have the value zero except for one member that is named &apos;None&apos;..
         /// </summary>
         internal static string EnumsShouldZeroValueFlagsMultipleZeroCodeFix {
@@ -147,15 +138,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string ImplementSerializationConstructor {
             get {
                 return ResourceManager.GetString("ImplementSerializationConstructor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply FlagsAttribute to enum..
-        /// </summary>
-        internal static string MarkEnumsWithFlagsCodeFix {
-            get {
-                return ResourceManager.GetString("MarkEnumsWithFlagsCodeFix", resourceCulture);
             }
         }
         

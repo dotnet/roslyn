@@ -7,7 +7,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
-    <ExportCommandHandler("EncapsulateField", ContentTypeNames.VisualBasicContentType)>
+    <ExportCommandHandler(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.VisualBasicContentType)>
     <Order(After:=PredefinedCommandHandlerNames.DocumentationComments)>
     Friend Class EncapsulateFieldCommandHandler
         Inherits AbstractEncapsulateFieldCommandHandler

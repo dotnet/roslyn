@@ -36,9 +36,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <SpecificVersion>False</SpecificVersion>
@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Design\AssemblyAttributesDiagnosticAnalyzer.cs" />
+    <Compile Include="Design\EnumWithFlagsAttribute.Fixer.cs" />
     <Compile Include="Design\MarkAllAssembliesWithComVisible.cs" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.cs" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.cs" />
@@ -68,12 +69,14 @@
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />
     <Compile Include="DiagnosticCategory.cs" />
+    <Compile Include="Design\EnumWithFlagsAttribute.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributes.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributes.Fixer.cs" />
     <Compile Include="Shared\DiagnosticExtensions.cs" />
     <Compile Include="DocumentChangeAction.cs" />
+    <Compile Include="Shared\DiagnosticHelpers.cs" />
     <Compile Include="Shared\INamedTypeSymbolExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SystemRuntimeAnalyzersResources.Designer.cs">
@@ -81,6 +84,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SystemRuntimeAnalyzersResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposed.Fixer.cs" />
+    <Compile Include="Usage\DisposableFieldsShouldBeDisposed.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.cs" />
     <Compile Include="WellKnownTypes.cs" />

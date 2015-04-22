@@ -773,7 +773,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            replacementNode = memberAccess.Name.WithLeadingTrivia(memberAccess.GetLeadingTrivia()).WithTrailingTrivia(memberAccess.GetTrailingTrivia());
+            replacementNode = memberAccess.Name
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
             issueSpan = memberAccess.Expression.Span;
 
             if (replacementNode == null)
@@ -782,6 +784,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
+        {
+            // We want to include any user-typed trivia that may be present between the 'Expression', 'OperatorToken' and 'Identifier' of the MemberAccessExpression.
+            // However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering
+            // aggressive formatting. Otherwise, formatter will see this elastic trivia added by the expander and use that as a cue to introduce unnecessary blank lines
+            // etc. around the user's original code.
+            return memberAccess.GetLeadingTrivia()
+                .AddRange(memberAccess.Expression.GetTrailingTrivia().WithoutElasticTrivia())
+                .AddRange(memberAccess.OperatorToken.LeadingTrivia.WithoutElasticTrivia())
+                .AddRange(memberAccess.OperatorToken.TrailingTrivia.WithoutElasticTrivia())
+                .AddRange(memberAccess.Name.GetLeadingTrivia().WithoutElasticTrivia());
+        }
+
+        private static IEnumerable<SyntaxTrivia> WithoutElasticTrivia(this IEnumerable<SyntaxTrivia> list)
+        {
+            return list.Where(t => !t.IsElastic());
         }
 
         private static bool InsideCrefReference(ExpressionSyntax expr)
