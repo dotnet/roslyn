@@ -6217,7 +6217,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -6228,7 +6228,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath, isPortable: false);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
         }
 

@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
             If document.TryGetText(oldText) Then
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, rules:=rules, cancellationToken:=cancellationToken))
+                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, options:= Nothing, rules:=rules, cancellationToken:=cancellationToken))
                 Return document.WithText(newText)
             End If
 
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim oldText As SourceText = Nothing
 
             If root.SyntaxTree IsNot Nothing AndAlso root.SyntaxTree.TryGetText(oldText) Then
-                Dim changes = Formatter.GetFormattedTextChanges(root, spans, workspace, rules:=rules, cancellationToken:=cancellationToken)
+                Dim changes = Formatter.GetFormattedTextChanges(root, spans, workspace, options:= Nothing, rules:=rules, cancellationToken:=cancellationToken)
 
                 ' no change 
                 If changes.Count = 0 Then

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
 #Region "For Each Loop"
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForEachLookAtTheStartOfMethodBody()
             Dim source =
 <compilation>
@@ -65,7 +65,7 @@ End Class
 </symbols>")
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForEachOverOneDimensionalArray()
             Dim source =
 <compilation>
@@ -129,7 +129,7 @@ Imports System
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForEachOverString()
             Dim source =
 <compilation>
@@ -189,7 +189,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForEachIEnumerableWithNoTryCatch()
             Dim source =
 <compilation>
@@ -258,7 +258,7 @@ End Structure
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForEachIEnumerableWithTryCatchImplementIDisposable()
             Dim source =
 <compilation>
@@ -328,7 +328,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForEachIEnumerableWithTryCatchPossiblyImplementIDisposable()
             Dim source =
 <compilation>
@@ -396,7 +396,7 @@ End Class
 #Region "For Loop"
 
         <WorkItem(529183, "DevDiv")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForLoop01()
             Dim source =
 <compilation>
@@ -454,7 +454,7 @@ End Module
         End Sub
 
         <WorkItem(529183, "DevDiv")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForLoop02()
             Dim source =
 <compilation>

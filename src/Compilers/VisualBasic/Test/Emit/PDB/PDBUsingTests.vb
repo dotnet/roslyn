@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBUsingTests
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub UsingNested()
             Dim source =
 <compilation>
@@ -280,7 +280,7 @@ End Class
             AssertXml.Equal(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub NoPia()
             Dim piaSource = "
 Imports System.Runtime.InteropServices
