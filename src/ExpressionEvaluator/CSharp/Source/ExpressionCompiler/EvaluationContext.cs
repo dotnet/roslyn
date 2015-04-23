@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (syntax == null)
             {
                 resultProperties = default(ResultProperties);
-                return default(CompileResult);
+                return null;
             }
 
             var context = this.CreateCompilationContext(syntax);
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
-                return default(CompileResult);
+                return null;
             }
 
             using (var stream = new MemoryStream())
@@ -265,16 +265,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 if (diagnostics.HasAnyErrors())
                 {
                     resultProperties = default(ResultProperties);
-                    return default(CompileResult);
+                    return null;
                 }
 
                 resultProperties = properties;
-                return new CompileResult(
+                return new CSharpCompileResult(
                     stream.ToArray(),
-                    typeName: TypeName,
-                    methodName: MethodName,
+                    GetSynthesizedMethod(moduleBuilder),
                     formatSpecifiers: formatSpecifiers);
             }
+        }
+
+        private static MethodSymbol GetSynthesizedMethod(CommonPEModuleBuilder moduleBuilder)
+        {
+            var method = ((EEAssemblyBuilder)moduleBuilder).Methods.Single(m => m.MetadataName == MethodName);
+            Debug.Assert(method.ContainingType.MetadataName == TypeName);
+            return method;
         }
 
         private static CSharpSyntaxNode Parse(
@@ -324,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (assignment == null)
             {
                 resultProperties = default(ResultProperties);
-                return default(CompileResult);
+                return null;
             }
 
             var context = this.CreateCompilationContext(assignment);
@@ -333,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
-                return default(CompileResult);
+                return null;
             }
 
             using (var stream = new MemoryStream())
@@ -351,14 +357,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 if (diagnostics.HasAnyErrors())
                 {
                     resultProperties = default(ResultProperties);
-                    return default(CompileResult);
+                    return null;
                 }
 
                 resultProperties = properties;
-                return new CompileResult(
+                return new CSharpCompileResult(
                     stream.ToArray(),
-                    typeName: TypeName,
-                    methodName: MethodName,
+                    GetSynthesizedMethod(moduleBuilder),
                     formatSpecifiers: null);
             }
         }

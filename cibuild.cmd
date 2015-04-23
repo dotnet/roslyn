@@ -1,5 +1,17 @@
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-msbuild /v:m /m BuildAndTest.proj /p:CIBuild=true
+
+REM Build the compiler so we can self host it for the full build
+src\.nuget\NuGet.exe restore src\Toolset.sln -packagesdirectory packages
+msbuild /nologo /v:m /m src/Compilers/Core/VBCSCompiler/VBCSCompiler.csproj
+msbuild /nologo /v:m /m src/Compilers/CSharp/csc2/csc2.csproj
+msbuild /nologo /v:m /m src/Compilers/VisualBasic/vbc2/vbc2.csproj
+
+mkdir Binaries\Bootstrap
+move Binaries\Debug\* Binaries\Bootstrap
+msbuild /v:m /t:Clean src/Toolset.sln
+taskkill /F /IM vbcscompiler.exe
+
+msbuild /v:m /m /p:BootstrapBuildPath=%~dp0\Binaries\Bootstrap BuildAndTest.proj /p:CIBuild=true
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
     echo Build failed

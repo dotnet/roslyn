@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             {
                                 var methodName = GetNextMethodName(methodBuilder);
                                 var method = this.GetPseudoVariableMethod(typeNameDecoder, container, methodName, alias);
-                                localBuilder.Add(new LocalAndMethod(alias.FullName, methodName, alias.GetLocalResultFlags()));
+                                localBuilder.Add(new CSharpLocalAndMethod(alias.FullName, method, alias.GetLocalResultFlags()));
                                 methodBuilder.Add(method);
                             }
                         }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         {
                             var methodName = GetNextMethodName(methodBuilder);
                             var method = this.GetThisMethod(container, methodName);
-                            localBuilder.Add(new LocalAndMethod("this", methodName, DkmClrCompilationResultFlags.None)); // Note: writable in dev11.
+                            localBuilder.Add(new CSharpLocalAndMethod("this", method, DkmClrCompilationResultFlags.None)); // Note: writable in dev11.
                             methodBuilder.Add(method);
                         }
                     }
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             var methodName = GetNextMethodName(methodBuilder);
                             var returnType = typeVariablesType.Construct(allTypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
                             var method = this.GetTypeVariablesMethod(container, methodName, returnType);
-                            localBuilder.Add(new LocalAndMethod(ExpressionCompilerConstants.TypeVariablesLocalName, methodName, DkmClrCompilationResultFlags.ReadOnlyResult));
+                            localBuilder.Add(new CSharpLocalAndMethod(ExpressionCompilerConstants.TypeVariablesLocalName, method, DkmClrCompilationResultFlags.ReadOnlyResult));
                             methodBuilder.Add(method);
                         }
                     }
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             name = SyntaxHelpers.EscapeKeywordIdentifiers(name);
             var methodName = GetNextMethodName(methodBuilder);
             var method = getMethod(container, methodName, name, localOrParameterIndex);
-            localBuilder.Add(new LocalAndMethod(name, methodName, resultFlags));
+            localBuilder.Add(new CSharpLocalAndMethod(name, method, resultFlags));
             methodBuilder.Add(method);
         }
 

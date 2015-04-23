@@ -599,7 +599,7 @@ class C
                     numRetries++;
                     Assert.InRange(numRetries, 0, 2); // We don't want to loop forever... 
                     diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
-                    return default(CompileResult);   
+                    return null;   
                 }, 
                 (AssemblyIdentity assemblyIdentity, out uint uSize) => 
                 { 
