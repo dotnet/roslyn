@@ -132,13 +132,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ResultProperties resultProperties,
             DkmClrRuntimeInstance runtimeInstance)
         {
-            if (compResult.Assembly == null)
+            if (compResult == null)
             {
-                Debug.Assert(compResult.TypeName == null);
-                Debug.Assert(compResult.MethodName == null);
                 return null;
             }
 
+            Debug.Assert(compResult.Assembly != null);
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
 
