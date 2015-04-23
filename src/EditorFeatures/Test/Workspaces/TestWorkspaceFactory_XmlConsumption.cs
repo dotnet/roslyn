@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)systemRuntimeFacade).HasValue &&
                 ((bool?)systemRuntimeFacade).Value)
             {
-                references.Add(TestBase.FacadeSystemRuntimeRef);
+                references.Add(TestBase.SystemRuntimeFacadeRef);
             }
 
             return references;

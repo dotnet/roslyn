@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddMetadataReference(projectId, s_systemCoreReference)
                 .AddMetadataReference(projectId, s_codeAnalysisReference)
                 .AddMetadataReference(projectId, TestBase.SystemRef)
-                .AddMetadataReference(projectId, TestBase.FacadeSystemRuntimeRef)
+                .AddMetadataReference(projectId, TestBase.SystemRuntimeFacadeRef)
                 .AddMetadataReference(projectId, s_immutableCollectionsReference)
                 .WithProjectCompilationOptions(projectId, options);
 

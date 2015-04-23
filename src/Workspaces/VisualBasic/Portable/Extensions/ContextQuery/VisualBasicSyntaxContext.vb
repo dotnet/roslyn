@@ -48,6 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly WithinAsyncMethod As Boolean
 
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
+        Public ReadOnly IsWithinPreprocessorContext As Boolean
 
         Private Sub New(
             workspace As Workspace,
@@ -105,6 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.TouchingToken = syntaxTree.GetTouchingToken(position, cancellationToken)
             Me.IsInLambda = isInLambda
             Me.IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
+            Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
             Me.IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
 
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
@@ -160,10 +162,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return container
         End Function
 
-        Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
+        Private Shared Function ComputeIsWithinPreprocessorContext(position As Integer, targetToken As SyntaxToken) As Boolean
             ' If we're touching it, then we can just look past it
             If targetToken.IsKind(SyntaxKind.HashToken) AndAlso targetToken.Span.End = position Then
                 targetToken = targetToken.GetPreviousToken()
+            End If
+
+            Return targetToken.Kind = SyntaxKind.None OrElse
+                targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+        End Function
+
+        Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
+            ' The triggering hash token must be part of a directive (not trivia within it)
+            If targetToken.Kind = SyntaxKind.HashToken Then
+                Return TypeOf targetToken.Parent Is DirectiveTriviaSyntax
             End If
 
             Return targetToken.Kind = SyntaxKind.None OrElse

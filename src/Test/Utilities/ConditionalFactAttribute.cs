@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Win32;
 using Xunit;
 
@@ -29,6 +31,20 @@ namespace Roslyn.Test.Utilities
         public override bool ShouldSkip { get { return IntPtr.Size != 4; } }
 
         public override string SkipReason { get { return "Target platform is not x86"; } }
+    }
+
+    public class ClrOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip { get { return CLRHelpers.IsRunningOnMono(); } }
+
+        public override string SkipReason { get { return "Test not supported on Mono"; } }
+    }
+
+    public class WindowsOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip { get { return Path.DirectorySeparatorChar != '\\'; } }
+
+        public override string SkipReason { get { return "Test not supported on Mono"; } }
     }
 
     public class Framework35Installed : ExecutionCondition

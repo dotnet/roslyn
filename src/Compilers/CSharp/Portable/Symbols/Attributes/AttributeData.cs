@@ -541,6 +541,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(target is SourceAssemblySymbol || target.ContainingAssembly is SourceAssemblySymbol);
 
+            if (HasErrors)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             // Attribute type is conditionally omitted if both the following are true:
             //  (a) It has at least one applied/inherited conditional attribute AND
             //  (b) None of conditional symbols are defined in the source file where the given attribute was defined.

@@ -33,7 +33,7 @@
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
-    <Compile Include="Emit\CustomDebugInfoReaderTests.cs" />
+    <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="PEWriter\BinaryWriterTests.cs" />
     <Compile Include="Text\LargeEncodedTextTests.cs" />

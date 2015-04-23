@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             FatalError.Handler = FailFast.OnFatalException;
         }
 
+        private static readonly ReadOnlyCollection<Alias> s_NoAliases = new ReadOnlyCollection<Alias>(new Alias[0]);
+
         DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
             DkmInspectionContext inspectionContext,
             DkmClrInstructionAddress instructionAddress,
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
+                var aliases = argumentsOnly ? null : s_NoAliases;
                 string error;
                 var r = this.CompileWithRetry(
                     moduleInstance,
@@ -46,6 +49,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
                         string typeName;
                         var assembly = context.CompileGetLocals(
+                            aliases,
                             builder,
                             argumentsOnly,
                             diagnostics,
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return new GetLocalsResult(typeName, locals, assembly);
                     },
                     out error);
-                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals, CustomTypeInfo: null);
+                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -347,7 +351,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
-            return DkmClrLocalVariableInfo.Create(local.LocalName, local.MethodName, local.Flags, DkmEvaluationResultCategory.Data);
+            return DkmClrLocalVariableInfo.Create(local.LocalName, local.MethodName, local.Flags, DkmEvaluationResultCategory.Data, local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 
         private struct GetLocalsResult

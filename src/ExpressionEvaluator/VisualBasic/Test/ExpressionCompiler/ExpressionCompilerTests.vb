@@ -90,7 +90,7 @@ End Class
 
             Dim errorMessage As String = Nothing
             Dim result = context.CompileExpression("M(", errorMessage, Nothing, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Null(result.Assembly)
+            Assert.Null(result)
             Assert.Equal("(1) : error BC30201: Expression expected.", errorMessage)
         End Sub
 
@@ -124,7 +124,7 @@ End Class
                     preferredUICulture:=Nothing,
                     testData:=Nothing)
                 Assert.Empty(missingAssemblyIdentities)
-                Assert.Null(result.Assembly)
+                Assert.Null(result)
                 Assert.Equal("LCID=1031, Code=30201", errorMessage)
             Finally
                 Thread.CurrentThread.CurrentUICulture = previousUICulture
@@ -444,8 +444,7 @@ End Class
 
             ' Format specifiers on assignment value.
             result = context.CompileAssignment("x", "Nothing, y", errorMessage, Nothing, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Null(result.Assembly)
-            Assert.Null(result.FormatSpecifiers)
+            Assert.Null(result)
             Assert.Equal("(1) : error BC30035: Syntax error.", errorMessage)
 
             ' Format specifiers, no expression.
@@ -1565,7 +1564,7 @@ End Class
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(expr, resultProperties, errorMessage, testData)
             Assert.Equal(expectedErrorMessage, errorMessage)
-            Assert.NotEqual(expectedErrorMessage Is Nothing, result.Assembly Is Nothing)
+            Assert.NotEqual(expectedErrorMessage Is Nothing, result Is Nothing)
             Assert.Equal(expectedFlags, resultProperties.Flags)
         End Sub
 

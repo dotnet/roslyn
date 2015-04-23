@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End If
 
                 resultProperties = properties
-                Return New CompileResult(
+                Return New VisualBasicCompileResult(
                         stream.ToArray(),
                         s_typeName,
                         s_methodName,
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         properties.AccessType,
                         properties.StorageType,
                         properties.ModifierFlags)
-                Return New CompileResult(
+                Return New VisualBasicCompileResult(
                         stream.ToArray(),
                         s_typeName,
                         s_methodName,
@@ -444,6 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
 
         Friend Overrides Function CompileGetLocals(
+            aliases As ReadOnlyCollection(Of [Alias]),
             locals As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
             diagnostics As DiagnosticBag,
@@ -451,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             testData As CompilationTestData) As ReadOnlyCollection(Of Byte)
 
             Dim context = Me.CreateCompilationContext(Nothing)
-            Dim modulebuilder = context.CompileGetLocals(EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
+            Dim modulebuilder = context.CompileGetLocals(aliases, EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
             Dim assembly As ReadOnlyCollection(Of Byte) = Nothing
 
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then

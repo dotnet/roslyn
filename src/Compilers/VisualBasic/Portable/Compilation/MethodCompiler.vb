@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If moduleBeingBuiltOpt IsNot Nothing Then
                 moduleBeingBuiltOpt.SetEntryPoint(entryPoint)
 
-                If compiler.GlobalHasErrors AndAlso Not hasDeclarationErrors AndAlso Not diagnostics.HasAnyErrors Then
+                If (compiler.GlobalHasErrors OrElse moduleBeingBuiltOpt.SourceModule.HasBadAttributes) AndAlso Not hasDeclarationErrors AndAlso Not diagnostics.HasAnyErrors Then
                     ' If there were errors but no diagnostics, explicitly add
                     ' a "Failed to emit module" error to prevent emitting.
                     diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuiltOpt.SourceModule.Name)
@@ -1192,7 +1192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If sourceMethod IsNot Nothing AndAlso sourceMethod.SetDiagnostics(diagsForCurrentMethod.ToReadOnly()) Then
                 Dim compilation = compilationState.Compilation
-                If compilation.EventQueue IsNot Nothing Then
+                If compilation.ShouldAddEvent(method) Then
                     If block Is Nothing Then
                         compilation.SymbolDeclaredEvent(sourceMethod)
                     Else

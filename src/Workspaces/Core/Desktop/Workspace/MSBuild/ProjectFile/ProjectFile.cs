@@ -218,6 +218,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return executedProject.GetItems("Analyzer");
         }
 
+        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetAdditionalFilesFromModel(MSB.Execution.ProjectInstance executedProject)
+        {
+            return executedProject.GetItems("AdditionalFiles");
+        }
+
         public MSB.Evaluation.ProjectProperty GetProperty(string name)
         {
             return _loadedProject.GetProperty(name);

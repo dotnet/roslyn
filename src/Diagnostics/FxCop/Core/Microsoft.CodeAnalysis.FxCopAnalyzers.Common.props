@@ -12,11 +12,6 @@
       -Microsoft.Design#CA1012;
       -Microsoft.Design#CA1052;
       -Microsoft.Design#CA1053;
-      -Microsoft.Design#CA1060;
-
-      -Microsoft.Interoperability#CA1401;
-
-      -Microsoft.Globalization#CA2101;
 
       -Microsoft.Naming#CA1708;
       -Microsoft.Naming#CA1715;

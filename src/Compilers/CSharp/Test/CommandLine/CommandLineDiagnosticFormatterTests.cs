@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineDiagnosticFormatterTests
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void GetPathNameRelativeToBaseDirectory()
         {
             var formatter = new CommandLineDiagnosticFormatter(

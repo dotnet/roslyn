@@ -693,6 +693,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No Changes.
+        /// </summary>
+        internal static string NoChanges {
+            get {
+                return ResourceManager.GetString("NoChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not a valid value.
         /// </summary>
         internal static string NotAValidValue {

@@ -7272,6 +7272,67 @@ class C<T>
                                                             },
                              emitters: TestEmitters.RefEmitBug);
         }
+
+        [WorkItem(1144603, "DevDiv")]
+        [Fact]
+        public void EmitMetadataOnlyInPresenceOfErrors()
+        {
+            var source1 =
+@"
+public sealed class DiagnosticAnalyzerAttribute : System.Attribute
+{
+    public DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages)
+    {}
+}
+
+public static class LanguageNames
+{
+    public const xyz CSharp = ""C#"";
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            compilation1.VerifyDiagnostics(
+    // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+    //     public const xyz CSharp = "C#";
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "xyz").WithArguments("xyz").WithLocation(10, 18)
+                );
+
+            var source2 =
+@"
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpCompilerDiagnosticAnalyzer
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll" );
+            Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
+            compilation2.VerifyDiagnostics();
+
+            var emitResult2 = compilation2.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
+            Assert.False(emitResult2.Success);
+            emitResult2.Diagnostics.Verify(
+    // error CS7038: Failed to emit module 'Test.dll'.
+    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll").WithLocation(1, 1)
+                );
+
+            // Use different mscorlib to test retargeting scenario
+            var compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
+            Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols[1]);
+            compilation3.VerifyDiagnostics(
+    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
+                );
+
+            var emitResult3 = compilation3.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
+            Assert.False(emitResult3.Success);
+            emitResult3.Diagnostics.Verify(
+    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
+                );
+        }
+
         #endregion
     }
 }

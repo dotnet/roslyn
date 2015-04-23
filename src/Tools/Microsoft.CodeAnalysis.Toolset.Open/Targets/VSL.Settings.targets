@@ -23,9 +23,9 @@
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.0.0</RoslynSemanticVersion>
-    <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.0.19</SystemReflectionMetadataAssemblyVersion>
+    <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.1.0</SystemReflectionMetadataAssemblyVersion>
     <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.34</SystemCollectionsImmutableAssemblyVersion>
-    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-rc</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00002</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)-rc</SystemCollectionsImmutableVersion>
   </PropertyGroup>
 
@@ -79,8 +79,10 @@
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
     <CscToolExe>csc.exe</CscToolExe>
+    <CscToolExe Condition="Exists('$(BootstrapBuildPath)\csc2.exe')">csc2.exe</CscToolExe>
     <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
     <VbcToolExe>vbc.exe</VbcToolExe>
+    <VbcToolExe Condition="Exists('$(BootstrapBuildPath)\vbc2.exe')">vbc2.exe</VbcToolExe>
   </PropertyGroup>
 
   <!-- Common project settings -->

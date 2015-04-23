@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.AttributeArgument); }
         }
 
-        protected bool InCref
+        internal bool InCref
         {
             get { return this.Flags.Includes(BinderFlags.Cref); }
         }
@@ -4460,14 +4460,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(boundLeft != null);
 
-            if ((object)boundLeft.Type != null && boundLeft.Type.IsDynamic())
-            {
-                return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);
-            }
-
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
+
+            if ((object)leftType != null && leftType.IsDynamic())
+            {
+                return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);
+            }
 
             // No member accesses on void
             if ((object)leftType != null && leftType.SpecialType == SpecialType.System_Void)
