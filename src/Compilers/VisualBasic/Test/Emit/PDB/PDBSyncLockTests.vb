@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBSyncLockTests
         Inherits BasicTestBase
 
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub SyncLockWithThrow()
             Dim source =
 <compilation>
