@@ -32,9 +32,9 @@ namespace Roslyn.Utilities
             }
 
             int chunkIndex = 0;
-            for (int cb = _length; cb > 0;)
+            for (int remainingBytes = _length; remainingBytes > 0;)
             {
-                int bytesToCopy = Math.Min(ChunkSize, cb);
+                int bytesToCopy = Math.Min(ChunkSize, remainingBytes);
                 if (chunkIndex < _chunks.Count)
                 {
                     stream.Write(_chunks[chunkIndex++], 0, bytesToCopy);
@@ -48,7 +48,7 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                cb -= bytesToCopy;
+                remainingBytes -= bytesToCopy;
             }
         }
 
