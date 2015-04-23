@@ -328,7 +328,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "        ", "method"))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "        ", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -351,7 +351,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", "method"))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -375,7 +375,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Shared Sub Bar(Of T)()"},
-                                  Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", "method"))
+                                  Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -885,7 +885,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
                                   {"Foo As Integer = 1 +  1"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", "field"))
+                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.Field))
         End Sub
 #End Region
 

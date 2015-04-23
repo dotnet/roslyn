@@ -1051,4 +1051,125 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="RemoveUnnecessaryImportsDiagnosticTitle" xml:space="preserve">
     <value>Imports statement is unnecessary.</value>
   </data>
+  <data name="TryBlock" xml:space="preserve">
+    <value>Try block</value>
+  </data>
+  <data name="CatchClause" xml:space="preserve">
+    <value>Catch clause</value>
+  </data>
+  <data name="FinallyClause" xml:space="preserve">
+    <value>Finally clause</value>
+  </data>
+  <data name="UsingStatement" xml:space="preserve">
+    <value>Using statement</value>
+  </data>
+  <data name="UsingBlock" xml:space="preserve">
+    <value>Using block</value>
+  </data>
+  <data name="WithStatement" xml:space="preserve">
+    <value>With statement</value>
+  </data>
+  <data name="WithBlock" xml:space="preserve">
+    <value>With block</value>
+  </data>
+  <data name="SyncLockStatement" xml:space="preserve">
+    <value>SyncLock statement</value>
+  </data>
+  <data name="SyncLockBlock" xml:space="preserve">
+    <value>SyncLock block</value>
+  </data>
+  <data name="ForEachStatement" xml:space="preserve">
+    <value>For Each statement</value>
+  </data>
+  <data name="ForEachBlock" xml:space="preserve">
+    <value>For Each block</value>
+  </data>
+  <data name="OnErrorStatement" xml:space="preserve">
+    <value>On Error statement</value>
+  </data>
+  <data name="ResumeStatement" xml:space="preserve">
+    <value>Resume statement</value>
+  </data>
+  <data name="YieldStatement" xml:space="preserve">
+    <value>Yield statement</value>
+  </data>
+  <data name="AwaitExpression" xml:space="preserve">
+    <value>Await expression</value>
+  </data>
+  <data name="LambdaExpression" xml:space="preserve">
+    <value>Lambda</value>
+  </data>
+  <data name="WhereClause" xml:space="preserve">
+    <value>Where clause</value>
+  </data>
+  <data name="SelectClause" xml:space="preserve">
+    <value>Select clause</value>
+  </data>
+  <data name="FromClause" xml:space="preserve">
+    <value>From clause</value>
+  </data>
+  <data name="AggregateClause" xml:space="preserve">
+    <value>Aggregate clause</value>
+  </data>
+  <data name="LetClause" xml:space="preserve">
+    <value>Let clause</value>
+  </data>
+  <data name="SimpleJoinClause" xml:space="preserve">
+    <value>Join clause</value>
+  </data>
+  <data name="GroupJoinClause" xml:space="preserve">
+    <value>Group Join clause</value>
+  </data>
+  <data name="GroupByClause" xml:space="preserve">
+    <value>Group By clause</value>
+  </data>
+  <data name="FunctionAggregation" xml:space="preserve">
+    <value>Function aggregation</value>
+  </data>
+  <data name="TakeWhileClause" xml:space="preserve">
+    <value>Take While clause</value>
+  </data>
+  <data name="SkipWhileClause" xml:space="preserve">
+    <value>Skip While clause</value>
+  </data>
+  <data name="OrderingClause" xml:space="preserve">
+    <value>Ordering clause</value>
+  </data>
+  <data name="JoinCondition" xml:space="preserve">
+    <value>Join condition</value>
+  </data>
+  <data name="OptionStatement" xml:space="preserve">
+    <value>option</value>
+    <comment>{Locked}</comment>  
+  </data>
+  <data name="ImportStatement" xml:space="preserve">
+    <value>import</value>
+    <comment>{Locked}</comment>  
+  </data>
+  <data name="StructureStatement" xml:space="preserve">
+    <value>structure</value>
+    <comment>{Locked}</comment>  
+  </data>
+  <data name="ModuleStatement" xml:space="preserve">
+    <value>module</value>
+    <comment>{Locked}</comment>  
+  </data>
+  <data name="WithEventsFieldStatement" xml:space="preserve">
+    <value>WithEvents field</value>
+  </data>
+  <data name="PropertyAccessor" xml:space="preserve">
+    <value>property accessor</value>
+  </data>
+  <data name="AsClause" xml:space="preserve">
+    <value>as clause</value>
+  </data>
+  <data name="TypeParameterList" xml:space="preserve">
+    <value>type parameters</value>
+  </data>
+  <data name="ParameterList" xml:space="preserve">
+    <value>parameters</value>
+  </data>
+  <data name="AttributeList" xml:space="preserve">
+    <value>attributes</value>
+  </data>
 </root>

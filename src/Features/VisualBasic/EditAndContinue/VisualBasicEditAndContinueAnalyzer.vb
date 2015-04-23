@@ -1367,43 +1367,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Shared Function GetTopLevelDisplayNameImpl(node As SyntaxNode) As String
             Select Case node.Kind
                 Case SyntaxKind.OptionStatement
-                    Return "option"
+                    Return VBFeaturesResources.OptionStatement
 
                 Case SyntaxKind.ImportsStatement
-                    Return "import"
+                    Return VBFeaturesResources.ImportStatement
 
                 Case SyntaxKind.NamespaceBlock,
                      SyntaxKind.NamespaceStatement
-                    Return "namespace"
+                    Return FeaturesResources.Namespace
 
                 Case SyntaxKind.ClassBlock,
                      SyntaxKind.ClassStatement
-                    Return "class"
+                    Return FeaturesResources.Class
 
                 Case SyntaxKind.StructureBlock,
                      SyntaxKind.StructureStatement
-                    Return "structure"
+                    Return VBFeaturesResources.StructureStatement
 
                 Case SyntaxKind.InterfaceBlock,
                      SyntaxKind.InterfaceStatement
-                    Return "interface"
+                    Return FeaturesResources.Interface
 
                 Case SyntaxKind.ModuleBlock,
                      SyntaxKind.ModuleStatement
-                    Return "module"
+                    Return VBFeaturesResources.ModuleStatement
 
                 Case SyntaxKind.EnumBlock,
                      SyntaxKind.EnumStatement
-                    Return "enum"
+                    Return FeaturesResources.Enum
 
                 Case SyntaxKind.DelegateSubStatement,
                      SyntaxKind.DelegateFunctionStatement
-                    Return "delegate"
+                    Return FeaturesResources.Delegate
 
                 Case SyntaxKind.FieldDeclaration
                     Dim declaration = DirectCast(node, FieldDeclarationSyntax)
-                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), "WithEvents field",
-                           If(declaration.Modifiers.Any(SyntaxKind.ConstKeyword), "const field", "field"))
+                    Return If(declaration.Modifiers.Any(SyntaxKind.WithEventsKeyword), VBFeaturesResources.WithEventsFieldStatement,
+                           If(declaration.Modifiers.Any(SyntaxKind.ConstKeyword), FeaturesResources.ConstField, FeaturesResources.Field))
 
                 Case SyntaxKind.VariableDeclarator,
                      SyntaxKind.ModifiedIdentifier
@@ -1415,34 +1415,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.FunctionStatement,
                      SyntaxKind.DeclareSubStatement,
                      SyntaxKind.DeclareFunctionStatement
-                    Return "method"
+                    Return FeaturesResources.Method
 
                 Case SyntaxKind.OperatorBlock,
                      SyntaxKind.OperatorStatement
-                    Return "operator"
+                    Return FeaturesResources.Operator
 
                 Case SyntaxKind.ConstructorBlock,
                      SyntaxKind.SubNewStatement
-                    Return "constructor"
+                    Return FeaturesResources.Constructor
 
                 Case SyntaxKind.PropertyBlock
-                    Return "property"
+                    Return FeaturesResources.Property
 
                 Case SyntaxKind.PropertyStatement
-                    Return "auto-property"
+                    Return FeaturesResources.AutoProperty
 
                 Case SyntaxKind.EventBlock,
                      SyntaxKind.EventStatement
-                    Return "event"
+                    Return FeaturesResources.Event
 
                 Case SyntaxKind.EnumMemberDeclaration
-                    Return "enum value"
+                    Return FeaturesResources.EnumValue
 
                 Case SyntaxKind.GetAccessorBlock,
                      SyntaxKind.SetAccessorBlock,
                      SyntaxKind.GetAccessorStatement,
                      SyntaxKind.SetAccessorStatement
-                    Return "property accessor"
+                    Return VBFeaturesResources.PropertyAccessor
 
                 Case SyntaxKind.AddHandlerAccessorBlock,
                      SyntaxKind.RemoveHandlerAccessorBlock,
@@ -1450,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.AddHandlerAccessorStatement,
                      SyntaxKind.RemoveHandlerAccessorStatement,
                      SyntaxKind.RaiseEventAccessorStatement
-                    Return "event accessor"
+                    Return FeaturesResources.EventAccessor
 
                 Case SyntaxKind.TypeParameterSingleConstraintClause,
                      SyntaxKind.TypeParameterMultipleConstraintClause,
@@ -1458,29 +1458,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.StructureConstraint,
                      SyntaxKind.NewConstraint,
                      SyntaxKind.TypeConstraint
-                    Return "type constraint"
+                    Return FeaturesResources.TypeConstraint
 
                 Case SyntaxKind.SimpleAsClause
-                    Return "as clause"
+                    Return VBFeaturesResources.AsClause
 
                 Case SyntaxKind.TypeParameterList
-                    Return "type parameters"
+                    Return VBFeaturesResources.TypeParameterList
 
                 Case SyntaxKind.TypeParameter
-                    Return "type parameter"
+                    Return FeaturesResources.TypeParameter
 
                 Case SyntaxKind.ParameterList
-                    Return "parameters"
+                    Return VBFeaturesResources.ParameterList
 
                 Case SyntaxKind.Parameter
-                    Return "parameter"
+                    Return FeaturesResources.Parameter
 
                 Case SyntaxKind.AttributeList,
                      SyntaxKind.AttributesStatement
-                    Return "attributes"
+                    Return VBFeaturesResources.AttributeList
 
                 Case SyntaxKind.Attribute
-                    Return "attribute"
+                    Return FeaturesResources.Attribute
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(node.Kind())
@@ -1491,95 +1491,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Shared Function GetStatementDisplayNameImpl(node As SyntaxNode, kind As EditKind) As String
             Select Case node.Kind
                 Case SyntaxKind.TryBlock
-                    Return "Try block"
+                    Return VBFeaturesResources.TryBlock
 
                 Case SyntaxKind.CatchBlock
-                    Return "Catch clause"
+                    Return VBFeaturesResources.CatchClause
 
                 Case SyntaxKind.FinallyBlock
-                    Return "Finally clause"
+                    Return VBFeaturesResources.FinallyClause
 
                 Case SyntaxKind.UsingBlock
-                    Return If(kind = EditKind.Update, "Using statement", "Using block")
+                    Return If(kind = EditKind.Update, VBFeaturesResources.UsingStatement, VBFeaturesResources.UsingBlock)
 
                 Case SyntaxKind.WithBlock
-                    Return If(kind = EditKind.Update, "With statement", "With block")
+                    Return If(kind = EditKind.Update, VBFeaturesResources.WithStatement, VBFeaturesResources.WithBlock)
 
                 Case SyntaxKind.SyncLockBlock
-                    Return If(kind = EditKind.Update, "SyncLock statement", "SyncLock block")
+                    Return If(kind = EditKind.Update, VBFeaturesResources.SyncLockStatement, VBFeaturesResources.SyncLockBlock)
 
                 Case SyntaxKind.ForEachBlock
-                    Return If(kind = EditKind.Update, "For Each statement", "For Each block")
+                    Return If(kind = EditKind.Update, VBFeaturesResources.ForEachStatement, VBFeaturesResources.ForEachBlock)
 
                 Case SyntaxKind.OnErrorGoToMinusOneStatement,
                      SyntaxKind.OnErrorGoToZeroStatement,
                      SyntaxKind.OnErrorResumeNextStatement,
                      SyntaxKind.OnErrorGoToLabelStatement
-                    Return "On Error statement"
+                    Return VBFeaturesResources.OnErrorStatement
 
                 Case SyntaxKind.ResumeStatement,
                      SyntaxKind.ResumeNextStatement,
                      SyntaxKind.ResumeLabelStatement
-                    Return "Resume statement"
+                    Return VBFeaturesResources.ResumeStatement
 
                 Case SyntaxKind.YieldStatement
-                    Return "Yield statement"
+                    Return VBFeaturesResources.YieldStatement
 
                 Case SyntaxKind.AwaitExpression
-                    Return "Await expression"
+                    Return VBFeaturesResources.AwaitExpression
 
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
-                    Return "lambda"
+                    Return VBFeaturesResources.LambdaExpression
 
                 Case SyntaxKind.WhereClause
-                    Return "Where clause"
+                    Return VBFeaturesResources.WhereClause
 
                 Case SyntaxKind.SelectClause
-                    Return "Select clause"
+                    Return VBFeaturesResources.SelectClause
 
                 Case SyntaxKind.FromClause
-                    Return "From clause"
+                    Return VBFeaturesResources.FromClause
 
                 Case SyntaxKind.AggregateClause
-                    Return "Aggregate clause"
+                    Return VBFeaturesResources.AggregateClause
 
                 Case SyntaxKind.LetClause
-                    Return "Let clause"
+                    Return VBFeaturesResources.LetClause
 
                 Case SyntaxKind.SimpleJoinClause
-                    Return "Join clause"
+                    Return VBFeaturesResources.SimpleJoinClause
 
                 Case SyntaxKind.GroupJoinClause
-                    Return "Group Join clause"
+                    Return VBFeaturesResources.GroupJoinClause
 
                 Case SyntaxKind.GroupByClause
-                    Return "Group By clause"
+                    Return VBFeaturesResources.GroupByClause
 
                 Case SyntaxKind.FunctionAggregation
-                    Return "function aggregation"
+                    Return VBFeaturesResources.FunctionAggregation
 
                 Case SyntaxKind.CollectionRangeVariable,
                      SyntaxKind.ExpressionRangeVariable
                     Return GetStatementDisplayNameImpl(node.Parent, kind)
 
                 Case SyntaxKind.TakeWhileClause
-                    Return "Take While clause"
+                    Return VBFeaturesResources.TakeWhileClause
 
                 Case SyntaxKind.SkipWhileClause
-                    Return "Skip While clause"
+                    Return VBFeaturesResources.SkipWhileClause
 
                 Case SyntaxKind.AscendingOrdering,
                      SyntaxKind.DescendingOrdering
-                    Return "ordering clause"
+                    Return VBFeaturesResources.OrderingClause
 
                 Case SyntaxKind.JoinCondition
-                    Return "join condition"
+                    Return VBFeaturesResources.JoinCondition
 
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind())
             End Select
         End Function
 

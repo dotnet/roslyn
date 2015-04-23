@@ -1262,116 +1262,116 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.GlobalStatement:
-                    return "global statement";
+                    return CSharpFeaturesResources.GlobalStatement;
 
                 case SyntaxKind.ExternAliasDirective:
-                    return "using namespace";
+                    return CSharpFeaturesResources.UsingNamespace;
 
                 case SyntaxKind.UsingDirective:
                     // Dev12 distinguishes using alias from using namespace and reports different errors for removing alias.
                     // None of these changes are allowed anyways, so let's keep it simple.
-                    return "using directive";
+                    return CSharpFeaturesResources.UsingDirective;
 
                 case SyntaxKind.NamespaceDeclaration:
-                    return "namespace";
+                    return FeaturesResources.Namespace;
 
                 case SyntaxKind.ClassDeclaration:
-                    return "class";
+                    return FeaturesResources.Class;
 
                 case SyntaxKind.StructDeclaration:
-                    return "struct";
+                    return CSharpFeaturesResources.Struct;
 
                 case SyntaxKind.InterfaceDeclaration:
-                    return "interface";
+                    return FeaturesResources.Interface;
 
                 case SyntaxKind.EnumDeclaration:
-                    return "enum";
+                    return FeaturesResources.Enum;
 
                 case SyntaxKind.DelegateDeclaration:
-                    return "delegate";
+                    return FeaturesResources.Delegate;
 
                 case SyntaxKind.FieldDeclaration:
                     var declaration = (FieldDeclarationSyntax)node;
-                    return declaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? "const field" : "field";
+                    return declaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? FeaturesResources.ConstField : FeaturesResources.Field;
 
                 case SyntaxKind.EventFieldDeclaration:
-                    return "event field";
+                    return CSharpFeaturesResources.EventField;
 
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
                     return GetTopLevelDisplayNameImpl(node.Parent, editKind);
 
                 case SyntaxKind.MethodDeclaration:
-                    return "method";
+                    return FeaturesResources.Method;
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return "conversion operator";
+                    return CSharpFeaturesResources.ConversionOperator;
 
                 case SyntaxKind.OperatorDeclaration:
-                    return "operator";
+                    return FeaturesResources.Operator;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    return "constructor";
+                    return FeaturesResources.Constructor;
 
                 case SyntaxKind.DestructorDeclaration:
-                    return "destructor";
+                    return CSharpFeaturesResources.Destructor;
 
                 case SyntaxKind.PropertyDeclaration:
-                    return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)node) ? "auto-property" : "property";
+                    return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)node) ? FeaturesResources.AutoProperty : FeaturesResources.Property;
 
                 case SyntaxKind.IndexerDeclaration:
-                    return "indexer";
+                    return CSharpFeaturesResources.Indexer;
 
                 case SyntaxKind.EventDeclaration:
-                    return "event";
+                    return FeaturesResources.Event;
 
                 case SyntaxKind.EnumMemberDeclaration:
-                    return "enum value";
+                    return FeaturesResources.EnumValue;
 
                 case SyntaxKind.GetAccessorDeclaration:
                     if (node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
                     {
-                        return "property getter";
+                        return CSharpFeaturesResources.PropertyGetter;
                     }
                     else
                     {
                         Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-                        return "indexer getter";
+                        return CSharpFeaturesResources.IndexerGetter;
                     }
 
                 case SyntaxKind.SetAccessorDeclaration:
                     if (node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
                     {
-                        return "property setter";
+                        return CSharpFeaturesResources.PropertySetter;
                     }
                     else
                     {
                         Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-                        return "indexer setter";
+                        return CSharpFeaturesResources.IndexerSetter;
                     }
 
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return "event accessor";
+                    return FeaturesResources.EventAccessor;
 
                 case SyntaxKind.TypeParameterConstraintClause:
-                    return "type constraint";
+                    return FeaturesResources.TypeConstraint;
 
                 case SyntaxKind.TypeParameterList:
                 case SyntaxKind.TypeParameter:
-                    return "type parameter";
+                    return FeaturesResources.TypeParameter;
 
                 case SyntaxKind.Parameter:
-                    return "parameter";
+                    return FeaturesResources.Parameter;
 
                 case SyntaxKind.AttributeList:
-                    return (editKind == EditKind.Update) ? "attribute target" : "attribute";
+                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.AttributeTarget : FeaturesResources.Attribute;
 
                 case SyntaxKind.Attribute:
-                    return "attribute";
+                    return FeaturesResources.Attribute;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
