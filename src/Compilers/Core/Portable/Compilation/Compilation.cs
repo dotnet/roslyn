@@ -1625,6 +1625,8 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
+            Stream portablePdbStream = null;
+            Stream portablePdbTempStream = null;
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
@@ -1648,17 +1650,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     getPortablePdbStream = () =>
                     {
-                        pdbStream = pdbStreamProvider.GetStream(diagnostics);
-                        if (pdbStream == null)
+                        if (metadataDiagnostics.HasAnyErrors())
                         {
-                            Debug.Assert(diagnostics.HasAnyErrors());
                             return null;
                         }
 
-                        var retStream = pdbStream;
-                        if (!retStream.CanSeek)
+                        portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                        if (portablePdbStream == null)
                         {
-                            retStream = pdbTempStream = new MemoryStream();
+                            Debug.Assert(metadataDiagnostics.HasAnyErrors());
+                            return null;
+                        }
+
+                        // When in deterministic mode, we need to seek and read the stream to compute a deterministic PDB ID.
+                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
+                        var retStream = portablePdbStream;
+                        if (!retStream.CanSeek || deterministic && !retStream.CanRead)
+                        {
+                            retStream = portablePdbTempStream = new MemoryStream();
                         }
 
                         return retStream;
@@ -1701,7 +1710,7 @@ namespace Microsoft.CodeAnalysis
                         retStream = peStream;
                     }
 
-                    // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                    // When in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
                     // If the underlying stream isn't readable and seekable, we need to use a temp stream.
                     if (!retStream.CanSeek || deterministic && !retStream.CanRead)
                     {
@@ -1731,14 +1740,20 @@ namespace Microsoft.CodeAnalysis
                             peTempStream.CopyTo(peStream);
                         }
 
+                        if (portablePdbTempStream != null)
+                        {
+                            portablePdbTempStream.Position = 0;
+                            portablePdbTempStream.CopyTo(portablePdbStream);
+                        }
+
                         if (nativePdbWriter != null)
                         {
-                            var pdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                            Debug.Assert(pdbStream != null || metadataDiagnostics.HasAnyErrors());
+                            var nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                            Debug.Assert(nativePdbStream != null || metadataDiagnostics.HasAnyErrors());
 
-                            if (pdbStream != null)
+                            if (nativePdbStream != null)
                             {
-                                nativePdbWriter.WriteTo(pdbStream);
+                                nativePdbWriter.WriteTo(nativePdbStream);
                             }
                         }
                     }
@@ -1784,6 +1799,7 @@ namespace Microsoft.CodeAnalysis
             {
                 nativePdbWriter?.Dispose();
                 peTempStream?.Dispose();
+                portablePdbTempStream?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
