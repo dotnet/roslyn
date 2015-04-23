@@ -1624,7 +1624,6 @@ namespace Microsoft.CodeAnalysis
             Stream signingInputStream = null;
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
-            Stream pdbTempStream = null;
             Stream peStream = null;
             Stream peTempStream = null;
 
@@ -1638,21 +1637,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (!emitPortablePdb && pdbStreamProvider != null)
                 {
-                    var nativePdbStream = pdbStreamProvider.Stream;
-
-                    // Native PDB writer is able to update an existing stream.
-                    // It checks for length to determine whether the given stream has existing data to be updated,
-                    // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream,
-                    // we have to create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
-                    if (nativePdbStream == null || !nativePdbStream.CanSeek || nativePdbStream.Length != 0)
-                    {
-                        nativePdbStream = pdbTempStream = new MemoryStream();
-                    }
-
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
-                    nativePdbWriter = new Cci.PdbWriter(nativePdbStream, pdbPath, testSymWriterFactory);
+                    nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory);
                 }
 
                 Func<Stream> getPortablePdbStream;
@@ -1743,20 +1731,14 @@ namespace Microsoft.CodeAnalysis
                             peTempStream.CopyTo(peStream);
                         }
 
-                        if (pdbTempStream != null)
+                        if (nativePdbWriter != null)
                         {
-                            // Note: Native PDB writer may operate on the underlying stream during disposal.
-                            // So close it here before we read data from the underlying stream.
-                            nativePdbWriter?.Dispose();
-                            nativePdbWriter = null;
-
                             var pdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
                             Debug.Assert(pdbStream != null || metadataDiagnostics.HasAnyErrors());
 
                             if (pdbStream != null)
                             {
-                                pdbTempStream.Position = 0;
-                                pdbTempStream.CopyTo(pdbStream);
+                                nativePdbWriter.WriteTo(pdbStream);
                             }
                         }
                     }
@@ -1802,7 +1784,6 @@ namespace Microsoft.CodeAnalysis
             {
                 nativePdbWriter?.Dispose();
                 peTempStream?.Dispose();
-                pdbTempStream?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
@@ -1825,7 +1806,6 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             using (var pdbWriter = new Cci.PdbWriter(
-                pdbStream,
                 moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                 testSymWriterFactory))
             {
@@ -1846,6 +1826,8 @@ namespace Microsoft.CodeAnalysis
                     Cci.MetadataSizes metadataSizes;
                     writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, out metadataSizes);
                     writer.GetMethodTokens(updatedMethods);
+
+                    pdbWriter.WriteTo(pdbStream);
 
                     return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
                 }

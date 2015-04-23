@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new TextSpan(index, textToFind.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestGetSourceLocationInFile()
         {
             string sampleProgram = @"class X {
@@ -109,7 +110,7 @@ int x;
             Assert.Equal(1, flpsXToCloseBrace.EndLinePosition.Character);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestLineMapping1()
         {
             string sampleProgram = @"using System;
@@ -135,7 +136,7 @@ int a;
 
             AssertMappedSpanEqual(syntaxTree, "ing Sy", "foo.cs", 0, 2, 0, 8, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "class X", "foo.cs", 1, 0, 1, 7, hasMappedPath: false);
-            AssertMappedSpanEqual(syntaxTree, "System;\r\nclass X", "foo.cs", 0, 6, 1, 7, hasMappedPath: false);
+            AssertMappedSpanEqual(syntaxTree, $"System;\r\nclass X", "foo.cs", 0, 6, 1, 7, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "x;", "banana.cs", 19, 4, 19, 6, hasMappedPath: true);
             AssertMappedSpanEqual(syntaxTree, "y;", "banana.cs", 20, 4, 20, 6, hasMappedPath: true);
             AssertMappedSpanEqual(syntaxTree, "z;", "banana.cs", 43, 4, 43, 6, hasMappedPath: true);
@@ -202,7 +203,7 @@ class X {
             AssertMappedSpanEqual(syntaxTree, "int s", "seconddirective", 19, 4, 19, 9, hasMappedPath: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestLineMappingNoDirectives()
         {
             string sampleProgram = @"using System;
@@ -393,7 +394,8 @@ class Program
             }
         }
 
-        [Fact, WorkItem(537926, "DevDiv")]
+        [WorkItem(537926, "DevDiv")]
+        [ConditionalFact(typeof(ClrOnly))]
         public void TestSourceLocationToString()
         {
             string sampleProgram = @"using System;

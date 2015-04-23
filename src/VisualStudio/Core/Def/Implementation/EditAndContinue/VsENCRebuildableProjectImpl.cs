@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
@@ -88,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private ISymUnmanagedReader _pdbReader;
 
-        private IntPtr _pdbReaderMtaPointer;
+        private IntPtr _pdbReaderObjAsStream;
 
         #endregion
 
@@ -323,15 +324,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _committedBaseline = null;
                 _activeStatementIds = null;
 
-                Debug.Assert((_pdbReader == null) == (_pdbReaderMtaPointer == IntPtr.Zero));
+                Debug.Assert((_pdbReaderObjAsStream == IntPtr.Zero) || (_pdbReader == null));
 
                 if (_pdbReader != null)
                 {
                     Marshal.ReleaseComObject(_pdbReader);
                     _pdbReader = null;
                 }
-
-                _pdbReaderMtaPointer = IntPtr.Zero;
 
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
@@ -927,20 +926,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 Debug.Assert(_lastEditSessionSummary == ProjectAnalysisSummary.ValidInsignificantChanges ||
                              _lastEditSessionSummary == ProjectAnalysisSummary.ValidChanges);
 
-                var updater = (Interop.IDebugUpdateInMemoryPE2)pUpdatePE;
+                var updater = (IDebugUpdateInMemoryPE2)pUpdatePE;
                 if (_committedBaseline == null)
                 {
-                    Interop.IENCDebugInfo debugInfo;
-                    updater.GetENCDebugInfo(out debugInfo);
-
-                    var symbolReaderProvider = (Interop.IENCSymbolReaderProvider)debugInfo;
-                    symbolReaderProvider.GetSymbolReader(out _pdbReaderMtaPointer);
+                    var hr = MarshalPdbReader(updater, out _pdbReaderObjAsStream);
+                    if (hr != VSConstants.S_OK)
+                    {
+                        return hr;
+                    }
 
                     _committedBaseline = EmitBaseline.CreateInitialBaseline(_metadata, GetBaselineEncDebugInfo);
                 }
 
-                // ISymUnmanagedReader can only be accessed from an MTA thread, 
-                // so dispatch it to one of thread pool threads, which are MTA:
+                // ISymUnmanagedReader can only be accessed from an MTA thread,
+                // so dispatch it to one of thread pool threads, which are MTA.
                 var emitTask = Task.Factory.SafeStartNew(EmitProjectDelta, CancellationToken.None, TaskScheduler.Default);
 
                 Deltas delta;
@@ -1051,9 +1050,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (_pdbReader == null)
             {
-                Debug.Assert(_pdbReaderMtaPointer != IntPtr.Zero);
-                object pdbReaderObj = Marshal.GetObjectForIUnknown(_pdbReaderMtaPointer);
-                _pdbReader = (ISymUnmanagedReader)pdbReaderObj;
+                // Unmarshal the symbol reader (being marshalled cross thread from STA -> MTA).
+                Debug.Assert(_pdbReaderObjAsStream != IntPtr.Zero);
+                object pdbReaderObjMta;
+                int hr = NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out pdbReaderObjMta);
+                _pdbReaderObjAsStream = IntPtr.Zero;
+                if (hr != VSConstants.S_OK)
+                {
+                    log.Write("Error unmarshaling object from stream.");
+                    return default(EditAndContinueMethodDebugInformation);
+                }
+                _pdbReader = (ISymUnmanagedReader)pdbReaderObjMta;
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
@@ -1137,6 +1144,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private static int MarshalPdbReader(IDebugUpdateInMemoryPE2 updater, out IntPtr pdbReaderPointer)
+        {
+            // ISymUnmanagedReader can only be accessed from an MTA thread, however, we need
+            // fetch the IUnknown instance (call IENCSymbolReaderProvider.GetSymbolReader) here
+            // in the STA.  To further complicate things, we need to return synchronously from
+            // this method.  Waiting for the MTA thread to complete so we can return synchronously
+            // blocks the STA thread, so we need to make sure the CLR doesn't try to marshal
+            // ISymUnmanagedReader calls made in an MTA back to the STA for execution (if this
+            // happens we'll be deadlocked).  We'll use CoMarshalInterThreadInterfaceInStream to
+            // achieve this.  First, we'll marshal the object in a Stream and pass a Stream pointer
+            // over to the MTA.  In the MTA, we'll get the Stream from the pointer and unmarshal
+            // the object.  The reader object was originally created on an MTA thread, and the
+            // instance we retrieved in the STA was a proxy.  When we unmarshal the Stream in the
+            // MTA, it "unwraps" the proxy, allowing us to directly call the implementation.
+            // Another way to achieve this would be for the symbol reader to implement IAgileObject,
+            // but the symbol reader we use today does not.  If that changes, we should consider
+            // removing this marshal/unmarshal code.
+            IENCDebugInfo debugInfo;
+            updater.GetENCDebugInfo(out debugInfo);
+            var symbolReaderProvider = (IENCSymbolReaderProvider)debugInfo;
+            object pdbReaderObjSta;
+            symbolReaderProvider.GetSymbolReader(out pdbReaderObjSta);
+            int hr = NativeMethods.GetStreamForObject(pdbReaderObjSta, out pdbReaderPointer);
+            Marshal.ReleaseComObject(pdbReaderObjSta);
+            return hr;
         }
 
         #region Testing 

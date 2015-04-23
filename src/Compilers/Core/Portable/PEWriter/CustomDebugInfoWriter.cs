@@ -113,7 +113,8 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private static void SerializeCustomDebugInformation(EditAndContinueMethodDebugInformation debugInfo, ArrayBuilder<MemoryStream> customDebugInfo)
+        // internal for testing
+        internal static void SerializeCustomDebugInformation(EditAndContinueMethodDebugInformation debugInfo, ArrayBuilder<MemoryStream> customDebugInfo)
         {
             if (!debugInfo.LocalSlots.IsDefaultOrEmpty)
             {
@@ -132,17 +133,30 @@ namespace Microsoft.Cci
             BinaryWriter cmw = new BinaryWriter(customMetadata);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(kind);
-            cmw.Align(4);
+            cmw.WriteByte(0);
+
+            // alignment size (will be patched)
+            uint alignmentSizeAndLengthPosition = cmw.BaseStream.Position;
+            cmw.WriteByte(0);
 
             // length (will be patched)
-            uint lengthPosition = cmw.BaseStream.Position;
             cmw.WriteUint(0);
 
             data(cmw);
 
             uint length = customMetadata.Position;
-            cmw.BaseStream.Position = lengthPosition;
-            cmw.WriteUint(length);
+            uint alignedLength = 4 * ((length + 3) / 4);
+            byte alignmentSize = (byte)(alignedLength - length);
+
+            for (int i = 0; i < alignmentSize; i++)
+            {
+                cmw.WriteByte(0);
+            }
+
+            cmw.BaseStream.Position = alignmentSizeAndLengthPosition;
+            cmw.WriteByte(alignmentSize);
+            cmw.WriteUint(alignedLength);
+
             cmw.BaseStream.Position = length;
             return customMetadata;
         }
@@ -295,7 +309,8 @@ namespace Microsoft.Cci
             customDebugInfo.Add(customMetadata);
         }
 
-        private static byte[] SerializeCustomDebugMetadata(ArrayBuilder<MemoryStream> customDebugInfo)
+        // internal for testing
+        internal static byte[] SerializeCustomDebugMetadata(ArrayBuilder<MemoryStream> customDebugInfo)
         {
             if (customDebugInfo.Count == 0)
             {

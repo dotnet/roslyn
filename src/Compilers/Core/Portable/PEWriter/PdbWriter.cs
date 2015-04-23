@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -36,9 +37,9 @@ namespace Microsoft.Cci
 
         private static Type s_lazyCorSymWriterSxSType;
 
-        private readonly Stream _stream;
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
+        private IStream _nativeStream;
         private MetadataWriter _metadataWriter;
         private ISymUnmanagedWriter2 _symWriter;
 
@@ -54,13 +55,66 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        public PdbWriter(Stream stream, string fileName, Func<object> symWriterFactory = null)
+        [DllImport("Ole32", ExactSpelling = true)]
+        private static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream stream);
+
+        private static IStream CreateNativeStream()
         {
-            Debug.Assert(stream != null);
-            _stream = stream;
+            IStream stream = null;
+            Marshal.ThrowExceptionForHR(CreateStreamOnHGlobal(IntPtr.Zero, fDeleteOnRelease: true, stream: out stream));
+            return stream;
+        }
+
+        public PdbWriter(string fileName, Func<object> symWriterFactory = null)
+        {
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
             CreateSequencePointBuffers(capacity: 64);
+        }
+
+        public unsafe void WriteTo(Stream stream)
+        {
+            Debug.Assert(_nativeStream != null);
+            Debug.Assert(_symWriter != null);
+
+            try
+            {
+                // SymWriter flushes data to the native stream on close:
+                _symWriter.Close();
+                _symWriter = null;
+
+                var statStg = default(STATSTG);
+                _nativeStream.Stat(out statStg, grfStatFlag: 3 /*STATFLAG_NONAME | STATFLAG_NOOPEN*/);
+                _nativeStream.Seek(0L, 0, IntPtr.Zero);
+
+                int size = (int)statStg.cbSize;
+
+                // If the target stream allows seeking set its length upfront.
+                // When writing to a large file, it helps to give a hint to the OS how big the file is going to be.
+                if (stream.CanSeek)
+                {
+                    stream.SetLength(stream.Position + size);
+                }
+
+                // Copy unmanagedStream contents to stream in chunks
+                var buffer = new byte[Math.Min(size, 4096)];
+                while (true)
+                {
+                    int bytesRead = 0;
+                    _nativeStream.Read(buffer, buffer.Length, (IntPtr)(&bytesRead));
+
+                    if (bytesRead <= 0)
+                    {
+                        break;
+                    }
+
+                    stream.Write(buffer, 0, bytesRead);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new PdbWritingException(ex);
+            }
         }
 
         public void Dispose()
@@ -73,16 +127,19 @@ namespace Microsoft.Cci
         {
             Close();
         }
-
-        /// <summary>
-        /// Close the PDB writer and write the PDB data to <see cref="_stream"/>.
-        /// </summary>
+        
         private void Close()
         {
             try
             {
                 _symWriter?.Close();
                 _symWriter = null;
+
+                if (_nativeStream != null)
+                {
+                    Marshal.ReleaseComObject(_nativeStream);
+                    _nativeStream = null;
+                }
             }
             catch (Exception ex)
             {
@@ -545,11 +602,13 @@ namespace Microsoft.Cci
             {
                 var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
 
-                // Important: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
+                // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
-                Debug.Assert(_stream.Length == 0);
+                // PERF: Use a native stream for the write and copy it at the end. This reduces the total GC
+                // allocations for the COM interop and geometric growth of the underlying managed stream.
+                _nativeStream = CreateNativeStream();
 
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, new ComStreamWrapper(_stream), fullBuild: true);
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _nativeStream, fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;

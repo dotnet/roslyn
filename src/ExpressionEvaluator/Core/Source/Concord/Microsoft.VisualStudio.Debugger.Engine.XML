@@ -6956,7 +6956,7 @@
              [Out] The local variables query.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext.GetTypeName(Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.Collections.ObjectModel.ReadOnlyCollection{System.String},Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext.GetTypeName(Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo,System.Collections.ObjectModel.ReadOnlyCollection{System.String})">
              <summary>
              Gets the type name string to display in the UI for the given DkmClrType.
             
@@ -6968,13 +6968,13 @@
              <param name="ClrType">
              [In] The type to get the name for.
              </param>
-             <param name="FormatSpecifiers">
-             [In,Optional] The optional format specifier(s) to use when formatting this
-             result.
-             </param>
              <param name="CustomTypeInfo">
              [In,Optional] The optional information provided by the expression compiler for
              identifying compiler intrinsic type information.
+             </param>
+             <param name="FormatSpecifiers">
+             [In,Optional] The optional format specifier(s) to use when formatting this
+             result.
              </param>
              <returns>
              [Out] The type name string.
@@ -9591,7 +9591,15 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo.Create(System.String,System.String,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCompilationResultFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory)">
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo.CustomTypeInfo">
+             <summary>
+             [Optional] The optional information provided to the result formatter for
+             identifying compiler intrinsic type information.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo.Create(System.String,System.String,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCompilationResultFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo)">
              <summary>
              Create a new DkmClrLocalVariableInfo object instance.
             
@@ -9609,6 +9617,10 @@
              <param name="ResultCategory">
              [In,Optional] What category this variable belongs to, this controls the glyph
              displayed in the evaluation windows.
+             </param>
+             <param name="CustomTypeInfo">
+             [In,Optional] The optional information provided to the result formatter for
+             identifying compiler intrinsic type information.
              </param>
              <returns>
              [Out] Result of this method call.
@@ -9932,7 +9944,7 @@
              [Out] The underlying string representation.
              </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetResult(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String},Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo,System.String,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult})">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue.GetResult(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String},System.String,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult})">
              <summary>
              Format a DkmClrValue and return a DkmEvaluationResult.
             
@@ -9952,16 +9964,16 @@
              <param name="DeclaredType">
              [In,Optional] The declared type if it is different from the runtime type.
              </param>
+             <param name="CustomTypeInfo">
+             [In,Optional] The optional information provided by the expression compiler for
+             identifying compiler intrinsic type information.
+             </param>
              <param name="InspectionContext">
              [In] The inspection context for this evaluation.
              </param>
              <param name="FormatSpecifiers">
              [In,Optional] The optional format specifier(s) to use when formatting this
              result.
-             </param>
-             <param name="CustomTypeInfo">
-             [In,Optional] The optional information provided by the expression compiler for
-             identifying compiler intrinsic type information.
              </param>
              <param name="ResultName">
              [In] The name of this result.  This value is typically the expression being
@@ -10415,14 +10427,6 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmCompiledClrLocalsQuery.CustomTypeInfo">
-             <summary>
-             [Optional] The optional information provided to the result formatter for
-             identifying compiler intrinsic type information.
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-        </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmCompiledClrLocalsQuery.UniqueId">
              <summary>
              Guid which uniquely identifies this query.
@@ -10430,7 +10434,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmCompiledClrLocalsQuery.Create(Microsoft.VisualStudio.Debugger.DkmRuntimeInstance,Microsoft.VisualStudio.Debugger.Evaluation.DkmCustomDataContainer,Microsoft.VisualStudio.Debugger.Evaluation.DkmCompilerId,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte},System.String,System.Collections.ObjectModel.ReadOnlyCollection{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo},Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmCompiledClrLocalsQuery.Create(Microsoft.VisualStudio.Debugger.DkmRuntimeInstance,Microsoft.VisualStudio.Debugger.Evaluation.DkmCustomDataContainer,Microsoft.VisualStudio.Debugger.Evaluation.DkmCompilerId,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte},System.String,System.Collections.ObjectModel.ReadOnlyCollection{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo})">
              <summary>
              Create a new DkmCompiledClrLocalsQuery object instance.
             
@@ -10456,10 +10460,6 @@
              <param name="LocalInfo">
              [In] The collection of local variable names and method names on the query type to
              get the values.
-             </param>
-             <param name="CustomTypeInfo">
-             [In,Optional] The optional information provided to the result formatter for
-             identifying compiler intrinsic type information.
              </param>
              <returns>
              [Out] Result of this method call.
@@ -24876,7 +24876,7 @@
             [Out] The value string.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetTypeName(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,System.Collections.ObjectModel.ReadOnlyCollection{System.String},Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo)">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrFormatter.GetTypeName(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo,System.Collections.ObjectModel.ReadOnlyCollection{System.String})">
             <summary>
             Gets the type name string to display in the UI for the given DkmClrType.
             </summary>
@@ -24886,13 +24886,13 @@
             <param name="clrType">
             [In] The type to get the name for.
             </param>
-            <param name="formatSpecifiers">
-            [In,Optional] The optional format specifier(s) to use when formatting this
-            result.
-            </param>
             <param name="customTypeInfo">
             [In,Optional] The optional information provided by the expression compiler for
             identifying compiler intrinsic type information.
+            </param>
+            <param name="formatSpecifiers">
+            [In,Optional] The optional format specifier(s) to use when formatting this
+            result.
             </param>
             <returns>
             [Out] The type name string.
@@ -24942,7 +24942,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrResultProvider.GetResult(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String},Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo,System.String,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult})">
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrResultProvider.GetResult(Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue,Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.Clr.DkmClrType,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext,System.Collections.ObjectModel.ReadOnlyCollection{System.String},System.String,System.String,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmEvaluationAsyncResult})">
             <summary>
             Format a DkmClrValue and return a DkmEvaluationResult.
             </summary>
@@ -24958,16 +24958,16 @@
             <param name="declaredType">
             [In,Optional] The declared type if it is different from the runtime type.
             </param>
+            <param name="customTypeInfo">
+            [In,Optional] The optional information provided by the expression compiler for
+            identifying compiler intrinsic type information.
+            </param>
             <param name="inspectionContext">
             [In] The inspection context for this evaluation.
             </param>
             <param name="formatSpecifiers">
             [In,Optional] The optional format specifier(s) to use when formatting this
             result.
-            </param>
-            <param name="customTypeInfo">
-            [In,Optional] The optional information provided by the expression compiler for
-            identifying compiler intrinsic type information.
             </param>
             <param name="resultName">
             [In] The name of this result.  This value is typically the expression being

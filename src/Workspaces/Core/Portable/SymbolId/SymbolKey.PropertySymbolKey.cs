@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis
             {
                 var container = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
                 var namedTypes = GetAllSymbols<INamedTypeSymbol>(container);
-                var properties = _isIndexer
-                    ? namedTypes.SelectMany(t => t.GetMembers()).OfType<IPropertySymbol>().Where(p => p.IsIndexer)
-                    : namedTypes.SelectMany(t => t.GetMembers(_metadataName)).OfType<IPropertySymbol>();
-                properties = properties.Where(p => p.Parameters.Length == _refKinds.Length);
+                var properties = namedTypes
+                    .SelectMany(t => t.GetMembers())
+                    .OfType<IPropertySymbol>()
+                    .Where(p => p.Parameters.Length == _refKinds.Length && p.MetadataName == _metadataName && p.IsIndexer == _isIndexer);
 
                 var comparisonOptions = new ComparisonOptions(compilation.IsCaseSensitive, ignoreAssemblyKey, compareMethodTypeParametersByName: true);
                 var matchingProperties = properties.Where(p =>

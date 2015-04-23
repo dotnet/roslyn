@@ -108,6 +108,8 @@
     <Compile Include="Symbols\TypeSubstitutionExtensions.vb" />
     <Compile Include="SyntaxHelpers.vb" />
     <Compile Include="TypeParameterChecker.vb" />
+    <Compile Include="VisualBasicCompileResult.vb" />
+    <Compile Include="VisualBasicLocalAndMethod.vb" />
     <Compile Include="VisualBasicMetadataContext.vb" />
     <Compile Include="VisualBasicExpressionCompiler.vb" />
     <Compile Include="VisualBasicFrameDecoder.vb" />

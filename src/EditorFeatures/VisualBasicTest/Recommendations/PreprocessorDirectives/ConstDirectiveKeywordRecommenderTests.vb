@@ -44,5 +44,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         Public Sub HashConstAfterPartialConstWithoutHash()
             VerifyRecommendationsContain(<File>Con|</File>, "#Const")
         End Sub
+
+        <Fact>
+        <WorkItem(722, "https://github.com/dotnet/roslyn/issues/722")>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotAfterHashConst()
+            VerifyRecommendationsMissing(<File>#Const |</File>, "#Const")
+        End Sub
     End Class
 End Namespace

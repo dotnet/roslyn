@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Utilities;
@@ -72,6 +71,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData);
 
         internal abstract ReadOnlyCollection<byte> CompileGetLocals(
+            ReadOnlyCollection<Alias> aliases,
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
             DiagnosticBag diagnostics,

@@ -149,7 +149,7 @@
     <Compile Include="Syntax\SyntaxDiffingTests.cs" />
     <Compile Include="Syntax\SyntaxEquivalenceTests.cs" />
     <Compile Include="Syntax\SyntaxFactoryTests.cs" />
-    <Compile Include="Syntax\SyntaxFormatterTests.cs" />
+    <Compile Include="Syntax\SyntaxNormalizerTests.cs" />
     <Compile Include="Syntax\SyntaxListTests.cs" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListTests.cs" />
     <Compile Include="Syntax\SyntaxNodeTests.cs" />

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 declaredTypeAndInfo: new TypeAndCustomInfo(typeArgument, typeArgumentInfo),
                 parent: parent,
                 value: value,
-                displayValue: inspectionContext.GetTypeName(DkmClrType.Create(value.Type.AppDomain, typeArgument), formatSpecifiers, typeArgumentInfo),
+                displayValue: inspectionContext.GetTypeName(DkmClrType.Create(value.Type.AppDomain, typeArgument), typeArgumentInfo, formatSpecifiers),
                 expansion: null,
                 childShouldParenthesize: false,
                 fullName: null,
