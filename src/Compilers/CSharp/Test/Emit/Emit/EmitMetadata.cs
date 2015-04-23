@@ -234,6 +234,7 @@ public class Test : Class2
                     context,
                     compilation.MessageProvider,
                     () => stream,
+                    getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     allowMissingMethodBodies: false,

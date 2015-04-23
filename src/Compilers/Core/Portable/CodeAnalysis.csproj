@@ -311,6 +311,7 @@
     <Compile Include="MetadataReader\ModuleExtensions.cs" />
     <Compile Include="MetadataReader\PEAssembly.cs" />
     <Compile Include="MetadataReader\PEModule.cs" />
+    <Compile Include="MetadataReader\PortableCustomDebugInfoKinds.cs" />
     <Compile Include="MetadataReader\SymbolFactory.cs" />
     <Compile Include="MetadataReader\TypeAttributesExtensions.cs" />
     <Compile Include="MetadataReader\TypeNameDecoder.cs" />
@@ -335,6 +336,7 @@
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
+    <Compile Include="PEWriter\MetadataWriter.PortablePdb.cs" />
     <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReferenceIndexerBase.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />

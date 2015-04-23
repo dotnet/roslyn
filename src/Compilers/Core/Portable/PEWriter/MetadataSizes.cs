@@ -38,6 +38,11 @@ namespace Microsoft.Cci
         public readonly byte TypeDefOrRefCodedIndexSize;
         public readonly byte TypeOrMethodDefCodedIndexSize;
 
+        public readonly byte LocalVariableIndexSize;
+        public readonly byte LocalConstantIndexSize;
+        public readonly byte ImportScopeIndexSize;
+        public readonly byte HasCustomDebugInformationSize;
+
         /// <summary>
         /// Table row counts. 
         /// </summary>
@@ -144,6 +149,39 @@ namespace Microsoft.Cci
             this.TypeDefOrRefCodedIndexSize = this.GetIndexByteSize(2, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.TypeSpec);
             this.TypeOrMethodDefCodedIndexSize = this.GetIndexByteSize(1, TableIndex.TypeDef, TableIndex.MethodDef);
 
+            this.LocalVariableIndexSize = this.GetIndexByteSize(0, TableIndex.LocalVariable);
+            this.LocalConstantIndexSize = this.GetIndexByteSize(0, TableIndex.LocalConstant);
+            this.ImportScopeIndexSize = this.GetIndexByteSize(0, TableIndex.ImportScope);
+
+            this.HasCustomDebugInformationSize = this.GetIndexByteSize(5,
+                TableIndex.MethodDef,
+                TableIndex.Field,
+                TableIndex.TypeRef,
+                TableIndex.TypeDef,
+                TableIndex.Param,
+                TableIndex.InterfaceImpl,
+                TableIndex.MemberRef,
+                TableIndex.Module,
+                TableIndex.DeclSecurity,
+                TableIndex.Property,
+                TableIndex.Event,
+                TableIndex.StandAloneSig,
+                TableIndex.ModuleRef,
+                TableIndex.TypeSpec,
+                TableIndex.Assembly,
+                TableIndex.AssemblyRef,
+                TableIndex.File,
+                TableIndex.ExportedType,
+                TableIndex.ManifestResource,
+                TableIndex.GenericParam,
+                TableIndex.GenericParamConstraint,
+                TableIndex.MethodSpec,
+                TableIndex.Document,
+                TableIndex.LocalScope,
+                TableIndex.LocalVariable,
+                TableIndex.LocalConstant,
+                TableIndex.ImportScope);
+
             int size = this.CalculateTableStreamHeaderSize();
 
             size += GetTableSize(TableIndex.Module, 2 + 3 * this.GuidIndexSize + this.StringIndexSize);
@@ -191,6 +229,15 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.GenericParam, 4 + this.TypeOrMethodDefCodedIndexSize + this.StringIndexSize);
             size += GetTableSize(TableIndex.MethodSpec, this.MethodDefOrRefCodedIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.GenericParamConstraint, this.GenericParamIndexSize + this.TypeDefOrRefCodedIndexSize);
+
+            size += GetTableSize(TableIndex.Document, this.BlobIndexSize + this.GuidIndexSize + this.BlobIndexSize + this.GuidIndexSize);
+            size += GetTableSize(TableIndex.MethodBody, this.BlobIndexSize);
+            size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.ImportScopeIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
+            size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
+            size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.ImportScope, this.ImportScopeIndexSize + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.AsyncMethod, this.MethodDefIndexSize + 4 + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.CustomDebugInformation, this.HasCustomDebugInformationSize + this.GuidIndexSize + this.BlobIndexSize);
 
             // +1 for terminating 0 byte
             size = BitArithmeticUtilities.Align(size + 1, StreamAlignment);

@@ -40,17 +40,34 @@ namespace Microsoft.Cci
             CancellationToken cancellationToken)
         {
             var heaps = new MetadataHeapsBuilder();
-            return new FullMetadataWriter(context, heaps, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            MetadataHeapsBuilder debugHeapsOpt;
+            switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
+            {
+                case DebugInformationFormat.PortablePdb:
+                    debugHeapsOpt = new MetadataHeapsBuilder();
+                    break;
+
+                case DebugInformationFormat.Embedded:
+                    debugHeapsOpt = heaps;
+                    break;
+
+                default:
+                    debugHeapsOpt = null;
+                    break;
+            }
+
+            return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
-            MetadataHeapsBuilder heaps,
+            MetadataHeapsBuilder heaps, 
+            MetadataHeapsBuilder debugHeapsOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(heaps, debugHeapsOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;

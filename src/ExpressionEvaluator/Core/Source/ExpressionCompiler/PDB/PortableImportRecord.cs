@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public override string Alias => _alias;
         public override string TargetString => _targetNamespaceName;
 
+        private static string GetUtf8String(MetadataReader metadataReader, BlobHandle blobHandle)
+        {
+            var bytes = metadataReader.GetBlobBytes(blobHandle);
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+        }
+
         private PortableImportRecord(
             ImportTargetKind targetKind,
             string alias,
@@ -35,129 +41,128 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _targetNamespaceName = targetNamespaceName;
         }
 
-        // TODO (https://github.com/dotnet/roslyn/issues/702): Uncomment when ImportDefinition is available in this branch.
-        //public static bool TryCreateFromImportDefinition(
-        //    ImportDefinition importDefinition,
-        //    MetadataReader metadataReader,
-        //    out PortableImportRecord record)
-        //{
-        //    record = null;
+        public static bool TryCreateFromImportDefinition(
+            ImportDefinition importDefinition,
+            MetadataReader metadataReader,
+            out PortableImportRecord record)
+        {
+            record = null;
 
-        //    var targetAssemblyHandle = importDefinition.TargetAssembly;
-        //    var alias = importDefinition.Alias.GetUtf8String(metadataReader);
+            var targetAssemblyHandle = importDefinition.TargetAssembly;
+            var alias = GetUtf8String(metadataReader, importDefinition.Alias);
 
-        //    var targetHandle = importDefinition.TargetType;
+            var targetHandle = importDefinition.TargetType;
 
-        //    Handle targetTypeHandle;
-        //    string targetNamespaceName;
-        //    if (targetHandle.Kind == HandleKind.Blob)
-        //    {
-        //        targetTypeHandle = default(Handle);
-        //        targetNamespaceName = ((BlobHandle)importDefinition.TargetType).GetUtf8String(metadataReader);
-        //    }
-        //    else
-        //    {
-        //        targetTypeHandle = targetHandle;
-        //        targetNamespaceName = null;
-        //    }
+            Handle targetTypeHandle;
+            string targetNamespaceName;
+            if (targetHandle.Kind == HandleKind.Blob)
+            {
+                targetTypeHandle = default(Handle);
+                targetNamespaceName = GetUtf8String(metadataReader, ((BlobHandle)importDefinition.TargetType));
+            }
+            else
+            {
+                targetTypeHandle = targetHandle;
+                targetNamespaceName = null;
+            }
 
-        //    ImportTargetKind targetKind;
-        //    switch (importDefinition.Kind)
-        //    {
-        //        case ImportDefinitionKind.ImportNamespace:
-        //            if (targetAssemblyHandle.IsNil &&
-        //                alias == null &&
-        //                targetNamespaceName != null &&
-        //                targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.Namespace;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.AliasNamespace:
-        //            if (targetAssemblyHandle.IsNil &&
-        //                alias != null &&
-        //                targetNamespaceName != null &&
-        //                targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.Namespace;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.ImportAssemblyNamespace:
-        //            if (!targetAssemblyHandle.IsNil &&
-        //                alias == null &&
-        //                targetNamespaceName != null &&
-        //                targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.Namespace;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.AliasAssemblyNamespace:
-        //            if (!targetAssemblyHandle.IsNil &&
-        //                alias != null &&
-        //                targetNamespaceName != null &&
-        //                targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.Namespace;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.ImportType:
-        //            if (targetAssemblyHandle.IsNil &&
-        //                alias == null &&
-        //                targetNamespaceName == null &&
-        //                !targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.Type;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.AliasType:
-        //            if (targetAssemblyHandle.IsNil &&
-        //                alias != null &&
-        //                targetNamespaceName == null &&
-        //                !targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.Type;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.ImportXmlNamespace:
-        //            if (targetAssemblyHandle.IsNil &&
-        //                alias != null && // Always non-null, possibly empty.
-        //                targetNamespaceName != null &&
-        //                targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.XmlNamespace;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.ImportAssemblyReferenceAlias:
-        //            if (targetAssemblyHandle.IsNil &&
-        //                alias != null &&
-        //                targetNamespaceName == null &&
-        //                targetTypeHandle.IsNil)
-        //            {
-        //                targetKind = ImportTargetKind.Assembly;
-        //                break;
-        //            }
-        //            return false;
-        //        case ImportDefinitionKind.AliasAssemblyReference:
-        //            // Should have created an ExternAliasRecord for this.
-        //        default:
-        //            throw ExceptionUtilities.UnexpectedValue(importDefinition.Kind);
-        //    }
+            ImportTargetKind targetKind;
+            switch (importDefinition.Kind)
+            {
+                case ImportDefinitionKind.ImportNamespace:
+                    if (targetAssemblyHandle.IsNil &&
+                        alias == null &&
+                        targetNamespaceName != null &&
+                        targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.Namespace;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.AliasNamespace:
+                    if (targetAssemblyHandle.IsNil &&
+                        alias != null &&
+                        targetNamespaceName != null &&
+                        targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.Namespace;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.ImportAssemblyNamespace:
+                    if (!targetAssemblyHandle.IsNil &&
+                        alias == null &&
+                        targetNamespaceName != null &&
+                        targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.Namespace;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.AliasAssemblyNamespace:
+                    if (!targetAssemblyHandle.IsNil &&
+                        alias != null &&
+                        targetNamespaceName != null &&
+                        targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.Namespace;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.ImportType:
+                    if (targetAssemblyHandle.IsNil &&
+                        alias == null &&
+                        targetNamespaceName == null &&
+                        !targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.Type;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.AliasType:
+                    if (targetAssemblyHandle.IsNil &&
+                        alias != null &&
+                        targetNamespaceName == null &&
+                        !targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.Type;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.ImportXmlNamespace:
+                    if (targetAssemblyHandle.IsNil &&
+                        alias != null && // Always non-null, possibly empty.
+                        targetNamespaceName != null &&
+                        targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.XmlNamespace;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.ImportAssemblyReferenceAlias:
+                    if (targetAssemblyHandle.IsNil &&
+                        alias != null &&
+                        targetNamespaceName == null &&
+                        targetTypeHandle.IsNil)
+                    {
+                        targetKind = ImportTargetKind.Assembly;
+                        break;
+                    }
+                    return false;
+                case ImportDefinitionKind.AliasAssemblyReference:
+                // Should have created an ExternAliasRecord for this.
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(importDefinition.Kind);
+            }
 
-        //    record = new PortableImportRecord(
-        //        targetKind,
-        //        alias,
-        //        targetAssemblyHandle,
-        //        targetTypeHandle,
-        //        targetNamespaceName);
-        //    return true;
-        //}
+            record = new PortableImportRecord(
+                targetKind,
+                alias,
+                targetAssemblyHandle,
+                targetTypeHandle,
+                targetNamespaceName);
+            return true;
+        }
 
         public TTypeSymbol GetTargetType<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol>(
             MetadataDecoder<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol> metadataDecoder)

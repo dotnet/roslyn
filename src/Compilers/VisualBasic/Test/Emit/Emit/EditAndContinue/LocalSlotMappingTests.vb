@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LocalSlotMappingTests
         Inherits EditAndContinueTestBase
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1951")>
         Public Sub OutOfOrderUserLocals()
             Dim source =
 <compilation>
@@ -809,7 +809,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1951")>
         Public Sub SynthesizedVariablesInAsyncMethod()
             Dim source =
             <compilation>

@@ -1,0 +1,1 @@
+csc /target:library /debug:portable Scopes.cs

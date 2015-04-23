@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue.Int
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
+using Document = Microsoft.CodeAnalysis.Document;
 using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;

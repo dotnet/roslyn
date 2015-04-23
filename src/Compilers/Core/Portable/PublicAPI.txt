@@ -324,7 +324,9 @@ Microsoft.CodeAnalysis.DocumentationMode.Parse = 1 -> Microsoft.CodeAnalysis.Doc
 Microsoft.CodeAnalysis.DocumentationProvider
 Microsoft.CodeAnalysis.DocumentationProvider.DocumentationProvider() -> void
 Microsoft.CodeAnalysis.Emit.DebugInformationFormat
+Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Embedded = 3 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
 Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Pdb = 1 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
+Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb = 2 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
 Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation
 Microsoft.CodeAnalysis.Emit.EmitBaseline
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult

@@ -42,13 +42,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
-        Private Function ITypeReferenceTypeCode(context As EmitContext) As PrimitiveTypeCode Implements ITypeReference.TypeCode
+        Private Function ITypeReferenceTypeCode(context As EmitContext) As Cci.PrimitiveTypeCode Implements ITypeReference.TypeCode
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert(Me.IsDefinitionOrDistinct())
             If Me.IsDefinition Then
                 Return Me.PrimitiveTypeCode
             End If
-            Return PrimitiveTypeCode.NotPrimitive
+            Return Cci.PrimitiveTypeCode.NotPrimitive
         End Function
 
         Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements ITypeReference.TypeDef

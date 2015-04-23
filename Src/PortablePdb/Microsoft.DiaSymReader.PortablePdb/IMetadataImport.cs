@@ -1,29 +1,64 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Roslyn.Test.PdbUtilities
+namespace Microsoft.DiaSymReader.PortablePdb
 {
-    internal struct COR_FIELD_OFFSET
+    internal static class IMetadataImportExtensions
     {
-        public uint RidOfField;
-        public uint UlOffset;
-
-        // Only here to shut up the warning about fields never being assigned to.
-        internal COR_FIELD_OFFSET(object dummy)
+        public static string GetQualifiedTypeName(this IMetadataImport importer, Handle typeDefOrRef)
         {
-            this.RidOfField = 0;
-            this.UlOffset = 0;
+            string qualifiedName;
+            if (typeDefOrRef.Kind == HandleKind.TypeDefinition)
+            {
+                TypeAttributes attributes;
+                int baseType;
+                importer.GetTypeDefProps(MetadataTokens.GetToken(typeDefOrRef), out qualifiedName, out attributes, out baseType);
+            }
+            else if (typeDefOrRef.Kind == HandleKind.TypeReference)
+            {
+                int resolutionScope;
+                importer.GetTypeRefProps(MetadataTokens.GetToken(typeDefOrRef), out resolutionScope, out qualifiedName);
+            }
+            else
+            {
+                qualifiedName = null;
+            }
+
+            return qualifiedName;
+        }
+
+        public static void GetTypeDefProps(this IMetadataImport importer, int typeDefinition, out string qualifiedName, out TypeAttributes attributes, out int baseType)
+        {
+            int bufferLength;
+            importer.GetTypeDefProps(typeDefinition, null, 0, out bufferLength, out attributes, out baseType);
+
+            var buffer = new StringBuilder(bufferLength);
+            importer.GetTypeDefProps(typeDefinition, buffer, buffer.Capacity, out bufferLength, out attributes, out baseType);
+            qualifiedName = buffer.ToString();
+        }
+
+        public static void GetTypeRefProps(this IMetadataImport importer, int typeReference, out int resolutionScope, out string qualifiedName)
+        {
+            int bufferLength;
+            importer.GetTypeRefProps(typeReference, out resolutionScope, null, 0, out bufferLength);
+
+            var buffer = new StringBuilder(bufferLength);
+            importer.GetTypeRefProps(typeReference, out resolutionScope, buffer, buffer.Capacity, out bufferLength);
+            qualifiedName = buffer.ToString();
         }
     }
 
-    [ComVisible(true)]
+    [ComVisible(false)]
     [ComImport]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [Guid("7DAC8207-D3AE-4c75-9B67-92801A497D44")]
-    internal unsafe interface IMetadataImport
+    public unsafe interface IMetadataImport
     {
         [PreserveSig]
         void CloseEnum(uint handleEnum);
@@ -35,9 +70,24 @@ namespace Roslyn.Test.PdbUtilities
         uint FindTypeDefByName(string stringTypeDef, uint tokenEnclosingClass);
         Guid GetScopeProps(StringBuilder stringName, uint cchName, out uint pchName);
         uint GetModuleFromScope();
-        uint GetTypeDefProps(uint td, IntPtr stringTypeDef, uint cchTypeDef, out uint pchTypeDef, IntPtr pdwTypeDefFlags);
+
+        void GetTypeDefProps(
+            int typeDefinition,
+            [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
+            out int qualifiedNameLength,
+            [MarshalAs(UnmanagedType.U4)] out TypeAttributes attributes,
+            out int baseType);
+
         uint GetInterfaceImplProps(uint impl, out uint pointerClass);
-        uint GetTypeRefProps(uint tr, out uint ptkResolutionScope, StringBuilder stringName, uint cchName);
+
+        void GetTypeRefProps(
+            int typeReference,
+            out int resolutionScope,
+            [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
+            out int qualifiedNameLength);
+
         uint ResolveTypeRef(uint tr, [In] ref Guid riid, [MarshalAs(UnmanagedType.Interface)] out object ppIScope);
         uint EnumMembers(ref uint handlePointerEnum, uint cl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayMembers, uint countMax);
         uint EnumMembersWithName(ref uint handlePointerEnum, uint cl, string stringName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] uint[] arrayMembers, uint countMax);
@@ -65,7 +115,7 @@ namespace Roslyn.Test.PdbUtilities
           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 11)] uint[] rmdOtherMethod, uint countMax);
         uint EnumMethodSemantics(ref uint handlePointerEnum, uint mb, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] uint[] arrayEventProp, uint countMax);
         uint GetMethodSemantics(uint mb, uint tokenEventProp);
-        uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] COR_FIELD_OFFSET[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset);
+        uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] ulong[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset);
         unsafe uint GetFieldMarshal(uint tk, out byte* ppvNativeType);
         uint GetRVA(uint tk, out uint pulCodeRVA);
         unsafe uint GetPermissionSetProps(uint pm, out uint pdwAction, out void* ppvPermission);

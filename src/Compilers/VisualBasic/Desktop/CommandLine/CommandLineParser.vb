@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
             Dim concurrentBuild As Boolean = True
-            Dim emitPdb As Boolean = False
+            Dim debugInfoFormat As DebugInformationFormat? = Nothing
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing
@@ -560,36 +560,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                             Continue For
 
-                        Case "debug"
+                            Case "debug"
 
-                            ' parse only for backwards compat
-                            If value IsNot Nothing Then
-                                If String.IsNullOrEmpty(value) Then
+                                ' parse only for backwards compat
+                                If value Is Nothing OrElse
+                                   String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) OrElse
+                                   String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
+                                    debugInfoFormat = DebugInformationFormat.Pdb
+                                ElseIf String.Equals(value, "portable", StringComparison.OrdinalIgnoreCase)
+                                    debugInfoFormat = DebugInformationFormat.PortablePdb
+                                ElseIf String.Equals(value, "embedded", StringComparison.OrdinalIgnoreCase)
+                                    debugInfoFormat = DebugInformationFormat.Embedded
+                                ElseIf value.IsEmpty Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
-                                ElseIf Not String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) AndAlso
-                                           Not String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
+                                Else
+                                AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
+                            End If
+
+                                Continue For
+
+                            Case "debug+"
+                                If value IsNot Nothing Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
                                 End If
-                            End If
 
-                            emitPdb = True
-                            Continue For
+                                debugInfoFormat = DebugInformationFormat.Pdb
+                                Continue For
 
-                        Case "debug+"
-                            If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
-                            End If
+                            Case "debug-"
+                                If value IsNot Nothing Then
+                                    AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
+                                End If
 
-                            emitPdb = True
-                            Continue For
-
-                        Case "debug-"
-                            If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
-                            End If
-
-                            emitPdb = False
-                            Continue For
+                                debugInfoFormat = Nothing
+                                Continue For
 
                         Case "optimize", "optimize+"
                             If value IsNot Nothing Then
@@ -1109,6 +1113,8 @@ lVbRuntimePlus:
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 
+            Dim emitPdb = debugInfoFormat.HasValue AndAlso debugInfoFormat.Value <> DebugInformationFormat.Embedded
+
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
@@ -1153,7 +1159,7 @@ lVbRuntimePlus:
 
             Dim emitOptions = New EmitOptions(
                     metadataOnly:=False,
-                    debugInformationFormat:=DebugInformationFormat.Pdb,
+                    debugInformationFormat:=If(debugInfoFormat, DebugInformationFormat.Pdb),
                     pdbFilePath:=Nothing, ' to be determined later
                     outputNameOverride:=Nothing,  ' to be determined later
                     fileAlignment:=fileAlignment,

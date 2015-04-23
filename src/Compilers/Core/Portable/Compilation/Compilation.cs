@@ -1625,21 +1625,57 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
+            Stream portablePdbStream = null;
+            Stream portablePdbTempStream = null;
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+            bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             try
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
-                if (pdbStreamProvider != null)
+                if (!emitPortablePdb && pdbStreamProvider != null)
                 {
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
                     nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory);
+                }
+
+                Func<Stream> getPortablePdbStream;
+                if (emitPortablePdb)
+                {
+                    getPortablePdbStream = () =>
+                    {
+                        if (metadataDiagnostics.HasAnyErrors())
+                        {
+                            return null;
+                        }
+
+                        portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                        if (portablePdbStream == null)
+                        {
+                            Debug.Assert(metadataDiagnostics.HasAnyErrors());
+                            return null;
+                        }
+
+                        // When in deterministic mode, we need to seek and read the stream to compute a deterministic PDB ID.
+                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
+                        var retStream = portablePdbStream;
+                        if (!retStream.CanSeek || deterministic && !retStream.CanRead)
+                        {
+                            retStream = portablePdbTempStream = new MemoryStream();
+                        }
+
+                        return retStream;
+                    };
+                }
+                else
+                {
+                    getPortablePdbStream = null;
                 }
 
                 Func<Stream> getPeStream = () =>
@@ -1674,7 +1710,7 @@ namespace Microsoft.CodeAnalysis
                         retStream = peStream;
                     }
 
-                    // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                    // When in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
                     // If the underlying stream isn't readable and seekable, we need to use a temp stream.
                     if (!retStream.CanSeek || deterministic && !retStream.CanRead)
                     {
@@ -1691,6 +1727,7 @@ namespace Microsoft.CodeAnalysis
                         new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
+                        getPortablePdbStream,
                         nativePdbWriter,
                         pdbPath,
                         metadataOnly,
@@ -1703,14 +1740,20 @@ namespace Microsoft.CodeAnalysis
                             peTempStream.CopyTo(peStream);
                         }
 
+                        if (portablePdbTempStream != null)
+                        {
+                            portablePdbTempStream.Position = 0;
+                            portablePdbTempStream.CopyTo(portablePdbStream);
+                        }
+
                         if (nativePdbWriter != null)
                         {
-                            var pdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                            Debug.Assert(pdbStream != null || metadataDiagnostics.HasAnyErrors());
+                            var nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                            Debug.Assert(nativePdbStream != null || metadataDiagnostics.HasAnyErrors());
 
-                            if (pdbStream != null)
+                            if (nativePdbStream != null)
                             {
-                                nativePdbWriter.WriteTo(pdbStream);
+                                nativePdbWriter.WriteTo(nativePdbStream);
                             }
                         }
                     }
@@ -1756,6 +1799,7 @@ namespace Microsoft.CodeAnalysis
             {
                 nativePdbWriter?.Dispose();
                 peTempStream?.Dispose();
+                portablePdbTempStream?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
