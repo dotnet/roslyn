@@ -383,7 +383,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.Add(template.Delegate);
                     }
                 }
-                // Should be sorted, same as AnonymousTypeTemplates. See VB.
+                builder.Sort(SynthesizedDelegateSymbolComparer.Instance);
+            }
+        }
+
+        private class SynthesizedDelegateSymbolComparer : IComparer<SynthesizedDelegateSymbol>
+        {
+            public static readonly SynthesizedDelegateSymbolComparer Instance = new SynthesizedDelegateSymbolComparer();
+
+            public int Compare(SynthesizedDelegateSymbol x, SynthesizedDelegateSymbol y)
+            {
+                return x.MetadataName.CompareTo(y.MetadataName);
             }
         }
 
