@@ -1248,22 +1248,22 @@ d.cs
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
-            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:portable", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/debug:portable", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.PortablePdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
-            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:embedded", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/debug:embedded", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat);
 
-            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:embedded", "/debug+", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/debug:embedded", "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
-            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { "/debug:embedded", "/debug-", "a.cs" }, _baseDirectory);
+            parsedArgs = DefaultParse(new[] { "/debug:embedded", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
@@ -6217,7 +6217,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -6228,7 +6228,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdbPath, isPortable: false);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
         }
 

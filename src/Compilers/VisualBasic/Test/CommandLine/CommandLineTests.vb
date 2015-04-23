@@ -2211,22 +2211,22 @@ a.vb
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:portable", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:portable", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(DebugInformationFormat.PortablePdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:embedded", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:embedded", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.EmitPdb)
             Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:embedded", "/debug+", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug+", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.EmitPdb)
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:embedded", "/debug-", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:embedded", "/debug-", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
