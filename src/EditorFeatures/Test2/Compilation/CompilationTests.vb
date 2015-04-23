@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
                 Assert.Null(project.GetCompilationAsync(CancellationToken.None).Result)
 
                 Dim solution = project.Solution
-                Assert.Null(solution.GetCompilationAsync(project.Id, CancellationToken.None).Result)
+                Assert.Null(solution.GetCompilationAsync(project, CancellationToken.None).Result)
                 Assert.False(solution.ContainsSymbolsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
                 Assert.Empty(solution.GetDocumentsWithName(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
             End Using
