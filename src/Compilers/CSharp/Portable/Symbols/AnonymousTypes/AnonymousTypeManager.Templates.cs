@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class SynthesizedDelegateSymbolComparer : IComparer<SynthesizedDelegateSymbol>
         {
-            public static SynthesizedDelegateSymbolComparer Instance = new SynthesizedDelegateSymbolComparer();
+            public static readonly SynthesizedDelegateSymbolComparer Instance = new SynthesizedDelegateSymbolComparer();
 
             public int Compare(SynthesizedDelegateSymbol x, SynthesizedDelegateSymbol y)
             {
