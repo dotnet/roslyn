@@ -2727,7 +2727,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.Lambda, "x0", "x1"));
         }
 
         [Fact]
@@ -2766,7 +2766,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.Lambda, "x0", "x1"));
         }
 
         [Fact]
@@ -2812,7 +2812,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x2", "lambda", "x0", "x2"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x2", CSharpFeaturesResources.Lambda, "x0", "x2"));
         }
 
         [Fact]
@@ -2886,7 +2886,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", "lambda", "x2", "x0"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.Lambda, "x2", "x0"));
         }
 
         [Fact]
@@ -2944,7 +2944,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.Lambda, "x0", "x1"));
         }
 
         [Fact]
@@ -3000,7 +3000,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.Lambda, "x0", "x1"));
         }
 
         [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
@@ -4734,7 +4734,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", "select clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", CSharpFeaturesResources.SelectClause));
         }
 
         [Fact]
@@ -4767,7 +4767,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", "select clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", CSharpFeaturesResources.SelectClause));
         }
 
         [Fact]
@@ -4800,7 +4800,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "from", "from clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "from", CSharpFeaturesResources.FromClause));
         }
 
         [Fact]
@@ -4901,7 +4901,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "let", "let clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "let", CSharpFeaturesResources.LetClause));
         }
 
         [Fact]
@@ -4936,7 +4936,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 descending", "orderby clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 descending", CSharpFeaturesResources.OrderByClause));
         }
 
         [Fact]
@@ -4971,7 +4971,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 ascending", "orderby clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 ascending", CSharpFeaturesResources.OrderByClause));
         }
 
         [Fact]
@@ -5006,7 +5006,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.JoinClause));
         }
 
         [Fact]
@@ -5041,7 +5041,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.JoinClause));
         }
 
         [Fact]
@@ -5076,7 +5076,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.JoinClause));
         }
 
         [Fact]
@@ -5111,7 +5111,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", "join clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.JoinClause));
         }
 
         [Fact]
@@ -5146,7 +5146,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", "groupby clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.GroupByClause));
         }
 
         [Fact]
@@ -5181,7 +5181,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", "groupby clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.GroupByClause));
         }
 
         [Fact]
@@ -5591,7 +5591,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", "select clause"));
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", CSharpFeaturesResources.SelectClause));
         }
 
         [Fact]
@@ -5633,7 +5633,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "select clause"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.SelectClause));
         }
 
         [Fact]
@@ -5673,8 +5673,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "select clause"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "lambda"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.SelectClause),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]
@@ -5716,7 +5716,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "select", "a", "select clause"));
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "select", "a", CSharpFeaturesResources.SelectClause));
         }
 
         [Fact]
@@ -5756,8 +5756,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "select clause"),
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", "lambda"));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.SelectClause),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", CSharpFeaturesResources.Lambda));
         }
 
         [Fact]

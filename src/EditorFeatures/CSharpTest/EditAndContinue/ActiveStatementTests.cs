@@ -769,7 +769,7 @@ class Foo
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Renamed, "int b", "parameter"));
+                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.Parameter));
         }
 
         [WorkItem(742334)]
@@ -818,7 +818,7 @@ class Foo
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.InitializerUpdate, "int a = 42", "parameter"));
+                Diagnostic(RudeEditKind.InitializerUpdate, "int a = 42", FeaturesResources.Parameter));
         }
 
         [WorkItem(742334)]
@@ -1416,7 +1416,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyAdd, "get", "property getter"));
+                Diagnostic(RudeEditKind.MethodBodyAdd, "get", CSharpFeaturesResources.PropertyGetter));
         }
 
         [Fact]
@@ -1686,7 +1686,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", "field"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.Field));
         }
 
         [Fact]
@@ -1716,7 +1716,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", "auto-property"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.AutoProperty));
         }
 
         [Fact]
@@ -1746,7 +1746,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", "field"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.Field));
         }
 
         [Fact]
@@ -1776,7 +1776,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", "auto-property"));
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.AutoProperty));
         }
 
         [Fact]
@@ -1804,7 +1804,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", "const field"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", FeaturesResources.ConstField));
         }
 
         [Fact]
@@ -1854,7 +1854,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", "const field"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.ConstField));
         }
 
         [Fact]
@@ -2006,7 +2006,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", "field"));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
         }
 
         [Fact]
@@ -2140,8 +2140,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Move, "int c", "field"),
-                Diagnostic(RudeEditKind.Delete, "class C", "field"));
+                Diagnostic(RudeEditKind.Move, "int c", FeaturesResources.Field),
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
         }
 
         [Fact]
@@ -2191,7 +2191,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", "field"));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Field));
         }
 
         [Fact]
@@ -2213,7 +2213,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", "auto-property"));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.AutoProperty));
         }
 
         #endregion
@@ -6806,7 +6806,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, "class"));
+                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.Class));
         }
 
         #endregion

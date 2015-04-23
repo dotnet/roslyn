@@ -70,6 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to attribute target.
+        /// </summary>
+        internal static string AttributeTarget {
+            get {
+                return ResourceManager.GetString("AttributeTarget", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to possible explicitly named anonymous type member creation..
         /// </summary>
         internal static string AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation {
@@ -214,6 +223,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to conversion operator.
+        /// </summary>
+        internal static string ConversionOperator {
+            get {
+                return ResourceManager.GetString("ConversionOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deprecated.
         /// </summary>
         internal static string Deprecated {
@@ -223,11 +241,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to destructor.
+        /// </summary>
+        internal static string Destructor {
+            get {
+                return ResourceManager.GetString("Destructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not change this code. Put cleanup code in Dispose(bool disposing) above..
         /// </summary>
         internal static string DoNotChangeThisCodeUseDispose {
             get {
                 return ResourceManager.GetString("DoNotChangeThisCodeUseDispose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to event field.
+        /// </summary>
+        internal static string EventField {
+            get {
+                return ResourceManager.GetString("EventField", resourceCulture);
             }
         }
         
@@ -304,6 +340,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to global statement.
+        /// </summary>
+        internal static string GlobalStatement {
+            get {
+                return ResourceManager.GetString("GlobalStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to groupby clause.
         /// </summary>
         internal static string GroupByClause {
@@ -336,6 +381,33 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ImplicitConversionDisplayText {
             get {
                 return ResourceManager.GetString("ImplicitConversionDisplayText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to indexer.
+        /// </summary>
+        internal static string Indexer {
+            get {
+                return ResourceManager.GetString("Indexer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to indexer getter.
+        /// </summary>
+        internal static string IndexerGetter {
+            get {
+                return ResourceManager.GetString("IndexerGetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to indexer setter.
+        /// </summary>
+        internal static string IndexerSetter {
+            get {
+                return ResourceManager.GetString("IndexerSetter", resourceCulture);
             }
         }
         
@@ -538,6 +610,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to property getter.
+        /// </summary>
+        internal static string PropertyGetter {
+            get {
+                return ResourceManager.GetString("PropertyGetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to property setter.
+        /// </summary>
+        internal static string PropertySetter {
+            get {
+                return ResourceManager.GetString("PropertySetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to query body.
         /// </summary>
         internal static string QueryBody {
@@ -727,6 +817,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to struct.
+        /// </summary>
+        internal static string Struct {
+            get {
+                return ResourceManager.GetString("Struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to with #pragma directive.
         /// </summary>
         internal static string SuppressWithPragma {
@@ -786,6 +885,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string UncommentTheFollowingIfFinalizerOverriddenTodo {
             get {
                 return ResourceManager.GetString("UncommentTheFollowingIfFinalizerOverriddenTodo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using directive.
+        /// </summary>
+        internal static string UsingDirective {
+            get {
+                return ResourceManager.GetString("UsingDirective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using namespace.
+        /// </summary>
+        internal static string UsingNamespace {
+            get {
+                return ResourceManager.GetString("UsingNamespace", resourceCulture);
             }
         }
         
