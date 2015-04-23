@@ -87,10 +87,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_portableRefsMinimal == null)
                 {
-                    var mscorlibPortable = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib.dll");
-                    var systemRuntimePortable = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime.dll");
-
-                    s_portableRefsMinimal = new MetadataReference[] { mscorlibPortable, systemRuntimePortable };
+                    s_portableRefsMinimal = new MetadataReference[] { MscorlibPP7Ref, SystemRuntimePP7Ref };
                 }
 
                 return s_portableRefsMinimal;
@@ -416,17 +413,59 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_facadeSystemRuntimeRef;
-        public static MetadataReference FacadeSystemRuntimeRef
+        private static MetadataReference s_mscorlibFacadeRef;
+        public static MetadataReference MscorlibFacadeRef
         {
             get
             {
-                if (s_facadeSystemRuntimeRef == null)
+                if (s_mscorlibFacadeRef == null)
                 {
-                    s_facadeSystemRuntimeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
+                    s_mscorlibFacadeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45.mscorlib).GetReference(display: "mscorlib.dll");
                 }
 
-                return s_facadeSystemRuntimeRef;
+                return s_mscorlibFacadeRef;
+            }
+        }
+
+        private static MetadataReference s_systemRuntimeFacadeRef;
+        public static MetadataReference SystemRuntimeFacadeRef
+        {
+            get
+            {
+                if (s_systemRuntimeFacadeRef == null)
+                {
+                    s_systemRuntimeFacadeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
+                }
+
+                return s_systemRuntimeFacadeRef;
+            }
+        }
+
+        private static MetadataReference s_mscorlibPP7Ref;
+        public static MetadataReference MscorlibPP7Ref
+        {
+            get
+            {
+                if (s_mscorlibPP7Ref == null)
+                {
+                    s_mscorlibPP7Ref = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib.dll");
+                }
+
+                return s_mscorlibPP7Ref;
+            }
+        }
+
+        private static MetadataReference s_systemRuntimePP7Ref;
+        public static MetadataReference SystemRuntimePP7Ref
+        {
+            get
+            {
+                if (s_systemRuntimePP7Ref == null)
+                {
+                    s_systemRuntimePP7Ref = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime.dll");
+                }
+
+                return s_systemRuntimePP7Ref;
             }
         }
 

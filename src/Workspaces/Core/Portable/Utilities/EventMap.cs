@@ -116,12 +116,27 @@ namespace Roslyn.Utilities
 
             public bool HasHandler(TEventHandler handler)
             {
-                return this.handler == handler;
+                return handler.Equals(this.handler);
             }
 
             public bool Equals(Registry<TEventHandler> other)
             {
-                return other != null && other.handler == this.handler;
+                if (other == null)
+                {
+                    return false;
+                }
+
+                if (other.handler == null && this.handler == null)
+                {
+                    return true;
+                }
+                
+                if (other.handler == null || this.handler == null)
+                {
+                    return false;
+                }
+
+                return other.handler.Equals(this.handler);
             }
 
             public override bool Equals(object obj)
@@ -131,7 +146,7 @@ namespace Roslyn.Utilities
 
             public override int GetHashCode()
             {
-                return this.handler.GetHashCode();
+                return this.handler == null ? 0 : this.handler.GetHashCode();
             }
         }
 

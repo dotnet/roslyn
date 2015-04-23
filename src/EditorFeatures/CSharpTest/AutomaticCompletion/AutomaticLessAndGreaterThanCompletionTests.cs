@@ -141,23 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     void Method()
     {
-        List$$
-    }
-}";
-            using (var session = CreateSession(code))
-            {
-                Assert.NotNull(session);
-                CheckStart(session.Session, expectValidSession: false);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void TypeArgument_Invalid2()
-        {
-            var code = @"class C
-{
-    void Method()
-    {
         var i = 1;
         var b = i $$
     }
@@ -170,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void TypeArgument2()
+        public void TypeArgument1()
         {
             var code = @"class C
 {
@@ -187,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void TypeArgument3()
+        public void TypeArgument2()
         {
             var code = @"class C
 {
@@ -291,6 +274,169 @@ class C
             {
                 Assert.NotNull(session);
                 CheckStart(session.Session, expectValidSession: false);
+            }
+        }
+
+        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotInLessThanComparisonOperation()
+        {
+            var code = @"using System.Linq;
+class C
+{
+    void Test(int[] args)
+    {
+        var a = args[0]$$
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+                CheckStart(session.Session, expectValidSession: false);
+            }
+        }
+
+        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NotInLessThanComparisonOperationAfterConditionalAccessExpression()
+        {
+            var code = @"using System.Linq;
+class C
+{
+    void Test(object[] args, object[] other)
+    {
+        var a = args?.First()$$
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+                CheckStart(session.Session, expectValidSession: false);
+            }
+        }
+
+        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void TypeArgumentInConditionalAccessExpressionSimple()
+        {
+            var code = @"using System.Linq;
+class C
+{
+    void Test(object[] args)
+    {
+        args?.OfType$$
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+                CheckStart(session.Session);
+            }
+        }
+
+        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void TypeArgumentInConditionalAccessExpressionNested()
+        {
+            var code = @"class C
+{
+    void Test()
+    {
+        Outer<int> t = new Outer<int>();
+        t?.GetInner<int>()?.Method$$
+    }
+}
+class Outer<T>
+{
+    public Inner<U> GetInner<U>()
+    {
+        return new Inner<U>();
+    }
+}
+class Inner<V>
+{
+    public void Method<X>() { }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+                CheckStart(session.Session);
+                Type(session.Session, "int");
+                CheckOverType(session.Session);
+            }
+        }
+
+        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void TypeArgumentInConditionalAccessExpressionDeeplyNested()
+        {
+            var code = @"class C
+{
+    void Test()
+    {
+        new Outer1<int>()?.GetInner<int>()?.GetInner().DoSomething$$
+    }
+}
+internal class Outer1<T>
+{
+    public Outer2<U> GetInner<U>()
+    {
+        return new Outer2<U>();
+    }
+}
+internal class Outer2<U>
+{
+    public Outer2() { }
+    public Inner GetInner()
+    {
+        return new Inner();
+    }
+}
+internal class Inner
+{
+    public Inner() { }
+    public void DoSomething<V>() { }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+                CheckStart(session.Session);
+            }
+        }
+
+        [WorkItem(1628, "https://github.com/dotnet/roslyn/issues/1628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void TypeArgumentInConditionalAccessExpressionWithLambdas()
+        {
+            var code = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    void Foo(object[] args)
+    {
+        var a = new Outer();
+        a?.M(x => x?.ToString())?.Method$$
+    }
+}
+
+public class Outer
+{
+    internal Inner M(Func<object, object> p)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class Inner
+{
+    public void Method<U>() { }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+                CheckStart(session.Session);
             }
         }
 
