@@ -49,6 +49,14 @@ namespace System.Runtime.CompilerServices
     }
 
     /// <summary>
+    /// This satisfies a cref on <see cref="Microsoft.CodeAnalysis.ExpressionEvaluator.DynamicFlagsCustomTypeInfo.CopyTo"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
+    internal class DynamicAttribute : Attribute
+    {
+    }
+
+    /// <summary>
     /// This satisfies a cref on <see cref="Microsoft.CodeAnalysis.WellKnownMemberNames"/>.
     /// </summary>
     internal interface INotifyCompletion

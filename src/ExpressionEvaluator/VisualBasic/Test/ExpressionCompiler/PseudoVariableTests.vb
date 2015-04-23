@@ -802,18 +802,23 @@ End Class
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size       33 (0x21)
-  .maxstack  2
-  .locals init (T V_0) //F
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (T V_0, //F
+                System.Guid V_1)
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
-  IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
-  IL_001e:  ldnull
-  IL_001f:  stind.ref
-  IL_0020:  ret
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.1
+  IL_0018:  ldnull
+  IL_0019:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String, System.Guid, Byte())""
+  IL_001e:  ldstr      ""x""
+  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
+  IL_0028:  ldnull
+  IL_0029:  stind.ref
+  IL_002a:  ret
 }")
             testData = New CompilationTestData()
             context.CompileExpression(
@@ -830,18 +835,23 @@ End Class
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size       37 (0x25)
-  .maxstack  2
-  .locals init (T V_0) //F
+  // Code size       47 (0x2f)
+  .maxstack  4
+  .locals init (T V_0, //F
+                System.Guid V_1)
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
   IL_000a:  ldstr      ""x""
-  IL_000f:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String)""
-  IL_0014:  ldstr      ""x""
-  IL_0019:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
-  IL_001e:  call       ""Function C.F(Of Object)(ByRef Object) As Object""
-  IL_0023:  pop
-  IL_0024:  ret
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.1
+  IL_0018:  ldnull
+  IL_0019:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String, System.Guid, Byte())""
+  IL_001e:  ldstr      ""x""
+  IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
+  IL_0028:  call       ""Function C.F(Of Object)(ByRef Object) As Object""
+  IL_002d:  pop
+  IL_002e:  ret
 }")
         End Sub
 

@@ -231,11 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string typeName;
             var diagnostics = DiagnosticBag.GetInstance();
             var builder = ArrayBuilder<Alias>.GetInstance();
-            builder.Add(new Alias(AliasKind.Exception, "Error", "$exception", typeof(System.IO.IOException).AssemblyQualifiedName));
-            builder.Add(new Alias(AliasKind.ReturnValue, "F returned", "$ReturnValue2", typeof(string).AssemblyQualifiedName));
-            builder.Add(new Alias(AliasKind.ReturnValue, "G returned", "$ReturnValue", typeof(object).AssemblyQualifiedName));
-            builder.Add(new Alias(AliasKind.ObjectId, "2", "2", typeof(bool).AssemblyQualifiedName));
-            builder.Add(new Alias(AliasKind.DeclaredLocal, "o", "o", "C"));
+            builder.Add(new Alias(AliasKind.Exception, "Error", "$exception", typeof(System.IO.IOException).AssemblyQualifiedName, default(CustomTypeInfo)));
+            builder.Add(new Alias(AliasKind.ReturnValue, "F returned", "$ReturnValue2", typeof(string).AssemblyQualifiedName, default(CustomTypeInfo)));
+            builder.Add(new Alias(AliasKind.ReturnValue, "G returned", "$ReturnValue", typeof(object).AssemblyQualifiedName, default(CustomTypeInfo)));
+            builder.Add(new Alias(AliasKind.ObjectId, "2", "2", typeof(bool).AssemblyQualifiedName, default(CustomTypeInfo)));
+            builder.Add(new Alias(AliasKind.DeclaredLocal, "o", "o", "C", default(CustomTypeInfo)));
             var aliases = new ReadOnlyCollection<Alias>(builder.ToArrayAndFree());
 
             var testData = new CompilationTestData();

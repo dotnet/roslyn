@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 _variables = variables;
             }
 
-            internal InspectionContextImpl Add(string id, Type type)
+            internal InspectionContextImpl Add(string id, Type type, CustomTypeInfo customTypeInfo = default(CustomTypeInfo))
             {
-                return Add(id, type.AssemblyQualifiedName);
+                return Add(id, type.AssemblyQualifiedName, customTypeInfo);
             }
 
-            internal InspectionContextImpl Add(string id, string typeName)
+            internal InspectionContextImpl Add(string id, string typeName, CustomTypeInfo customTypeInfo = default(CustomTypeInfo))
             {
                 var builder = ArrayBuilder<Alias>.GetInstance();
                 builder.AddRange(_variables);
-                builder.Add(new Alias(GetPseudoVariableKind(id), id, id, typeName));
+                builder.Add(new Alias(GetPseudoVariableKind(id), id, id, typeName, customTypeInfo));
                 return new InspectionContextImpl(new ReadOnlyCollection<Alias>(builder.ToArrayAndFree()));
             }
 

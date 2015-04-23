@@ -45,7 +45,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal ReadOnlyCollection<byte> GetCustomTypeInfoPayload()
+        /// <remarks>
+        /// Not guarantee to add the same number of flags as would
+        /// appear in a <see cref="System.Runtime.CompilerServices.DynamicAttribute"/>.
+        /// It may have more (for padding) or fewer (for compactness) falses.
+        /// It is, however, guaranteed to include the last true.
+        /// </remarks>
+        internal void CopyTo(ArrayBuilder<bool> builder)
+        {
+            if (_bits == null)
+            {
+                return;
+            }
+
+            for (int b = 0; b < _bits.Length; b++)
+            {
+                builder.Add(_bits[b]);
+            }
+        }
+
+        internal byte[] GetCustomTypeInfoPayload()
         {
             if (!Any())
             {
@@ -69,13 +88,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            return new ReadOnlyCollection<byte>(bytes);
+            return bytes;
         }
 
         public DkmClrCustomTypeInfo GetCustomTypeInfo()
         {
             var payload = GetCustomTypeInfoPayload();
-            return payload == null ? null : DkmClrCustomTypeInfo.Create(PayloadTypeId, payload);
+            return payload == null ? null : DkmClrCustomTypeInfo.Create(PayloadTypeId, new ReadOnlyCollection<byte>(payload));
         }
 
         public DynamicFlagsCustomTypeInfo SkipOne()

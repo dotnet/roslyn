@@ -3434,5 +3434,68 @@ class Test
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
 
+        [Fact]
+        public void IncorrectArrayLength()
+        {
+            var il = @"
+.assembly extern mscorlib { }
+.assembly extern System.Core { }
+.assembly IncorrectArrayLength { }
+
+.class private auto ansi beforefieldinit D
+       extends [mscorlib]System.Object
+{
+  .field public class Generic`2<object,object> MissingTrue
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[2](false true)}
+
+  .field public class Generic`2<object,object> MissingFalse
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[2](false true)}
+
+  .field public class Generic`2<object,object> ExtraTrue
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[4](false true false true)}
+
+  .field public class Generic`2<object,object> ExtraFalse
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[4](false true false false)}
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+} // end of class D
+
+.class public auto ansi beforefieldinit Generic`2<T,U>
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method Generic`2::.ctor
+
+} // end of class Generic`2
+";
+            var comp = CreateCompilationWithCustomILSource("", il, new[] { SystemCoreRef }, appendDefaultHeader: false);
+            var global = comp.GlobalNamespace;
+            var typeD = global.GetMember<NamedTypeSymbol>("D");
+            var typeG = global.GetMember<NamedTypeSymbol>("Generic");
+            var typeObject = comp.GetSpecialType(SpecialType.System_Object);
+            var typeGConstructed = typeG.Construct(typeObject, typeObject);
+
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
+        }
     }
 }
