@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Access: resultProperties.AccessType,
                 StorageType: resultProperties.StorageType,
                 TypeModifierFlags: resultProperties.ModifierFlags,
-                CustomTypeInfo: null);
+                CustomTypeInfo: compResult.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 
         internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)
