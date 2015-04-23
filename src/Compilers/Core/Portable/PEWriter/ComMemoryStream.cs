@@ -2,21 +2,55 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Utilities
 {
-    internal class ComMemoryStream : IStream
+    /// <summary>
+    /// A COM IStream implementation over memory. Supports just enough for DiaSymReader's PDB writing.
+    /// Also tuned for performance:
+    /// 1. SetSize (and Seek beyond the length) is very fast and doesn't re-allocate the underlying memory.
+    /// 2. Write is optimized to avoid copying.
+    /// 3. Doesn't use contiguous memory.
+    /// </summary>
+    internal class ComMemoryStream : IUnsafeComStream
     {
-#if DEBUG
-        private const int ChunkSize = 509; // Small prime number for debugging chunking
-#else
         private const int ChunkSize = 32768;
-#endif
         private List<byte[]> _chunks = new List<byte[]>();
         private int _position;
         private int _length;
 
-        public unsafe void Read(byte[] pv, int cb, IntPtr pcbRead)
+        public void CopyTo(Stream stream)
+        {
+            // If the target stream allows seeking set its length upfront.
+            // When writing to a large file, it helps to give a hint to the OS how big the file is going to be.
+            if (stream.CanSeek)
+            {
+                stream.SetLength(stream.Position + _length);
+            }
+
+            int chunkIndex = 0;
+            for (int cb = _length; cb > 0;)
+            {
+                int bytesToCopy = Math.Min(ChunkSize, cb);
+                if (chunkIndex < _chunks.Count)
+                {
+                    stream.Write(_chunks[chunkIndex++], 0, bytesToCopy);
+                }
+                else
+                {
+                    // Fill remaining space with zero bytes
+                    for (int i = 0; i < bytesToCopy; i++)
+                    {
+                        stream.WriteByte(0);
+                    }
+                }
+
+                cb -= bytesToCopy;
+            }
+        }
+
+        unsafe void IUnsafeComStream.Read(byte[] pv, int cb, IntPtr pcbRead)
         {
             int chunkIndex = _position / ChunkSize;
             int chunkOffset = _position % ChunkSize;
@@ -76,7 +110,7 @@ namespace Roslyn.Utilities
             return newPos;
         }
 
-        public unsafe void Seek(long dlibMove, int origin, IntPtr plibNewPosition)
+        unsafe void IUnsafeComStream.Seek(long dlibMove, int origin, IntPtr plibNewPosition)
         {
             int newPosition;
 
@@ -104,12 +138,12 @@ namespace Roslyn.Utilities
             }
         }
 
-        public void SetSize(long libNewSize)
+        void IUnsafeComStream.SetSize(long libNewSize)
         {
             _length = (int)libNewSize;
         }
 
-        public void Stat(out STATSTG pstatstg, int grfStatFlag)
+        void IUnsafeComStream.Stat(out STATSTG pstatstg, int grfStatFlag)
         {
             pstatstg = new STATSTG()
             {
@@ -117,7 +151,7 @@ namespace Roslyn.Utilities
             };
         }
 
-        public unsafe void Write(byte[] pv, int cb, IntPtr pcbWritten)
+        unsafe void IUnsafeComStream.Write(IntPtr pv, int cb, IntPtr pcbWritten)
         {
             int chunkIndex = _position / ChunkSize;
             int chunkOffset = _position % ChunkSize;
@@ -135,7 +169,7 @@ namespace Roslyn.Utilities
                     _chunks.Add(new byte[ChunkSize]);
                 }
 
-                Array.Copy(pv, bytesWritten, _chunks[chunkIndex], chunkOffset, bytesToCopy);
+                Marshal.Copy(pv + bytesWritten, _chunks[chunkIndex], chunkOffset, bytesToCopy);
                 bytesWritten += bytesToCopy;
                 _position += bytesToCopy;
                 cb -= bytesToCopy;
@@ -159,65 +193,34 @@ namespace Roslyn.Utilities
             }
         }
 
-        public void CopyTo(Stream stream)
-        {
-            int size = _length;
-
-            // If the target stream allows seeking set its length upfront.
-            // When writing to a large file, it helps to give a hint to the OS how big the file is going to be.
-            if (stream.CanSeek)
-            {
-                stream.SetLength(stream.Position + size);
-            }
-
-            int chunkIndex = 0;
-            for (int cb = size; cb > 0;)
-            {
-                int bytesToCopy = Math.Min(ChunkSize, cb);
-                if (chunkIndex < _chunks.Count)
-                {
-                    stream.Write(_chunks[chunkIndex++], 0, bytesToCopy);
-                }
-                else
-                {
-                    // Fill remaining space with zero bytes
-                    for (int i = 0; i < bytesToCopy; i++)
-                    {
-                        stream.WriteByte(0);
-                    }
-                }
-
-                cb -= bytesToCopy;
-            }
-        }
-
-        public void Commit(int grfCommitFlags)
+        void IUnsafeComStream.Commit(int grfCommitFlags)
         {
         }
 
-        public void Clone(out IStream ppstm)
+        void IUnsafeComStream.Clone(out IStream ppstm)
         {
             throw new NotSupportedException();
         }
 
-        public void CopyTo(IStream pstm, long cb, IntPtr pcbRead, IntPtr pcbWritten)
+        void IUnsafeComStream.CopyTo(IStream pstm, long cb, IntPtr pcbRead, IntPtr pcbWritten)
         {
             throw new NotSupportedException();
         }
 
-        public void LockRegion(long libOffset, long cb, int lockType)
+        void IUnsafeComStream.LockRegion(long libOffset, long cb, int lockType)
         {
             throw new NotSupportedException();
         }
 
-        public void Revert()
+        void IUnsafeComStream.Revert()
         {
             throw new NotSupportedException();
         }
 
-        public void UnlockRegion(long libOffset, long cb, int lockType)
+        void IUnsafeComStream.UnlockRegion(long libOffset, long cb, int lockType)
         {
             throw new NotSupportedException();
         }
     }
 }
+
