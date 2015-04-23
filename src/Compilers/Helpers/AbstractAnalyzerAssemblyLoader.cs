@@ -23,9 +23,11 @@ namespace Microsoft.CodeAnalysis
         private bool _hookedAssemblyResolve = false;
 
         /// <summary>
-        /// Add the path to an assembly to be considered while handling the
-        /// <see cref="AppDomain.AssemblyResolve"/> event.
+        /// Implemented by derived types to handle the actual loading of an assembly from
+        /// a file on disk, and any bookkeeping specific to the derived type.
         /// </summary>
+        protected abstract Assembly LoadCore(string fullPath);
+
         public void AddDependencyLocation(string fullPath)
         {
             if (fullPath == null)
@@ -42,17 +44,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Given a path to an assembly on disk, loads and returns the
-        /// corresponding <see cref="Assembly"/> object.
-        /// </summary>
-        /// <remarks>
-        /// Multiple calls with the same path will return the same 
-        /// <see cref="Assembly"/> instance.
-        /// 
-        /// Also hooks the <see cref="AppDomain.AssemblyResolve"/> event in
-        /// case it needs to load a dependency.
-        /// </remarks>
         public Assembly LoadFromPath(string fullPath)
         {
             if (fullPath == null)
@@ -83,11 +74,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected abstract Assembly LoadCore(string fullPath);
-
         private Assembly LoadInternal(string fullPath)
         {
             Assembly assembly = LoadCore(fullPath);
@@ -99,7 +85,23 @@ namespace Microsoft.CodeAnalysis
             return assembly;
         }
 
+        /// <summary>
+        /// Handler for <see cref="AppDomain.AssemblyResolve"/>. Delegates to <see cref="AssemblyResolveInternal(ResolveEventArgs)"/>
+        /// and prevents exceptions from leaking out.
+        /// </summary>
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            try
+            {
+                return AssemblyResolveInternal(args);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private Assembly AssemblyResolveInternal(ResolveEventArgs args)
         {
             string requestedNameWithPolicyApplied = AppDomain.CurrentDomain.ApplyPolicy(args.Name);
 
