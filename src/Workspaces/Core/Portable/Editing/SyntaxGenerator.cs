@@ -1414,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             if (dottedName == null)
             {
-                throw new ArgumentNullException("dottedName");
+                throw new ArgumentNullException(nameof(dottedName));
             }
 
             var parts = dottedName.Split(s_dotSeparator);

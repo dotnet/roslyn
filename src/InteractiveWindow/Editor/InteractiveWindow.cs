@@ -352,7 +352,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (value == null)
                 {
-                    throw new ArgumentNullException("engine");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 if (_engine != value)
