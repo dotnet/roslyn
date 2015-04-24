@@ -59,10 +59,7 @@
         Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\*ResultProvider*.UnitTests.dll;
-        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests.dll;" />
+        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
     </ItemGroup>
 
     <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
@@ -71,7 +68,6 @@
         Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\*ResultProvider*.UnitTests.dll;
         Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
         Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests2.dll;
         Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests.dll;
