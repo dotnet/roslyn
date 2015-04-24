@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 // Append an integer counter to the pipename
-                pipeName = basePipeName + counter.ToString(CultureInfo.InvariantCulture);
+                pipeName = basePipeName + "." + counter.ToString(CultureInfo.InvariantCulture);
             }
             newPipeName = pipeName;
             return null;
