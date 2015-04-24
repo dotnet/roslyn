@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 diagnostic.Id,
                 diagnostic.Category,
                 diagnostic.Message,
-                diagnostic.MessageFormat,
+                diagnostic.ENUMessageForBingSearch,
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.IsEnabledByDefault,

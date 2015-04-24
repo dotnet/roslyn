@@ -51,7 +51,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(1, e.Diagnostics.Length)
                 Dim diagnostic As DiagnosticData = e.Diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
-                Assert.Equal(ServicesVSResources.WRN_UnableToLoadAnalyzer, diagnostic.MessageFormat)
                 Assert.Contains(File, diagnostic.Message, StringComparison.Ordinal)
             End Sub
 
