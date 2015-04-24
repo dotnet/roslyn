@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -661,11 +662,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode Attribute(AttributeData attribute)
         {
+            var args = attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.TypedConstantExpression(a)))
+                    .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.TypedConstantExpression(n.Value))))
+                    .ToImmutableReadOnlyListOrEmpty();
+
             return Attribute(
-                name: TypeExpression(attribute.AttributeClass),
-                attributeArguments:
-                    attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.LiteralExpression(a.Value)))
-                    .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.LiteralExpression(n.Value.Value)))));
+                name: this.TypeExpression(attribute.AttributeClass),
+                attributeArguments: args.Count > 0 ? args : null);
         }
 
         private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)
@@ -1324,6 +1327,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode LiteralExpression(object value);
 
         /// <summary>
+        /// Creates an expression for a typed constant.
+        /// </summary>
+        public abstract SyntaxNode TypedConstantExpression(TypedConstant value);
+
+        /// <summary>
         /// Creates an expression that denotes the boolean false literal.
         /// </summary>
         public SyntaxNode FalseLiteralExpression()
@@ -1658,6 +1666,11 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return ElementAccessExpression(expression, (IEnumerable<SyntaxNode>)arguments);
         }
+
+        /// <summary>
+        /// Creates an expression that evaluates to the type at runtime.
+        /// </summary>
+        public abstract SyntaxNode TypeOfExpression(SyntaxNode type);
 
         /// <summary>
         /// Creates an expression that denotes an is-type-check operation.

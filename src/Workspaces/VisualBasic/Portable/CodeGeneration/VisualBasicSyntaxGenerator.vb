@@ -76,6 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ExpressionGenerator.GenerateNonEnumValueExpression(Nothing, value, canUseFieldReference:=True)
         End Function
 
+        Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
+            Return ExpressionGenerator.GenerateExpression(value)
+        End Function
+
         Public Overrides Function DefaultExpression(type As ITypeSymbol) As SyntaxNode
             Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
         End Function
@@ -173,6 +177,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function IsTypeExpression(expression As SyntaxNode, type As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.TypeOfIsExpression(Parenthesize(expression), DirectCast(type, TypeSyntax))
+        End Function
+
+        Public Overrides Function TypeOfExpression(type As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.GetTypeExpression(DirectCast(type, TypeSyntax))
         End Function
 
         Public Overrides Function LogicalAndExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode

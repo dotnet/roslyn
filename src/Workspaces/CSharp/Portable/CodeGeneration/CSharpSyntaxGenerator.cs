@@ -3390,6 +3390,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, Parenthesize(expression), (TypeSyntax)type);
         }
 
+        public override SyntaxNode TypeOfExpression(SyntaxNode type)
+        {
+            return SyntaxFactory.TypeOfExpression((TypeSyntax)type);
+        }
+
         public override SyntaxNode TryCastExpression(SyntaxNode expression, SyntaxNode type)
         {
             return SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, Parenthesize(expression), (TypeSyntax)type);
@@ -3538,6 +3543,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode LiteralExpression(object value)
         {
             return ExpressionGenerator.GenerateNonEnumValueExpression(null, value, canUseFieldReference: true);
+        }
+
+        public override SyntaxNode TypedConstantExpression(TypedConstant value)
+        {
+            return ExpressionGenerator.GenerateExpression(value);
         }
 
         public override SyntaxNode IdentifierName(string identifier)
