@@ -655,9 +655,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return newToken;
                 }
 
-                if (_isRenamingInStrings && newToken.IsKind(SyntaxKind.StringLiteralToken))
+                if (_isRenamingInStrings)
                 {
-                    newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.Literal);
+                    if (newToken.IsKind(SyntaxKind.StringLiteralToken))
+                    {
+                        newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.Literal);
+                    }
+                    else if (newToken.IsKind(SyntaxKind.InterpolatedStringTextToken))
+                    {
+                        newToken = RenameInStringLiteral(oldToken, newToken, (leadingTrivia, text, value, trailingTrivia) =>
+                            SyntaxFactory.Token(newToken.LeadingTrivia, SyntaxKind.InterpolatedStringTextToken, text, value, newToken.TrailingTrivia));
+                    }
                 }
 
                 if (_isRenamingInComments)

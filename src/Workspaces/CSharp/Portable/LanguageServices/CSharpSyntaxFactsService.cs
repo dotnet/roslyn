@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStringLiteral(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken);
+            return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
         }
 
         public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent)
