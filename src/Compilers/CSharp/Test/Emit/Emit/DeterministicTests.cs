@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             return compilation.EmitToArray();
         }
 
-        [Fact(Skip = "900646"), WorkItem(900646)]
+        [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
         public void Simple()
         {
             var source =
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             AssertEx.Equal(result3, result4);
         }
 
-        [Fact(Skip="https://github.com/dotnet/roslyn/issues/926"), WorkItem(926)]
+        [Fact, WorkItem(926)]
         public void CompareAllBytesEmitted_Debug()
         {
             var source =

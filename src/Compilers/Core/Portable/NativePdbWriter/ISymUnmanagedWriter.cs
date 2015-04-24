@@ -133,7 +133,7 @@ namespace Microsoft.Cci
     }
 
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("DCF7780D-BDE9-45DF-ACFE-21731A32000C"), SuppressUnmanagedCodeSecurity]
-    internal interface ISymUnmanagedWriter5
+    internal interface ISymUnmanagedWriter5 : ISymUnmanagedWriter2
     {
         //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4
         void _VtblGap1_30();
@@ -142,6 +142,17 @@ namespace Microsoft.Cci
         void OpenMapTokensToSourceSpans();
         void CloseMapTokensToSourceSpans();
         void MapTokenToSourceSpan(uint token, ISymUnmanagedDocumentWriter document, uint startLine, uint startColumn, uint endLine, uint endColumn);
+    }
+
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("CA6C2ED9-103D-46A9-B03B-05446485848B"), SuppressUnmanagedCodeSecurity]
+    internal interface ISymUnmanagedWriter6 : ISymUnmanagedWriter5
+    {
+        //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4, ISymUnmanagedWriter5
+        void _VtblGap1_33();
+
+        // ISymUnmanagedWriter6
+        void InitializeDeterministic([MarshalAs(UnmanagedType.IUnknown)] object emitter, [MarshalAs(UnmanagedType.IUnknown)] object stream);
+        void SetSignature(uint sig, Guid sig70);
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
