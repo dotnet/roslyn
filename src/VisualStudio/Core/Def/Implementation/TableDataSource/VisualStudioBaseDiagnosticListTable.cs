@@ -284,8 +284,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.ErrorCode:
                                 content = item.Id;
                                 return true;
+                            case StandardTableKeyNames.ErrorCodeToolTip:
+                                content = GetHelpLinkToolTipText(item);
+                                return content != null;
                             case StandardTableKeyNames.HelpLink:
-                                content = GetHelpLink(item);
+                                var isBing = false;
+                                content = GetHelpLink(item, out isBing);
                                 return content != null;
                             case StandardTableKeyNames.ErrorCategory:
                                 content = item.Category;
@@ -454,8 +458,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         };
                     }
 
-                    private string GetHelpLink(DiagnosticData item)
+                    private static string GetHelpLink(DiagnosticData item, out bool isBing)
                     {
+                        isBing = false;
+
                         Uri link;
                         if (BrowserHelper.TryGetUri(item.HelpLink, out link))
                         {
@@ -464,8 +470,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         if (!string.IsNullOrWhiteSpace(item.Id))
                         {
-                            // TODO: once we link descriptor with diagnostic, get en-us message for Uri creation
-                            return BrowserHelper.CreateBingQueryUri(item.Id, item.MessageFormat).AbsoluteUri;
+                            isBing = true;
+                            return BrowserHelper.CreateBingQueryUri(item.Id, item.ENUMessageForBingSearch).AbsoluteUri;
+                        }
+
+                        return null;
+                    }
+
+                    private static string GetHelpLinkToolTipText(DiagnosticData item)
+                    {
+                        var isBing = false;
+                        var helpLink = GetHelpLink(item, out isBing);
+
+                        if (helpLink != null)
+                        {
+                            return string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, item.Id,
+                                isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpLink);
                         }
 
                         return null;

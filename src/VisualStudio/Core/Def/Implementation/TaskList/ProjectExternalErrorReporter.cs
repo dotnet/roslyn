@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 id: errorId,
                 category: WellKnownDiagnosticTags.Build,
                 message: message,
-                messageFormat: message,
+                enuMessageForBingSearch: message, // Unfortunately, there is no way to get ENU text for this since this is an external error.
                 severity: severity,
                 defaultSeverity: severity,
                 isEnabledByDefault: true,

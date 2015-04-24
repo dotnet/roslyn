@@ -205,6 +205,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Get help for &apos;{0}&apos;{1}{2}{3}.
+        /// </summary>
+        internal static string DiagnosticIdHyperlinkTooltipText {
+            get {
+                return ResourceManager.GetString("DiagnosticIdHyperlinkTooltipText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C#/VB Diagnostics Table Data Source.
         /// </summary>
         internal static string DiagnosticsTableSourceName {
@@ -363,6 +372,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string FilePathCannotUseReservedKeywords {
             get {
                 return ResourceManager.GetString("FilePathCannotUseReservedKeywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  from Bing.
+        /// </summary>
+        internal static string FromBing {
+            get {
+                return ResourceManager.GetString("FromBing", resourceCulture);
             }
         }
         
