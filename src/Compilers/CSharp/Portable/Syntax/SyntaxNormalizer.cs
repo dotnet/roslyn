@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            if (IsXmlTextToken(token.Kind()) || IsXmlTextToken(token.Kind()))
+            if (IsXmlTextToken(token.Kind()) || IsXmlTextToken(next.Kind()))
             {
                 return false;
             }
