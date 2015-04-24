@@ -789,6 +789,35 @@ class Foo
             }
         }
 
+        [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void NoSmartOrBlockIndentationWithAutomaticBraceFormattingDisabled()
+        {
+            var code = @"namespace NS1
+{
+    public class C1
+$$
+}";
+
+            var expected = @"namespace NS1
+{
+    public class C1
+{ }
+}";
+
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                            };
+            using (var session = CreateSession(code, optionSet))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+            }
+        }
+
         internal Holder CreateSession(string code, Dictionary<OptionKey, object> optionSet = null)
         {
             return CreateSession(

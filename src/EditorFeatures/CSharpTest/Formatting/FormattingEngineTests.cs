@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
@@ -1060,10 +1061,43 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected)
+        [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontSmartFormatBracesOnSmartIndentNone()
+        {
+            var code = @"class Program<T>
+{
+    class C1<U>
+{$$
+}";
+
+            var expected = @"class Program<T>
+{
+    class C1<U>
+{
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                            };
+            AssertFormatAfterTypeChar(code, expected, optionSet);
+        }
+
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
             {
+                if (changedOptionSet != null)
+                {
+                    var options = workspace.Options;
+                    foreach (var entry in changedOptionSet)
+                    {
+                        options = options.WithChangedOption(entry.Key, entry.Value);
+                    }
+
+                    workspace.Options = options;
+                }
+
                 var subjectDocument = workspace.Documents.Single();
 
                 var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
