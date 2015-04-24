@@ -465,4 +465,10 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="NoChanges" xml:space="preserve">
     <value>No Changes</value>
   </data>
+  <data name="DiagnosticIdHyperlinkTooltipText" xml:space="preserve">
+    <value>Get help for '{0}'{1}{2}{3}</value>
+  </data>
+  <data name="FromBing" xml:space="preserve">
+    <value> from Bing</value>
+  </data>
 </root>
