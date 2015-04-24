@@ -2359,6 +2359,64 @@ class TestClass
             Test(code, expected, index: 2, compareTokens: false);
         }
 
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestNoConstantForInterpolatedStrings1()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""{DateTime.Now.ToString()}Text{args[0]}""|]);
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:v|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        Console.WriteLine(v);
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestNoConstantForInterpolatedStrings2()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""Text{{s}}""|]);
+        Console.WriteLine($""Text{{s}}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:v|} = $""Text{{s}}"";
+        Console.WriteLine(v);
+        Console.WriteLine(v);
+    }
+}";
+
+            Test(code, expected, index: 1, compareTokens: false);
+        }
+
         [WorkItem(909152)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestMissingOnNullLiteral()
