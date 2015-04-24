@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically format completed _block on }.
+        ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
         internal static string FormatOnCloseBraceCheckBox {
             get {
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically format completed _statement on ;.
+        ///   Looks up a localized string similar to Automatically format _statement on ;.
         /// </summary>
         internal static string FormatOnSemicolonCheckBox {
             get {
