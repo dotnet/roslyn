@@ -333,6 +333,8 @@
     <Compile Include="MetadataReference\PortableExecutableReference.cs" />
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
+    <Compile Include="PEWriter\ComMemoryStream.cs" />
+    <Compile Include="PEWriter\IUnsafeComStream.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
     <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />

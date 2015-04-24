@@ -6,9 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
     internal class HighlightTag : AbstractNavigatableReferenceHighlightingTag
     {
-        // NOTE: We use "bracehighlight" here, so that we share the same Fonts & Colors element with
-        // brace highlighting for now.
-        internal const string TagId = "bracehighlight";
+        internal const string TagId = "MarkerFormatDefinition/HighlightedReference";
 
         public static readonly HighlightTag Instance = new HighlightTag();
 
