@@ -39,7 +39,7 @@ namespace Microsoft.Cci
 
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
-        private IStream _nativeStream;
+        private ComMemoryStream _pdbStream;
         private MetadataWriter _metadataWriter;
         private ISymUnmanagedWriter2 _symWriter;
 
@@ -55,16 +55,6 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        [DllImport("Ole32", ExactSpelling = true)]
-        private static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream stream);
-
-        private static IStream CreateNativeStream()
-        {
-            IStream stream = null;
-            Marshal.ThrowExceptionForHR(CreateStreamOnHGlobal(IntPtr.Zero, fDeleteOnRelease: true, stream: out stream));
-            return stream;
-        }
-
         public PdbWriter(string fileName, Func<object> symWriterFactory = null)
         {
             _fileName = fileName;
@@ -74,7 +64,7 @@ namespace Microsoft.Cci
 
         public unsafe void WriteTo(Stream stream)
         {
-            Debug.Assert(_nativeStream != null);
+            Debug.Assert(_pdbStream != null);
             Debug.Assert(_symWriter != null);
 
             try
@@ -82,34 +72,7 @@ namespace Microsoft.Cci
                 // SymWriter flushes data to the native stream on close:
                 _symWriter.Close();
                 _symWriter = null;
-
-                var statStg = default(STATSTG);
-                _nativeStream.Stat(out statStg, grfStatFlag: 3 /*STATFLAG_NONAME | STATFLAG_NOOPEN*/);
-                _nativeStream.Seek(0L, 0, IntPtr.Zero);
-
-                int size = (int)statStg.cbSize;
-
-                // If the target stream allows seeking set its length upfront.
-                // When writing to a large file, it helps to give a hint to the OS how big the file is going to be.
-                if (stream.CanSeek)
-                {
-                    stream.SetLength(stream.Position + size);
-                }
-
-                // Copy unmanagedStream contents to stream in chunks
-                var buffer = new byte[Math.Min(size, 4096)];
-                while (true)
-                {
-                    int bytesRead = 0;
-                    _nativeStream.Read(buffer, buffer.Length, (IntPtr)(&bytesRead));
-
-                    if (bytesRead <= 0)
-                    {
-                        break;
-                    }
-
-                    stream.Write(buffer, 0, bytesRead);
-                }
+                _pdbStream.CopyTo(stream);
             }
             catch (Exception ex)
             {
@@ -134,12 +97,7 @@ namespace Microsoft.Cci
             {
                 _symWriter?.Close();
                 _symWriter = null;
-
-                if (_nativeStream != null)
-                {
-                    Marshal.ReleaseComObject(_nativeStream);
-                    _nativeStream = null;
-                }
+                _pdbStream = null;
             }
             catch (Exception ex)
             {
@@ -605,11 +563,9 @@ namespace Microsoft.Cci
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
-                // PERF: Use a native stream for the write and copy it at the end. This reduces the total GC
-                // allocations for the COM interop and geometric growth of the underlying managed stream.
-                _nativeStream = CreateNativeStream();
+                _pdbStream = new ComMemoryStream();
 
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _nativeStream, fullBuild: true);
+                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
 
                 _metadataWriter = metadataWriter;
                 _symWriter = instance;
