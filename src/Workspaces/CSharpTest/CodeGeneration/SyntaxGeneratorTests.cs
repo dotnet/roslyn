@@ -107,6 +107,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         }
 
         [Fact]
+        public void TestAttributeData()
+        {
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { }",
+@"[MyAttribute]")),
+@"[global::MyAttribute]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(object value) { } }",
+@"[MyAttribute(null)]")),
+@"[global::MyAttribute(null)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(int value) { } }",
+@"[MyAttribute(123)]")),
+@"[global::MyAttribute(123)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(double value) { } }",
+@"[MyAttribute(12.3)]")),
+@"[global::MyAttribute(12.3)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(string value) { } }",
+@"[MyAttribute(""value"")]")),
+@"[global::MyAttribute(""value"")]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public enum E { A, B, C }
+public class MyAttribute : Attribute { public MyAttribute(E value) { } }",
+@"[MyAttribute(E.A)]")),
+@"[global::MyAttribute(global::E.A)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
+@"[MyAttribute(typeof(MyAttribute))]")),
+@"[global::MyAttribute(typeof (global::MyAttribute))]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
+@"[MyAttribute(new [] {1, 2, 3})]")),
+@"[global::MyAttribute(new[]{1, 2, 3})]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public int Value {get; set;} }",
+@"[MyAttribute(Value = 123)]")),
+@"[global::MyAttribute(Value = 123)]");
+
+        }
+
+        private AttributeData GetAttributeData(string decl, string use)
+        {
+            var compilation = Compile(decl + "\r\n" + use + "\r\nclass C { }");
+            var typeC = compilation.GlobalNamespace.GetMembers("C").First() as INamedTypeSymbol;
+            return typeC.GetAttributes().First();
+        }
+
+        [Fact]
         public void TestNameExpressions()
         {
             VerifySyntax<IdentifierNameSyntax>(_g.IdentifierName("x"), "x");
@@ -296,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         {
             VerifySyntax<BinaryExpressionSyntax>(_g.IsTypeExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) is y");
             VerifySyntax<BinaryExpressionSyntax>(_g.TryCastExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) as y");
+            VerifySyntax<TypeOfExpressionSyntax>(_g.TypeOfExpression(_g.IdentifierName("x")), "typeof (x)");
         }
 
         [Fact]
@@ -566,9 +634,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                 _g.VoidReturningLambdaExpression(new[] { _g.LambdaParameter("x", _g.IdentifierName("y")), _g.LambdaParameter("a", _g.IdentifierName("b")) }, _g.IdentifierName("z")),
                 "(y x, b a) => z");
         }
-        #endregion
+#endregion
 
-        #region Declarations
+#region Declarations
         [Fact]
         public void TestFieldDeclarations()
         {
@@ -1400,9 +1468,9 @@ public class C { } // end").Members[0];
     }
 }");
         }
-        #endregion
+#endregion
 
-        #region Add/Insert/Remove/Get declarations & members/elements
+#region Add/Insert/Remove/Get declarations & members/elements
 
         private void AssertNamesEqual(string[] expectedNames, IEnumerable<SyntaxNode> actualNodes)
         {
@@ -2777,6 +2845,6 @@ public void M()
 {
 }");
         }
-        #endregion
+#endregion
     }
 }
