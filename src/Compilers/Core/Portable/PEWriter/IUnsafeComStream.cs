@@ -8,14 +8,14 @@ namespace Roslyn.Utilities
 {
     /// <summary>
     /// This is a re-definition of COM's IStream interface. The important change is that
-    /// the Write method takes an <see cref="IntPtr"/> instead of a byte[] to avoid the
+    /// the Read and Write methods take an <see cref="IntPtr"/> instead of a byte[] to avoid the
     /// allocation cost when called from native code.
     /// </summary>
     [Guid("0000000c-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), ComImport]
     internal interface IUnsafeComStream
     {
         // ISequentialStream portion
-        void Read([MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out] byte[] pv, int cb, IntPtr pcbRead);
+        void Read(IntPtr pv, int cb, IntPtr pcbRead);
         void Write(IntPtr pv, int cb, IntPtr pcbWritten);
 
         // IStream portion

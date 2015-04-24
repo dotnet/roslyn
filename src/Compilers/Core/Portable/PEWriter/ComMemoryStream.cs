@@ -12,8 +12,8 @@ namespace Roslyn.Utilities
     /// A COM IStream implementation over memory. Supports just enough for DiaSymReader's PDB writing.
     /// Also tuned for performance:
     /// 1. SetSize (and Seek beyond the length) is very fast and doesn't re-allocate the underlying memory.
-    /// 2. Write is optimized to avoid copying.
-    /// 3. Doesn't use contiguous memory.
+    /// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
+    /// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
     /// </summary>
     internal class ComMemoryStream : IUnsafeComStream
     {
@@ -52,7 +52,16 @@ namespace Roslyn.Utilities
             }
         }
 
-        unsafe void IUnsafeComStream.Read(byte[] pv, int cb, IntPtr pcbRead)
+        private unsafe static void ZeroMemory(IntPtr dest, int count)
+        {
+            var p = (byte*)dest;
+            while (count-- > 0)
+            {
+                *p++ = 0;
+            }
+        }
+
+        unsafe void IUnsafeComStream.Read(IntPtr pv, int cb, IntPtr pcbRead)
         {
             int chunkIndex = _position / ChunkSize;
             int chunkOffset = _position % ChunkSize;
@@ -69,21 +78,16 @@ namespace Roslyn.Utilities
 
                 if (chunkIndex < _chunks.Count)
                 {
-                    Array.Copy(_chunks[chunkIndex], chunkOffset, pv, destinationIndex, bytesToCopy);
+                    Marshal.Copy(_chunks[chunkIndex], chunkOffset, pv + destinationIndex, bytesToCopy);
                 }
                 else
                 {
-                    Array.Clear(pv, destinationIndex, bytesToCopy);
+                    ZeroMemory(pv + destinationIndex, bytesToCopy);
                 }
 
                 bytesRead += bytesToCopy;
                 _position += bytesToCopy;
                 cb -= bytesToCopy;
-                if (cb == 0 || (_length - _position) == 0)
-                {
-                    break;
-                }
-
                 destinationIndex += bytesToCopy;
                 chunkIndex++;
                 chunkOffset = 0;
@@ -173,21 +177,12 @@ namespace Roslyn.Utilities
 
                 Marshal.Copy(pv + bytesWritten, _chunks[chunkIndex], chunkOffset, bytesToCopy);
                 bytesWritten += bytesToCopy;
-                _position += bytesToCopy;
                 cb -= bytesToCopy;
-                if (cb == 0)
-                {
-                    break;
-                }
-
                 chunkIndex++;
                 chunkOffset = 0;
             }
 
-            if (_position > _length)
-            {
-                _length = _position;
-            }
+            SetPosition(_position + bytesWritten);
 
             if (pcbWritten != IntPtr.Zero)
             {
