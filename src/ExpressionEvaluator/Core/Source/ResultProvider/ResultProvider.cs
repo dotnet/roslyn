@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Formatter = formatter;
         }
 
-        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo declaredTypeInfo, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
+        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
             // TODO: Use full name
             var wl = new WorkList(workList, e => completionRoutine(DkmEvaluationAsyncResult.CreateErrorResult(e)));
@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var declaredLmrType = declaredType.GetLmrType();
             var runtimeType = value.Type;
             var runtimeLmrType = runtimeType.GetLmrType();
-            var declaredTypeName = inspectionContext.GetTypeName(declaredType, Formatter.NoFormatSpecifiers, declaredTypeInfo);
-            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, Formatter.NoFormatSpecifiers, CustomTypeInfo: null);
+            var declaredTypeName = inspectionContext.GetTypeName(declaredType, declaredTypeInfo, Formatter.NoFormatSpecifiers);
+            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, CustomTypeInfo: null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
             var includeRuntimeTypeName =
                 !string.Equals(declaredTypeName, runtimeTypeName, StringComparison.OrdinalIgnoreCase) && // Names will reflect "dynamic", types will not.
                 !declaredLmrType.IsPointer &&

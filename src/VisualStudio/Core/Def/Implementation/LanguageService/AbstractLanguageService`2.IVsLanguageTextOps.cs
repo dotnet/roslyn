@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var rules = ruleFactory.CreateRule(document, start).Concat(Formatter.GetDefaultFormattingRules(document));
 
             // use formatting that return text changes rather than tree rewrite which is more expensive
-            var originalChanges = Formatter.GetFormattedTextChanges(root, adjustedSpan, document.Project.Solution.Workspace, rules: rules, cancellationToken: cancellationToken);
+            var originalChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), document.Project.Solution.Workspace, options: null, rules: rules, cancellationToken: cancellationToken);
 
             var originalSpan = RoslynTextSpan.FromBounds(start, end);
             var formattedChanges = ruleFactory.FilterFormattedChanges(document, originalSpan, originalChanges);

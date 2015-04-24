@@ -2291,5 +2291,45 @@ class C
                 Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             }
         }
+
+        [Fact, WorkItem(2046, "https://github.com/dotnet/roslyn/issues/2046")]
+        public void ObjectInitializerTest_DynamicPassedToConstructor()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        DoesNotWork();
+    }
+
+    public static void DoesNotWork()
+    {
+        var cc = new Cc(1, (dynamic)new object())
+        {
+            C = ""Initialized""
+        };
+        Console.WriteLine(cc.C ?? ""Uninitialized !!!"");
+    }
+}
+
+public class Cc{
+
+    public int A { get; set; }
+    public dynamic B { get; set; }
+
+    public string C { get; set; }
+
+    public Cc(int a, dynamic b)
+    {
+        A = a;
+        B = b;
+    }
+}
+";
+            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, expectedOutput: "Initialized");
+        }
     }
 }

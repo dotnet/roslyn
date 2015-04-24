@@ -1885,32 +1885,20 @@ internal class C
         [WorkItem(531342, "DevDiv"), WorkItem(727122, "DevDiv")]
         public void PortableLibrary()
         {
-            var mscorlibPP7 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib, PP7");
-            var systemRuntimePP7 = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime, PP7");
-            var systemRuntimeFacade = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime, facade");
-
             var plSource = @"public class C {}";
-            var pl = CreateCompilation(plSource, new[] { mscorlibPP7, systemRuntimePP7 });
-
-            var mainRefs = new MetadataReference[]
-            {
-                new CSharpCompilationReference(pl),
-                MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45.mscorlib)
-            };
+            var pl = CreateCompilation(plSource, new[] { MscorlibPP7Ref, SystemRuntimePP7Ref });
+            var r1 = new CSharpCompilationReference(pl);
 
             var mainSource = @"public class D : C { }";
 
             // w/o facades:
-
-            var main = CreateCompilation(mainSource, mainRefs, options: TestOptions.ReleaseDll);
-
+            var main = CreateCompilation(mainSource, new MetadataReference[] { r1, MscorlibFacadeRef }, options: TestOptions.ReleaseDll);
             main.VerifyDiagnostics(
                 // (1,18): error CS0012: The type 'System.Object' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("System.Object", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"));
 
             // facade specified:
-
-            main = CreateCompilation(mainSource, mainRefs.Concat(new[] { systemRuntimeFacade }));
+            main = CreateCompilation(mainSource, new MetadataReference[] { r1, MscorlibFacadeRef, SystemRuntimeFacadeRef });
             main.VerifyDiagnostics();
         }
 

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return new GetLocalsResult(typeName, locals, assembly);
                     },
                     out error);
-                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals, CustomTypeInfo: null);
+                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, this.CompilerId, r.Assembly, r.TypeName, r.Locals);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
-            return DkmClrLocalVariableInfo.Create(local.LocalName, local.MethodName, local.Flags, DkmEvaluationResultCategory.Data);
+            return DkmClrLocalVariableInfo.Create(local.LocalName, local.MethodName, local.Flags, DkmEvaluationResultCategory.Data, local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 
         private struct GetLocalsResult
