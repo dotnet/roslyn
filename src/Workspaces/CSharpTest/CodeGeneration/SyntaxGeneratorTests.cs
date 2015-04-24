@@ -1224,10 +1224,6 @@ public class C { } // end").Members[0];
 
             var attrWithComment = _g.GetAttributes(added).First();
             VerifySyntax<AttributeListSyntax>(attrWithComment, "// comment\r\n[a]");
-
-            // added attributes are stripped of trivia
-            var added2 = _g.AddAttributes(cls, attrWithComment);
-            VerifySyntax<ClassDeclarationSyntax>(added2, "// comment\r\n[a]\r\npublic class C\r\n{\r\n} // end\r\n");
         }
 
         [Fact]

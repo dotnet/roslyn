@@ -1094,12 +1094,10 @@ namespace Microsoft.CodeAnalysis.Editing
             return root.ReplaceToken(original, combinedTriviaReplacement);
         }
 
-        protected IEnumerable<TNode> ClearTrivia<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
-        {
-            return nodes != null ? nodes.Select(n => ClearTrivia(n)) : null;
-        }
-
-        protected abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
+        /// <summary>
+        /// Creates a new instance of the node with the leading and trailing trivia removed and replaced with elastic markers.
+        /// </summary>
+        public abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
         protected int IndexOf<T>(IReadOnlyList<T> list, T element)
         {

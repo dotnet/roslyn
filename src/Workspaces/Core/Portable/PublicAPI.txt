@@ -293,7 +293,6 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.Attribute(string name, params Mic
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AttributeArgument(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.ITypeSymbol type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CatchClause(Microsoft.CodeAnalysis.ITypeSymbol type, string identifer, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ClearTrivia<TNode>(System.Collections.Generic.IEnumerable<TNode> nodes) -> System.Collections.Generic.IEnumerable<TNode>
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CompilationUnit(params Microsoft.CodeAnalysis.SyntaxNode[] declarations) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConstructorDeclaration(Microsoft.CodeAnalysis.IMethodSymbol constructorMethod, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> baseConstructorArguments = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.ITypeSymbol type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode

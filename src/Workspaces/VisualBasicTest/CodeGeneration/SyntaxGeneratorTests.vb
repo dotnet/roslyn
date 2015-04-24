@@ -1754,15 +1754,6 @@ End Class ' end</x>.Value)
 <x>' comment
 &lt;a&gt;</x>.Value)
 
-            ' added attributes are stripped of trivia
-            Dim added2 = _g.AddAttributes(cls, attrWithComment)
-            VerifySyntax(Of ClassBlockSyntax)(
-                added2,
-<x>' comment
-&lt;a&gt;
-Class C
-End Class ' end</x>.Value)
-
         End Sub
 
         <Fact>
