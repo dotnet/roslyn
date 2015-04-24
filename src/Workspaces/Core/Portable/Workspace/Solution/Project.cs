@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _solution.GetCompilationAsync(this.Id, cancellationToken);
+            return _solution.GetCompilationAsync(this, cancellationToken);
         }
 
         /// <summary>

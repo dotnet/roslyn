@@ -1312,10 +1312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' Don't rewrite in the case where Nullable(Of Integer) is part of some qualified name like Nullable(Of Integer).Something
                     If (symbol.Kind = SymbolKind.NamedType) AndAlso (Not name.IsLeftSideOfQualifiedName) Then
                         Dim type = DirectCast(symbol, INamedTypeSymbol)
-                        If (Not type.IsUnboundGenericType) AndAlso 'Don't rewrite unbound generic type "Nullable(Of )"
-                           (type.OriginalDefinition IsNot Nothing) AndAlso
-                           (type.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T) AndAlso
-                           (aliasInfo Is Nothing) Then
+                        If aliasInfo Is Nothing AndAlso CanSimplifyNullable(type, name) Then
                             Dim genericName As GenericNameSyntax
                             If name.Kind = SyntaxKind.QualifiedName Then
                                 genericName = DirectCast(DirectCast(name, QualifiedNameSyntax).Right, GenericNameSyntax)
@@ -1374,6 +1371,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken)
+        End Function
+
+        Private Function CanSimplifyNullable(type As INamedTypeSymbol, name As NameSyntax) As Boolean
+            If Not type.IsNullable Then
+                Return False
+            End If
+
+            If type.IsUnboundGenericType Then
+                ' Don't simplify unbound generic type "Nullable(Of )".
+                Return False
+            End If
+
+            If Not InsideCrefReference(name) Then
+                ' Nullable(Of T) can always be simplified to T? outside crefs.
+                Return True
+            End If
+
+            ' Inside crefs, if the T in this Nullable(Of T) is being declared right here
+            ' then this Nullable(Of T) is not a constructed generic type and we should
+            ' not offer to simplify this to T?.
+            '
+            ' For example, we should not offer the simplification in the following cases where
+            ' T does not bind to an existing type / type parameter in the user's code.
+            ' - <see cref="Nullable(Of T)"/>
+            ' - <see cref="System.Nullable(Of T).Value"/>
+            '
+            ' And we should offer the simplification in the following cases where SomeType and
+            ' SomeMethod bind to a type and method declared elsewhere in the users code.
+            ' - <see cref="SomeType.SomeMethod(Nullable(Of SomeType))"/>
+
+            If name.IsKind(SyntaxKind.GenericName) Then
+                If (name.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="Nullable(Of T)"
+                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="System.Nullable(Of T)"
+                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
+                    ' Unfortunately, unlike in corresponding C# case, we need syntax based checking to detect these cases because of bugs in the VB SemanticModel.
+                    ' See https://github.com/dotnet/roslyn/issues/2196, https://github.com/dotnet/roslyn/issues/2197
+                    Return False
+                End If
+            End If
+
+            Dim argument = type.TypeArguments.SingleOrDefault()
+            If argument Is Nothing OrElse argument.IsErrorType() Then
+                Return False
+            End If
+
+            Dim argumentDecl = argument.DeclaringSyntaxReferences.FirstOrDefault()
+            If argumentDecl Is Nothing Then
+                ' The type argument is a type from metadata - so this is a constructed generic nullable type that can be simplified (e.g. Nullable(Of Integer)).
+                Return True
+            End If
+
+            Return Not name.Span.Contains(argumentDecl.Span)
         End Function
 
         Private Function TryReduceAttributeSuffix(

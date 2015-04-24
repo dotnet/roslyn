@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             result = context.CompileExpression(InspectionContextFactory.Empty, "string.Empty, nq;", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
             Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(error, "(1,13): error CS1002: ; expected");
-            Assert.Equal(result.FormatSpecifiers, null);
+            Assert.Null(result);
 
             // Assignment without ';' as statement.
             testData = new CompilationTestData();

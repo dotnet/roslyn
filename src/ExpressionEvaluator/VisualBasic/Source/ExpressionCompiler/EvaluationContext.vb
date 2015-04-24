@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End If
 
                 resultProperties = properties
-                Return New CompileResult(
+                Return New VisualBasicCompileResult(
                         stream.ToArray(),
                         s_typeName,
                         s_methodName,
@@ -431,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         properties.AccessType,
                         properties.StorageType,
                         properties.ModifierFlags)
-                Return New CompileResult(
+                Return New VisualBasicCompileResult(
                         stream.ToArray(),
                         s_typeName,
                         s_methodName,

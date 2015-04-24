@@ -251,10 +251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
-
-                // TODO: use culture from compilation?
-                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.InvariantCulture);
-                WriteLine(string.Format(message, symbol.GetDocumentationCommentId()));
+                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
                 return;
             }
 
@@ -300,10 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
-
-                // TODO: use culture from compilation?
-                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.InvariantCulture);
-                WriteLine(string.Format(message, symbol.GetDocumentationCommentId()));
+                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
                 return;
             }
 

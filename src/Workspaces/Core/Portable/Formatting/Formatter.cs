@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <returns>The formatted tree's root node.</returns>
         public static SyntaxNode Format(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+<<<<<<< HEAD
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
@@ -255,6 +256,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return Format(node, new TextSpan[] { span }, workspace, options, cancellationToken);
+=======
+            return Format(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules:null, cancellationToken: cancellationToken);
+>>>>>>> dotnet/master
         }
 
         /// <summary>
@@ -301,17 +305,48 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, Workspace workspace, OptionSet options = null, IEnumerable<IFormattingRule> rules = null, CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// Determines the changes necessary to format the whitespace of a syntax tree.
+        /// </summary>
+        /// <param name="node">The root node of a syntax tree to format.</param>
+        /// <param name="workspace">A workspace used to give the formatting context.</param>
+        /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>The changes necessary to format the tree.</returns>
+        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetFormattedTextChanges(node, new TextSpan[] { node.FullSpan }, workspace, options, rules, cancellationToken);
+            return GetFormattedTextChanges(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken: cancellationToken);
         }
 
-        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, IEnumerable<IFormattingRule> rules = null, CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// Determines the changes necessary to format the whitespace of a syntax tree.
+        /// </summary>
+        /// <param name="node">The root node of a syntax tree to format.</param>
+        /// <param name="span">The span within the node's full span to format.</param>
+        /// <param name="workspace">A workspace used to give the formatting context.</param>
+        /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>The changes necessary to format the tree.</returns>
+        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetFormattedTextChanges(node, new TextSpan[] { span }, workspace, options, rules, cancellationToken);
+            return GetFormattedTextChanges(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules: null, cancellationToken: cancellationToken);
         }
 
-        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, IEnumerable<IFormattingRule> rules = null, CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// Determines the changes necessary to format the whitespace of a syntax tree.
+        /// </summary>
+        /// <param name="node">The root node of a syntax tree to format.</param>
+        /// <param name="spans">The spans within the node's full span to format.</param>
+        /// <param name="workspace">A workspace used to give the formatting context.</param>
+        /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>The changes necessary to format the tree.</returns>
+        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetFormattedTextChanges(node, spans, workspace, options, rules: null, cancellationToken: cancellationToken);
+        }
+
+        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             if (workspace == null)
             {

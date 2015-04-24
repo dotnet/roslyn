@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// The name of a local or argument and the name of
     /// the corresponding method to access that object.
     /// </summary>
-    internal struct LocalAndMethod
+    internal abstract class LocalAndMethod
     {
         public readonly string LocalName;
         public readonly string MethodName;
@@ -20,5 +20,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.MethodName = methodName;
             this.Flags = flags;
         }
+
+        public abstract CustomTypeInfo GetCustomTypeInfo();
     }
 }

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var rules = new List<IFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-            return Formatter.GetFormattedTextChanges(root, new[] { formattingSpan }, document.Project.Solution.Workspace, rules: rules, cancellationToken: cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options: null, rules: rules, cancellationToken: cancellationToken);
         }
 
         private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position)

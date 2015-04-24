@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -8,9 +10,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -44,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x01);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x02);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -118,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x02);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -161,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x01);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -203,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x02);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
   // Code size        2 (0x2)
@@ -250,6 +254,7 @@ class Generic<T>
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x02);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
   // Code size        2 (0x2)
@@ -285,6 +290,7 @@ class Generic<T>
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x01);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -320,6 +326,7 @@ class Generic<T>
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x02);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -355,6 +362,7 @@ class Generic<T>
             var method = testData.Methods.Single().Value.Method;
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
+            VerifyCustomTypeInfo(locals[0], 0x02);
             VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -362,6 +370,65 @@ class Generic<T>
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
+        }
+
+        [WorkItem(1087216, "DevDiv")]
+        [Fact]
+        public void ComplexDynamicType()
+        {
+            var source =
+@"class C
+{
+    static void M(Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic> d)
+    {
+    }
+
+    static dynamic ForceDynamicAttribute() 
+    {
+        return null;
+    }
+}
+
+public class Outer<T, U>
+{
+    public class Inner<V, W>
+    {
+        public enum E
+        {
+            A
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+            var testData = new CompilationTestData();
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            Assert.Equal(1, locals.Count);
+            var method = testData.Methods.Single().Value.Method;
+            AssertHasDynamicAttribute(method);
+            VerifyCustomTypeInfo(locals[0], 0x04, 0x03);
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+            string error;
+            var result = context.CompileExpression("d", out error);
+            Assert.Null(error);
+            VerifyCustomTypeInfo(result, 0x04, 0x03);
+
+            // Note that the method produced by CompileAssignment returns void
+            // so there is never custom type info.
+            result = context.CompileAssignment("d", "d", out error);
+            Assert.Null(error);
+            VerifyCustomTypeInfo(result, null);
         }
 
         [Fact]
@@ -419,8 +486,9 @@ class C
             var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
             string error;
-            var assembly = context.CompileExpression("d.M()", out error, testData);
+            var result = context.CompileExpression("d.M()", out error, testData);
             Assert.Null(error);
+            VerifyCustomTypeInfo(result, 0x01);
             var methodData = testData.GetMethodData("<>x.<>m0");
             Assert.Equal(TypeKind.Dynamic, methodData.Method.ReturnType.TypeKind);
             methodData.VerifyIL(@"
@@ -477,8 +545,9 @@ class C
             var context = CreateMethodContext(runtime, "C.Foo");
             var testData = new CompilationTestData();
             string error;
-            context.CompileAssignment("a", "() => Foo(x)", out error, testData);
+            var result = context.CompileAssignment("a", "() => Foo(x)", out error, testData);
             Assert.Null(error);
+            VerifyCustomTypeInfo(result, null);
             testData.GetMethodData("<>x.<>c.<<>m0>b__0_0").VerifyIL(@"
 {
   // Code size      106 (0x6a)
@@ -519,8 +588,9 @@ class C
 
             context = CreateMethodContext(runtime, "C.<>c.<Foo>b__1_0");
             testData = new CompilationTestData();
-            context.CompileExpression("Foo(x)", out error, testData);
+            result = context.CompileExpression("Foo(x)", out error, testData);
             Assert.Null(error);
+            VerifyCustomTypeInfo(result, 0x01);
             var methodData = testData.GetMethodData("<>x.<>m0");
             methodData.VerifyIL(@"
 {
@@ -586,8 +656,9 @@ class C
             var context = CreateMethodContext(runtime, "C.M");
             var testData = new CompilationTestData();
             string error;
-            context.CompileExpression("Foo(x)", out error, testData);
+            var result = context.CompileExpression("Foo(x)", out error, testData);
             Assert.Null(error);
+            VerifyCustomTypeInfo(result, 0x01);
             testData.GetMethodData("<>c.<>m0()").VerifyIL(@"
 {
   // Code size      166 (0xa6)
@@ -641,8 +712,9 @@ class C
   IL_00a4:  stloc.0
   IL_00a5:  ret
 }");
-            context.CompileExpression("Foo(y)", out error, testData);
+            result = context.CompileExpression("Foo(y)", out error, testData);
             Assert.Null(error);
+            VerifyCustomTypeInfo(result, 0x01);
             testData.GetMethodData("<>c.<>m0()").VerifyIL(@"
 {
   // Code size      166 (0xa6)
@@ -696,6 +768,22 @@ class C
   IL_00a4:  stloc.0
   IL_00a5:  ret
 }");
+        }
+
+        private static void VerifyCustomTypeInfo(LocalAndMethod localAndMethod, params byte[] expectedBytes)
+        {
+            VerifyCustomTypeInfo(localAndMethod.GetCustomTypeInfo(), expectedBytes);
+        }
+
+        private static void VerifyCustomTypeInfo(CompileResult compileResult, params byte[] expectedBytes)
+        {
+            VerifyCustomTypeInfo(compileResult.GetCustomTypeInfo(), expectedBytes);
+        }
+
+        private static void VerifyCustomTypeInfo(CustomTypeInfo customTypeInfo, byte[] expectedBytes)
+        {
+            Assert.Equal(DynamicFlagsCustomTypeInfo.PayloadTypeId, customTypeInfo.PayloadTypeId);
+            Assert.Equal(expectedBytes, customTypeInfo.Payload);
         }
     }
 }
