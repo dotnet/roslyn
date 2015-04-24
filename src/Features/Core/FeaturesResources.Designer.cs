@@ -304,6 +304,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to attribute.
+        /// </summary>
+        internal static string Attribute {
+            get {
+                return ResourceManager.GetString("Attribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to auto-property.
+        /// </summary>
+        internal static string AutoProperty {
+            get {
+                return ResourceManager.GetString("AutoProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Available.
         /// </summary>
         internal static string Available {
@@ -448,11 +466,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to class.
+        /// </summary>
+        internal static string Class {
+            get {
+                return ResourceManager.GetString("Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to constant.
         /// </summary>
         internal static string Constant {
             get {
                 return ResourceManager.GetString("Constant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to const field.
+        /// </summary>
+        internal static string ConstField {
+            get {
+                return ResourceManager.GetString("ConstField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to constructor.
+        /// </summary>
+        internal static string Constructor {
+            get {
+                return ResourceManager.GetString("Constructor", resourceCulture);
             }
         }
         
@@ -480,6 +525,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string CouldNotExtractInterfaceTypeMember {
             get {
                 return ResourceManager.GetString("CouldNotExtractInterfaceTypeMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegate.
+        /// </summary>
+        internal static string Delegate {
+            get {
+                return ResourceManager.GetString("Delegate", resourceCulture);
             }
         }
         
@@ -583,6 +637,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to enum.
+        /// </summary>
+        internal static string Enum {
+            get {
+                return ResourceManager.GetString("Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to enum value.
+        /// </summary>
+        internal static string EnumValue {
+            get {
+                return ResourceManager.GetString("EnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection contains an error or unknown type..
         /// </summary>
         internal static string ErrorOrUnknownType {
@@ -615,6 +687,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string ErrorSourceIntelliSense {
             get {
                 return ResourceManager.GetString("ErrorSourceIntelliSense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to event.
+        /// </summary>
+        internal static string Event {
+            get {
+                return ResourceManager.GetString("Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to event accessor.
+        /// </summary>
+        internal static string EventAccessor {
+            get {
+                return ResourceManager.GetString("EventAccessor", resourceCulture);
             }
         }
         
@@ -1051,6 +1141,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to interface.
+        /// </summary>
+        internal static string Interface {
+            get {
+                return ResourceManager.GetString("Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce constant for &apos;{0}&apos;.
         /// </summary>
         internal static string IntroduceConstantFor {
@@ -1200,6 +1299,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string LocationUnknown {
             get {
                 return ResourceManager.GetString("LocationUnknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to method.
+        /// </summary>
+        internal static string Method {
+            get {
+                return ResourceManager.GetString("Method", resourceCulture);
             }
         }
         
@@ -1366,6 +1474,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to namespace.
+        /// </summary>
+        internal static string Namespace {
+            get {
+                return ResourceManager.GetString("Namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The selection contains no active statement..
         /// </summary>
         internal static string NoActiveStatement {
@@ -1407,6 +1524,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string NoteTabTwiceToInsertTheSnippet {
             get {
                 return ResourceManager.GetString("NoteTabTwiceToInsertTheSnippet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to operator.
+        /// </summary>
+        internal static string Operator {
+            get {
+                return ResourceManager.GetString("Operator", resourceCulture);
             }
         }
         
@@ -1470,6 +1596,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ProjectAvailability {
             get {
                 return ResourceManager.GetString("ProjectAvailability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to property.
+        /// </summary>
+        internal static string Property {
+            get {
+                return ResourceManager.GetString("Property", resourceCulture);
             }
         }
         
@@ -1728,11 +1863,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to type constraint.
+        /// </summary>
+        internal static string TypeConstraint {
+            get {
+                return ResourceManager.GetString("TypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &quot;#help&quot; for more information..
         /// </summary>
         internal static string TypeHelpForMoreInformation {
             get {
                 return ResourceManager.GetString("TypeHelpForMoreInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type parameter.
+        /// </summary>
+        internal static string TypeParameter {
+            get {
+                return ResourceManager.GetString("TypeParameter", resourceCulture);
             }
         }
         

@@ -45,7 +45,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", "method"));
+                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
         }
 
         [Fact]
@@ -58,7 +58,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", "method"));
+                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.Method));
         }
 
         [Fact]
@@ -71,7 +71,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", "method"));
+                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.Method));
         }
 
         [Fact]
@@ -222,7 +222,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "static void Swap<T>(T lhs, T rhs)", "method"));
+                Diagnostic(RudeEditKind.GenericMethodUpdate, "static void Swap<T>(T lhs, T rhs)", FeaturesResources.Method));
         }
 
         // Async
@@ -520,7 +520,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int P", "property setter"));
+                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertySetter));
         }
 
         [Fact]
@@ -598,7 +598,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", "indexer setter"));
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", CSharpFeaturesResources.IndexerSetter));
         }
 
         [Fact]
@@ -648,7 +648,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", "indexer setter"));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
         }
 
         [WorkItem(750244)]
@@ -702,7 +702,7 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, @"stringCollection[1] = ""hello"";"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", "indexer setter"));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
         }
 
         [Fact]
@@ -752,7 +752,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", "indexer getter"));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
         }
 
         [WorkItem(750244)]
@@ -804,7 +804,7 @@ class SampleCollection<T>
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(stringCollection[1]);"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", "indexer getter"));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
         }
 
         [Fact]
@@ -854,7 +854,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", "indexer setter"));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
         }
 
         [Fact]
@@ -953,7 +953,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", "indexer getter"));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
         }
 
         [Fact]

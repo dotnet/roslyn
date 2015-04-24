@@ -40,7 +40,7 @@ Imports System.Collections.Generic
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits("Delete [Imports System.Collections]@28")
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, "import"))
+                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.ImportStatement))
         End Sub
 
         <Fact>
@@ -59,7 +59,7 @@ Imports System.Collections.Generic
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits("Insert [Imports System.Collections]@28")
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Imports System.Collections", "import"))
+                Diagnostic(RudeEditKind.Insert, "Imports System.Collections", VBFeaturesResources.ImportStatement))
         End Sub
 
         <Fact>
@@ -79,7 +79,7 @@ Imports System.Collections.Generic
 
             edits.VerifyEdits("Update [Imports System.Collections]@28 -> [Imports X = System.Collections]@28")
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports X = System.Collections", "import"))
+                Diagnostic(RudeEditKind.Update, "Imports X = System.Collections", VBFeaturesResources.ImportStatement))
         End Sub
 
         <Fact>
@@ -99,7 +99,7 @@ Imports System.Collections.Generic
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits("Update [Imports X1 = System.Collections]@28 -> [Imports X2 = System.Collections]@28")
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports X2 = System.Collections", "import"))
+                Diagnostic(RudeEditKind.Update, "Imports X2 = System.Collections", VBFeaturesResources.ImportStatement))
         End Sub
 
         <Fact>
@@ -119,7 +119,7 @@ Imports System.Collections.Generic
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits("Update [Imports System.Diagnostics]@1 -> [Imports System]@1")
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports System", "import"))
+                Diagnostic(RudeEditKind.Update, "Imports System", VBFeaturesResources.ImportStatement))
         End Sub
 
         <Fact>
@@ -152,7 +152,7 @@ Imports System.Diagnostics
                 "Update [A1]@1 -> [A2]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A2", "attribute"))
+                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -165,7 +165,7 @@ Imports System.Diagnostics
                 "Update [A(1)]@1 -> [A(2)]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", "attribute"))
+                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -178,7 +178,7 @@ Imports System.Diagnostics
                 "Update [Assembly: A(1)]@1 -> [Assembly: A(2)]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Assembly: A(2)", "attribute"))
+                Diagnostic(RudeEditKind.Update, "Assembly: A(2)", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -191,7 +191,7 @@ Imports System.Diagnostics
                 "Update [Assembly: A(1)]@1 -> [Module: A(1)]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Module: A(1)", "attribute"))
+                Diagnostic(RudeEditKind.Update, "Module: A(1)", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -205,7 +205,7 @@ Imports System.Diagnostics
                 "Delete [B]@4")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "attribute"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -220,7 +220,7 @@ Imports System.Diagnostics
                 "Delete [Assembly: A1]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, "attributes"))
+                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -234,7 +234,7 @@ Imports System.Diagnostics
                 "Insert [B]@4")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", "attribute"))
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -248,7 +248,7 @@ Imports System.Diagnostics
                 "Insert [A]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -263,7 +263,7 @@ Imports System.Diagnostics
                 "Insert [Assembly: A1]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<Assembly: A1>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<Assembly: A1>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -308,7 +308,7 @@ Imports System.Diagnostics
                 "Update [A(1)]@1 -> [A(2)]@7")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", "attribute"))
+                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.Attribute))
         End Sub
 
 #End Region
@@ -348,7 +348,7 @@ Imports System.Diagnostics
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, "interface"))
+                Diagnostic(RudeEditKind.Delete, Nothing, FeaturesResources.Interface))
         End Sub
 
         <Fact>
@@ -358,7 +358,7 @@ Imports System.Diagnostics
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Module C", "module"))
+                Diagnostic(RudeEditKind.Insert, "Module C", VBFeaturesResources.ModuleStatement))
         End Sub
 
         <Fact>
@@ -368,7 +368,7 @@ Imports System.Diagnostics
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Partial Module C", "module"))
+                Diagnostic(RudeEditKind.Insert, "Partial Module C", VBFeaturesResources.ModuleStatement))
         End Sub
 
         <Fact>
@@ -378,7 +378,7 @@ Imports System.Diagnostics
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, "module"))
+                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.ModuleStatement))
         End Sub
 
         <Fact>
@@ -392,7 +392,7 @@ Imports System.Diagnostics
                 "Update [Class C]@0 -> [Structure C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeKindUpdate, "Structure C", "structure"))
+                Diagnostic(RudeEditKind.TypeKindUpdate, "Structure C", VBFeaturesResources.StructureStatement))
         End Sub
 
         <Fact>
@@ -406,7 +406,7 @@ Imports System.Diagnostics
                 "Update [Public Module C]@0 -> [Public Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeKindUpdate, "Public Class C", "class"))
+                Diagnostic(RudeEditKind.TypeKindUpdate, "Public Class C", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -419,7 +419,7 @@ Imports System.Diagnostics
                 "Update [Module C]@0 -> [Partial Module C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Module C", "module"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Module C", VBFeaturesResources.ModuleStatement))
         End Sub
 
         <Fact>
@@ -432,7 +432,7 @@ Imports System.Diagnostics
                 "Update [Partial Module C]@0 -> [Module C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Module C", "module"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Module C", VBFeaturesResources.ModuleStatement))
         End Sub
 
         <Fact>
@@ -445,7 +445,7 @@ Imports System.Diagnostics
                 "Update [Public Interface C]@0 -> [Interface C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Interface C", "interface"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Interface C", FeaturesResources.Interface))
         End Sub
 
         <Fact>
@@ -458,7 +458,7 @@ Imports System.Diagnostics
                 "Update [Public Interface C]@0 -> [Interface C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Interface C", "interface"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Interface C", FeaturesResources.Interface))
         End Sub
 
         <Fact>
@@ -471,7 +471,7 @@ Imports System.Diagnostics
                 "Update [Interface C]@0 -> [Partial Interface C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Interface C", "interface"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Interface C", FeaturesResources.Interface))
         End Sub
 
         <Fact>
@@ -483,7 +483,7 @@ Imports System.Diagnostics
             edits.VerifyEdits("Update [Structure C]@0 -> [Public Structure C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Structure C", "structure"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Structure C", VBFeaturesResources.StructureStatement))
         End Sub
 
         <Fact>
@@ -495,7 +495,7 @@ Imports System.Diagnostics
             edits.VerifyEdits("Update [Class C]@0 -> [class c]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "class c", "class"))
+                Diagnostic(RudeEditKind.Renamed, "class c", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -509,7 +509,7 @@ Imports System.Diagnostics
                 "Update [Class C]@0 -> [Class D]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Class D", "class"))
+                Diagnostic(RudeEditKind.Renamed, "Class D", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -522,7 +522,7 @@ Imports System.Diagnostics
                 "Update [Interface C]@0 -> [Interface D]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Interface D", "interface"))
+                Diagnostic(RudeEditKind.Renamed, "Interface D", FeaturesResources.Interface))
         End Sub
 
         <Fact>
@@ -531,7 +531,7 @@ Imports System.Diagnostics
             Dim src2 = "Structure D : End Structure"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits("Update [Structure C]@0 -> [Structure D]@0")
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "Structure D", "structure"))
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "Structure D", VBFeaturesResources.StructureStatement))
         End Sub
 
         <Fact>
@@ -544,7 +544,7 @@ Imports System.Diagnostics
                 "Update [Class LongerName]@0 -> [Class LongerMame]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Class LongerMame", "class"))
+                Diagnostic(RudeEditKind.Renamed, "Class LongerMame", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -557,7 +557,7 @@ Imports System.Diagnostics
                 "Update [Class C : End Class]@0 -> [Class C : Inherits D : End Class]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", "class"))
+                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -570,7 +570,7 @@ Imports System.Diagnostics
                 "Update [Class C : Inherits D1 : End Class]@0 -> [Class C : Inherits D2 : End Class]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", "class"))
+                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -583,7 +583,7 @@ Imports System.Diagnostics
                 "Update [Class C : End Class]@0 -> [Class C : Implements IDisposable : End Class]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", "class"))
+                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -596,7 +596,7 @@ Imports System.Diagnostics
                 "Update [Class C : Implements IFoo, IBar : End Class]@0 -> [Class C : Implements IFoo : End Class]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", "class"))
+                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -609,7 +609,7 @@ Imports System.Diagnostics
                 "Update [Class C : Implements IFoo : Implements IBar : End Class]@0 -> [Class C : Implements IBar : Implements IFoo : End Class]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", "class"))
+                Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class C", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -670,7 +670,7 @@ End Interface
                 "Update [Enum Color]@0 -> [Enum Colors]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Enum Colors", "enum"))
+                Diagnostic(RudeEditKind.Renamed, "Enum Colors", FeaturesResources.Enum))
         End Sub
 
         <Fact>
@@ -683,7 +683,7 @@ End Interface
                 "Update [Public Enum Color]@0 -> [Enum Color]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Enum Color", "enum"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Enum Color", FeaturesResources.Enum))
         End Sub
 
         <Fact>
@@ -696,7 +696,7 @@ End Interface
                 "Insert [As UShort]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "As UShort", "as clause"))
+                Diagnostic(RudeEditKind.Insert, "As UShort", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -709,7 +709,7 @@ End Interface
                 "Update [As UShort]@11 -> [As Long]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Enum Color", "enum"))
+                Diagnostic(RudeEditKind.TypeUpdate, "Enum Color", FeaturesResources.Enum))
         End Sub
 
         <Fact>
@@ -722,7 +722,7 @@ End Interface
                  "Delete [As UShort]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Enum Color", "as clause"))
+                Diagnostic(RudeEditKind.Delete, "Enum Color", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -735,7 +735,7 @@ End Interface
                 "Insert [<A>]@0", "Insert [A]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -748,7 +748,7 @@ End Interface
                 "Delete [<A>]@9", "Delete [A]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "X", "attributes"))
+                Diagnostic(RudeEditKind.Delete, "X", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -761,7 +761,7 @@ End Interface
                 "Insert [<A>]@9", "Insert [A]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -774,7 +774,7 @@ End Interface
                 "Update [A1]@10 -> [A2]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A2", "attribute"))
+                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -787,7 +787,7 @@ End Interface
                 "Update [Blue = 2]@23 -> [Blue = 3]@23")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 3", "enum value"))
+                Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 3", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -801,8 +801,8 @@ End Interface
                 "Update [Blue = 2]@23 -> [Blue = 2 << 1]@28")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1 << 0", "enum value"),
-                Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 2 << 1", "enum value"))
+                Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1 << 0", FeaturesResources.EnumValue),
+                Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 2 << 1", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -815,7 +815,7 @@ End Interface
                 "Update [Red = int.MinValue]@13 -> [Red = int.MaxValue]@13")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InitializerUpdate, "Red = int.MaxValue", "enum value"))
+                Diagnostic(RudeEditKind.InitializerUpdate, "Red = int.MaxValue", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -828,7 +828,7 @@ End Interface
                 "Update [Red]@13 -> [Red = 1]@13")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1", "enum value"))
+                Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -841,7 +841,7 @@ End Interface
                 "Update [Red = 1]@13 -> [Red]@13")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InitializerUpdate, "Red", "enum value"))
+                Diagnostic(RudeEditKind.InitializerUpdate, "Red", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -854,7 +854,7 @@ End Interface
                 "Insert [Blue]@19")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Blue", "enum value"))
+                Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -867,7 +867,7 @@ End Interface
                 "Insert [Blue]@19")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Blue", "enum value"))
+                Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -880,7 +880,7 @@ End Interface
                 "Update [Red]@13 -> [Orange]@13")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Orange", "enum value"))
+                Diagnostic(RudeEditKind.Renamed, "Orange", FeaturesResources.EnumValue))
         End Sub
 
         <Fact>
@@ -893,7 +893,7 @@ End Interface
                 "Delete [Blue]@19")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Enum Color", "enum value"))
+                Diagnostic(RudeEditKind.Delete, "Enum Color", FeaturesResources.EnumValue))
         End Sub
 #End Region
 
@@ -935,7 +935,7 @@ End Interface
                 "Update [Public Delegate Sub D()]@0 -> [Public Delegate Sub Z()]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Public Delegate Sub Z()", "delegate"))
+                Diagnostic(RudeEditKind.Renamed, "Public Delegate Sub Z()", FeaturesResources.Delegate))
         End Sub
 
         <Fact>
@@ -948,7 +948,7 @@ End Interface
                 "Update [Public Delegate Sub D()]@0 -> [Private Delegate Sub D()]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Delegate Sub D()", "delegate"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Delegate Sub D()", FeaturesResources.Delegate))
         End Sub
 
         <Fact>
@@ -961,7 +961,7 @@ End Interface
                 "Update [Public Delegate Function D()]@0 -> [Public Delegate Sub D()]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Public Delegate Sub D()", "delegate"))
+                Diagnostic(RudeEditKind.TypeUpdate, "Public Delegate Sub D()", FeaturesResources.Delegate))
         End Sub
 
         <Fact>
@@ -975,8 +975,8 @@ End Interface
                 "Delete [As Integer]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Public Delegate Sub D()", "delegate"),
-                Diagnostic(RudeEditKind.Delete, "Public Delegate Sub D()", "as clause"))
+                Diagnostic(RudeEditKind.TypeUpdate, "Public Delegate Sub D()", FeaturesResources.Delegate),
+                Diagnostic(RudeEditKind.Delete, "Public Delegate Sub D()", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -989,7 +989,7 @@ End Interface
                 "Insert [As Integer]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "As Integer", "as clause"))
+                Diagnostic(RudeEditKind.Insert, "As Integer", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -1002,7 +1002,7 @@ End Interface
                 "Delete [As Integer]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Delegate Function D()", "as clause"))
+                Diagnostic(RudeEditKind.Delete, "Public Delegate Function D()", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -1017,7 +1017,7 @@ End Interface
                 "Insert [As Integer]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "a As Integer", "parameter"))
+                Diagnostic(RudeEditKind.Insert, "a As Integer", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -1032,7 +1032,7 @@ End Interface
                 "Delete [As Integer]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Delegate Function D()", "parameter"))
+                Diagnostic(RudeEditKind.Delete, "Public Delegate Function D()", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -1045,7 +1045,7 @@ End Interface
                 "Update [a]@27 -> [b]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", "parameter"))
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -1058,7 +1058,7 @@ End Interface
                 "Update [As Integer]@29 -> [As Byte]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a As Byte", "parameter"))
+                Diagnostic(RudeEditKind.TypeUpdate, "a As Byte", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -1071,7 +1071,7 @@ End Interface
                 "Update [a As Integer()]@27 -> [ParamArray a As Integer()]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ParamArray a As Integer()", "parameter"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ParamArray a As Integer()", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -1085,7 +1085,7 @@ End Interface
                 "Insert [A]@28")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -1099,7 +1099,7 @@ End Interface
                 "Insert [T]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "(Of T)", "type parameters"))
+                Diagnostic(RudeEditKind.Insert, "(Of T)", VBFeaturesResources.TypeParameterList))
         End Sub
 
         <Fact>
@@ -1113,7 +1113,7 @@ End Interface
                 "Delete [T]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Delegate Function D()", "type parameters"))
+                Diagnostic(RudeEditKind.Delete, "Public Delegate Function D()", VBFeaturesResources.TypeParameterList))
         End Sub
 
         <Fact>
@@ -1126,7 +1126,7 @@ End Interface
                 "Update [T]@30 -> [S]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "S", "type parameter"))
+                Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -1139,7 +1139,7 @@ End Interface
                 "Update [T]@30 -> [In T]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", "type parameter"))
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -1152,7 +1152,7 @@ End Interface
                 "Update [Out T]@30 -> [T]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", "type parameter"))
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -1165,7 +1165,7 @@ End Interface
                 "Update [Out T]@30 -> [In T]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.VarianceUpdate, "T", "type parameter"))
+                Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -1179,7 +1179,7 @@ End Interface
                 "Insert [A]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
 #End Region
@@ -1196,7 +1196,7 @@ End Interface
                 "Move [Class D : End Class]@10 -> @22")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Class D", "class"))
+                Diagnostic(RudeEditKind.Move, "Class D", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -1209,7 +1209,7 @@ End Interface
                 "Move [Class E : End Class]@32 -> @66")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Class E", "class"))
+                Diagnostic(RudeEditKind.Move, "Class E", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -1224,7 +1224,7 @@ End Interface
                 "Move [Class D : End Class]@10 -> @20")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Class D", "class"))
+                Diagnostic(RudeEditKind.Move, "Class D", FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -1351,8 +1351,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function A Lib ""A"" ()", "method"),
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub B Lib ""B"" ()", "method"))
+                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function A Lib ""A"" ()", FeaturesResources.Method),
+                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub B Lib ""B"" ()", FeaturesResources.Method))
         End Sub
 
         <WorkItem(835827)>
@@ -1488,7 +1488,7 @@ End Class
                 "Delete [()]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Class C", "method"))
+                Diagnostic(RudeEditKind.Delete, "Public Class C", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1503,7 +1503,7 @@ End Class
                 "Move [Public Class X : End Class]@17 -> @34")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Public Class X", "class"))
+                Diagnostic(RudeEditKind.Move, "Public Class X", FeaturesResources.Class))
         End Sub
 
 
@@ -1517,7 +1517,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Namespace C", "namespace"))
+                Diagnostic(RudeEditKind.Insert, "Namespace C", FeaturesResources.Namespace))
         End Sub
 
         <Fact>
@@ -1530,7 +1530,7 @@ End Class
                 "Move [Namespace D : End Namespace]@14 -> @30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Namespace D", "namespace"))
+                Diagnostic(RudeEditKind.Move, "Namespace D", FeaturesResources.Namespace))
         End Sub
 
         <Fact>
@@ -1620,7 +1620,7 @@ End Class
                 "Update [Sub Foo()]@8 -> [Function Foo()]@8")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Foo()", "method"))
+                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Foo()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1634,7 +1634,7 @@ End Class
                 "Update [Sub Foo()]@12 -> [Function Foo()]@12")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Foo()", "method"))
+                Diagnostic(RudeEditKind.MethodKindUpdate, "Function Foo()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1645,7 +1645,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "a As Boolean", "parameter"))
+                Diagnostic(RudeEditKind.Insert, "a As Boolean", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -1661,7 +1661,7 @@ End Class
                 "Delete [()]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "method"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1672,7 +1672,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Interface C", "method"))
+                Diagnostic(RudeEditKind.Delete, "Interface C", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1691,7 +1691,7 @@ End Class
                 "Delete [As Integer]@18")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "method"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1712,7 +1712,7 @@ End Class
                 "Delete [As Integer]@32")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "method"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1787,7 +1787,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "Overridable Sub F", "method"))
+                Diagnostic(RudeEditKind.InsertVirtual, "Overridable Sub F", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1798,7 +1798,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "MustOverride Sub F", "method"))
+                Diagnostic(RudeEditKind.Insert, "MustOverride Sub F", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1809,7 +1809,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertVirtual, "Overrides Sub F", "method"))
+                Diagnostic(RudeEditKind.InsertVirtual, "Overrides Sub F", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1834,7 +1834,7 @@ End Class
                 "Reorder [Sub g()]@49 -> @15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Sub g()", "method"))
+                Diagnostic(RudeEditKind.Move, "Sub g()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1864,7 +1864,7 @@ End Class
                 "Delete [As Integer]@55")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "method"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1878,7 +1878,7 @@ End Class
                 "Update [Sub Foo]@11 -> [Sub Bar]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Sub Bar", "method"))
+                Diagnostic(RudeEditKind.Renamed, "Sub Bar", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -1892,7 +1892,7 @@ End Class
                 "Update [Sub Foo]@15 -> [Sub Bar]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Sub Bar", "method"))
+                Diagnostic(RudeEditKind.Renamed, "Sub Bar", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2035,7 +2035,7 @@ End Class
                 "Insert [A]@12")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -2049,7 +2049,7 @@ End Class
                 "Insert [B]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", "attribute"))
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -2063,7 +2063,7 @@ End Class
                 "Insert [B]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<B>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<B>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -2078,7 +2078,7 @@ End Class
                 "Insert [B]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A, B>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A, B>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -2091,7 +2091,7 @@ End Class
                 "Update [A]@12 -> [A(1)]@12")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(1)", "attribute"))
+                Diagnostic(RudeEditKind.Update, "A(1)", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -2105,7 +2105,7 @@ End Class
                 "Delete [A]@12")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Sub F()", "attributes"))
+                Diagnostic(RudeEditKind.Delete, "Sub F()", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -2119,7 +2119,7 @@ End Class
                 "Delete [B]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Sub F()", "attribute"))
+                Diagnostic(RudeEditKind.Delete, "Sub F()", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -2133,7 +2133,7 @@ End Class
                 "Delete [B]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Sub F()", "attributes"))
+                Diagnostic(RudeEditKind.Delete, "Sub F()", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -2146,7 +2146,7 @@ End Class
                 "Update [Sub Foo Implements I.Foo]@29 -> [Sub Foo]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Foo", "method"))
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Foo", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2159,7 +2159,7 @@ End Class
                 "Update [Sub Foo]@29 -> [Sub Foo Implements I.Foo]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Foo", "method"))
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub Foo", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2173,8 +2173,8 @@ End Class
                 "Update [Sub JFoo Implements J.Foo]@68 -> [Sub JFoo Implements I.Foo]@68")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub IFoo", "method"),
-                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub JFoo", "method"))
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub IFoo", FeaturesResources.Method),
+                Diagnostic(RudeEditKind.ImplementsClauseUpdate, "Sub JFoo", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2380,7 +2380,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Yield 2", "Yield statement"))
+                Diagnostic(RudeEditKind.Insert, "Yield 2", VBFeaturesResources.YieldStatement))
         End Sub
 
         <Fact>
@@ -2390,7 +2390,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Iterator Function M()", "Yield statement"))
+                Diagnostic(RudeEditKind.Delete, "Iterator Function M()", VBFeaturesResources.YieldStatement))
         End Sub
 
         <Fact>
@@ -2405,7 +2405,7 @@ End Class
                 "Insert [()]@44")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Foo()", "method"))
+                Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Foo()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2415,7 +2415,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2425,7 +2425,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", "method"))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2473,7 +2473,7 @@ End Class
                                      "[Public Sub New(a As Integer) : End Sub]@14")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "Public Sub New(a As Integer)", "constructor"))
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "Public Sub New(a As Integer)", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2489,7 +2489,7 @@ End Class
                 "Insert [As Integer]@39")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "b As Integer", "parameter"))
+                Diagnostic(RudeEditKind.Insert, "b As Integer", FeaturesResources.Parameter))
         End Sub
 
         <Fact, WorkItem(789577)>
@@ -2508,7 +2508,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2518,7 +2518,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Module C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Module C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2548,7 +2548,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2558,7 +2558,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2568,7 +2568,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2578,7 +2578,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2784,7 +2784,7 @@ End Class
                                   {srcB1},
                                   {srcB2},
                                   Nothing,
-                                  Diagnostic(RudeEditKind.Delete, "Partial Class C", "constructor"))
+                                  Diagnostic(RudeEditKind.Delete, "Partial Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -2914,7 +2914,7 @@ End Class
                 "Update [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10 -> [Declare Ansi Function Foo Lib ""Baz"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeclareLibraryUpdate, "Declare Ansi Function Foo Lib ""Baz"" ()", "method"))
+                Diagnostic(RudeEditKind.DeclareLibraryUpdate, "Declare Ansi Function Foo Lib ""Baz"" ()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2927,7 +2927,7 @@ End Class
                 "Update [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10 -> [Declare Unicode Function Foo Lib ""Bar"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Declare Unicode Function Foo Lib ""Bar"" ()", "method"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Declare Unicode Function Foo Lib ""Bar"" ()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2940,7 +2940,7 @@ End Class
                 "Update [Declare Ansi Function Foo Lib ""Bar"" () As Integer]@10 -> [Declare Ansi Function Foo Lib ""Bar"" Alias ""Al"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Foo Lib ""Bar"" Alias ""Al"" ()", "method"))
+                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Foo Lib ""Bar"" Alias ""Al"" ()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2953,7 +2953,7 @@ End Class
                 "Update [Declare Ansi Function Foo Lib ""Bar"" Alias ""A1"" () As Integer]@10 -> [Declare Ansi Function Foo Lib ""Bar"" Alias ""A2"" () As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Foo Lib ""Bar"" Alias ""A2"" ()", "method"))
+                Diagnostic(RudeEditKind.DeclareAliasUpdate, "Declare Ansi Function Foo Lib ""Bar"" Alias ""A2"" ()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2968,7 +2968,7 @@ End Class
                 "Delete [As Integer]@49")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "method"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2983,7 +2983,7 @@ End Class
                 "Insert [As Integer]@49")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function Foo Lib ""Bar"" ()", "method"))
+                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function Foo Lib ""Bar"" ()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -2998,7 +2998,7 @@ End Class
                 "Insert [As Integer]@57")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Private Declare Ansi Function Foo Lib ""Bar"" ()", "method"))
+                Diagnostic(RudeEditKind.Insert, "Private Declare Ansi Function Foo Lib ""Bar"" ()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -3008,7 +3008,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub ExternSub Lib ""ExternDLL""()", "method"))
+                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub ExternSub Lib ""ExternDLL""()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -3018,7 +3018,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub ExternSub Lib ""ExternDLL""", "method"))
+                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub ExternSub Lib ""ExternDLL""", FeaturesResources.Method))
         End Sub
 #End Region
 
@@ -3033,7 +3033,7 @@ End Class
                 "Update [a]@14 -> [b]@14")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", "field"))
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3048,9 +3048,9 @@ End Class
                 "Update [c1(1,2)]@36 -> [c2(1,2)]@36")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "a2()", "field"),
-                Diagnostic(RudeEditKind.Renamed, "b2?", "field"),
-                Diagnostic(RudeEditKind.Renamed, "c2(1,2)", "field"))
+                Diagnostic(RudeEditKind.Renamed, "a2()", FeaturesResources.Field),
+                Diagnostic(RudeEditKind.Renamed, "b2?", FeaturesResources.Field),
+                Diagnostic(RudeEditKind.Renamed, "c2(1,2)", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3063,7 +3063,7 @@ End Class
                 "Update [As Integer]@16 -> [As Boolean]@16")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a As Boolean", "field"))
+                Diagnostic(RudeEditKind.TypeUpdate, "a As Boolean", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3080,7 +3080,7 @@ End Class
 
             ' TODO: We could check that the types and order of b and c haven't changed. 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "c", "field"))
+                Diagnostic(RudeEditKind.Move, "c", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3098,7 +3098,7 @@ End Class
 
             ' TODO: We could check that the types and order of b and c haven't changed. 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "c", "field"))
+                Diagnostic(RudeEditKind.Move, "c", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3116,7 +3116,7 @@ End Class
 
             ' TODO: We could check that the types and order of b and c haven't changed. 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "c", "field"))
+                Diagnostic(RudeEditKind.Move, "c", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3132,7 +3132,7 @@ End Class
 
             ' TODO: We could check that the types and order of b and c haven't changed. 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b", "field"))
+                Diagnostic(RudeEditKind.Move, "b", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3148,7 +3148,7 @@ End Class
 
             ' TODO: We could check that the types and order of b and c haven't changed. 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b", "field"))
+                Diagnostic(RudeEditKind.Move, "b", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3161,7 +3161,7 @@ End Class
                 "Reorder [b As Object]@27 -> @14")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b As Object", "field"))
+                Diagnostic(RudeEditKind.Move, "b As Object", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3174,7 +3174,7 @@ End Class
                 "Reorder [b, c As Object]@27 -> @14")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b, c As Object", "field"))
+                Diagnostic(RudeEditKind.Move, "b, c As Object", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3190,7 +3190,7 @@ End Class
                 "Delete [As Object]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Dim b As Object", "field"))
+                Diagnostic(RudeEditKind.Delete, "Dim b As Object", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3206,10 +3206,10 @@ End Class
                 "Update [d()]@38 -> [d]@38")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a?", "field"),
-                Diagnostic(RudeEditKind.TypeUpdate, "b()", "field"),
-                Diagnostic(RudeEditKind.TypeUpdate, "c", "field"),
-                Diagnostic(RudeEditKind.TypeUpdate, "d", "field"))
+                Diagnostic(RudeEditKind.TypeUpdate, "a?", FeaturesResources.Field),
+                Diagnostic(RudeEditKind.TypeUpdate, "b()", FeaturesResources.Field),
+                Diagnostic(RudeEditKind.TypeUpdate, "c", FeaturesResources.Field),
+                Diagnostic(RudeEditKind.TypeUpdate, "d", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3223,7 +3223,7 @@ End Class
                 "Update [c(2,2)]@31 -> [c(2)]@31")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "c(2)", "field"))
+                Diagnostic(RudeEditKind.TypeUpdate, "c(2)", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3238,8 +3238,8 @@ End Class
 
             ' TODO: the type didn't really change, we can allow this
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a()", "field"),
-                Diagnostic(RudeEditKind.TypeUpdate, "a() As Integer", "field"))
+                Diagnostic(RudeEditKind.TypeUpdate, "a()", FeaturesResources.Field),
+                Diagnostic(RudeEditKind.TypeUpdate, "a() As Integer", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3249,7 +3249,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a(1)", "field"))
+                Diagnostic(RudeEditKind.TypeUpdate, "a(1)", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3262,7 +3262,7 @@ End Class
                 "Insert [As Integer]@19")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "As Integer", "as clause"))
+                Diagnostic(RudeEditKind.Insert, "As Integer", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -3275,7 +3275,7 @@ End Class
                 "Delete [As Integer]@19")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "a, b", "as clause"))
+                Diagnostic(RudeEditKind.Delete, "a, b", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -3285,7 +3285,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a(1,2)", "field"))
+                Diagnostic(RudeEditKind.TypeUpdate, "a(1,2)", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3303,7 +3303,7 @@ End Class
                 "Delete [As Action]@16")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "field"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3321,7 +3321,7 @@ End Class
                 "Delete [As Action]@18")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "event"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Event))
         End Sub
 
         <Fact>
@@ -3334,7 +3334,7 @@ End Class
                 "Update [Dim a As WE]@10 -> [WithEvents a As WE]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "WithEvents a As WE", "WithEvents field"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "WithEvents a As WE", VBFeaturesResources.WithEventsFieldStatement))
         End Sub
 
         <Fact>
@@ -3347,7 +3347,7 @@ End Class
                 "Update [WithEvents a As WE]@10 -> [Dim a As WE]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim a As WE", "field"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim a As WE", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3357,7 +3357,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Dim c = 2", "field"))
+                Diagnostic(RudeEditKind.Move, "Dim c = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -3370,7 +3370,7 @@ End Class
                 "Reorder [Event c As Action]@56 -> @10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Event c", "event"))
+                Diagnostic(RudeEditKind.Move, "Event c", FeaturesResources.Event))
         End Sub
 
         <Fact>
@@ -3389,7 +3389,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "WithEvents F As C", "WithEvents field"))
+                Diagnostic(RudeEditKind.Insert, "WithEvents F As C", VBFeaturesResources.WithEventsFieldStatement))
         End Sub
 
         <Fact>
@@ -3399,7 +3399,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "G", "WithEvents field"))
+                Diagnostic(RudeEditKind.Insert, "G", VBFeaturesResources.WithEventsFieldStatement))
         End Sub
 
         <Fact>
@@ -3409,7 +3409,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "G", "WithEvents field"))
+                Diagnostic(RudeEditKind.Insert, "G", VBFeaturesResources.WithEventsFieldStatement))
         End Sub
 
         <Fact>
@@ -3425,9 +3425,9 @@ End Structure
 </text>.Value
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Event d As System.Action", "event", "structure"),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "b", "field", "structure"),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "c", "field", "structure"))
+                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Event d As System.Action", FeaturesResources.Event, VBFeaturesResources.StructureStatement),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "b", FeaturesResources.Field, VBFeaturesResources.StructureStatement),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "c", FeaturesResources.Field, VBFeaturesResources.StructureStatement))
         End Sub
 
         <Fact>
@@ -3490,9 +3490,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", "field", "class"),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", "field", "class"),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", "field", "class"))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.Field, FeaturesResources.Class),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.Field, FeaturesResources.Class),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.Field, FeaturesResources.Class))
         End Sub
 
         <Fact>
@@ -3520,9 +3520,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", "field", "class"),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", "field", "class"),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", "field", "class"))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.Field, FeaturesResources.Class),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.Field, FeaturesResources.Class),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.Field, FeaturesResources.Class))
         End Sub
 
 #End Region
@@ -3554,7 +3554,7 @@ End Class
                 "Reorder [Property Q As Integer]@34 -> @10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Property Q", "auto-property"))
+                Diagnostic(RudeEditKind.Move, "Property Q", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -3579,7 +3579,7 @@ End Class
                 "Update [As Integer]@21 -> [As Char]@21")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Property P", "auto-property"))
+                Diagnostic(RudeEditKind.TypeUpdate, "Property P", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -3630,7 +3630,7 @@ End Class
                 "Delete [As Integer]@97")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Private ReadOnly Property P", "property accessor"))
+                Diagnostic(RudeEditKind.Delete, "Private ReadOnly Property P", VBFeaturesResources.PropertyAccessor))
         End Sub
 
         <Fact>
@@ -3643,7 +3643,7 @@ End Class
                 "Update [ReadOnly Property P As Integer]@10 -> [ReadOnly Property Q As Integer]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", "auto-property"))
+                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -3677,8 +3677,8 @@ End Structure
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Property b As Integer", "auto-property", "structure"),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Shared Property c As Integer", "auto-property", "structure"))
+                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Property b As Integer", FeaturesResources.AutoProperty, VBFeaturesResources.StructureStatement),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Shared Property c As Integer", FeaturesResources.AutoProperty, VBFeaturesResources.StructureStatement))
         End Sub
 
         <Fact>
@@ -3722,8 +3722,8 @@ End Class
 ]]>.Value
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Property b As Integer", "auto-property", "class"),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Shared Property c As Integer", "auto-property", "class"))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Property b As Integer", FeaturesResources.AutoProperty, FeaturesResources.Class),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Shared Property c As Integer", FeaturesResources.AutoProperty, FeaturesResources.Class))
         End Sub
 
 #End Region
@@ -3936,7 +3936,7 @@ End Class
 
             ' TODO: we could detect that the type haven't changed and allow this
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "As Integer", "as clause"))
+                Diagnostic(RudeEditKind.Insert, "As Integer", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -4026,7 +4026,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -4036,7 +4036,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "constructor"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Constructor))
         End Sub
 
         <Fact>
@@ -4350,7 +4350,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "a As Integer = 2", "field"))
+                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "a As Integer = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4360,7 +4360,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "Property a", "auto-property"))
+                Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "Property a", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact(Skip:="726990")>
@@ -4624,7 +4624,7 @@ End Class
                 "Delete [As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "field"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4638,7 +4638,7 @@ End Class
                 "Delete [As Integer]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "auto-property"))
+                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4648,7 +4648,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x, y)", "field"))
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x, y)", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4658,7 +4658,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x, y)", "auto-property"))
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x, y)", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4668,7 +4668,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", "field"))
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4678,7 +4678,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", "auto-property"))
+                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4688,7 +4688,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "field"))
+                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4698,7 +4698,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "auto-property"))
+                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4735,7 +4735,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "x = 1", "const field"))
+                Diagnostic(RudeEditKind.Update, "x = 1", FeaturesResources.ConstField))
         End Sub
 
         <Fact>
@@ -4745,7 +4745,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim x = 0", "field"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim x = 0", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4755,7 +4755,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Const x = 0", "const field"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Const x = 0", FeaturesResources.ConstField))
         End Sub
 
 #End Region
@@ -4812,7 +4812,7 @@ End Class
                 "Update [Custom Event E As Action]@10 -> [Custom Event F As Action]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Event F", "event"))
+                Diagnostic(RudeEditKind.Renamed, "Event F", FeaturesResources.Event))
         End Sub
 
         <Fact>
@@ -4841,9 +4841,9 @@ End Class
                 "Update [As Action]@100 -> [As Action(Of T)]@112")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Event E", "event"),
-                Diagnostic(RudeEditKind.TypeUpdate, "value As Action(Of T)", "parameter"),
-                Diagnostic(RudeEditKind.TypeUpdate, "value As Action(Of T)", "parameter"))
+                Diagnostic(RudeEditKind.TypeUpdate, "Event E", FeaturesResources.Event),
+                Diagnostic(RudeEditKind.TypeUpdate, "value As Action(Of T)", FeaturesResources.Parameter),
+                Diagnostic(RudeEditKind.TypeUpdate, "value As Action(Of T)", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4889,7 +4889,7 @@ End Class
                 "Update [a]@24 -> [b]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", "parameter"))
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4902,7 +4902,7 @@ End Class
                 "Update [a]@26 -> [b]@26")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", "parameter"))
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4915,7 +4915,7 @@ End Class
                 "Update [a]@40 -> [b]@40")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", "parameter"))
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4928,7 +4928,7 @@ End Class
                 "Update [b]@44 -> [x]@44")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "x", "parameter"))
+                Diagnostic(RudeEditKind.Renamed, "x", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4941,7 +4941,7 @@ End Class
                 "Update [b]@52 -> [x]@52")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "x", "parameter"))
+                Diagnostic(RudeEditKind.Renamed, "x", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4954,7 +4954,7 @@ End Class
                 "Update [a]@24 -> [b]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "b", "parameter"))
+                Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4967,7 +4967,7 @@ End Class
                 "Update [ByRef a As Integer]@38 -> [a As Integer]@38")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer", "parameter"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4980,7 +4980,7 @@ End Class
                 "Update [As Integer]@40 -> [As Object]@40")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a As Object", "parameter"))
+                Diagnostic(RudeEditKind.TypeUpdate, "a As Object", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -4993,7 +4993,7 @@ End Class
                 "Delete [As Integer]@40")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "a", "as clause"))
+                Diagnostic(RudeEditKind.Delete, "a", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -5006,7 +5006,7 @@ End Class
                 "Update [a As Integer]@38 -> [Optional a As Integer = 0]@38")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Optional a As Integer = 0", "parameter"))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Optional a As Integer = 0", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5019,7 +5019,7 @@ End Class
                 "Update [Optional a As Integer = 0]@38 -> [Optional a As Integer = 1]@38")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InitializerUpdate, "Optional a As Integer = 1", "parameter"))
+                Diagnostic(RudeEditKind.InitializerUpdate, "Optional a As Integer = 1", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5034,7 +5034,7 @@ End Class
                 "Insert [As Integer]@26")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "a As Integer", "parameter"))
+                Diagnostic(RudeEditKind.Insert, "a As Integer", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5050,7 +5050,7 @@ End Class
                 "Insert [As Integer]@46")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ByRef b As Integer", "parameter"))
+                Diagnostic(RudeEditKind.Insert, "ByRef b As Integer", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5078,7 +5078,7 @@ End Class
                 "Insert [As Integer]@26")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "(a As Integer)", "parameters"))
+                Diagnostic(RudeEditKind.Insert, "(a As Integer)", VBFeaturesResources.ParameterList))
         End Sub
 
         <Fact>
@@ -5093,7 +5093,7 @@ End Class
                 "Delete [As Integer]@26")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M()", "parameter"))
+                Diagnostic(RudeEditKind.Delete, "Public Sub M()", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5109,7 +5109,7 @@ End Class
                 "Delete [As Integer]@26")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M(b As Integer)", "parameter"))
+                Diagnostic(RudeEditKind.Delete, "Public Sub M(b As Integer)", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5137,7 +5137,7 @@ End Class
                 "Delete [As Integer]@26")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M", "parameters"))
+                Diagnostic(RudeEditKind.Delete, "Public Sub M", VBFeaturesResources.ParameterList))
         End Sub
 
         <Fact>
@@ -5150,7 +5150,7 @@ End Class
                 "Reorder [b As Integer]@38 -> @24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b As Integer", "parameter"))
+                Diagnostic(RudeEditKind.Move, "b As Integer", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5164,8 +5164,8 @@ End Class
                 "Update [a]@24 -> [c]@38")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b As Integer", "parameter"),
-                Diagnostic(RudeEditKind.Renamed, "c", "parameter"))
+                Diagnostic(RudeEditKind.Move, "b As Integer", FeaturesResources.Parameter),
+                Diagnostic(RudeEditKind.Renamed, "c", FeaturesResources.Parameter))
         End Sub
 
         <Fact>
@@ -5179,7 +5179,7 @@ End Class
                 "Insert [A]@25")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -5193,7 +5193,7 @@ End Class
                 "Insert [B]@28")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", "attribute"))
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -5207,7 +5207,7 @@ End Class
                 "Delete [A]@25")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "a As Integer", "attributes"))
+                Diagnostic(RudeEditKind.Delete, "a As Integer", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -5221,8 +5221,8 @@ End Class
                 "Update [C]@31 -> [B]@31")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", "attribute"),
-                Diagnostic(RudeEditKind.Update, "B", "attribute"))
+                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.Attribute),
+                Diagnostic(RudeEditKind.Update, "B", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -5235,7 +5235,7 @@ End Class
                 "Update [A]@35 -> [B]@35")
 
             edits.VerifyRudeDiagnostics(
-               Diagnostic(RudeEditKind.Update, "B", "attribute"))
+               Diagnostic(RudeEditKind.Update, "B", FeaturesResources.Attribute))
         End Sub
 
         <Fact>
@@ -5261,7 +5261,7 @@ End Class
                 "Insert [A]@35")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", "attributes"))
+                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -5275,7 +5275,7 @@ End Class
                 "Delete [A]@35")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Function M()", "attributes"))
+                Diagnostic(RudeEditKind.Delete, "Public Function M()", VBFeaturesResources.AttributeList))
         End Sub
 
         <Fact>
@@ -5290,7 +5290,7 @@ End Class
                 "Delete [A]@35")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Function M()", "as clause"))
+                Diagnostic(RudeEditKind.Delete, "Public Function M()", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -5305,7 +5305,7 @@ End Class
                 "Insert [A]@35")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "As <A>Integer", "as clause"))
+                Diagnostic(RudeEditKind.Insert, "As <A>Integer", VBFeaturesResources.AsClause))
         End Sub
 
         <Fact>
@@ -5318,7 +5318,7 @@ End Class
                 "Update [As Integer]@31 -> [As Object]@31")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Public Function M()", "method"))
+                Diagnostic(RudeEditKind.TypeUpdate, "Public Function M()", FeaturesResources.Method))
         End Sub
 
 #End Region
@@ -5336,7 +5336,7 @@ End Class
                 "Insert [A]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "(Of A)", "type parameters"))
+                Diagnostic(RudeEditKind.Insert, "(Of A)", VBFeaturesResources.TypeParameterList))
         End Sub
 
         <Fact>
@@ -5350,7 +5350,7 @@ End Class
                 "Insert [B]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", "type parameter"))
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5364,7 +5364,7 @@ End Class
                 "Delete [A]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M()", "type parameters"))
+                Diagnostic(RudeEditKind.Delete, "Public Sub M()", VBFeaturesResources.TypeParameterList))
         End Sub
 
         <Fact>
@@ -5378,7 +5378,7 @@ End Class
                 "Delete [A]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M(Of B)()", "type parameter"))
+                Diagnostic(RudeEditKind.Delete, "Public Sub M(Of B)()", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5391,7 +5391,7 @@ End Class
                 "Update [A]@27 -> [B]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "B", "type parameter"))
+                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5404,7 +5404,7 @@ End Class
                 "Reorder [B]@30 -> @27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", "type parameter"))
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5418,8 +5418,8 @@ End Class
                 "Update [A]@27 -> [C]@30")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", "type parameter"),
-                Diagnostic(RudeEditKind.Renamed, "C", "type parameter"))
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.TypeParameter),
+                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.TypeParameter))
         End Sub
 #End Region
 
@@ -5436,7 +5436,7 @@ End Class
                 "Insert [A]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "(Of A)", "type parameters"))
+                Diagnostic(RudeEditKind.Insert, "(Of A)", VBFeaturesResources.TypeParameterList))
         End Sub
 
         <Fact>
@@ -5450,7 +5450,7 @@ End Class
                 "Insert [B]@14")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", "type parameter"))
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5464,7 +5464,7 @@ End Class
                 "Delete [A]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", "type parameters"))
+                Diagnostic(RudeEditKind.Delete, "Class C", VBFeaturesResources.TypeParameterList))
         End Sub
 
         <Fact>
@@ -5478,7 +5478,7 @@ End Class
                 "Delete [A]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C(Of B)", "type parameter"))
+                Diagnostic(RudeEditKind.Delete, "Class C(Of B)", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5491,7 +5491,7 @@ End Class
                 "Update [A]@11 -> [B]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "B", "type parameter"))
+                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5504,7 +5504,7 @@ End Class
                 "Reorder [B]@14 -> @11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", "type parameter"))
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.TypeParameter))
         End Sub
 
         <Fact>
@@ -5518,8 +5518,8 @@ End Class
                 "Update [A]@11 -> [C]@14")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", "type parameter"),
-                Diagnostic(RudeEditKind.Renamed, "C", "type parameter"))
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.TypeParameter),
+                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.TypeParameter))
         End Sub
 #End Region
 
@@ -5536,7 +5536,7 @@ End Class
                 "Insert [Class]@16")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "As Class", "type constraint"))
+                Diagnostic(RudeEditKind.Insert, "As Class", FeaturesResources.TypeConstraint))
         End Sub
 
         <Fact>
@@ -5550,7 +5550,7 @@ End Class
                 "Insert [New]@16")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "As New", "type constraint"))
+                Diagnostic(RudeEditKind.Insert, "As New", FeaturesResources.TypeConstraint))
         End Sub
 
         <Fact>
@@ -5564,7 +5564,7 @@ End Class
                 "Delete [Class]@19")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "T", "type constraint"))
+                Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.TypeConstraint))
         End Sub
 
         <Fact>
@@ -5579,7 +5579,7 @@ End Class
                 "Delete [New]@16")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "S", "type constraint"))
+                Diagnostic(RudeEditKind.Delete, "S", FeaturesResources.TypeConstraint))
         End Sub
 
         <Fact>
@@ -5610,8 +5610,8 @@ End Class
                 "Insert [I]@39")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "J", "type constraint"),
-                Diagnostic(RudeEditKind.Insert, "I", "type constraint"))
+                Diagnostic(RudeEditKind.Insert, "J", FeaturesResources.TypeConstraint),
+                Diagnostic(RudeEditKind.Insert, "I", FeaturesResources.TypeConstraint))
         End Sub
 
         <Fact>

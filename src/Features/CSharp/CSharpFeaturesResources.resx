@@ -300,6 +300,9 @@
   <data name="UncommentTheFollowingIfFinalizerOverriddenTodo" xml:space="preserve">
     <value>TODO: uncomment the following line if the finalizer is overridden above.</value>
   </data>
+  <data name="RemoveUnnecessaryUsingsDiagnosticTitle" xml:space="preserve">
+    <value>Using directive is unnecessary.</value>
+  </data>
   <data name="TryBlock" xml:space="preserve">
     <value>try block</value>
   </data>
@@ -369,7 +372,44 @@
   <data name="IntoClause" xml:space="preserve">
     <value>into clause</value>
   </data>
-  <data name="RemoveUnnecessaryUsingsDiagnosticTitle" xml:space="preserve">
-    <value>Using directive is unnecessary.</value>
+  <data name="GlobalStatement" xml:space="preserve">
+    <value>global statement</value>
+  </data>
+  <data name="UsingNamespace" xml:space="preserve">
+    <value>using namespace</value>
+  </data>
+  <data name="UsingDirective" xml:space="preserve">
+    <value>using directive</value>
+  </data>
+  <data name="Struct" xml:space="preserve">
+    <value>struct</value>
+    <comment>{Locked}</comment>    
+  </data>
+  <data name="EventField" xml:space="preserve">
+    <value>event field</value>
+  </data>
+  <data name="ConversionOperator" xml:space="preserve">
+    <value>conversion operator</value>
+  </data>
+  <data name="Destructor" xml:space="preserve">
+    <value>destructor</value>
+  </data>
+  <data name="Indexer" xml:space="preserve">
+    <value>indexer</value>
+  </data>
+  <data name="PropertyGetter" xml:space="preserve">
+    <value>property getter</value>
+  </data>
+  <data name="IndexerGetter" xml:space="preserve">
+    <value>indexer getter</value>
+  </data>
+  <data name="PropertySetter" xml:space="preserve">
+    <value>property setter</value>
+  </data>
+  <data name="IndexerSetter" xml:space="preserve">
+    <value>indexer setter</value>
+  </data>
+  <data name="AttributeTarget" xml:space="preserve">
+    <value>attribute target</value>
   </data>
 </root>

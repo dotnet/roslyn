@@ -65,7 +65,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Project>{201ec5b7-f91e-45e5-b9f2-67a266cce6fc}</Project>
-      <Name>VisualStudioSetup</Name>
+      <Name>VisualStudioComponents</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>False</Private>
       <IncludeOutputGroupsInVSIX>
