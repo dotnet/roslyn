@@ -42,7 +42,7 @@ End Class"
             AssertEx.Equal(result3, result4)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/926"), WorkItem(926)>
+        <Fact, WorkItem(926)>
         Public Sub CompareAllBytesEmitted_Debug()
             Dim source =
 "Class Program
