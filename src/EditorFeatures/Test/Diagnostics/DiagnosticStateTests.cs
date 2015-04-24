@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.Equal(items1[i].Id, items2[i].Id);
                 Assert.Equal(items1[i].Category, items2[i].Category);
                 Assert.Equal(items1[i].Message, items2[i].Message);
-                Assert.Equal(items1[i].MessageFormat, items2[i].MessageFormat);
+                Assert.Equal(items1[i].ENUMessageForBingSearch, items2[i].ENUMessageForBingSearch);
                 Assert.Equal(items1[i].Severity, items2[i].Severity);
                 Assert.Equal(items1[i].IsEnabledByDefault, items2[i].IsEnabledByDefault);
                 Assert.Equal(items1[i].WarningLevel, items2[i].WarningLevel);
