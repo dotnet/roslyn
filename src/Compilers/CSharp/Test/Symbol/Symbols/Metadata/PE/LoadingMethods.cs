@@ -1267,7 +1267,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_BindToBogus, "VT").WithArguments("C.VT()"));
         }
         [WorkItem(666162, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Repro666162()
         {
             var il = @"

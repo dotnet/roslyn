@@ -183,7 +183,7 @@ class Program
 
         // Overriding base System.Object methods on struct
         [WorkItem(540990, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
         public void TestOverridingBaseConstructorStruct()
         {
             var text = @"

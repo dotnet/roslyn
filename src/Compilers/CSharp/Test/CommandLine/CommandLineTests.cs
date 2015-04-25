@@ -5312,7 +5312,7 @@ class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void ResponseFilesWithNoconfig_01()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"

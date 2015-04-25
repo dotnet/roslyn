@@ -5306,7 +5306,7 @@ namespace NS
                 );
         }
 
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         [WorkItem(568953, "DevDiv")]
         public void CS0436WRN_SameFullNameThisAggAgg_01()
         {
@@ -5365,7 +5365,7 @@ namespace NS
                 );
         }
 
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         [WorkItem(568953, "DevDiv")]
         public void CS0436WRN_SameFullNameThisAggAgg_02()
         {
@@ -5424,7 +5424,7 @@ namespace NS
                 );
         }
 
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         [WorkItem(568953, "DevDiv")]
         public void CS0435WRN_SameFullNameThisNsAgg_01()
         {
@@ -5483,7 +5483,7 @@ namespace NS
                 );
         }
 
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         [WorkItem(568953, "DevDiv")]
         public void CS0437WRN_SameFullNameThisAggNs_01()
         {
@@ -6483,7 +6483,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("Util", "NS"));
         }
 
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         [WorkItem(641639, "DevDiv")]
         public void Bug641639()
         {
@@ -9437,7 +9437,7 @@ class set_P : A
         /// event accessor metadata name.
         /// </summary>
         [WorkItem(530385, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CS0542ERR_MemberNameSameAsType07()
         {
             var source1 =
@@ -11668,7 +11668,7 @@ class C5<T> where T : I
         }
 
         [WorkItem(546447, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CS0682ERR_BogusExplicitImpl()
         {
             var source1 =
@@ -16321,7 +16321,7 @@ partial struct A
         /// import - Lib:  class A     { class B {} } 
         ///      vs. curr: Namespace A { class B {} } - use B
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CS0435WRN_SameFullNameThisNsAgg01()
         {
             var text = @"namespace CSFields

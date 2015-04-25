@@ -15,10 +15,10 @@ do
         CUSTOM_MONO_PATH=$2
         shift 2
         ;;
-		--os)
-		OS_NAME=$2
-		shift 2
-		;;
+        --os)
+        OS_NAME=$2
+        shift 2
+        ;;
         --minimal)
         FULL_RUN=false
         shift 1
@@ -73,7 +73,7 @@ compile_toolset()
 # Save the toolset binaries from Binaries/Debug to Binaries/Bootstrap
 save_toolset()
 {
-    compiler_binaries=(
+    local compiler_binaries=(
         csc.exe
         Microsoft.CodeAnalysis.dll
         Microsoft.CodeAnalysis.Desktop.dll
@@ -132,10 +132,13 @@ test_roslyn()
     
     local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
-        Roslyn.Compilers.CSharp.Syntax.UnitTests
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
+        Roslyn.Compilers.CSharp.Syntax.UnitTests
+        Roslyn.Compilers.CSharp.Semantic.UnitTests
+        Roslyn.Compilers.CSharp.Symbol.UnitTests
         Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
     local any_failed=false
+
     for i in "${test_binaries[@]}"
     do
         mono $xunit_runner Binaries/Debug/$i.dll -xml Binaries/Debug/$i.TestResults.xml -noshadow

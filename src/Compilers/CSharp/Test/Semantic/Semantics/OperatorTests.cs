@@ -1315,7 +1315,7 @@ class C
                 .ToArray());
 
             var expected = string.Join("\n", source
-                .Split(new[] { "\r\n" }, System.StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { Environment.NewLine }, System.StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.Contains("//-"))
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
@@ -4884,7 +4884,7 @@ A");
         }
 
         [WorkItem(656739, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void DynamicAmbiguousOrConversion()
         {
             string source = @"

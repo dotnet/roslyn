@@ -1761,7 +1761,7 @@ public class Derived : Base
                 Diagnostic(ErrorCode.WRN_CLS_BadIdentifier, "_M").WithArguments("_M"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void WRN_CLS_BadIdentifier_NotReferencable()
         {
             var il = @"
@@ -3293,7 +3293,7 @@ public class C
             CreateCompilationWithMscorlib("[assembly:System.CLSCompliant(false)]" + source).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void InheritedCompliance1()
         {
             var libSource = @"
@@ -3326,7 +3326,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_CLS_BadFieldPropType, "d").WithArguments("C.d"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void InheritedCompliance2()
         {
             var libIL = @"

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(p1.HasUnsupportedMetadata);
         }
 
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Test2()
         {
             var iLSource = @"

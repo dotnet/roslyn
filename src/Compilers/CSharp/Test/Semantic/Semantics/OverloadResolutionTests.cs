@@ -1067,7 +1067,7 @@ class Test2
 
         [WorkItem(540153, "DevDiv")]
         [WorkItem(540406, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverridingMismatchedParamsErrorCase_Metadata()
         {
             // Tests:
