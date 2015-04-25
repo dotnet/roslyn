@@ -1910,7 +1910,7 @@ class Hello
 
             Assert.True(WaitForProcessExitAsync(_compilerServerExecutable).Wait(timeout),
                 string.Format("Compiler server did not exit after {0} seconds, number of vbcscompiler.exe proccesses found: {1}",
-                    timeout.Milliseconds / 1000,
+                    timeout.TotalSeconds,
                     GetProcessesByFullPath(_compilerServerExecutable).Count));
 
             // Run another build using the analyzer
@@ -2162,7 +2162,6 @@ class Hello
         public void ExecuteCscBuildTaskWithServer()
         {
             var csc = new Csc();
-            csc.ToolPath = _compilerDirectory;
             var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcCs[0].Key).WriteAllText(s_helloWorldSrcCs[0].Value).Path;
             var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
 
@@ -2192,7 +2191,6 @@ class Hello
         public void ExecuteVbcBuildTaskWithServer()
         {
             var vbc = new Vbc();
-            vbc.ToolPath = _compilerDirectory;
             var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcVb[0].Key).WriteAllText(s_helloWorldSrcVb[0].Value).Path;
             var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
 
