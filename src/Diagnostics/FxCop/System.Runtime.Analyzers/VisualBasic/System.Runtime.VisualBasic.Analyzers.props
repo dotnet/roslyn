@@ -11,6 +11,8 @@
       
       -Microsoft.Globalization#CA1309;
       
+      -Microsoft.Reliability#CA2002;
+      
       -Microsoft.Usage#CA2213;
     </CodeAnalysisRuleSetOverrides>
   </PropertyGroup>

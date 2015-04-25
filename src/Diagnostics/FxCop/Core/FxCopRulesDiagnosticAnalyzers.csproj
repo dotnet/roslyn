@@ -130,7 +130,6 @@
     <Compile Include="Performance\CA1821DiagnosticAnalyzerRule.cs" />
     <Compile Include="Performance\CodeFixes\CA1821CodeFixProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Reliability\CA2002DiagnosticAnalyzer.cs" />
     <Compile Include="Shared\CommonAccessibilityUtilities.cs" />
     <Compile Include="Shared\DiagnosticHelpers.cs" />
     <Compile Include="Shared\Extensions\DiagnosticExtensions.cs" />

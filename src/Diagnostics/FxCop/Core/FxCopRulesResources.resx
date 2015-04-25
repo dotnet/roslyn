@@ -150,9 +150,6 @@
   <data name="RemoveEmptyFinalizers" xml:space="preserve">
     <value>Remove empty finalizers</value>
   </data>
-  <data name="DoNotLockOnWeakIdentity" xml:space="preserve">
-    <value>Do not lock on a reference of type '{0}' as it has weak identity. Replace that with a lock against an object with strong identity.</value>
-  </data>
   <data name="EnumsShouldZeroValueFlagsRename" xml:space="preserve">
     <value>In enum '{0}', change the name of '{1}' to 'None'.</value>
   </data>
@@ -173,9 +170,6 @@
   </data>
   <data name="StaticHolderTypesShouldNotHaveConstructorsMessage" xml:space="preserve">
     <value>Type '{0}' is a static holder type and should not contain Instance Constructors</value>
-  </data>
-  <data name="DoNotLockOnObjectsWithWeakIdentity" xml:space="preserve">
-    <value>Do not lock on objects with weak identity.</value>
   </data>
   <data name="EnumsShouldHaveZeroValue" xml:space="preserve">
     <value>Enums should have zero value.</value>

@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
+namespace System.Runtime.Analyzers
 {
     /// <summary>
     /// CA2002: Do not lock on objects with weak identities
@@ -18,27 +18,21 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
     /// A thread that tries to acquire a lock on an object that has a weak identity can be blocked by a second thread in 
     /// a different application domain that has a lock on the same object. 
     /// </summary>
-    public abstract class CA2002DiagnosticAnalyzer : DiagnosticAnalyzer
+    public abstract class DoNotLockOnObjectsWithWeakIdentity : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA2002";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotLockOnObjectsWithWeakIdentity), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotLockOnWeakIdentity), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotLockOnObjectsWithWeakIdentity), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotLockOnWeakIdentity), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitle,
                                                                          s_localizableMessage,
-                                                                         FxCopDiagnosticCategory.Reliability,
+                                                                         DiagnosticCategory.Reliability,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182290.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
+                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(Rule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         protected void GetDiagnosticsForNode(SyntaxNode node, SemanticModel model, Action<Diagnostic> addDiagnostic)
         {
@@ -55,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
             {
                 case TypeKind.Array:
                     var arrayType = type as IArrayTypeSymbol;
-                    return arrayType != null && arrayType.ElementType.IsPrimitiveType();
+                    return arrayType != null && IsPrimitiveType(arrayType.ElementType);
                 case TypeKind.Class:
                 case TypeKind.TypeParameter:
                     Compilation compilation = model.Compilation;
@@ -77,6 +71,30 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
                         type.Inherits(threadTypeSymbol);
 
                 // What about struct types?
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsPrimitiveType(ITypeSymbol type)
+        {
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Char:
+                case SpecialType.System_Double:
+                case SpecialType.System_Int16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Single:
+                    return true;
                 default:
                     return false;
             }

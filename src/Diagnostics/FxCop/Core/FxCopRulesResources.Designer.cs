@@ -178,24 +178,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not lock on objects with weak identity..
-        /// </summary>
-        internal static string DoNotLockOnObjectsWithWeakIdentity {
-            get {
-                return ResourceManager.GetString("DoNotLockOnObjectsWithWeakIdentity", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Do not lock on a reference of type &apos;{0}&apos; as it has weak identity. Replace that with a lock against an object with strong identity..
-        /// </summary>
-        internal static string DoNotLockOnWeakIdentity {
-            get {
-                return ResourceManager.GetString("DoNotLockOnWeakIdentity", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enums should have zero value..
         /// </summary>
         internal static string EnumsShouldHaveZeroValue {
