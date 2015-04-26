@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Differencing;
 using Microsoft.CodeAnalysis.Differencing;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void GetSequenceEdits1()
         {
-            var edits = SyntaxComparer.GetSequenceEdits(
+            var edits = CSharpSyntaxComparer.GetSequenceEdits(
                 new[] { MakeLiteral(0), MakeLiteral(1), MakeLiteral(2) },
                 new[] { MakeLiteral(1), MakeLiteral(3) });
 
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void GetSequenceEdits2()
         {
-            var edits = SyntaxComparer.GetSequenceEdits(
+            var edits = CSharpSyntaxComparer.GetSequenceEdits(
                 ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
                 ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)));
 
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void GetSequenceEdits3()
         {
-            var edits = SyntaxComparer.GetSequenceEdits(
+            var edits = CSharpSyntaxComparer.GetSequenceEdits(
                 new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) },
                 new[] { SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) });
 
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void GetSequenceEdits4()
         {
-            var edits = SyntaxComparer.GetSequenceEdits(
+            var edits = CSharpSyntaxComparer.GetSequenceEdits(
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)),
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)));
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ComputeDistance1()
         {
-            double distance = SyntaxComparer.ComputeDistance(
+            double distance = CSharpSyntaxComparer.ComputeDistance(
                 new[] { MakeLiteral(0), MakeLiteral(1), MakeLiteral(2) },
                 new[] { MakeLiteral(1), MakeLiteral(3) });
 
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ComputeDistance2()
         {
-            double distance = SyntaxComparer.ComputeDistance(
+            double distance = CSharpSyntaxComparer.ComputeDistance(
                 ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
                 ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)));
 
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ComputeDistance3()
         {
-            double distance = SyntaxComparer.ComputeDistance(
+            double distance = CSharpSyntaxComparer.ComputeDistance(
                 new[] { SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) },
                 new[] { SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword) });
 
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ComputeDistance4()
         {
-            double distance = SyntaxComparer.ComputeDistance(
+            double distance = CSharpSyntaxComparer.ComputeDistance(
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)),
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)));
 
@@ -122,51 +123,51 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ComputeDistance_Token()
         {
-            double distance = SyntaxComparer.ComputeDistance(SyntaxFactory.Literal("abc", "abc"), SyntaxFactory.Literal("acb", "acb"));
+            double distance = CSharpSyntaxComparer.ComputeDistance(SyntaxFactory.Literal("abc", "abc"), SyntaxFactory.Literal("acb", "acb"));
             Assert.Equal(0.33, Math.Round(distance, 2));
         }
 
         [Fact]
         public void ComputeDistance_Node()
         {
-            double distance = SyntaxComparer.ComputeDistance(MakeLiteral(101), MakeLiteral(150));
+            double distance = CSharpSyntaxComparer.ComputeDistance(MakeLiteral(101), MakeLiteral(150));
             Assert.Equal(1, Math.Round(distance, 2));
         }
 
         [Fact]
         public void ComputeDistance_Null()
         {
-            double distance = SyntaxComparer.ComputeDistance(
+            double distance = CSharpSyntaxComparer.ComputeDistance(
                 default(ImmutableArray<SyntaxToken>),
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword)));
 
             Assert.Equal(1, Math.Round(distance, 2));
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = CSharpSyntaxComparer.ComputeDistance(
                 default(ImmutableArray<SyntaxNode>),
                 ImmutableArray.Create(MakeLiteral(0)));
 
             Assert.Equal(1, Math.Round(distance, 2));
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = CSharpSyntaxComparer.ComputeDistance(
                 null,
                 Array.Empty<SyntaxNode>());
 
             Assert.Equal(0, Math.Round(distance, 2));
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = CSharpSyntaxComparer.ComputeDistance(
                 Array.Empty<SyntaxNode>(),
                 null);
 
             Assert.Equal(0, Math.Round(distance, 2));
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = CSharpSyntaxComparer.ComputeDistance(
                 null,
                 Array.Empty<SyntaxToken>());
 
             Assert.Equal(0, Math.Round(distance, 2));
 
-            distance = SyntaxComparer.ComputeDistance(
+            distance = CSharpSyntaxComparer.ComputeDistance(
                 Array.Empty<SyntaxToken>(),
                 null);
 

@@ -3,11 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Differencing;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal sealed class TopSyntaxComparer : SyntaxComparer
+    internal sealed class TopSyntaxComparer : CSharpSyntaxComparer
     {
         internal static readonly TopSyntaxComparer Instance = new TopSyntaxComparer();
 
