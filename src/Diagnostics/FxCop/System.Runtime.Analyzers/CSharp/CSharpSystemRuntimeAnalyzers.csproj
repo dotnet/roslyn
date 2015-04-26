@@ -77,6 +77,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="Design\UseGenericEventHandler.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
     <Compile Include="Reliability\DoNotLockOnObjectsWithWeakIdentity.cs" />

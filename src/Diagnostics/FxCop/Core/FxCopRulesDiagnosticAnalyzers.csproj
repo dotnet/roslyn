@@ -103,7 +103,6 @@
     <Compile Include="AbstractNamedTypeAnalyzer.cs" />
     <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="DiagnosticCustomTags.cs" />
-    <Compile Include="Design\CA1003DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1008DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1012DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1024DiagnosticAnalyzer.cs" />

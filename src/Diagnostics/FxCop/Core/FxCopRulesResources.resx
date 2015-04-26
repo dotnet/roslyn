@@ -210,9 +210,6 @@
   <data name="TypeParameterNamesShouldStartWithT" xml:space="preserve">
     <value>Type parameter names should be prefixed with 'T'</value>
   </data>
-  <data name="UseGenericEventHandlerInstances" xml:space="preserve">
-    <value>Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler</value>
-  </data>
   <data name="EnumsShouldHaveZeroValueDescription" xml:space="preserve">
     <value>An enum should generally have a zero value. If the enum is not decorated with the Flags attribute, it should have a member with a value of zero that represents the empty state. Optionally, this value is named 'None'. For a Flags-attributed enum, a zero-valued member is optional and, if it exists, should always be named 'None'. This value should indicate that no values have been set in the enum. Using a zero-valued member for other purposes is contrary to the use of the Flags attribute in that the bitwise AND and OR operators are useless with the member.</value>
   </data>

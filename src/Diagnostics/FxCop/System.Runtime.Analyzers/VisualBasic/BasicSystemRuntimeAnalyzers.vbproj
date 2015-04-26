@@ -75,6 +75,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\UseGenericEventHandler.vb" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.vb" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.vb" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.vb" />

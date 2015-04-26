@@ -98,6 +98,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\UseGenericEventHandlerTests.cs" />
     <Compile Include="Design\EnumWithFlagsAttributeTests.cs" />
     <Compile Include="Design\EnumWithFlagsAttributeTests.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparisonTests.Fixer.cs" />

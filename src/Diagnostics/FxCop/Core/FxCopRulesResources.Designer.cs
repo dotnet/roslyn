@@ -457,15 +457,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler.
-        /// </summary>
-        internal static string UseGenericEventHandlerInstances {
-            get {
-                return ResourceManager.GetString("UseGenericEventHandlerInstances", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Use properties where appropriate..
         /// </summary>
         internal static string UsePropertiesWhereAppropriate {

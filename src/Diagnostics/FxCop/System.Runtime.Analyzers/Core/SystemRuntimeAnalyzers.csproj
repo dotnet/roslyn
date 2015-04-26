@@ -68,6 +68,7 @@
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />
+    <Compile Include="Design\UseGenericEventHandler.cs" />
     <Compile Include="DiagnosticCategory.cs" />
     <Compile Include="Design\EnumWithFlagsAttribute.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="Shared\DiagnosticHelpers.cs" />
     <Compile Include="Shared\INamedTypeSymbolExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shared\ISymbolExtensions.cs" />
     <Compile Include="SystemRuntimeAnalyzersResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

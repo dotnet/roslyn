@@ -81,7 +81,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Design\CA1003Tests.cs" />
     <Compile Include="Design\CA1008Tests.cs" />
     <Compile Include="Design\CA1012Tests.cs" />
     <Compile Include="Design\CA1024Tests.cs" />

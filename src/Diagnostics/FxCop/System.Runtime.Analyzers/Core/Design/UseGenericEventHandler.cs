@@ -1,28 +1,31 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace System.Runtime.Analyzers
 {
-    public abstract class CA1003DiagnosticAnalyzer : DiagnosticAnalyzer
+    /// <summary>
+    /// CA1003: Use generic event handler instances
+    /// 
+    /// Recommends that event handlers use <see cref="System.EventHandler{TEventArgs}"/>
+    /// </summary>
+    public abstract class UseGenericEventHandler : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1003";
-        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.UseGenericEventHandlerInstances), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.UseGenericEventHandlerInstances), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RuleId,
             s_localizableMessageAndTitle,
             s_localizableMessageAndTitle,
-            FxCopDiagnosticCategory.Design,
+            DiagnosticCategory.Design,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             helpLinkUri: "http://msdn.microsoft.com/library/ms182178.aspx",
-            customTags: DiagnosticCustomTags.Microsoft);
+            customTags: WellKnownDiagnosticTags.Telemetry);
 
         protected abstract AnalyzerBase GetAnalyzer(
             Compilation compilation,
@@ -31,13 +34,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             INamedTypeSymbol eventArgs,
             INamedTypeSymbol comSourceInterfacesAttribute);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(Rule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext analysisContext)
         {

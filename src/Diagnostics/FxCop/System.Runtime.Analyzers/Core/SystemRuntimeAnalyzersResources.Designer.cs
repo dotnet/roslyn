@@ -492,5 +492,14 @@ namespace System.Runtime.Analyzers {
                 return ResourceManager.GetString("TypesThatOwnDisposableFieldsShouldBeDisposable", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler.
+        /// </summary>
+        internal static string UseGenericEventHandlerInstances {
+            get {
+                return ResourceManager.GetString("UseGenericEventHandlerInstances", resourceCulture);
+            }
+        }
     }
 }

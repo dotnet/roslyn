@@ -7,7 +7,6 @@
   -->
   <PropertyGroup>
     <CodeAnalysisRuleSetOverrides>$(CodeAnalysisRuleSetOverrides);
-      -Microsoft.Design#CA1003;
       -Microsoft.Design#CA1024;
 
       -Microsoft.Performance#CA1821;
