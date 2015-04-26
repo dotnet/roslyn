@@ -86,9 +86,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Dim start = allCode.IndexOf(code, StringComparison.Ordinal)
             Dim length = code.Length
             Dim span = New TextSpan(start, length)
+            Test(code, allCode, span, expected)
+
+        End Sub
+
+        Protected Sub Test(
+            code As String,
+            allCode As String,
+            span As TextSpan,
+            ParamArray expected As Tuple(Of String, String)())
 
             Dim actual = GetClassificationSpans(allCode, span).ToList()
-
             actual.Sort(Function(t1, t2) t1.TextSpan.Start - t2.TextSpan.Start)
 
             For i = 0 To Math.Max(expected.Length, actual.Count) - 1
@@ -156,6 +164,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Dim allCode = "Class " & className & vbCrLf & "    Sub " & methodName & "()" & vbCrLf & "        " &
                 code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
             Test(code, allCode, expected)
+        End Sub
+
+        <DebuggerStepThrough()>
+        Protected Sub TestInMethod(
+            className As String,
+            methodName As String,
+            code As String,
+            codeToClassify As String,
+            ParamArray expected As Tuple(Of String, String)())
+
+            Dim allCode = "Class " & className & vbCrLf & "    Sub " & methodName & "()" & vbCrLf & "        " &
+                code & vbCrLf & "    End Sub" & vbCrLf & "End Class"
+            Dim start = allCode.IndexOf(codeToClassify)
+            Dim length = codeToClassify.Length
+            Test(code, allCode, new TextSpan(start, length), expected)
         End Sub
 
         <DebuggerStepThrough()>
