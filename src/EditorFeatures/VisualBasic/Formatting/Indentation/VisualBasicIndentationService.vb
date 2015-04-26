@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
             ' now, regular case. ask formatting rule to see whether we should use token formatter or not
             Dim lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet)
-            If lineOperation IsNot Nothing Then
+            If lineOperation IsNot Nothing AndAlso lineOperation.Option <> AdjustNewLinesOption.ForceLinesIfOnSingleLine Then
                 Return True
             End If
 
