@@ -229,5 +229,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
 
             AssertRegion(expectedRegion, actualRegion)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")>
+        Public Sub CrefInSummary()
+            Dim tree = ParseLines("''' <summary>",
+                                  "''' A summary with crefs: <see cref=""SeeClass"" />, <seealso cref=""SeeAlsoClass"" />,",
+                                  "''' and <see langword=""Nothing"" />.",
+                                  "''' </summary>",
+                                  "Class C",
+                                  "End Class")
+
+            Dim typeBlock = tree.DigToFirstTypeBlock()
+            Dim trivia = typeBlock.GetLeadingTrivia()
+
+            Dim docComment = DirectCast(trivia.Single(Function(t) t.HasStructure).GetStructure(), DocumentationCommentTriviaSyntax)
+            Dim actualRegion = GetRegion(docComment)
+            Dim expectedRegion = New OutliningSpan(
+                         TextSpan.FromBounds(0, 151),
+                         "''' <summary> A summary with crefs: SeeClass , SeeAlsoClass , and Nothing .",
+                         autoCollapse:=True)
+
+            AssertRegion(expectedRegion, actualRegion)
+        End Sub
     End Class
 End Namespace
