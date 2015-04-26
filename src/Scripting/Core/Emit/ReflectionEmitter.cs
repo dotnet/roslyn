@@ -2037,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
 
                             if (paramType.IsEnum)
                             {
-                                paramType = paramType.UnderlyingSystemType;
+                                paramType = Enum.GetUnderlyingType(paramType);
                             }
 
                             rawValue = Convert.ChangeType(rawValue, paramType, System.Globalization.CultureInfo.InvariantCulture);
