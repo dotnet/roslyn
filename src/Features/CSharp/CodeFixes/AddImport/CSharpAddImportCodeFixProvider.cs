@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     break;
                 case CS1929:
                     var memberAccessName = (node.Parent as MemberAccessExpressionSyntax)?.Name;
-                    var conditionalAccessName = (((node.Parent as ConditionalAccessExpressionSyntax)?.WhenNotNull as InvocationExpressionSyntax).Expression as MemberBindingExpressionSyntax)?.Name;
+                    var conditionalAccessName = (((node.Parent as ConditionalAccessExpressionSyntax)?.WhenNotNull as InvocationExpressionSyntax)?.Expression as MemberBindingExpressionSyntax)?.Name;
                     if (memberAccessName == null && conditionalAccessName == null)
                     {
                         return false;
