@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Host
                         var target = _start + value;
                         if (target < _start || target >= _end)
                         {
-                            throw new ArgumentOutOfRangeException("value");
+                            throw new ArgumentOutOfRangeException(nameof(value));
                         }
 
                         _current = target;
@@ -359,17 +359,17 @@ namespace Microsoft.CodeAnalysis.Host
                                 break;
 
                             default:
-                                throw new ArgumentOutOfRangeException("origin");
+                                throw new ArgumentOutOfRangeException(nameof(origin));
                         }
                     }
                     catch (OverflowException)
                     {
-                        throw new ArgumentOutOfRangeException("offset");
+                        throw new ArgumentOutOfRangeException(nameof(offset));
                     }
 
                     if (target < _start || target >= _end)
                     {
-                        throw new ArgumentOutOfRangeException("offset");
+                        throw new ArgumentOutOfRangeException(nameof(offset));
                     }
 
                     _current = target;

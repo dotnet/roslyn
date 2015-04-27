@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // we could check up front that index is within FullSpan,
             // but we wan to optimize for the common case where position is valid.
             Debug.Assert(!self.FullSpan.Contains(position), "Position is valid. How could we not find a child?");
-            throw new ArgumentOutOfRangeException("position");
+            throw new ArgumentOutOfRangeException(nameof(position));
         }
 
         public static SyntaxNode GetParent(this SyntaxNode node)

@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return fullStart;
             }
 
-            throw new ArgumentOutOfRangeException("position", position,
+            throw new ArgumentOutOfRangeException(nameof(position), position,
                 string.Format(CSharpResources.PositionIsNotWithinSyntax, Root.FullSpan));
         }
 

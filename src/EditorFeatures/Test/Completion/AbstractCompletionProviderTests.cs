@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             if (expectedSymbols <= 1)
             {
-                throw new ArgumentOutOfRangeException("expectedSymbols");
+                throw new ArgumentOutOfRangeException(nameof(expectedSymbols));
             }
 
             return "+" + NonBreakingSpace + (expectedSymbols - 1) + NonBreakingSpace + FeaturesResources.Overload;
