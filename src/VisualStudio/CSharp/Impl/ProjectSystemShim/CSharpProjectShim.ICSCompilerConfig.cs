@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             if (optionID < 0 || optionID >= CompilerOptions.LARGEST_OPTION_ID)
             {
-                throw new ArgumentOutOfRangeException("optionID");
+                throw new ArgumentOutOfRangeException(nameof(optionID));
             }
 
             Marshal.GetNativeVariantForObject(_options[(int)optionID], variant);

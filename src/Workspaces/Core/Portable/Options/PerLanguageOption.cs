@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
-                throw new ArgumentNullException("feature");
+                throw new ArgumentNullException(nameof(feature));
             }
 
             if (string.IsNullOrWhiteSpace(name))

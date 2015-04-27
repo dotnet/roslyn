@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function WithOptions(newOptions As VisualBasicCompilationOptions) As VisualBasicCompilation
             If newOptions Is Nothing Then
-                Throw New ArgumentNullException("options")
+                Throw New ArgumentNullException(NameOf(newOptions))
             End If
 
             Dim c As VisualBasicCompilation = Nothing
@@ -964,7 +964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function ReplaceSyntaxTree(oldTree As SyntaxTree, newTree As SyntaxTree) As VisualBasicCompilation
             If oldTree Is Nothing Then
-                Throw New ArgumentNullException("oldSyntaxTree")
+                Throw New ArgumentNullException(NameOf(oldTree))
             End If
 
             If newTree Is Nothing Then

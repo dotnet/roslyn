@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (options == null)
             {
-                throw new ArgumentNullException("OptionSet");
+                throw new ArgumentNullException(nameof(options));
             }
 
             var newTreeSource = CreateLazyFullyParsedTree(
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newText == null)
             {
-                throw new ArgumentNullException("newText");
+                throw new ArgumentNullException(nameof(newText));
             }
 
             // check to see if this docstate has already been branched before with the same text.
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newTextAndVersion == null)
             {
-                throw new ArgumentNullException("newTextAndVesion");
+                throw new ArgumentNullException(nameof(newTextAndVersion));
             }
 
             var newTextSource = mode == PreservationMode.PreserveIdentity
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (loader == null)
             {
-                throw new ArgumentNullException("loader");
+                throw new ArgumentNullException(nameof(loader));
             }
 
             var newTextSource = (mode == PreservationMode.PreserveIdentity)
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newRoot == null)
             {
-                throw new ArgumentNullException("newRoot");
+                throw new ArgumentNullException(nameof(newRoot));
             }
 
             var newTextVersion = this.GetNewerVersion();

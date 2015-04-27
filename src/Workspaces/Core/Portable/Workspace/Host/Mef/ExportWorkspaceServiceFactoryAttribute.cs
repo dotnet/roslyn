@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (serviceType == null)
             {
-                throw new ArgumentNullException("serviceType");
+                throw new ArgumentNullException(nameof(serviceType));
             }
 
             if (layer == null)
             {
-                throw new ArgumentNullException("layer");
+                throw new ArgumentNullException(nameof(layer));
             }
 
             this.ServiceType = serviceType.AssemblyQualifiedName;

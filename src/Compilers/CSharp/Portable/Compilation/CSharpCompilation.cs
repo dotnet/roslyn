@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trees == null)
             {
-                throw new ArgumentNullException("trees");
+                throw new ArgumentNullException(nameof(trees));
             }
 
             if (trees.IsEmpty())
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (trees == null)
             {
-                throw new ArgumentNullException("trees");
+                throw new ArgumentNullException(nameof(trees));
             }
 
             if (trees.IsEmpty())
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (oldTree == null)
             {
-                throw new ArgumentNullException("oldTree");
+                throw new ArgumentNullException(nameof(oldTree));
             }
 
             if (newTree == null)
@@ -917,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (reference == null)
             {
-                throw new ArgumentNullException("reference");
+                throw new ArgumentNullException(nameof(reference));
             }
 
             if (reference.Properties.Kind == MetadataImageKind.Assembly)
@@ -1237,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (specialType <= SpecialType.None || specialType > SpecialType.Count)
             {
-                throw new ArgumentOutOfRangeException("specialType");
+                throw new ArgumentOutOfRangeException(nameof(specialType));
             }
 
             var result = Assembly.GetSpecialType(specialType);
@@ -1557,12 +1557,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var cssource = source.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("source");
@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)elementType == null)
             {
-                throw new ArgumentNullException("elementType");
+                throw new ArgumentNullException(nameof(elementType));
             }
 
             return new ArrayTypeSymbol(this.Assembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
@@ -1593,7 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)elementType == null)
             {
-                throw new ArgumentNullException("elementType");
+                throw new ArgumentNullException(nameof(elementType));
             }
 
             return new PointerTypeSymbol(elementType);
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntaxTree == null)
             {
-                throw new ArgumentNullException("tree");
+                throw new ArgumentNullException(nameof(syntaxTree));
             }
 
             if (!this.SyntaxTrees.Contains((SyntaxTree)syntaxTree))
@@ -2742,7 +2742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (trees == null)
             {
-                throw new ArgumentNullException("trees");
+                throw new ArgumentNullException(nameof(trees));
             }
 
             return this.AddSyntaxTrees(trees.Cast<SyntaxTree>());
@@ -2758,7 +2758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (trees == null)
             {
-                throw new ArgumentNullException("trees");
+                throw new ArgumentNullException(nameof(trees));
             }
 
             return this.RemoveSyntaxTrees(trees.Cast<SyntaxTree>());

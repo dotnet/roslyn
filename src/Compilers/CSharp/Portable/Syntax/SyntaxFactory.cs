@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (text == null)
             {
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             }
 
             switch (kind)
@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (nodesAndTokens == null)
             {
-                throw new ArgumentNullException("nodesAndTokens");
+                throw new ArgumentNullException(nameof(nodesAndTokens));
             }
 
             var builder = new SyntaxNodeOrTokenListBuilder(8);
@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (tree == null)
             {
-                throw new ArgumentNullException("tree");
+                throw new ArgumentNullException(nameof(tree));
             }
 
             if (!tree.HasCompilationUnitRoot)

@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (namespaceSymbol == null)
             {
-                throw new ArgumentNullException("namespaceSymbol");
+                throw new ArgumentNullException(nameof(namespaceSymbol));
             }
 
             var moduleNs = namespaceSymbol as NamespaceSymbol;

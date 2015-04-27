@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (option == null)
             {
-                throw new ArgumentNullException("option");
+                throw new ArgumentNullException(nameof(option));
             }
 
             if (language != null && !option.IsPerLanguage)

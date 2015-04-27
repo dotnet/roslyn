@@ -98,12 +98,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         {
             if (text == null)
             {
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             }
 
             if (options < WordParserOptions.None || options > (WordParserOptions.IgnoreMnemonicsIndicators | WordParserOptions.SplitCompoundWords))
             {
-                throw new InvalidEnumArgumentException("options", (int)options, typeof(WordParserOptions));
+                throw new InvalidEnumArgumentException(nameof(options), (int)options, typeof(WordParserOptions));
             }
 
             _text = text;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         {
             if (words == null)
             {
-                throw new ArgumentNullException("words");
+                throw new ArgumentNullException(nameof(words));
             }
 
             WordParser parser = new WordParser(text, options, prefix);

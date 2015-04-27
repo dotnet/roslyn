@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             var newSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

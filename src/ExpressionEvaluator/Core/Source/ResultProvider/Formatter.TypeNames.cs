@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var type = typeAndInfo.Type;
             if (type == null)
             {
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             }
 
             var dynamicFlags = new DynamicFlagsCustomTypeInfo(typeAndInfo.Info);

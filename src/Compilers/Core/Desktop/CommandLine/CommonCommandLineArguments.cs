@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (metadataResolver == null)
             {
-                throw new ArgumentNullException("metadataResolver");
+                throw new ArgumentNullException(nameof(metadataResolver));
             }
 
             return ResolveMetadataReferences(metadataResolver, diagnosticsOpt: null, messageProviderOpt: null);

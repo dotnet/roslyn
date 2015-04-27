@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (type == null)
             {
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             }
 
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.ServiceType = type.AssemblyQualifiedName;

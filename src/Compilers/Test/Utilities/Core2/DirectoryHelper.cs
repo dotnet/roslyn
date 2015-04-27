@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (!Directory.Exists(path))
             {
-                throw new ArgumentException("Directory '" + path + "' does not exist.", "path");
+                throw new ArgumentException("Directory '" + path + "' does not exist.", nameof(path));
             }
 
             _rootPath = path;
