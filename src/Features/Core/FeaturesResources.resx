@@ -789,6 +789,7 @@ Do you want to continue?</value>
   </data>
   <data name="EnumValue" xml:space="preserve">
     <value>enum value</value>
+    <comment>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</comment>  
   </data>
   <data name="Delegate" xml:space="preserve">
     <value>delegate</value>
@@ -796,6 +797,7 @@ Do you want to continue?</value>
   </data>
   <data name="ConstField" xml:space="preserve">
     <value>const field</value>
+    <comment>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</comment>
   </data>
   <data name="Field" xml:space="preserve">
     <value>field</value>
@@ -820,7 +822,7 @@ Do you want to continue?</value>
     <comment>{Locked}</comment>    
   </data>
   <data name="EventAccessor" xml:space="preserve">
-    <value>event accessor</value>
+    <value>event accessor</value> 
   </data>
   <data name="TypeConstraint" xml:space="preserve">
     <value>type constraint</value>
