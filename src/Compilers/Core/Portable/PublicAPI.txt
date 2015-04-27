@@ -1901,6 +1901,7 @@ static Microsoft.CodeAnalysis.CaseInsensitiveComparison.EndsWith(string value, s
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(string left, string right) -> bool
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.GetHashCode(string value) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.ToLower(System.Text.StringBuilder builder) -> void
+static Microsoft.CodeAnalysis.CaseInsensitiveComparison.ToLower(char c) -> char
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.ToLower(string value) -> string
 static Microsoft.CodeAnalysis.ChildSyntaxList.operator !=(Microsoft.CodeAnalysis.ChildSyntaxList list1, Microsoft.CodeAnalysis.ChildSyntaxList list2) -> bool
 static Microsoft.CodeAnalysis.ChildSyntaxList.operator ==(Microsoft.CodeAnalysis.ChildSyntaxList list1, Microsoft.CodeAnalysis.ChildSyntaxList list2) -> bool
