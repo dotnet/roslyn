@@ -317,6 +317,7 @@ Microsoft.CodeAnalysis.DllImportData.ExactSpelling.get -> bool
 Microsoft.CodeAnalysis.DllImportData.ModuleName.get -> string
 Microsoft.CodeAnalysis.DllImportData.SetLastError.get -> bool
 Microsoft.CodeAnalysis.DllImportData.ThrowOnUnmappableCharacter.get -> bool?
+Microsoft.CodeAnalysis.DocumentationCommentId
 Microsoft.CodeAnalysis.DocumentationMode
 Microsoft.CodeAnalysis.DocumentationMode.Diagnose = 2 -> Microsoft.CodeAnalysis.DocumentationMode
 Microsoft.CodeAnalysis.DocumentationMode.None = 0 -> Microsoft.CodeAnalysis.DocumentationMode
@@ -1915,6 +1916,14 @@ static Microsoft.CodeAnalysis.Diagnostic.Create(string id, string category, Micr
 static Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetEffectiveDiagnostics(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Microsoft.CodeAnalysis.Compilation compilation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>
 static Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer, Microsoft.CodeAnalysis.CompilationOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException = null) -> bool
 static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers
+static Microsoft.CodeAnalysis.DocumentationCommentId.CreateDeclarationId(Microsoft.CodeAnalysis.ISymbol symbol) -> string
+static Microsoft.CodeAnalysis.DocumentationCommentId.CreateReferenceId(Microsoft.CodeAnalysis.ISymbol symbol) -> string
+static Microsoft.CodeAnalysis.DocumentationCommentId.GetFirstSymbolForDeclarationId(string id, Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.ISymbol
+static Microsoft.CodeAnalysis.DocumentationCommentId.GetFirstSymbolForReferenceId(string id, Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.ISymbol
+static Microsoft.CodeAnalysis.DocumentationCommentId.GetSymbolsForDeclarationId(string id, Microsoft.CodeAnalysis.Compilation compilation) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.ISymbol>
+static Microsoft.CodeAnalysis.DocumentationCommentId.GetSymbolsForReferenceId(string id, Microsoft.CodeAnalysis.Compilation compilation) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.ISymbol>
+static Microsoft.CodeAnalysis.DocumentationCommentId.TryGetSymbolsForDeclarationId(string id, Microsoft.CodeAnalysis.Compilation compilation, System.Collections.Generic.List<Microsoft.CodeAnalysis.ISymbol> results) -> bool
+static Microsoft.CodeAnalysis.DocumentationCommentId.TryGetSymbolsForReferenceId(string id, Microsoft.CodeAnalysis.Compilation compilation, System.Collections.Generic.List<Microsoft.CodeAnalysis.ISymbol> results) -> bool
 static Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.Create(System.Collections.Immutable.ImmutableArray<byte> compressedSlotMap, System.Collections.Immutable.ImmutableArray<byte> compressedLambdaMap) -> Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation
 static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.ModuleMetadata module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation> debugInformationProvider) -> Microsoft.CodeAnalysis.Emit.EmitBaseline
 static Microsoft.CodeAnalysis.Emit.EmitOptions.operator !=(Microsoft.CodeAnalysis.Emit.EmitOptions left, Microsoft.CodeAnalysis.Emit.EmitOptions right) -> bool

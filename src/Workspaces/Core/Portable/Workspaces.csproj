@@ -76,9 +76,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs">
       <Link>InternalUtilities\DecimalUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentId.cs">
-      <Link>InternalUtilities\DocumentationCommentId.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
       <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
     </Compile>
