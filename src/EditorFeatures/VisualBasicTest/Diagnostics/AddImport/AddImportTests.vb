@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImport
     Public Class AddImportTests
@@ -1065,7 +1065,7 @@ Nothing, 1, True, True, Nothing, False, Nothing)
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    New VisualBasicAddImportDiagnosticAnalyzer(),
+                    New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
                     New VisualBasicAddImportCodeFixProvider())
             End Function
 
@@ -1118,6 +1118,22 @@ Class MultiDictionary(Of K, V)
         Dim hs = New HashSet(Of V)([|Comparer|])
     End Sub
 End Class")
+            End Sub
+
+            <WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            Public Sub TestImportIncompleteSub()
+                Test(
+    NewLines("Class A \n Dim a As Action = Sub() \n Try \n Catch ex As [|TestException|] \n End Sub \n End Class \n Namespace T \n Class TestException \n Inherits Exception \n End Class \n End Namespace"),
+    NewLines("Imports T \n Class A \n Dim a As Action = Sub() \n Try \n Catch ex As TestException \n End Sub \n End Class \n Namespace T \n Class TestException \n Inherits Exception \n End Class \n End Namespace"))
+            End Sub
+
+            <WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            Public Sub TestImportIncompleteSub2()
+                Test(
+    NewLines("Imports System.Linq \n Namespace X \n Class Test \n End Class \n End Namespace \n Class C \n Sub New() \n Dim s As Action = Sub() \n Dim a = New [|Test|]()"),
+    NewLines("Imports System.Linq \n Imports X \n Namespace X \n Class Test \n End Class \n End Namespace \n Class C \n Sub New() \n Dim s As Action = Sub() \n Dim a = New Test()"))
             End Sub
         End Class
     End Class

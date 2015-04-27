@@ -1140,19 +1140,19 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="OptionStatement" xml:space="preserve">
     <value>option</value>
-    <comment>{Locked}</comment>  
+    <comment>{Locked}</comment>
   </data>
   <data name="ImportStatement" xml:space="preserve">
     <value>import</value>
-    <comment>{Locked}</comment>  
+    <comment>{Locked}</comment>
   </data>
   <data name="StructureStatement" xml:space="preserve">
     <value>structure</value>
-    <comment>{Locked}</comment>  
+    <comment>{Locked}</comment>
   </data>
   <data name="ModuleStatement" xml:space="preserve">
     <value>module</value>
-    <comment>{Locked}</comment>  
+    <comment>{Locked}</comment>
   </data>
   <data name="WithEventsFieldStatement" xml:space="preserve">
     <value>WithEvents field</value>
@@ -1171,5 +1171,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="AttributeList" xml:space="preserve">
     <value>attributes</value>
+  </data>
+  <data name="ERR_TooManyArgs1" xml:space="preserve">
+    <value>Too many arguments to '{0}'.</value>
+  </data>
+  <data name="ERR_UndefinedType1" xml:space="preserve">
+    <value>Type '{0}' is not defined.</value>
   </data>
 </root>

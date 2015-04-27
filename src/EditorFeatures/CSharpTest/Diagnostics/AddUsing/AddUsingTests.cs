@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddImport;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -1975,7 +1975,7 @@ namespace A.C
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
                 return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                        new CSharpAddImportDiagnosticAnalyzer(),
+                        new CSharpUnboundIdentifiersDiagnosticAnalyzer(),
                         new CSharpAddImportCodeFixProvider());
             }
 
@@ -2059,6 +2059,33 @@ namespace A.C
                 Test(
     @"using System ; class Program { Func < [|FlowControl|] x } ",
     @"using System ; using System . Reflection . Emit ; class Program { Func < FlowControl x } ");
+            }
+
+            [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public void TestIncompleteCatchBlockInLambda()
+            {
+                Test(
+    @"class A { System . Action a = ( ) => { try { } catch ( [|Exception|] ",
+    @"using System ; class A { System . Action a = ( ) => { try { } catch ( Exception ");
+            }
+
+            [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public void TestIncompleteLambda1()
+            {
+                Test(
+    @"using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new [|Byte|] ",
+    @"using System ; using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new Byte ");
+            }
+
+            [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public void TestIncompleteLambda2()
+            {
+                Test(
+    @"using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new [|Byte|] ( ) } ",
+    @"using System ; using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new Byte ( ) } ");
             }
         }
     }
