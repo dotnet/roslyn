@@ -322,18 +322,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves analyzer references stored in <see cref="AnalyzerReferences"/> using given file resolver.
         /// </summary>
-        /// <param name="getAssembly">Load an assembly from a file path</param>
+        /// <param name="analyzerLoader">Load an assembly from a file path</param>
         /// <returns>Yields resolved <see cref="AnalyzerFileReference"/> or <see cref="UnresolvedAnalyzerReference"/>.</returns>
-        public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(Func<string, Assembly> getAssembly)
+        public IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(IAnalyzerAssemblyLoader analyzerLoader)
         {
             foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
             {
-                yield return ResolveAnalyzerReference(cmdLineReference, getAssembly)
+                yield return ResolveAnalyzerReference(cmdLineReference, analyzerLoader)
                     ?? (AnalyzerReference)new UnresolvedAnalyzerReference(cmdLineReference.FilePath);
             }
         }
 
-        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, Func<string, Assembly> getAssembly)
+        internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, IAnalyzerAssemblyLoader analyzerLoader)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var reference in AnalyzerReferences)
             {
-                var resolvedReference = ResolveAnalyzerReference(reference, getAssembly);
+                var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
                     resolvedReference.AnalyzerLoadFailed += errorHandler;
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, Func<string, Assembly> getAssembly)
+        private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
             if (File.Exists(resolvedPath))
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis
 
             if (resolvedPath != null)
             {
-                return new AnalyzerFileReference(resolvedPath, getAssembly);
+                return new AnalyzerFileReference(resolvedPath, analyzerLoader.LoadFromPath);
             }
 
             return null;

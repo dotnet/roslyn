@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         // Caches are used by C# and VB compilers, and shared here.
         public static readonly ReferenceProvider AssemblyReferenceProvider = new ReferenceProvider();
+        public static readonly IAnalyzerAssemblyLoader AnalyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
 
         private static void LogAbnormalExit(string msg)
         {
@@ -161,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 currentDirectory,
                 RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
+                AnalyzerLoader,
                 output,
                 cancellationToken,
                 out utf8output);
@@ -224,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 currentDirectory,
                 RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
+                AnalyzerLoader,
                 output,
                 cancellationToken,
                 out utf8output);
