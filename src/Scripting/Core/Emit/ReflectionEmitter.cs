@@ -2037,7 +2037,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
 
                             if (paramType.IsEnum)
                             {
-                                paramType = Enum.GetUnderlyingType(paramType);
+                                // If emitting the enum, it isn't "created" as this stage so Enum.GetUnderlyingType() will throw
+                                // Otherwise, if the enum is already defined, we should use Enum.GetUnderlyingType() to get the correct type
+                                paramType = paramType is TypeBuilder ? paramType.UnderlyingSystemType : Enum.GetUnderlyingType(paramType);
                             }
 
                             rawValue = Convert.ChangeType(rawValue, paramType, System.Globalization.CultureInfo.InvariantCulture);
