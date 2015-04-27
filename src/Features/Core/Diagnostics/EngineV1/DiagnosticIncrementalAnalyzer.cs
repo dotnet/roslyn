@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             try
             {
-                if (!skipClosedFileChecks && !CheckOption(project.Solution.Workspace, project.Language, documentOpened: project.Documents.Any(d => d.IsOpen())))
+                if (!skipClosedFileChecks && !CheckOption(project.Solution.Workspace, project.Language, documentOpened: false))
                 {
                     return;
                 }
