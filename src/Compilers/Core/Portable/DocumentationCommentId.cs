@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets all declaration symbols that match the declaration id string
         /// </summary>
-        public static IReadOnlyList<ISymbol> GetSymbolsForDeclarationId(string id, Compilation compilation)
+        public static ImmutableArray<ISymbol> GetSymbolsForDeclarationId(string id, Compilation compilation)
         {
             if (id == null)
             {
@@ -91,9 +91,16 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            var results = new List<ISymbol>();
-            TryGetSymbolsForDeclarationId(id, compilation, results);
-            return results;
+            var results = s_symbolListPool.Allocate();
+            try
+            {
+                Parser.ParseDeclaredSymbolId(id, compilation, results);
+                return results.ToImmutableArray();
+            }
+            finally
+            {
+                s_symbolListPool.ClearAndFree(results);
+            }
         }
 
         /// <summary>
@@ -151,7 +158,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the symbols that match the reference id string.
         /// </summary>
-        public static IReadOnlyList<ISymbol> GetSymbolsForReferenceId(string id, Compilation compilation)
+        public static ImmutableArray<ISymbol> GetSymbolsForReferenceId(string id, Compilation compilation)
         {
             if (id == null)
             {
@@ -163,9 +170,16 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            var results = new List<ISymbol>();
-            TryGetSymbolsForReferenceId(id, compilation, results);
-            return results;
+            var results = s_symbolListPool.Allocate();
+            try
+            {
+                TryGetSymbolsForReferenceId(id, compilation, results);
+                return results.ToImmutableArray();
+            }
+            finally
+            {
+                s_symbolListPool.ClearAndFree(results);
+            }
         }
 
         /// <summary>

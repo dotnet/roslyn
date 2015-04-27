@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
                 var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(RemovePrefix(_name, s_suppressionPrefix), _compilation);
-                if (docIdResults.Count > 0)
+                if (docIdResults.Length > 0)
                 {
                     foreach (var result in docIdResults)
                     {
