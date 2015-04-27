@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (!@namespace.IsValidClrNamespaceName())
             {
-                throw new ArgumentException("Invalid namespace name", "namespace");
+                throw new ArgumentException("Invalid namespace name", nameof(@namespace));
             }
         }
 

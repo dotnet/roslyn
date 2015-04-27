@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             if (!(occurrence > 0))
             {
-                throw new ArgumentException("Specified value must be greater than zero.", "occurrence");
+                throw new ArgumentException("Specified value must be greater than zero.", nameof(occurrence));
             }
             SyntaxNodeOrToken foundNode = default(SyntaxNodeOrToken);
             if (TryFindNodeOrToken(syntaxTree.GetCompilationUnitRoot(), kind, ref occurrence, ref foundNode))
