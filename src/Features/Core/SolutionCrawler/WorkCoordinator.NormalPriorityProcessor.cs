@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         SolutionCrawlerLogger.LogProcessCloseDocument(this.Processor._logAggregator, document.Id.Id);
 
-                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.DocumentCloseAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
                     private async Task ProcessReanalyzeDocumentAsync(WorkItem workItem, Document document, CancellationToken cancellationToken)
