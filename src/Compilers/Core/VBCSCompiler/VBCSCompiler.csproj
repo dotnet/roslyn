@@ -90,6 +90,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
+      <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="Assembly.cs" />
     <Compile Include="BuildProtocol.cs" />
     <Compile Include="CompilerRequestHandler.cs" />
@@ -99,16 +105,11 @@
     <Compile Include="IClientConnection.cs" />
     <Compile Include="MetadataCache.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />
-    <Compile Include="ServerDispatcher.AnalyzerWatcher.cs" />
+    <Compile Include="CompilerServerFileWatcher.cs" />
     <Compile Include="ServerDispatcher.Connection.cs" />
     <Compile Include="ServerDispatcher.cs" />
     <Compile Include="ServerDispatcher.MemoryHelper.cs" />
     <Compile Include="VisualBasicCompilerServer.cs" />
-  </ItemGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Helpers\InMemoryAssemblyProvider.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

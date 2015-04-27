@@ -125,9 +125,8 @@
     <Compile Include="MultipleCodeFixProviderBase.cs" />
     <Compile Include="Naming\CA1708DiagnosticAnalyzer.cs" />
     <Compile Include="Naming\CA1715DiagnosticAnalyzer.cs" />
-    <Compile Include="Performance\CA1821DiagnosticAnalyzer.cs" />
-    <Compile Include="Performance\CA1821DiagnosticAnalyzerRule.cs" />
-    <Compile Include="Performance\CodeFixes\CA1821CodeFixProvider.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizers.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizers.Fixer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shared\CommonAccessibilityUtilities.cs" />
     <Compile Include="Shared\DiagnosticHelpers.cs" />

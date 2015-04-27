@@ -10,26 +10,26 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class CA1821FixerTests : CodeFixTestBase
+    public partial class RemoveEmptyFinalizersFixerTests : CodeFixTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicCA1821DiagnosticAnalyzer();
+            return new BasicRemoveEmptyFinalizers();
         }
 
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new CA1821CodeFixProvider();
+            return new RemoveEmptyFinalizersFixer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpCA1821DiagnosticAnalyzer();
+            return new CSharpRemoveEmptyFinalizers();
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CA1821CodeFixProvider();
+            return new RemoveEmptyFinalizersFixer();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -51,7 +51,7 @@ public class Class1
 ");
         }
 
-        [Fact(Skip = "Bug 902686"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1821BasicCodeFixTestRemoveEmptyFinalizers()
         {
             VerifyBasicFix(@"

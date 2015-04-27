@@ -161,6 +161,11 @@ namespace Microsoft.DiaSymReader
                 methodToken,
                 methodVersion,
                 (ISymUnmanagedReader pReader, int pMethodToken, int pMethodVersion, int pBufferLength, out int pCount, byte[] pCustomDebugInfo) =>
+                    // Note:  Here, we are assuming that the sym reader implementation we're using implements ISymUnmanagedReader3.  This is
+                    // necessary so that we get custom debug info for the correct method version in EnC scenarios.  However, some sym reader
+                    // implementations do not support this interface (for example, the mscordbi dynamic sym reader).  If we need to fall back
+                    // and call ISymUnmanagedReader.GetSymAttribute in those cases (assuming EnC is not supported), then we'll need to ensure
+                    // that incorrect or missing custom debug info will not cause problems for any callers of this method.
                     ((ISymUnmanagedReader3)pReader).GetSymAttributeByVersion(pMethodToken, pMethodVersion, CdiAttributeName, pBufferLength, out pCount, pCustomDebugInfo));
         }
 

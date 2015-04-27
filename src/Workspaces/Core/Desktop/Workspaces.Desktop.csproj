@@ -77,6 +77,9 @@
     <Compile Include="..\..\..\Compilers\Core\Desktop\PathUtilities.cs">
       <Link>InternalUtilities\PathUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
     </Compile>
@@ -88,6 +91,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
       <Link>InternalUtilities\AssemblyIdentityExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
@@ -107,7 +113,7 @@
     <Compile Include="Workspace\Host\Documentation\DocumentationProviderServiceFactory.cs" />
     <Compile Include="Workspace\Host\Mef\DesktopMefHostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
-    <Compile Include="Workspace\Host\AnalyzerServiceFactory.cs" />
+    <Compile Include="Workspace\Host\SimpleAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
     <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />

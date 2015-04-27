@@ -377,6 +377,9 @@ Microsoft.CodeAnalysis.FileLinePositionSpan.Span.get -> Microsoft.CodeAnalysis.T
 Microsoft.CodeAnalysis.FileLinePositionSpan.StartLinePosition.get -> Microsoft.CodeAnalysis.Text.LinePosition
 Microsoft.CodeAnalysis.IAliasSymbol
 Microsoft.CodeAnalysis.IAliasSymbol.Target.get -> Microsoft.CodeAnalysis.INamespaceOrTypeSymbol
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.AddDependencyLocation(string fullPath) -> void
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.LoadFromPath(string fullPath) -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.IArrayTypeSymbol
 Microsoft.CodeAnalysis.IArrayTypeSymbol.CustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
 Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol

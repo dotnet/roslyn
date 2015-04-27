@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             int selectionIndex;
             var selectedItemPreviewText = string.Empty;
 
-            if (_dropdownBar.GetCurrentSelection(iCombo, out selectionIndex) == VSConstants.S_OK)
+            if (_dropdownBar.GetCurrentSelection(iCombo, out selectionIndex) == VSConstants.S_OK && selectionIndex >= 0)
             {
                 selectedItemPreviewText = GetItem(iCombo, selectionIndex).Text;
             }

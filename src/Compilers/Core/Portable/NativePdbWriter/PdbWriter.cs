@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -34,9 +35,11 @@ namespace Microsoft.Cci
     {
         internal const uint HiddenLocalAttributesValue = 1u;
         internal const uint DefaultLocalAttributesValue = 0u;
+        internal const uint Age = 1;
 
         private static Type s_lazyCorSymWriterSxSType;
 
+        private readonly bool _deterministic;
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
         private ComMemoryStream _pdbStream;
@@ -55,10 +58,12 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
-        public PdbWriter(string fileName, Func<object> symWriterFactory = null)
+        public PdbWriter(string fileName, Func<object> symWriterFactory, bool deterministic)
         {
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
+            _deterministic = deterministic;
+
             CreateSequencePointBuffers(capacity: 64);
         }
 
@@ -544,31 +549,89 @@ namespace Microsoft.Cci
 
         #region SymWriter calls
 
+        const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
+
+        private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
+
+        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
+        private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+
+        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
+        private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+
         private static Type GetCorSymWriterSxSType()
         {
             if (s_lazyCorSymWriterSxSType == null)
             {
                 // If an exception is thrown we propagate it - we want to report it every time. 
-                s_lazyCorSymWriterSxSType = Marshal.GetTypeFromCLSID(new Guid("0AE2DEB0-F901-478b-BB9F-881EE8066788"));
+                s_lazyCorSymWriterSxSType = Marshal.GetTypeFromCLSID(new Guid(SymWriterClsid));
             }
 
             return s_lazyCorSymWriterSxSType;
+        }
+
+        private static object CreateSymWriterWorker()
+        {
+            object symWriter = null;
+
+            // First try to load an implementation from Microsoft.DiaSymReader.Native, which supports determinism.
+            if (!s_MicrosoftDiaSymReaderNativeLoadFailed)
+            {
+                try
+                {
+                    var guid = new Guid(SymWriterClsid);
+                    if (IntPtr.Size == 4)
+                    {
+                        CreateSymWriter32(ref guid, out symWriter);
+                    }
+                    else
+                    {
+                        CreateSymWriter64(ref guid, out symWriter);
+                    }
+                }
+                catch (Exception)
+                {
+                    s_MicrosoftDiaSymReaderNativeLoadFailed = true;
+                    symWriter = null;
+                }
+            }
+
+            if (symWriter == null)
+            {
+                // Try to find a registered CLR implementation
+                symWriter = Activator.CreateInstance(GetCorSymWriterSxSType());
+            }
+
+            return symWriter;
         }
 
         public void SetMetadataEmitter(MetadataWriter metadataWriter)
         {
             try
             {
-                var instance = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : Activator.CreateInstance(GetCorSymWriterSxSType()));
+                var symWriter = (ISymUnmanagedWriter2)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
                 _pdbStream = new ComMemoryStream();
 
-                instance.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                if (_deterministic)
+                {
+                    var deterministicSymWriter = symWriter as ISymUnmanagedWriter6;
+                    if (symWriter == null)
+                    {
+                        throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
+                    }
+
+                    deterministicSymWriter.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
+                }
+                else
+                {
+                    symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                }
 
                 _metadataWriter = metadataWriter;
-                _symWriter = instance;
+                _symWriter = symWriter;
             }
             catch (Exception ex)
             {
@@ -576,8 +639,31 @@ namespace Microsoft.Cci
             }
         }
 
-        public unsafe void GetDebugDirectoryGuidAndStampAndAge(out Guid guid, out uint stamp, out uint age)
+        public unsafe ContentId GetContentId()
         {
+            if (_deterministic)
+            {
+                // Call to GetDebugInfo fails for SymWriter initialized using InitializeDeterministic.
+                // We already have all the info we need though.
+
+                // TODO (https://github.com/dotnet/roslyn/issues/926): calculate sha1 hash
+                var id = new ContentId(
+                    new byte[] { 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, },
+                    new byte[] { 0x12, 0x12, 0x12, 0x12 });
+
+                try
+                {
+                    Debug.Assert(BitConverter.IsLittleEndian);
+                    ((ISymUnmanagedWriter6)_symWriter).SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
+                }
+                catch (Exception ex)
+                {
+                    throw new PdbWritingException(ex);
+                }
+
+                return id;
+            }
+
             // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.
             // The writer only sets two values of the ImageDebugDirectory struct.
             // 
@@ -625,12 +711,16 @@ namespace Microsoft.Cci
             byte[] guidBytes = new byte[GuidSize];
             Buffer.BlockCopy(data, 4, guidBytes, 0, guidBytes.Length);
 
-            guid = new Guid(guidBytes);
-
             // Retrieve the timestamp the PDB writer generates when creating a new PDB stream.
             // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
             // we need to go thru IPdbWriter interface to get it.
+            uint stamp;
+            uint age;
             ((IPdbWriter)_symWriter).GetSignatureAge(out stamp, out age);
+            Debug.Assert(age == Age);
+
+            Debug.Assert(BitConverter.IsLittleEndian);
+            return new ContentId(guidBytes, BitConverter.GetBytes(stamp));
         }
 
         public void SetEntryPoint(uint entryMethodToken)

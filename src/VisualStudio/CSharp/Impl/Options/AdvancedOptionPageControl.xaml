@@ -55,7 +55,8 @@
                     <CheckBox x:Name="DontPutOutOrRefOnStruct"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
                     <CheckBox x:Name="AllowMovingDeclaration"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}"
+                              Visibility="Collapsed" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

@@ -99,7 +99,7 @@
     <Compile Include="Design\BasicCA1024DiagnosticAnalyzer.vb" />
     <Compile Include="Design\CodeFixes\CA1008BasicCodeFixProvider.vb" />
     <Compile Include="Design\CodeFixes\CA1052BasicCodeFixProvider.vb" />
-    <Compile Include="Performance\BasicCA1821DiagnosticAnalyzer.vb" />
+    <Compile Include="Performance\RemoveEmptyFinalizers.vb" />
     <Compile Include="Usage\BasicCA2200DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2214DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\CodeFixes\CA2235BasicCodeFixProvider.vb" />

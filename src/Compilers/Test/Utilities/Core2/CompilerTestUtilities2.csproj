@@ -104,6 +104,12 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="CSReflectionBasedKindProvider.cs" />
     <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
     <Compile Include="Diagnostics\OptionsDiagnosticAnalyzer.cs" />

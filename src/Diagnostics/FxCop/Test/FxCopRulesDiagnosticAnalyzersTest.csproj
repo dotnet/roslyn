@@ -91,8 +91,8 @@
     <Compile Include="HardeningAnalyzer\HardeningAnalyzerTests.cs" />
     <Compile Include="Naming\CA1708Tests.cs" />
     <Compile Include="Naming\CA1715Tests.cs" />
-    <Compile Include="Performance\CA1821Tests.cs" />
-    <Compile Include="Performance\CodeFixes\CA1821FixerTests.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizersTests.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizersTests.Fixer.cs" />
     <Compile Include="Usage\CA2200Tests.cs" />
     <Compile Include="Usage\CA2214Tests.cs" />
     <Compile Include="Usage\CA2229Tests.cs" />
