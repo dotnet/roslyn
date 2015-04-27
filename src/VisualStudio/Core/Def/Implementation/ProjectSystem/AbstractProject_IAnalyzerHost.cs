@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class AbstractProject : IAnalyzerHost, IAnalyzerDependencyHost
+    internal partial class AbstractProject : IAnalyzerHost
     {
         private AnalyzerFileWatcherService _analyzerFileWatcherService = null;
         private AnalyzerDependencyCheckingService _dependencyCheckingService = null;
@@ -109,21 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             RemoveAdditionalDocument(document);
-        }
-
-
-        public void AddAnalyzerDependency(string analyzerDependencyFullPath)
-        {
-            var analyzerLoader = _visualStudioWorkspaceOpt.Services.GetRequiredService<IAnalyzerService>().GetLoader();
-            analyzerLoader.AddDependencyLocation(analyzerDependencyFullPath);
-
-            GetAnalyzerFileWatcherService().AddPath(analyzerDependencyFullPath);
-            GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(_id, analyzerDependencyFullPath);
-        }
-
-        public void RemoveAnalyzerDependency(string analyzerDependencyFullPath)
-        {
-            GetAnalyzerFileWatcherService().RemoveAnalyzerAlreadyLoadedDiagnostics(_id, analyzerDependencyFullPath);
         }
 
         private void ResetAnalyzerRuleSet(string ruleSetFileFullPath)
