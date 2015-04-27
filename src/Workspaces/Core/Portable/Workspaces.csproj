@@ -377,6 +377,7 @@
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
+    <Compile Include="Formatting\FormattingOptionsProvider.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
     <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
