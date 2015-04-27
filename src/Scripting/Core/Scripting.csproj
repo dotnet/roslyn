@@ -29,7 +29,7 @@
       <Link>GacFileResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
+      <Link>AssemblyIdentityExtensions.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
