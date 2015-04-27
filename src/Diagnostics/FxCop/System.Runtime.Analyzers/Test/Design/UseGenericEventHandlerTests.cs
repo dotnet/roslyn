@@ -1,18 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace System.Runtime.Analyzers.UnitTests
 {
-    public class CA1003Tests : DiagnosticAnalyzerTestBase
+    public class UseGenericEventHandlerTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
@@ -210,12 +205,12 @@ End Structure
 
         private static DiagnosticResult GetCA1003BasicResultAt(int line, int col)
         {
-            return GetBasicResultAt(line, col, CA1003DiagnosticAnalyzer.RuleId, FxCopRulesResources.UseGenericEventHandlerInstances);
+            return GetBasicResultAt(line, col, UseGenericEventHandler.RuleId, SystemRuntimeAnalyzersResources.UseGenericEventHandlerInstances);
         }
 
         private static DiagnosticResult GetCA1003CSharpResultAt(int line, int col)
         {
-            return GetCSharpResultAt(line, col, CA1003DiagnosticAnalyzer.RuleId, FxCopRulesResources.UseGenericEventHandlerInstances);
+            return GetCSharpResultAt(line, col, UseGenericEventHandler.RuleId, SystemRuntimeAnalyzersResources.UseGenericEventHandlerInstances);
         }
     }
 }

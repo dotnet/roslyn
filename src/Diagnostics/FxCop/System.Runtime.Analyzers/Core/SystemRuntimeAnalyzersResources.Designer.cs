@@ -233,6 +233,24 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not lock on objects with weak identity..
+        /// </summary>
+        internal static string DoNotLockOnObjectsWithWeakIdentity {
+            get {
+                return ResourceManager.GetString("DoNotLockOnObjectsWithWeakIdentity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not lock on a reference of type &apos;{0}&apos; as it has weak identity. Replace that with a lock against an object with strong identity..
+        /// </summary>
+        internal static string DoNotLockOnWeakIdentity {
+            get {
+                return ResourceManager.GetString("DoNotLockOnWeakIdentity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not mark Enum with FlagsAttribute.
         /// </summary>
         internal static string DoNotMarkEnumsWithFlags {
@@ -472,6 +490,15 @@ namespace System.Runtime.Analyzers {
         internal static string TypesThatOwnDisposableFieldsShouldBeDisposable {
             get {
                 return ResourceManager.GetString("TypesThatOwnDisposableFieldsShouldBeDisposable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler.
+        /// </summary>
+        internal static string UseGenericEventHandlerInstances {
+            get {
+                return ResourceManager.GetString("UseGenericEventHandlerInstances", resourceCulture);
             }
         }
     }
