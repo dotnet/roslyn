@@ -1970,6 +1970,42 @@ namespace A.C
 }");
         }
 
+        [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope()
+        {
+            Test(
+@"using System . Linq ; using System . Collections ; using X ; namespace X { public static class Ext { public static void ExtMethod ( this int a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int a , int v ) { } } } public class B { static void Main ( ) { var b = 0 ; b . [|ExtMethod|] ( 0 ) ; } } ",
+@"using System . Linq ; using System . Collections ; using X ; using Y ; namespace X { public static class Ext { public static void ExtMethod ( this int a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int a , int v ) { } } } public class B { static void Main ( ) { var b = 0 ; b . ExtMethod ( 0 ) ; } } ");
+        }
+
+        [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope2()
+        {
+            Test(
+@"using System . Linq ; using System . Collections ; using X ; namespace X { public static class Ext { public static void ExtMethod ( this int ? a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int ? a , int v ) { } } } public class B { static void Main ( ) { var b = new int ? ( ) ; b ? [|. ExtMethod|] ( 0 ) ; } } ",
+@"using System . Linq ; using System . Collections ; using X ; using Y ; namespace X { public static class Ext { public static void ExtMethod ( this int ? a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int ? a , int v ) { } } } public class B { static void Main ( ) { var b = new int ? ( ) ; b ? . ExtMethod ( 0 ) ; } } ");
+        }
+
+        [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope3()
+        {
+            Test(
+@"using System . Linq ; class C { int i = 0 . [|All|] ( ) ; } namespace X { static class E { public static int All ( this int o ) => 0 ; } } ",
+@"using System . Linq ; using X ; class C { int i = 0 . All ( ) ; } namespace X { static class E { public static int All ( this int o ) => 0 ; } } ");
+        }
+
+        [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope4()
+        {
+            Test(
+@"using System . Linq ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? [|. All|] ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ",
+@"using System . Linq ; using X ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? . All ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

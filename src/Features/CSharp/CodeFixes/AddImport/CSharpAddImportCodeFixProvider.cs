@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         private const string CS1003 = "CS1003";
 
         /// <summary>
+        ///  No overload for method 'X' takes 'N' arguments
+        /// </summary>
+        private const string CS1501 = "CS1501";
+
+        /// <summary>
         /// cannot convert from 'int' to 'string'
         /// </summary>
         private const string CS1503 = "CS1503";
@@ -104,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// </summary>
         private const string CS1584 = "CS1584";
 
+        /// <summary>
+        /// Type 'X' does not contain a valide extension method accepting 'Y'
+        /// </summary>
+        private const string CS1929 = "CS1929";
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get
@@ -120,11 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     CS0616,
                     CS1002,
                     CS1003,
+                    CS1501,
                     CS1503,
                     CS1574,
                     CS1580,
                     CS1581,
-                    CS1584);
+                    CS1584,
+                    CS1929);
             }
         }
 
@@ -163,6 +175,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
                     break;
                 case CS0122:
+                case CS1501:
+                    if (node is SimpleNameSyntax)
+                    {
+                        break;
+                    }
+                    else if (node is MemberBindingExpressionSyntax)
+                    {
+                        node = (node as MemberBindingExpressionSyntax).Name;
+                    }
+                    break;
+                case CS1929:
+                    var memberAccessName = (node.Parent as MemberAccessExpressionSyntax)?.Name;
+                    var conditionalAccessName = (((node.Parent as ConditionalAccessExpressionSyntax)?.WhenNotNull as InvocationExpressionSyntax).Expression as MemberBindingExpressionSyntax)?.Name;
+                    if (memberAccessName == null && conditionalAccessName == null)
+                    {
+                        return false;
+                    }
+
+                    node = memberAccessName ?? conditionalAccessName;
                     break;
 
                 case CS1503:
