@@ -1059,6 +1059,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return block.ContainsInBlockBody(span);
             }
 
+            var expressionBodiedMember = node as ArrowExpressionClauseSyntax;
+            if (expressionBodiedMember != null)
+            {
+                return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
+            }
+
             var field = node as FieldDeclarationSyntax;
             if (field != null)
             {
@@ -1105,6 +1111,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var blockSpan = TextSpan.FromBounds(block.OpenBraceToken.Span.End, block.CloseBraceToken.SpanStart);
             return blockSpan.Contains(textSpan);
+        }
+
+        public static bool ContainsInExpressionBodiedMemberBody(this ArrowExpressionClauseSyntax expressionBodiedMember, TextSpan textSpan)
+        {
+            if (expressionBodiedMember == null)
+            {
+                return false;
+            }
+
+            var expressionBodiedMemberBody = TextSpan.FromBounds(expressionBodiedMember.Expression.SpanStart, expressionBodiedMember.Expression.Span.End);
+            return expressionBodiedMemberBody.Contains(textSpan);
         }
 
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode node)
