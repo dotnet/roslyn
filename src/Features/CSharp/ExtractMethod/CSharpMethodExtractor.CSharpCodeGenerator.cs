@@ -128,9 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var selectedNode = this.GetFirstStatementOrInitializerSelectedAtCallSite();
 
-                // field initializer and constructor initializer case
+                // field initializer, constructor initializer, expression bodied member case
                 if (selectedNode is ConstructorInitializerSyntax ||
-                    selectedNode is FieldDeclarationSyntax)
+                    selectedNode is FieldDeclarationSyntax ||
+                    IsExpressionBodiedMember(selectedNode))
                 {
                     var statement = await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false);
                     return SpecializedCollections.SingletonEnumerable(statement);
@@ -149,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 statements = AddReturnIfUnreachable(statements, cancellationToken);
 
                 return statements;
+            }
+
+            private bool IsExpressionBodiedMember(SyntaxNode node)
+            {
+                return node is MemberDeclarationSyntax && ((MemberDeclarationSyntax)node).GetExpressionBody() != null;
             }
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
