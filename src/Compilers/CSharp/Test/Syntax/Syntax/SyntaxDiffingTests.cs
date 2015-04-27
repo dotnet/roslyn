@@ -321,7 +321,7 @@ class C
             Assert.Equal("this.", changes[0].NewText);
         }
 
-        [Fact(Skip = "463"), WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
+        [Fact, WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
         public void TestReplaceWithBuiltInType()
         {
             var original = @"
@@ -364,8 +364,6 @@ public class TestClass
         private void TestReplaceWithBuiltInTypeCore(SyntaxNode root, int index)
         {
             var oldTree = root.SyntaxTree;
-
-            var nodesToReplace = root.DescendantNodes().Where(n => n is SimpleNameSyntax && n.ToString() == "Object");
 
             var span = new TextSpan(index, 6);
             var node = root.FindNode(span, getInnermostNodeForTie: true) as SimpleNameSyntax;
