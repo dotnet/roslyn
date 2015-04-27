@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         private const string CS1584 = "CS1584";
 
         /// <summary>
-        /// Type 'X' does not contain a valide extension method accepting 'Y'
+        /// Type 'X' does not contain a valid extension method accepting 'Y'
         /// </summary>
         private const string CS1929 = "CS1929";
 
