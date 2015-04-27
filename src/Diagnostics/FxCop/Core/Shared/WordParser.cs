@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
             if (options < WordParserOptions.None || options > (WordParserOptions.IgnoreMnemonicsIndicators | WordParserOptions.SplitCompoundWords))
             {
-                throw new InvalidEnumArgumentException("options", (int)options, typeof(WordParserOptions));
+                throw new InvalidEnumArgumentException(nameof(options), (int)options, typeof(WordParserOptions));
             }
 
             _text = text;
