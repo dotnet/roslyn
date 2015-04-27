@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newTextAndVersion == null)
             {
-                throw new ArgumentNullException("newTextAndVesion");
+                throw new ArgumentNullException(nameof(newTextAndVersion));
             }
 
             var newTextSource = mode == PreservationMode.PreserveIdentity
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newText == null)
             {
-                throw new ArgumentNullException("newText");
+                throw new ArgumentNullException(nameof(newText));
             }
 
             var newVersion = this.GetNewerVersion();
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (loader == null)
             {
-                throw new ArgumentNullException("loader");
+                throw new ArgumentNullException(nameof(loader));
             }
 
             // don't blow up on non-text documents.

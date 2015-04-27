@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (editorSnapshot == null)
                 {
-                    throw new ArgumentNullException("textSnapshot");
+                    throw new ArgumentNullException(nameof(editorSnapshot));
                 }
 
                 return s_textSnapshotMap.GetValue(editorSnapshot, s_createTextCallback);
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (changes == null)
                 {
-                    throw new ArgumentNullException("changes");
+                    throw new ArgumentNullException(nameof(changes));
                 }
 
                 if (!changes.Any())
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     if (oldText == null)
                     {
-                        throw new ArgumentNullException("oldText");
+                        throw new ArgumentNullException(nameof(oldText));
                     }
 
                     // if they are the same text there is no change.
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (oldText == null)
                 {
-                    throw new ArgumentNullException("oldText");
+                    throw new ArgumentNullException(nameof(oldText));
                 }
 
                 // if they are the same text there is no change.

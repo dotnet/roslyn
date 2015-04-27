@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (root == null)
             {
-                throw new ArgumentNullException("root");
+                throw new ArgumentNullException(nameof(root));
             }
 
             if (position < 0 || position > root.Span.End)

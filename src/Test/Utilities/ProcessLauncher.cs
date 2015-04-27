@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string workingDirectory = null,
             IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
         {
-            if (fileName == null) throw new ArgumentNullException("fileName");
+            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
 
             var startInfo = new ProcessStartInfo
             {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (fileName == null)
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
 
             var startInfo = new ProcessStartInfo

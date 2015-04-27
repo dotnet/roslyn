@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         {
             if (languages == null)
             {
-                throw new ArgumentNullException("languages");
+                throw new ArgumentNullException(nameof(languages));
             }
 
             if (languages.Length == 0)

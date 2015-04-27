@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (assemblies == null)
             {
-                throw new ArgumentNullException("assemblies");
+                throw new ArgumentNullException(nameof(assemblies));
             }
 
             var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);

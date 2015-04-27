@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             using (s_registryGate.DisposableWrite())

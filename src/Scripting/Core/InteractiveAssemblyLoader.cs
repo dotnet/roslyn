@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             if (!PathUtilities.IsAbsolute(path))
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (dependency == null)
             {
-                throw new ArgumentNullException("dependency");
+                throw new ArgumentNullException(nameof(dependency));
             }
 
             if (string.IsNullOrEmpty(location))

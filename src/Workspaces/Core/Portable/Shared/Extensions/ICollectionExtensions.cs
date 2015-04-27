@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (collection == null)
             {
-                throw new ArgumentNullException("collection");
+                throw new ArgumentNullException(nameof(collection));
             }
 
             if (items != null)

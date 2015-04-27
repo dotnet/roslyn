@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
             _documentId = documentId;

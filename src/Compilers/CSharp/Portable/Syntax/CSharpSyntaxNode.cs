@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             if (!stream.CanWrite)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             if (!stream.CanRead)

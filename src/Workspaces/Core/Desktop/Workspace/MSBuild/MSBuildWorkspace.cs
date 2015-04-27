@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             if (hostServices == null)
             {
-                throw new ArgumentNullException("hostServices");
+                throw new ArgumentNullException(nameof(hostServices));
             }
 
             return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary());
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             if (projectFileExtension == null)
             {
-                throw new ArgumentNullException("projectFileExtension");
+                throw new ArgumentNullException(nameof(projectFileExtension));
             }
 
             using (_dataGuard.DisposableWait())
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (projectFilePath == null)
             {
-                throw new ArgumentNullException("projectFilePath");
+                throw new ArgumentNullException(nameof(projectFilePath));
             }
 
             string fullPath;
