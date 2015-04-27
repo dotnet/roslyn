@@ -2142,7 +2142,8 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -2170,7 +2171,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -2191,7 +2193,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
             var code =
@@ -2244,7 +2247,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
         {
             var code =
@@ -2297,7 +2301,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
             var code =
