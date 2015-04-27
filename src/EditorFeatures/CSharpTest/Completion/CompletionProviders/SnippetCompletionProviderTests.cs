@@ -116,6 +116,17 @@ class C
             VerifyItemInLinkedFiles(markup, MockSnippetInfoService.SnippetShortcut, null);
         }
 
+        [WorkItem(1140893)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CommitWithEnterObeysOption()
+        {
+            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: true, expected: false);
+            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: true, expected: true);
+
+            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: false, expected: false);
+        }
+
         private class MockSnippetInfoService : ISnippetInfoService
         {
             internal const string SnippetShortcut = "SnippetShortcut";
