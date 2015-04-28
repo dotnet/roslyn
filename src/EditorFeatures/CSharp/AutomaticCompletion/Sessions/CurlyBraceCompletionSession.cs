@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            if (session.SubjectBuffer.GetOption(SmartIndent) != IndentStyle.None)
+            if (session.SubjectBuffer.GetOption(SmartIndent) == IndentStyle.Smart)
             {
                 // skip whitespace
                 while (startPosition >= 0 && char.IsWhiteSpace(snapshot[startPosition]))
@@ -222,6 +222,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
 
                 return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+            }
+
+            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AlignTokensOperation> nextOperation)
+            {
+                base.AddAlignTokensOperations(list, node, optionSet, nextOperation);
+                if (optionSet.GetOption(SmartIndent, node.Language) == IndentStyle.Block)
+                {
+                    var bracePair = node.GetBracePair();
+                    if (bracePair.IsValidBracePair())
+                    {
+                        AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.Item1, SpecializedCollections.SingletonEnumerable(bracePair.Item2));
+                    }
+                }
             }
 
             public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
