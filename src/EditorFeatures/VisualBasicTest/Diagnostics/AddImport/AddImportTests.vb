@@ -1060,6 +1060,38 @@ NewLines("Imports System \n Imports System.Collections \n Imports System.Runtime
 Nothing, 1, True, True, Nothing, False, Nothing)
         End Sub
 
+        <WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddUsingWithOtherExtensionsInScope()
+            Test(
+NewLines("Imports System.Linq \n Imports System.Runtime.CompilerServices \n Module Program \n Sub Main(args As String()) \n Dim i = [|0.All|]() \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace"),
+NewLines("Imports System.Linq \n Imports System.Runtime.CompilerServices \n Imports X \n Module Program \n Sub Main(args As String()) \n Dim i = 0.All() \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace"))
+        End Sub
+
+        <WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddUsingWithOtherExtensionsInScope2()
+            Test(
+NewLines("Imports System.Linq \n Imports System.Runtime.CompilerServices \n Module Program \n Sub Main(args As String()) \n Dim a = New Integer? \n Dim i = a?[|.All|]() \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer?) As Integer \n Return 0 \n End Function \n End Module \n End Namespace"),
+NewLines("Imports System.Linq \n Imports System.Runtime.CompilerServices \n Imports X \n Module Program \n Sub Main(args As String()) \n Dim a = New Integer? \n Dim i = a?.All() \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer?) As Integer \n Return 0 \n End Function \n End Module \n End Namespace"))
+        End Sub
+
+        <WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddUsingWithOtherExtensionsInScope3()
+            Test(
+NewLines("Imports System.Runtime.CompilerServices \n Imports X \n Module Program \n Sub Main(args As String()) \n Dim a = 0 \n Dim i = [|a.All|](0) \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace \n Namespace Y \n Module E \n <Extension> \n Public Function All(a As Integer, v As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace"),
+NewLines("Imports System.Runtime.CompilerServices \n Imports X \n Imports Y \n Module Program \n Sub Main(args As String()) \n Dim a = 0 \n Dim i = a.All(0) \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace \n Namespace Y \n Module E \n <Extension> \n Public Function All(a As Integer, v As Integer) As Integer \n Return a \n End Function \n End Module \n End Namespace"))
+        End Sub
+
+        <WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestAddUsingWithOtherExtensionsInScope4()
+            Test(
+NewLines("Imports System.Runtime.CompilerServices \n Imports X \n Module Program \n Sub Main(args As String()) \n Dim a = New Integer? \n Dim i = a?[|.All|](0) \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer?) As Integer \n Return 0 \n End Function \n End Module \n End Namespace \n Namespace Y \n Module E \n <Extension> \n Public Function All(a As Integer?, v As Integer) As Integer \n Return 0 \n End Function \n End Module \n End Namespace"),
+NewLines("Imports System.Runtime.CompilerServices \n Imports X \n Imports Y \n Module Program \n Sub Main(args As String()) \n Dim a = New Integer? \n Dim i = a?.All(0) \n End Sub \n End Module \n Namespace X \n Module E \n <Extension> \n Public Function All(a As Integer?) As Integer \n Return 0 \n End Function \n End Module \n End Namespace \n Namespace Y \n Module E \n <Extension> \n Public Function All(a As Integer?, v As Integer) As Integer \n Return 0 \n End Function \n End Module \n End Namespace"))
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

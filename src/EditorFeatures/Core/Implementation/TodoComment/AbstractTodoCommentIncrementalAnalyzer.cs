@@ -206,6 +206,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return SpecializedTasks.EmptyTask;
         }
 
+        public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyTask;
+        }
+
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;

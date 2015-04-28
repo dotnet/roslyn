@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (_globalsType != null && globals == null)
                 {
-                    throw new ArgumentNullException("globals");
+                    throw new ArgumentNullException(nameof(globals));
                 }
                 else if (globals != null && _globalsType != null)
                 {

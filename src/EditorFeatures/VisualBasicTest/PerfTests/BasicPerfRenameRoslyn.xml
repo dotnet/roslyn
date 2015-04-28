@@ -27,8 +27,8 @@
       <WaitForCodeMarkers />
       <CollectPerfViewTrace Action="Stop"/>
       
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />-->
     </Scenario>
   </ScenarioList>
 

@@ -9,16 +9,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class CA1821Tests : DiagnosticAnalyzerTestBase
+    public partial class RemoveEmptyFinalizersTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return new BasicCA1821DiagnosticAnalyzer();
+            return new BasicRemoveEmptyFinalizers();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new CSharpCA1821DiagnosticAnalyzer();
+            return new CSharpRemoveEmptyFinalizers();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]

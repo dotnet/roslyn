@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             if (RawValue == null)
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             // The real version does some sort of dynamic dispatch that ultimately calls this method.
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             return _formatter.HasUnderlyingString(this, inspectionContext);
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             return _formatter.GetUnderlyingString(this, inspectionContext);
@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             // This is a rough approximation of the real functionality.  Basically,
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var pooled = PooledStringBuilder.GetInstance();
@@ -344,7 +344,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (InspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(InspectionContext));
             }
 
             if (this.IsError())
@@ -525,7 +525,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var array = (System.Array)RawValue;
@@ -585,7 +585,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var lmrType = proxyType.GetLmrType();
@@ -616,7 +616,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var appDomain = enumerableType.AppDomain;

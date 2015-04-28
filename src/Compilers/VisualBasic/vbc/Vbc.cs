@@ -11,24 +11,19 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     internal sealed class Vbc : VisualBasicCompiler
     {
-        internal Vbc(string responseFile, string clientDirectory, string baseDirectory, string sdkDirectory, string[] args)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"))
+        internal Vbc(string responseFile, string clientDirectory, string baseDirectory, string sdkDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, Environment.GetEnvironmentVariable("LIB"), analyzerLoader)
         {
         }
 
-        internal static int Run(string clientDirectory, string sdkDirectory, string[] args)
+        internal static int Run(string clientDirectory, string sdkDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
         {
             FatalError.Handler = FailFast.OnFatalException;
 
             var responseFile = Path.Combine(clientDirectory, VisualBasicCompiler.ResponseFileName);
-            Vbc compiler = new Vbc(responseFile, clientDirectory, Directory.GetCurrentDirectory(), sdkDirectory, args);
+            Vbc compiler = new Vbc(responseFile, clientDirectory, Directory.GetCurrentDirectory(), sdkDirectory, args, analyzerLoader);
 
             return ConsoleUtil.RunWithOutput(compiler.Arguments.Utf8Output, (textWriterOut, _) => compiler.Run(textWriterOut));
-        }
-
-        public override Assembly LoadAssembly(string fullPath)
-        {
-            return Assembly.LoadFrom(fullPath);
         }
 
         protected override uint GetSqmAppID()

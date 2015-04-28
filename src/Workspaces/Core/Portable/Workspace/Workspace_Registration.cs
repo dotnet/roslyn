@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (textContainer == null)
             {
-                throw new ArgumentNullException("textContainer");
+                throw new ArgumentNullException(nameof(textContainer));
             }
 
             var registration = GetWorkspaceRegistration(textContainer);
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (textContainer == null)
             {
-                throw new ArgumentNullException("textContainer");
+                throw new ArgumentNullException(nameof(textContainer));
             }
 
             GetWorkspaceRegistration(textContainer).SetWorkspaceAndRaiseEvents(this);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (textContainer == null)
             {
-                throw new ArgumentNullException("textContainer");
+                throw new ArgumentNullException(nameof(textContainer));
             }
 
             GetWorkspaceRegistration(textContainer).SetWorkspaceAndRaiseEvents(null);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (textContainer == null)
             {
-                throw new ArgumentNullException("textContainer");
+                throw new ArgumentNullException(nameof(textContainer));
             }
 
             return s_bufferToWorkspaceRegistrationMap.GetValue(textContainer, s_createRegistration);

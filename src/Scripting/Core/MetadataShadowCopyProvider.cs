@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (kind < MetadataImageKind.Assembly || kind > MetadataImageKind.Module)
             {
-                throw new ArgumentOutOfRangeException("kind");
+                throw new ArgumentOutOfRangeException(nameof(kind));
             }
 
             FileKey key = FileKey.Create(fullPath);

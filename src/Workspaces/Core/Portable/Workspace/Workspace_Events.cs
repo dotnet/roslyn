@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newSolution == null)
             {
-                throw new ArgumentNullException("newSolution");
+                throw new ArgumentNullException(nameof(newSolution));
             }
 
             if (oldSolution == newSolution)

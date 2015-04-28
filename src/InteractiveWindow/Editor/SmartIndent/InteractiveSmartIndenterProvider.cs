@@ -22,12 +22,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             if (editorFactory == null)
             {
-                throw new ArgumentNullException("editorFactory");
+                throw new ArgumentNullException(nameof(editorFactory));
             }
 
             if (indentProviders == null)
             {
-                throw new ArgumentNullException("indentProviders");
+                throw new ArgumentNullException(nameof(indentProviders));
             }
 
             _editorFactory = editorFactory;

@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability;
 
-namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Reliability
+namespace System.Runtime.Analyzers
 {
     /// <summary>
     /// CA2002: Do not lock on objects with weak identities
@@ -21,17 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Reliability
     /// a different application domain that has a lock on the same object. 
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpCA2002DiagnosticAnalyzer : CA2002DiagnosticAnalyzer
+    public class CSharpDoNotLockOnObjectsWithWeakIdentity : DoNotLockOnObjectsWithWeakIdentity
     {
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterSyntaxNodeAction(
-                (context) =>
+            analysisContext.RegisterSyntaxNodeAction(context =>
             {
                 var lockStatement = (LockStatementSyntax)context.Node;
                 GetDiagnosticsForNode(lockStatement.Expression, context.SemanticModel, context.ReportDiagnostic);
             },
-                SyntaxKind.LockStatement);
+            SyntaxKind.LockStatement);
         }
     }
 }

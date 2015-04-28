@@ -76,10 +76,8 @@
   <ItemGroup>
     <Compile Include="Design\CodeFixes\CA1008CSharpCodeFixProvider.cs" />
     <Compile Include="Design\CodeFixes\CA1052CSharpCodeFixProvider.cs" />
-    <Compile Include="Design\CSharpCA1003DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1024DiagnosticAnalyzer.cs" />
-    <Compile Include="Performance\CSharpCA1821DiagnosticAnalyzer.cs" />
-    <Compile Include="Reliability\CSharpCA2002DiagnosticAnalyzer.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizers.cs" />
     <Compile Include="Usage\CodeFixes\CA2235CSharpCodeFixProvider.cs" />
     <Compile Include="Usage\CSharpCA2200DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CSharpCA2214DiagnosticAnalyzer.cs" />

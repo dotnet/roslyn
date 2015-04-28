@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             if (arguments.Length > ushort.MaxValue)
             {
-                throw new ArgumentOutOfRangeException("arguments",
+                throw new ArgumentOutOfRangeException(nameof(arguments),
                     "Too many arguments: maximum of "
                     + ushort.MaxValue + " arguments allowed.");
             }
