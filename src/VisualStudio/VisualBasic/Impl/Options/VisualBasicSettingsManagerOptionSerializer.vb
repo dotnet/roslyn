@@ -43,6 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                                 New KeyValuePair(Of String, IOption)(SettingStorageRoot + "Outlining", FeatureOnOffOptions.Outlining),
                                 New KeyValuePair(Of String, IOption)(SettingStorageRoot + "EnableHighlightReferences", FeatureOnOffOptions.ReferenceHighlighting),
                                 New KeyValuePair(Of String, IOption)(SettingStorageRoot + "EnableHighlightRelatedKeywords", FeatureOnOffOptions.KeywordHighlighting),
+                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "RenameTrackingPreview", FeatureOnOffOptions.RenameTrackingPreview),
                                 New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoEndInsert", FeatureOnOffOptions.EndConstruct),
                                 New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoComment", FeatureOnOffOptions.AutoXmlDocCommentGeneration),
                                 New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoRequiredMemberInsert", FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers)})
@@ -79,6 +80,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                            [option].Name = FeatureOnOffOptions.Outlining.Name Or
                            [option].Name = FeatureOnOffOptions.ReferenceHighlighting.Name Or
                            [option].Name = FeatureOnOffOptions.KeywordHighlighting.Name Or
+                           [option].Name = FeatureOnOffOptions.RenameTrackingPreview.Name Or
                            [option].Name = FeatureOnOffOptions.EndConstruct.Name Or
                            [option].Name = FeatureOnOffOptions.AutoXmlDocCommentGeneration.Name Or
                            [option].Name = FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers.Name
@@ -106,6 +108,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                         Return SettingStorageRoot + "EnableHighlightReferences"
                     Case FeatureOnOffOptions.KeywordHighlighting.Name
                         Return SettingStorageRoot + "EnableHighlightRelatedKeywords"
+                    Case FeatureOnOffOptions.RenameTrackingPreview.Name
+                        Return SettingStorageRoot + "RenameTrackingPreview"
                     Case FeatureOnOffOptions.EndConstruct.Name
                         Return SettingStorageRoot + "AutoEndInsert"
                     Case FeatureOnOffOptions.AutoXmlDocCommentGeneration.Name

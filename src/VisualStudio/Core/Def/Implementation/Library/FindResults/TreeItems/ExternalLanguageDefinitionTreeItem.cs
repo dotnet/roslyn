@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
         }
 
+        public override bool CanGoToDefinition()
+        {
+            return true;
+        }
+
         public override int GoToSource()
         {
             return (TryOpenFile() && TryNavigateToPosition()) ? VSConstants.S_OK : VSConstants.E_FAIL;
