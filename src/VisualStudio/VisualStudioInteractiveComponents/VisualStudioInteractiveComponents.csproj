@@ -70,8 +70,6 @@
     <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
       <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
       <Name>BasicInteractiveEditorFeatures</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
       <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
@@ -122,8 +120,7 @@
       <Project>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</Project>
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
