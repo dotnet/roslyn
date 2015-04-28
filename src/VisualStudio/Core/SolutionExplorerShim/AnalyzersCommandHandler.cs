@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private void UpdateOpenHelpLinkMenuItemVisibility()
         {
             _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
-                                            GetHelpLink(_tracker.SelectedDiagnosticItems[0]) != null;
+                                            _tracker.SelectedDiagnosticItems[0].GetHelpLink() != null;
         }
 
         private void UpdateSeverityMenuItemsChecked()
@@ -478,29 +478,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return;
             }
 
-            var uri = GetHelpLink(_tracker.SelectedDiagnosticItems[0]);
+            var uri = _tracker.SelectedDiagnosticItems[0].GetHelpLink();
             if (uri != null)
             {
                 BrowserHelper.StartBrowser(_serviceProvider, uri);
             }
-        }
-
-        private static Uri GetHelpLink(DiagnosticItem item)
-        {
-            Uri link;
-            if (BrowserHelper.TryGetUri(item.Descriptor.HelpLinkUri, out link))
-            {
-                return link;
-            }
-
-            if (!string.IsNullOrWhiteSpace(item.Descriptor.Id))
-            {
-                // we use message format here since we don't have actual instance of diagnostic here. 
-                // (which means we do not have a message)
-                return BrowserHelper.CreateBingQueryUri(item.Descriptor.Id, item.Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo));
-            }
-
-            return null;
         }
 
         private void SetActiveRuleSetHandler(object sender, EventArgs e)
