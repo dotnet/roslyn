@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             var item = (CustomCommitCompletion)itemToRender;
             var descriptionParts = item.CompletionItem.GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            return descriptionParts.ToTextBlock(_typeMap, TextWrapping.Wrap);
+            return descriptionParts.ToTextBlock(_typeMap);
         }
     }
 }

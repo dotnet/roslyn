@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return run;
         }
 
-        public static TextBlock ToTextBlock(this ImmutableArray<SymbolDisplayPart> parts, ClassificationTypeMap typeMap, TextWrapping textWrapping = TextWrapping.NoWrap)
+        public static TextBlock ToTextBlock(this ImmutableArray<SymbolDisplayPart> parts, ClassificationTypeMap typeMap)
         {
-            return parts.AsEnumerable().ToTextBlock(typeMap, textWrapping);
+            return parts.AsEnumerable().ToTextBlock(typeMap);
         }
 
-        public static TextBlock ToTextBlock(this IEnumerable<SymbolDisplayPart> parts, ClassificationTypeMap typeMap, TextWrapping textWrapping = TextWrapping.NoWrap)
+        public static TextBlock ToTextBlock(this IEnumerable<SymbolDisplayPart> parts, ClassificationTypeMap typeMap)
         {
-            var result = new TextBlock() { TextWrapping = textWrapping };
+            var result = new TextBlock() { TextWrapping = TextWrapping.Wrap};
 
             var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
             result.SetDefaultTextProperties(formatMap);
