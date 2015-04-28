@@ -7836,5 +7836,189 @@ namespace VS2015CompilerBug
     Diagnostic(ErrorCode.ERR_AmbigCall, "Test3").WithArguments("VS2015CompilerBug.VS2015CompilerBug.Test3(int, int, int, int)", "VS2015CompilerBug.VS2015CompilerBug.Test3(int, int, int)").WithLocation(10, 39)
                 );
         }
+
+        [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
+        public void BetterErrorMessage()
+        {
+            string source1 = @"
+class C
+{
+    static void F1(object x, object y) { }
+    static void F1(object x, object w, object z) { }
+
+    static void F2(object x, object w, object z) { }
+    static void F2(object x, object y) { }
+
+    static void Main()
+    {
+        F1(x: 1, y: 2, z: 3);
+        F2(x: 1, y: 2, z: 3);
+
+        M1(0, x: 1);
+
+        M2(0, x: 1);
+        M3(0, x: 1);
+
+        M4(0, x: 1);
+        M5(0, x: 1);
+        M6(0, x: 1);
+
+        M7(0, x: 1);
+        M9(0, x: 1);
+        M8(0, x: 1);
+        M10(0, x: 1);
+
+        M11(x: 1, y: 2, z: 3);
+
+        M12(1, 2, 3, 4);
+        M13(1, 2, 3, 4);
+
+        M14(1, 2, 3);
+
+        M15(1, z: 0);
+        M16(1, z: 0);
+
+        M17(1, x: 2, y: 3);
+        M18(1, x: 2, y: 3);
+        M19(1, x: 2, y: 3);
+    }
+
+    static void M1() { }
+
+    static void M2() { }
+    static void M2(int u, int w) { }
+
+    static void M3(int u, int w) { }
+    static void M3() { }
+
+    static void M4() { }
+    static void M4(int u, int w) { }
+    static void M4(int x) { }
+
+    static void M5() { }
+    static void M5(int x) { }
+    static void M5(int u, int w) { }
+
+    static void M6(int x) { }
+    static void M6() { }
+    static void M6(int u, int w) { }
+
+    static void M7() { }
+    static void M7(int u, int w) { }
+    static void M7(int x) { }
+    static void M7(int u, int x, int w) { }
+
+    static void M8() { }
+    static void M8(int u, int w) { }
+    static void M8(int u, int x, int w) { }
+    static void M8(int x) { }
+
+    static void M9() { }
+    static void M9(int u, int x, int w) { }
+    static void M9(int u, int w) { }
+    static void M9(int x) { }
+
+    static void M10(int u, int x, int w) { }
+    static void M10() { }
+    static void M10(int u, int w) { }
+    static void M10(int x) { }
+
+    static void M11(object x, int y) { }
+    static void M11(object x, short y) { }
+
+    static void M12(object x, object y) { }
+    static void M12(object x, object y, object z) { }
+
+    static void M13(object x, object y, object z) { }
+    static void M13(object x, object y) { }
+
+    static void M14(object x, int y) { }
+    static void M14(object x, short y) { }
+
+    static void M15(object x, int y, object z = null) { }
+    static void M15(object x, short y, object z = null) { }
+
+    static void M16(object x, int y, object z = null) { }
+    static void M16(object x, short y, object z = null) { }
+
+    static void M17(object x, int y, int z) { }
+    static void M17(object y, short x, int z) { }
+
+    static void M18(object y, int x, int z) { }
+    static void M18(object x, short y, int z) { }
+
+    static void M19(object x, int y, int z) { }
+    static void M19(object x, short y, int z) { }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1);
+
+            compilation.VerifyDiagnostics(
+    // (12,24): error CS1739: The best overload for 'F1' does not have a parameter named 'z'
+    //         F1(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("F1", "z").WithLocation(12, 24),
+    // (13,24): error CS1739: The best overload for 'F2' does not have a parameter named 'z'
+    //         F2(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("F2", "z").WithLocation(13, 24),
+    // (15,9): error CS1501: No overload for method 'M1' takes 2 arguments
+    //         M1(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "2").WithLocation(15, 9),
+    // (17,15): error CS1739: The best overload for 'M2' does not have a parameter named 'x'
+    //         M2(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("M2", "x").WithLocation(17, 15),
+    // (18,15): error CS1739: The best overload for 'M3' does not have a parameter named 'x'
+    //         M3(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("M3", "x").WithLocation(18, 15),
+    // (20,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M4(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(20, 15),
+    // (21,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M5(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(21, 15),
+    // (22,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M6(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(22, 15),
+    // (24,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M7(int, int, int)'
+    //         M7(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M7").WithArguments("w", "C.M7(int, int, int)").WithLocation(24, 9),
+    // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M9(int, int, int)'
+    //         M9(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M9").WithArguments("w", "C.M9(int, int, int)").WithLocation(25, 9),
+    // (26,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M8(int, int, int)'
+    //         M8(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M8").WithArguments("w", "C.M8(int, int, int)").WithLocation(26, 9),
+    // (27,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M10(int, int, int)'
+    //         M10(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M10").WithArguments("w", "C.M10(int, int, int)").WithLocation(27, 9),
+    // (29,25): error CS1739: The best overload for 'M11' does not have a parameter named 'z'
+    //         M11(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("M11", "z").WithLocation(29, 25),
+    // (31,9): error CS1501: No overload for method 'M12' takes 4 arguments
+    //         M12(1, 2, 3, 4);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M12").WithArguments("M12", "4").WithLocation(31, 9),
+    // (32,9): error CS1501: No overload for method 'M13' takes 4 arguments
+    //         M13(1, 2, 3, 4);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M13").WithArguments("M13", "4").WithLocation(32, 9),
+    // (34,9): error CS1501: No overload for method 'M14' takes 3 arguments
+    //         M14(1, 2, 3);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M14").WithArguments("M14", "3").WithLocation(34, 9),
+    // (36,9): error CS1501: No overload for method 'M15' takes 2 arguments
+    //         M15(1, z: 0);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M15").WithArguments("M15", "2").WithLocation(36, 9),
+    // (37,9): error CS1501: No overload for method 'M16' takes 2 arguments
+    //         M16(1, z: 0);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M16").WithArguments("M16", "2").WithLocation(37, 9),
+    // (39,22): error CS1744: Named argument 'y' specifies a parameter for which a positional argument has already been given
+    //         M17(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "y").WithArguments("y").WithLocation(39, 22),
+    // (40,22): error CS1744: Named argument 'y' specifies a parameter for which a positional argument has already been given
+    //         M18(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "y").WithArguments("y").WithLocation(40, 22),
+    // (41,16): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M19(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(41, 16)
+                );
+        }
     }
 }

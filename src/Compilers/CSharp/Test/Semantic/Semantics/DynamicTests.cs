@@ -1260,9 +1260,10 @@ class C
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,9): error CS1501: No overload for method 'Foo' takes 1 arguments
-                //         c.Foo(d);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Foo").WithArguments("Foo", "1"));
+    // (9,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Foo(int, int)'
+    //         c.Foo(d);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "C.Foo(int, int)").WithLocation(9, 11)
+                );
         }
 
         [Fact]
@@ -2839,9 +2840,9 @@ class C : B
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS1501: No overload for method 'this' takes 2 arguments
+                // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c[d, d]").WithArguments("this", "2"),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //     c[d, q=>q, null] = 3; 
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "q=>q"),
