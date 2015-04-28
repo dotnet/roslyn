@@ -499,6 +499,7 @@ class C1
             Assert.NotNull(csharpLib);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(531631, "DevDiv")]
         public void TestOpenProject_AssemblyNameIsPath()
         {
@@ -514,6 +515,7 @@ class C1
             Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(531631, "DevDiv")]
         public void TestOpenProject_AssemblyNameIsPath2()
         {
@@ -947,6 +949,7 @@ class C1
             });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipTrue_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -967,6 +970,7 @@ class C1
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipFalse_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -989,6 +993,7 @@ class C1
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithReferencedProject_LoadMetadata_ExistingMetadata_Succeeds()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1027,6 +1032,7 @@ class C1
             Assert.False(metaRefs.Any(r => r.Properties.Aliases.Contains("CSharpProject")));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_UpdateExistingReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
