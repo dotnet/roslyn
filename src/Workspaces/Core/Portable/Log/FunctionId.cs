@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Diagnostics_DocumentOpen,
         Diagnostics_RemoveDocument,
         Diagnostics_RemoveProject,
+        Diagnostics_DocumentClose,
 
         // add new values after this
         Run_Environment,

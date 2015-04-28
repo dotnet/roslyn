@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Notification
                 return SpecializedTasks.EmptyTask;
             }
 
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
