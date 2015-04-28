@@ -918,6 +918,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SymWriter doesn&apos;t support deterministic compilation.
+        /// </summary>
+        internal static string SymWriterNotDeterministic {
+            get {
+                return ResourceManager.GetString("SymWriterNotDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to type must be a subclass of SyntaxAnnotation..
         /// </summary>
         internal static string TypeMustBeASubclassOfSyntaxAnnotation {

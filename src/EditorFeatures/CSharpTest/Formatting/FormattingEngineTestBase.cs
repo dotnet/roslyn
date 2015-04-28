@@ -24,6 +24,7 @@ using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         internal static void AssertFormatWithTransformation(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<IFormattingRule> rules, SyntaxNode root)
         {
-            var newRootNode = Formatter.Format(root, workspace, optionSet, rules, CancellationToken.None);
+            var newRootNode = Formatter.Format(root, SpecializedCollections.SingletonEnumerable(root.FullSpan), workspace, optionSet, rules, CancellationToken.None);
 
             Assert.Equal(expected, newRootNode.ToFullString());
 
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         internal static void AssertFormat(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<IFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root)
         {
-            var changes = Formatter.GetFormattedTextChanges(root, workspace, optionSet, rules, CancellationToken.None);
+            var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(root.FullSpan), workspace, optionSet, rules, CancellationToken.None);
             var actual = ApplyResultAndGetFormattedText(clonedBuffer, changes);
 
             Assert.Equal(expected, actual);

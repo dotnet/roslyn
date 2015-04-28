@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
                 clientDir: AppDomain.CurrentDomain.BaseDirectory,
                 workingDir: Directory.GetCurrentDirectory(),
                 sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                analyzerLoader: new SimpleAnalyzerAssemblyLoader(),
                 language: RequestLanguage.VisualBasicCompile,
                 fallbackCompiler: Vbc.Run);
     }

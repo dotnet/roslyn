@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, out string assemblyPath, out string pdbPath)
         {
-            if (declarations == null) throw new ArgumentNullException("declarations");
+            if (declarations == null) throw new ArgumentNullException(nameof(declarations));
 
             using (var sourceFile = new DisposableFile(extension: ".il"))
             {
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </returns>
         public static string RunPEVerify(byte[] assembly)
         {
-            if (assembly == null) throw new ArgumentNullException("assembly");
+            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
             var pathToPEVerify = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),

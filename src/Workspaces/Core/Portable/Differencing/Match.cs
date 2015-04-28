@@ -381,12 +381,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             if (oldNodes == null)
             {
-                throw new ArgumentNullException("oldNodes");
+                throw new ArgumentNullException(nameof(oldNodes));
             }
 
             if (newNodes == null)
             {
-                throw new ArgumentNullException("newNodes");
+                throw new ArgumentNullException(nameof(newNodes));
             }
 
             var oldList = (oldNodes as IReadOnlyList<TNode>) ?? oldNodes.ToList();

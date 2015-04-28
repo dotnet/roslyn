@@ -588,13 +588,13 @@ namespace Microsoft.CodeAnalysis
             var language = projectInfo.Language;
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             var displayName = projectInfo.Name;
             if (displayName == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             CheckNotContainsProject(projectId);
@@ -1953,14 +1953,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the compilation for the specified project ID.  Can return <code>null</code> when the project
+        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <code>null</code> when the project
         /// does not support compilations.
         /// </summary>
         internal Task<Compilation> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            var project = GetProject(projectId);
+            return GetCompilationAsync(GetProject(projectId), cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns the compilation for the specified <see cref="Project"/>.  Can return <code>null</code> when the project
+        /// does not support compilations.
+        /// </summary>
+        internal Task<Compilation> GetCompilationAsync(Project project, CancellationToken cancellationToken)
+        {
             return project.SupportsCompilation
-                ? this.GetCompilationTracker(projectId).GetCompilationAsync(this, cancellationToken)
+                ? this.GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken)
                 : SpecializedTasks.Default<Compilation>();
         }
 

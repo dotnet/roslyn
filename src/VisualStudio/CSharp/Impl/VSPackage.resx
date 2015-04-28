@@ -146,7 +146,7 @@
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">
-    <value>Automatically format completed statement on semicolon;Automatically format completed block on brace;Automatically format on paste</value>
+    <value>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</value>
     <comment>C# Formatting &gt; General options page keywords</comment>
   </data>
   <data name="308" xml:space="preserve">

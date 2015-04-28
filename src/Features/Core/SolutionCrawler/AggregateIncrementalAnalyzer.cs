@@ -49,6 +49,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
+        public async Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        {
+            IIncrementalAnalyzer analyzer;
+            if (TryGetAnalyzer(document.Project, out analyzer))
+            {
+                await analyzer.DocumentCloseAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             // TODO: Is this correct?

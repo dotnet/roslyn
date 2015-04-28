@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (changedSolution == null)
             {
-                throw new ArgumentNullException("changedSolution");
+                throw new ArgumentNullException(nameof(changedSolution));
             }
 
             _changedSolution = changedSolution;

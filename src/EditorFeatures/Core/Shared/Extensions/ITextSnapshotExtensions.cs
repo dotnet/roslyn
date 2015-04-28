@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             rules = GetFormattingRules(document, rules, span);
 
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var changes = Formatter.GetFormattedTextChanges(root, new TextSpan[] { span }, document.Project.Solution.Workspace, rules: rules, cancellationToken: cancellationToken);
+            var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(span), document.Project.Solution.Workspace, options: null, rules: rules, cancellationToken: cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
             {

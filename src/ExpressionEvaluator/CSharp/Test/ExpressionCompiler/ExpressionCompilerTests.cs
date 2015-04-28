@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 methodName: "C.M");
             string error;
             var result = context.CompileExpression("M(", out error);
-            Assert.Null(result.Assembly);
+            Assert.Null(result);
             Assert.Equal(error, "(1,3): error CS1026: ) expected");
         }
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     out missingAssemblyIdentities,
                     preferredUICulture: null,
                     testData: null);
-                Assert.Null(result.Assembly);
+                Assert.Null(result);
                 Assert.Equal(error, "LCID=1031, Code=1026");
                 Assert.Empty(missingAssemblyIdentities);
             }
@@ -544,8 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckFormatSpecifiers(result, "g", "h");
             // Format specifiers on assignment value.
             result = context.CompileAssignment("x", "null, y", out error);
-            Assert.Null(result.Assembly);
-            Assert.Null(result.FormatSpecifiers);
+            Assert.Null(result);
             Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
             // Trailing semicolon, no format specifiers.
             result = context.CompileExpression("x; ", out error);
@@ -1628,7 +1627,7 @@ class C
             var testData = new CompilationTestData();
             var result = context.CompileExpression(expr, out resultProperties, out error, testData);
             Assert.Equal(expectedError, error);
-            Assert.NotEqual(expectedError == null, result.Assembly == null);
+            Assert.NotEqual(expectedError == null, result == null);
             Assert.Equal(expectedFlags, resultProperties.Flags);
         }
 

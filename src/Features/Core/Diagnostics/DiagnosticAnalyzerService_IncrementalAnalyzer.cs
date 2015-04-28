@@ -96,6 +96,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Analyzer.DocumentOpenAsync(document, cancellationToken);
             }
 
+            public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                return Analyzer.DocumentCloseAsync(document, cancellationToken);
+            }
+
             public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 return Analyzer.DocumentResetAsync(document, cancellationToken);

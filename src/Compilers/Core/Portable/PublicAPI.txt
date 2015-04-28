@@ -380,6 +380,9 @@ Microsoft.CodeAnalysis.FileLinePositionSpan.Span.get -> Microsoft.CodeAnalysis.T
 Microsoft.CodeAnalysis.FileLinePositionSpan.StartLinePosition.get -> Microsoft.CodeAnalysis.Text.LinePosition
 Microsoft.CodeAnalysis.IAliasSymbol
 Microsoft.CodeAnalysis.IAliasSymbol.Target.get -> Microsoft.CodeAnalysis.INamespaceOrTypeSymbol
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.AddDependencyLocation(string fullPath) -> void
+Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.LoadFromPath(string fullPath) -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.IArrayTypeSymbol
 Microsoft.CodeAnalysis.IArrayTypeSymbol.CustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
 Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
@@ -1901,6 +1904,7 @@ static Microsoft.CodeAnalysis.CaseInsensitiveComparison.EndsWith(string value, s
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(string left, string right) -> bool
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.GetHashCode(string value) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.ToLower(System.Text.StringBuilder builder) -> void
+static Microsoft.CodeAnalysis.CaseInsensitiveComparison.ToLower(char c) -> char
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.ToLower(string value) -> string
 static Microsoft.CodeAnalysis.ChildSyntaxList.operator !=(Microsoft.CodeAnalysis.ChildSyntaxList list1, Microsoft.CodeAnalysis.ChildSyntaxList list2) -> bool
 static Microsoft.CodeAnalysis.ChildSyntaxList.operator ==(Microsoft.CodeAnalysis.ChildSyntaxList list1, Microsoft.CodeAnalysis.ChildSyntaxList list2) -> bool

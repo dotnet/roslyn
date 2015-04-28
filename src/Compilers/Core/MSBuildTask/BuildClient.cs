@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         private const int TimeOutMsExistingProcess = 1000;
         // Spend up to 20s connecting to a new process, to allow time for it to start.
-        private const int TimeOutMsNewProcess = 20000; 
+        private const int TimeOutMsNewProcess = 20000;
 
         /// <summary>
         /// Run a compilation through the compiler server and print the output
@@ -41,8 +41,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string clientDir,
             string workingDir,
             string sdkDir,
+            IAnalyzerAssemblyLoader analyzerLoader,
             RequestLanguage language,
-            Func<string, string, string[], int> fallbackCompiler)
+            Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler)
         {
             args = args.Select(arg => arg.Trim()).ToArray();
 
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray());
+            return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray(), analyzerLoader);
         }
 
         private static int HandleResponse(BuildResponse response)
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         public static Task<BuildResponse> TryRunServerCompilation(
             RequestLanguage language,
-            string clientDir, 
+            string clientDir,
             string workingDir,
             IList<string> arguments,
             CancellationToken cancellationToken,
@@ -332,10 +333,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Verify that we own the pipe.
-                SecurityIdentifier currentIdentity = WindowsIdentity.GetCurrent().Owner;
-                PipeSecurity remoteSecurity = pipeStream.GetAccessControl();
-                IdentityReference remoteOwner = remoteSecurity.GetOwner(typeof(SecurityIdentifier));
-                if (remoteOwner != currentIdentity)
+                if (!CheckPipeConnectionOwnership(pipeStream))
                 {
                     Log("Owner of named pipe is incorrect");
                     return null;
@@ -381,15 +379,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var builder = new StringBuilder($@"""{expectedPath}"" ""-pipename:{pipeName}""");
 
             bool success = CreateProcess(
-                lpApplicationName:    null,
-                lpCommandLine:        builder,
-                lpProcessAttributes:  NullPtr,
-                lpThreadAttributes:   NullPtr,
-                bInheritHandles:      false,
-                dwCreationFlags:      dwCreationFlags,
-                lpEnvironment:        NullPtr, // Inherit environment
-                lpCurrentDirectory:   clientDir,
-                lpStartupInfo:        ref startInfo,
+                lpApplicationName: null,
+                lpCommandLine: builder,
+                lpProcessAttributes: NullPtr,
+                lpThreadAttributes: NullPtr,
+                bInheritHandles: false,
+                dwCreationFlags: dwCreationFlags,
+                lpEnvironment: NullPtr, // Inherit environment
+                lpCurrentDirectory: clientDir,
+                lpStartupInfo: ref startInfo,
                 lpProcessInformation: out processInfo);
 
             if (success)
@@ -403,6 +401,58 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
             }
             return success;
+        }
+
+        /// <summary>
+        /// Check to ensure that the named pipe server we connected to is owned by the same
+        /// user.
+        /// </summary>
+        /// <remarks>
+        /// The type is embedded in assemblies that need to run cross platform.  While this particular
+        /// code will never be hit when running on non-Windows platforms it does need to work when
+        /// on Windows.  To facilitate that we use reflection to make the check here to enable it to 
+        /// compile into our cross plat assemblies. 
+        /// </remarks>
+        private static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
+        {
+            try
+            {
+                var assembly = typeof(object).Assembly;
+
+                var currentIdentity = assembly
+                    .GetType("System.Security.Principal.WindowsIdentity")
+                    .GetTypeInfo()
+                    .GetDeclaredMethods("GetCurrent")
+                    .Single(x => x.GetParameters().Length == 0)
+                    .Invoke(null, null);
+
+                var currentOwner = assembly
+                    .GetType("System.Security.Principal.WindowsIdentity")
+                    .GetTypeInfo()
+                    .GetDeclaredProperty("Owner")
+                    .GetGetMethod()
+                    .Invoke(currentIdentity, null);
+
+                var remotePipeSecurity = typeof(PipeStream)
+                    .GetTypeInfo()
+                    .GetDeclaredMethods("GetAccessControl")
+                    .Single(x => x.GetParameters().Length == 0)
+                    .Invoke(pipeStream, null);
+
+                var remoteOwner = assembly
+                    .GetType("System.Security.AccessControl.ObjectSecurity")
+                    .GetTypeInfo()
+                    .GetDeclaredMethods("GetOwner")
+                    .Single(x => x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == typeof(Type))
+                    .Invoke(remotePipeSecurity, new[] { assembly.GetType("System.Security.Principal.SecurityIdentifier") });
+
+                return currentOwner.Equals(remoteOwner);
+            }
+            catch (Exception ex)
+            {
+                Log("Exception checking pipe connection: {0}", ex.Message);
+                return false;
+            }
         }
     }
 }

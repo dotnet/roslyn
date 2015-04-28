@@ -255,4 +255,13 @@
   <data name="MarkEnumsWithFlagsCodeFix" xml:space="preserve">
     <value>Apply FlagsAttribute to enum.</value>
   </data>
+  <data name="DoNotLockOnObjectsWithWeakIdentity" xml:space="preserve">
+    <value>Do not lock on objects with weak identity.</value>
+  </data>
+  <data name="DoNotLockOnWeakIdentity" xml:space="preserve">
+    <value>Do not lock on a reference of type '{0}' as it has weak identity. Replace that with a lock against an object with strong identity.</value>
+  </data>
+  <data name="UseGenericEventHandlerInstances" xml:space="preserve">
+    <value>Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler</value>
+  </data>
 </root>

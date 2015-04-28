@@ -132,13 +132,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ResultProperties resultProperties,
             DkmClrRuntimeInstance runtimeInstance)
         {
-            if (compResult.Assembly == null)
+            if (compResult == null)
             {
-                Debug.Assert(compResult.TypeName == null);
-                Debug.Assert(compResult.MethodName == null);
                 return null;
             }
 
+            Debug.Assert(compResult.Assembly != null);
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
 
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Access: resultProperties.AccessType,
                 StorageType: resultProperties.StorageType,
                 TypeModifierFlags: resultProperties.ModifierFlags,
-                CustomTypeInfo: null);
+                CustomTypeInfo: compResult.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 
         internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)

@@ -338,7 +338,7 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", "method"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", FeaturesResources.Method));
         }
 
         [Fact]
@@ -366,7 +366,7 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", "method"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.Method));
         }
 
         [Fact]
@@ -394,7 +394,7 @@ class C
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar<T>()" },
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", "method"));
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.Method));
         }
 
         [Fact]
@@ -566,7 +566,7 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "public C(int a)" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", "constructor"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", FeaturesResources.Constructor));
         }
 
         #endregion
@@ -845,7 +845,7 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "Foo = 1 +  1" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", "field"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.Field));
         }
 
         #endregion

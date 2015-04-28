@@ -377,12 +377,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (containingAssembly == null)
             {
-                throw new ArgumentNullException("containingAssembly");
+                throw new ArgumentNullException(nameof(containingAssembly));
             }
 
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             if (sourceProject != null)

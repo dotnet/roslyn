@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (expected == null)
             {
-                throw new ArgumentException("Must specify expected errors.", "expected");
+                throw new ArgumentException("Must specify expected errors.", nameof(expected));
             }
 
             var unmatched = actual.Select(d => new DiagnosticDescription(d, errorCodeOnly)).ToList();

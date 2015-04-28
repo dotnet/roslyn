@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol == null)
             {
-                throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
             }
 
             if (minimal)

@@ -438,7 +438,7 @@ Friend Class RedNodeFactoryWriter
 
     Private Sub CheckParam(name As String)
         _writer.WriteLine("            if {0} Is Nothing Then", name)
-        _writer.WriteLine("                Throw New ArgumentNullException(""{0}"")", name)
+        _writer.WriteLine("                Throw New ArgumentNullException(NameOf({0}))", name)
         _writer.WriteLine("            End If")
     End Sub
 

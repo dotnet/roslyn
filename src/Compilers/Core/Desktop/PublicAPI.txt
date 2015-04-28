@@ -29,7 +29,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.PdbPath.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.PreferredUILang.get -> System.Globalization.CultureInfo
 Microsoft.CodeAnalysis.CommandLineArguments.PrintFullPaths.get -> bool
 Microsoft.CodeAnalysis.CommandLineArguments.ReferencePaths.get -> System.Collections.Immutable.ImmutableArray<string>
-Microsoft.CodeAnalysis.CommandLineArguments.ResolveAnalyzerReferences(System.Func<string, System.Reflection.Assembly> getAssembly) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
+Microsoft.CodeAnalysis.CommandLineArguments.ResolveAnalyzerReferences(Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader analyzerLoader) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
 Microsoft.CodeAnalysis.CommandLineArguments.ResolveMetadataReferences(Microsoft.CodeAnalysis.MetadataReferenceResolver metadataResolver) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference>
 Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.CommandLineArguments.SourceFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineSourceFile>

@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         public CommonMessageProvider MessageProvider { get; private set; }
         public CommandLineArguments Arguments { get; private set; }
+        public IAnalyzerAssemblyLoader AnalyzerLoader { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
         {
             IEnumerable<string> allArgs = args;
             _clientDirectory = clientDirectory;
@@ -56,11 +57,10 @@ namespace Microsoft.CodeAnalysis
 
             this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
+            this.AnalyzerLoader = analyzerLoader;
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
-
-        public abstract Assembly LoadAssembly(string fullPath);
 
         internal string GetAssemblyFileVersion()
         {

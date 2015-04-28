@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)receiverType == null)
             {
-                throw new ArgumentNullException("receiverType");
+                throw new ArgumentNullException(nameof(receiverType));
             }
 
             if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension)
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeArguments.IsDefault)
             {
-                throw new ArgumentNullException("typeArguments");
+                throw new ArgumentNullException(nameof(typeArguments));
             }
 
             if (typeArguments.Any(NamedTypeSymbol.TypeSymbolIsNullFunction))

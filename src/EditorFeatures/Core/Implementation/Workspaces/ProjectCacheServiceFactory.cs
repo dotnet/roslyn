@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             private readonly Queue<object> _implicitCache = new Queue<object>();
             internal const int ImplicitCacheSize = 3;
 
+            public void ClearImplicitCache()
+            {
+                _implicitCache.Clear();
+            }
+
             public IDisposable EnableCaching(ProjectId key)
             {
                 lock (_gate)
@@ -191,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 {
                     if (activeDocument != null && activeDocument.ProjectId != _mostRecentActiveProjectId)
                     {
-                        Clear_NoLock();
+                        ClearMostRecentCache_NoLock();
                         _mostRecentCache = _projectCacheService.EnableCaching(activeDocument.ProjectId);
                         _mostRecentActiveProjectId = activeDocument.ProjectId;
                     }
@@ -202,11 +207,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             {
                 lock (_guard)
                 {
-                    Clear_NoLock();
+                    // clear most recent cache
+                    ClearMostRecentCache_NoLock();
+
+                    // clear implicit cache
+                    _projectCacheService.ClearImplicitCache();
                 }
             }
 
-            private void Clear_NoLock()
+            private void ClearMostRecentCache_NoLock()
             {
                 if (_mostRecentCache != null)
                 {

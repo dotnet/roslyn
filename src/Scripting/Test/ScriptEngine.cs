@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (hostObject == null)
             {
-                throw new ArgumentNullException("hostObject");
+                throw new ArgumentNullException(nameof(hostObject));
             }
 
             return new Session(this, _options, hostObject, hostObject.GetType());
@@ -133,12 +133,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (hostObject == null)
             {
-                throw new ArgumentNullException("hostObject");
+                throw new ArgumentNullException(nameof(hostObject));
             }
 
             if (hostObjectType == null)
             {
-                throw new ArgumentNullException("hostObjectType");
+                throw new ArgumentNullException(nameof(hostObjectType));
             }
 
             Type actualType = hostObject.GetType();
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (hostObject == null)
             {
-                throw new ArgumentNullException("hostObject");
+                throw new ArgumentNullException(nameof(hostObject));
             }
 
             return new Session(this, _options, hostObject, typeof(THostObject));
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (!@namespace.IsValidClrNamespaceName())
             {
-                throw new ArgumentException("Invalid namespace name", "namespace");
+                throw new ArgumentException("Invalid namespace name", nameof(@namespace));
             }
         }
 

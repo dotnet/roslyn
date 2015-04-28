@@ -22,14 +22,10 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, baseDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"))
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), New SimpleAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
-
-    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
-        Return Assembly.LoadFrom(fullPath)
-    End Function
 
     Protected Overrides Function GetSqmAppID() As UInteger
         Return SqmServiceProvider.BASIC_APPID

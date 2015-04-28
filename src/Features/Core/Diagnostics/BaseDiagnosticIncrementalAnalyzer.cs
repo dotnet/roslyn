@@ -65,7 +65,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns></returns>
         public abstract Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         /// <summary>
-        /// Flush cached diagnostics produced by a prior analysis of a document.
+        /// Respond to a document being closed in the host.
+        /// </summary>
+        /// <param name="document">The closed document.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public abstract Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
+        /// <summary>
+        /// Flush cached diagnostics produced by a prior analysis of a document. 
+        /// This will be called in a case where we need to re-analyze a document without textual, syntactic or semantic change of a solution.
+        /// For example, engine or analyzer's option changes.
         /// </summary>
         /// <param name="document">The document whose diagnostics are to be flushed.</param>
         /// <param name="cancellationToken"></param>

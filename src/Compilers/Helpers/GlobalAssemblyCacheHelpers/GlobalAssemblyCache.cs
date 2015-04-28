@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (displayName == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             location = null;

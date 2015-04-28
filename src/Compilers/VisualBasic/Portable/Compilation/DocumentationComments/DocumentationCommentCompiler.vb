@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _isForSingleSymbol As Boolean ' minor differences in behavior between batch case and API case.
             Private ReadOnly _diagnostics As DiagnosticBag
             Private ReadOnly _cancellationToken As CancellationToken
-            Private ReadOnly _preferredCulture As CultureInfo
             Private ReadOnly _filterSyntaxTree As SyntaxTree ' if not null, limit analysis to types residing in this tree
             Private ReadOnly _filterSpanWithinTree As TextSpan? ' if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
             Private _writer As DocWriter
@@ -44,7 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._filterSyntaxTree = filterTree
                 Me._filterSpanWithinTree = filterSpanWithinTree
                 Me._cancellationToken = cancellationToken
-                Me._preferredCulture = If(preferredCulture, CultureInfo.InvariantCulture)
             End Sub
 
             ''' <summary>

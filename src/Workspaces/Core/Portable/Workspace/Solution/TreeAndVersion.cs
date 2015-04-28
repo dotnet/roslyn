@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (tree == null)
             {
-                throw new ArgumentNullException("tree");
+                throw new ArgumentNullException(nameof(tree));
             }
 
             return new TreeAndVersion(tree, version);

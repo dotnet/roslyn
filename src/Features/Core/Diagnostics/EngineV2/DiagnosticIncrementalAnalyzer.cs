@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return SpecializedTasks.EmptyTask;
         }
 
+        public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyTask;
+        }
+
         public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             // Closing a file now has no effect on its analysis.

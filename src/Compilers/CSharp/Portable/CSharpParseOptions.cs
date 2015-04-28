@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!languageVersion.IsValid())
             {
-                throw new ArgumentOutOfRangeException("languageVersion");
+                throw new ArgumentOutOfRangeException(nameof(languageVersion));
             }
 
             if (!kind.IsValid())
             {
-                throw new ArgumentOutOfRangeException("kind");
+                throw new ArgumentOutOfRangeException(nameof(kind));
             }
 
             if (preprocessorSymbols != null)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!kind.IsValid())
             {
-                throw new ArgumentOutOfRangeException("kind");
+                throw new ArgumentOutOfRangeException(nameof(kind));
             }
 
             return new CSharpParseOptions(this) { Kind = kind };
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!version.IsValid())
             {
-                throw new ArgumentOutOfRangeException("version");
+                throw new ArgumentOutOfRangeException(nameof(version));
             }
 
             return new CSharpParseOptions(this) { LanguageVersion = version };
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!documentationMode.IsValid())
             {
-                throw new ArgumentOutOfRangeException("documentationMode");
+                throw new ArgumentOutOfRangeException(nameof(documentationMode));
             }
 
             return new CSharpParseOptions(this) { DocumentationMode = documentationMode };

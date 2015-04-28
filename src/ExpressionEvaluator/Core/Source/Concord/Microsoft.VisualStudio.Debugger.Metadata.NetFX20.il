@@ -1915,6 +1915,17 @@
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags SetProperty = int32(0x00002000)
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Metadata.BindingFlags Static = int32(0x00000008)
 	}
+	.class public abstract sealed COMExceptionExtensions
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
+		.method public static hidebysig 
+			int32 GetErrorCode(class [mscorlib]System.Runtime.InteropServices.COMException e)
+		{
+			.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
+			ret
+		}
+	}
 	.class public abstract ConstructorInfo
 		extends Microsoft.VisualStudio.Debugger.Metadata.MethodBase
 	{
@@ -4177,6 +4188,12 @@
 		.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
 		.method public static hidebysig 
 			class [mscorlib]System.Type GetTypeInfo(class [mscorlib]System.Type 'type')
+		{
+			.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
+			ret
+		}
+		.method public static hidebysig 
+			bool GetIsCOMObject(class [mscorlib]System.Type 'type')
 		{
 			.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
 			ret

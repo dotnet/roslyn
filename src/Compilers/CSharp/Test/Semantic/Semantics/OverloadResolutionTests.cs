@@ -7591,5 +7591,39 @@ public class C : CodeAccessSecurityAttribute
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
+
+        [WorkItem(2249, "https://github.com/dotnet/roslyn/issues/2249")]
+        [Fact]
+        public void TestRefMethodGroup()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void M()
+    {
+        Console.WriteLine(""pass"");
+    }
+
+    public static void Main(string[] args)
+    {
+        Action a1 = new Action(ref M);
+        a1();
+        Action a2 = new Action(out a1);
+        a2();
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"pass
+pass").VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable())).VerifyDiagnostics(
+                // (12,36): error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'
+                //         Action a1 = new Action(ref M);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
+                // (14,36): error CS0149: Method name expected
+                //         Action a2 = new Action(out a1);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "a1").WithLocation(14, 36)
+                );
+        }
     }
 }

@@ -1,11 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.ObjectModel;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct CompileResult
+    internal abstract class CompileResult
     {
+        internal readonly byte[] Assembly; // [] rather than ReadOnlyCollection<> to allow caller to create Stream easily
+        internal readonly string TypeName;
+        internal readonly string MethodName;
+        internal readonly ReadOnlyCollection<string> FormatSpecifiers;
+
         internal CompileResult(
             byte[] assembly,
             string typeName,
@@ -18,9 +24,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.FormatSpecifiers = formatSpecifiers;
         }
 
-        internal readonly byte[] Assembly; // [] rather than ReadOnlyCollection<> to allow caller to create Stream easily
-        internal readonly string TypeName;
-        internal readonly string MethodName;
-        internal readonly ReadOnlyCollection<string> FormatSpecifiers;
+        public abstract CustomTypeInfo GetCustomTypeInfo();
     }
 }

@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 {
@@ -146,17 +147,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            // skip whitespace
-            while (startPosition >= 0 && char.IsWhiteSpace(snapshot[startPosition]))
+            if (session.SubjectBuffer.GetOption(SmartIndent) != IndentStyle.None)
             {
-                startPosition--;
-            }
+                // skip whitespace
+                while (startPosition >= 0 && char.IsWhiteSpace(snapshot[startPosition]))
+                {
+                    startPosition--;
+                }
 
-            // skip token
-            startPosition--;
-            while (startPosition >= 0 && !char.IsWhiteSpace(snapshot[startPosition]))
-            {
+                // skip token
                 startPosition--;
+                while (startPosition >= 0 && !char.IsWhiteSpace(snapshot[startPosition]))
+                {
+                    startPosition--;
+                }
             }
 
             session.SubjectBuffer.Format(TextSpan.FromBounds(Math.Max(startPosition, 0), endPosition), rules);

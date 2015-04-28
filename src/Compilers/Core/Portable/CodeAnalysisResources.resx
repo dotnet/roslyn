@@ -433,4 +433,7 @@
   <data name="InvalidDataAtOffset" xml:space="preserve">
     <value>Invalid data at offset {0}: {1}{2}*{3}{4}</value>
   </data>
+  <data name="SymWriterNotDeterministic" xml:space="preserve">
+    <value>SymWriter doesn't support deterministic compilation</value>
+  </data>
 </root>
