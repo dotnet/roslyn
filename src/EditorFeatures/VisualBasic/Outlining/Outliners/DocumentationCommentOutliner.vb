@@ -32,6 +32,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
                             sb.Append(cref.Reference.ToString())
                         End If
 
+                        Dim nameattribute = elementNode.Attributes.OfType(Of XmlNameAttributeSyntax).FirstOrDefault()
+                        If nameattribute IsNot Nothing Then
+                            sb.Append(" ")
+                            sb.Append(nameattribute.Reference.ToString())
+                        End If
+
                         Dim langword = elementNode.Attributes.OfType(Of XmlAttributeSyntax).FirstOrDefault(Function(a) a.Name.ToString() = "langword")
                         If langword IsNot Nothing Then
                             AppendTextTokens(sb, DirectCast(langword.Value, XmlStringSyntax).TextTokens)

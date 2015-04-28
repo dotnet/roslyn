@@ -57,6 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
                             sb.Append(cref.Cref.ToString());
                         }
 
+                        var nameattribute = e.Attributes.OfType<XmlNameAttributeSyntax>().FirstOrDefault();
+                        if (nameattribute != null)
+                        {
+                            sb.Append(" ");
+                            sb.Append(nameattribute.Identifier.Identifier.Text);
+                        }
+
                         var langword = e.Attributes.OfType<XmlTextAttributeSyntax>().FirstOrDefault(a => a.Name.LocalName.ToString() == "langword");
                         if (langword != null)
                         {

@@ -387,22 +387,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         [WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
         public void CrefInSummary()
         {
-            var tree = ParseLines("/// <summary>",
-                                  "/// A comment with a crefs: <see cref=\"SeeClass\" />, <seealso cref=\"SeeAlsoClass\" />, ",
-                                  "/// and <see langword=\"null\" />.",
-                                  "/// </summary>",
-                                  "class C",
+            var tree = ParseLines("class C",
                                   "{",
+                                  "    /// <summary>",
+                                  "    /// Summary with <see cref=\"SeeClass\" />, <seealso cref=\"SeeAlsoClass\" />, ",
+                                  "    /// <see langword=\"null\" />, <typeparamref name=\"T\" />, and <paramref name=\"t\" />.",
+                                  "    /// </summary>",
+                                  "    public void M<T>(T t) { }",
                                   "}");
 
-            var typeBlock = tree.DigToFirstTypeDeclaration();
-            var trivia = typeBlock.GetLeadingTrivia();
+            var method = tree.GetRoot().FindFirstNodeOfType<MethodDeclarationSyntax>();
+            var trivia = method.GetLeadingTrivia();
 
             var docComment = (DocumentationCommentTriviaSyntax)trivia.Single(t => t.HasStructure).GetStructure();
             var actualRegion = GetRegion(docComment);
             var expectedRegion = new OutliningSpan(
-                         TextSpan.FromBounds(0, 151),
-                         "/// <summary> A comment with a crefs: SeeClass , SeeAlsoClass , and null .",
+                         TextSpan.FromBounds(16, 218),
+                         "/// <summary> Summary with SeeClass , SeeAlsoClass , null , T , and t .",
                          autoCollapse: true);
 
             AssertRegion(expectedRegion, actualRegion);

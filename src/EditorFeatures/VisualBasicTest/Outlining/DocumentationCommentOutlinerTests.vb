@@ -233,21 +233,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         <WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")>
         Public Sub CrefInSummary()
-            Dim tree = ParseLines("''' <summary>",
-                                  "''' A summary with crefs: <see cref=""SeeClass"" />, <seealso cref=""SeeAlsoClass"" />,",
-                                  "''' and <see langword=""Nothing"" />.",
-                                  "''' </summary>",
-                                  "Class C",
+            Dim tree = ParseLines("Class C",
+                                  "    ''' <summary>",
+                                  "    ''' Summary with <see cref=""SeeClass"" />, <seealso cref=""SeeAlsoClass"" />,",
+                                  "    ''' <see langword=""Nothing"" />, <typeparamref name=""T"" />, and <paramref name=""t"" />.",
+                                  "    ''' </summary>",
+                                  "    Sub M(Of T)(t as T)",
+                                  "    End Sub",
                                   "End Class")
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim trivia = typeBlock.GetLeadingTrivia()
+            Dim methodBlock = tree.GetRoot().FindFirstNodeOfType(Of MethodBlockSyntax)()
+            Dim trivia = methodBlock.GetLeadingTrivia()
 
             Dim docComment = DirectCast(trivia.Single(Function(t) t.HasStructure).GetStructure(), DocumentationCommentTriviaSyntax)
             Dim actualRegion = GetRegion(docComment)
             Dim expectedRegion = New OutliningSpan(
-                         TextSpan.FromBounds(0, 151),
-                         "''' <summary> A summary with crefs: SeeClass , SeeAlsoClass , and Nothing .",
+                         TextSpan.FromBounds(13, 217),
+                         "''' <summary> Summary with SeeClass , SeeAlsoClass , Nothing , T , and t .",
                          autoCollapse:=True)
 
             AssertRegion(expectedRegion, actualRegion)
