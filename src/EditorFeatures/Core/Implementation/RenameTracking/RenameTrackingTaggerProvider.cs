@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         internal static CodeAction CreateCodeAction(
             Document document,
@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // This can run on a background thread.
 
             var message = string.Format(
-                EditorFeaturesResources.RenameTo, 
-                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey], 
+                EditorFeaturesResources.RenameTo,
+                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
 
             return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry);
@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             textBuffer = text.Container.TryGetTextBuffer();
             return textBuffer != null &&
-                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine) && 
+                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine) &&
                 stateMachine.CanInvokeRename(out unused);
-            }
         }
     }
+}

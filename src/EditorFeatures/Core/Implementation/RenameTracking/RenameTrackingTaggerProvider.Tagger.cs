@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     }
                 }
             }
-           
+
             public void Dispose()
             {
                 _stateMachine.TrackingSessionUpdated -= StateMachine_TrackingSessionUpdated;

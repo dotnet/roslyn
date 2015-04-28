@@ -29,14 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
             private readonly string _displayText;
-
-            // This task performs the actual rename on solution. We kick this off during preview to be able to show the diff preview
-            // and if it was successfully completed without being cancelled, we reuse its result during the actual commit operation as well.
-            private Task<RenameTrackingSolutionSet> _renameSymbolTask;
-
-            // Since the renameSymbolTask is used in both Preview and Commit, we need to be able to cancel it cleanly in both phases.
-            // We use this CTS to cancel the task kicked off during preview during the commit phase.
-            private readonly CancellationTokenSource _previewTaskCancellationTokenSource = new CancellationTokenSource();
+            private readonly AsyncLazy<RenameTrackingSolutionSet> _renameSymbolResultGetter;
 
             public RenameTrackingCommitter(
                 StateMachine stateMachine,
@@ -50,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _displayText = displayText;
+                _renameSymbolResultGetter = new AsyncLazy<RenameTrackingSolutionSet>(c => RenameSymbolWorkerAsync(c), cacheResult: true);
             }
 
             public void Commit(CancellationToken cancellationToken)
@@ -67,27 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
             }
 
-            public Task<RenameTrackingSolutionSet> RenameSymbolAsync(bool isPreview, CancellationToken cancellationToken)
+            public async Task<RenameTrackingSolutionSet> RenameSymbolAsync(CancellationToken cancellationToken)
             {
-                // start rename task and use our own cancellation token if it is a Preview operation.
-                _renameSymbolTask = Task.Factory.SafeStartNewFromAsync(
-                        () => RenameSymbolWorkerAsync(isPreview ? _previewTaskCancellationTokenSource.Token : cancellationToken),
-                        isPreview ? _previewTaskCancellationTokenSource.Token : cancellationToken,
-                        TaskScheduler.Default);
-
-                if (isPreview)
-                {
-                    // register for a callback on the cancellation token we are handed and perform the actual cancellation upon callback.
-                    var cancellationTokenRegistration = cancellationToken.Register(() => _previewTaskCancellationTokenSource.Cancel());
-
-                    // deregister the callback after the task completes.
-                    _renameSymbolTask.ContinueWith(_ => cancellationTokenRegistration.Dispose(),
-                        CancellationToken.None,
-                        TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default);
-                }
-
-                return _renameSymbolTask;
+                return await _renameSymbolResultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<RenameTrackingSolutionSet> RenameSymbolWorkerAsync(CancellationToken cancellationToken)
@@ -146,27 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // final solution without updating the workspace, and then finally disallow
                 // cancellation and update the workspace twice.
 
-                RenameTrackingSolutionSet renameTrackingSolutionSet;
-                try
-                {
-                    // If the task was kicked off and had successfully completed to show preview, re-use its result.
-                    if (_renameSymbolTask != null && _renameSymbolTask.Status == TaskStatus.RanToCompletion)
-                    {
-                        renameTrackingSolutionSet = _renameSymbolTask.Result;
-                    }
-                    else
-                    {
-                        // If the task isn't complete yet, cancel it anyway, because lightbulb will cancel the preview
-                        // operation once commit is entered, because the preview has technically been dismissed.
-                        // We kick off another rename task using Commit's cancellation here.
-                        _previewTaskCancellationTokenSource.Cancel();
-                        renameTrackingSolutionSet = RenameSymbolAsync(isPreview: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-                    }
-                }
-                finally
-                {
-                    _previewTaskCancellationTokenSource.Dispose();
-                }
+                var renameTrackingSolutionSet = RenameSymbolAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var newName = _snapshotSpan.GetText();
