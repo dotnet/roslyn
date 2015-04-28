@@ -195,4 +195,7 @@
   <data name="Option_Performance" xml:space="preserve">
     <value>Performance</value>
   </data>
+  <data name="Option_RenameTrackingPreview" xml:space="preserve">
+    <value>Show preview for _rename tracking</value>
+  </data>
 </root>

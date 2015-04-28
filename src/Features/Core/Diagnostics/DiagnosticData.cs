@@ -209,17 +209,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Diagnostic ToDiagnostic(SyntaxTree tree)
         {
             var location = Location.None;
-            if (tree == null)
-            {
-                var span = _textSpan ?? default(TextSpan);
-                location = Location.Create(OriginalFilePath, span, new LinePositionSpan(
-                    new LinePosition(OriginalStartLine, OriginalStartColumn),
-                    new LinePosition(OriginalEndLine, OriginalEndColumn)));
-            }
-            else
+            if (tree != null)
             {
                 var span = _textSpan.HasValue ? _textSpan.Value : GetTextSpan(tree.GetText());
                 location = tree.GetLocation(span);
+            }
+            else if (OriginalFilePath != null && _textSpan != null)
+            {
+                var span = _textSpan.Value;
+                location = Location.Create(OriginalFilePath, span, new LinePositionSpan(
+                    new LinePosition(OriginalStartLine, OriginalStartColumn),
+                    new LinePosition(OriginalEndLine, OriginalEndColumn)));
             }
 
             return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags, properties: this.Properties);

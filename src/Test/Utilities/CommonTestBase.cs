@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public abstract partial class CommonTestBase : TestBase
     {
-        static CommonTestBase()
+        private static ImmutableArray<Emitter> LoadEmitters()
         {
             var configFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location) + ".config";
             var configFilePath = Path.Combine(Directory.GetCurrentDirectory(), configFileName);
@@ -70,10 +70,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             throw new Exception("Unable to load any emitter");
                         }
 
-                        s_emitters = builder.ToImmutableArray();
+                        return builder.ToImmutableArray();
                     }
                 }
             }
+
+            return ImmutableArray<Emitter>.Empty;
         }
 
         internal abstract IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public);
@@ -100,7 +102,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool collectEmittedAssembly,
             bool verify);
 
-        private static readonly ImmutableArray<Emitter> s_emitters;
+        private static ImmutableArray<Emitter> s_emitters;
+
+        private static ImmutableArray<Emitter> Emitters
+        {
+            get
+            {
+                if (s_emitters.IsDefault)
+                {
+                    s_emitters = LoadEmitters();
+                }
+
+                return s_emitters;
+            }
+        }
 
         internal CompilationVerifier CompileAndVerify(
             string source,
@@ -198,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sourceSymbolValidator(module, emitters);
             }
 
-            if (s_emitters.IsDefaultOrEmpty)
+            if (Emitters.IsDefaultOrEmpty)
             {
                 throw new InvalidOperationException(
                     @"You must specify at least one Emitter.
@@ -217,7 +232,7 @@ Example app.config:
 
             CompilationVerifier result = null;
 
-            foreach (var emit in s_emitters)
+            foreach (var emit in Emitters)
             {
                 var verifier = emit(this,
                                     compilation,
@@ -242,7 +257,7 @@ Example app.config:
                 }
             }
 
-            // If this fails, it means that more that all emmiters failed to return a validator
+            // If this fails, it means that more that all emitters failed to return a validator
             // (i.e. none thought that they were applicable for the given input parameters).
             Assert.NotNull(result);
 

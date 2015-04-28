@@ -28,10 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                     return true;
 
                 case VSOBJGOTOSRCTYPE.GS_DEFINITION:
-                    return item.GlyphIndex != Glyph.Reference.GetGlyphIndex();
+                    return item.CanGoToDefinition();
 
                 case VSOBJGOTOSRCTYPE.GS_REFERENCE:
-                    return item.GlyphIndex == Glyph.Reference.GetGlyphIndex();
+                    return item.CanGoToReference();
             }
 
             return false;
