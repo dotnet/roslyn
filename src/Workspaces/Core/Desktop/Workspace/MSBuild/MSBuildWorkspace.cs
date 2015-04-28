@@ -846,7 +846,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private async Task<MetadataReference> GetProjectMetadata(string projectFilePath, ImmutableArray<string> aliases, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             // use loader service to determine output file for project if possible
-            var outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
+            string outputFilePath = null;
+
+            try
+            {
+                outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                this.OnWorkspaceFailed(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message));
+            }
 
             if (outputFilePath != null && File.Exists(outputFilePath))
             {
