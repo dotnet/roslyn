@@ -132,13 +132,22 @@ test_roslyn()
         return
     fi
     
-    XUNIT_RUNNER=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
-    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll -noshadow
-    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll -noshadow
-    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll -noshadow
+    local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local test_binaries=(
+        Roslyn.Compilers.CSharp.Syntax.UnitTests
+        Roslyn.Compilers.CSharp.CommandLine.UnitTests
+        Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
+    local any_failed=false
+    for i in "${test_binaries[@]}"
+    do
+        mono $xunit_runner Binaries/Debug/$i.dll -xml Binaries/Debug/$i.TestResults.xml -noshadow
+        if [ $? -ne 0 ]; then
+            any_failed=true
+        fi
+    done
 
-    if [ $? -ne 0 ]; then
-        echo Unit tests failed
+    if [ "$any_failed" = "true" ]; then
+        echo Unit test failed
         exit 1
     fi
 }
