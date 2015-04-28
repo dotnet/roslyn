@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// APIs for constructing documentation comment id's, and finding symbols that match ids.
     /// </summary>
-    internal class DocumentationCommentId
+    public static class DocumentationCommentId
     {
         private class ListPool<T> : ObjectPool<List<T>>
         {
@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static string CreateDeclarationId(ISymbol symbol)
         {
+            if (symbol == null)
+            {
+                throw new ArgumentNullException(nameof(symbol));
+            }
+
             var builder = new StringBuilder();
             var generator = new DeclarationGenerator(builder);
             generator.Visit(symbol);
@@ -55,6 +60,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static string CreateReferenceId(ISymbol symbol)
         {
+            if (symbol == null)
+            {
+                throw new ArgumentNullException(nameof(symbol));
+            }
+
             if (symbol is INamespaceSymbol)
             {
                 return CreateDeclarationId(symbol);
@@ -69,19 +79,51 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets all declaration symbols that match the declaration id string
         /// </summary>
-        public static IEnumerable<ISymbol> GetSymbolsForDeclarationId(string id, Compilation compilation)
+        public static ImmutableArray<ISymbol> GetSymbolsForDeclarationId(string id, Compilation compilation)
         {
-            List<ISymbol> results;
-            TryGetSymbolsForDeclarationId(id, compilation, out results);
-            return results;
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            var results = s_symbolListPool.Allocate();
+            try
+            {
+                Parser.ParseDeclaredSymbolId(id, compilation, results);
+                return results.ToImmutableArray();
+            }
+            finally
+            {
+                s_symbolListPool.ClearAndFree(results);
+            }
         }
 
         /// <summary>
-        /// Try get all declaration symbols that match the declaration id string
+        /// Try to get all the declaration symbols that match the declaration id string.
+        /// Returns true if atleast one symbol matches.
         /// </summary>
-        public static bool TryGetSymbolsForDeclarationId(string id, Compilation compilation, out List<ISymbol> results)
+        private static bool TryGetSymbolsForDeclarationId(string id, Compilation compilation, List<ISymbol> results)
         {
-            results = new List<ISymbol>();
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            if (results == null)
+            {
+                throw new ArgumentNullException(nameof(results));
+            }
+
             return Parser.ParseDeclaredSymbolId(id, compilation, results);
         }
 
@@ -90,6 +132,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ISymbol GetFirstSymbolForDeclarationId(string id, Compilation compilation)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
             var results = s_symbolListPool.Allocate();
             try
             {
@@ -105,16 +157,57 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the symbols that match the reference id string.
         /// </summary>
-        public static IEnumerable<ISymbol> GetSymbolsForReferenceId(string id, Compilation compilation)
+        public static ImmutableArray<ISymbol> GetSymbolsForReferenceId(string id, Compilation compilation)
         {
-            if (id.Length > 1 && id[0] == 'N' && id[1] == ':')
+            if (id == null)
             {
-                return GetSymbolsForDeclarationId(id, compilation);
+                throw new ArgumentNullException(nameof(id));
             }
 
-            var results = new List<ISymbol>();
-            Parser.ParseReferencedSymbolId(id, compilation, results);
-            return results;
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            var results = s_symbolListPool.Allocate();
+            try
+            {
+                TryGetSymbolsForReferenceId(id, compilation, results);
+                return results.ToImmutableArray();
+            }
+            finally
+            {
+                s_symbolListPool.ClearAndFree(results);
+            }
+        }
+
+        /// <summary>
+        /// Try to get all symbols that match the reference id string.
+        /// Returns true if atleast one symbol matches.
+        /// </summary>
+        private static bool TryGetSymbolsForReferenceId(string id, Compilation compilation, List<ISymbol> results)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            if (results == null)
+            {
+                throw new ArgumentNullException(nameof(results));
+            }
+
+            if (id.Length > 1 && id[0] == 'N' && id[1] == ':')
+            {
+                return TryGetSymbolsForDeclarationId(id, compilation, results);
+            }
+
+            return Parser.ParseReferencedSymbolId(id, compilation, results);
         }
 
         /// <summary>
@@ -122,6 +215,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ISymbol GetFirstSymbolForReferenceId(string id, Compilation compilation)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
             if (id.Length > 1 && id[0] == 'N' && id[1] == ':')
             {
                 return GetFirstSymbolForDeclarationId(id, compilation);
@@ -524,15 +627,21 @@ namespace Microsoft.CodeAnalysis
                 int index = 0;
                 results.Clear();
                 ParseDeclaredId(id, ref index, compilation, results);
-                return results.Count != 0;
+                return results.Count > 0;
             }
 
             // only supports type symbols
-            public static void ParseReferencedSymbolId(string id, Compilation compilation, List<ISymbol> results)
+            public static bool ParseReferencedSymbolId(string id, Compilation compilation, List<ISymbol> results)
             {
+                if (id == null)
+                {
+                    return false;
+                }
+
                 int index = 0;
                 results.Clear();
                 ParseTypeSymbol(id, ref index, compilation, null, results);
+                return results.Count > 0;
             }
 
             private static void ParseDeclaredId(string id, ref int index, Compilation compilation, List<ISymbol> results)
