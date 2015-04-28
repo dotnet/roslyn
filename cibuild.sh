@@ -114,15 +114,13 @@ build_roslyn()
     BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
 
     echo Running the bootstrap build 
-    echo -e "\tCompiling the C# compiler"
-    run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/csc/csc.csproj
 
     if [ "$FULL_RUN" = "true" ]; then
-        echo -e "\tCompiling the VB compiler"
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/vbc/vbc.csproj
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/Test/Syntax/CSharpCompilerSyntaxTest.csproj
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/Test/CommandLine/CSharpCommandLineTest.csproj
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/Test/Syntax/BasicCompilerSyntaxTest.vbproj
+        echo -e "\tCompiling CrossPlatform.sln"
+        run_xbuild $BOOTSTRAP_ARG src/CrossPlatform.sln
+    else
+        echo -e "\tCompiling the C# compiler"
+        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/csc/csc.csproj
     fi
 }
 
