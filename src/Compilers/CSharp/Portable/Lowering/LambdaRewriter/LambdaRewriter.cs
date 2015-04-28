@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
-            closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId.Generation));
+            closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId));
 
             return closureId;
         }
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree);
-            _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, closureOrdinal, lambdaId.Generation));
+            _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal));
             return lambdaId;
         }
 
