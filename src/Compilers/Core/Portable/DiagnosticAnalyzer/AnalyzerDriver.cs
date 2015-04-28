@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private Task _primaryTask;
 
-        private object _analysisLock = new object();
-
         /// <summary>
         /// Driver task which initializes all analyzers.
         /// </summary>
@@ -125,20 +123,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void StartCompleteAnalysis(ImmutableHashSet<SyntaxTree> syntaxTreesToSkip, CancellationToken cancellationToken)
         {
-            lock (_analysisLock)
+            if (_initializeTaskStarted && _primaryTask == null)
             {
-                if (_initializeTaskStarted && _primaryTask == null)
+                _primaryTask = Task.Run(async () =>
                 {
-                    _primaryTask = Task.Run(async () =>
-                        {
-                            await _initializeTask.ConfigureAwait(false);
-                            // Compilation start actions execute as part of the initialize task, not as part of the compilation events task,
-                            // so executing the syntax tree actions here puts them between compilation start actions and other actions.
-                            await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !syntaxTreesToSkip.Contains(tree)), cancellationToken).ConfigureAwait(false);
-                            await ProcessCompilationEventsAsync(true, cancellationToken).ConfigureAwait(false);
-                        }, cancellationToken)
-                        .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-                }
+                    await _initializeTask.ConfigureAwait(false);
+                    // Compilation start actions execute as part of the initialize task, not as part of the compilation events task,
+                    // so executing the syntax tree actions here puts them between compilation start actions and other actions.
+                    await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !syntaxTreesToSkip.Contains(tree)), cancellationToken).ConfigureAwait(false);
+                    await ProcessCompilationEventsAsync(true, cancellationToken).ConfigureAwait(false);
+                }, cancellationToken)
+                .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
 

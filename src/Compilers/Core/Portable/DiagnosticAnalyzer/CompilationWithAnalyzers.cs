@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CancellationToken _cancellationToken;
         private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics;
         private ImmutableHashSet<SyntaxTree> _analyzedSyntaxTrees = ImmutableHashSet<SyntaxTree>.Empty;
+        private Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>> _documentTasks = new Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>>();
+        private Task<ImmutableArray<Diagnostic>> _completeAnalysisTask;
+        private Task _latestAnalysisTask;
+        private readonly object _analysisLock = new object();
 
         public Compilation Compilation
         {
@@ -47,14 +51,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync()
         {
-            _driver.StartCompleteAnalysis(_analyzedSyntaxTrees, _cancellationToken);
+            while (true)
+            {
+                Task latestAnalysisTask = _latestAnalysisTask;
+                if (latestAnalysisTask != null)
+                {
+                    await latestAnalysisTask.ConfigureAwait(false);
+                }
 
-            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-            // Discard the returned diagnostics.
-            _compilation.GetDiagnostics(_cancellationToken);
+                lock (_analysisLock)
+                {
+                    if (_completeAnalysisTask == null)
+                    {
+                        if (latestAnalysisTask != _latestAnalysisTask)
+                        {
+                            // Another analysis task has started. Wait to start this one.
+                            continue;
+                        }
 
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
-            return analyzerDiagnostics;
+                        _completeAnalysisTask = Task.Run(async () =>
+                        {
+                            _driver.StartCompleteAnalysis(_analyzedSyntaxTrees, _cancellationToken);
+
+                            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
+                            // Discard the returned diagnostics.
+                            _compilation.GetDiagnostics(_cancellationToken);
+
+                            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
+                            return analyzerDiagnostics;
+                        }, _cancellationToken);
+
+                        _latestAnalysisTask = _completeAnalysisTask;
+                    }
+                }
+
+                return await _completeAnalysisTask.ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -62,13 +94,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
         {
-            _driver.StartCompleteAnalysis(_analyzedSyntaxTrees, _cancellationToken);
-
-            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-            ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
-
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
-            return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
+            return _compilation.GetDiagnostics(_cancellationToken).AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
         }
 
         /// <summary>
@@ -78,14 +105,51 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsFromDocumentAsync(SemanticModel model)
         {
             SyntaxTree documentTree = model.SyntaxTree;
-            _analyzedSyntaxTrees = _analyzedSyntaxTrees.Add(documentTree);
+            Task<ImmutableArray<Diagnostic>> documentTask;
 
-            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-            // Discard the returned diagnostics.
-            model.GetDiagnostics(null, _cancellationToken);
+            while (true)
+            {
+                Task latestAnalysisTask = _latestAnalysisTask;
+                if (latestAnalysisTask != null)
+                {
+                    await latestAnalysisTask.ConfigureAwait(false);
+                }
 
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
-            return analyzerDiagnostics;
+                lock (_analysisLock)
+                {
+                    if (!_documentTasks.TryGetValue(documentTree, out documentTask))
+                    {
+                        if (_completeAnalysisTask != null)
+                        {
+                            // Once complete analysis has begun, it is too late to start analysis of an individual document.
+                            return ImmutableArray<Diagnostic>.Empty;
+                        }
+
+                        if (latestAnalysisTask != _latestAnalysisTask)
+                        {
+                            // Another analysis task has started. Wait to start this one.
+                            continue;
+                        }
+
+                        _analyzedSyntaxTrees = _analyzedSyntaxTrees.Add(documentTree);
+
+                        documentTask = Task.Run(async () =>
+                        {
+                            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
+                            // Discard the returned diagnostics.
+                            model.GetDiagnostics(null, _cancellationToken);
+
+                            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
+                            return analyzerDiagnostics;
+                        }, _cancellationToken);
+
+                        _documentTasks[documentTree] = documentTask;
+                        _latestAnalysisTask = documentTask;
+                    }
+                }
+
+                return await documentTask.ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -94,16 +158,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromDocumentAsync(SemanticModel model)
         {
-            SyntaxTree documentTree = model.SyntaxTree;
-            _analyzedSyntaxTrees = _analyzedSyntaxTrees.Add(documentTree);
-
-            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-            ImmutableArray<Diagnostic> compilerDiagnostics = model.GetDiagnostics(null, _cancellationToken);
-
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
-            return compilerDiagnostics.AddRange(analyzerDiagnostics);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await GetAnalyzerDiagnosticsFromDocumentAsync(model).ConfigureAwait(false);
+            return model.GetDiagnostics(null, _cancellationToken).AddRange(analyzerDiagnostics);
         }
-
+        
         /// <summary>
         /// Returns diagnostics produced for exceptions thrown by analyzer actions.
         /// </summary>
