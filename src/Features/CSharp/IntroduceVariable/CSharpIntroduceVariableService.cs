@@ -96,9 +96,20 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return false;
         }
 
+        /// <summary>
+        /// Checks for conditions where we should not generate a variable for an expression
+        /// </summary>
         protected override bool CanIntroduceVariableFor(ExpressionSyntax expression)
         {
+            // (a) If that's the only expression in a statement.
+            // Otherwise we'll end up with something like "v;" which is not legal in C#.
             if (expression.WalkUpParentheses().IsParentKind(SyntaxKind.ExpressionStatement))
+            {
+                return false;
+            }
+
+            // (b) For Null Literals, as AllOccurences could introduce semantic errors.
+            if (expression is LiteralExpressionSyntax && ((LiteralExpressionSyntax)expression).IsKind(SyntaxKind.NullLiteralExpression))
             {
                 return false;
             }
