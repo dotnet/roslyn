@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis
         /// Try to get all the declaration symbols that match the declaration id string.
         /// Returns true if atleast one symbol matches.
         /// </summary>
-        /// <remarks>This API is available for possible of reuse of results lists.</remarks>
-        public static bool TryGetSymbolsForDeclarationId(string id, Compilation compilation, List<ISymbol> results)
+        private static bool TryGetSymbolsForDeclarationId(string id, Compilation compilation, List<ISymbol> results)
         {
             if (id == null)
             {
@@ -186,8 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// Try to get all symbols that match the reference id string.
         /// Returns true if atleast one symbol matches.
         /// </summary>
-        /// <remarks>This API is available for possible of reuse of results lists.</remarks>
-        public static bool TryGetSymbolsForReferenceId(string id, Compilation compilation, List<ISymbol> results)
+        private static bool TryGetSymbolsForReferenceId(string id, Compilation compilation, List<ISymbol> results)
         {
             if (id == null)
             {

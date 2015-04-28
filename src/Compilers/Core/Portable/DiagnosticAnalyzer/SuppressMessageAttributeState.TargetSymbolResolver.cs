@@ -44,17 +44,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static string RemovePrefix(string id, string prefix)
             {
-                if (prefix == null)
-                {
-                    return id;
-                }
-
-                if (id?.StartsWith(prefix, StringComparison.Ordinal) ?? false)
+                if (id != null && prefix != null && id.StartsWith(prefix, StringComparison.Ordinal))
                 {
                     return id.Substring(prefix.Length);
                 }
 
-                return null;
+                return id;
             }
 
             public void Resolve(IList<ISymbol> results)
@@ -65,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
-                var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(RemovePrefix(_name, s_suppressionPrefix), _compilation);
+                var nameWithoutPrefix = RemovePrefix(_name, s_suppressionPrefix);
+                var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, _compilation);
                 if (docIdResults.Length > 0)
                 {
                     foreach (var result in docIdResults)
