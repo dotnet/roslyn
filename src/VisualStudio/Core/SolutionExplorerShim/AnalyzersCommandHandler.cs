@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -234,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private void UpdateOpenHelpLinkMenuItemVisibility()
         {
             _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
-                                                        !string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri);
+                                            GetHelpLink(_tracker.SelectedDiagnosticItems[0]) != null;
         }
 
         private void UpdateSeverityMenuItemsChecked()
@@ -279,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     }
                 }
             }
-            
+
             if (selectedItemSeverities.Count != 1)
             {
                 return;
@@ -472,19 +473,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void OpenDiagnosticHelpLinkHandler(object sender, EventArgs e)
         {
-            if (_tracker.SelectedDiagnosticItems.Length != 1 ||
-                string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri))
+            if (_tracker.SelectedDiagnosticItems.Length != 1)
             {
                 return;
             }
 
-            string link = _tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri;
-
-            Uri uri;
-            if (BrowserHelper.TryGetUri(link, out uri))
+            var uri = GetHelpLink(_tracker.SelectedDiagnosticItems[0]);
+            if (uri != null)
             {
                 BrowserHelper.StartBrowser(_serviceProvider, uri);
             }
+        }
+
+        private static Uri GetHelpLink(DiagnosticItem item)
+        {
+            Uri link;
+            if (BrowserHelper.TryGetUri(item.Descriptor.HelpLinkUri, out link))
+            {
+                return link;
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.Descriptor.Id))
+            {
+                // we use message format here since we don't have actual instance of diagnostic here. 
+                // (which means we do not have a message)
+                return BrowserHelper.CreateBingQueryUri(item.Descriptor.Id, item.Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo));
+            }
+
+            return null;
         }
 
         private void SetActiveRuleSetHandler(object sender, EventArgs e)
