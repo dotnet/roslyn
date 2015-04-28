@@ -209,7 +209,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Diagnostic ToDiagnostic(SyntaxTree tree)
         {
             var location = Location.None;
-            if (tree != null)
+            if (tree == null)
+            {
+                var span = _textSpan ?? default(TextSpan);
+                location = Location.Create(OriginalFilePath, span, new LinePositionSpan(
+                    new LinePosition(OriginalStartLine, OriginalStartColumn),
+                    new LinePosition(OriginalEndLine, OriginalEndColumn)));
+            }
+            else
             {
                 var span = _textSpan.HasValue ? _textSpan.Value : GetTextSpan(tree.GetText());
                 location = tree.GetLocation(span);
