@@ -24,8 +24,8 @@
       <WaitForCodeMarkers />
       <ExecuteCommand Command="Window.ActivateDocumentWindow" />
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="CSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoBasic" />
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="CSharp" />
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoBasic" />-->
     </Scenario>
   </ScenarioList>
 
