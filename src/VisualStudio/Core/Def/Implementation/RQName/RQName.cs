@@ -2,11 +2,13 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.RQName;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
     /// <summary>
-    /// Helpers related to <see cref="RQName"/>s.
+    /// Helpers related to <see cref="RQName"/>s. The resulting strings are suitable to pass as the pszRQName
+    /// arguments to methods in <see cref="IVsRefactorNotify"/> and <see cref="IVsSymbolicNavigationNotify"/>.
     /// </summary>
     public static class RQName
     {
@@ -14,6 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// Returns an RQName for the given symbol, or <code>null</code>if the symbol cannot be represented by an RQName.
         /// </summary>
         /// <param name="symbol">The symbol to build an RQName for.</param>
+        /// <returns>A string suitable to pass as the pszRQName argument to methods in <see cref="IVsRefactorNotify"/>
+        /// and <see cref="IVsSymbolicNavigationNotify"/>.</returns>
         public static string From(ISymbol symbol)
         {
             var node = RQNodeBuilder.Build(symbol);

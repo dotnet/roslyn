@@ -552,7 +552,7 @@
     <Compile Include="Implementation\RQName\Nodes\RQUnconstructedType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQVoidType.cs" />
     <Compile Include="Implementation\RQName\ParenthesesTreeWriter.cs" />
-    <Compile Include="Implementation\RQName\RQNameService.cs" />
+    <Compile Include="Implementation\RQName\RQName.cs" />
     <Compile Include="Implementation\RQName\RQNameStrings.cs" />
     <Compile Include="Implementation\RQName\RQNodeBuilder.cs" />
     <Compile Include="Implementation\RQName\SimpleTree\SimpleGroupNode.cs" />
