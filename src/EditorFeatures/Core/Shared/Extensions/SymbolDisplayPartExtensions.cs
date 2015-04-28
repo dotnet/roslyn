@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return run;
         }
 
-        public static TextBlock ToTextBlock(this ImmutableArray<SymbolDisplayPart> parts, ClassificationTypeMap typeMap)
+        public static TextBlock ToTextBlock(this ImmutableArray<SymbolDisplayPart> parts, ClassificationTypeMap typeMap, TextWrapping textWrapping = TextWrapping.NoWrap)
         {
-            return parts.AsEnumerable().ToTextBlock(typeMap);
+            return parts.AsEnumerable().ToTextBlock(typeMap, textWrapping);
         }
 
-        public static TextBlock ToTextBlock(this IEnumerable<SymbolDisplayPart> parts, ClassificationTypeMap typeMap)
+        public static TextBlock ToTextBlock(this IEnumerable<SymbolDisplayPart> parts, ClassificationTypeMap typeMap, TextWrapping textWrapping = TextWrapping.NoWrap)
         {
-            var result = new TextBlock();
+            var result = new TextBlock() { TextWrapping = textWrapping };
 
             var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
             result.SetDefaultTextProperties(formatMap);
