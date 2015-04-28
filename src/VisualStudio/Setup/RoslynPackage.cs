@@ -119,6 +119,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void LoadComponents()
         {
+            // we need to load it as early as possible since we can have errors from
+            // package from each language very early
+            this.ComponentModel.GetService<VisualStudioTodoListTable>();
+
             this.ComponentModel.GetService<VisualStudioErrorTaskList>();
             this.ComponentModel.GetService<VisualStudioTodoTaskList>();
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
@@ -138,7 +142,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             commandHandlerServiceFactory.Initialize(ContentTypeNames.RoslynContentType);
 
-            this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
 
             this.ComponentModel.GetService<MiscellaneousTodoListTable>();
