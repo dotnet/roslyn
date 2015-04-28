@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
 
             // (b) For Null Literals, as AllOccurences could introduce semantic errors.
-            if (expression is LiteralExpressionSyntax && ((LiteralExpressionSyntax)expression).IsKind(SyntaxKind.NullLiteralExpression))
+            if (expression.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 return false;
             }
