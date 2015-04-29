@@ -356,9 +356,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Try
                             preferredUILang = New CultureInfo(value)
+                            If (preferredUILang.CultureTypes And CultureTypes.UserCustomCulture) <> 0 Then
+                                ' Do not use user custom cultures.
+                                preferredUILang = Nothing
+                            End If
                         Catch ex As CultureNotFoundException
-                            AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
                         End Try
+
+                        If preferredUILang Is Nothing Then
+                            AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
+                        End If
+
                         Continue For
 #If DEBUG Then
                     Case "attachdebugger"
