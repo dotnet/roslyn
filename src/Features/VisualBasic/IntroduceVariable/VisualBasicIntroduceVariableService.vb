@@ -77,6 +77,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Return False
             End If
 
+            ' For Nothing Literals, AllOccurences could introduce semantic errors.
+            If expression.IsKind(SyntaxKind.NothingLiteralExpression) Then
+                Return False
+            End If
+
             Return True
         End Function
 

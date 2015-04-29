@@ -613,13 +613,12 @@ class M
         }
 
         [WorkItem(544577)]
+        [WorkItem(909152)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestExpressionTLambda()
         {
-            Test(
-@"using System ; using System . Linq . Expressions ; class Program { static Expression < Func < int ? , char ? > > e1 = c => [|null|] ; } ",
-@"using System ; using System . Linq . Expressions ; class Program { private const char ? {|Rename:P|} = null ; static Expression < Func < int ? , char ? > > e1 = c => P ; } ",
-index: 1);
+            TestMissing(
+@"using System ; using System . Linq . Expressions ; class Program { static Expression < Func < int ? , char ? > > e1 = c => [|null|] ; } ");
         }
 
         [WorkItem(544915)]
@@ -2327,6 +2326,24 @@ class TestClass
 }";
 
             Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(909152)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestMissingOnNullLiteral()
+        {
+            TestMissing(
+@"class C1 { }
+class C2 { }
+class Test
+{
+    void M()
+    {
+        C1 c1 = [|null|];
+        C2 c2 = null;
+    }
+}
+");
         }
     }
 }
