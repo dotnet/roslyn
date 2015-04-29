@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId, _factory._documentId);
+                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.TaskCategory:
                                 content = VSTASKCATEGORY.CAT_COMMENTS;

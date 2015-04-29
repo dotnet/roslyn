@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return project.Name;
         }
 
-        protected IVsHierarchy GetHierarchy(Workspace workspace, ProjectId projectId, DocumentId documentId)
+        protected IVsHierarchy GetHierarchy(Workspace workspace, ProjectId projectId)
         {
             if (projectId == null)
             {
@@ -223,18 +223,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (vsWorkspace == null)
             {
                 return null;
-            }
-
-            if (documentId != null)
-            {
-                // document doesn't actually exist in the workspace
-                var document = vsWorkspace.GetHostDocument(documentId);
-                if (document == null)
-                {
-                    return null;
-                }
-
-                return document.SharedHierarchy ?? document.Project.Hierarchy;
             }
 
             return vsWorkspace.GetHierarchy(projectId);
