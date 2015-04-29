@@ -2953,6 +2953,7 @@ class C
         End Sub
 
         <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+        <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingInstance()
             Using result = RenameEngineResult.Create(
@@ -2963,7 +2964,7 @@ class C
 {
     void F(int [|$$z|])
     {
-        string x = nameof({|ref:zoo|});
+        nameof({|ref:zoo|}).ToString();
     }
 
     int zoo;
@@ -2973,7 +2974,7 @@ class C
                     </Project>
                 </Workspace>, renameTo:="zoo")
 
-                result.AssertLabeledSpansAre("ref", "string x = nameof(C.zoo);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("ref", "nameof(C.zoo).ToString();", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
