@@ -96,8 +96,15 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException("Invalid header.");
                 }
 
+                if (kind != CustomDebugInfoKind.EditAndContinueLambdaMap &&
+                    kind != CustomDebugInfoKind.EditAndContinueLocalSlotMap)
+                {
+                    // ignore alignment for CDIs that don't support it
+                    alignmentSize = 0;
+                }
+
                 int bodySize = size - CDI.CdiRecordHeaderSize;
-                if (offset > customDebugInfo.Length - bodySize)
+                if (offset > customDebugInfo.Length - bodySize || alignmentSize > 3 || alignmentSize > bodySize)
                 {
                     throw new InvalidOperationException("Invalid header.");
                 }
