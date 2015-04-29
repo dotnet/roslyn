@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports System.Composition
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
-    <ExportLanguageSpecificOptionSerializer(LanguageNames.VisualBasic, FormattingOptions.FormattingFeatureName, FormattingOptions.TabFeatureName, BraceCompletionOptions.FeatureName, CompletionOptions.FeatureName, SignatureHelpOptions.FeatureName, NavigationBarOptions.FeatureName), [Shared]>
+    <ExportLanguageSpecificOptionSerializer(LanguageNames.VisualBasic, FormattingOptions.TabFeatureName, BraceCompletionOptions.FeatureName, CompletionOptions.FeatureName, SignatureHelpOptions.FeatureName, NavigationBarOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicLanguageSettingsSerializer
         Inherits AbstractLanguageSettingsSerializer
 
