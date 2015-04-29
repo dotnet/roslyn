@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -8,66 +9,99 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CA2229 CodeFix provider"), Shared]
-    public sealed class CA2229CodeFixProvider : CodeFixProviderBase
+    /// <summary>
+    /// CA2229: Implement serialization constructors.
+    /// </summary>
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "CA2229 CodeFix provider"), Shared]
+    public sealed class CA2229CodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id); 
 
-        protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            return FxCopFixersResources.ImplementSerializationConstructor;
-        }
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(context.Span);
+            var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
 
-        internal async override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            var symbol = model.GetDeclaredSymbol(nodeToFix, cancellationToken);
-            var generator = SyntaxGenerator.GetGenerator(document);
+            if (symbol == null)
+            {
+                return;
+            }
+
+            var diagnostic = context.Diagnostics.Single();
 
             // There was no constructor and so the diagnostic was on the type. Generate a serlialization ctor.
             if (symbol.Kind == SymbolKind.NamedType)
             {
-                var typeSymbol = symbol as INamedTypeSymbol;
-                var throwStatement = generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException")));
-
-                var ctorDecl = generator.ConstructorDeclaration(
-                    typeSymbol.Name,
-                    new[]
-                    {
-                        generator.ParameterDeclaration("serializationInfo", generator.TypeExpression(WellKnownTypes.SerializationInfo(model.Compilation))),
-                        generator.ParameterDeclaration("streamingContext", generator.TypeExpression(WellKnownTypes.StreamingContext(model.Compilation)))
-                    },
-                    typeSymbol.IsSealed ? Accessibility.Private : Accessibility.Protected,
-                    statements: new[] { throwStatement });
-
-                var editor = SymbolEditor.Create(document.Project.Solution);
-                await editor.EditOneDeclarationAsync(typeSymbol, nodeToFix.GetLocation(), (e, d) => e.AddMember(d, ctorDecl), cancellationToken);
-                return editor.GetChangedDocuments().First();
+                context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.ImplementSerializationConstructor,
+                     async ct => await GenerateConstructor(context.Document, node, symbol, ct).ConfigureAwait(false)),
+                diagnostic);
             }
+            // There is a serialization constructor but with incorrect accessibility. Set that right.
             else if (symbol.Kind == SymbolKind.Method)
             {
-                // There is a serialization constructor but with incorrect accessibility. Set that right.
-                var methodSymbol = symbol as IMethodSymbol;
-
-                // This would be constructor and can have only one definition.
-                Debug.Assert(methodSymbol.IsConstructor() && methodSymbol.DeclaringSyntaxReferences.Count() == 1);
-                var declaration = await methodSymbol.DeclaringSyntaxReferences.First().GetSyntaxAsync(cancellationToken);
-
-                var newAccessibility = methodSymbol.ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
-                var newDecl = generator.WithAccessibility(declaration, newAccessibility);
-                return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDecl));
+                context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.ImplementSerializationConstructor,
+                     async ct => await SetAccessibility(context.Document, node, symbol, ct).ConfigureAwait(false)),
+                diagnostic);
             }
 
-            return document;
+            return;
+        }
+
+        private async Task<Document> GenerateConstructor(Document document, SyntaxNode node, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            var editor = SymbolEditor.Create(document);
+            var typeSymbol = symbol as INamedTypeSymbol;
+
+            await editor.EditOneDeclarationAsync(typeSymbol, node.GetLocation(), (docEditor, declaration) =>
+            {
+                var generator = docEditor.Generator;
+                var throwStatement = generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException")));
+                var ctorDecl = generator.ConstructorDeclaration(
+                                    typeSymbol.Name,
+                                    new[]
+                                    {
+                                            generator.ParameterDeclaration("serializationInfo", generator.TypeExpression(WellKnownTypes.SerializationInfo(docEditor.SemanticModel.Compilation))),
+                                            generator.ParameterDeclaration("streamingContext", generator.TypeExpression(WellKnownTypes.StreamingContext(docEditor.SemanticModel.Compilation)))
+                                    },
+                                    typeSymbol.IsSealed ? Accessibility.Private : Accessibility.Protected,
+                                    statements: new[] { throwStatement });
+
+                docEditor.AddMember(declaration, ctorDecl);
+            }, cancellationToken);
+
+            return editor.GetChangedDocuments().First();
+        }
+
+        private async Task<Document> SetAccessibility(Document document, SyntaxNode node, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            var editor = SymbolEditor.Create(document);
+            var methodSymbol = symbol as IMethodSymbol;
+
+            // This would be constructor and can have only one definition.
+            Debug.Assert(methodSymbol.IsConstructor() && methodSymbol.DeclaringSyntaxReferences.Count() == 1);
+            await editor.EditOneDeclarationAsync(methodSymbol, (docEditor, declaration) => 
+            {
+                var newAccessibility = methodSymbol.ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
+                docEditor.SetAccessibility(declaration, newAccessibility);
+            }, cancellationToken);
+
+            return editor.GetChangedDocuments().First();
+        }
+
+        private class MyCodeAction : DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
+            {
+            }
         }
     }
 }
