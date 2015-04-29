@@ -4,6 +4,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -351,13 +352,13 @@ class Program
             Using state = TestState.CreateCSharpTestState(
                               <Document>
                                   $$
-                              </Document>)
+                              </Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
 
                 state.SendTypeChars("using Sys")
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(";")
                 state.AssertNoCompletionSession()
-                Assert.Contains("using System;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.AssertMatchesTextStartingAtLine(1, "using System;")
             End Using
         End Sub
 
@@ -1381,7 +1382,7 @@ class C
         Private Class SlowProvider
             Implements ICompletionProvider
 
-            Public checkpoint As checkpoint = New checkpoint()
+            Public checkpoint As Checkpoint = New Checkpoint()
 
             Public Async Function GetGroupAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionItemGroup) Implements ICompletionProvider.GetGroupAsync
                 Await checkpoint.Task.ConfigureAwait(False)
@@ -1503,6 +1504,26 @@ class C
                 state.AssertCompletionSession()
                 state.SendSelectAll()
                 state.AssertNoCompletionSession()
+            End Using
+        End Sub
+
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub CompletionCommitAndFormatAreSeparateUndoTransactions()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {
+        int doodle;
+$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendTypeChars("doo;")
+                state.AssertMatchesTextStartingAtLine(6, "        doodle;")
+                state.SendUndo()
+                state.AssertMatchesTextStartingAtLine(6, "doodle;")
+                state.SendUndo()
+                state.AssertMatchesTextStartingAtLine(6, "doo;")
             End Using
         End Sub
     End Class
