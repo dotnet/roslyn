@@ -1366,7 +1366,7 @@ namespace NS
         }
 
         [WorkItem(545911, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
             string moduleA = @"public class Foo{ public static string A = ""Original""; }";
@@ -1435,7 +1435,7 @@ using System;
             CheckForwarderEmit2(source0, source1, source2, "X.Foo");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TypeForwarderInAModule()
         {
             string forwardedTypes =

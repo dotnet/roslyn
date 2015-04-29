@@ -18,6 +18,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class UnsafeTests : CompilingTestBase
     {
+        private static string GetEscapedNewLine()
+        {
+            if (Environment.NewLine == "\n")
+            {
+                return @"\n";
+            }
+            else if (Environment.NewLine == "\r\n")
+            {
+                return @"\r\n";
+            }
+            else
+            {
+                throw new Exception("Unrecognized new line");
+            }
+        }
+
         #region Unsafe regions
 
         [Fact]
@@ -1877,19 +1893,19 @@ class C
     }
 }
 ";
-            var expected = @"
+            var expected = string.Format(@"
 No, TypeExpression 'int' is not a non-moveable variable
 No, Literal '0' is not a non-moveable variable
 No, IncrementOperator 'i++' is not a non-moveable variable
 Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
 No, TypeExpression 'System.Action' is not a non-moveable variable
-No, Conversion '() =>\r\n        {\r\n            int j = i;\r\n            j++;\r\n        }' is not a non-moveable variable
-No, Lambda '() =>\r\n        {\r\n            int j = i;\r\n            j++;\r\n        }' is not a non-moveable variable
+No, Conversion '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' is not a non-moveable variable
+No, Lambda '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' is not a non-moveable variable
 No, TypeExpression 'int' is not a non-moveable variable
 Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
 No, IncrementOperator 'j++' is not a non-moveable variable
 Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-".Trim();
+", GetEscapedNewLine()).Trim();
 
             CheckNonMoveableVariables(text, expected);
         }
@@ -2078,9 +2094,9 @@ class C
     }
 }
 ";
-            var expected = @"
+            var expected = string.Format(@"
 No, TypeExpression 'var' is not a non-moveable variable
-No, QueryClause 'from i in array \r\n            from j in array \r\n            select i + j' is not a non-moveable variable
+No, QueryClause 'from i in array {0}            from j in array {0}            select i + j' is not a non-moveable variable
 No, QueryClause 'select i + j' is not a non-moveable variable
 No, QueryClause 'from j in array' is not a non-moveable variable
 No, Call 'from j in array' is not a non-moveable variable
@@ -2099,7 +2115,7 @@ Yes, RangeVariable 'i' is a non-moveable variable with underlying symbol 'i'
 Yes, Parameter 'i' is a non-moveable variable with underlying symbol 'i'
 Yes, RangeVariable 'j' is a non-moveable variable with underlying symbol 'j'
 Yes, Parameter 'j' is a non-moveable variable with underlying symbol 'j'
-".Trim();
+", GetEscapedNewLine()).Trim();
 
             CheckNonMoveableVariables(text, expected);
         }
@@ -2146,9 +2162,9 @@ static class Extensions
 }
 ";
 
-            var expected = @"
+            var expected = string.Format(@"
 No, TypeExpression 'var' is not a non-moveable variable
-No, QueryClause 'from x in c\r\n                     where x > 0 //int\r\n                     where x.Length < 2 //string\r\n                     select char.IsLetter(x)' is not a non-moveable variable
+No, QueryClause 'from x in c{0}                     where x > 0 //int{0}                     where x.Length < 2 //string{0}                     select char.IsLetter(x)' is not a non-moveable variable
 No, QueryClause 'select char.IsLetter(x)' is not a non-moveable variable
 No, Call 'select char.IsLetter(x)' is not a non-moveable variable
 No, QueryClause 'where x.Length < 2' is not a non-moveable variable
@@ -2176,7 +2192,7 @@ No, Call 'char.IsLetter(x)' is not a non-moveable variable
 No, TypeExpression 'char' is not a non-moveable variable
 Yes, RangeVariable 'x' is a non-moveable variable with underlying symbol 'x'
 Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
-".Trim();
+", GetEscapedNewLine()).Trim();
 
             CheckNonMoveableVariables(text, expected);
         }

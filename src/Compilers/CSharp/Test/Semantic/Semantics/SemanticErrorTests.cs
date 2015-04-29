@@ -19784,7 +19784,8 @@ class C
                     Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "d").WithArguments("d").WithLocation(16, 19));
         }
 
-        [Fact, WorkItem(543615, "DevDiv"), WorkItem(546550, "DevDiv")]
+        [WorkItem(543615, "DevDiv"), WorkItem(546550, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void CS0811ERR_DebugFullNameTooLong()
         {
             var text = @"
@@ -20195,7 +20196,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("Test.Main()"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CS1592WRN_XMLParseIncludeError()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");

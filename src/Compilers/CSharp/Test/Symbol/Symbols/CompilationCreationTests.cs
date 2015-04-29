@@ -2777,7 +2777,7 @@ class C : Metadata.ICSPropImpl { }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CompilationWithReferenceDirective_RelativeToBaseDirectory()
         {
             string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
@@ -2815,7 +2815,7 @@ class C : Metadata.ICSPropImpl { }";
                 Diagnostic(ErrorCode.ERR_MetadataReferencesNotSupported, @"#r ""bar"""));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CompilationWithReferenceDirective_RelativeToBaseParent()
         {
             string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
@@ -2838,7 +2838,7 @@ class C : Metadata.ICSPropImpl { }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CompilationWithReferenceDirective_RelativeToBaseRoot()
         {
             string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;

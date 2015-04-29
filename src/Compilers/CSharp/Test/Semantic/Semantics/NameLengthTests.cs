@@ -381,7 +381,7 @@ class E
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(10, 1037));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Locals()
         {
             var sourceTemplate = @"
@@ -405,7 +405,7 @@ class C
                 Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, s_longLocalName + 1).WithArguments(s_longLocalName + 1).WithLocation(7, 13));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ConstantLocals()
         {
             var sourceTemplate = @"
