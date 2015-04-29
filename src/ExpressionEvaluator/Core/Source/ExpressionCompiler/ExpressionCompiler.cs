@@ -292,13 +292,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
             out string errorMessage)
         {
-            errorMessage = null;
             TResult compileResult;
 
             PooledHashSet<AssemblyIdentity> assembliesLoadedInRetryLoop = null;
             bool tryAgain;
             do
             {
+                errorMessage = null;
+
                 var context = createContext(metadataBlocks, useReferencedModulesOnly: false);
                 var diagnostics = DiagnosticBag.GetInstance();
                 compileResult = compile(context, diagnostics);
