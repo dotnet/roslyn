@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// When used for a synthesized method the ordinal and generation numbers are included its name.
     /// For user defined methods the ordinal is included in Custom Debug Information record attached to the method.
     /// </remarks>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct DebugId : IEquatable<DebugId>
     {
         public const int UndefinedOrdinal = -1;
@@ -50,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override int GetHashCode()
         {
             return Hash.Combine(this.Ordinal, this.Generation);
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return (Generation > 0) ? $"{Ordinal}#{Generation}" : Ordinal.ToString();
         }
     }
 }

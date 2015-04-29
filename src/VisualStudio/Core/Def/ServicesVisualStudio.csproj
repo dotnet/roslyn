@@ -520,7 +520,6 @@
     <Compile Include="Implementation\RQName\Nodes\RQArrayType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQConstructedType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQConstructor.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQDynamicType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQErrorType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQEvent.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQExplicitInterfaceMemberName.cs" />
@@ -552,7 +551,7 @@
     <Compile Include="Implementation\RQName\Nodes\RQUnconstructedType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQVoidType.cs" />
     <Compile Include="Implementation\RQName\ParenthesesTreeWriter.cs" />
-    <Compile Include="Implementation\RQName\RQNameService.cs" />
+    <Compile Include="Implementation\RQName\RQName.cs" />
     <Compile Include="Implementation\RQName\RQNameStrings.cs" />
     <Compile Include="Implementation\RQName\RQNodeBuilder.cs" />
     <Compile Include="Implementation\RQName\SimpleTree\SimpleGroupNode.cs" />

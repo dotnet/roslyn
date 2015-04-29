@@ -329,9 +329,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and argument analysis.  We don't want to report unsupported metadata unless nothing else went wrong -
             // otherwise we'd report errors about losing candidates, effectively "pulling in" unnecessary assemblies.
 
-            bool haveMultipleSupported = false;
+            bool supportedRequiredParameterMissingConflicts = false;
             MemberResolutionResult<TMember> firstSupported = default(MemberResolutionResult<TMember>);
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
+
+            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[4]; // from highest to lowest priority
+            const int requiredParameterMissingPriority = 0;
+            const int nameUsedForPositionalPriority = 1;
+            const int noCorrespondingNamedParameterPriority = 2;
+            const int noCorrespondingParameterPriority = 3;
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
@@ -344,17 +350,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case MemberResolutionKind.NoCorrespondingNamedParameter:
-                    case MemberResolutionKind.NoCorrespondingParameter:
-                    case MemberResolutionKind.RequiredParameterMissing:
-                    case MemberResolutionKind.NameUsedForPositional:
-                        if (firstSupported.IsNull)
+                        if (supportedInPriorityOrder[noCorrespondingNamedParameterPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[noCorrespondingNamedParameterPriority].Result.BadArgumentsOpt[0])
                         {
-                            firstSupported = result;
+                            supportedInPriorityOrder[noCorrespondingNamedParameterPriority] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.NoCorrespondingParameter:
+                        if (supportedInPriorityOrder[noCorrespondingParameterPriority].IsNull)
+                        {
+                            supportedInPriorityOrder[noCorrespondingParameterPriority] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.RequiredParameterMissing:
+                        if (supportedInPriorityOrder[requiredParameterMissingPriority].IsNull)
+                        {
+                            Debug.Assert(!supportedRequiredParameterMissingConflicts);
+                            supportedInPriorityOrder[requiredParameterMissingPriority] = result;
                         }
                         else
                         {
-                            haveMultipleSupported = true;
-                            break; // Optimization: Nothing else to be learned.
+                            supportedRequiredParameterMissingConflicts = true;
+                        }
+                        break;
+                    case MemberResolutionKind.NameUsedForPositional:
+                        if (supportedInPriorityOrder[nameUsedForPositionalPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[nameUsedForPositionalPriority].Result.BadArgumentsOpt[0])
+                        {
+                            supportedInPriorityOrder[nameUsedForPositionalPriority] = result;
                         }
                         break;
                     default:
@@ -365,12 +388,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            foreach (var supported in supportedInPriorityOrder)
+            {
+                if (supported.IsNotNull)
+                {
+                    firstSupported = supported;
+                    break;
+                }
+            }
+
             // If there are any supported candidates, we don't care about unsupported candidates.
             if (firstSupported.IsNotNull)
             {
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
-                if (!haveMultipleSupported && !isMethodGroupConversion)
+                if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts) && !isMethodGroupConversion)
                 {
                     switch (firstSupported.Result.Kind)
                     {

@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <remarks>
     /// The information is emitted to PDB in Custom Debug Information record for a method containing the lambda.
     /// </remarks>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct LambdaDebugInfo : IEquatable<LambdaDebugInfo>
     {
         /// <summary>
@@ -26,27 +27,26 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         public readonly int ClosureOrdinal;
 
-        public readonly int Generation;
+        public readonly DebugId LambdaId;
 
         public const int StaticClosureOrdinal = -1;
         public const int ThisOnlyClosureOrdinal = -2;
         public const int MinClosureOrdinal = ThisOnlyClosureOrdinal;
 
-        public LambdaDebugInfo(int syntaxOffset, int closureOrdinal, int generation)
+        public LambdaDebugInfo(int syntaxOffset, DebugId lambdaId, int closureOrdinal)
         {
             Debug.Assert(closureOrdinal >= MinClosureOrdinal);
-            Debug.Assert(generation >= 0);
 
             SyntaxOffset = syntaxOffset;
             ClosureOrdinal = closureOrdinal;
-            Generation = generation;
+            LambdaId = lambdaId;
         }
 
         public bool Equals(LambdaDebugInfo other)
         {
             return SyntaxOffset == other.SyntaxOffset
                 && ClosureOrdinal == other.ClosureOrdinal 
-                && Generation == other.Generation;
+                && LambdaId.Equals(other.LambdaId);
         }
 
         public override bool Equals(object obj)
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override int GetHashCode()
         {
             return Hash.Combine(ClosureOrdinal, 
-                   Hash.Combine(SyntaxOffset, Generation));
+                   Hash.Combine(SyntaxOffset, LambdaId.GetHashCode()));
         }
 
-        public override string ToString()
+        internal string GetDebuggerDisplay()
         {
             return 
-                ClosureOrdinal == StaticClosureOrdinal ? $"(#{Generation} @{SyntaxOffset}, static)" :
-                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{Generation} @{SyntaxOffset}, this)" :
-                $"(#{Generation} @{SyntaxOffset} in {ClosureOrdinal})";
+                ClosureOrdinal == StaticClosureOrdinal ? $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, static)" :
+                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, this)" :
+                $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset} in {ClosureOrdinal})";
         }
     }
 }
