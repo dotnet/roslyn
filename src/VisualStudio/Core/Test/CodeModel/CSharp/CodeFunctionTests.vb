@@ -146,6 +146,92 @@ interface I
 
 #End Region
 
+#Region "Attribute Tests"
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attribute_1()
+            Dim code =
+<Code>
+class Class2
+{
+    [CLSCompliant(true), Obsolete]
+    void $$F()
+    {
+
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"), IsElement("Obsolete"))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attribute_2()
+            Dim code =
+<Code>
+public abstract class Class1&lt;T1, T2&gt;
+{
+    [CLSCompliant(true), Obsolete]
+    void $$F()
+    {
+
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"), IsElement("Obsolete"))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attribute_3()
+            Dim code =
+<Code>
+public abstract class Class1&lt;T1, T2&gt;
+{
+    [CLSCompliant(true)]
+    public virtual void $$F()
+    {
+
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"))
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attribute_4()
+            Dim code =
+<Code>
+public abstract class Class1&lt;T1, T2&gt;
+{
+    [CLSCompliant(true)]
+    public virtual void F()
+    {
+
+    }
+}
+
+public class Class2 : Class1&lt;A, B&gt;
+{
+    [CLSCompliant(true)]
+    public void $$F()
+    {
+    }
+}
+
+public class A
+{
+}
+
+public class B
+{
+}
+</Code>
+
+            TestAttributes(code, IsElement("CLSCompliant"))
+        End Sub
+#End Region
+
 #Region "CanOverride tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
