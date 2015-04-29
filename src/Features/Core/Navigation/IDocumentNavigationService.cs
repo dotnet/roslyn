@@ -25,16 +25,16 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <summary>
         /// Navigates to the given position in the specified document, opening it if necessary.
         /// </summary>
-        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool usePreviewTab = false);
+        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool reopenDocument = false, bool usePreviewTab = false);
 
         /// <summary>
         /// Navigates to the given line/offset in the specified document, opening it if necessary.
         /// </summary>
-        bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool usePreviewTab = false);
+        bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool reopenDocument = false, bool usePreviewTab = false);
 
         /// <summary>
         /// Navigates to the given virtual position in the specified document, opening it if necessary.
         /// </summary>
-        bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, bool usePreviewTab = false);
+        bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, bool reopenDocument = false, bool usePreviewTab = false);
     }
 }
