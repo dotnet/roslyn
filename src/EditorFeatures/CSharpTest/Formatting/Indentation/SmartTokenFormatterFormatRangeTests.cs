@@ -1200,6 +1200,25 @@ namespace NS
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void ExpressionValuedPropertyInitializer()
+        {
+            var code = @"using System;
+class Class
+{
+          public int  Three =>   1+2;$$
+";
+
+            var expected = @"using System;
+class Class
+{
+    public int Three => 1 + 2;
+";
+
+            AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement10()
         {
             var code = @"using System;
