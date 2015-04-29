@@ -69,14 +69,14 @@ class C
 
                 Dim commandHandler = New GoToDefinitionCommandHandler(New TestWaitIndicator(New TestWaitContext(100)))
                 commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value)
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService.TriedNavigationToSpan)
+                Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService.ProvidedTextSpan)
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
                 commandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value)
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
+                Assert.True(mockDocumentNavigationService.TriedNavigationToSpan)
+                Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService.ProvidedTextSpan)
             End Using
         End Sub
 
@@ -111,7 +111,7 @@ class C
 
                 commandHandler.TryExecuteCommand(document, cursorPosition, goToDefService)
 
-                Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
+                Assert.Equal(navigatedTo OrElse mockDocumentNavigationService.TriedNavigationToSpan, Not expectedCancel)
 
                 Return waitContext.Updates
             End Using

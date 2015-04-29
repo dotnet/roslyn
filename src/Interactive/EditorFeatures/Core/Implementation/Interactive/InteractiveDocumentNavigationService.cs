@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return false;
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool usePreviewTab = false)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool reopenDocument = false, bool usePreviewTab = false)
         {
             var interactiveWorkspace = workspace as InteractiveWorkspace;
             if (interactiveWorkspace == null)
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return true;
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool usePreviewTab = false)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool reopenDocument = false, bool usePreviewTab = false)
         {
             throw new NotSupportedException();
         }
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool usePreviewTab = false)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool reopenDocument = false, bool usePreviewTab = false)
         {
             throw new NotSupportedException();
         }

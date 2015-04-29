@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.Navigation
             return false;
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool usePreviewTab = false)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool reopenDocument = false, bool usePreviewTab = false)
         {
             return false;
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool usePreviewTab = false)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool reopenDocument = false, bool usePreviewTab = false)
         {
             return false;
         }
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool usePreviewTab = false)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool reopenDocument = false, bool usePreviewTab = false)
         {
             return false;
         }

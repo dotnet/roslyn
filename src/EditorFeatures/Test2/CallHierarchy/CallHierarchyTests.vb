@@ -274,7 +274,7 @@ class D : C
 
         <WorkItem(1022864)>
         <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
-        Public Sub UseDocumentIdWhenNavigating()
+        Public Sub UseDocumentIdWhenNavigatingAndUsePreviewTab()
             Dim input =
     <Workspace>
         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -306,9 +306,11 @@ namespace N
             testState.VerifyRoot(root, "N.C.Foo()", {String.Format(EditorFeaturesResources.CallsTo, "Foo")})
             testState.Navigate(root, String.Format(EditorFeaturesResources.CallsTo, "Foo"), "N.G.Main()")
 
-            Dim navigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
+            Dim navigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
             Assert.NotEqual(navigationService.ProvidedDocumentId, Nothing)
             Assert.NotEqual(navigationService.ProvidedTextSpan, Nothing)
+            Assert.False(navigationService.ProvidedReopenDocument)
+            Assert.True(navigationService.ProvidedUsePreviewTab)
         End Sub
     End Class
 
