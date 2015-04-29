@@ -32,11 +32,13 @@ Get started building diagnostics, code fixes, refactorings, and other code-aware
 
 Click on the version of Visual Studio you are using for installation instructions.
 
-- [**Visual Studio 2015 Preview**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-Preview)
+- [**Visual Studio 2015 RC**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-RC)
+
+- [**Visual Studio 2015 CTP 6**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-6)
 
 - [**Visual Studio 2015 CTP 5**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-5)
 
-- [**Visual Studio 2015 CTP 6**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-6)
+- [**Visual Studio 2015 Preview**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-Preview)
 
 Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
 From the NuGet package manager console:
