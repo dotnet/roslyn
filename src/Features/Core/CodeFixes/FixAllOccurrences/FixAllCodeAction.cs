@@ -43,10 +43,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogContext(_fixAllContext, IsInternalCodeFixProvider(_fixAllContext.CodeFixProvider));
 
             var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
-            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext).ConfigureAwait(false);
+            // Use the new cancellation token instead of the stale one present inside _fixAllContext.
+            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)
