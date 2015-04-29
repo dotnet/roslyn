@@ -184,6 +184,40 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 GetCA2235BasicResultAt(13, 29, "s3", "CA2235InternalWithNonPublicNonSerializableFields", "NonSerializableType"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA2235AutoProperties()
+        {
+            VerifyCSharp(@"
+                using System;
+                public class NonSerializableType { }
+
+                [Serializable]
+                public class SerializableType { }
+    
+                [Serializable]
+                internal class CA2235WithAutoProperties
+                {
+                    public SerializableType s1;
+                    internal NonSerializableType s2 {get; set; }
+                }",
+                GetCA2235CSharpResultAt(12, 50, "s2", "CA2235WithAutoProperties", "NonSerializableType"));
+
+            VerifyBasic(@"
+                Imports System
+                Public Class NonSerializableType
+                End Class
+                <Serializable>
+                Public Class SerializableType
+                End Class
+
+                <Serializable>
+                Friend Class CA2235WithAutoProperties 
+                    Public s1 As SerializableType
+                    Friend Property s2 As NonSerializableType
+                End Class",
+                GetCA2235BasicResultAt(12, 37, "s2", "CA2235WithAutoProperties", "NonSerializableType"));
+        }
+
         internal static string CA2235Name = "CA2235";
         internal static string CA2235Message = FxCopRulesResources.FieldIsOfNonSerializableType;
 
