@@ -77,6 +77,7 @@
     <Compile Include="CommandLine\ErrorLogger.cs" />
     <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
+    <Compile Include="ConsistencyChecker.cs" />
     <Compile Include="FileSystemExtensions.cs" />
     <Compile Include="DesktopStrongNameProvider.cs" />
     <Compile Include="CommandLineAnalyzerReference.cs" />

@@ -11801,6 +11801,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The analyzer assembly {0} does not match the loaded assembly &apos;{1}&apos;.  Analyzers may not work as expected..
+        /// </summary>
+        internal static string WRN_LoadedAnalyzerDiffers {
+            get {
+                return ResourceManager.GetString("WRN_LoadedAnalyzerDiffers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specified analyzer does not match the loaded assembly.
+        /// </summary>
+        internal static string WRN_LoadedAnalyzerDiffers_Title {
+            get {
+                return ResourceManager.GetString("WRN_LoadedAnalyzerDiffers_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;l&apos; suffix is easily confused with the digit &apos;1&apos; -- use &apos;L&apos; for clarity.
         /// </summary>
         internal static string WRN_LowercaseEllSuffix {
@@ -11851,6 +11869,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_MainIgnored_Title {
             get {
                 return ResourceManager.GetString("WRN_MainIgnored_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The assembly &apos;{0}&apos; is required by analyzer {1} but was not found.  Analyzers may not work as expected..
+        /// </summary>
+        internal static string WRN_MissingAnalyzerDependency {
+            get {
+                return ResourceManager.GetString("WRN_MissingAnalyzerDependency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An assembly required by an analyzer was not found.
+        /// </summary>
+        internal static string WRN_MissingAnalyzerDependency_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingAnalyzerDependency_Title", resourceCulture);
             }
         }
         

@@ -229,6 +229,16 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
+        public override int WRN_LoadedAnalyzerDiffers
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        public override int WRN_MissingAnalyzerDependency
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override void ReportDuplicateMetadataReferenceStrong(DiagnosticBag diagnostics, Location location, MetadataReference reference, AssemblyIdentity identity, MetadataReference equivalentReference, AssemblyIdentity equivalentIdentity)
         {
             throw new NotImplementedException();

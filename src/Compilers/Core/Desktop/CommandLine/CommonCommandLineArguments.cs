@@ -335,8 +335,16 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles, IAnalyzerAssemblyLoader analyzerLoader)
         {
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            List<AnalyzerFileReference> resolvedAnalyzers = ResolveAnalyzerReferencesAndReportErrors(diagnostics, messageProvider, analyzerLoader);
 
+            CheckAnalyzerConsistencyAndReportErrors(diagnostics, messageProvider, resolvedAnalyzers);
+
+            return LoadDiagnosticAnalyzersAndReportErrors(language, diagnostics, messageProvider, resolvedAnalyzers);
+        }
+
+        private ImmutableArray<DiagnosticAnalyzer> LoadDiagnosticAnalyzersAndReportErrors(string language, List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, List<AnalyzerFileReference> resolvedAnalyzers)
+        {
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
                 var analyzerReference = o as AnalyzerFileReference;
@@ -366,14 +374,79 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
+            foreach (var analyzer in resolvedAnalyzers)
+            {
+                analyzer.AnalyzerLoadFailed += errorHandler;
+                analyzer.AddAnalyzers(builder, language);
+                analyzer.AnalyzerLoadFailed -= errorHandler;
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private void CheckAnalyzerConsistencyAndReportErrors(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, List<AnalyzerFileReference> resolvedAnalyzers)
+        {
+            Dictionary<string, Assembly> pathsToAssemblies = new Dictionary<string, Assembly>();
+            foreach (var analyzer in resolvedAnalyzers)
+            {
+                try
+                {
+                    pathsToAssemblies.Add(analyzer.FullPath, analyzer.GetAssembly());
+                }
+                catch (Exception e)
+                {
+                    DiagnosticInfo diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_UnableToLoadAnalyzer, analyzer.FullPath, e.Message);
+                    // Filter this diagnostic based on the compilation options so that /nowarn and /warnaserror etc. take effect.
+                    diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, this.CompilationOptions);
+
+                    if (diagnostic != null)
+                    {
+                        diagnostics.Add(diagnostic);
+                    }
+                }
+            }
+
+            ConsistencyChecker consistencyChecker = new ConsistencyChecker(new[] { "mscorlib", "System.", "Microsoft.CodeAnalysis." });
+            foreach (var consistencyError in consistencyChecker.CheckAssemblies(pathsToAssemblies))
+            {
+                DiagnosticInfo diagnostic = null;
+                switch (consistencyError.Kind)
+                {
+                    case ConsistencyErrorKind.UnableToReadFile:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_UnableToLoadAnalyzer, consistencyError.FilePath, consistencyError.Exception.Message);
+                        break;
+                    case ConsistencyErrorKind.MissingReference:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_MissingAnalyzerDependency, consistencyError.FilePath, consistencyError.RelatedAssemblyName);
+                        break;
+                    case ConsistencyErrorKind.LoadedAssemblyDiffers:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_LoadedAnalyzerDiffers, consistencyError.FilePath, consistencyError.RelatedAssemblyName);
+                        break;
+                    default:
+                        break;
+                }
+
+                if (diagnostic != null)
+                {
+                    // Filter this diagnostic based on the compilation options so that /nowarn and /warnaserror etc. take effect.
+                    diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, this.CompilationOptions);
+
+                    if (diagnostic != null)
+                    {
+                        diagnostics.Add(diagnostic);
+                    }
+                }
+            }
+        }
+
+        private List<AnalyzerFileReference> ResolveAnalyzerReferencesAndReportErrors(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, IAnalyzerAssemblyLoader analyzerLoader)
+        {
+            List<AnalyzerFileReference> resolvedAnalyzers = new List<AnalyzerFileReference>();
             foreach (var reference in AnalyzerReferences)
             {
-                var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
-                if (resolvedReference != null)
+                var resolvedAnalyzer = ResolveAnalyzerReference(reference, analyzerLoader);
+                if (resolvedAnalyzer != null)
                 {
-                    resolvedReference.AnalyzerLoadFailed += errorHandler;
-                    resolvedReference.AddAnalyzers(builder, language);
-                    resolvedReference.AnalyzerLoadFailed -= errorHandler;
+                    resolvedAnalyzers.Add(resolvedAnalyzer);
                 }
                 else
                 {
@@ -381,7 +454,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutable();
+            return resolvedAnalyzers;
         }
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)

@@ -1273,7 +1273,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadPdbData = 8036,
         // available 8037-8039
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
-        // available 8041-8049
+        WRN_LoadedAnalyzerDiffers = 8041,
+        WRN_MissingAnalyzerDependency = 8042,
+        // available 8043-8049
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveGetAccessor = 8051,
         ERR_AutoPropertyInitializerInInterface = 8052,

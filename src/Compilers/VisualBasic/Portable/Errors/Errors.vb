@@ -1897,9 +1897,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_AnalyzerCannotBeCreated = 42376
         WRN_NoAnalyzerInAssembly = 42377
         WRN_UnableToLoadAnalyzer = 42378
+        WRN_LoadedAnalyzerDiffers = 42379
+        WRN_MissingAnalyzerDependency = 42380
 
-        ' // AVAILABLE                             42379 - 49998
-        ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
+        ' // AVAILABLE                             42381 - 49998
+        ERRWRN_Last = WRN_MissingAnalyzerDependency + 1
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

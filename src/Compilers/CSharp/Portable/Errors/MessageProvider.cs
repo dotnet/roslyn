@@ -199,6 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_MetadataNameTooLong { get { return (int)ErrorCode.ERR_MetadataNameTooLong; } }
         public override int ERR_EncReferenceToAddedMember { get { return (int)ErrorCode.ERR_EncReferenceToAddedMember; } }
 
+        public override int WRN_LoadedAnalyzerDiffers { get { return (int)ErrorCode.WRN_LoadedAnalyzerDiffers; } }
+        public override int WRN_MissingAnalyzerDependency { get { return (int)ErrorCode.WRN_MissingAnalyzerDependency; } }
+
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {
             var node = (AttributeSyntax)attributeSyntax;
