@@ -3812,6 +3812,56 @@ class C
             edits.VerifySemanticDiagnostics();
         }
 
+        [Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")]
+        public void Lambdas_Update_CapturedParameters2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => x1 + a2);
+            return a1;
+        });
+
+        var f3 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f4 = new Func<int, int>(a3 => x1 + a2);
+            return a1;
+        });
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
+            return a1;
+        });
+
+        var f3 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f4 = new Func<int, int>(a3 => x1 + a2 + 1);
+            return a1;
+        });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
         [Fact]
         public void Lambdas_Update_CeaseCapture_Closure1()
         {
