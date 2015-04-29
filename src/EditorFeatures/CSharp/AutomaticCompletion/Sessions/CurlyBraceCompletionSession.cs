@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     var bracePair = node.GetBracePair();
                     if (bracePair.IsValidBracePair())
                     {
-                        AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.Item1, SpecializedCollections.SingletonEnumerable(bracePair.Item2));
+                        AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.Item1, SpecializedCollections.SingletonEnumerable(bracePair.Item2), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
                     }
                 }
             }
