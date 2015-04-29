@@ -46,7 +46,7 @@
     <ProjectReference Include="..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
       <Project>{20bb6fac-44d2-4d76-abfe-0c1e163a1a4f}</Project>
       <Name>VisualStudioInteractiveWindow</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\InteractiveServices\VisualStudioInteractiveServices.csproj">
@@ -58,28 +58,34 @@
     <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
       <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
       <Name>CSharpVisualStudioRepl</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\Repl\BasicVisualStudioRepl.vbproj">
       <Project>{b4a38526-5f15-4ca8-b5e9-0ba04e547023}</Project>
       <Name>BasicVisualStudioRepl</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Project>{201ec5b7-f91e-45e5-b9f2-67a266cce6fc}</Project>
       <Name>VisualStudioComponents</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>False</Private>
+      <IncludeOutputGroupsInVSIX>
+      </IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>
+      </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\VisualStudioInteractiveComponents\VisualStudioInteractiveComponents.csproj">
       <Project>{2169f526-8a88-435d-8732-486aca095a6a}</Project>
       <Name>VisualStudioInteractiveComponents</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>False</Private>
+      <IncludeOutputGroupsInVSIX>
+      </IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>
+      </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">

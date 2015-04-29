@@ -128,8 +128,11 @@
       <Project>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</Project>
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>False</Private>
+      <IncludeOutputGroupsInVSIX>
+      </IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>
+      </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
