@@ -61,6 +61,12 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
+      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
+      <Name>InteractiveEditorFeatures</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
       <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
       <Name>CSharpInteractiveEditorFeatures</Name>

@@ -104,12 +104,22 @@ namespace Roslyn.Test.Utilities
         {
             var map0 = source0.MapMarksToSyntaxNodes();
             var map1 = source1.MapSyntaxNodesToMarks();
-
+#if DUMP
+            Console.WriteLine("========");
+#endif
             return new Func<SyntaxNode, SyntaxNode>(node1 =>
             {
                 int mark;
                 SyntaxNode result;
-                return map1.TryGetValue(node1, out mark) && map0.TryGetValue(mark, out result) ? result : null;
+                if (map1.TryGetValue(node1, out mark) && map0.TryGetValue(mark, out result))
+                {
+                    return result;
+                }
+
+#if DUMP
+                Console.WriteLine($"? {node1.RawKind} [[{node1}]]");
+#endif
+                return null;
             });
         }
     }

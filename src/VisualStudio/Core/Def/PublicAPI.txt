@@ -1,4 +1,5 @@
 Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation
+Microsoft.VisualStudio.LanguageServices.RQName
 Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace
 Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.CreatePortableExecutableReference(string filePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> Microsoft.CodeAnalysis.PortableExecutableReference
 Microsoft.VisualStudio.Shell.Interop.IComWrapperFactory
@@ -14,3 +15,4 @@ override Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.OnDocumen
 override Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.PartialSemanticsEnabled.get -> bool
 static Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation.CreateNodeAsync(this Microsoft.VisualStudio.GraphModel.Graph graph, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.GraphModel.GraphNode>
 static Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation.CreateNodeIdAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.GraphModel.GraphNodeId>
+static Microsoft.VisualStudio.LanguageServices.RQName.From(Microsoft.CodeAnalysis.ISymbol symbol) -> string

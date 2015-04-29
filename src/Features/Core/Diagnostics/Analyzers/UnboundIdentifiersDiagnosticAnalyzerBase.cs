@@ -7,20 +7,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 {
-    internal abstract class AddImportDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax, TLambdaExpressionSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TLanguageKindEnum : struct
         where TSimpleNameSyntax : SyntaxNode
         where TQualifiedNameSyntax : SyntaxNode
         where TIncompleteMemberSyntax : SyntaxNode
+        where TLambdaExpressionSyntax : SyntaxNode
     {
         protected abstract DiagnosticDescriptor DiagnosticDescriptor { get; }
+        protected abstract DiagnosticDescriptor DiagnosticDescriptor2 { get; }
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
+        protected abstract bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel semanticModel);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(DiagnosticDescriptor);
+                return ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
             }
         }
 
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxKindsOfInterest.ToArray());
         }
 
-        protected DiagnosticDescriptor GetDiagnosticDescriptor(string id, string messageFormat)
+        protected DiagnosticDescriptor GetDiagnosticDescriptor(string id, LocalizableString messageFormat)
         {
             // it is not configurable diagnostic, title doesn't matter
             return new DiagnosticDescriptor(
@@ -42,19 +45,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var member = (TIncompleteMemberSyntax)context.Node;
+            if ((context.Node is TLambdaExpressionSyntax && context.Node.ContainsDiagnostics) || context.Node is TIncompleteMemberSyntax)
+            {
+                ReportUnboundIdentifierNames(context, context.Node);
+            }
+        }
 
+        private void ReportUnboundIdentifierNames(SyntaxNodeAnalysisContext context, SyntaxNode member)
+        {
             Func<SyntaxNode, bool> isQualifiedOrSimpleName = (SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
             var typeNames = member.DescendantNodes().Where(n => isQualifiedOrSimpleName(n) && !n.Span.IsEmpty);
             foreach (var typeName in typeNames)
             {
                 var info = context.SemanticModel.GetSymbolInfo(typeName);
-                if (info.Symbol != null || info.CandidateSymbols.Length > 0)
+                if (info.Symbol == null && info.CandidateSymbols.Length == 0)
                 {
-                    continue;
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor, typeName.GetLocation(), typeName.ToString()));
                 }
-
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor, typeName.GetLocation(), typeName.ToString()));
+                else if (ConstructorDoesNotExist(typeName, info, context.SemanticModel))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor2, typeName.GetLocation(), typeName.ToString()));
+                }
             }
         }
     }

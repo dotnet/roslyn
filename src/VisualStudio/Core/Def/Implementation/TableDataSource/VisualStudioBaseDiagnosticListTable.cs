@@ -288,8 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetHelpLinkToolTipText(item);
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
-                                var isBing = false;
-                                content = GetHelpLink(item, out isBing);
+                                content = GetHelpLink(item);
                                 return content != null;
                             case StandardTableKeyNames.ErrorCategory:
                                 content = item.Category;
@@ -458,10 +457,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         };
                     }
 
-                    private static string GetHelpLink(DiagnosticData item, out bool isBing)
+                    private static string GetHelpLink(DiagnosticData item)
                     {
-                        isBing = false;
-
                         Uri link;
                         if (BrowserHelper.TryGetUri(item.HelpLink, out link))
                         {
@@ -470,7 +467,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         if (!string.IsNullOrWhiteSpace(item.Id))
                         {
-                            isBing = true;
                             return BrowserHelper.CreateBingQueryUri(item.Id, item.ENUMessageForBingSearch).AbsoluteUri;
                         }
 
@@ -480,12 +476,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private static string GetHelpLinkToolTipText(DiagnosticData item)
                     {
                         var isBing = false;
-                        var helpLink = GetHelpLink(item, out isBing);
+                        Uri helpUri = null;
+                        if (!BrowserHelper.TryGetUri(item.HelpLink, out helpUri) && !string.IsNullOrWhiteSpace(item.Id))
+                        {
+                            helpUri = BrowserHelper.CreateBingQueryUri(item.Id, item.ENUMessageForBingSearch);
+                            isBing = true;
+                        }
 
-                        if (helpLink != null)
+                        // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url dislayed in the tooltip stays human readable.
+                        if (helpUri != null)
                         {
                             return string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, item.Id,
-                                isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpLink);
+                                isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpUri);
                         }
 
                         return null;
