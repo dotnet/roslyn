@@ -381,9 +381,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     // The requested project version is not the same as that of the current compilation.
                     // Assume that the requested version is newer.
-
+                    
                     ImmutableArray<DiagnosticAnalyzer> analyzers = Flatten(HostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project).Values);
-                    CompilationWithAnalyzers newCompilationWithAnalyzers = !analyzers.IsEmpty ? compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken) : null;
+                    CompilationWithAnalyzers newCompilationWithAnalyzers = !analyzers.IsEmpty ? compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, GetOnAnalyzerException(project.Id), cancellationToken) : null;
                     results.CurrentCompilation = new CompilationResult(project, projectVersion, newCompilationWithAnalyzers);
                 }
 

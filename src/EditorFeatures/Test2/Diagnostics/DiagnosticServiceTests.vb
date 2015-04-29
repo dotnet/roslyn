@@ -446,7 +446,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(0, diagnostics.Count())
 
                 diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
-                ' This fails in V2 because exceptionDiagnosticsSource is not updated. Why?
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
                 Assert.True(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))

@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     analyzerManager = new AnalyzerManager();
                     var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-                    Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
+                    Action<Exception, DiagnosticAnalyzer, Diagnostic> addExceptionDiagnostic = (exception, analyzer, diagnostic) => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
                     var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, true, out compilation, analyzerCts.Token);
 

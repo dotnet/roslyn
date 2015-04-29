@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Primary driver task which processes all <see cref="CompilationEventQueue"/> events, runs analyzer actions and signals completion of <see cref="DiagnosticQueue"/> at the end.
         /// </summary>
         private Task _primaryTask;
-
+        
         /// <summary>
         /// Driver task which initializes all analyzers.
         /// </summary>
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Finally, it initializes and starts the <see cref="_initializeTask"/> for the driver.
         /// </summary>
         /// <remarks>
-        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{Diagnostic}, bool, out Compilation, CancellationToken)"/>.
+        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{Exception, DiagnosticAnalyzer, Diagnostic}, bool, out Compilation, CancellationToken)"/>.
         /// </remarks>
         private void Initialize(Compilation comp, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in the analysis.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
-        /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
+        /// <param name="onAnalyzerException">Action to invoke for exceptions thrown by third party analyzers.</param>
         /// <param name="startCompleteAnalysis">Flag to control whether or not a full analysis begins at creation.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers, 
             AnalyzerOptions options, 
             AnalyzerManager analyzerManager, 
-            Action<Diagnostic> addExceptionDiagnostic, 
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, 
             bool startCompleteAnalysis,
             out Compilation newCompilation, 
             CancellationToken cancellationToken)
@@ -200,23 +200,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = 
-                (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
-
-            return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, startCompleteAnalysis, out newCompilation, cancellationToken: cancellationToken);
-        }
-
-        // internal for testing purposes
-        internal static AnalyzerDriver Create(
-            Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers, 
-            AnalyzerOptions options, 
-            AnalyzerManager analyzerManager,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            bool startCompleteAnalysis,
-            out Compilation newCompilation, 
-            CancellationToken cancellationToken)
-        {
             options = options ?? AnalyzerOptions.Empty;
             AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, analyzerManager, cancellationToken);
             newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
@@ -414,7 +397,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 CompilationEvent e;
                 try
                 {
-                    e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+                    if (runToCompletion)
+                    {
+                        e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // For a partial (single-document) analysis, the queue is not guaranteed to complete
+                        // and so waiting for a dequeue may not terminate.
+                        if (!CompilationEventQueue.TryDequeue(out e))
+                        {
+                            break;
+                        }
+                    }
                 }
                 catch (TaskCanceledException)
                 {

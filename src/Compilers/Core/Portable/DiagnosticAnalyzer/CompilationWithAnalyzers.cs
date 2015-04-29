@@ -26,22 +26,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get { return _compilation; }
         }
-
+        
         /// <summary>
         /// Creates a new compilation by attaching diagnostic analyzers to an existing compilation.
         /// </summary>
         /// <param name="compilation">The original compilation.</param>
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
+        /// <param name="onAnalyzerException">Action to invoke if an analyzer throws an exception.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
             _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, onAnalyzerException ?? AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
         }
 
-        private void AddExceptionDiagnostic(Diagnostic diagnostic)
+        private void AddExceptionDiagnostic(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
         {
             _exceptionDiagnostics.Add(diagnostic);
         }
@@ -66,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (latestAnalysisTask != _latestAnalysisTask)
                         {
                             // Another analysis task has started. Wait to start this one.
+                            // Analysis tasks are serialized because the driver can use all available cores
+                            // in one analysis and swamping the system with tasks is not advantageous.
                             continue;
                         }
 
@@ -128,6 +131,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (latestAnalysisTask != _latestAnalysisTask)
                         {
                             // Another analysis task has started. Wait to start this one.
+                            // Analysis tasks are serialized because the driver can use all available cores
+                            // in one analysis and swamping the system with tasks is not advantageous.
                             continue;
                         }
 
