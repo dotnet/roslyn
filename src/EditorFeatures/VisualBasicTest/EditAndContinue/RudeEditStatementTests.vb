@@ -3252,6 +3252,48 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
+        <Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")>
+        Public Sub Lambdas_Update_CapturedParameters2()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2)
+                Return a1
+            End Function)
+
+        Dim f3 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f4 = New Func(Of Integer, Integer)(Function(a3) x1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2 + 1)
+                Return a1
+            End Function)
+
+        Dim f3 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f4 = New Func(Of Integer, Integer)(Function(a3) x1 + a2 + 1)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
         <Fact>
         Public Sub Lambdas_Update_CeaseCapture_Closure1()
             Dim src1 = "
@@ -3366,9 +3408,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO: better location
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "a1"))
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
         End Sub
 
         <Fact>
