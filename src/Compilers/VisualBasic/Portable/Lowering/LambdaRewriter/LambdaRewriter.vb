@@ -965,7 +965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree)
-            closureDebugInfo.Add(New ClosureDebugInfo(syntaxOffset, closureId.Generation))
+            closureDebugInfo.Add(New ClosureDebugInfo(syntaxOffset, closureId))
             Return closureId
         End Function
 
@@ -1006,7 +1006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree)
-            _lambdaDebugInfoBuilder.Add(New LambdaDebugInfo(syntaxOffset, closureOrdinal, lambdaId.Generation))
+            _lambdaDebugInfoBuilder.Add(New LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal))
             Return lambdaId
         End Function
 

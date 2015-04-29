@@ -56,12 +56,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[])_store["Analyzers"]; }
         }
 
-        public ITaskItem[] AnalyzerDependencies
-        {
-            set { _store["AnalyzerDependencies"] = value; }
-            get { return (ITaskItem[])_store["AnalyzerDependencies"]; }
-        }
-
         // We do not support BugReport because it always requires user interaction,
         // which will cause a hang.
 
@@ -593,9 +587,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Append the analyzers.
             this.AddAnalyzersToCommandLine(commandLine);
 
-            // Append the analyzer dependencies.
-            this.AddAnalyzerDependenciesToCommandLine(commandLine);
-
             // Append additional files.
             this.AddAdditionalFilesToCommandLine(commandLine);
 
@@ -618,27 +609,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             foreach (ITaskItem analyzer in this.Analyzers)
             {
                 commandLine.AppendSwitchIfNotNull("/analyzer:", analyzer.ItemSpec);
-            }
-        }
-
-        /// <summary>
-        /// Adds a "/analyzerdependency:" switch to the command line for each provided analyzer dependency.
-        /// 
-        /// Note that even though MSBuild makes a distinction between analyzers and dependencies, the
-        /// command-line compilers do not--both are passed in via "/analyzer".
-        /// </summary>
-        private void AddAnalyzerDependenciesToCommandLine(CommandLineBuilderExtension commandLine)
-        {
-            // If there were no analyzers passed in, don't add any /analyzer: switches
-            // on the command-line.
-            if ((this.AnalyzerDependencies == null) || (this.AnalyzerDependencies.Length == 0))
-            {
-                return;
-            }
-
-            foreach (ITaskItem dependency in this.AnalyzerDependencies)
-            {
-                commandLine.AppendSwitchIfNotNull("/analyzer:", dependency.ItemSpec);
             }
         }
 

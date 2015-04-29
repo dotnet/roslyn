@@ -254,7 +254,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            return RQNameService.TryBuild(symbol, out rqname);
+            rqname = LanguageServices.RQName.From(symbol);
+            return rqname != null;
         }
 
         private IVsHierarchy GetVsHierarchy(Project project)

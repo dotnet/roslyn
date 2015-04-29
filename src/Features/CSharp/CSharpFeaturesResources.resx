@@ -402,7 +402,7 @@
   </data>
   <data name="Struct" xml:space="preserve">
     <value>struct</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="EventField" xml:space="preserve">
     <value>event field</value>
@@ -430,5 +430,11 @@
   </data>
   <data name="AttributeTarget" xml:space="preserve">
     <value>attribute target</value>
+  </data>
+  <data name="ERR_BadCtorArgCount" xml:space="preserve">
+    <value>'{0}' does not contain a constructor that takes that many arguments.</value>
+  </data>
+  <data name="ERR_NameNotInContext" xml:space="preserve">
+    <value>The name '{0}' does not exist in the current context.</value>
   </data>
 </root>

@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             return DiagnosticProviderTestUtilities.GetDocumentDiagnostics(analyzer, document, document.GetSyntaxRootAsync(CancellationToken.None).Result.FullSpan).ToList();
         }
 
-        public void AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false, int actionIndex = 0)
+        public void AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
         {
             WaitForAsyncOperations();
 
@@ -176,15 +176,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             var context = new CodeFixContext(document, diagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
             _codeFixProvider.RegisterCodeFixesAsync(context).Wait();
 
-            // There should be two actions
-            Assert.Equal(2, actions.Count);
+            // There should only be one code action
+            Assert.Equal(1, actions.Count);
 
             Assert.Equal(string.Format(EditorFeaturesResources.RenameTo, expectedFromName, expectedToName), actions[0].Title);
-            Assert.Equal(string.Format(EditorFeaturesResources.RenameToWithPreview, expectedFromName, expectedToName), actions[1].Title);
 
             if (invokeAction)
             {
-                var operations = actions[actionIndex]
+                var operations = actions[0]
                     .GetOperationsAsync(CancellationToken.None)
                     .WaitAndGetResult(CancellationToken.None)
                     .ToArray();

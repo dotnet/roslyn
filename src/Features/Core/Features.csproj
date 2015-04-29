@@ -253,7 +253,7 @@
     <Compile Include="Completion\Rules\ICompletionRules.cs" />
     <Compile Include="Diagnostics\EngineV1\AbstractSyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\AddImportDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\IDocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\IProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />

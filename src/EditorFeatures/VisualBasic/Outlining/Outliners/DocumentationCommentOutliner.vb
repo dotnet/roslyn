@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -10,18 +11,41 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         Inherits AbstractSyntaxNodeOutliner(Of DocumentationCommentTriviaSyntax)
 
         Private Shared Function GetBannerText(documentationComment As DocumentationCommentTriviaSyntax, cancellationToken As CancellationToken) As String
+            ' TODO: Consider unifying code to extract text from an Xml Documentation Comment (https://github.com/dotnet/roslyn/issues/2290)
             Dim summaryElement = documentationComment.Content.OfType(Of XmlElementSyntax)() _
                                     .FirstOrDefault(Function(e) e.StartTag.Name.ToString = "summary")
 
             Dim text As String
             If summaryElement IsNot Nothing Then
-                Dim summaryText = From nodes In summaryElement.ChildNodesAndTokens().Where(Function(node) node.Kind() = SyntaxKind.XmlText).Select(Function(xmlText) DirectCast(xmlText.AsNode(), XmlTextSyntax))
-                                  From token In nodes.TextTokens.Where(Function(t) t.Kind = SyntaxKind.XmlTextLiteralToken)
-                                  Let s = token.ToString().Trim()
-                                  Where (s.Length > 0)
-                                  Select s
+                Dim sb As New StringBuilder(summaryElement.Span.Length)
+                sb.Append("''' <summary>")
+                For Each node In summaryElement.ChildNodes()
+                    If node.Kind() = SyntaxKind.XmlText Then
+                        Dim textNode = DirectCast(node, XmlTextSyntax)
+                        Dim textTokens As SyntaxTokenList = textNode.TextTokens
+                        AppendTextTokens(sb, textTokens)
+                    ElseIf node.Kind() = SyntaxKind.XmlEmptyElement Then
+                        Dim elementNode = DirectCast(node, XmlEmptyElementSyntax)
+                        Dim cref = elementNode.Attributes.OfType(Of XmlCrefAttributeSyntax).FirstOrDefault()
+                        If cref IsNot Nothing Then
+                            sb.Append(" ")
+                            sb.Append(cref.Reference.ToString())
+                        End If
 
-                text = "''' <summary> " & String.Join(" ", summaryText)
+                        Dim nameattribute = elementNode.Attributes.OfType(Of XmlNameAttributeSyntax).FirstOrDefault()
+                        If nameattribute IsNot Nothing Then
+                            sb.Append(" ")
+                            sb.Append(nameattribute.Reference.ToString())
+                        End If
+
+                        Dim langword = elementNode.Attributes.OfType(Of XmlAttributeSyntax).FirstOrDefault(Function(a) a.Name.ToString() = "langword")
+                        If langword IsNot Nothing Then
+                            AppendTextTokens(sb, DirectCast(langword.Value, XmlStringSyntax).TextTokens)
+                        End If
+                    End If
+                Next
+
+                text = sb.ToString()
             Else
                 ' If a summary element isn't found, use the first line of the XML doc comment.
                 Dim span = documentationComment.Span
@@ -36,6 +60,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 
             Return text
         End Function
+
+        Private Shared Sub AppendTextTokens(sb As StringBuilder, textTokens As SyntaxTokenList)
+            For Each token In textTokens.Where(Function(t) t.Kind = SyntaxKind.XmlTextLiteralToken)
+                Dim s = token.ToString().Trim()
+                If s.Length <> 0 Then
+                    sb.Append(" ")
+                    sb.Append(s)
+                End If
+            Next
+        End Sub
 
         Protected Overrides Sub CollectOutliningSpans(documentationComment As DocumentationCommentTriviaSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)
             Dim firstCommentToken = documentationComment.ChildNodesAndTokens().FirstOrNullable()

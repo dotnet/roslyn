@@ -53,11 +53,6 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Scripting\Test\ScriptingTest.csproj">
-      <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
-      <Name>CommonScriptingTest</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />

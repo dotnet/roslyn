@@ -58,7 +58,6 @@
           AddModules="@(AddModules)"
           AdditionalFiles="@(AdditionalFiles)"
           Analyzers="@(Analyzer)"
-          AnalyzerDependencies="@(AnalyzerDependency)"
           BaseAddress="$(BaseAddress)"
           CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
           CodePage="$(CodePage)"

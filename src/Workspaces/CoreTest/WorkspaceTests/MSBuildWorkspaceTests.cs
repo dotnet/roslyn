@@ -993,6 +993,33 @@ class C1
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_BadMsbuildProject_SkipTrue_SucceedsWithDanglingProjectReference()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText(@"VisualBasicProject_VisualBasicProject_UnknownProjectExtension.vbproj"))
+                .WithFile(@"CSharpProject\CSharpProject.noproj", GetResourceBytes("CSharpProject.dll"))); // use metadata file as stand-in for bad project file
+
+            // keep metadata reference from holding files open
+            Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
+
+            var ws = MSBuildWorkspace.Create();
+
+            var diags = new List<WorkspaceDiagnostic>();
+            ws.WorkspaceFailed += (s, args) =>            
+            {
+                diags.Add(args.Diagnostic);
+            };
+
+            ws.SkipUnrecognizedProjects = true;
+            var project = ws.OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+
+            Assert.Equal(1, project.Solution.ProjectIds.Count);
+            Assert.Equal(0, project.ProjectReferences.Count());
+            Assert.Equal(1, project.AllProjectReferences.Count());
+            Assert.Equal(2, diags.Count);
+        }
+
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/451"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithReferencedProject_LoadMetadata_ExistingMetadata_Succeeds()
         {
