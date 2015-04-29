@@ -1699,44 +1699,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
 #If DEBUG Then
-        ' Thread id to catch cases where ComputeMembersAndInitializers
-        ' is called recursively. This does not catch all recursive cases,
-        ' only cases where the method is called recursively on the first
-        ' thread that called ComputeMembersAndInitializers.
-        Private _computingMembersThreadId As Integer
+        ' A thread local hash table to catch cases when BuildMembersAndInitializers
+        ' is called recursively for the same symbol. 
+        <ThreadStatic>
+        Private Shared s_SymbolsBuildingMembersAndInitializers As HashSet(Of SourceMemberContainerTypeSymbol)
 #End If
 
         Private Function BuildMembersAndInitializers(diagBag As DiagnosticBag) As MembersAndInitializers
-#If DEBUG Then
-            Dim threadId = Environment.CurrentManagedThreadId
 
-            ' Bug 1098580 tracks re-enabling this assert.
-            'Debug.Assert(m_computingMembersThreadId <> threadId)
-            Interlocked.CompareExchange(_computingMembersThreadId, threadId, 0)
+            Dim membersAndInitializers As MembersAndInitializers
+
+#If DEBUG Then
+            If s_SymbolsBuildingMembersAndInitializers Is Nothing Then
+                s_SymbolsBuildingMembersAndInitializers = New HashSet(Of SourceMemberContainerTypeSymbol)(ReferenceEqualityComparer.Instance)
+            End If
+
+            Dim added As Boolean = s_SymbolsBuildingMembersAndInitializers.Add(Me)
+
+            Debug.Assert(added)
+            Try
 #End If
-            ' Get type members
-            Dim typeMembers = GetTypeMembersDictionary()
+                ' Get type members
+                Dim typeMembers = GetTypeMembersDictionary()
 
-            ' Get non-type members
-            Dim membersAndInitializers As MembersAndInitializers = BuildNonTypeMembers(diagBag)
-            _defaultPropertyName = DetermineDefaultPropertyName(membersAndInitializers.Members, diagBag)
+                ' Get non-type members
+                membersAndInitializers = BuildNonTypeMembers(diagBag)
+                _defaultPropertyName = DetermineDefaultPropertyName(membersAndInitializers.Members, diagBag)
 
-            ' Find/process partial methods
-            ProcessPartialMethodsIfAny(membersAndInitializers.Members, diagBag)
+                ' Find/process partial methods
+                ProcessPartialMethodsIfAny(membersAndInitializers.Members, diagBag)
 
-            ' Merge types with non-types
-            For Each typeSymbols In typeMembers.Values
-                Dim nontypeSymbols As ImmutableArray(Of Symbol) = Nothing
-                Dim name = typeSymbols(0).Name
-                If Not membersAndInitializers.Members.TryGetValue(name, nontypeSymbols) Then
-                    membersAndInitializers.Members.Add(name, StaticCast(Of Symbol).From(typeSymbols))
-                Else
-                    membersAndInitializers.Members(name) = nontypeSymbols.Concat(StaticCast(Of Symbol).From(typeSymbols))
-                End If
-            Next
+                ' Merge types with non-types
+                For Each typeSymbols In typeMembers.Values
+                    Dim nontypeSymbols As ImmutableArray(Of Symbol) = Nothing
+                    Dim name = typeSymbols(0).Name
+                    If Not membersAndInitializers.Members.TryGetValue(name, nontypeSymbols) Then
+                        membersAndInitializers.Members.Add(name, StaticCast(Of Symbol).From(typeSymbols))
+                    Else
+                        membersAndInitializers.Members(name) = nontypeSymbols.Concat(StaticCast(Of Symbol).From(typeSymbols))
+                    End If
+                Next
 
 #If DEBUG Then
-            Interlocked.CompareExchange(_computingMembersThreadId, 0, threadId)
+            Finally
+                If added Then
+                    s_SymbolsBuildingMembersAndInitializers.Remove(Me)
+                End If
+            End Try
 #End If
             Return membersAndInitializers
         End Function

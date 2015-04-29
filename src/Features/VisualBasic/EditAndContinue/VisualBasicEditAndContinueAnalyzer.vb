@@ -1351,6 +1351,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End)
         End Function
 
+        Friend Overrides Function GetLambdaParameterDiagnosticSpan(lambda As SyntaxNode, ordinal As Integer) As TextSpan
+            Select Case lambda.Kind
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
+                    Return DirectCast(lambda, LambdaExpressionSyntax).SubOrFunctionHeader.ParameterList.Parameters(ordinal).Identifier.Span
+
+                Case Else
+                    Return lambda.Span
+            End Select
+        End Function
+
         Protected Overrides Function GetTopLevelDisplayName(node As SyntaxNode, editKind As EditKind) As String
             Return GetTopLevelDisplayNameImpl(node)
         End Function

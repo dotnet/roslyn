@@ -14,7 +14,7 @@ namespace Roslyn.Test.Utilities
         {
             if (assembly == null || interfaceType == null || !interfaceType.IsInterface)
             {
-                throw new ArgumentException("interfaceType is not an interface.", "interfaceType");
+                throw new ArgumentException("interfaceType is not an interface.", nameof(interfaceType));
             }
 
             return assembly.GetTypes().Where((t) =>

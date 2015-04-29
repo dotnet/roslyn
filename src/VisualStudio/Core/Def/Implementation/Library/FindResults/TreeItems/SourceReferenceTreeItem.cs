@@ -29,6 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             }
         }
 
+        public override bool CanGoToReference()
+        {
+            return true;
+        }
+
         public override bool UseGrayText
         {
             get

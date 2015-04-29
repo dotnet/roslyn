@@ -3,7 +3,6 @@
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
 using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -21,30 +20,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
     internal struct Alias
     {
-        internal Alias(AliasKind kind, string name, string fullName, string type, ReadOnlyCollection<byte> customTypeInfo = null, Guid customTypeInfoId = default(Guid))
+        internal Alias(AliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
         {
             Debug.Assert(kind != AliasKind.None);
             Debug.Assert(!string.IsNullOrEmpty(fullName));
             Debug.Assert(!string.IsNullOrEmpty(type));
-            Debug.Assert((customTypeInfo == null) == (customTypeInfoId == default(Guid)));
 
             this.Kind = kind;
             this.Name = name;
             this.FullName = fullName;
             this.Type = type;
             this.CustomTypeInfo = customTypeInfo;
-            this.CustomTypeInfoId = customTypeInfoId;
         }
 
         internal readonly AliasKind Kind;
         internal readonly string Name;
         internal readonly string FullName;
         internal readonly string Type;
-        internal readonly ReadOnlyCollection<byte> CustomTypeInfo;
-        internal readonly Guid CustomTypeInfoId;
+        internal readonly CustomTypeInfo CustomTypeInfo;
     }
-
-    internal delegate ReadOnlyCollection<Alias> GetAliases();
 
     internal static class PseudoVariableUtilities
     {

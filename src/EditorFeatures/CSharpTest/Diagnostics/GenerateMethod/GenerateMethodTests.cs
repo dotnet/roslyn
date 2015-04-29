@@ -1571,7 +1571,7 @@ class C
 {
     void M()
     {
-        [|M|](x: 42);
+        M([|x: 42|]);
     }
 
     void M(int y) { }
@@ -1605,7 +1605,7 @@ class C
 {
     void M()
     {
-        [|M|](Y: 42);
+        M([|Y: 42|]);
     }
 
     void M(int y) { }

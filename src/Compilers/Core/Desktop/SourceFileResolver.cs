@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (searchPaths.IsDefault)
             {
-                throw new ArgumentNullException("searchPaths");
+                throw new ArgumentNullException(nameof(searchPaths));
             }
 
             if (baseDirectory != null && PathUtilities.GetPathKind(baseDirectory) != PathKind.Absolute)

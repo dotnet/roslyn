@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 var oldOutput = Interlocked.Exchange(ref _output, value);
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 var oldOutput = Interlocked.Exchange(ref _errorOutput, value);
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFileAsync(operation, path));

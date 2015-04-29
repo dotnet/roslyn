@@ -216,6 +216,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken);
 
         protected abstract TextSpan GetDiagnosticSpan(SyntaxNode node, EditKind editKind);
+        internal abstract TextSpan GetLambdaParameterDiagnosticSpan(SyntaxNode lambda, int ordinal);
         protected abstract string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind);
         protected abstract string GetStatementDisplayName(SyntaxNode node, EditKind editKind);
         protected abstract string GetLambdaDisplayName(SyntaxNode lambda);
@@ -2968,6 +2969,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        private ValueTuple<SyntaxNode, int> GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
+        {
+            var containingLambda = parameter.ContainingSymbol as IMethodSymbol;
+            if (containingLambda?.MethodKind == MethodKind.LambdaMethod)
+            {
+                var oldContainingLambdaSyntax = GetSymbolSyntax(containingLambda, cancellationToken);
+                return ValueTuple.Create(oldContainingLambdaSyntax, parameter.Ordinal);
+            }
+            else
+            {
+                return ValueTuple.Create(default(SyntaxNode), parameter.Ordinal);
+            }
+        }
+
+        private bool TryMapParameter(ValueTuple<SyntaxNode, int> parameterKey, IReadOnlyDictionary<SyntaxNode, SyntaxNode> map, out ValueTuple<SyntaxNode, int> mappedParameterKey)
+        {
+            SyntaxNode containingLambdaSyntax = parameterKey.Item1;
+            int ordinal = parameterKey.Item2;
+
+            if (containingLambdaSyntax == null)
+            {
+                // method parameter: no syntax, same ordinal (can't change since method signatures must match)
+                mappedParameterKey = parameterKey;
+                return true;
+            }
+
+            SyntaxNode mappedContainingLambdaSyntax;
+            if (map.TryGetValue(containingLambdaSyntax, out mappedContainingLambdaSyntax))
+            {
+                // parameter of an existing lambda: same ordinal (can't change since lambda signatures must match), 
+                mappedParameterKey = ValueTuple.Create(mappedContainingLambdaSyntax, ordinal);
+                return true;
+            }
+
+            // no mapping
+            mappedParameterKey = default(ValueTuple<SyntaxNode, int>);
+            return false;
+        }
+
         private void CalculateCapturedVariablesMaps(
             SemanticModel oldModel,
             ImmutableArray<ISymbol> oldCaptures, 
@@ -3017,17 +3057,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //   closure scopes in the new version to the previous ones, keeping empty closures around.
 
             var oldLocalCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
-            var oldParameterCapturesByOrdinal = PooledDictionary<int, int>.GetInstance(); 
+            var oldParameterCapturesByLambdaAndOrdinal = PooledDictionary<ValueTuple<SyntaxNode, int>, int>.GetInstance(); 
 
             for (int i = 0; i < oldCaptures.Length; i++)
             {
-                if (oldCaptures[i].Kind == SymbolKind.Parameter)
+                var oldCapture = oldCaptures[i];
+
+                if (oldCapture.Kind == SymbolKind.Parameter)
                 {
-                    oldParameterCapturesByOrdinal.Add(((IParameterSymbol)oldCaptures[i]).Ordinal, i);
+                    oldParameterCapturesByLambdaAndOrdinal.Add(GetParameterKey((IParameterSymbol)oldCapture, cancellationToken), i);
                 }
                 else
                 {
-                    oldLocalCapturesBySyntax.Add(GetSymbolSyntax(oldCaptures[i], cancellationToken), i);
+                    oldLocalCapturesBySyntax.Add(GetSymbolSyntax(oldCapture, cancellationToken), i);
                 }
             }
 
@@ -3039,11 +3081,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (newCapture.Kind == SymbolKind.Parameter)
                 {
                     var newParameterCapture = (IParameterSymbol)newCapture;
+                    var newParameterKey = GetParameterKey(newParameterCapture, cancellationToken);
 
-                    // parameters can't be reordered, deleted or added, so no syntax mapping is needed
-                    int ordinal = newParameterCapture.Ordinal;
-
-                    if (!oldParameterCapturesByOrdinal.TryGetValue(ordinal, out oldCaptureIndex))
+                    ValueTuple<SyntaxNode, int> oldParameterKey;
+                    if (!TryMapParameter(newParameterKey, map.Reverse, out oldParameterKey) ||
+                        !oldParameterCapturesByLambdaAndOrdinal.TryGetValue(oldParameterKey, out oldCaptureIndex))
                     {
                         // parameter has not been captured prior the edit:
                         diagnostics.Add(new RudeEditDiagnostic(
@@ -3053,11 +3095,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             new[] { newCapture.Name }));
 
                         hasErrors = true;
+                        continue;
                     }
 
                     // Remove the old parameter capture so that at the end we can use this hashset 
                     // to identify old captures that don't have a corresponding capture in the new version:
-                    oldParameterCapturesByOrdinal.Remove(ordinal);
+                    oldParameterCapturesByLambdaAndOrdinal.Remove(oldParameterKey);
                 }
                 else
                 {
@@ -3152,14 +3195,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // that have no corresponding captured variables in the new version. 
             // Report a rude edit for all such variables.
 
-            if (oldParameterCapturesByOrdinal.Count > 0)
+            if (oldParameterCapturesByLambdaAndOrdinal.Count > 0)
             {
                 var newMemberParameters = GetParametersWithSyntax(newMember);
 
                 // uncaptured parameters:
-                foreach (var entry in oldParameterCapturesByOrdinal)
+                foreach (var entry in oldParameterCapturesByLambdaAndOrdinal)
                 {
-                    int ordinal = entry.Key;
+                    int ordinal = entry.Key.Item2;
+                    var oldContainingLambdaSyntax = entry.Key.Item1;
                     int oldCaptureIndex = entry.Value;
                     var oldCapture = oldCaptures[oldCaptureIndex];
 
@@ -3169,31 +3213,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // this parameter:
                         span = GetThisParameterDiagnosticSpan(newMember);
                     }
-                    else if (oldCapture.ContainingSymbol == oldMember)
+                    else if (oldContainingLambdaSyntax != null)
                     {
-                        // method or property:
-                        span = GetVariableDiagnosticSpan(newMemberParameters[ordinal]);
+                        // lambda:
+                        span = GetLambdaParameterDiagnosticSpan(oldContainingLambdaSyntax, ordinal);
                     }
                     else
                     {
-                        // lambda:
-
-                        // We don't include lambda parameters in mapping, so we need to go thru symbols:
-                        var oldCaptureSyntax = GetSymbolSyntax(oldCapture, cancellationToken);
-                        var oldContainingLambda = (IMethodSymbol)oldModel.GetEnclosingSymbol(oldCaptureSyntax.SpanStart);
-
-                        // TODO: VB doesn't return lambda symbol, but the containing method (bug https://github.com/dotnet/roslyn/issues/1290)
-                        if (oldContainingLambda.MethodKind == MethodKind.LambdaMethod)
-                        {
-                            var oldContainingLambdaSyntax = GetSymbolSyntax(oldContainingLambda, cancellationToken);
-                            var newContainingLambdaSyntax = map.Forward[oldContainingLambdaSyntax];
-                            var newContainingLambda = (IMethodSymbol)newModel.GetEnclosingSymbol(newContainingLambdaSyntax.SpanStart);
-                            span = GetVariableDiagnosticSpan(newContainingLambda.Parameters[ordinal]);
-                        }
-                        else
-                        {
-                            span = GetThisParameterDiagnosticSpan(newMember);
-                        }
+                        // method or property:
+                        span = GetVariableDiagnosticSpan(newMemberParameters[ordinal]);
                     }
 
                     diagnostics.Add(new RudeEditDiagnostic(

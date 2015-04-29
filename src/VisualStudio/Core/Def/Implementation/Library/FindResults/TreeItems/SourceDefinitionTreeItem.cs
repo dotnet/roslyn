@@ -7,14 +7,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal class SourceDefinitionTreeItem : AbstractSourceTreeItem
     {
+        private readonly bool _canGoToDefinition;
         private readonly string _symbolDisplay;
 
         public SourceDefinitionTreeItem(Document document, TextSpan sourceSpan, ISymbol symbol, ushort glyphIndex)
             : base(document, sourceSpan, glyphIndex)
         {
             _symbolDisplay = symbol.ToDisplayString(definitionDisplayFormat);
+            this.DisplayText = $"{GetProjectNameString()}{_symbolDisplay}";
 
-            this.DisplayText = $"[{document.Project.Name}] {_symbolDisplay}";
+            _canGoToDefinition = symbol.Kind != SymbolKind.Namespace;
+        }
+
+        public override bool CanGoToDefinition()
+        {
+            return _canGoToDefinition;
         }
 
         internal override void SetReferenceCount(int referenceCount)
@@ -23,7 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 ? ServicesVSResources.ReferenceCountSingular
                 : string.Format(ServicesVSResources.ReferenceCountPlural, referenceCount);
 
-            this.DisplayText = $"[{_projectName}] {_symbolDisplay} ({referenceCountDisplay})";
+            this.DisplayText = $"{GetProjectNameString()}{_symbolDisplay} ({referenceCountDisplay})";
+        }
+
+        private string GetProjectNameString()
+        {
+            return (_projectName != null && _canGoToDefinition) ? $"[{_projectName}] " : string.Empty;
         }
     }
 }

@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (arguments.IsDefault)
             {
-                throw new ArgumentNullException("typeArguments");
+                throw new ArgumentNullException(nameof(arguments));
             }
 
             if (arguments.Any(TypeSymbolIsNullFunction))

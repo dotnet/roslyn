@@ -794,11 +794,10 @@ index:=1)
         End Sub
 
         <WorkItem(543529)>
+        <WorkItem(909152)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestInStatementlessConstructorParameter()
-            Test(
-NewLines("Class C1 \n Sub New(Optional ByRef x As String = [|Nothing|]) \n End Sub \n End Class"),
-NewLines("Class C1 \n Private Const {|Rename:P|} As String = Nothing \n Sub New(Optional ByRef x As String = P) \n End Sub \n End Class"))
+            TestMissing(NewLines("Class C1 \n Sub New(Optional ByRef x As String = [|Nothing|]) \n End Sub \n End Class"))
         End Sub
 
         <WorkItem(543650)>
@@ -910,12 +909,10 @@ NewLines("Module M \n Sub Main() \n Dim x = <[|x|]/> \n End Sub \n End Module"))
         End Sub
 
         <WorkItem(545262)>
+        <WorkItem(909152)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestInTernaryConditional()
-            Test(
-NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|]) \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Const {|Rename:P1|} As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, P1) \n End Sub \n End Module"),
-index:=2)
+            TestMissing(NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|]) \n End Sub \n End Module"))
         End Sub
 
         <WorkItem(545316)>
@@ -1399,6 +1396,24 @@ End Module
 </File>
 
             Test(code, expected, index:=3, compareTokens:=False)
+        End Sub
+
+        <WorkItem(909152)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestMissingOnNothingLiteral()
+            TestMissing(
+<File>
+Imports System
+Module Program
+    Sub Main(args As String())
+        Main([|Nothing|])
+        M(Nothing)
+    End Sub
+
+    Sub M(i As Integer)
+    End Sub
+End Module
+</File>)
         End Sub
 
         <WorkItem(1065661)>

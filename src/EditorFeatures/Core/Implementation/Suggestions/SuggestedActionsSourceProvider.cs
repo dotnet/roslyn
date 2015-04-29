@@ -28,8 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     [Export(typeof(ISuggestedActionsSourceProvider))]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.VisualBasicContentType)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name("Roslyn Code Fix")]
     [VisualStudio.Utilities.Order]
     internal class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider

@@ -22,7 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Friend Sub ClassifyNode(node As SyntaxNode)
-                If Not _worker._textSpan.OverlapsWith(node.Span) Then
+                ' Note: Use FullSpan in case we need to classify trivia around the span of the node.
+                If Not _worker._textSpan.OverlapsWith(node.FullSpan) Then
                     Return
                 End If
 

@@ -50,7 +50,7 @@
       <Name>BasicCodeAnalysis.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\vbc\vbc.csproj">
-      <Project>{2AC2755D-9437-4271-BBDE-1A3795A0C320}</Project>
+      <Project>{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}</Project>
       <Name>vbc</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">

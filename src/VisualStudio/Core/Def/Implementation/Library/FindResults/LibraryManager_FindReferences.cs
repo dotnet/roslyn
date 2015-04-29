@@ -54,7 +54,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                 var definition = referencedSymbol.Definition;
                 var locations = definition.Locations;
 
-                foreach (var definitionLocation in definition.Locations)
+                // When finding references of a namespace, the data provided by the ReferenceFinder
+                // will include one definition location for each of its exact namespace
+                // declarations and each declaration of its children namespaces that mention
+                // its name (e.g. definitions of A.B will include "namespace A.B.C"). The list of
+                // reference locations includes both these namespace declarations and their
+                // references in usings or fully qualified names. Instead of showing many top-level
+                // declaration nodes (one of which will contain the full list of references
+                // including declarations, the rest of which will say "0 references" due to
+                // reference deduplication and there being no meaningful way to partition them),
+                // we pick a single declaration to use as the top-level definition and nest all of
+                // the declarations & references underneath.
+                var definitionLocations = definition.IsKind(SymbolKind.Namespace)
+                    ? SpecializedCollections.SingletonEnumerable(definition.Locations.First())
+                    : definition.Locations;
+
+                foreach (var definitionLocation in definitionLocations)
                 {
                     var definitionItem = ConvertToDefinitionItem(solution, referencedSymbol, definitionLocation, definition.GetGlyph());
                     if (definitionItem != null)

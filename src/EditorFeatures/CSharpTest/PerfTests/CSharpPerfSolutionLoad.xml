@@ -23,8 +23,8 @@
       <WaitForIdleCPU />
       <MeasureTimeStop />
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="CSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoBasic" />
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="CSharp" />
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoBasic" />-->
     </Scenario>
   </ScenarioList>
 

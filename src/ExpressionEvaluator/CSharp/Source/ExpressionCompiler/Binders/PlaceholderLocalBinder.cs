@@ -109,7 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return null;
             }
 
-            return CreatePlaceholderLocal(_typeNameDecoder, _containingMethod, new Alias(kind, id, id, typeName));
+            // The old API (GetObjectTypeNameById) doesn't return custom type info,
+            // but the new one (GetAliases) will.
+            return CreatePlaceholderLocal(_typeNameDecoder, _containingMethod, new Alias(kind, id, id, typeName, default(CustomTypeInfo)));
         }
 
         internal static PlaceholderLocalSymbol CreatePlaceholderLocal(
@@ -122,6 +124,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
             Debug.Assert((object)type != null);
+
+            var dynamicFlagsInfo = alias.CustomTypeInfo.ToDynamicFlagsCustomTypeInfo();
+            if (dynamicFlagsInfo.Any())
+            {
+                var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+                dynamicFlagsInfo.CopyTo(flagsBuilder);
+                var dynamicType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
+                    type,
+                    containingMethod.ContainingAssembly,
+                    RefKind.None,
+                    flagsBuilder.ToImmutableAndFree(),
+                    checkLength: false);
+                Debug.Assert(dynamicType != null);
+                Debug.Assert(dynamicType != type);
+                type = dynamicType;
+            }
 
             var id = alias.FullName;
             switch (alias.Kind)

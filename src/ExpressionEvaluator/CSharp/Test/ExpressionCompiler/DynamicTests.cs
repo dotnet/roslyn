@@ -1,12 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -393,10 +397,6 @@ public class Outer<T, U>
 {
     public class Inner<V, W>
     {
-        public enum E
-        {
-            A
-        }
     }
 }
 ";
@@ -429,6 +429,124 @@ public class Outer<T, U>
             result = context.CompileAssignment("d", "d", out error);
             Assert.Null(error);
             VerifyCustomTypeInfo(result, null);
+
+            ResultProperties resultProperties;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            testData = new CompilationTestData();
+            result = context.CompileExpression(
+                InspectionContextFactory.Empty,
+                "var dd = d;",
+                DkmEvaluationFlags.None,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Null(error);
+            VerifyCustomTypeInfo(result, null);
+            Assert.Empty(missingAssemblyIdentities);
+            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       57 (0x39)
+  .maxstack  7
+  IL_0000:  ldtoken    ""Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""dd""
+  IL_000f:  ldstr      ""826d6ec1-dc4b-46af-be05-cd3f1a1fd4ac""
+  IL_0014:  newobj     ""System.Guid..ctor(string)""
+  IL_0019:  ldc.i4.2
+  IL_001a:  newarr     ""byte""
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldc.i4.4
+  IL_0022:  stelem.i1
+  IL_0023:  dup
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldc.i4.3
+  IL_0026:  stelem.i1
+  IL_0027:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_002c:  ldstr      ""dd""
+  IL_0031:  call       ""Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic> Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<Outer<dynamic[], object[]>.Inner<Outer<object, dynamic>[], dynamic>>(string)""
+  IL_0036:  ldarg.0
+  IL_0037:  stind.ref
+  IL_0038:  ret
+}");
+        }
+
+        [Fact]
+        public void DynamicAliases()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            var diagnostics = DiagnosticBag.GetInstance();
+            var builder = ArrayBuilder<Alias>.GetInstance();
+            builder.Add(new Alias(
+                AliasKind.DeclaredLocal, 
+                "d1", 
+                "d1", 
+                typeof(object).AssemblyQualifiedName, 
+                MakeCustomTypeInfo(true)));
+            builder.Add(new Alias(
+                AliasKind.DeclaredLocal, 
+                "d2", 
+                "d2", 
+                typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName, 
+                MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
+            var aliases = new ReadOnlyCollection<Alias>(builder.ToArrayAndFree());
+
+            var testData = new CompilationTestData();
+            context.CompileGetLocals(
+                aliases,
+                locals,
+                argumentsOnly: false,
+                diagnostics: diagnostics,
+                typeName: out typeName,
+                testData: testData);
+            diagnostics.Free();
+            Assert.Equal(locals.Count, 2);
+
+            VerifyCustomTypeInfo(locals[0], 0x01);
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "d1", expectedILOpt:
+@"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""d1""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
+  IL_000a:  ret
+}");
+
+            VerifyCustomTypeInfo(locals[1], 0x84, 0x00); // Note: read flags right-to-left in each byte: 0010 0001 0(000 0000)
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "d2", expectedILOpt:
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldstr      ""d2""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
+  IL_000a:  castclass  ""System.Collections.Generic.Dictionary<System.Collections.Generic.Dictionary<dynamic, System.Collections.Generic.Dictionary<object[], dynamic[]>>, object>""
+  IL_000f:  ret
+}");
+            locals.Free();
+        }
+
+        private static CustomTypeInfo MakeCustomTypeInfo(params bool[] flags)
+        {
+            var dynamicFlagsInfo = new DynamicFlagsCustomTypeInfo(new BitArray(flags));
+            return new CustomTypeInfo(DynamicFlagsCustomTypeInfo.PayloadTypeId, dynamicFlagsInfo.GetCustomTypeInfoPayload());
         }
 
         [Fact]

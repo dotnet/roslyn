@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
@@ -14,19 +15,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal struct CustomTypeInfo
     {
         public Guid PayloadTypeId;
-        public ReadOnlyCollection<byte> Payload;
+        public byte[] Payload;
 
-        public CustomTypeInfo(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
+        public CustomTypeInfo(Guid payloadTypeId, byte[] payload)
         {
             this.PayloadTypeId = payloadTypeId;
             this.Payload = payload;
+        }
+
+        public DynamicFlagsCustomTypeInfo ToDynamicFlagsCustomTypeInfo()
+        {
+            return PayloadTypeId == DynamicFlagsCustomTypeInfo.PayloadTypeId
+                ? new DynamicFlagsCustomTypeInfo(new BitArray(Payload))
+                : default(DynamicFlagsCustomTypeInfo);
         }
 
         public DkmClrCustomTypeInfo ToDkmClrCustomTypeInfo()
         {
             return Payload == null
                 ? null
-                : DkmClrCustomTypeInfo.Create(PayloadTypeId, Payload);
+                : DkmClrCustomTypeInfo.Create(PayloadTypeId, new ReadOnlyCollection<byte>(Payload));
         }
     }
 }

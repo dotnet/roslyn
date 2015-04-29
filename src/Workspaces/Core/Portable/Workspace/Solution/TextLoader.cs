@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (textAndVersion == null)
             {
-                throw new ArgumentNullException("textAndVersion");
+                throw new ArgumentNullException(nameof(textAndVersion));
             }
 
             return new TextDocumentLoader(textAndVersion);
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (container == null)
             {
-                throw new ArgumentNullException("container");
+                throw new ArgumentNullException(nameof(container));
             }
 
             return new TextContainerLoader(container, version, filePath);

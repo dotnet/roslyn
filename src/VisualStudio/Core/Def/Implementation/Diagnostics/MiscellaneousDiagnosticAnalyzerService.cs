@@ -112,6 +112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return SpecializedTasks.EmptyTask;
             }
 
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                return DocumentResetAsync(document, cancellationToken);
+            }
+
             private void RaiseEmptyDiagnosticUpdated(DocumentId documentId)
             {
                 _service.RaiseDiagnosticsUpdated(new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), _workspace, null, documentId.ProjectId, documentId, ImmutableArray<DiagnosticData>.Empty));

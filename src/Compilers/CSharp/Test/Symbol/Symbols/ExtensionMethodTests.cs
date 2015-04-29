@@ -3615,5 +3615,54 @@ namespace N
                 //     using X = N.S;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.S;").WithLocation(4, 5));
         }
+
+        [WorkItem(1094849, "DevDiv"), WorkItem(2288, "https://github.com/dotnet/roslyn/issues/2288")]
+        [Fact]
+        public void LookupSymbolsWithPartialInference()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+namespace ConsoleApplication22
+{
+    static class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+
+        internal static void GetEnumerableDisposable1<T, TEnumerator>(this IEnumerable<T> enumerable)
+            where TEnumerator : struct , IEnumerator<T>
+        {
+        }
+
+        internal static void GetEnumerableDisposable2<T, TEnumerator>(this IEnumerable<T> enumerable)
+            where TEnumerator : struct
+        {
+        }
+
+        private static void Overlaps<T, TEnumerator>(IEnumerable<T> other) where TEnumerator : struct, IEnumerator<T>
+        {
+            other.GetEnumerableDisposable1<T, TEnumerator>();
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+
+            compilation.VerifyDiagnostics();
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(syntaxTree);
+
+            var member = (MemberAccessExpressionSyntax)syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            Assert.Equal("other.GetEnumerableDisposable1<T, TEnumerator>", member.ToString());
+
+            var type = model.GetTypeInfo(member.Expression).Type;
+            Assert.Equal("System.Collections.Generic.IEnumerable<T>", type.ToTestDisplayString());
+
+            var symbols = model.LookupSymbols(member.Expression.EndPosition, type, includeReducedExtensionMethods: true).Select(s => s.Name).ToArray();
+            Assert.Contains("GetEnumerableDisposable2", symbols);
+            Assert.Contains("GetEnumerableDisposable1", symbols);
+        }
     }
 }

@@ -172,6 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         scope = this.CSharpSelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
                     }
 
+                    if (scope == null)
+                    {
+                        // This is similar to FieldDeclaration case but we only want to do this if the member has an expression body.
+                        scope = this.CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
+                    }
+
                     return scope;
                 }
 

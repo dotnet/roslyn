@@ -1241,6 +1241,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return TextSpan.FromBounds((modifiers.Count != 0) ? modifiers.First().SpanStart : start.SpanStart, end.Span.End);
         }
 
+        internal override TextSpan GetLambdaParameterDiagnosticSpan(SyntaxNode lambda, int ordinal)
+        {
+            switch (lambda.Kind())
+            {
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((ParenthesizedLambdaExpressionSyntax)lambda).ParameterList.Parameters[ordinal].Identifier.Span;
+
+                case SyntaxKind.SimpleLambdaExpression:
+                    Debug.Assert(ordinal == 0);
+                    return ((SimpleLambdaExpressionSyntax)lambda).Parameter.Identifier.Span;
+
+                case SyntaxKind.AnonymousMethodExpression:
+                    return ((AnonymousMethodExpressionSyntax)lambda).ParameterList.Parameters[ordinal].Identifier.Span;
+
+                default:
+                    return lambda.Span;
+            }
+        }
+
         protected override string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind)
         {
             return GetTopLevelDisplayNameImpl(node, editKind);

@@ -422,10 +422,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (documentsToMergeMap != null)
             {
                 var mergedDocuments = new ConcurrentDictionary<DocumentId, SourceText>();
-
-                var documentsToMergeArray = documentsToMergeMap.ToImmutableArray();
-                bool mergeFailed = false;
-
+                var documentsToMergeArray = documentsToMergeMap.ToImmutableArray();                
                 var mergeTasks = new Task[documentsToMergeArray.Length];
                 for (int i = 0; i < documentsToMergeArray.Length; i++)
                 {
@@ -434,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var documentsToMerge = kvp.Value;
                     var oldDocument = oldSolution.GetDocument(documentId);
 
-                    mergeTasks[i] = Task.Run(async () =>
+                    mergeTasks[i] = Task.Run(async() =>
                     {
                         var appliedChanges = (await documentsToMerge[0].GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false)).ToList();
 
@@ -445,29 +442,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 document,
                                 appliedChanges,
                                 cancellationToken).ConfigureAwait(false);
-
-                            if (appliedChanges == null)
-                            {
-                                mergeFailed = true;
-                                break;
-                            }
                         }
 
-                        if (!mergeFailed)
-                        {
-                            var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            var newText = oldText.WithChanges(appliedChanges);
-                            mergedDocuments.TryAdd(documentId, newText);
-                        }
+                        var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var newText = oldText.WithChanges(appliedChanges);
+                        mergedDocuments.TryAdd(documentId, newText);
                     });
                 }
 
                 await Task.WhenAll(mergeTasks).ConfigureAwait(false);
-
-                if (mergeFailed)
-                {
-                    return null;
-                }
 
                 foreach (var kvp in mergedDocuments)
                 {
@@ -478,6 +461,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
+        /// <summary>
+        /// Try to merge the changes between <paramref name="newDocument"/> and <paramref name="oldDocument"/> into <paramref name="cumulativeChanges"/>.
+        /// If there is any conflicting change in <paramref name="newDocument"/> with existing <paramref name="cumulativeChanges"/>, then the original <paramref name="cumulativeChanges"/> are returned.
+        /// Otherwise, the newly merged changes are returned.
+        /// </summary>
+        /// <param name="oldDocument">Base document on which FixAll was invoked.</param>
+        /// <param name="newDocument">New document with a code fix that is being merged.</param>
+        /// <param name="cumulativeChanges">Existing merged changes from other batch fixes into which newDocument changes are being merged.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         private static async Task<List<TextChange>> TryAddDocumentMergeChangesAsync(
             Document oldDocument,
             Document newDocument,
@@ -510,8 +502,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         {
                             // The current change in consideration overlaps an existing change but
                             // the changes are not identical. 
-                            // Bail out merge efforts.
-                            continue;
+                            // Bail out merge efforts and return the original 'cumulativeChanges'.
+                            return cumulativeChanges;
                         }
                         else
                         {
