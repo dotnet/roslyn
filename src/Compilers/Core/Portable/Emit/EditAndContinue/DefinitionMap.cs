@@ -287,13 +287,13 @@ namespace Microsoft.CodeAnalysis.Emit
             for (int i = 0; i < lambdaDebugInfo.Length; i++)
             {
                 var lambdaInfo = lambdaDebugInfo[i];
-                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(new DebugId(i, lambdaInfo.Generation), lambdaInfo.ClosureOrdinal);
+                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
             }
 
             for (int i = 0; i < closureDebugInfo.Length; i++)
             {
                 var closureInfo = closureDebugInfo[i];
-                closures[closureInfo.SyntaxOffset] = new DebugId(i, closureInfo.Generation);
+                closures[closureInfo.SyntaxOffset] = closureInfo.ClosureId;
             }
 
             lambdaMap = lambdas;
