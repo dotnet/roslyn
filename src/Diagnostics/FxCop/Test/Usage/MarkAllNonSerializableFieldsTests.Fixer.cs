@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(858655)]
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new CA2235BasicCodeFixProvider();
+            return new BasicMarkAllNonSerializableFieldsFixer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(858655)]
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CA2235CSharpCodeFixProvider();
+            return new CSharpMarkAllNonSerializableFieldsFixer();
         }
 
         #region CA2235

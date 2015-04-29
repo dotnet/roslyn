@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// <summary>
     /// CA2235: Mark all non-serializable fields
     /// </summary>
-    public abstract class CA2235CodeFixProviderBase : CodeFixProvider
+    public abstract class MarkAllNonSerializableFieldsFixer : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2235Id);
 

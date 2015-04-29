@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// CA2229: Implement serialization constructors.
     /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "CA2229 CodeFix provider"), Shared]
-    public sealed class CA2229CodeFixProvider : CodeFixProvider
+    public sealed class ImplementSerializationConstructorsFixer : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id); 
 

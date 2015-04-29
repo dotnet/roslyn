@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// CA2237: Mark ISerializable types with SerializableAttribute
     /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "CA2237 CodeFix provider"), Shared]
-    public sealed class CA2237CodeFixProvider : CodeFixProvider
+    public sealed class MarkTypesWithSerializableFixer : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2237Id);
 
