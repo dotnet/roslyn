@@ -59,6 +59,7 @@
         Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.Compilers.CSharp.Emit.UnitTests.dll;
         Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
     </ItemGroup>
 
