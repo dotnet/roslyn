@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     ldnull
     throw
   }
-  .method public static void CreateVariable(class [mscorlib]System.Type 'type', string name)
+  .method public static void CreateVariable(class [mscorlib]System.Type 'type', string name, valuetype [mscorlib]System.Guid customTypeInfoPayloadTypeId, uint8[] customTypeInfoPayload)
   {
     ldnull
     throw

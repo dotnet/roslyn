@@ -137,11 +137,11 @@ End Class"
             Dim typeName As String = Nothing
             Dim diagnostics = DiagnosticBag.GetInstance()
             Dim builder = ArrayBuilder(Of [Alias]).GetInstance()
-            builder.Add(New [Alias](AliasKind.Exception, "Error", "$exception", GetType(System.IO.IOException).AssemblyQualifiedName))
-            builder.Add(New [Alias](AliasKind.ReturnValue, "F returned", "$ReturnValue2", GetType(String).AssemblyQualifiedName))
-            builder.Add(New [Alias](AliasKind.ReturnValue, "G returned", "$ReturnValue", GetType(Object).AssemblyQualifiedName))
-            builder.Add(New [Alias](AliasKind.ObjectId, "2", "2", GetType(Boolean).AssemblyQualifiedName))
-            builder.Add(New [Alias](AliasKind.DeclaredLocal, "o", "o", "C"))
+            builder.Add(New [Alias](AliasKind.Exception, "Error", "$exception", GetType(System.IO.IOException).AssemblyQualifiedName, customTypeInfo:=Nothing))
+            builder.Add(New [Alias](AliasKind.ReturnValue, "F returned", "$ReturnValue2", GetType(String).AssemblyQualifiedName, customTypeInfo:=Nothing))
+            builder.Add(New [Alias](AliasKind.ReturnValue, "G returned", "$ReturnValue", GetType(Object).AssemblyQualifiedName, customTypeInfo:=Nothing))
+            builder.Add(New [Alias](AliasKind.ObjectId, "2", "2", GetType(Boolean).AssemblyQualifiedName, customTypeInfo:=Nothing))
+            builder.Add(New [Alias](AliasKind.DeclaredLocal, "o", "o", "C", customTypeInfo:=Nothing))
             Dim aliases = New ReadOnlyCollection(Of [Alias])(builder.ToArrayAndFree())
 
             Dim testData = New CompilationTestData()

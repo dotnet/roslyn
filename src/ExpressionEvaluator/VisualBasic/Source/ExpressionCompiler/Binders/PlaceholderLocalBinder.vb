@@ -113,7 +113,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return Nothing
             End If
 
-            Return CreatePlaceholderLocal(_typeNameDecoder, _containingMethod, New [Alias](kind, id, id, typeName))
+            ' The old API (GetObjectTypeNameById) doesn't return custom type info,
+            ' but the new one (GetAliases) will.
+            Return CreatePlaceholderLocal(_typeNameDecoder, _containingMethod, New [Alias](kind, id, id, typeName, customTypeInfo:=Nothing))
         End Function
 
         Friend Shared Function CreatePlaceholderLocal(

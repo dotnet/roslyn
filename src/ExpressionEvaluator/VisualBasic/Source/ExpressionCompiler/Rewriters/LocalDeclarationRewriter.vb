@@ -56,17 +56,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim typeType = compilation.GetWellKnownType(WellKnownType.System_Type)
             Dim stringType = compilation.GetSpecialType(SpecialType.System_String)
+            Dim guidType = compilation.GetWellKnownType(WellKnownType.System_Guid)
+            Dim byteArrayType = New ArrayTypeSymbol(
+                compilation.GetSpecialType(SpecialType.System_Byte),
+                ImmutableArray(Of CustomModifier).Empty,
+                rank:=1,
+                compilation:=compilation)
 
             ' CreateVariable(type As Type, name As String)
             Dim method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName)
             Dim type = New BoundGetType(syntax, New BoundTypeExpression(syntax, local.Type), typeType)
             Dim name = New BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType)
+            Dim customTypeInfoPayloadId = New BoundObjectCreationExpression(syntax, Nothing, ImmutableArray(Of BoundExpression).Empty, Nothing, guidType)
+            Dim customTypeInfoPayload = New BoundLiteral(syntax, ConstantValue.Null, byteArrayType)
             Dim expr = New BoundCall(
                 syntax,
                 method,
                 methodGroupOpt:=Nothing,
                 receiverOpt:=Nothing,
-                arguments:=ImmutableArray.Create(Of BoundExpression)(type, name),
+                arguments:=ImmutableArray.Create(Of BoundExpression)(type, name, customTypeInfoPayloadId, customTypeInfoPayload),
                 constantValueOpt:=Nothing,
                 suppressObjectClone:=False,
                 type:=method.ReturnType)
