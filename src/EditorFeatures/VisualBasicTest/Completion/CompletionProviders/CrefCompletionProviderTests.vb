@@ -84,7 +84,7 @@ End Module]]></File>.Value
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InTypeParameterContext()
+        Public Sub NotInTypeParameterContext()
             Dim text = <File><![CDATA[
 Imports System
 
@@ -96,7 +96,7 @@ Class Program(Of T)
     End Sub
 End Class]]></File>.Value
 
-            VerifyItemExists(text, "Integer")
+            VerifyItemIsAbsent(text, "Integer")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -367,6 +367,38 @@ End Class
 ]]></File>.Value
 
             VerifyProviderCommit(text, "List(Of T)", expected, " "c, "List(Of")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub OfAfterParen()
+            Dim text = <File><![CDATA[
+Imports System
+
+''' <summary>
+''' <see cref="Foo($$
+''' </summary>
+Module Program
+    Sub Foo()
+    End Sub
+End Module]]></File>.Value
+
+            VerifyItemExists(text, "Of")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub OfNotAfterComma()
+            Dim text = <File><![CDATA[
+Imports System
+
+''' <summary>
+''' <see cref="Foo(a, $$
+''' </summary>
+Module Program
+    Sub Foo()
+    End Sub
+End Module]]></File>.Value
+
+            VerifyItemIsAbsent(text, "Of")
         End Sub
     End Class
 End Namespace
