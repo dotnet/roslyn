@@ -185,7 +185,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             int indentation,
             int indentationDelta,
             bool useTab,
-            int tabSize)
+            int tabSize,
+            string newLine)
         {
             var builder = StringBuilderPool.Allocate();
 
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             builder.Append(lines[0].Trim(s_trimChars));
             if (0 < lines.Length - 1)
             {
-                builder.AppendLine();
+                builder.Append(newLine);
             }
 
             // add rest of xml doc comments
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (i < lines.Length - 1)
                 {
-                    builder.AppendLine();
+                    builder.Append(newLine);
                 }
             }
 
