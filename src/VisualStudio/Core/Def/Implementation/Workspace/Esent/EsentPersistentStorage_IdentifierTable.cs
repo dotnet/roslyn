@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             return false;
         }
 
-        private VersionStamp GetIdentifierSetVersion(int projectId, int documentId)
+        private VersionStamp GetIdentifierSetVersion(EsentStorage.Key key)
         {
             if (!PersistenceEnabled)
             {
@@ -72,13 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
 
             // TODO: verify that project is in solution associated with the storage
-            return EsentExceptionWrapper(projectId, documentId, identifierId, GetIdentifierSetVersion, CancellationToken.None);
+            return EsentExceptionWrapper(key, identifierId, GetIdentifierSetVersion, CancellationToken.None);
         }
 
-        private VersionStamp GetIdentifierSetVersion(int projectId, int documentId, int identifierId, object unused1, object unused2, CancellationToken cancellationToken)
+        private VersionStamp GetIdentifierSetVersion(EsentStorage.Key key, int identifierId, object unused1, object unused2, CancellationToken cancellationToken)
         {
             using (var accessor = _esentStorage.GetIdentifierLocationTableAccessor())
-            using (var stream = accessor.GetReadStream(projectId, documentId, identifierId))
+            using (var stream = accessor.GetReadStream(key, identifierId))
             {
                 if (stream == null)
                 {
@@ -99,14 +99,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return VersionStamp.Default;
             }
 
-            int projectId;
-            int documentId;
-            if (!TryGetProjectAndDocumentId(document, out projectId, out documentId))
+            EsentStorage.Key key;
+            if (!TryGetProjectAndDocumentKey(document, out key))
             {
                 return VersionStamp.Default;
             }
 
-            return GetIdentifierSetVersion(projectId, documentId);
+            return GetIdentifierSetVersion(key);
         }
 
         public bool ReadIdentifierPositions(Document document, VersionStamp syntaxVersion, string identifier, List<int> positions, CancellationToken cancellationToken)
@@ -118,15 +117,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return false;
             }
 
-            int projectId;
-            int documentId;
             int identifierId;
-            if (!TryGetProjectAndDocumentId(document, out projectId, out documentId))
+            EsentStorage.Key key;
+            if (!TryGetProjectAndDocumentKey(document, out key))
             {
                 return false;
             }
 
-            var persistedVersion = GetIdentifierSetVersion(projectId, documentId);
+            var persistedVersion = GetIdentifierSetVersion(key);
             if (!document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistedVersion))
             {
                 return false;
@@ -137,13 +135,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return false;
             }
 
-            return EsentExceptionWrapper(projectId, documentId, identifierId, positions, ReadIdentifierPositions, cancellationToken);
+            return EsentExceptionWrapper(key, identifierId, positions, ReadIdentifierPositions, cancellationToken);
         }
 
-        private bool ReadIdentifierPositions(int projectId, int documentId, int identifierId, List<int> positions, object unused, CancellationToken cancellationToken)
+        private bool ReadIdentifierPositions(EsentStorage.Key key, int identifierId, List<int> positions, object unused, CancellationToken cancellationToken)
         {
             using (var accessor = _esentStorage.GetIdentifierLocationTableAccessor())
-            using (var stream = accessor.GetReadStream(projectId, documentId, identifierId))
+            using (var stream = accessor.GetReadStream(key, identifierId))
             {
                 if (stream == null)
                 {
@@ -164,11 +162,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
         }
 
-        private bool DeleteIdentifierLocations(int projectId, int documentId, CancellationToken cancellationToken)
+        private bool DeleteIdentifierLocations(EsentStorage.Key key, CancellationToken cancellationToken)
         {
             using (var accessor = _esentStorage.GetIdentifierLocationTableAccessor())
             {
-                accessor.Delete(projectId, documentId, cancellationToken);
+                accessor.Delete(key, cancellationToken);
                 return accessor.ApplyChanges();
             }
         }
@@ -182,20 +180,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return false;
             }
 
-            int projectId;
-            int documentId;
-            if (!TryGetProjectAndDocumentId(document, out projectId, out documentId))
+            EsentStorage.Key key;
+            if (!TryGetProjectAndDocumentKey(document, out key))
             {
                 return false;
             }
 
-            return EsentExceptionWrapper(projectId, documentId, document, version, root, WriteIdentifierLocations, cancellationToken);
+            return EsentExceptionWrapper(key, document, version, root, WriteIdentifierLocations, cancellationToken);
         }
 
-        private bool WriteIdentifierLocations(int projectId, int documentId, Document document, VersionStamp version, SyntaxNode root, CancellationToken cancellationToken)
+        private bool WriteIdentifierLocations(EsentStorage.Key key, Document document, VersionStamp version, SyntaxNode root, CancellationToken cancellationToken)
         {
             // delete any existing data
-            if (!DeleteIdentifierLocations(projectId, documentId, cancellationToken))
+            if (!DeleteIdentifierLocations(key, cancellationToken))
             {
                 return false;
             }
@@ -242,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 
                         identifierId = identifierMap[identifier];
 
-                        using (var stream = accessor.GetBatchInsertStream(projectId, documentId, identifierId))
+                        using (var stream = accessor.GetWriteStream(key, identifierId))
                         using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                         {
                             writer.WriteString(IdentifierSetSerializationVersion);
@@ -255,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                     }
 
                     // save special identifier that indicates version for this document
-                    if (!TrySaveIdentifierSetVersion(accessor, projectId, documentId, version))
+                    if (!TrySaveIdentifierSetVersion(accessor, key, version))
                     {
                         return false;
                     }
@@ -291,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         }
 
         private bool TrySaveIdentifierSetVersion(
-            EsentStorage.IdentifierLocationTableAccessor accessor, int projectId, int documentId, VersionStamp version)
+            EsentStorage.IdentifierLocationTableAccessor accessor, EsentStorage.Key key, VersionStamp version)
         {
             int identifierId;
             if (!TryGetIdentifierSetVersionId(out identifierId))
@@ -300,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
 
             accessor.PrepareBatchOneInsert();
-            using (var stream = accessor.GetBatchInsertStream(projectId, documentId, identifierId))
+            using (var stream = accessor.GetWriteStream(key, identifierId))
             using (var writer = new ObjectWriter(stream))
             {
                 version.WriteTo(writer);

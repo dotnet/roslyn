@@ -8,37 +8,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 {
     internal partial class EsentStorage
     {
-        public class ProjectTableAccessor : AbstractTableAccessor
+        public class ProjectTableAccessor : ProjectDocumentTableAccessor
         {
-            private readonly JET_COLUMNID _projectColumnId;
             private readonly JET_COLUMNID _nameColumnId;
             private readonly JET_COLUMNID _valueColumnId;
 
-            private readonly string _indexName;
-
             public ProjectTableAccessor(
-                OpenSession session, string tableName, string indexName, JET_COLUMNID projectColumnId, JET_COLUMNID nameColumnId, JET_COLUMNID valueColumnId) : base(session, tableName)
+                OpenSession session, string tableName, string indexName,
+                JET_COLUMNID projectColumnId, JET_COLUMNID projectNameColumnId, JET_COLUMNID nameColumnId, JET_COLUMNID valueColumnId) :
+                base(session, tableName, indexName, projectColumnId, projectNameColumnId, default(JET_COLUMNID))
             {
-                _indexName = indexName;
-                _projectColumnId = projectColumnId;
                 _nameColumnId = nameColumnId;
                 _valueColumnId = valueColumnId;
             }
 
-            private bool TrySeek(int projectId, int nameId)
+            private bool TrySeek(Key key, int nameId)
             {
-                Api.JetSetCurrentIndex(SessionId, TableId, _indexName);
-                Api.MakeKey(SessionId, TableId, projectId, MakeKeyGrbit.NewKey);
-                Api.MakeKey(SessionId, TableId, nameId, MakeKeyGrbit.None);
-
-                return Api.TrySeek(SessionId, TableId, SeekGrbit.SeekEQ);
+                return TrySeek(IndexName, key, nameId);
             }
 
-            public Stream GetReadStream(int projectId, int nameId)
+            public override Stream GetReadStream(Key key, int nameId)
             {
                 OpenTableForReading();
 
-                if (TrySeek(projectId, nameId))
+                if (TrySeek(key, nameId))
                 {
                     return new ColumnStream(SessionId, TableId, _valueColumnId);
                 }
@@ -46,11 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return null;
             }
 
-            public Stream GetWriteStream(int projectId, int nameId)
+            public override Stream GetWriteStream(Key key, int nameId)
             {
                 OpenTableForUpdating();
 
-                if (TrySeek(projectId, nameId))
+                if (TrySeek(key, nameId))
                 {
                     PrepareUpdate(JET_prep.ReplaceNoLock);
                 }
@@ -58,10 +51,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 {
                     PrepareUpdate(JET_prep.Insert);
 
-                    var args = Pool.GetInt32Columns(_projectColumnId, projectId, _nameColumnId, nameId);
+                    var args = GetColumnValues(key, _nameColumnId, nameId);
 
                     Api.SetColumns(SessionId, TableId, args);
-                    Pool.Free(args);
+                    Free(args);
                 }
 
                 return new ColumnStream(SessionId, TableId, _valueColumnId);

@@ -140,7 +140,7 @@ namespace Microsoft.Cci
             else
             {
                 pdbContentId = default(ContentId);
-            } 
+            }
 
             FillInSectionHeaders();
 
@@ -159,7 +159,7 @@ namespace Microsoft.Cci
             long metadataPosition;
 
             WriteHeaders(peStream, out ntHeaderTimestampPosition);
-            
+
             WriteTextSection(
                 peStream,
                 corHeader,
@@ -211,10 +211,10 @@ namespace Microsoft.Cci
             Debug.Assert(ntHeaderTimestampPosition != 0);
 
             var previousPosition = peStream.Position;
-           
+
             // Compute and write deterministic guid data over the relevant portion of the stream
             peStream.Position = 0;
-            var contentId = ContentId.FromSha1(CryptographicHashProvider.ComputeSha1(peStream));
+            var contentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(peStream));
 
             // The existing Guid should be zero.
             CheckZeroDataInStream(peStream, mvidPosition, contentId.Guid.Length);
@@ -267,7 +267,7 @@ namespace Microsoft.Cci
         private int ComputeOffsetToDebugTable(MetadataSizes metadataSizes)
         {
             return
-                ComputeOffsetToMetadata(metadataSizes.ILStreamSize) + 
+                ComputeOffsetToMetadata(metadataSizes.ILStreamSize) +
                 metadataSizes.MetadataSize +
                 metadataSizes.ResourceDataSize +
                 ComputeStrongNameSignatureSize(); // size of strong name hash
@@ -283,10 +283,10 @@ namespace Microsoft.Cci
 
         private int ComputeOffsetToMetadata(int ilStreamLength)
         {
-            return 
-                _sizeOfImportAddressTable + 
+            return
+                _sizeOfImportAddressTable +
                 72 + // size of CLR header
-                + BitArithmeticUtilities.Align(ilStreamLength, 4);
+                BitArithmeticUtilities.Align(ilStreamLength, 4);
         }
 
         private const int ImageDebugDirectoryBaseSize =

@@ -1934,7 +1934,7 @@ class Test
         }
 
         [WorkItem(708169, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()
         {
             var il = @"
@@ -2057,7 +2057,7 @@ class C
         }
 
         [WorkItem(708169, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedDoesNotExist()
         {
             var il = @"

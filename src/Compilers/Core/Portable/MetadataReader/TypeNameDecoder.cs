@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
-        protected TypeSymbol GetSpecialType(SpecialType specialType)
+        internal TypeSymbol GetSpecialType(SpecialType specialType)
         {
             return _factory.GetSpecialType(this.moduleSymbol, specialType);
         }

@@ -262,11 +262,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         try
                         {
                             preferredUILang = new CultureInfo(value);
+                            if ((preferredUILang.CultureTypes & CultureTypes.UserCustomCulture) != 0)
+                            {
+                                // Do not use user custom cultures.
+                                preferredUILang = null;
+                            }
                         }
                         catch (CultureNotFoundException)
                         {
+                        }
+
+                        if (preferredUILang == null)
+                        {
                             AddDiagnostic(diagnostics, ErrorCode.WRN_BadUILang, value);
                         }
+
                         continue;
 
 #if DEBUG

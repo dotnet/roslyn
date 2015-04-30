@@ -21,39 +21,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static readonly AssemblyIdentity SystemXmlLinqIdentity = new AssemblyIdentity("System.Xml.Linq");
         internal static readonly AssemblyIdentity MicrosoftVisualBasicIdentity = new AssemblyIdentity("Microsoft.VisualBasic");
 
-        /// <summary>
-        /// Compile C# expression and emit assembly with evaluation method.
-        /// </summary>
-        /// <returns>
-        /// Result containing generated assembly, type and method names, and any format specifiers.
-        /// </returns>
-        internal CompileResult CompileExpression(
-            InspectionContext inspectionContext,
-            string expr,
-            DkmEvaluationFlags compilationFlags,
-            DiagnosticFormatter formatter,
-            out ResultProperties resultProperties,
-            out string error,
-            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
-            CultureInfo preferredUICulture,
-            CompilationTestData testData)
-        {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var result = this.CompileExpression(inspectionContext, expr, compilationFlags, diagnostics, out resultProperties, testData);
-            if (diagnostics.HasAnyErrors())
-            {
-                bool useReferencedModulesOnly;
-                error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
-            }
-            else
-            {
-                error = null;
-                missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
-            }
-            diagnostics.Free();
-            return result;
-        }
-
         internal abstract CompileResult CompileExpression(
             InspectionContext inspectionContext,
             string expr,

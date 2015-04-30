@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     // CONSIDER: it might be worthwhile to promote some of these sample types to a test resource DLL
     public class LoadingIndexers : CSharpTestBase
     {
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadReadWriteIndexer()
         {
             string ilSource = @"
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadWriteOnlyIndexer()
         {
             string ilSource = @"
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadReadOnlyIndexer()
         {
             string ilSource = @"
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadIndexerWithAlternateName()
         {
             string ilSource = @"
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadIndexerWithAccessorAsDefaultMember()
         {
             string ilSource = @"
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadComplexIndexers()
         {
             string ilSource = @"
@@ -359,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadNonIndexer_NotDefaultMember()
         {
             string ilSource = @"
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadNonGenericIndexers()
         {
             string ilSource = @"
@@ -466,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadGenericIndexers()
         {
             string ilSource = @"
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadClosedGenericIndexers()
         {
             string ilSource = @"
@@ -628,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         /// <summary>
         /// The accessor and the property have signatures.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadAccessorPropertySignatureMismatch()
         {
             string ilSource = @"
@@ -865,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadParamArrayAttribute()
         {
             string ilSource = @"
@@ -941,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadBogusParamArrayAttribute()
         {
             string ilSource = @"
@@ -1102,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(property.IsExtern, @accessor.IsExtern);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadExplicitImplementation()
         {
             string ilSource = @"

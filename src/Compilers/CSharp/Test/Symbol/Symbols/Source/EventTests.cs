@@ -942,7 +942,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CS1545ERR_BindToBogusProp2_AccessorSignatureMismatch()
         {
             var ilSource = @"
@@ -1065,7 +1065,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event6").WithArguments("Base.Event6", "Base.Event7.add", "Base.Event0.add"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CallAccessorsDirectly()
         {
             var ilSource = @"
@@ -1542,7 +1542,7 @@ class A
         }
 
         [WorkItem(545682, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void EventHidingMethod()
         {
             var source1 =
@@ -1661,7 +1661,7 @@ class A
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverriddenEventCustomModifiers()
         {
             var il = @"

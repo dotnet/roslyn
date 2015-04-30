@@ -2068,7 +2068,7 @@ partial class C
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         [WorkItem(637435, "DevDiv")]
         public void NonXmlWhitespace()
         {
@@ -2107,7 +2107,7 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         [WorkItem(637435, "DevDiv")]
         public void Repro637435()
         {
@@ -2338,7 +2338,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void IncludeFileResolution()
         {
             var xml1 = @"
@@ -2554,7 +2554,7 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void WRN_FailedInclude_Locked_Source()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml");
@@ -2591,7 +2591,7 @@ class C {{ }}
             }
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void WRN_FailedInclude_Locked_Xml()
         {
             var xmlFile1 = Temp.CreateFile(extension: ".xml");
@@ -2694,7 +2694,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void WRN_XMLParseIncludeError_Source()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -2727,7 +2727,7 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void WRN_XMLParseIncludeError_Xml()
         {
             var xmlFile1 = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -3679,7 +3679,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void IncludedName_DuplicateNameAttribute()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(@"<param name=""x"" name=""y""/>");
@@ -4513,7 +4513,7 @@ class C
         }
 
         // As in dev11, the pragma has no effect.
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void PragmaDisableWarningInXmlFile()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");
@@ -4930,7 +4930,7 @@ class A { }
         }
 
         [WorkItem(547311, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void UndeclaredXmlNamespace()
         {
             var source = @"
@@ -5681,7 +5681,7 @@ public class C {} // CS1587
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void Dev11_303769()
         {
             // XML processing instructions
@@ -5852,7 +5852,7 @@ namespace Demo
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void Dev11_142553()
         {
             // Need to cache XML files.
@@ -5933,7 +5933,7 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void DtdDenialOfService()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(
