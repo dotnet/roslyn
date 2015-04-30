@@ -37,6 +37,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #region Unsafe regions
 
         [Fact]
+        public void FixedSizeBuffer()
+        {
+            var text1 = @"
+using System;
+using System.Runtime.InteropServices;
+
+public static class R
+{
+    public unsafe struct S
+    {
+        public fixed byte Buffer[16];
+    }
+}";
+            var comp1 = CreateCompilation(text1, assemblyName: "assembly1", references: new[] { MscorlibRef_v20 },
+                options: TestOptions.UnsafeDebugDll);
+
+            var ref1 = comp1.EmitToImageReference();
+
+            var text2 = @"
+using System;
+
+class C
+{
+    unsafe void M(byte* p)
+    {
+        R.S* p2 = (R.S*)p;
+        IntPtr p3 = M2((IntPtr)p2[0].Buffer);
+    }
+
+    unsafe IntPtr M2(IntPtr p) => p;
+}";
+            var comp2 = CreateCompilationWithMscorlib45(text2,
+                references: new[] { ref1 },
+                options: TestOptions.UnsafeDebugDll);
+            comp2.VerifyDiagnostics(
+    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
+    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
+    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
+    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
+    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1));
+        }
+
+        [Fact]
         public void CompilationNotUnsafe1()
         {
             var text = @"

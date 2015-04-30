@@ -97,6 +97,20 @@ using System.Linq;
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void AfterTopOfFileComment()
+        {
+            var code = @"// comment
+
+class
+";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 2,
+                expectedIndentation: 0);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void DottedName()
         {
             var code = @"using System.
