@@ -3434,7 +3434,7 @@ class Test
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2391")]
         public void IncorrectArrayLength()
         {
             var il = @"
