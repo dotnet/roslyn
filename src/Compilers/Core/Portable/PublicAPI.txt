@@ -602,7 +602,6 @@ Microsoft.CodeAnalysis.LocalizableString.ToString(System.IFormatProvider formatP
 Microsoft.CodeAnalysis.Location
 Microsoft.CodeAnalysis.Location.IsInMetadata.get -> bool
 Microsoft.CodeAnalysis.Location.IsInSource.get -> bool
-Microsoft.CodeAnalysis.Location.Location() -> void
 Microsoft.CodeAnalysis.LocationKind
 Microsoft.CodeAnalysis.LocationKind.ExternalFile = 4 -> Microsoft.CodeAnalysis.LocationKind
 Microsoft.CodeAnalysis.LocationKind.MetadataFile = 2 -> Microsoft.CodeAnalysis.LocationKind
