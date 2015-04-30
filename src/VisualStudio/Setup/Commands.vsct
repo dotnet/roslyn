@@ -142,7 +142,7 @@
         </Strings>
       </Button>
       <!-- <project context menu> | Add | Analyzer... -->
-      <Button guid="guidRoslynGrpId" id="cmdidProjectContextAddAnalyzer" priority="0x0280" type="Button">
+      <Button guid="guidRoslynGrpId" id="cmdidProjectContextAddAnalyzer" priority="0x0400" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD_REFERENCES" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -153,7 +153,7 @@
         </Strings>
       </Button>
       <!-- Project | Add Analyzer... -->
-      <Button guid="guidRoslynGrpId" id="cmdidProjectAddAnalyzer" priority="0x0180" type="Button">
+      <Button guid="guidRoslynGrpId" id="cmdidProjectAddAnalyzer" priority="0x0296" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_PROJ_OPTIONS" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -164,7 +164,7 @@
         </Strings>
       </Button>
       <!-- <References node context menu> | Add Analyzer -->
-      <Button guid="guidRoslynGrpId" id="cmdidReferencesContextAddAnalyzer" priority="0x0180" type="Button">
+      <Button guid="guidRoslynGrpId" id="cmdidReferencesContextAddAnalyzer" priority="0x1100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_REFROOT_ADD" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
