@@ -239,11 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (containingPEModule.Module.HasFixedBufferAttribute(_handle, out elementTypeName, out bufferSize))
             {
                 var decoder = new MetadataDecoder(containingPEModule);
-                var elementType = decoder.GetTypeSymbolForSerializedType(elementTypeName);
-                if (elementType.FixedBufferElementSizeInBytes() != 0)
+                var specialTypeName = MetadataHelpers.DecodeTypeName(elementTypeName).TopLevelType;
+                var specialType = SpecialTypes.GetTypeFromMetadataName(specialTypeName);
+                if (specialType != SpecialType.None &&
+                    specialType.FixedBufferElementSizeInBytes() != 0)
                 {
                     fixedSize = bufferSize;
-                    fixedElementType = elementType;
+                    fixedElementType = decoder.GetSpecialType(specialType);
                     return true;
                 }
             }
