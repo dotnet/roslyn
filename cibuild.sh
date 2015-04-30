@@ -1,5 +1,16 @@
 #!/bin/bash
 
+usage()
+{
+    echo "Runs our integration suite on Linux"
+    echo "usage: cibuild.sh [options]"
+    echo ""
+    echo "Options"
+    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
+	echo "  --os <os>			OS to run (Linux / Darwin)"
+	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
+}
+
 XUNIT_VERSION=2.0.0-alpha-build2576
 FULL_RUN=true
 OS_NAME=$(uname -s)
@@ -151,17 +162,6 @@ test_roslyn()
         echo Unit test failed
         exit 1
     fi
-}
-
-usage()
-{
-    echo "Runs our integration suite on Linux"
-    echo "usage: cibuild.sh [options]"
-    echo ""
-    echo "Options"
-    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
-	echo "  --os <os>			OS to run (Linux / Darwin)"
-	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
 }
 
 # As a bootstrap mechanism in Jenkins we assume that Linux is a
