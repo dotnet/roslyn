@@ -611,10 +611,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.OperatorBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionStatement,
-                     SyntaxKind.DeclareFunctionStatement,
-                     SyntaxKind.DeclareSubStatement
+                     SyntaxKind.FunctionStatement
                     Return CType(CodeFunctionWithEventHandler.CreateUnknown(state, fileCodeModel, node.Kind, GetName(node)), EnvDTE.CodeElement)
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
+                    Return CType(CodeFunctionDeclareDecl.CreateUnknown(state, fileCodeModel, node.Kind, GetName(node)), EnvDTE.CodeElement)
                 Case SyntaxKind.PropertyBlock,
                      SyntaxKind.PropertyStatement
                     Return CType(CodeProperty.CreateUnknown(state, fileCodeModel, node.Kind, GetName(node)), EnvDTE.CodeElement)
