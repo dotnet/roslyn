@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public TableEntriesSnapshot(
                         TableEntriesFactory factory, int version, ImmutableArray<TodoTaskItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, items, trackingPoints)
+                        base(version, GetProjectGuid(factory._workspace, factory._documentId.ProjectId), items, trackingPoints)
                     {
                         _factory = factory;
                     }
@@ -187,7 +187,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
+                            case ProjectGuidKey:
+                                content = ProjectGuid;
+                                return ProjectGuid != Guid.Empty;
                             case StandardTableKeyNames.Project:
+                                // TODO: remove this once moved to new drop
                                 content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.TaskCategory:
