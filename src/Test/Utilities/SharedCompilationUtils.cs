@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     sourceFile.Path,
                     assemblyPath);
 
-                if (includePdb)
+                if (includePdb && !CLRHelpers.IsRunningOnMono())
                 {
                     pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
                     arguments += string.Format(" /PDB=\"{0}\"", pdbPath);
@@ -278,13 +278,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     pdbPath = null;
                 }
 
-                var result = ProcessLauncher.Run(ilasmPath, arguments);
+                var program = ilasmPath;
+                if (CLRHelpers.IsRunningOnMono())
+                {
+                    arguments = string.Format("{0} {1}", ilasmPath, arguments);
+                    arguments = arguments.Replace("\"", "");
+                    arguments = arguments.Replace("=", ":");
+                    program = "mono";
+                }
+
+                var result = ProcessLauncher.Run(program, arguments);
 
                 if (result.ContainsErrors)
                 {
                     throw new ArgumentException(
                         "The provided IL cannot be compiled." + Environment.NewLine +
-                        ilasmPath + " " + arguments + Environment.NewLine +
+                        program + " " + arguments + Environment.NewLine +
                         result,
                         "declarations");
                 }

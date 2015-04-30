@@ -1868,7 +1868,8 @@ class MyAnalyzer : DiagnosticAnalyzer
             };
         }
 
-        [Fact, WorkItem(1119752)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2377")]
+        [WorkItem(1119752)]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AnalyzerChangesOnDisk()
         {
