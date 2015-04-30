@@ -106,6 +106,40 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
+        /// <summary>
+        /// Compile C# expression and emit assembly with evaluation method.
+        /// </summary>
+        /// <returns>
+        /// Result containing generated assembly, type and method names, and any format specifiers.
+        /// </returns>
+        static internal CompileResult CompileExpression(
+            this EvaluationContextBase evaluationContext,
+            InspectionContext inspectionContext,
+            string expr,
+            DkmEvaluationFlags compilationFlags,
+            DiagnosticFormatter formatter,
+            out ResultProperties resultProperties,
+            out string error,
+            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
+            CultureInfo preferredUICulture,
+            CompilationTestData testData)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = evaluationContext.CompileExpression(inspectionContext, expr, compilationFlags, diagnostics, out resultProperties, testData);
+            if (diagnostics.HasAnyErrors())
+            {
+                bool useReferencedModulesOnly;
+                error = evaluationContext.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
+            }
+            else
+            {
+                error = null;
+                missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
+            }
+            diagnostics.Free();
+            return result;
+        }
+
         internal static CompileResult CompileExpressionWithRetry(
             ImmutableArray<MetadataBlock> metadataBlocks,
             EvaluationContextBase context,

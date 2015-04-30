@@ -13,6 +13,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Xunit;
 using Roslyn.Test.PdbUtilities;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -609,8 +610,70 @@ class C
                 out errorMessage); 
  
             Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-            Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage); 
-        } 
+            Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage);
+        }
+
+        [WorkItem(1151888)]
+        [Fact]
+        public void SucceedOnRetry()
+        {
+            var source = @" 
+class C 
+{ 
+    void M() 
+    { 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            var missingModule = runtime.Modules.First();
+            var missingIdentity = missingModule.MetadataReader.ReadAssemblyIdentityOrThrow();
+
+            var shouldSucceed = false;
+            string errorMessage;
+            var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                context,
+                (_, diagnostics) =>
+                {
+                    if (shouldSucceed)
+                    {
+                        return TestCompileResult.Instance;
+                    }
+                    else
+                    {
+                        shouldSucceed = true;
+                        diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
+                        return null;
+                    }
+                },
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    uSize = (uint)missingModule.MetadataLength;
+                    return missingModule.MetadataAddress;
+                },
+                out errorMessage);
+
+            Assert.Same(TestCompileResult.Instance, compileResult);
+            Assert.Null(errorMessage);
+        }
+
+        private sealed class TestCompileResult : CompileResult
+        {
+            public static readonly CompileResult Instance = new TestCompileResult();
+
+            private TestCompileResult()
+                : base(null, null, null, null)
+            {
+            }
+
+            public override CustomTypeInfo GetCustomTypeInfo()
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         private EvaluationContext CreateMethodContextWithReferences(Compilation comp, string methodName, params MetadataReference[] references)
         {
