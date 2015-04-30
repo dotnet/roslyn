@@ -180,10 +180,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.SetAccessorBlock,
                      SyntaxKind.AddHandlerAccessorBlock,
                      SyntaxKind.RemoveHandlerAccessorBlock,
-                     SyntaxKind.RaiseEventAccessorBlock,
-                     SyntaxKind.DeclareFunctionStatement,
-                     SyntaxKind.DeclareSubStatement
+                     SyntaxKind.RaiseEventAccessorBlock
                     If scope = EnvDTE.vsCMElement.vsCMElementFunction Then
+                        Return True
+                    End If
+
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
+                    If scope = EnvDTE.vsCMElement.vsCMElementDeclareDecl Then
                         Return True
                     End If
 
@@ -567,10 +571,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.OperatorBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionStatement,
-                     SyntaxKind.DeclareFunctionStatement,
-                     SyntaxKind.DeclareSubStatement
+                     SyntaxKind.FunctionStatement
                     Return CType(CodeFunctionWithEventHandler.Create(state, fileCodeModel, nodeKey, node.Kind), EnvDTE.CodeElement)
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
+                    Return CType(CodeFunctionDeclareDecl.Create(state, fileCodeModel, nodeKey, node.Kind), EnvDTE.CodeElement)
                 Case SyntaxKind.PropertyBlock,
                      SyntaxKind.PropertyStatement
                     Return CType(CodeProperty.Create(state, fileCodeModel, nodeKey, node.Kind), EnvDTE.CodeElement)

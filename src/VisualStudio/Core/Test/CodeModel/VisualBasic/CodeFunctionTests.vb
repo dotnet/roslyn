@@ -930,6 +930,48 @@ End Class
 
 #End Region
 
+#Region "Kind tests"
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DeclareSubKind()
+            Dim code =
+<Code>
+Public Class Class1 
+Public Declare Sub $$f1 Lib "MyLib.dll" () 
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DeclareFunctionKind()
+            Dim code =
+<Code>
+Public Class Class1 
+Public Declare Function f2$$ Lib "MyLib.dll" () As Integer 
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SubKind()
+            Dim code =
+<Code>
+Public Class Class1 
+    Public Sub F1$$()
+    End Sub
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementFunction)
+        End Sub
+#End Region
+
 #Region "OverrideKind tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
