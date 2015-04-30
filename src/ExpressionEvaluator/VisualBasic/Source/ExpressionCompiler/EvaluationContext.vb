@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
 
         Friend Overrides Function CompileGetLocals(
-            aliases As ReadOnlyCollection(Of [Alias]),
+            aliases As ImmutableArray(Of [Alias]),
             locals As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
             diagnostics As DiagnosticBag,

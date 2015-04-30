@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        private static readonly ReadOnlyCollection<Alias> s_NoAliases = new ReadOnlyCollection<Alias>(new Alias[0]);
-
         internal static ReadOnlyCollection<byte> CompileGetLocals(
             this EvaluationContextBase context,
             ArrayBuilder<LocalAndMethod> locals,
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var result = context.CompileGetLocals(
-                argumentsOnly ? null : s_NoAliases,
+                ImmutableArray<Alias>.Empty,
                 locals,
                 argumentsOnly,
                 diagnostics,

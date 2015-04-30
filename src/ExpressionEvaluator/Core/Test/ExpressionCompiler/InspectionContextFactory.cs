@@ -2,7 +2,7 @@
 
 using Roslyn.Utilities;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class InspectionContextFactory
     {
-        internal static readonly InspectionContextImpl Empty = new InspectionContextImpl(new ReadOnlyCollection<Alias>(new Alias[0]));
+        internal static readonly InspectionContextImpl Empty = new InspectionContextImpl(ImmutableArray<Alias>.Empty);
 
         internal sealed class InspectionContextImpl : InspectionContext
         {
-            private readonly ReadOnlyCollection<Alias> _variables;
+            private readonly ImmutableArray<Alias> _variables;
 
-            internal InspectionContextImpl(ReadOnlyCollection<Alias> variables)
+            internal InspectionContextImpl(ImmutableArray<Alias> variables)
             {
                 _variables = variables;
             }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var builder = ArrayBuilder<Alias>.GetInstance();
                 builder.AddRange(_variables);
                 builder.Add(new Alias(GetPseudoVariableKind(id), id, id, typeName, customTypeInfo));
-                return new InspectionContextImpl(new ReadOnlyCollection<Alias>(builder.ToArrayAndFree()));
+                return new InspectionContextImpl(builder.ToImmutableAndFree());
             }
 
             internal override string GetExceptionTypeName()

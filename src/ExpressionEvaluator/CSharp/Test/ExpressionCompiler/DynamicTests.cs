@@ -507,7 +507,7 @@ public class Outer<T, U>
                 "d2", 
                 typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName, 
                 MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
-            var aliases = new ReadOnlyCollection<Alias>(builder.ToArrayAndFree());
+            var aliases = builder.ToImmutableAndFree();
 
             var testData = new CompilationTestData();
             context.CompileGetLocals(

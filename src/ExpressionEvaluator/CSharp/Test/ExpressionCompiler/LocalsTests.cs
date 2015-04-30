@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             builder.Add(new Alias(AliasKind.ReturnValue, "G returned", "$ReturnValue", typeof(object).AssemblyQualifiedName, default(CustomTypeInfo)));
             builder.Add(new Alias(AliasKind.ObjectId, "2", "2", typeof(bool).AssemblyQualifiedName, default(CustomTypeInfo)));
             builder.Add(new Alias(AliasKind.DeclaredLocal, "o", "o", "C", default(CustomTypeInfo)));
-            var aliases = new ReadOnlyCollection<Alias>(builder.ToArrayAndFree());
+            var aliases = builder.ToImmutableAndFree();
 
             var testData = new CompilationTestData();
             context.CompileGetLocals(

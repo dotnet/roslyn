@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData);
 
         internal abstract ReadOnlyCollection<byte> CompileGetLocals(
-            ReadOnlyCollection<Alias> aliases,
+            ImmutableArray<Alias> aliases,
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
             DiagnosticBag diagnostics,

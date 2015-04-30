@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// the set of arguments and locals at the current scope.
         /// </summary>
         internal CommonPEModuleBuilder CompileGetLocals(
-            ReadOnlyCollection<Alias> aliases,
+            ImmutableArray<Alias> aliases,
             string typeName,
             ArrayBuilder<LocalAndMethod> localBuilder,
             bool argumentsOnly,
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     if (!argumentsOnly)
                     {
                         // Pseudo-variables: $exception, $ReturnValue, etc.
-                        if (aliases.Count > 0)
+                        if (aliases.Length > 0)
                         {
                             var typeNameDecoder = new EETypeNameDecoder(this.Compilation, _metadataDecoder.ModuleSymbol);
                             foreach (var alias in aliases)

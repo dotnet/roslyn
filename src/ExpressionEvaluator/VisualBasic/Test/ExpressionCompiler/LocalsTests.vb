@@ -142,7 +142,7 @@ End Class"
             builder.Add(New [Alias](AliasKind.ReturnValue, "G returned", "$ReturnValue", GetType(Object).AssemblyQualifiedName, customTypeInfo:=Nothing))
             builder.Add(New [Alias](AliasKind.ObjectId, "2", "2", GetType(Boolean).AssemblyQualifiedName, customTypeInfo:=Nothing))
             builder.Add(New [Alias](AliasKind.DeclaredLocal, "o", "o", "C", customTypeInfo:=Nothing))
-            Dim aliases = New ReadOnlyCollection(Of [Alias])(builder.ToArrayAndFree())
+            Dim aliases = builder.ToImmutableAndFree()
 
             Dim testData = New CompilationTestData()
             context.CompileGetLocals(

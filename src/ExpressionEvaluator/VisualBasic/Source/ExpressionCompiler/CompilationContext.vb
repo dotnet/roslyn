@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' the set of arguments and locals at the current scope.
         ''' </summary>
         Friend Function CompileGetLocals(
-            aliases As ReadOnlyCollection(Of [Alias]),
+            aliases As ImmutableArray(Of [Alias]),
             typeName As String,
             localBuilder As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                     If Not argumentsOnly Then
                         ' Pseudo-variables: $exception, $ReturnValue, etc.
-                        If aliases.Count > 0 Then
+                        If aliases.Length > 0 Then
                             Dim typeNameDecoder = New EETypeNameDecoder(Compilation, _metadataDecoder.ModuleSymbol)
                             For Each [alias] In aliases
                                 Dim methodName = GetNextMethodName(methodBuilder)
