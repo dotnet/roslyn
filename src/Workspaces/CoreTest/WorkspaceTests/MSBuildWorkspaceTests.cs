@@ -499,7 +499,7 @@ class C1
             Assert.NotNull(csharpLib);
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/452"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(531631, "DevDiv")]
         public void TestOpenProject_AssemblyNameIsPath()
         {
@@ -515,7 +515,7 @@ class C1
             Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/453"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(531631, "DevDiv")]
         public void TestOpenProject_AssemblyNameIsPath2()
         {
@@ -949,7 +949,7 @@ class C1
             });
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/457"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipTrue_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -970,7 +970,7 @@ class C1
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/455"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipFalse_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1059,7 +1059,7 @@ class C1
             Assert.False(metaRefs.Any(r => r.Properties.Aliases.Contains("CSharpProject")));
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/454"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_UpdateExistingReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
