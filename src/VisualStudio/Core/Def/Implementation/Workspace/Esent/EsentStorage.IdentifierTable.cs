@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.Isam.Esent.Interop;
-using Microsoft.Isam.Esent.Interop.Vista;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 {
@@ -12,67 +11,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             private const string TableName = "IdentifierTable";
 
             private const string IdColumnName = "Id";
-            private const string IdentifierColumnName = "Identifier";
 
-            private const string IdIndexName = "IdIndex";
             private const string IdentifierIndexName = "IdentifierIndex";
+            private const string IdentifierColumnName = "Identifier";
 
             private JET_COLUMNID _idColumnId;
             private JET_COLUMNID _identifierColumnId;
 
             public override void Create(JET_SESID sessionId, JET_DBID databaseId)
             {
-                var idColumnCreate = new JET_COLUMNCREATE()
-                {
-                    szColumnName = IdColumnName,
-                    coltyp = JET_coltyp.Long,
-                    grbit = ColumndefGrbit.ColumnAutoincrement | ColumndefGrbit.ColumnNotNULL
-                };
-
-                var identifierColumnCreate = new JET_COLUMNCREATE()
-                {
-                    szColumnName = IdentifierColumnName,
-                    coltyp = JET_coltyp.LongText,
-                    cp = JET_CP.Unicode,
-                    grbit = ColumndefGrbit.ColumnNotNULL
-                };
+                var idColumnCreate = CreateAutoIncrementIdColumn(IdColumnName);
+                var identifierColumnCreate = CreateTextColumn(IdentifierColumnName);
 
                 var columns = new JET_COLUMNCREATE[] { idColumnCreate, identifierColumnCreate };
 
-                var idIndexKey = "+" + IdColumnName + "\0\0";
-                var identifierIndexKey = "+" + IdentifierColumnName + "\0\0";
+                var primaryIndexKey = CreateIndexKey(IdColumnName);
+                var identifierIndexKey = CreateIndexKey(IdentifierColumnName);
 
                 var indexes = new JET_INDEXCREATE[]
                 {
-                    new JET_INDEXCREATE
-                    {
-                        szIndexName = IdIndexName,
-                        szKey = idIndexKey,
-                        cbKey = idIndexKey.Length,
-                        grbit = CreateIndexGrbit.IndexPrimary | CreateIndexGrbit.IndexUnique | CreateIndexGrbit.IndexDisallowNull,
-                        ulDensity = 80
-                    },
-                    new JET_INDEXCREATE
-                    {
-                        szIndexName = IdentifierIndexName,
-                        szKey = identifierIndexKey,
-                        cbKey = identifierIndexKey.Length,
-                        grbit = CreateIndexGrbit.IndexUnique | CreateIndexGrbit.IndexDisallowNull | VistaGrbits.IndexDisallowTruncation,
-                        ulDensity = 80,
-                        cbKeyMost = SystemParameters.KeyMost
-                    }
+                    CreatePrimaryIndex(primaryIndexKey),
+                    CreateUniqueTextIndex(IdentifierIndexName, identifierIndexKey)
                 };
 
-                var tableCreate = new JET_TABLECREATE()
-                {
-                    szTableName = TableName,
-                    ulPages = 16,
-                    ulDensity = 80,
-                    rgcolumncreate = columns,
-                    cColumns = columns.Length,
-                    rgindexcreate = indexes,
-                    cIndexes = indexes.Length
-                };
+                var tableCreate = CreateTable(TableName, columns, indexes);
 
                 Api.JetCreateTableColumnIndex3(sessionId, databaseId, tableCreate);
 
