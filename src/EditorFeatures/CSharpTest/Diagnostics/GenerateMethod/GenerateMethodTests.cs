@@ -2685,6 +2685,15 @@ namespace ConsoleApplication1
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = i ( ) } ; } private static int i ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodWithConfigureAwaitFalse()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await [|Foo|] ( ) . ConfigureAwait ( false ) ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await Foo ( ) . ConfigureAwait ( false ) ; } private static Task < bool > Foo ( ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

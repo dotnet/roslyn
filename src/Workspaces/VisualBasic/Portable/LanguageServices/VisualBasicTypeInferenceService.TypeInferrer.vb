@@ -79,6 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     parent = parent.Parent
                 End If
 
+                If TypeOf parent Is MemberAccessExpressionSyntax AndAlso
+                   TypeOf parent.Parent Is InvocationExpressionSyntax AndAlso
+                   TypeOf parent.Parent.Parent Is AwaitExpressionSyntax Then
+                    parent = parent.Parent.Parent
+                End If
+
                 Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),
                     Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), argument),

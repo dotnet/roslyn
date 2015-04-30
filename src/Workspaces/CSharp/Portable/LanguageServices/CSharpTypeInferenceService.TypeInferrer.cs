@@ -193,6 +193,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parent = parent.Parent;
                 }
 
+                if (parent is MemberAccessExpressionSyntax &&
+                    parent.Parent is InvocationExpressionSyntax &&
+                    parent.Parent.Parent is AwaitExpressionSyntax)
+                {
+                    parent = parent.Parent.Parent;
+                }
+
                 return parent.TypeSwitch(
                     (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator),
                     (ArgumentSyntax argument) => InferTypeInArgument(argument),
