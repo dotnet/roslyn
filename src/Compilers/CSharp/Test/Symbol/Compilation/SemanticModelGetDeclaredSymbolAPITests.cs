@@ -3770,7 +3770,7 @@ class P
         }
 
         [WorkItem(542495, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AliasSymbolEquality()
         {
             string text = @"

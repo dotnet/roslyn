@@ -7707,7 +7707,7 @@ public class MyAttr: Attribute
         }
 
         [WorkItem(541653, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void MemberAccessOnErrorType()
         {
             string sourceCode = @"
@@ -7726,7 +7726,7 @@ public class Test2
         }
 
         [WorkItem(541653, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void MemberAccessOnErrorType2()
         {
             string sourceCode = @"
@@ -7976,7 +7976,7 @@ class Program
         }
 
         [WorkItem(541802, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void IncompleteLetClause()
         {
             string sourceCode = @"
@@ -7998,7 +7998,7 @@ public class Test2
         }
 
         [WorkItem(541895, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void QueryErrorBaseKeywordAsSelectExpression()
         {
             string sourceCode = @"
@@ -8092,7 +8092,7 @@ class C
         }
 
         [WorkItem(541911, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void QueryErrorGroupJoinFromClause()
         {
             string sourceCode = @"

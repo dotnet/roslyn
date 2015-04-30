@@ -1,5 +1,16 @@
 #!/bin/bash
 
+usage()
+{
+    echo "Runs our integration suite on Linux"
+    echo "usage: cibuild.sh [options]"
+    echo ""
+    echo "Options"
+    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
+	echo "  --os <os>			OS to run (Linux / Darwin)"
+	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
+}
+
 XUNIT_VERSION=2.0.0-alpha-build2576
 FULL_RUN=true
 OS_NAME=$(uname -s)
@@ -15,10 +26,10 @@ do
         CUSTOM_MONO_PATH=$2
         shift 2
         ;;
-		--os)
-		OS_NAME=$2
-		shift 2
-		;;
+        --os)
+        OS_NAME=$2
+        shift 2
+        ;;
         --minimal)
         FULL_RUN=false
         shift 1
@@ -73,7 +84,7 @@ compile_toolset()
 # Save the toolset binaries from Binaries/Debug to Binaries/Bootstrap
 save_toolset()
 {
-    compiler_binaries=(
+    local compiler_binaries=(
         csc.exe
         Microsoft.CodeAnalysis.dll
         Microsoft.CodeAnalysis.Desktop.dll
@@ -132,10 +143,13 @@ test_roslyn()
     
     local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
-        Roslyn.Compilers.CSharp.Syntax.UnitTests
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
+        Roslyn.Compilers.CSharp.Syntax.UnitTests
+        Roslyn.Compilers.CSharp.Semantic.UnitTests
+        Roslyn.Compilers.CSharp.Symbol.UnitTests
         Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
     local any_failed=false
+
     for i in "${test_binaries[@]}"
     do
         mono $xunit_runner Binaries/Debug/$i.dll -xml Binaries/Debug/$i.TestResults.xml -noshadow
@@ -148,17 +162,6 @@ test_roslyn()
         echo Unit test failed
         exit 1
     fi
-}
-
-usage()
-{
-    echo "Runs our integration suite on Linux"
-    echo "usage: cibuild.sh [options]"
-    echo ""
-    echo "Options"
-    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
-	echo "  --os <os>			OS to run (Linux / Darwin)"
-	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
 }
 
 # As a bootstrap mechanism in Jenkins we assume that Linux is a

@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         #endregion
 
         [WorkItem(530209, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Bug530209()
         {
             var ilSource = @"

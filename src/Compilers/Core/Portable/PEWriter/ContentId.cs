@@ -18,12 +18,13 @@ namespace Microsoft.Cci
             Stamp = stamp;
         }
 
-        internal static ContentId FromSha1(ImmutableArray<byte> sha1)
+        internal static ContentId FromHash(ImmutableArray<byte> hashCode)
         {
+            Debug.Assert(hashCode.Length >= 20);
             var guid = new byte[16];
             for (var i = 0; i < guid.Length; i++)
             {
-                guid[i] = sha1[i];
+                guid[i] = hashCode[i];
             }
 
             // modify the guid data so it decodes to the form of a "random" guid ala rfc4122
@@ -36,10 +37,10 @@ namespace Microsoft.Cci
 
             // compute a random-looking stamp from the remaining bits, but with the upper bit set
             var stamp = new byte[4];
-            stamp[0] = sha1[16];
-            stamp[1] = sha1[17];
-            stamp[2] = sha1[18];
-            stamp[3] = (byte)(sha1[19] | 0x80);
+            stamp[0] = hashCode[16];
+            stamp[1] = hashCode[17];
+            stamp[2] = hashCode[18];
+            stamp[3] = (byte)(hashCode[19] | 0x80);
 
             return new ContentId(guid, stamp);
         }

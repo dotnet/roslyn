@@ -18400,6 +18400,162 @@
             <param name="pNativeObject">Native object</param>
             <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
         </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias">
+             <summary>
+             Describes an alias that is understood by CLR expression evaluators. An alias is a
+             symbol that can be used to refer to a value known by the debugger. Examples of these
+             values are the current exception and values returned by the last method call.  The
+             Expression Compiler can use this method to determine which aliases are valid for use
+             in expressions and their types.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.Kind">
+             <summary>
+             The kind of alias this is.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.Name">
+             <summary>
+             The name of this alias.  This is the value displayed in the "Name" column of the
+             variable inspection windows.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.FullName">
+             <summary>
+             The full name of this alias.  This is the expression to evaluate if this alias is
+             added to the Watch window.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.Type">
+             <summary>
+             The assembly qualified name of the runtime type of this alias.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.CustomTypeInfoPayloadTypeId">
+             <summary>
+             If this is a variable with custom type information, this is the identifier that
+             is used to identify the compiler that generated the custom type information.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.CustomTypeInfoPayload">
+             <summary>
+             The custom type information payload used by the compiler to embed custom type
+             information.  The compiler should verify that the id stored in
+             CustomTypeInfoPayloadTypeId matches the expected id before using this value.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.Create(Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind,System.String,System.String,System.String,System.Guid,System.Collections.ObjectModel.ReadOnlyCollection{System.Byte})">
+             <summary>
+             Create a new DkmClrAlias object instance.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="Kind">
+             [In] The kind of alias this is.
+             </param>
+             <param name="Name">
+             [In] The name of this alias.  This is the value displayed in the "Name" column of
+             the variable inspection windows.
+             </param>
+             <param name="FullName">
+             [In] The full name of this alias.  This is the expression to evaluate if this
+             alias is added to the Watch window.
+             </param>
+             <param name="Type">
+             [In] The assembly qualified name of the runtime type of this alias.
+             </param>
+             <param name="CustomTypeInfoPayloadTypeId">
+             [In] If this is a variable with custom type information, this is the identifier
+             that is used to identify the compiler that generated the custom type information.
+             </param>
+             <param name="CustomTypeInfoPayload">
+             [In] The custom type information payload used by the compiler to embed custom
+             type information.  The compiler should verify that the id stored in
+             CustomTypeInfoPayloadTypeId matches the expected id before using this value.
+             </param>
+             <returns>
+             [Out] Result of this method call.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.ManagedToNativeImpl(XapiOutgoingCall)">
+            <summary>
+            Obtain a pointer to the native object used to call into native. This method
+            is invoked from IXapiMarshalableElement&lt;IntPtr&gt;.ManagedToNative or from
+            a derived classes's implementation of this function.
+            </summary>
+            <param name="outerCall">Outgoing managed-&gt;native call</param>
+            <returns>Native object</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
+            <summary>
+            Convert a native dispatcher object to managed
+            </summary>
+            <param name="pvNativeObject">[Optional] Pointer to native object.</param>
+            <returns>[Optional] Managed object. Null if input object is null.</returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias.TryCreateNewManagedObject(NativeXapiDispatcherObjectBase*)">
+            <summary>
+            Create a new managed object for the passed in native object. This function is called from 'NativeToManaged'
+            </summary>
+            <param name="pNativeObject">Native object</param>
+            <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind">
+             <summary>
+             Enum that defines the kinds of aliases returned by DkmClrRuntimeInstance.GetAliases.
+             The methods referred to below are defined in the virtual module
+             Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.  The metadata for this module
+             is available by calling DkmClrRuntimeInstance.GetIntrinsicAssemblyMetaDataBytesPtr.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind.Exception">
+            <summary>
+            The alias is the exception on the given thread. To get this value, the Expression
+            Compiler should emit a call to GetException.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind.StowedException">
+            <summary>
+            The alias is a stowed exception To get this value, the Expression Compiler should
+            emit a call to GetStowedException.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind.ReturnValue">
+            <summary>
+            The alias is a return value To get this value, the Expression Compiler should
+            emit a call to GetReturnValue.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind.Variable">
+            <summary>
+            The alias is a variable defined by the user using the Expression Evaluator To get
+            this value, the Expression Compiler should emit a call to GetObjectByAlias. The
+            value can be set by getting its address via GetVariableAddress then storing the
+            new value at that address.
+            </summary>
+        </member>
+        <member name="F:Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind.ObjectId">
+            <summary>
+            The alias is a heap value being tracked due to a call to CreateObjectId To get
+            this value, the Expression Compiler should emit a call to GetObjectByAlias.
+            </summary>
+        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.Clr.DkmClrAppDomain">
             <summary>
             DkmClrAppDomain represents a CLR app domain inside a process which is being debugged.
@@ -20522,6 +20678,20 @@
              <returns>
              [Out,Optional] The assembly qualified name of the object type or null if the
              alias was not found.
+             </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance.GetAliases(Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
+             <summary>
+             Gets the list of aliases that can currently be used in expressions.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="InspectionContext">
+             [In,Optional] The current InspectionContext.  If null, aliases that depend on the
+             current thread or app domain will not be returned by this method.
+             </param>
+             <returns>
+             [Out] The list of alias that can currently be used in expressions.
              </returns>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance.GetIntrinsicAssemblyMetaDataBytesPtr(System.UInt32@)">
@@ -29898,6 +30068,38 @@
             [In] Describes the event being processed.
             </param>
         </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmThreadNameChangeNotification">
+             <summary>
+             IDkmThreadNameChangeNotification is implemented by components that want to listen for
+             the ThreadNameChange event. When this notification fires, the target process will be
+             suspended and can be examined. ThreadNameChange is fired when a thread name is
+             changed in the target process. Currently, this is only fired when Managed thread
+             change their name.
+            
+             Implementations of this interface may restrict when they are called using a filter
+             defined in their component configuration. The following properties may be used:
+             BaseDebugMonitorId, EngineId, TransportKind.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmThreadNameChangeNotification.OnThreadNameChange(Microsoft.VisualStudio.Debugger.DkmThread,Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.DkmEventDescriptor)">
+            <summary>
+            OnThreadNameChange is invoked as part of event processing. See interface
+            definition for more information.
+            </summary>
+            <param name="thread">
+            [In] DkmThread represents a thread running in the target process.
+            </param>
+            <param name="workList">
+            WorkList to append additional event processing work to. This work list will begin
+            execution after all listeners have been notifiied. The event will not finish
+            until after the work list fully executes.
+            </param>
+            <param name="eventDescriptor">
+            [In] Describes the event being processed.
+            </param>
+        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmAfterSetNextStatementNotification">
              <summary>
              IDkmAfterSetNextStatementNotification implemented by components that wish to receive
@@ -31490,6 +31692,21 @@
             is no stowed exception.
             </returns>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrInspectionQueryProcessor.GetAliases(Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance,Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext)">
+            <summary>
+            Gets the list of aliases that can currently be used in expressions.
+            </summary>
+            <param name="clrRuntimeInstance">
+            [In] Represents a CLR instance running in a target process.
+            </param>
+            <param name="inspectionContext">
+            [In,Optional] The current InspectionContext.  If null, aliases that depend on the
+            current thread or app domain will not be returned by this method.
+            </param>
+            <returns>
+            [Out] The list of alias that can currently be used in expressions.
+            </returns>
+        </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmClrIntrinsicAssemblyProvider">
              <summary>
              Contains method to load the intrinsic methods assembly.
@@ -32718,6 +32935,45 @@
             AL (ex: user breakpoint, or other breakpoint visible at the SDM level) instead of
             a breakpoint which may be created by another component (for example an internal
             breakpoint used for stepping).
+            </param>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmExceptionManager140">
+             <summary>
+             This is an updated version of IDkmExceptionManager, which was added for Visual Studio
+             14.0 to provide a means of removing exception triggers from the exception manager.
+            
+             Implementations of this interface may restrict when they are called using a filter
+             defined in their component configuration. The following properties may be used:
+             BaseDebugMonitorId, EngineId, TransportKind.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmExceptionManager140.RemoveExceptionTrigger(Microsoft.VisualStudio.Debugger.DkmProcess,System.Guid,Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTrigger)">
+            <summary>
+            Removes an exception trigger previously set. Note that the processing stage is
+            ignored and does not need to match the value originally provided.
+            </summary>
+            <param name="process">
+            [In] DkmProcess represents a target process which is being debugged. The debugger
+            debugs processes, so this is the basic unit of debugging. A DkmProcess can
+            represent a system process or a virtual process such as minidumps.
+            </param>
+            <param name="sourceId">
+            [In] Identifies the source of an object. SourceIds are used to enable filtering
+            in scenarios when multiple components may be creating instances of a class. For
+            example, source ids can be used to determine if a breakpoint comes from the AD7
+            AL (ex: user breakpoint, or other breakpoint visible at the SDM level) instead of
+            a breakpoint which may be created by another component (for example an internal
+            breakpoint used for stepping).
+            </param>
+            <param name="trigger">
+            [In] Describes an exception or collection of exceptions which a component wants
+            to break on. When a higher level components wants to be notified about certain
+            exceptions, it should create one or more exception triggers, and then enable
+            these triggers (DkmProcess.EnableExceptionTriggers). After this, when the
+            exception occurs, a ExceptionTriggerHit exception will be fired whenever this
+            trigger is met.
             </param>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmGPUEnvironmentFilter">
@@ -39554,6 +39810,67 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.DkmProcess.RemoveExceptionTrigger(System.Guid,Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTrigger)">
+             <summary>
+             Removes an exception trigger previously set. Note that the processing stage is
+             ignored and does not need to match the value originally provided.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="SourceId">
+             [In] Identifies the source of an object. SourceIds are used to enable filtering
+             in scenarios when multiple components may be creating instances of a class. For
+             example, source ids can be used to determine if a breakpoint comes from the AD7
+             AL (ex: user breakpoint, or other breakpoint visible at the SDM level) instead of
+             a breakpoint which may be created by another component (for example an internal
+             breakpoint used for stepping).
+             </param>
+             <param name="Trigger">
+             [In] Describes an exception or collection of exceptions which a component wants
+             to break on. When a higher level components wants to be notified about certain
+             exceptions, it should create one or more exception triggers, and then enable
+             these triggers (DkmProcess.EnableExceptionTriggers). After this, when the
+             exception occurs, a ExceptionTriggerHit exception will be fired whenever this
+             trigger is met.
+             </param>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.DkmProcess.RemoveExceptionTrigger(Microsoft.VisualStudio.Debugger.DkmWorkList,System.Guid,Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTrigger,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.Exceptions.DkmRemoveExceptionTriggerAsyncResult})">
+             <summary>
+             Removes an exception trigger previously set. Note that the processing stage is
+             ignored and does not need to match the value originally provided.
+            
+             This method will append a new work item to the specified work list, and return
+             once the work item has been appended. The actual processing of the work item is
+             asynchronous. The caller will be notified that the request is complete through
+             the completion routine.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+             <param name="WorkList">
+             WorkList to append the new work item to.
+             </param>
+             <param name="SourceId">
+             [In] Identifies the source of an object. SourceIds are used to enable filtering
+             in scenarios when multiple components may be creating instances of a class. For
+             example, source ids can be used to determine if a breakpoint comes from the AD7
+             AL (ex: user breakpoint, or other breakpoint visible at the SDM level) instead of
+             a breakpoint which may be created by another component (for example an internal
+             breakpoint used for stepping).
+             </param>
+             <param name="Trigger">
+             [In] Describes an exception or collection of exceptions which a component wants
+             to break on. When a higher level components wants to be notified about certain
+             exceptions, it should create one or more exception triggers, and then enable
+             these triggers (DkmProcess.EnableExceptionTriggers). After this, when the
+             exception occurs, a ExceptionTriggerHit exception will be fired whenever this
+             trigger is met.
+             </param>
+             <param name="CompletionRoutine">
+             Routine to fire when the request is complete. If the request is successfully
+             appended to the work list, this will always fire (including when the operation is
+             canceled). This will never fire if appending the work item fails.
+             </param>
+        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.DkmProcess.QueryPerformanceCounters(Microsoft.VisualStudio.Debugger.DkmWorkList,Microsoft.VisualStudio.Debugger.DkmCompletionRoutine{Microsoft.VisualStudio.Debugger.DkmPerformanceCountersAsyncResult})">
              <summary>
              Asynchronous Method to obtain the timing data from the
@@ -41419,6 +41736,14 @@
              <returns>
              [Out,Optional] Address of the current IErrorInfo object on this thread.
              </returns>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.DkmThread.OnThreadNameChange">
+             <summary>
+             ThreadNameChange is sent by the dispatcher when DkmThread::NameChange is invoked
+             by the monitor.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
         </member>
         <member name="M:Microsoft.VisualStudio.Debugger.DkmThread.NativeToManaged(XapiOutgoingCall,System.IntPtr)">
             <summary>
@@ -46271,6 +46596,26 @@
             </summary>
             <param name="pNativeObject">Native object</param>
             <returns>[Optional] Managed object. Returns null if the native object is not of this type.</returns>
+        </member>
+        <member name="T:Microsoft.VisualStudio.Debugger.Exceptions.DkmRemoveExceptionTriggerAsyncResult">
+            <summary>
+            Result of an asynchronous DkmProcess.RemoveExceptionTrigger call.
+            </summary>
+        </member>
+        <member name="M:Microsoft.VisualStudio.Debugger.Exceptions.DkmRemoveExceptionTriggerAsyncResult.CreateErrorResult(System.Exception)">
+            <summary>
+            Creates a new result structure to hold the error from a failed call to DkmProcess.RemoveExceptionTrigger.
+            </summary>
+            <param name="exception">
+            [In] exception object containing the error
+            </param>
+        </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Exceptions.DkmRemoveExceptionTriggerAsyncResult.ErrorCode">
+            <summary>
+            HRESULT code returned from the caller. This will be
+            DkmExceptionCode.COR_E_OPERATIONCANCELED (0x8013153B) if the operation was
+            canceled before processing was complete.
+            </summary>
         </member>
         <member name="T:Microsoft.VisualStudio.Debugger.Exceptions.DkmStowedExceptionInformation">
              <summary>

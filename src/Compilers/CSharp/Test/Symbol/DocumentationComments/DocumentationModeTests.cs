@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("unclosed"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void XmlSyntaxError_Included()
         {
             var xml = @"<unclosed>";
