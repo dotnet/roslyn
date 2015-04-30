@@ -1588,6 +1588,54 @@ class C
             locals.Free();
         }
 
+        [WorkItem(2240)]
+        [Fact]
+        public void AsyncLambda()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void M()
+    {
+        Func<int, Task> f = async (x) =>
+        {
+            var y = 42;
+        };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(compilation);
+            var context = CreateMethodContext(runtime, methodName: "C.<>c.<<M>b__0_0>d.MoveNext");
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            var testData = new CompilationTestData();
+            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            Assert.Equal(locals.Count, 2);
+            VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c.<<M>b__0_0>d.x""
+  IL_0006:  ret
+}");
+            VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c.<<M>b__0_0>d.<y>5__1""
+  IL_0006:  ret
+}");
+            locals.Free();
+        }        
+
         [WorkItem(996571)]
         [Fact]
         public void MissingReference()

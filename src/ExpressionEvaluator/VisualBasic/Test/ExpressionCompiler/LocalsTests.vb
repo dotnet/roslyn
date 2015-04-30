@@ -1647,6 +1647,58 @@ End Class"
             locals.Free()
         End Sub
 
+        <WorkItem(2240)>
+        <Fact>
+        Public Sub AsyncLambda()
+            Const source =
+"Imports System
+Imports System.Threading.Tasks
+Class C
+    Shared Sub M()
+        Dim f As Func(Of Integer, Task) = Async Function (x)
+            Dim y = 42
+        End Function
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithReferences(
+                MakeSources(source),
+                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TestOptions.DebugDll)
+
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
+                runtime,
+                methodName:="C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
+            Dim testData As New CompilationTestData()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            Assert.Equal(2, locals.Count)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "x", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Threading.Tasks.Task V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C._Closure$__.VB$StateMachine___Lambda$__1-0.$VB$Local_x As Integer""
+  IL_0006:  ret
+}")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "y", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Threading.Tasks.Task V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C._Closure$__.VB$StateMachine___Lambda$__1-0.$VB$ResumableLocal_y$0 As Integer""
+  IL_0006:  ret
+}")
+            locals.Free()
+        End Sub
+
         <WorkItem(996571)>
         <Fact>
         Public Sub MissingReference()
