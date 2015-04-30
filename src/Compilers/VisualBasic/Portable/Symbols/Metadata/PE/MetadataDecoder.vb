@@ -160,9 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Protected Overrides Function GetIndexOfReferencedAssembly(identity As AssemblyIdentity) As Integer
-            Dim assemblies = moduleSymbol.GetReferencedAssemblySymbols()
+            ' Go through all assemblies referenced by the current module And
+            ' find the one which *exactly* matches the given identity.
+            ' No unification will be performed
+            Dim assemblies = ModuleSymbol.GetReferencedAssemblies()
             For i = 0 To assemblies.Length - 1
-                If identity.Equals(assemblies(i).Identity) Then
+                If identity.Equals(assemblies(i)) Then
                     Return i
                 End If
             Next

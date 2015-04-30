@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName);
         protected abstract TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName);
+
+        /// <summary>
+        /// Given the identity of an assembly referenced by this module, finds
+        /// the index of that assembly in the list of assemblies referenced by
+        /// the current module.
+        /// </summary>
         protected abstract int GetIndexOfReferencedAssembly(AssemblyIdentity identity);
 
         internal TypeSymbol GetTypeSymbolForSerializedType(string s)
@@ -70,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
-        internal TypeSymbol GetSpecialType(SpecialType specialType)
+        protected TypeSymbol GetSpecialType(SpecialType specialType)
         {
             return _factory.GetSpecialType(this.moduleSymbol, specialType);
         }
