@@ -6,26 +6,34 @@
 .assembly extern System.Globalization
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:10:0
 }
 .assembly extern System.Runtime
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:20:0
 }
 .assembly extern System.Runtime.InteropServices
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:20:0
 }
 .assembly Microsoft.VisualStudio.Debugger.Engine
 {
 	.custom instance void [System.Runtime]System.CLSCompliantAttribute::.ctor(bool) = { bool(false) }
 	.custom instance void [System.Runtime]System.Runtime.InteropServices.ComVisibleAttribute::.ctor(bool) = { bool(false) }
-	.custom instance void [System.Runtime]System.Security.AllowPartiallyTrustedCallersAttribute::.ctor() = { }
 	.publickey = (00 24 00 00 04 80 00 00 94 00 00 00 06 02 00 00 00 24 00 00 52 53 41 31 00 04 00 00 01 00 01 00 07 D1 FA 57 C4 AE D9 F0 A3 2E 84 AA 0F AE FD 0D E9 E8 FD 6A EC 8F 87 FB 03 76 6C 83 4C 99 92 1E B2 3B E7 9A D9 D5 DC C1 DD 9A D2 36 13 21 02 90 0B 72 3C F9 80 95 7F C4 E1 77 10 8F C6 07 77 4F 29 E8 32 0E 92 EA 05 EC E4 E8 21 C0 A5 EF E8 F1 64 5C 4C 0C 93 C1 AB 99 28 5D 62 2C AA 65 2C 1D FA D6 3D 74 5D 6F 2D E5 F1 7E 5E AF 0F C4 96 3D 26 1C 8A 12 43 65 18 20 6D C0 93 34 4D 5A D2 93)
 	.hash algorithm 0x00008004
 	.ver 1:0:0:0
+}
+.class public abstract sealed CoreCLRHostEntrypoint
+	extends [System.Runtime]System.Object
+{
+	.method public static hidebysig 
+		native int CreateManagedInstance(string marshal(lpwstr) assemblyName, string marshal(lpwstr) typeName)
+	{
+		ret
+	}
 }
 .class public abstract sealed CultureInfoHelper
 	extends [System.Runtime]System.Object
@@ -3408,6 +3416,7 @@
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.DkmEventCode TaskProviderCreate = int32(0x00000020)
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.DkmEventCode ThreadCreate = int32(0x00000021)
 		.field static public literal valuetype Microsoft.VisualStudio.Debugger.DkmEventCode ThreadExit = int32(0x00000022)
+		.field static public literal valuetype Microsoft.VisualStudio.Debugger.DkmEventCode ThreadNameChange = int32(0x00000029)
 	}
 	.class public DkmEventDescriptor
 		extends [System.Runtime]System.Object
@@ -5103,6 +5112,18 @@
 			ret
 		}
 		.method public hidebysig 
+			instance void RemoveExceptionTrigger(valuetype [System.Runtime]System.Guid SourceId, class Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTrigger Trigger)
+		{
+			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
+			ret
+		}
+		.method public hidebysig 
+			instance void RemoveExceptionTrigger(class Microsoft.VisualStudio.Debugger.DkmWorkList WorkList, valuetype [System.Runtime]System.Guid SourceId, class Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTrigger Trigger, class 'Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1'<valuetype Microsoft.VisualStudio.Debugger.Exceptions.DkmRemoveExceptionTriggerAsyncResult> CompletionRoutine)
+		{
+			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
+			ret
+		}
+		.method public hidebysig 
 			instance void QueryPerformanceCounters(class Microsoft.VisualStudio.Debugger.DkmWorkList WorkList, class 'Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1'<valuetype Microsoft.VisualStudio.Debugger.DkmPerformanceCountersAsyncResult> CompletionRoutine)
 		{
 			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
@@ -6102,6 +6123,12 @@
 		}
 		.method public hidebysig 
 			instance uint64 GetThreadCurrentWinRtErrorInfo()
+		{
+			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
+			ret
+		}
+		.method public hidebysig 
+			instance void OnThreadNameChange()
 		{
 			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
 			ret
@@ -9749,6 +9776,81 @@
 }
 .namespace Microsoft.VisualStudio.Debugger.Clr
 {
+	.class public DkmClrAlias
+		extends [System.Runtime]System.Object
+	{
+		.custom instance void [System.Runtime.InteropServices]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = { string('04a0b24c-08ff-14c2-f131-9ec01bc1dae1') }
+		.method public hidebysig specialname 
+			instance valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind get_Kind()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string get_Name()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string get_FullName()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string get_Type()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance valuetype [System.Runtime]System.Guid get_CustomTypeInfoPayloadTypeId()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<uint8> get_CustomTypeInfoPayload()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias Create(valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind Kind, string Name, string FullName, string Type, valuetype [System.Runtime]System.Guid CustomTypeInfoPayloadTypeId, class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<uint8> CustomTypeInfoPayload)
+		{
+			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
+			ret
+		}
+		.property instance class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<uint8> CustomTypeInfoPayload()
+		{
+			.get instance class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<uint8> Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias::get_CustomTypeInfoPayload()
+		}
+		.property instance valuetype [System.Runtime]System.Guid CustomTypeInfoPayloadTypeId()
+		{
+			.get instance valuetype [System.Runtime]System.Guid Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias::get_CustomTypeInfoPayloadTypeId()
+		}
+		.property instance string FullName()
+		{
+			.get instance string Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias::get_FullName()
+		}
+		.property instance valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind Kind()
+		{
+			.get instance valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias::get_Kind()
+		}
+		.property instance string Name()
+		{
+			.get instance string Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias::get_Name()
+		}
+		.property instance string Type()
+		{
+			.get instance string Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias::get_Type()
+		}
+	}
+	.class public sealed DkmClrAliasKind
+		extends [System.Runtime]System.Enum
+	{
+		.field public rtspecialname specialname int32 value__
+		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind Exception = int32(0x00000000)
+		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind ObjectId = int32(0x00000004)
+		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind ReturnValue = int32(0x00000002)
+		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind StowedException = int32(0x00000001)
+		.field static public literal valuetype Microsoft.VisualStudio.Debugger.Clr.DkmClrAliasKind Variable = int32(0x00000003)
+	}
 	.class public DkmClrAppDomain
 		extends Microsoft.VisualStudio.Debugger.DkmDataContainer
 		implements [System.Runtime]System.IDisposable
@@ -10629,6 +10731,12 @@
 		}
 		.method public hidebysig 
 			instance string GetObjectTypeByAlias(string Alias)
+		{
+			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
+			ret
+		}
+		.method public hidebysig 
+			instance class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<class Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias> GetAliases(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext)
 		{
 			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
 			ret
@@ -12373,6 +12481,10 @@
 			instance string GetClrStowedExceptionType(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext)
 		{
 		}
+		.method public virtual hidebysig newslot abstract 
+			instance class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<class Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias> GetAliases(class Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance clrRuntimeInstance, class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext)
+		{
+		}
 	}
 	.class public interface abstract IDkmClrIntrinsicAssemblyProvider
 	{
@@ -12849,6 +12961,13 @@
 		}
 		.method public virtual hidebysig newslot abstract 
 			instance void ClearExceptionTriggers(class Microsoft.VisualStudio.Debugger.DkmProcess process, valuetype [System.Runtime]System.Guid sourceId)
+		{
+		}
+	}
+	.class public interface abstract IDkmExceptionManager140
+	{
+		.method public virtual hidebysig newslot abstract 
+			instance void RemoveExceptionTrigger(class Microsoft.VisualStudio.Debugger.DkmProcess process, valuetype [System.Runtime]System.Guid sourceId, class Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTrigger trigger)
 		{
 		}
 	}
@@ -14597,6 +14716,13 @@
 	{
 		.method public virtual hidebysig newslot abstract 
 			instance void GetCurrentLocation(class Microsoft.VisualStudio.Debugger.DkmThread thread, class Microsoft.VisualStudio.Debugger.DkmWorkList workList, class 'Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1'<valuetype Microsoft.VisualStudio.Debugger.CallStack.DkmGetCurrentLocationAsyncResult> completionRoutine)
+		{
+		}
+	}
+	.class public interface abstract IDkmThreadNameChangeNotification
+	{
+		.method public virtual hidebysig newslot abstract 
+			instance void OnThreadNameChange(class Microsoft.VisualStudio.Debugger.DkmThread thread, class Microsoft.VisualStudio.Debugger.DkmWorkList workList, class Microsoft.VisualStudio.Debugger.DkmEventDescriptor eventDescriptor)
 		{
 		}
 	}
@@ -22759,6 +22885,27 @@
 		.property instance class Microsoft.VisualStudio.Debugger.DkmThread Thread()
 		{
 			.get instance class Microsoft.VisualStudio.Debugger.DkmThread Microsoft.VisualStudio.Debugger.Exceptions.DkmExceptionTriggerHit::get_Thread()
+		}
+	}
+	.class public sequential sealed DkmRemoveExceptionTriggerAsyncResult
+		extends [System.Runtime]System.ValueType
+	{
+		.method public static hidebysig 
+			valuetype Microsoft.VisualStudio.Debugger.Exceptions.DkmRemoveExceptionTriggerAsyncResult CreateErrorResult(class [System.Runtime]System.Exception exception)
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance int32 get_ErrorCode()
+		{
+			ret
+		}
+
+		//This private field was generated by ASMMETA as a placeholder and does not exist in the actual assembly.
+		.field private int32 __Asmmeta_Private_Field
+		.property instance int32 ErrorCode()
+		{
+			.get instance int32 Microsoft.VisualStudio.Debugger.Exceptions.DkmRemoveExceptionTriggerAsyncResult::get_ErrorCode()
 		}
 	}
 	.class public DkmStowedExceptionInformation
