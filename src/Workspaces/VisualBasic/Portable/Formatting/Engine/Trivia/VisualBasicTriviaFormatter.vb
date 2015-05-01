@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
             If _newLine = Nothing Then
                 Dim text = Me.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic)
-                _newLine = SyntaxFactory.EndOfLine(text)
+                _newLine = SyntaxFactory.EndOfLine(text, elastic:=False)
             End If
 
             Return _newLine

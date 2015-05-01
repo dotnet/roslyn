@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (_newLine == default(SyntaxTrivia))
             {
                 var text = this.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
-                _newLine = SyntaxFactory.EndOfLine(text);
+                _newLine = SyntaxFactory.EndOfLine(text, elastic: false);
             }
 
             return _newLine;
