@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private static readonly object s_textBufferPropertyKey = new object();
 
         [Import]
-        private IClassificationTypeRegistryService _classificationRegistry;
+        private IClassificationTypeRegistryService _classificationRegistry = null;
 
         public IClassifier GetClassifier(ITextBuffer textBuffer)
         {
