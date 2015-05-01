@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<string, Assembly> _getAssembly;
 
         private string _lazyDisplayName;
+        private string _lazyId;
         private ImmutableArray<DiagnosticAnalyzer> _lazyAllAnalyzers;
         private ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _lazyAnalyzersPerLanguage;
         private Assembly _lazyAssembly;
@@ -117,6 +118,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return _lazyDisplayName;
+            }
+        }
+
+        public override string Id
+        {
+            get
+            {
+                if (_lazyId == null)
+                {
+                    _lazyId = Path.GetFileName(this.FullPath).ToLower();
+                }
+                
+                return _lazyId;
             }
         }
 

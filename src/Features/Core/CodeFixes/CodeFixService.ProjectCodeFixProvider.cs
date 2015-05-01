@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 try
                 {
-                    Assembly analyzerAssembly = analyzerFileReference.GetAssembly();
+                    Assembly analyzerAssembly = analyzerFileReference.Assembly;
                     types = analyzerAssembly.GetTypes();
 
                     foreach (var type in types)

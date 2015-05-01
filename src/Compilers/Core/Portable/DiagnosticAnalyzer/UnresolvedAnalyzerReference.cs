@@ -36,6 +36,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public override string Id
+        {
+            get
+            {
+                return _unresolvedPath;
+            }
+        }
+
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             return ImmutableArray<DiagnosticAnalyzer>.Empty;

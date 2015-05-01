@@ -31,6 +31,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// A unique identifier for this analyzer reference.
+        /// </summary>
+        /// <remarks>
+        /// Note that this and <see cref="FullPath"/> serve different purposes. An analyzer reference may not
+        /// have a path, but it always has an ID. Further, two analyzer references with different paths may
+        /// represent two copies of the same analyzer, in which case the IDs should also be the same.
+        /// </remarks>
+        public abstract string Id { get; }
+
+        /// <summary>
         /// Gets all the diagnostic analyzers defined in this assembly reference, irrespective of the language supported by the analyzer.
         /// Use this method only if you need all the analyzers defined in the assembly, without a language context.
         /// In most instances, either the analyzer reference is associated with a project or is being queried for analyzers in a particular language context.

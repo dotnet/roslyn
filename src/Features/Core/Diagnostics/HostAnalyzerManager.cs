@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static string GetAnalyzerReferenceId(AnalyzerReference reference)
         {
-            return reference.Display ?? FeaturesResources.Unknown;
+            return reference.Id;
         }
 
         private bool CheckAnalyzerReferenceIdentity(AnalyzerReference reference)
