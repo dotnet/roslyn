@@ -59,7 +59,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelForNodeAsync(touchingToken.Parent, cancellationToken).ConfigureAwait(False)
+            ' To get a Speculative SemanticModel (which is much faster), we need to 
+            ' walk up to the node the DocumentationTrivia is attached to.
+            Dim parentNode = token.GetAncestor(Of DocumentationCommentTriviaSyntax)().ParentTrivia.Token.Parent
+            Dim semanticModel = Await document.GetVisualBasicSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
             If IsXmlStringContext(touchingToken) OrElse
