@@ -18,6 +18,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.Access
         End Function
 
+        Protected Overrides Function GetAttributes(codeElement As EnvDTE80.CodeFunction2) As EnvDTE.CodeElements
+            Return codeElement.Attributes
+        End Function
+
         Protected Overrides Function GetComment(codeElement As EnvDTE80.CodeFunction2) As String
             Return codeElement.Comment
         End Function
