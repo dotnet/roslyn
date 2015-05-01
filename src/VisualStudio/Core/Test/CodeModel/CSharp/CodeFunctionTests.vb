@@ -149,7 +149,7 @@ interface I
 #Region "Attribute Tests"
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub PropertyGetAttribute()
+        Public Sub PropertyGetAttribute_WithNoSet()
             Dim code =
 <Code>
 public class Class1
@@ -170,13 +170,65 @@ public class Class1
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub PropertySetAttribute()
+        Public Sub PropertySetAttribute_WithNoGet()
             Dim code =
 <Code>
 public class Class1
 {
     public int Property1
     {
+        [Obsolete]
+        $$set
+        {
+        }
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithSet()
+            Dim code =
+<Code>
+public class Class1
+{
+    public int Property1
+    {
+        [Obsolete]
+        $$get
+        {
+            return 0;
+        }
+
+        [Obsolete]
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithGet()
+            Dim code =
+<Code>
+public class Class1
+{
+    public int Property1
+    {
+        [Obsolete]
+        get
+        {
+            return 0;
+        }
+
         [Obsolete]
         $$set
         {

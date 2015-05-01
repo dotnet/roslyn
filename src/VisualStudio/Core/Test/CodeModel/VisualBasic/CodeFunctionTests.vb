@@ -518,7 +518,7 @@ End Interface
 #Region "Attribute Tests"
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub PropertyGetAttribute()
+        Public Sub PropertyGetAttribute_WithNoSet()
             Dim code =
 <Code>
 Public Class Class1
@@ -536,13 +536,57 @@ End Class
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub PropertySetAttribute()
+        Public Sub PropertySetAttribute_WithNoGet()
             Dim code =
 <Code>
 Public Class Class1
     Public Property Property1 As Integer
         &lt;Obsolete&gt;
         $$Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithGet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        Get
+            Return 0
+        End Get
+        &lt;Obsolete&gt;
+        $$Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithSet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        $$Get
+            Return 0
+        End Get
+        &lt;Obsolete&gt;
+        Set(value As Integer)
 
         End Set
     End Property
