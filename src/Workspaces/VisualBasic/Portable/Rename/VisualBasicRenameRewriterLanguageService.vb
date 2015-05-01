@@ -585,8 +585,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                If Me._isRenamingInStrings AndAlso newToken.Kind = SyntaxKind.StringLiteralToken Then
-                    newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.StringLiteralToken)
+                If Me._isRenamingInStrings Then
+                    If newToken.Kind = SyntaxKind.StringLiteralToken Then
+                        newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.StringLiteralToken)
+                    ElseIf newToken.Kind = SyntaxKind.InterpolatedStringTextToken Then
+                        newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.InterpolatedStringTextToken)
+                    End If
                 End If
 
                 If Me._isRenamingInComments Then

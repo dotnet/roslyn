@@ -313,7 +313,7 @@ public partial class C { }
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsCSharp()
             Dim workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -330,6 +330,7 @@ class Program
         [|foo|]();
 
         var a = "foo";
+        var b = $"{1}foo{2}";
     }
 
     public void foo(int i)
@@ -358,6 +359,7 @@ class Program
         [|foo|]();
 
         var a = "foo";
+        var b = $"{1}foo{2}";
     }
 
     public void [|foo|](int i)
@@ -386,6 +388,7 @@ class Program
         [|foo|]();
 
         var a = "[|foo|]";
+        var b = $"{1}[|foo|]{2}";
     }
 
     public void foo(int i)
@@ -402,7 +405,7 @@ class Program
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsVisualBasic()
             Dim workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -417,6 +420,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "foo"
+		Dim b = $"{1}foo{2}"
 	End Sub
 
 	Public Sub foo(i As Integer)
@@ -443,6 +447,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "foo"
+		Dim b = $"{1}foo{2}"
 	End Sub
 
 	Public Sub [|foo|](i As Integer)
@@ -469,6 +474,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "[|foo|]"
+		Dim b = $"{1}[|foo|]{2}"
 	End Sub
 
 	Public Sub foo(i As Integer)
