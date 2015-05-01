@@ -408,8 +408,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (other != null)
             {
                 return other.Display == this.Display &&
-                       other.FullPath == this.FullPath &&
-                       other.IsUnresolved == this.IsUnresolved;
+                       other.FullPath == this.FullPath;
             }
 
             return base.Equals(other);
@@ -417,8 +416,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Display,
-                        Hash.Combine(this.FullPath, this.IsUnresolved.GetHashCode()));
+            return Hash.Combine(this.Display, this.FullPath.GetHashCode());
         }
 
         public Assembly GetAssembly()

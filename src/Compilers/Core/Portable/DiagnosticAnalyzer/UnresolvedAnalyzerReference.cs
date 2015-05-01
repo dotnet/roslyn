@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override bool IsUnresolved
-        {
-            get { return true; }
-        }
-
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             return ImmutableArray<DiagnosticAnalyzer>.Empty;

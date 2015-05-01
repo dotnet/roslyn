@@ -1749,7 +1749,6 @@ override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.Display.
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.FullPath.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
-override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.IsUnresolved.get -> bool
 override Microsoft.CodeAnalysis.Emit.EmitOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Emit.EmitOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Emit.SemanticEdit.Equals(object obj) -> bool
@@ -2078,7 +2077,6 @@ virtual Microsoft.CodeAnalysis.Diagnostic.DefaultSeverity.get -> Microsoft.CodeA
 virtual Microsoft.CodeAnalysis.Diagnostic.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 virtual Microsoft.CodeAnalysis.DiagnosticFormatter.Format(Microsoft.CodeAnalysis.Diagnostic diagnostic, System.IFormatProvider formatter = null) -> string
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.Display.get -> string
-virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.IsUnresolved.get -> bool
 virtual Microsoft.CodeAnalysis.Emit.EmitResult.GetDebuggerDisplay() -> string
 virtual Microsoft.CodeAnalysis.Location.GetDebuggerDisplay() -> string
 virtual Microsoft.CodeAnalysis.Location.GetLineSpan() -> Microsoft.CodeAnalysis.FileLinePositionSpan

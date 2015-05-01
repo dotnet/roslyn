@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns true if this reference is an unresolved reference.
-        /// </summary>
-        public virtual bool IsUnresolved
-        {
-            get { return false; }
-        }
-
-        /// <summary>
         /// Gets all the diagnostic analyzers defined in this assembly reference, irrespective of the language supported by the analyzer.
         /// Use this method only if you need all the analyzers defined in the assembly, without a language context.
         /// In most instances, either the analyzer reference is associated with a project or is being queried for analyzers in a particular language context.
