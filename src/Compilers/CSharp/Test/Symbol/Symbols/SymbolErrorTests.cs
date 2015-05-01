@@ -14808,7 +14808,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(1116455, "DevDiv")]
         public void CS1725ERR_FriendAssemblyBadArgs()
         {
             var text = @"
@@ -14828,6 +14828,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo(""Test, Version=1.1.1.*"")]              // error
 [assembly: InternalsVisibleTo(""Test, ProcessorArchitecture=MSIL"")]   // error
 [assembly: InternalsVisibleTo(""Test, CuLTure=EN"")]                   // error
+[assembly: InternalsVisibleTo(""Test, PublicKeyToken=null"")]          // ok
 ";
             // Tested against Dev12
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(

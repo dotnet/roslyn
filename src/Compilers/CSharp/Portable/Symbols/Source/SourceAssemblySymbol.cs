@@ -1969,7 +1969,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey;
+            // Allow public key token due to compatibility reasons, but we are not going to use its value.
+            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey | AssemblyIdentityParts.PublicKeyToken; 
 
             if ((parts & ~allowedParts) != 0)
             {
