@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationActionsMap;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationEndActionsMap;
 
+        private HashSet<SyntaxTree> _individuallyAnalyzedSyntaxTrees = new HashSet<SyntaxTree>();
+
         /// <summary>
         /// Primary driver task which processes all <see cref="CompilationEventQueue"/> events, runs analyzer actions and signals completion of <see cref="DiagnosticQueue"/> at the end.
         /// </summary>
@@ -121,7 +123,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public void StartCompleteAnalysis(ImmutableHashSet<SyntaxTree> syntaxTreesToSkip, CancellationToken cancellationToken)
+        /// <summary>
+        /// Begin analysis of all compilation units that have not already been analyzed.
+        /// A caller must guarantee that, for a given <see cref="AnalyzerDriver"/> instance, an invocation of <see cref="StartCompleteAnalysis"/> is not concurrent with
+        /// an invocation of <see cref="GetPartialDiagnosticsAsync"/> or another invocation of <see cref="StartCompleteAnalysis"/>.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        public void StartCompleteAnalysis(CancellationToken cancellationToken)
         {
             if (_initializeTaskStarted && _primaryTask == null)
             {
@@ -130,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await _initializeTask.ConfigureAwait(false);
                     // Compilation start actions execute as part of the initialize task, not as part of the compilation events task,
                     // so executing the syntax tree actions here puts them between compilation start actions and other actions.
-                    await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !syntaxTreesToSkip.Contains(tree)), cancellationToken).ConfigureAwait(false);
-                    await ProcessCompilationEventsAsync(true, cancellationToken).ConfigureAwait(false);
+                    await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !_individuallyAnalyzedSyntaxTrees.Contains(tree)), cancellationToken).ConfigureAwait(false);
+                    await ProcessCompilationEventsAsync(runToCompletion: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }, cancellationToken)
                 .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
@@ -228,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
             if (startCompleteAnalysis)
             {
-                analyzerDriver.StartCompleteAnalysis(ImmutableHashSet<SyntaxTree>.Empty, cancellationToken);
+                analyzerDriver.StartCompleteAnalysis(cancellationToken);
             }
 
             return analyzerDriver;
@@ -270,14 +278,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns all diagnostics produced by a partial analysis of a single syntax tree.
+        /// A caller must guarantee that, for a given <see cref="AnalyzerDriver"/> instance, an invocation of <see cref="GetPartialDiagnosticsAsync"/> is not concurrent with
+        /// an invocation of <see cref="StartCompleteAnalysis"/> or another invocation of <see cref="GetPartialDiagnosticsAsync"/>.
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetPartialDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             if (_initializeTaskStarted && _primaryTask == null)
             {
+                _individuallyAnalyzedSyntaxTrees.Add(syntaxTree);
+
                 await _initializeTask.ConfigureAwait(false);
                 await ExecuteSyntaxTreeActions(ImmutableArray.Create(syntaxTree), cancellationToken).ConfigureAwait(false);
-                await ProcessCompilationEventsAsync(false, cancellationToken).ConfigureAwait(false);
+                await ProcessCompilationEventsAsync(runToCompletion: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return GetDiagnostics();
             }

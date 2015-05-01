@@ -12,11 +12,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     public class CompilationWithAnalyzers
     {
-        private readonly AnalyzerDriver _driver;
-        private readonly Compilation _compilation;
-        private readonly CancellationToken _cancellationToken;
-        private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics;
-        private ImmutableHashSet<SyntaxTree> _analyzedSyntaxTrees = ImmutableHashSet<SyntaxTree>.Empty;
+        private AnalyzerDriver _driver;
+        private Compilation _compilation;
+        private CancellationToken _cancellationToken;
+        private ConcurrentSet<Diagnostic> _exceptionDiagnostics;
         private Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>> _documentTasks = new Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>>();
         private Task<ImmutableArray<Diagnostic>> _completeAnalysisTask;
         private Task _latestAnalysisTask;
@@ -33,9 +32,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilation">The original compilation.</param>
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
+        {
+            Initialize(compilation, analyzers, options, AddExceptionDiagnostic, cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates a new compilation by attaching diagnostic analyzers to an existing compilation.
+        /// </summary>
+        /// <param name="compilation">The original compilation.</param>
+        /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
+        /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="onAnalyzerException">Action to invoke if an analyzer throws an exception.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, CancellationToken cancellationToken)
+        internal CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, CancellationToken cancellationToken)
+        {
+            Initialize(compilation, analyzers, options, onAnalyzerException, cancellationToken);
+        }
+
+        private void Initialize(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
             _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
@@ -74,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         _completeAnalysisTask = Task.Run(async () =>
                         {
-                            _driver.StartCompleteAnalysis(_analyzedSyntaxTrees, _cancellationToken);
+                            _driver.StartCompleteAnalysis(_cancellationToken);
 
                             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
                             // Discard the returned diagnostics.
@@ -103,8 +119,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns diagnostics produced by diagnostic analyzers from analyzing a single document.
-        /// <param name="model">Semantic model for the document.</param>
         /// </summary>
+        /// <param name="model">Semantic model for the document.</param>
         public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsFromDocumentAsync(SemanticModel model)
         {
             SyntaxTree documentTree = model.SyntaxTree;
@@ -135,17 +151,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // in one analysis and swamping the system with tasks is not advantageous.
                             continue;
                         }
-
-                        _analyzedSyntaxTrees = _analyzedSyntaxTrees.Add(documentTree);
-
+                        
                         documentTask = Task.Run(async () =>
                         {
                             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
                             // Discard the returned diagnostics.
                             model.GetDiagnostics(null, _cancellationToken);
 
-                            ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
-                            return analyzerDiagnostics;
+                            return await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
                         }, _cancellationToken);
 
                         _documentTasks[documentTree] = documentTask;
@@ -159,8 +172,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns diagnostics produced compilation and by diagnostic analyzers from analyzing a single document.
-        /// <param name="model">Semantic model for the document.</param>
         /// </summary>
+        /// <param name="model">Semantic model for the document.</param>
         public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromDocumentAsync(SemanticModel model)
         {
             ImmutableArray<Diagnostic> analyzerDiagnostics = await GetAnalyzerDiagnosticsFromDocumentAsync(model).ConfigureAwait(false);
@@ -169,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         
         /// <summary>
         /// Returns diagnostics produced for exceptions thrown by analyzer actions.
+        /// Diagnostics are produced for exceptions only if no onAnalyzerException action is supplied at construction.
         /// </summary>
         public ImmutableArray<Diagnostic> GetExceptionDiagnostics()
         {
@@ -210,13 +224,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// </summary>
         /// <param name="analyzer">Analyzer to be checked for suppression.</param>
         /// <param name="options">Compilation options.</param>
         /// <param name="onAnalyzerException">
         /// Optional delegate which is invoked when an analyzer throws an exception.
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
-        /// </summary>
         public static bool IsDiagnosticAnalyzerSuppressed(DiagnosticAnalyzer analyzer, CompilationOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
         {
             if (analyzer == null)

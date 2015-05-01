@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilation = compilation;
             _analyzerOptions = analyzerOptions;
             _addDiagnostic = addDiagnostic;
-            _onAnalyzerException = onAnalyzerException;
+            // The onAnalyzerException action could be supplied by an external client and so might itself throw an exception.
+            _onAnalyzerException = (exception, analyzer, diagnostic) => { try { onAnalyzerException(exception, analyzer, diagnostic); } catch (Exception) { } };
             _isCompilerAnalyzer = isCompilerAnalyzer;
             _analyzerManager = analyzerManager;
             _singleThreadedAnalyzerToGateMap = singleThreadedAnalyzerToGateMap ?? ImmutableDictionary<DiagnosticAnalyzer, object>.Empty;
