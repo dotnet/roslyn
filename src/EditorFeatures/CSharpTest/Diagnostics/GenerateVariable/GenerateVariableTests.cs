@@ -2784,5 +2784,31 @@ index: 3);
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { int i = 0 ; var x = new Dictionary < string , int > { [ ""Zero"" ] = i } ; } } ",
 index: 3);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGenerateVariableFromLambda()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
+@"using System ; class Program { private static Func < int > foo ; static void Main ( string [ ] args ) { foo = ( ) => { return 0 ; } ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGenerateVariableFromLambda2()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
+@"using System ; class Program { public static Func < int > foo { get ; private set ; } static void Main ( string [ ] args ) { foo = ( ) => { return 0 ; } ; } } ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGenerateVariableFromLambda3()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
+@"using System ; class Program { static void Main ( string [ ] args ) { Func < int > foo = ( ) => { return 0 ; } ; } } ",
+index: 2);
+        }
     }
 }
