@@ -102,7 +102,7 @@
     <Compile Include="Performance\RemoveEmptyFinalizers.vb" />
     <Compile Include="Usage\BasicCA2200DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2214DiagnosticAnalyzer.vb" />
-    <Compile Include="Usage\CodeFixes\CA2235BasicCodeFixProvider.vb" />
+    <Compile Include="Usage\MarkAllNonSerializableFields.Fixer.vb" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.props">
