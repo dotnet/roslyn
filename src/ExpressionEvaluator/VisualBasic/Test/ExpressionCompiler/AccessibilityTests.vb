@@ -41,7 +41,6 @@ End Class
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "Me.get_P()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,

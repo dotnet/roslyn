@@ -15,8 +15,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.DiaSymReader
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
@@ -35,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
+        Private ReadOnly _aliasLocals As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _inScopeHoistedLocals As InScopeHoistedLocals
         Private ReadOnly _methodDebugInfo As MethodDebugInfo
 
@@ -44,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
+            aliasLocals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo)
 
@@ -52,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _metadataDecoder = metadataDecoder
             _currentFrame = currentFrame
             _locals = locals
+            _aliasLocals = aliasLocals
             _inScopeHoistedLocals = inScopeHoistedLocals
             _methodDebugInfo = methodDebugInfo
         End Sub
@@ -99,6 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataDecoder,
                 currentFrame,
                 locals:=Nothing,
+                aliasLocals:=Nothing,
                 inScopeHoistedLocals:=Nothing,
                 methodDebugInfo:=Nothing)
         End Function
@@ -118,6 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Shared Function CreateMethodContext(
             previous As VisualBasicMetadataContext,
             metadataBlocks As ImmutableArray(Of MetadataBlock),
+            aliases As ImmutableArray(Of [Alias]),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
             moduleVersionId As Guid,
@@ -143,6 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Return CreateMethodContext(
                 compilation,
+                aliases,
                 lazyAssemblyReaders,
                 symReader,
                 moduleVersionId,
@@ -154,6 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Shared Function CreateMethodContext(
             compilation As VisualBasicCompilation,
+            aliases As ImmutableArray(Of [Alias]),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
             moduleVersionId As Guid,
@@ -178,12 +187,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
             Dim localNames = GetLocalNames(containingScopes, inScopeHoistedLocalNames)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureToken)
-            Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
-            GetLocals(localBuilder, currentFrame, localNames, localInfo)
-            GetStaticLocals(localBuilder, currentFrame, methodHandle, metadataDecoder)
-            GetConstants(localBuilder, currentFrame, containingScopes, metadataDecoder)
+            Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
+            GetLocals(localsBuilder, currentFrame, localNames, localInfo)
+            GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
+            GetConstants(localsBuilder, currentFrame, containingScopes, metadataDecoder)
             containingScopes.Free()
-            Dim locals = localBuilder.ToImmutableAndFree()
+            Dim locals = localsBuilder.ToImmutableAndFree()
+
+            Dim aliasLocalsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
+            GetAliasLocals(aliasLocalsBuilder, aliases, currentFrame, compilation)
+            Dim aliasLocals = aliasLocalsBuilder.ToImmutableAndFree()
 
             Dim methodDebugInfo As MethodDebugInfo
             Dim inScopeHoistedLocals As InScopeHoistedLocals
@@ -206,6 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataDecoder,
                 currentFrame,
                 locals,
+                aliasLocals,
                 inScopeHoistedLocals,
                 methodDebugInfo)
         End Function
@@ -332,13 +346,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 _metadataDecoder,
                 _currentFrame,
                 _locals,
+                _aliasLocals,
                 _inScopeHoistedLocals,
                 _methodDebugInfo,
                 syntax)
         End Function
 
         Friend Overrides Function CompileExpression(
-            inspectionContext As InspectionContext,
             expr As String,
             compilationFlags As DkmEvaluationFlags,
             diagnostics As DiagnosticBag,
@@ -361,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim context = Me.CreateCompilationContext(DirectCast(syntax, ExecutableStatementSyntax))
             Dim properties As ResultProperties = Nothing
-            Dim moduleBuilder = context.Compile(inspectionContext, s_typeName, s_methodName, testData, diagnostics, properties)
+            Dim moduleBuilder = context.Compile(s_typeName, s_methodName, testData, diagnostics, properties)
             If moduleBuilder Is Nothing Then
                 Return Nothing
             End If
@@ -391,7 +405,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Friend Overrides Function CompileAssignment(
-            inspectionContext As InspectionContext,
             target As String,
             expr As String,
             diagnostics As DiagnosticBag,
@@ -405,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim context = Me.CreateCompilationContext(assignment)
             Dim properties As ResultProperties = Nothing
-            Dim modulebuilder = context.Compile(inspectionContext, s_typeName, s_methodName, testData, diagnostics, properties)
+            Dim modulebuilder = context.Compile(s_typeName, s_methodName, testData, diagnostics, properties)
             If modulebuilder Is Nothing Then
                 Return Nothing
             End If
@@ -442,7 +455,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
 
         Friend Overrides Function CompileGetLocals(
-            aliases As ImmutableArray(Of [Alias]),
             locals As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
             diagnostics As DiagnosticBag,
@@ -450,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             testData As CompilationTestData) As ReadOnlyCollection(Of Byte)
 
             Dim context = Me.CreateCompilationContext(Nothing)
-            Dim modulebuilder = context.CompileGetLocals(aliases, EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
+            Dim modulebuilder = context.CompileGetLocals(EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
             Dim assembly As ReadOnlyCollection(Of Byte) = Nothing
 
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then
@@ -587,6 +599,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Next
             Next
         End Sub
+
+        Private Shared Sub GetAliasLocals(
+            builder As ArrayBuilder(Of LocalSymbol),
+            aliases As ImmutableArray(Of [Alias]),
+            method As MethodSymbol,
+            compilation As VisualBasicCompilation)
+
+            Dim typeNameDecoder = New EETypeNameDecoder(compilation, DirectCast(method.ContainingModule, PEModuleSymbol))
+            For Each [alias] As [Alias] In aliases
+                builder.Add(CreateAliasLocal(typeNameDecoder, method, [alias]))
+            Next
+        End Sub
+
+        Private Shared Function CreateAliasLocal(
+            typeNameDecoder As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol),
+            containingMethod As MethodSymbol,
+            [alias] As [Alias]) As PlaceholderLocalSymbol
+
+            Dim typeName = [alias].Type
+            Debug.Assert(typeName.Length > 0)
+
+            Dim type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName)
+            Debug.Assert(type IsNot Nothing)
+
+            Dim id = [alias].FullName
+            Select Case [alias].Kind
+                Case DkmClrAliasKind.Exception
+                    Return New ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName)
+                Case DkmClrAliasKind.StowedException
+                    Return New ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName)
+                Case DkmClrAliasKind.ReturnValue
+                    Dim index As Integer = 0
+                    PseudoVariableUtilities.TryParseReturnValueIndex(id, index)
+                    Return New ReturnValueLocalSymbol(containingMethod, id, type, index)
+                Case DkmClrAliasKind.ObjectId
+                    Debug.Assert(id.Length > 0 AndAlso id(0) <> "$"c)
+                    Return New ObjectIdLocalSymbol(containingMethod, type, "$" + id, isReadOnly:=True)
+                Case DkmClrAliasKind.Variable
+                    Return New ObjectIdLocalSymbol(containingMethod, type, id, isReadOnly:=False)
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue([alias].Kind)
+            End Select
+        End Function
 
         Friend Overrides Function HasDuplicateTypesOrAssemblies(diagnostic As Diagnostic) As Boolean
             Select Case CType(diagnostic.Code, ERRID)

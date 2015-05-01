@@ -131,16 +131,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var appDomain = moduleInstance.AppDomain;
             var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
+            var aliases = ImmutableArray<Alias>.Empty;
 
             CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
+            if (previous.Matches(metadataBlocks, aliases))
             {
                 compilation = previous.Compilation;
             }
             else
             {
                 compilation = metadataBlocks.ToCompilation();
-                appDomain.SetMetadataContext(new CSharpMetadataContext(metadataBlocks, compilation));
+                appDomain.SetMetadataContext(new CSharpMetadataContext(metadataBlocks, aliases, compilation));
             }
 
             return compilation;

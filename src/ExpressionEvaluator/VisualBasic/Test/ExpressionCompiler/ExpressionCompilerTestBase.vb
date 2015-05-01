@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.DiaSymReader
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.PdbUtilities
@@ -113,6 +114,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Function CreateMethodContext(
             runtime As RuntimeInstance,
             methodName As String,
+            ParamArray aliases As [Alias]()) As EvaluationContext
+
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Const methodVersion = 1
+
+            Dim ilOffset As Integer = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
+
+            Return EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                aliases.ToImmutableArray(),
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken)
+        End Function
+
+        Friend Shared Function CreateMethodContext(
+            runtime As RuntimeInstance,
+            methodName As String,
             Optional atLineNumber As Integer = -1,
             Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing) As EvaluationContext
 
@@ -129,6 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
+                ImmutableArray(Of [Alias]).Empty,
                 If(lazyAssemblyReaders, MakeDummyLazyAssemblyReaders()),
                 symReader,
                 moduleVersionId,
@@ -174,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim result = Evaluate(source, outputKind, methodName, expr, resultProperties, errorMessage, atLineNumber, DefaultInspectionContext.Instance, includeSymbols)
+            Dim result = Evaluate(source, outputKind, methodName, expr, resultProperties, errorMessage, atLineNumber, includeSymbols)
             Assert.Null(errorMessage)
             Return result
         End Function
@@ -187,7 +217,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             <Out> ByRef resultProperties As ResultProperties,
             <Out> ByRef errorMessage As String,
             Optional atLineNumber As Integer = -1,
-            Optional inspection As InspectionContext = Nothing,
             Optional includeSymbols As Boolean = True) As CompilationTestData
 
             Dim compilation0 = CreateCompilationWithReferences(
@@ -200,7 +229,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim testData = New CompilationTestData()
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim result = context.CompileExpression(
-                    If(inspection, DefaultInspectionContext.Instance),
                     expr,
                     DkmEvaluationFlags.TreatAsExpression,
                     VisualBasicDiagnosticFormatter.Instance,
@@ -304,6 +332,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(methodOrType Is Nothing, "Could not find method or type with signature '" + signature + "'.")
 
             Return methodOrType
+        End Function
+
+        Friend Shared Function VariableAlias(name As String, Optional type As Type = Nothing) As [Alias]
+            Return VariableAlias(name, If(type, GetType(Object)).AssemblyQualifiedName)
+        End Function
+
+        Friend Shared Function VariableAlias(name As String, typeAssemblyQualifiedName As String) As [Alias]
+            Return New [Alias](DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, Nothing)
+        End Function
+
+        Friend Shared Function ObjectIdAlias(id As UInteger, Optional type As Type = Nothing) As [Alias]
+            Return ObjectIdAlias(id, If(type, GetType(Object)).AssemblyQualifiedName)
+        End Function
+
+        Friend Shared Function ObjectIdAlias(id As UInteger, typeAssemblyQualifiedName As String) As [Alias]
+            Assert.NotEqual(Of UInteger)(0, id) ' Not a valid id.
+            Dim name = id.ToString()
+            Return New [Alias](DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, Nothing)
+        End Function
+
+        Friend Shared Function ReturnValueAlias(Optional id As Integer = -1, Optional type As Type = Nothing) As [Alias]
+            Return ReturnValueAlias(id, If(type, GetType(Object)).AssemblyQualifiedName)
+        End Function
+
+        Friend Shared Function ReturnValueAlias(id As Integer, typeAssemblyQualifiedName As String) As [Alias]
+            Dim name = $"Method M{If(id < 0, "", id.ToString())} returned"
+            Dim fullName = If(id < 0, "$ReturnValue", $"$ReturnValue{id}")
+            Return New [Alias](DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, Nothing)
+        End Function
+
+        Friend Shared Function ExceptionAlias(Optional type As Type = Nothing, Optional stowed As Boolean = False) As [Alias]
+            Return ExceptionAlias(If(type, GetType(Exception)).AssemblyQualifiedName, stowed)
+        End Function
+
+        Friend Shared Function ExceptionAlias(typeAssemblyQualifiedName As String, Optional stowed As Boolean = False) As [Alias]
+            Dim fullName = If(stowed, "$stowedexception", "$exception")
+            Const name = "Error"
+            Dim kind = If(stowed, DkmClrAliasKind.StowedException, DkmClrAliasKind.Exception)
+            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, Nothing)
+        End Function
+
+        Friend Shared Function [Alias](kind As DkmClrAliasKind, name As String, fullName As String, typeAssemblyQualifiedName As String, customTypeInfo As CustomTypeInfo) As [Alias]
+            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, customTypeInfo)
         End Function
     End Class
 End Namespace

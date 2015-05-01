@@ -185,9 +185,13 @@ End Class"
             Dim methodToken = 0
             Dim localSignatureToken = 0
             GetContextState(runtime, "C.F(Boolean)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+
+            Dim aliases = ImmutableArray(Of [Alias]).Empty
+
             Dim context = EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
+                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,
@@ -230,6 +234,7 @@ End Class"
             context = EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
+                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,

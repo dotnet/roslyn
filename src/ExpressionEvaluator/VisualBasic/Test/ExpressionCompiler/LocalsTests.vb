@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
@@ -132,21 +133,20 @@ End Class"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, methodName:="C.M")
+            Dim context = CreateMethodContext(
+                runtime,
+                "C.M",
+                ExceptionAlias(GetType(System.IO.IOException)),
+                ReturnValueAlias(2, GetType(String)),
+                ReturnValueAlias(),
+                ObjectIdAlias(2, GetType(Boolean)),
+                VariableAlias("o", "C"))
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
             Dim diagnostics = DiagnosticBag.GetInstance()
-            Dim builder = ArrayBuilder(Of [Alias]).GetInstance()
-            builder.Add(New [Alias](AliasKind.Exception, "Error", "$exception", GetType(System.IO.IOException).AssemblyQualifiedName, customTypeInfo:=Nothing))
-            builder.Add(New [Alias](AliasKind.ReturnValue, "F returned", "$ReturnValue2", GetType(String).AssemblyQualifiedName, customTypeInfo:=Nothing))
-            builder.Add(New [Alias](AliasKind.ReturnValue, "G returned", "$ReturnValue", GetType(Object).AssemblyQualifiedName, customTypeInfo:=Nothing))
-            builder.Add(New [Alias](AliasKind.ObjectId, "2", "2", GetType(Boolean).AssemblyQualifiedName, customTypeInfo:=Nothing))
-            builder.Add(New [Alias](AliasKind.DeclaredLocal, "o", "o", "C", customTypeInfo:=Nothing))
-            Dim aliases = builder.ToImmutableAndFree()
 
             Dim testData = New CompilationTestData()
             context.CompileGetLocals(
-                aliases,
                 locals,
                 argumentsOnly:=True,
                 diagnostics:=diagnostics,
@@ -158,7 +158,6 @@ End Class"
 
             testData = New CompilationTestData()
             context.CompileGetLocals(
-                aliases,
                 locals,
                 argumentsOnly:=False,
                 diagnostics:=diagnostics,
@@ -190,7 +189,7 @@ End Class"
   IL_0001:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(Integer) As Object""
   IL_0006:  ret
 }")
-            VerifyLocal(testData, typeName, locals(3), "<>m3", "2", expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(3), "<>m3", "$2", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       16 (0x10)
   .maxstack  1

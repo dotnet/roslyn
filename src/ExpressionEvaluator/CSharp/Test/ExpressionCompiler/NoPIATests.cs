@@ -212,7 +212,6 @@ public interface I
                 // since it was not included in embedded type.
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 context.CompileExpression(
-                    DefaultInspectionContext.Instance,
                     "x.F()",
                     DkmEvaluationFlags.TreatAsExpression,
                     DiagnosticFormatter.Instance,

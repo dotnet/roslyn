@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
                 formatter ?? DiagnosticFormatter.Instance,
@@ -57,7 +56,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ResultProperties resultProperties;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = context.CompileAssignment(
-                DefaultInspectionContext.Instance,
                 target,
                 expr,
                 formatter ?? DiagnosticFormatter.Instance,

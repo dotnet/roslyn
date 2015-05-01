@@ -91,7 +91,6 @@ public class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "parameter",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -126,7 +125,6 @@ public class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "from i in array select i",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -164,7 +162,6 @@ public class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -177,7 +174,6 @@ public class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -227,7 +223,6 @@ namespace System.Linq
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -240,7 +235,6 @@ namespace System.Linq
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -304,7 +298,6 @@ class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "new global::Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -319,7 +312,6 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "new Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -334,7 +326,6 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "new NS.Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -475,7 +466,22 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference);
+
+            byte[] exeBytes;
+            byte[] pdbBytes;
+            ImmutableArray<MetadataReference> unusedReferences;
+            var emitResult = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
+            Assert.True(emitResult);
+
+            var runtime = CreateRuntimeInstance(
+                GetUniqueName(), 
+                ImmutableArray.Create(CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference), 
+                exeBytes, 
+                new SymReader(pdbBytes));
+            var context = CreateMethodContext(
+                runtime, 
+                "C.M", 
+                ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", stowed: true));
 
             const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
             var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
@@ -483,8 +489,7 @@ class C
             ResultProperties resultProperties;
             string actualError;
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
-            var result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("$stowedexception", "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+            context.CompileExpression(
                 "$stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -520,7 +525,6 @@ class C
             string actualError;
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "typeof(@Windows.UI.Colors)",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -559,7 +563,6 @@ class C
             string actualError;
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "typeof(Windows.@UI.Xaml.Application)",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,

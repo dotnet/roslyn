@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -226,21 +227,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var context = CreateMethodContext(
+                runtime, 
+                "C.M",
+                ExceptionAlias(typeof(System.IO.IOException)),
+                ReturnValueAlias(2, typeof(string)),
+                ReturnValueAlias(),
+                ObjectIdAlias(2, typeof(bool)),
+                VariableAlias("o", "C"));
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
             var diagnostics = DiagnosticBag.GetInstance();
-            var builder = ArrayBuilder<Alias>.GetInstance();
-            builder.Add(new Alias(AliasKind.Exception, "Error", "$exception", typeof(System.IO.IOException).AssemblyQualifiedName, default(CustomTypeInfo)));
-            builder.Add(new Alias(AliasKind.ReturnValue, "F returned", "$ReturnValue2", typeof(string).AssemblyQualifiedName, default(CustomTypeInfo)));
-            builder.Add(new Alias(AliasKind.ReturnValue, "G returned", "$ReturnValue", typeof(object).AssemblyQualifiedName, default(CustomTypeInfo)));
-            builder.Add(new Alias(AliasKind.ObjectId, "2", "2", typeof(bool).AssemblyQualifiedName, default(CustomTypeInfo)));
-            builder.Add(new Alias(AliasKind.DeclaredLocal, "o", "o", "C", default(CustomTypeInfo)));
-            var aliases = builder.ToImmutableAndFree();
 
             var testData = new CompilationTestData();
             context.CompileGetLocals(
-                aliases,
                 locals,
                 argumentsOnly: true,
                 diagnostics: diagnostics,
@@ -252,7 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             testData = new CompilationTestData();
             context.CompileGetLocals(
-                aliases,
                 locals,
                 argumentsOnly: false,
                 diagnostics: diagnostics,
@@ -285,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0001:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
   IL_0006:  ret
 }");
-            VerifyLocal(testData, typeName, locals[3], "<>m3", "2", expectedILOpt:
+            VerifyLocal(testData, typeName, locals[3], "<>m3", "$2", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size       16 (0x10)
   .maxstack  1

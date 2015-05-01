@@ -129,6 +129,7 @@ End Class"
                 context = EvaluationContext.CreateMethodContext(
                     previous,
                     methodBlocks,
+                    ImmutableArray(Of [Alias]).Empty,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
                     moduleVersionId,
@@ -364,6 +365,7 @@ End Class"
                 Dim context = EvaluationContext.CreateMethodContext(
                     Nothing,
                     blocks,
+                    ImmutableArray(Of [Alias]).Empty,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
                     moduleVersionId,
@@ -412,6 +414,7 @@ End Class"
                        Dim compilation = If(useReferencedModulesOnly, blocks.ToCompilationReferencedModulesOnly(moduleVersionId), blocks.ToCompilation())
                        Return EvaluationContext.CreateMethodContext(
                             compilation,
+                            ImmutableArray(Of [Alias]).Empty,
                             MakeDummyLazyAssemblyReaders(),
                             symReader,
                             moduleVersionId,

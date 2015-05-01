@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static readonly AssemblyIdentity MicrosoftVisualBasicIdentity = new AssemblyIdentity("Microsoft.VisualBasic");
 
         internal abstract CompileResult CompileExpression(
-            InspectionContext inspectionContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
             DiagnosticBag diagnostics,
@@ -30,7 +29,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData);
 
         internal abstract CompileResult CompileAssignment(
-            InspectionContext inspectionContext,
             string target,
             string expr,
             DiagnosticBag diagnostics,
@@ -38,7 +36,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData);
 
         internal abstract ReadOnlyCollection<byte> CompileGetLocals(
-            ImmutableArray<Alias> aliases,
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
             DiagnosticBag diagnostics,

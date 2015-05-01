@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.Utilities
@@ -29,13 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim context = CreateMethodContext(runtime, "C.M", ObjectIdAlias(3, GetType(Integer)))
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("3", GetType(Integer)),
                 "z = $3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -45,6 +45,7 @@ End Class"
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             Assert.Empty(missingAssemblyIdentities)
+            Assert.Null(errorMessage)
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -86,13 +87,19 @@ End Class"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim context = CreateMethodContext(
+                runtime,
+                "C.M",
+                VariableAlias("x", GetType(String)),
+                VariableAlias("y", GetType(Integer)),
+                VariableAlias("t", GetType(Object)),
+                VariableAlias("d", "C"),
+                VariableAlias("f", GetType(Integer)))
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("x", GetType(String)).Add("y", GetType(Integer)).Add("t", GetType(Object)).Add("d", "C").Add("f", GetType(Integer)),
                 "If(If(If(If(If(x, y), T), F), DirectCast(D, C).F), C.G)",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -156,7 +163,6 @@ End Class"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x = F()",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -188,7 +194,6 @@ End Module"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "s = F(s)",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -222,7 +227,6 @@ End Module"
 }")
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "M(If(t, t))",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -278,7 +282,6 @@ End Module"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "F(o)",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -318,13 +321,12 @@ End Module"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim context = CreateMethodContext(runtime, "C.M", VariableAlias("class"))
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("class", GetType(Object)),
                 "[Me] = [Class]",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -341,13 +343,13 @@ End Class"
   .locals init (System.Guid V_0)
   IL_0000:  ldtoken    ""Object""
   IL_0005:  call       ""Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type""
-  IL_000a:  ldstr      ""me""
+  IL_000a:  ldstr      ""Me""
   IL_000f:  ldloca.s   V_0
   IL_0011:  initobj    ""System.Guid""
   IL_0017:  ldloc.0
   IL_0018:  ldnull
   IL_0019:  call       ""Sub Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, String, System.Guid, Byte())""
-  IL_001e:  ldstr      ""me""
+  IL_001e:  ldstr      ""Me""
   IL_0023:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress(Of Object)(String) As Object""
   IL_0028:  ldstr      ""class""
   IL_002d:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
@@ -372,7 +374,6 @@ End Class"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "y = x",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -423,7 +424,6 @@ End Module"
             ' Object
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -457,7 +457,6 @@ End Module"
             ' Integer
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x% = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -490,7 +489,6 @@ End Module"
             ' Long
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x& = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -524,7 +522,6 @@ End Module"
             ' Single
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x! = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -557,7 +554,6 @@ End Module"
             ' Double
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x# = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -590,7 +586,6 @@ End Module"
             ' String
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x$ = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -624,7 +619,6 @@ End Module"
             ' Decimal
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x@ = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -678,7 +672,6 @@ End Module"
             ' $1
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "$1 = 1",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -692,7 +685,6 @@ End Module"
             ' $exception
             testData = New CompilationTestData()
             result = context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "$1 = 2",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -706,7 +698,6 @@ End Module"
             ' $ReturnValue
             testData = New CompilationTestData()
             result = context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "$ReturnValue = 3",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -720,7 +711,6 @@ End Module"
             ' $x
             testData = New CompilationTestData()
             result = context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "$x = 4",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -748,7 +738,6 @@ End Module"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "ReDim a(3)",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -780,7 +769,6 @@ End Module"
 }")
             testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "ReDim Preserve a(3)",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -832,7 +820,6 @@ End Module"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x += 1",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -877,13 +864,12 @@ End Module"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim context = CreateMethodContext(runtime, "C.M", VariableAlias("x", GetType(String)))
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("x", GetType(String)),
                 "X",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -922,7 +908,6 @@ End Class"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "x = X",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,

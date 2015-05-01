@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal static CompileResult CompileAssignment(
             this EvaluationContextBase context,
-            InspectionContext inspectionContext,
             string target,
             string expr,
             DiagnosticFormatter formatter,
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = context.CompileAssignment(inspectionContext, target, expr, diagnostics, out resultProperties, testData);
+            var result = context.CompileAssignment(target, expr, diagnostics, out resultProperties, testData);
             if (diagnostics.HasAnyErrors())
             {
                 bool useReferencedModulesOnly;
@@ -93,7 +92,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var result = context.CompileGetLocals(
-                ImmutableArray<Alias>.Empty,
                 locals,
                 argumentsOnly,
                 diagnostics,
@@ -112,7 +110,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </returns>
         static internal CompileResult CompileExpression(
             this EvaluationContextBase evaluationContext,
-            InspectionContext inspectionContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
             DiagnosticFormatter formatter,
@@ -123,7 +120,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = evaluationContext.CompileExpression(inspectionContext, expr, compilationFlags, diagnostics, out resultProperties, testData);
+            var result = evaluationContext.CompileExpression(expr, compilationFlags, diagnostics, out resultProperties, testData);
             if (diagnostics.HasAnyErrors())
             {
                 bool useReferencedModulesOnly;
@@ -171,7 +168,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var td = new CompilationTestData();
                     ResultProperties resultProperties;
                     var compileResult = context.CompileExpression(
-                        InspectionContextFactory.Empty,
                         expr,
                         DkmEvaluationFlags.TreatAsExpression,
                         diagnostics,

@@ -45,10 +45,13 @@ End Class
             GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             Const methodVersion = 1
 
+            Dim aliases = ImmutableArray(Of [Alias]).Empty
+
             Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
             Dim context = EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
+                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,
@@ -66,6 +69,7 @@ End Class
             context = EvaluationContext.CreateMethodContext(
                 New VisualBasicMetadataContext(blocks, context),
                 blocks,
+                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,
@@ -114,7 +118,6 @@ End Class
                 Dim errorMessage As String = Nothing
                 Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
                 Dim result = context.CompileExpression(
-                    DefaultInspectionContext.Instance,
                     "M(",
                     DkmEvaluationFlags.TreatAsExpression,
                     CustomDiagnosticFormatter.Instance,
@@ -275,6 +278,8 @@ End Class"
             GetContextState(runtime, "C", typeBlocks, moduleVersionId, symReader, typeToken, localSignatureToken)
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
+            Dim aliases = ImmutableArray(Of [Alias]).Empty
+
             ' Get non-empty scopes.
             Dim scopes = symReader.GetScopes(methodToken, methodVersion, EvaluationContext.IsLocalScopeEndInclusive).WhereAsArray(Function(s) s.Locals.Length > 0)
             Assert.True(scopes.Length >= 3)
@@ -284,12 +289,12 @@ End Class"
             endOffset = outerScope.EndOffset
 
             ' At start of outer scope.
-            Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
+            Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, aliases, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
             Assert.Equal(Nothing, previous)
             previous = New VisualBasicMetadataContext(methodBlocks, context)
 
             ' At end of outer scope - not reused because of the nested scope.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, aliases, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
@@ -308,7 +313,7 @@ End Class"
                     Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
                 End If
 
-                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken)
+                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, aliases, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken)
                 If scope Is previousScope Then
                     Assert.Equal(context, previous.EvaluationContext)
                 Else
@@ -335,7 +340,7 @@ End Class"
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset - 1, localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, aliases, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset - 1, localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
@@ -343,14 +348,14 @@ End Class"
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, aliases, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0))
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' No EvaluationContext. Should reuse Compilation
             previous = New VisualBasicMetadataContext(previous.MetadataBlocks, previous.Compilation)
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, aliases, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
             Assert.Null(previous.EvaluationContext)
             Assert.NotNull(context)
             Assert.Equal(context.Compilation, previous.Compilation)
@@ -3661,15 +3666,14 @@ End Class
             Dim verify As Action(Of String, String) =
                 Sub(expr, expectedError)
                     context.CompileExpression(
-                    DefaultInspectionContext.Instance,
-                    expr,
-                    DkmEvaluationFlags.TreatAsExpression,
-                    DiagnosticFormatter.Instance,
-                    resultProperties,
-                    actualError,
-                    actualMissingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
-                    testData:=Nothing)
+                        expr,
+                        DkmEvaluationFlags.TreatAsExpression,
+                        DiagnosticFormatter.Instance,
+                        resultProperties,
+                        actualError,
+                        actualMissingAssemblyIdentities,
+                        EnsureEnglishUICulture.PreferredOrNull,
+                        testData:=Nothing)
                     Assert.Equal(expectedError, actualError)
                     Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
                 End Sub
@@ -3856,7 +3860,6 @@ End Class"
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
 "F(Sub()
     Dim o = New S()
     With o
@@ -4052,6 +4055,8 @@ End Class
                 Dim localSignatureToken As Integer = Nothing
                 GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader2, methodToken, localSignatureToken)
 
+                Dim aliases = ImmutableArray(Of [Alias]).Empty
+
                 Assert.Same(symReader, symReader2)
 
                 AssertEx.SetEqual(symReader.GetLocalNames(methodToken, methodVersion:=1), "x")
@@ -4060,6 +4065,7 @@ End Class
                 Dim context1 = EvaluationContext.CreateMethodContext(
                     Nothing,
                     blocks,
+                    aliases,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
                     moduleVersionId,
@@ -4080,6 +4086,7 @@ End Class
                 Dim context2 = EvaluationContext.CreateMethodContext(
                     Nothing,
                     blocks,
+                    aliases,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
                     moduleVersionId,

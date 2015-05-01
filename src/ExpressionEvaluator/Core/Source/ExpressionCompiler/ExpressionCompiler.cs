@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger;
@@ -35,18 +36,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
-                var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
+                var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 string error;
                 var r = this.CompileWithRetry(
                     moduleInstance,
                     runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
-                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, aliases, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
                         var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
                         string typeName;
                         var assembly = context.CompileGetLocals(
-                            ImmutableArray<Alias>.Empty,
                             builder,
                             argumentsOnly,
                             diagnostics,
@@ -66,6 +66,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext inspectionContext)
+        {
+            var dkmAliases = runtimeInstance.GetAliases(inspectionContext);
+            if (dkmAliases == null)
+            {
+                return ImmutableArray<Alias>.Empty;
+            }
+
+            var builder = ArrayBuilder<Alias>.GetInstance(dkmAliases.Count);
+            foreach (var dkmAlias in dkmAliases)
+            {
+                builder.Add(new Alias(
+                    dkmAlias.Kind,
+                    dkmAlias.Name,
+                    dkmAlias.FullName,
+                    dkmAlias.Type,
+                    new CustomTypeInfo(
+                        dkmAlias.CustomTypeInfoPayloadTypeId,
+                        dkmAlias.CustomTypeInfoPayload.ToArray())));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
         void IDkmClrExpressionCompiler.CompileExpression(
             DkmLanguageExpression expression,
             DkmClrInstructionAddress instructionAddress,
@@ -77,16 +100,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
-                var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
+                var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
                     moduleInstance,
                     runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
-                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, aliases, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
                         ResultProperties resultProperties;
                         var compileResult = context.CompileExpression(
-                            runtimeInspectionContext,
                             expression.Text,
                             expression.CompilationFlags,
                             diagnostics,
@@ -114,16 +136,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
-                var runtimeInspectionContext = RuntimeInspectionContext.Create(lValue.InspectionContext);
+                var aliases = GetAliases(runtimeInstance, lValue.InspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
                     moduleInstance,
                     runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
-                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, aliases, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
                         ResultProperties resultProperties;
                         var compileResult = context.CompileAssignment(
-                            runtimeInspectionContext,
                             lValue.FullName,
                             expression.Text,
                             diagnostics,
@@ -161,7 +182,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         ResultProperties unusedResultProperties;
                         return context.CompileExpression(
-                            RuntimeInspectionContext.Empty,
                             expression.Text,
                             DkmEvaluationFlags.TreatAsExpression,
                             diagnostics,
@@ -219,6 +239,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract EvaluationContextBase CreateMethodContext(
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
+            ImmutableArray<Alias> aliases,
             Lazy<ImmutableArray<AssemblyReaders>> lazyAssemblyReaders,
             object symReader,
             Guid moduleVersionId,
@@ -230,7 +251,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
 
-        private EvaluationContextBase CreateMethodContext(DkmClrInstructionAddress instructionAddress, ImmutableArray<MetadataBlock> metadataBlocks, bool useReferencedModulesOnly)
+        private EvaluationContextBase CreateMethodContext(
+            DkmClrInstructionAddress instructionAddress, 
+            ImmutableArray<MetadataBlock> metadataBlocks, 
+            ImmutableArray<Alias> aliases,
+            bool useReferencedModulesOnly)
         {
             var moduleInstance = instructionAddress.ModuleInstance;
             var methodToken = instructionAddress.MethodId.Token;
@@ -252,6 +277,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return this.CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
+                aliases,
                 new Lazy<ImmutableArray<AssemblyReaders>>(() => instructionAddress.MakeAssemblyReaders(), LazyThreadSafetyMode.None),
                 symReader: moduleInstance.GetSymReader(),
                 moduleVersionId: moduleInstance.Mvid,

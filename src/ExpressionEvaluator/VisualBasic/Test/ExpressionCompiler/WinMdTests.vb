@@ -197,15 +197,16 @@ End Class"
                 source,
                 ImmutableArray.CreateRange(WinRtRefs),
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")))
-            Dim context = CreateMethodContext(runtime, "C.M")
+            Dim context = CreateMethodContext(
+                runtime,
+                "C.M",
+                VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
+                VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"))
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty.
-                    Add("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime").
-                    Add("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
                 "If(DirectCast(s.Attributes, Object), d.UniversalTime)",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,

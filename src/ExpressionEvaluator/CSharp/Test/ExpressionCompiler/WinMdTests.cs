@@ -261,15 +261,16 @@ class C
                 source,
                 ImmutableArray.CreateRange(WinRtRefs),
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")));
-            var context = CreateMethodContext(runtime, "C.M");
+            var context = CreateMethodContext(
+                runtime, 
+                "C.M",
+                VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
+                VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"));
             ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty.
-                    Add("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime").
-                    Add("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
                 "(object)s.Attributes ?? d.UniversalTime",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -321,7 +322,6 @@ class C
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "f.RenderSize",
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,

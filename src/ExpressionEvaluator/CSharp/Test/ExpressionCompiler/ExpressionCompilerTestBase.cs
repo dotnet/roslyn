@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
@@ -115,6 +116,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static EvaluationContext CreateMethodContext(
             RuntimeInstance runtime,
             string methodName,
+            params Alias[] aliases)
+        {
+            ImmutableArray<MetadataBlock> blocks;
+            Guid moduleVersionId;
+            ISymUnmanagedReader symReader;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+
+            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+
+            return EvaluationContext.CreateMethodContext(
+                default(CSharpMetadataContext),
+                blocks,
+                ImmutableArray.Create(aliases),
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken);
+        }
+
+        internal static EvaluationContext CreateMethodContext(
+            RuntimeInstance runtime,
+            string methodName,
             int atLineNumber = -1)
         {
             ImmutableArray<MetadataBlock> blocks;
@@ -129,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),
                 blocks,
+                ImmutableArray<Alias>.Empty,
                 symReader,
                 moduleVersionId,
                 methodToken: methodToken,
@@ -164,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             ResultProperties resultProperties;
             string error;
-            var result = Evaluate(source, outputKind, methodName, expr, out resultProperties, out error, atLineNumber, DefaultInspectionContext.Instance, includeSymbols);
+            var result = Evaluate(source, outputKind, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
             Assert.Null(error);
             return result;
         }
@@ -177,7 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             out ResultProperties resultProperties,
             out string error,
             int atLineNumber = -1,
-            InspectionContext inspectionContext = null,
             bool includeSymbols = true)
         {
             var compilation0 = CreateCompilationWithMscorlib(
@@ -189,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = context.CompileExpression(
-                inspectionContext ?? DefaultInspectionContext.Instance,
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
                 DiagnosticFormatter.Instance,
@@ -284,6 +310,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
 
             return methodOrType;
+        }
+
+        internal static Alias VariableAlias(string name, Type type = null)
+        {
+            return VariableAlias(name, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias VariableAlias(string name, string typeAssemblyQualifiedName)
+        {
+            return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias ObjectIdAlias(uint id, Type type = null)
+        {
+            return ObjectIdAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias ObjectIdAlias(uint id, string typeAssemblyQualifiedName)
+        {
+            Assert.NotEqual(0u, id); // Not a valid id.
+            var name = id.ToString();
+            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias ReturnValueAlias(int id = -1, Type type = null)
+        {
+            return ReturnValueAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias ReturnValueAlias(int id, string typeAssemblyQualifiedName)
+        {
+            var name = $"Method M{(id < 0 ? "" : id.ToString())} returned";
+            var fullName = id < 0 ? "$ReturnValue" : $"$ReturnValue{id}";
+            return new Alias(DkmClrAliasKind.ReturnValue, fullName, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias ExceptionAlias(Type type = null, bool stowed = false)
+        {
+            return ExceptionAlias((type ?? typeof(Exception)).AssemblyQualifiedName, stowed);
+        }
+
+        internal static Alias ExceptionAlias(string typeAssemblyQualifiedName, bool stowed = false)
+        {
+            var name = "Error";
+            var fullName = stowed ? "$stowedexception" : "$exception";
+            var kind = stowed ? DkmClrAliasKind.StowedException : DkmClrAliasKind.Exception;
+            return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
+        {
+            return new Alias(kind, name, fullName, type, customTypeInfo);
         }
     }
 }

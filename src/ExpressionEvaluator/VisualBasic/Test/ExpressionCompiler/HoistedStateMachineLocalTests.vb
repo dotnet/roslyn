@@ -1399,10 +1399,13 @@ End Class
             GetContextState(runtime, "C.VB$StateMachine_1_M.MoveNext", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             Const methodVersion = 1
 
+            Dim aliases = ImmutableArray(Of [Alias]).Empty
+
             Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=100)
             Dim context = EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
+                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,
@@ -1421,6 +1424,7 @@ End Class
             context = EvaluationContext.CreateMethodContext(
                 New VisualBasicMetadataContext(blocks, context),
                 blocks,
+                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,

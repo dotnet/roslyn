@@ -171,6 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 GetContextState(runtime, "C.M", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
                 int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
 
+                var aliases = ImmutableArray<Alias>.Empty;
+
                 // Compile expression with type context with all modules.
                 var context = EvaluationContext.CreateTypeContext(
                     default(CSharpMetadataContext),
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // B is ambiguous.
                 context.CompileExpression("new B()", out error, testData);
                 Assert.True(error.StartsWith("error CS0433: The type 'B' exists in both "));
-                var previous = new CSharpMetadataContext(typeBlocks, context);
+                var previous = new CSharpMetadataContext(typeBlocks, aliases, context);
 
                 // Compile expression with type context with referenced modules only.
                 context = EvaluationContext.CreateTypeContext(
@@ -214,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 testData = new CompilationTestData();
                 context.CompileExpression(
-                    InspectionContextFactory.Empty,
                     "(new B()).F",
                     DkmEvaluationFlags.None,
                     DiagnosticFormatter.Instance,
@@ -228,7 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // Compile expression with method context with all modules.
                 context = EvaluationContext.CreateMethodContext(
                     previous,
-                    methodBlocks,
+                    methodBlocks, 
+                    aliases,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
@@ -248,7 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 // Compile expression with method context with referenced modules only.
                 context = EvaluationContext.CreateMethodContext(
-                    methodBlocks.ToCompilationReferencedModulesOnly(moduleVersionId),
+                    methodBlocks.ToCompilationReferencedModulesOnly(moduleVersionId), 
+                    aliases,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
@@ -274,7 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // B.F should result in missing assembly AS2 since there were no direct references to AS2.
                 testData = new CompilationTestData();
                 context.CompileExpression(
-                    InspectionContextFactory.Empty,
                     "(new B()).F",
                     DkmEvaluationFlags.None,
                     DiagnosticFormatter.Instance,
@@ -570,6 +572,7 @@ class C
         {
             return (blocks, useReferencedModulesOnly) => EvaluationContext.CreateMethodContext(
                 ToCompilation(blocks, useReferencedModulesOnly, moduleVersionId),
+                ImmutableArray<Alias>.Empty,
                 symReader,
                 moduleVersionId,
                 methodToken,

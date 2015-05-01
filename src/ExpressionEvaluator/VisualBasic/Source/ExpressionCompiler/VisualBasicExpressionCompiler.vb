@@ -62,6 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function CreateMethodContext(
             appDomain As DkmClrAppDomain,
             metadataBlocks As ImmutableArray(Of MetadataBlock),
+            aliases As ImmutableArray(Of [Alias]),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
             moduleVersionId As Guid,
@@ -77,6 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
                 Return EvaluationContext.CreateMethodContext(
                     compilation,
+                    aliases,
                     lazyAssemblyReaders,
                     symReader,
                     moduleVersionId,
@@ -90,6 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim context = EvaluationContext.CreateMethodContext(
                 previous,
                 metadataBlocks,
+                aliases,
                 lazyAssemblyReaders,
                 symReader,
                 moduleVersionId,

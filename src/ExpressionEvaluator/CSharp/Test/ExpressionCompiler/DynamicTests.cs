@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
@@ -434,7 +435,6 @@ public class Outer<T, U>
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             testData = new CompilationTestData();
             result = context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "var dd = d;",
                 DkmEvaluationFlags.None,
                 DiagnosticFormatter.Instance,
@@ -490,28 +490,27 @@ public class Outer<T, U>
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var context = CreateMethodContext(
+                runtime, 
+                "C.M", 
+                Alias(
+                    DkmClrAliasKind.Variable, 
+                    "d1", 
+                    "d1", 
+                    typeof(object).AssemblyQualifiedName, 
+                    MakeCustomTypeInfo(true)),
+                Alias(
+                    DkmClrAliasKind.Variable,
+                    "d2",
+                    "d2",
+                    typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName,
+                    MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
             var diagnostics = DiagnosticBag.GetInstance();
-            var builder = ArrayBuilder<Alias>.GetInstance();
-            builder.Add(new Alias(
-                AliasKind.DeclaredLocal, 
-                "d1", 
-                "d1", 
-                typeof(object).AssemblyQualifiedName, 
-                MakeCustomTypeInfo(true)));
-            builder.Add(new Alias(
-                AliasKind.DeclaredLocal, 
-                "d2", 
-                "d2", 
-                typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName, 
-                MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
-            var aliases = builder.ToImmutableAndFree();
 
             var testData = new CompilationTestData();
             context.CompileGetLocals(
-                aliases,
                 locals,
                 argumentsOnly: false,
                 diagnostics: diagnostics,
