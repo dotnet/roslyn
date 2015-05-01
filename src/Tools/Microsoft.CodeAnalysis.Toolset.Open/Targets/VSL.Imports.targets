@@ -137,7 +137,6 @@
 
     <!-- Implicitly needed by packageresolve.targets.  Should file a bug for a better error message here -->
     <PackagesDir>$(NuGetPackagesPath)\</PackagesDir>
-    <PackagesDir>E:\dd\ros\Open\packages\</PackagesDir>
 
     <DnxVersion Condition="'$(OsEnvironment)'!='Unix'">1.0.0-beta5-11580</DnxVersion>
     <DnxVersion Condition="'$(OsEnvironment)'=='Unix'">1.0.0-beta5-11624</DnxVersion>
