@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectId = this.GetOrCreateProjectId(projectFilePath);
 
-            var name = Path.GetFileNameWithoutExtension(projectFilePath);
+            var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
@@ -660,10 +660,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var docs = new List<DocumentInfo>();
             foreach (var docFileInfo in docFileInfos)
             {
+                string name;
+                ImmutableArray<string> folders;
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+
                 docs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    Path.GetFileName(docFileInfo.LogicalPath),
-                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    name,
+                    folders,
                     projectFile.GetSourceCodeKind(docFileInfo.FilePath),
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
@@ -673,10 +677,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var additonalDocs = new List<DocumentInfo>();
             foreach (var docFileInfo in projectFileInfo.AdditionalDocuments)
             {
+                string name;
+                ImmutableArray<string> folders;
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+
                 additonalDocs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    Path.GetFileName(docFileInfo.LogicalPath),
-                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    name,
+                    folders,
                     SourceCodeKind.Regular,
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
@@ -709,7 +717,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 ProjectInfo.Create(
                     projectId,
                     version,
-                    name,
+                    projectName,
                     assemblyName,
                     loader.Language,
                     projectFilePath,
@@ -746,18 +754,29 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar };
+        private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
-        private static ImmutableArray<string> GetDocumentFolders(string logicalPath)
+        private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
         {
-            var logicalDirectory = Path.GetDirectoryName(logicalPath);
-
-            if (!string.IsNullOrEmpty(logicalDirectory))
+            var pathNames = logicalPath.Split(s_directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
+            if (pathNames.Length > 0)
             {
-                return logicalDirectory.Split(s_directorySplitChars, StringSplitOptions.None).ToImmutableArray();
-            }
+                if (pathNames.Length > 1)
+                {
+                    folders = pathNames.Take(pathNames.Length - 1).ToImmutableArray();
+                }
+                else
+                {
+                    folders = ImmutableArray.Create<string>();
+                }
 
-            return ImmutableArray.Create<string>();
+                name = pathNames[pathNames.Length - 1];
+            }
+            else
+            {
+                name = logicalPath;
+                folders = ImmutableArray.Create<string>();
+            }
         }
 
         private void CheckDocuments(IEnumerable<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
