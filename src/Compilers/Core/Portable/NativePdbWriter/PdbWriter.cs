@@ -773,7 +773,7 @@ namespace Microsoft.Cci
                 if (_deterministic)
                 {
                     var deterministicSymWriter = symWriter as ISymUnmanagedWriter6;
-                    if (symWriter == null)
+                    if (deterministicSymWriter == null)
                     {
                         throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
                     }
