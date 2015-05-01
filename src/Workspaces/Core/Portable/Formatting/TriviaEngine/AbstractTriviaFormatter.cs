@@ -793,9 +793,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         private string GetWhitespaceString(LineColumn lineColumn, LineColumnDelta delta)
         {
             var sb = StringBuilderPool.Allocate();
+
+            var newLine = this.OptionSet.GetOption(FormattingOptions.NewLine, this.Language);
             for (int i = 0; i < delta.Lines; i++)
             {
-                sb.AppendLine();
+                sb.Append(newLine);
             }
 
             if (delta.Spaces == 0)
