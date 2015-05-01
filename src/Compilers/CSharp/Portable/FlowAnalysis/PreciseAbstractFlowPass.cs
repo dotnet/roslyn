@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this is false). Since the analysis proceeds by monotonically changing the state computed
         /// at each label, this must terminate.
         /// </summary>
-        internal bool backwardBranchChanged = false;
+        internal bool backwardBranchChanged;
 
         /// <summary>
         /// See property PendingBranches

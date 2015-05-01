@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private class CommentBuilder
         {
             private readonly DocumentationComment _comment;
-            private ImmutableArray<string>.Builder _parameterNamesBuilder = null;
-            private ImmutableArray<string>.Builder _typeParameterNamesBuilder = null;
-            private ImmutableArray<string>.Builder _exceptionTypesBuilder = null;
-            private Dictionary<string, ImmutableArray<string>.Builder> _exceptionTextBuilders = null;
+            private ImmutableArray<string>.Builder _parameterNamesBuilder;
+            private ImmutableArray<string>.Builder _typeParameterNamesBuilder;
+            private ImmutableArray<string>.Builder _exceptionTypesBuilder;
+            private Dictionary<string, ImmutableArray<string>.Builder> _exceptionTextBuilders;
 
             /// <summary>
             /// Parse and construct a <see cref="DocumentationComment" /> from the given fragment of XML.

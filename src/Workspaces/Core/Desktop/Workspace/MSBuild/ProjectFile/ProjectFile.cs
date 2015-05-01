@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return !string.IsNullOrEmpty(documentItem.GetMetadata("Link"));
         }
 
-        private IDictionary<string, MSB.Evaluation.ProjectItem> _documents = null;
+        private IDictionary<string, MSB.Evaluation.ProjectItem> _documents;
 
         protected bool IsDocumentGenerated(MSB.Framework.ITaskItem documentItem)
         {

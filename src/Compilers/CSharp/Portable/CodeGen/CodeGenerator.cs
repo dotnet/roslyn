@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly HashSet<LocalSymbol> _stackLocals;
 
         // not 0 when in a protected region with a handler. 
-        private int _tryNestingLevel = 0;
+        private int _tryNestingLevel;
 
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
         private int _uniqueNameId;
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private static readonly object s_returnLabel = new object();
 
         private int _asyncCatchHandlerOffset = -1;
-        private ArrayBuilder<int> _asyncYieldPoints = null;
-        private ArrayBuilder<int> _asyncResumePoints = null;
+        private ArrayBuilder<int> _asyncYieldPoints;
+        private ArrayBuilder<int> _asyncResumePoints;
 
         /// <summary>
         /// In some cases returns are handled as gotos to return epilogue.

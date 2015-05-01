@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly SyntaxToken _oldToken;
         private readonly SyntaxToken _newToken;
         private int _count = 1;
-        private bool _found = false;
+        private bool _found;
 
         private SyntaxLastTokenReplacer(SyntaxToken oldToken, SyntaxToken newToken)
         {

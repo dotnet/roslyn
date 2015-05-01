@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public class Vbc : ManagedCompiler
     {
-        private bool _useHostCompilerIfAvailable = false;
+        private bool _useHostCompilerIfAvailable;
 
         // The following 1 fields are used, set and re-set in LogEventsFromTextOutput()
         /// <summary>
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private Queue<VBError> _vbErrorLines = new Queue<VBError>();
 
         // Used when parsing vbc output to determine the column number of an error
-        private bool _isDoneOutputtingErrorMessage = false;
-        private int _numberOfLinesInErrorMessage = 0;
+        private bool _isDoneOutputtingErrorMessage;
+        private int _numberOfLinesInErrorMessage;
 
         #region Properties
 

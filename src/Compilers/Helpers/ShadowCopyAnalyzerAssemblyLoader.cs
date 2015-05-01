@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Used to generate unique names for per-assembly directories.
         /// </summary>
-        private int _assemblyDirectoryId = 0;
+        private int _assemblyDirectoryId;
 
         public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null)
         {
