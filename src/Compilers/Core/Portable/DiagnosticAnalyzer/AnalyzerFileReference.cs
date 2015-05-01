@@ -50,18 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(fullPath));
             }
 
-            // TODO: remove full path normalization
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
-
-            try
-            {
-                _fullPath = Path.GetFullPath(fullPath);
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message, "fullPath");
-            }
-
+            _fullPath = fullPath;
             _lazyAllAnalyzers = default(ImmutableArray<DiagnosticAnalyzer>);
             _lazyAnalyzersPerLanguage = ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty;
             _getAssembly = getAssembly;
@@ -118,32 +107,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static string GetAssemblyNameFromPath(string path)
-        {
-            // AssemblyName.GetAssemblyName(path) is not available on CoreCLR.
-            // Use our metadata reader to do the equivalent thing.
-            using (var reader = new PEReader(FileUtilities.OpenRead(path)))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var assemblyDefinition = metadataReader.GetAssemblyDefinition();
-                return metadataReader.GetString(assemblyDefinition.Name);
-            }
-        }
-
         public override string Display
         {
             get
             {
                 if (_lazyDisplayName == null)
                 {
-                    try
-                    {
-                        _lazyDisplayName = GetAssemblyNameFromPath(_fullPath);
-                    }
-                    catch (Exception)
-                    { }
-
-                    _lazyDisplayName = _lazyDisplayName ?? Path.GetFileName(this.FullPath);
+                    _lazyDisplayName = Path.GetFileName(this.FullPath);
                 }
 
                 return _lazyDisplayName;
@@ -266,14 +236,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticAnalyzer analyzer = null;
                 try
                 {
-                    var type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
+                    var type = analyzerAssembly.GetType(typeName);
                     if (DerivesFromDiagnosticAnalyzer(type))
                     {
                         analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type);
                     }
                 }
-                catch (Exception e) when (e is TypeLoadException || e is BadImageFormatException || e is FileNotFoundException || e is FileLoadException ||
-                                          e is ArgumentException || e is NotSupportedException || e is TargetInvocationException || e is MemberAccessException)
+                catch (Exception e)
                 {
                     this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e, typeName));
                     analyzer = null;
