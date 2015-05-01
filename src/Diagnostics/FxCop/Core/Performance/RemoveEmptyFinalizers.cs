@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
     public abstract class RemoveEmptyFinalizers<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         public const string RuleId = "CA1821";
-        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.RemoveEmptyFinalizers), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.RemoveEmptyFinalizersDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.RemoveEmptyFinalizers), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.RemoveEmptyFinalizersDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableMessageAndTitle,

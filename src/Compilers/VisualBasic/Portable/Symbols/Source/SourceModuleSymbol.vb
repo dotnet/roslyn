@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' holds diagnostics not related to source code 
         ' in any particular source file, for each stage.
-        Private _diagnosticBagDeclare As New DiagnosticBag()
+        Private ReadOnly _diagnosticBagDeclare As New DiagnosticBag()
         'Private m_diagnosticBagCompile As New DiagnosticBag()
         'Private m_diagnosticBagEmit As New DiagnosticBag()
 
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private _nameAndExtension As String
+        Private ReadOnly _nameAndExtension As String
 
         Public Overrides ReadOnly Property Name As String
             Get

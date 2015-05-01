@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class SnippetCompletionProvider : AbstractCompletionProvider
     {
         // If null, the document's language service will be used.
-        private ISnippetInfoService _snippetInfoService;
+        private readonly ISnippetInfoService _snippetInfoService;
 
         public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
         {

@@ -14,8 +14,8 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private const string IEquatableMetadataName = "System.IEquatable`1";
 
-        private static LocalizableString s_localizableTitleImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessageImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitleImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessageImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         private static readonly DiagnosticDescriptor s_implementIEquatableDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.ImplementIEquatableRuleId,
@@ -25,8 +25,8 @@ namespace Roslyn.Diagnostics.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        private static LocalizableString s_localizableTitleOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessageOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitleOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessageOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         private static readonly DiagnosticDescriptor s_overridesObjectEqualsDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.OverrideObjectEqualsRuleId,

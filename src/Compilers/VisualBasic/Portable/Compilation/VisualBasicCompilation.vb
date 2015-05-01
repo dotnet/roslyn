@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The common language version among the trees of the compilation.
         ''' </summary>
-        Private _languageVersion As LanguageVersion
+        Private ReadOnly _languageVersion As LanguageVersion
 
         Public Overrides ReadOnly Property Language As String
             Get

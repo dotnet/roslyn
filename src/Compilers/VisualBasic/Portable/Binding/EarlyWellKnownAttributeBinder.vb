@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class EarlyWellKnownAttributeBinder
         Inherits Binder
 
-        Private _owner As Symbol
+        Private ReadOnly _owner As Symbol
         Friend Sub New(owner As Symbol, containingBinder As Binder)
             MyBase.New(containingBinder, isEarlyAttributeBinder:=True)
             Me._owner = owner

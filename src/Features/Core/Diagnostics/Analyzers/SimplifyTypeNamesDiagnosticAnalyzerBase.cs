@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 {
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.NameCanBeSimplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.NameCanBeSimplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        private static LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.SimplifyNames), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.SimplifyNames), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                                                                     s_localizableTitleSimplifyNames,
                                                                     s_localizableMessage,
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.SimplifyMemberAccess), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.SimplifyMemberAccess), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                                                                     s_localizableTitleSimplifyMemberAccess,
                                                                     s_localizableMessage,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
-        private static LocalizableString s_localizableTitleSimplifyThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.SimplifyThisOrMe), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableTitleSimplifyThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.SimplifyThisOrMe), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId,
                                                                     s_localizableTitleSimplifyThisOrMe,
                                                                     s_localizableMessage,

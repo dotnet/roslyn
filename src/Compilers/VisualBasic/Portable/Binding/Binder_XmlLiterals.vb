@@ -582,7 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private NotInheritable Class XmlNameComparer
             Implements IEqualityComparer(Of XmlName)
 
-            Public Shared Instance As New XmlNameComparer()
+            Public Shared ReadOnly Instance As New XmlNameComparer()
 
             Private Function IEqualityComparer_Equals(x As XmlName, y As XmlName) As Boolean Implements IEqualityComparer(Of XmlName).Equals
                 Return String.Equals(x.LocalName, y.LocalName, StringComparison.Ordinal) AndAlso String.Equals(x.XmlNamespace, y.XmlNamespace, StringComparison.Ordinal)

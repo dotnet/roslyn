@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' # is marked complex as it may start directives.
         ' PERF: Use UShort instead of CharFlags so the compiler can use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        Private Shared s_charProperties As UShort() = {
+        Private Shared ReadOnly s_charProperties As UShort() = {
             CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex,
             CharFlags.Complex, CharFlags.White, CharFlags.LF, CharFlags.Complex, CharFlags.Complex, CharFlags.CR, CharFlags.Complex, CharFlags.Complex,
             CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex,

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
         /// </summary>
-        private string _sourceName;
+        private readonly string _sourceName;
 
         private string _lazyDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;

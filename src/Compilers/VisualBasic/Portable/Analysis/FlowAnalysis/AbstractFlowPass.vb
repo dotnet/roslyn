@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' performance in unlikely but possible code such as this: "int x; if (cond) goto l1; x =
         ''' 3; l5: print x; l4: goto l5; l3: goto l4; l2: goto l3; l1: goto l2;"
         ''' </summary>
-        Private _labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
+        Private ReadOnly _labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
 
         ''' <summary> All of the labels seen so far in this forward scan of the body </summary>
         Private _labelsSeen As New HashSet(Of LabelSymbol)

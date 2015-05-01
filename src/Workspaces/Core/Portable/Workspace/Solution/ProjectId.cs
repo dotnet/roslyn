@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public sealed class ProjectId : IEquatable<ProjectId>
     {
-        private string _debugName;
+        private readonly string _debugName;
 
         /// <summary>
         /// The system generated unique id.

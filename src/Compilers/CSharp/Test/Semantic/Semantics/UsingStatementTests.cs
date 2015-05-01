@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class UsingStatementTests : CompilingTestBase
     {
-        private string _managedClass = @"
+        private readonly string _managedClass = @"
 class MyManagedType : System.IDisposable
 {
     public void Dispose()
     { }
 }";
 
-        private string _managedStruct = @"
+        private readonly string _managedStruct = @"
 struct MyManagedType : System.IDisposable
 {
     public void Dispose()

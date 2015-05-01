@@ -731,13 +731,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <summary>
         ''' Look inside a trivia list for a skipped token that contains the given position.
         ''' </summary>
-        Private s_findSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
+        Private ReadOnly s_findSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
             Function(l, p) FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p)
 
         ''' <summary>
         ''' Look inside a trivia list for a skipped token that contains the given position.
         ''' </summary>
-        Private s_findSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
+        Private ReadOnly s_findSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
             Function(l, p) FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p)
 
         ''' <summary>

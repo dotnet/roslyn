@@ -18,12 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <summary>
         ''' Type context for resolving generic type arguments.
         ''' </summary>
-        Private _typeContextOpt As PENamedTypeSymbol
+        Private ReadOnly _typeContextOpt As PENamedTypeSymbol
 
         ''' <summary>
         ''' Method context for resolving generic method type arguments.
         ''' </summary>
-        Private _methodContextOpt As PEMethodSymbol
+        Private ReadOnly _methodContextOpt As PEMethodSymbol
 
         Public Sub New(
             moduleSymbol As PEModuleSymbol,

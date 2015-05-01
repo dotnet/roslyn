@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Try
         End Function
 
-        Private _dataFlowsIn As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _dataFlowsIn As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 
         Private Function ResetState(state As LocalState) As LocalState
             Dim unreachable As Boolean = Not state.Reachable

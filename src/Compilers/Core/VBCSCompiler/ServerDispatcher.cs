@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private class ConnectionData
         {
-            public Task<CompletionReason> ConnectionTask;
+            public readonly Task<CompletionReason> ConnectionTask;
             public Task<TimeSpan?> ChangeKeepAliveTask;
 
             internal ConnectionData(Task<CompletionReason> connectionTask, Task<TimeSpan?> changeKeepAliveTask)

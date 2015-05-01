@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+        private readonly EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.

@@ -35,9 +35,9 @@ namespace System.Runtime.Analyzers
         internal const string RuleIdDoNotMarkEnumsWithFlags = "CA2217";
         internal const string RuleNameForExportAttribute = "EnumWithFlagsAttributeRules";
 
-        private static LocalizableString s_localizableTitleCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlags), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static LocalizableString s_localizableMessageCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsMessage), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static LocalizableString s_localizableDescriptionCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableTitleCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlags), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsMessage), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableDescriptionCA1027 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkEnumsWithFlagsDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor Rule1027 = new DiagnosticDescriptor(RuleIdMarkEnumsWithFlags,
                                                                              s_localizableTitleCA1027,
                                                                              s_localizableMessageCA1027,
@@ -48,9 +48,9 @@ namespace System.Runtime.Analyzers
                                                                              helpLinkUri: "http://msdn.microsoft.com/library/ms182159.aspx",
                                                                              customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString s_localizableTitleCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlags), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static LocalizableString s_localizableMessageCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsMessage), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static LocalizableString s_localizableDescriptionCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableTitleCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlags), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsMessage), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableDescriptionCA2217 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DoNotMarkEnumsWithFlagsDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor Rule2217 = new DiagnosticDescriptor(RuleIdDoNotMarkEnumsWithFlags,
                                                                              s_localizableTitleCA2217,
                                                                              s_localizableMessageCA2217,

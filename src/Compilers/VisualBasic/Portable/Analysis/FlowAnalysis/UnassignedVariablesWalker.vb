@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Try
         End Function
 
-        Private _result As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _result As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 
         Protected Overrides Sub ReportUnassigned(local As Symbol,
                                                  node As VisualBasicSyntaxNode,

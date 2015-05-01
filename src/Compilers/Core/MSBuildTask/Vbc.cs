@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// This stores the origional lines and error priority together in the order in which they were recieved.
         /// </summary>
-        private Queue<VBError> _vbErrorLines = new Queue<VBError>();
+        private readonly Queue<VBError> _vbErrorLines = new Queue<VBError>();
 
         // Used when parsing vbc output to determine the column number of an error
         private bool _isDoneOutputtingErrorMessage;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal override BuildProtocolConstants.RequestLanguage Language
             => BuildProtocolConstants.RequestLanguage.VisualBasicCompile;
 
-        private static string[] s_separator = { "\r\n" };
+        private static readonly string[] s_separator = { "\r\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -1104,8 +1104,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private class VBError
         {
-            public string Message { get; set; }
-            public MessageImportance MessageImportance { get; set; }
+            public string Message { get; }
+            public MessageImportance MessageImportance { get; }
 
             public VBError(string message, MessageImportance importance)
             {

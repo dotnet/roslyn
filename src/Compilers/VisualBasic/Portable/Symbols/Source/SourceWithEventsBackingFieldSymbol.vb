@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SourceWithEventsBackingFieldSymbol
         Inherits SourceMemberFieldSymbol
 
-        Private _property As SourcePropertySymbol
+        Private ReadOnly _property As SourcePropertySymbol
 
         Public Sub New([property] As SourcePropertySymbol,
                        syntaxRef As SyntaxReference,

@@ -2577,9 +2577,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private struct SpanRangeEdit
         {
-            public int Start;
-            public int Count;
-            public ReplSpan[] Replacement;
+            public readonly int Start;
+            public readonly int Count;
+            public readonly ReplSpan[] Replacement;
 
             public SpanRangeEdit(int start, int count, ReplSpan[] replacement)
             {

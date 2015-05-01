@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _symbol As Symbol
 
         ''' <summary> Root syntax node </summary>
-        Private _root As VisualBasicSyntaxNode
+        Private ReadOnly _root As VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Initializes a new instance of the <see cref="DeclarationInitializerBinder"/> class.

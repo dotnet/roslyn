@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private static ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declAttributes
+        private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declAttributes
             = new ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>>();
 
         public override IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration)
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return attrs;
         }
 
-        private static ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declReturnAttributes
+        private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declReturnAttributes
             = new ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>>();
 
         public override IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration)

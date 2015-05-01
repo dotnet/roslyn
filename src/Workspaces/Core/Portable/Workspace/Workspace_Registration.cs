@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             return new WorkspaceRegistration();
         }
 
-        private static ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
+        private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
 
         /// <summary>
         /// Returns a <see cref="WorkspaceRegistration" /> for a given text container.

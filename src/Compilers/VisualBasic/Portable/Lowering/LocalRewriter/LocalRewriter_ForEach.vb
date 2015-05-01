@@ -782,8 +782,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class LocalVariableSubstitutor
             Inherits BoundTreeRewriter
 
-            Private _original As LocalSymbol
-            Private _replacement As LocalSymbol
+            Private ReadOnly _original As LocalSymbol
+            Private ReadOnly _replacement As LocalSymbol
             Private _replacedNode As Boolean = False
 
             Public Shared Function Replace(

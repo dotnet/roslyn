@@ -3781,7 +3781,7 @@ End Class
             Assert.Equal("Me, t, t1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
-        Private Shared s_customIL As XCData = <![CDATA[
+        Private Shared ReadOnly s_customIL As XCData = <![CDATA[
 .class public auto ansi beforefieldinit External
        extends [mscorlib]System.Object
 {

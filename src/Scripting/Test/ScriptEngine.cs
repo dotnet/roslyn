@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         // state captured by session at creation time:
         private ScriptOptions _options = ScriptOptions.Default;
-        private ScriptBuilder _builder;
+        private readonly ScriptBuilder _builder;
 
         static ScriptEngine()
         {

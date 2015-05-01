@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///  (a) Key: Unassigned field symbol.
         ///  (b) Value: True if the unassigned field is effectively internal, false otherwise.
         /// </summary>
-        private ConcurrentDictionary<FieldSymbol, bool> _unassignedFieldsMap = new ConcurrentDictionary<FieldSymbol, bool>();
+        private readonly ConcurrentDictionary<FieldSymbol, bool> _unassignedFieldsMap = new ConcurrentDictionary<FieldSymbol, bool>();
 
         /// <summary>
         /// private fields declared in this assembly but never read
         /// </summary>
-        private ConcurrentSet<FieldSymbol> _unreadFields = new ConcurrentSet<FieldSymbol>();
+        private readonly ConcurrentSet<FieldSymbol> _unreadFields = new ConcurrentSet<FieldSymbol>();
 
         /// <summary>
         /// We imitate the native compiler's policy of not warning about unused fields

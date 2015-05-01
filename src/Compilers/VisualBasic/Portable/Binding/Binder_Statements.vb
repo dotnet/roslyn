@@ -4143,7 +4143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Checks if a given symbol is a function that takes no parameters.
         ''' </summary>
-        Private Shared s_isFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
+        Private Shared ReadOnly s_isFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
                                                                                       If sym.Kind = SymbolKind.Method Then
                                                                                           Dim method = DirectCast(sym, MethodSymbol)
                                                                                           Return Not method.IsSub() AndAlso
@@ -4156,7 +4156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Checks if a given symbol is a property that is readable.
         ''' </summary>
-        Private Shared s_isReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
+        Private Shared ReadOnly s_isReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
                                                                                               If sym.Kind = SymbolKind.Property Then
                                                                                                   Dim prop = DirectCast(sym, PropertySymbol)
                                                                                                   Return prop.IsReadable AndAlso

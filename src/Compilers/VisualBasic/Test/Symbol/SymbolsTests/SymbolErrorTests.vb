@@ -10404,7 +10404,7 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        Private Shared s_typeWithMixedProperty As String = <![CDATA[
+        Private Shared ReadOnly s_typeWithMixedProperty As String = <![CDATA[
 .class public auto ansi beforefieldinit Base_VirtGet_Set
        extends [mscorlib]System.Object
 {

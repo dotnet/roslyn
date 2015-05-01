@@ -48,7 +48,7 @@ Public Class ParseTree
     Public RootToken, RootTrivia As ParseNodeStructure
 
     ' Remember nodes with errors so we only report one error per node.
-    Private _elementsWithErrors As New Dictionary(Of XNode, Boolean)
+    Private ReadOnly _elementsWithErrors As New Dictionary(Of XNode, Boolean)
 
     ' Report an error.
     Public Sub ReportError(referencingNode As XNode, message As String, ParamArray args As Object())
@@ -501,7 +501,7 @@ Public Class ParseNodeChild
 
     Public ReadOnly SeparatorsName As String
 
-    Private _childKindNames As New Dictionary(Of String, List(Of String))
+    Private ReadOnly _childKindNames As New Dictionary(Of String, List(Of String))
     Private _childKind As Object
 
     Public ReadOnly SeparatorsTypeId As String

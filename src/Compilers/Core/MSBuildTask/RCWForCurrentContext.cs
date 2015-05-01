@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Indicates if we created the RCW and therefore need to release it's com reference.
         /// </summary>
-        private bool _shouldReleaseRCW;
+        private readonly bool _shouldReleaseRCW;
 
         /// <summary>
         /// Constructor creates the new RCW in the current context.

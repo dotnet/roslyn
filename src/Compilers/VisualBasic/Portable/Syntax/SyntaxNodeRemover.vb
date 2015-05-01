@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Private ReadOnly _nodesToRemove As HashSet(Of SyntaxNode)
             Private ReadOnly _options As SyntaxRemoveOptions
             Private ReadOnly _searchSpan As TextSpan
-            Private _residualTrivia As SyntaxTriviaListBuilder
+            Private ReadOnly _residualTrivia As SyntaxTriviaListBuilder
             Private _directivesToKeep As HashSet(Of SyntaxNode)
 
             Public Sub New(nodes As SyntaxNode(), options As SyntaxRemoveOptions)

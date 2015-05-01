@@ -15,7 +15,7 @@ namespace System.Runtime.Analyzers
     public abstract class UseGenericEventHandler : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1003";
-        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.UseGenericEventHandlerInstances), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.UseGenericEventHandlerInstances), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RuleId,
@@ -71,11 +71,11 @@ namespace System.Runtime.Analyzers
 
         protected abstract class AnalyzerBase
         {
-            private Compilation _compilation;
-            private INamedTypeSymbol _eventHandler;
-            private INamedTypeSymbol _genericEventHandler;
-            private INamedTypeSymbol _eventArgs;
-            private INamedTypeSymbol _comSourceInterfacesAttribute;
+            private readonly Compilation _compilation;
+            private readonly INamedTypeSymbol _eventHandler;
+            private readonly INamedTypeSymbol _genericEventHandler;
+            private readonly INamedTypeSymbol _eventArgs;
+            private readonly INamedTypeSymbol _comSourceInterfacesAttribute;
 
             public AnalyzerBase(
                 Compilation compilation,

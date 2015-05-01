@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Private _modifiedSubSpans As List(Of ValueTuple(Of TextSpan, TextSpan)) = Nothing
             Private _speculativeModel As SemanticModel
             Private _isProcessingStructuredTrivia As Integer
-            Private _complexifiedSpans As HashSet(Of TextSpan) = New HashSet(Of TextSpan)
+            Private ReadOnly _complexifiedSpans As HashSet(Of TextSpan) = New HashSet(Of TextSpan)
 
             Private Sub AddModifiedSpan(oldSpan As TextSpan, newSpan As TextSpan)
                 newSpan = New TextSpan(oldSpan.Start, newSpan.Length)

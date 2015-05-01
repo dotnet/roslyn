@@ -145,7 +145,7 @@ Public Class Test
     End Sub
 End Class
 ]]>.Value
-        Private _commonValidatorForCondAttrType As Func(Of Boolean, Action(Of ModuleSymbol)) =
+        Private ReadOnly _commonValidatorForCondAttrType As Func(Of Boolean, Action(Of ModuleSymbol)) =
             Function(isFromSource As Boolean) _
                 Sub(m As ModuleSymbol)
 

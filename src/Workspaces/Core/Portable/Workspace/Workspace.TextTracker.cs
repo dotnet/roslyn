@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
             private readonly Workspace _workspace;
             private readonly DocumentId _documentId;
             internal readonly SourceTextContainer TextContainer;
-            private EventHandler<TextChangeEventArgs> _weakOnTextChanged;
+            private readonly EventHandler<TextChangeEventArgs> _weakOnTextChanged;
             private readonly Action<Workspace, DocumentId, SourceText, PreservationMode> _onChangedHandler;
 
             internal TextTracker(

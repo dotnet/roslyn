@@ -2007,7 +2007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _semanticModel As MemberSemanticModel
             Private ReadOnly _thisSyntaxNodeOnly As VisualBasicSyntaxNode ' If not Nothing, record nodes for this syntax node only.
             Private _placeholderReplacementMap As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
-            Private _nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode)
+            Private ReadOnly _nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode)
 
             Private Sub New(semanticModel As MemberSemanticModel, thisSyntaxNodeOnly As VisualBasicSyntaxNode, nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode))
                 _semanticModel = semanticModel

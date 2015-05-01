@@ -127,8 +127,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend NotInheritable Class WithTwoChildren
             Inherits SyntaxList
 
-            Private _child0 As VisualBasicSyntaxNode
-            Private _child1 As VisualBasicSyntaxNode
+            Private ReadOnly _child0 As VisualBasicSyntaxNode
+            Private ReadOnly _child1 As VisualBasicSyntaxNode
 
             Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
@@ -206,9 +206,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend NotInheritable Class WithThreeChildren
             Inherits SyntaxList
 
-            Private _child0 As VisualBasicSyntaxNode
-            Private _child1 As VisualBasicSyntaxNode
-            Private _child2 As VisualBasicSyntaxNode
+            Private ReadOnly _child0 As VisualBasicSyntaxNode
+            Private ReadOnly _child1 As VisualBasicSyntaxNode
+            Private ReadOnly _child2 As VisualBasicSyntaxNode
 
             Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
@@ -632,7 +632,7 @@ enter:
     End Class
 
     Friend Structure SyntaxListBuilder(Of TNode As VisualBasicSyntaxNode)
-        Private _builder As SyntaxListBuilder
+        Private ReadOnly _builder As SyntaxListBuilder
 
         Public Shared Function Create() As SyntaxListBuilder(Of TNode)
             Return New SyntaxListBuilder(Of TNode)(8)
@@ -711,7 +711,7 @@ enter:
     End Structure
 
     Friend Structure SeparatedSyntaxListBuilder(Of TNode As VisualBasicSyntaxNode)
-        Private _builder As SyntaxListBuilder
+        Private ReadOnly _builder As SyntaxListBuilder
         Public Sub New(size As Integer)
             Me.New(New SyntaxListBuilder(size))
         End Sub
@@ -782,7 +782,7 @@ enter:
     Friend Structure SyntaxList(Of TNode As VisualBasicSyntaxNode)
         Implements IEquatable(Of SyntaxList(Of TNode))
 
-        Private _node As GreenNode
+        Private ReadOnly _node As GreenNode
 
         Friend Sub New(node As GreenNode)
             Me._node = node

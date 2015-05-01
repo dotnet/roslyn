@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
         /// </summary>
-        private AnonymousTypeManager _anonymousTypeManager;
+        private readonly AnonymousTypeManager _anonymousTypeManager;
 
         private NamespaceSymbol _lazyGlobalNamespace;
 
@@ -176,8 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Constructors and Factories
 
-        private static CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-        private static CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+        private static readonly CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         /// <summary>
         /// Creates a new compilation from scratch. Methods such as AddSyntaxTrees or AddReferences
@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
+        private readonly DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
 
         internal DeclarationTable Declarations
         {

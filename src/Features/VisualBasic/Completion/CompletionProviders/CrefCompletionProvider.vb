@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class CrefCompletionProvider
         Inherits AbstractCompletionProvider
 
-        Private _crefFormat2 As SymbolDisplayFormat =
+        Private ReadOnly _crefFormat2 As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,

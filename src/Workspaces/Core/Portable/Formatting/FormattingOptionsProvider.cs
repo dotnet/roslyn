@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     [ExportOptionProvider, Shared]
     internal class FormattingOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> _options = new List<IOption>
+        private readonly IEnumerable<IOption> _options = new List<IOption>
         {
             FormattingOptions.UseTabs,
             FormattingOptions.TabSize,

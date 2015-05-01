@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.vb
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.dll
         /// </summary>
-        private static string s_sourcePia1 =
+        private static readonly string s_sourcePia1 =
 @"
 using System;
 using System.Reflection;
@@ -58,7 +58,7 @@ namespace NS1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.dll
         /// </summary>
-        private static string s_sourceLocalTypes1_IL =
+        private static readonly string s_sourceLocalTypes1_IL =
 @"
 using System;
 using System.Runtime.CompilerServices;
@@ -91,7 +91,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.vb
         /// </summary>
-        private static string s_sourceLocalTypes1 =
+        private static readonly string s_sourceLocalTypes1 =
 @"
 using NS1;
 
@@ -106,7 +106,7 @@ public class LocalTypes1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.dll
         /// </summary>
-        private static string s_sourceLocalTypes2_IL =
+        private static readonly string s_sourceLocalTypes2_IL =
 @"
 using NS1;
 using System;
@@ -139,7 +139,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.vb
         /// </summary>
-        private static string s_sourceLocalTypes2 =
+        private static readonly string s_sourceLocalTypes2 =
 @"
 using NS1;
 
@@ -154,7 +154,7 @@ public class LocalTypes2
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.dll
         /// </summary>
-        private static string s_sourceLocalTypes3_IL =
+        private static readonly string s_sourceLocalTypes3_IL =
 @"
 using System;
 using System.Reflection;
@@ -219,7 +219,7 @@ public class LocalTypes3
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.vb
         /// </summary>
-        private static string s_sourceLocalTypes3 =
+        private static readonly string s_sourceLocalTypes3 =
 @"
 using System;
 using System.Collections.Generic;

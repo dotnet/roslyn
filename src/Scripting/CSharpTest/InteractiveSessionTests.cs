@@ -2751,7 +2751,7 @@ new System.Data.DataSet()
 
         private class MetadataReferenceProvider : Microsoft.CodeAnalysis.MetadataFileReferenceProvider
         {
-            private Dictionary<string, PortableExecutableReference> _metadata;
+            private readonly Dictionary<string, PortableExecutableReference> _metadata;
 
             public MetadataReferenceProvider(Dictionary<string, PortableExecutableReference> metadata)
             {

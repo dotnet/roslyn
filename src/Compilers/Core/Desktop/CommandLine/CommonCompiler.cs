@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _clientDirectory;
 
-        public CommonMessageProvider MessageProvider { get; private set; }
-        public CommandLineArguments Arguments { get; private set; }
+        public CommonMessageProvider MessageProvider { get; }
+        public CommandLineArguments Arguments { get; }
         public IAnalyzerAssemblyLoader AnalyzerLoader { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();

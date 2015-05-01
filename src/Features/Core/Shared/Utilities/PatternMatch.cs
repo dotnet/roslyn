@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public PatternMatchKind Kind { get; }
 
-        private bool _punctuationStripped;
+        private readonly bool _punctuationStripped;
 
         internal PatternMatch(PatternMatchKind resultType, bool punctuationStripped, bool isCaseSensitive, int? camelCaseWeight = null)
             : this()

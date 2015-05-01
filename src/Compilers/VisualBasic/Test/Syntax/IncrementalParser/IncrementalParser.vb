@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 
 Public Class IncrementalParser
 
-    Private _s As String = <![CDATA[
+    Private ReadOnly _s As String = <![CDATA[
 '-----------------------
 '
 '  Copyright (c)
