@@ -2641,5 +2641,50 @@ partial class C
     }}
     #endregion";
         }
+
+        [WorkItem(1132014)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public void TestInaccesibleAttributes()
+        {
+            Test(
+@"using System;
+
+public class Foo : [|Holder.SomeInterface|]
+{
+}
+
+public class Holder
+{
+    public interface SomeInterface
+    {
+        void Something([SomeAttribute] string helloWorld);
+    }
+
+    private class SomeAttribute : Attribute
+    {
+    }
+}",
+@"using System;
+
+public class Foo : Holder.SomeInterface
+{
+    public void Something(string helloWorld)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class Holder
+{
+    public interface SomeInterface
+    {
+        void Something([SomeAttribute] string helloWorld);
+    }
+
+    private class SomeAttribute : Attribute
+    {
+    }
+}");
+        }
     }
 }
