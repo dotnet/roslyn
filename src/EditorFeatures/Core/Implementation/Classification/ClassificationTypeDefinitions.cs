@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private UserTypeEnumsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Enums;
-                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+                this.ForegroundColor = Color.FromRgb(0x66, 0x8C, 0x92);
             }
         }
         #endregion
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private UserTypeInterfacesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_Interfaces;
-                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+                this.ForegroundColor = Color.FromRgb(0x66, 0x8C, 0x92);
             }
         }
         #endregion
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private UserTypeTypeParametersFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.FontAndColors_UserTypes_TypeParameters;
-                this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+                this.ForegroundColor = Color.FromRgb(0x66, 0x8C, 0x92);
             }
         }
         #endregion
