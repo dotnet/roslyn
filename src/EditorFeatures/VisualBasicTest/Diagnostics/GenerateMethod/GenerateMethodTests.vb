@@ -2192,6 +2192,23 @@ NewLines("Imports System\nImports System.Collections.Generic\nImports System.Lin
 index:=1)
         End Sub
 
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateMethodWithMethodChaining()
+            Test(
+NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
+NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private Function F() As Task(Of Boolean)\n        Throw New NotImplementedException()\n    End Function\nEnd Module"))
+        End Sub
+
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateMethodWithMethodChaining2()
+            Test(
+NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
+NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private ReadOnly Property F As Task(Of Boolean)\n        Get\n            Throw New NotImplementedException()\n        End Get\n    End Property\nEnd Module"),
+index:=1)
+        End Sub
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

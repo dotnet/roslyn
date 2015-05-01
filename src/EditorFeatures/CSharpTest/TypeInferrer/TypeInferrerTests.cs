@@ -1483,5 +1483,41 @@ catch (Exception) if ([|M|].N)
 }";
             TestInMethod(text, "System.Object", testPosition: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        public void TestAwaitExpressionWithChainingMethod()
+        {
+            var text =
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async void T()
+    {
+        bool x = await [|M()|].ConfigureAwait(false);
+    }
+}";
+            Test(text, "global::System.Threading.Tasks.Task<System.Boolean>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        public void TestAwaitExpressionWithChainingMethod2()
+        {
+            var text =
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async void T()
+    {
+        bool x = await [|M|].ContinueWith(a => { return true; }).ContinueWith(a => { return false; });
+    }
+}";
+            Test(text, "global::System.Threading.Tasks.Task<System.Boolean>");
+        }
     }
 }

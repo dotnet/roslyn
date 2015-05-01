@@ -79,10 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     parent = parent.Parent
                 End If
 
-                If TypeOf parent Is MemberAccessExpressionSyntax AndAlso
-                   TypeOf parent.Parent Is InvocationExpressionSyntax AndAlso
-                   TypeOf parent.Parent.Parent Is AwaitExpressionSyntax Then
-                    parent = parent.Parent.Parent
+                If TypeOf parent Is MemberAccessExpressionSyntax Then
+                    Dim awaitExpression = parent.GetAncestor(Of AwaitExpressionSyntax)
+                    Dim lambdaExpression = parent.GetAncestor(Of LambdaExpressionSyntax)
+                    If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
+                        parent = awaitExpression
+                    End If
                 End If
 
                 Return parent.TypeSwitch(

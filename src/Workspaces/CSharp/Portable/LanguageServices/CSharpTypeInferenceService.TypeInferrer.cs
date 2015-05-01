@@ -193,11 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parent = parent.Parent;
                 }
 
-                if (parent is MemberAccessExpressionSyntax &&
-                    parent.Parent is InvocationExpressionSyntax &&
-                    parent.Parent.Parent is AwaitExpressionSyntax)
+
+                if (parent is MemberAccessExpressionSyntax)
                 {
-                    parent = parent.Parent.Parent;
+                    var awaitExpression = parent.GetAncestor<AwaitExpressionSyntax>();
+                    if (awaitExpression != null)
+                    {
+                        parent = awaitExpression;
+                    }
                 }
 
                 return parent.TypeSwitch(
