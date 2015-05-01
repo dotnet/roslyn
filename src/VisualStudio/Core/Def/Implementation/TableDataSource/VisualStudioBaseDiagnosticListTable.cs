@@ -238,6 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
                 {
                     private readonly TableEntriesFactory _factory;
+
+                    // TODO: remove this once we get new drop
                     private readonly int _projectRank;
 
                     private FrameworkElement[] _descriptions;
@@ -245,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     public TableEntriesSnapshot(
                         TableEntriesFactory factory, int version,
                         int projectRank, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, items, trackingPoints)
+                        base(version, GetProjectGuid(factory._workspace, factory._projectId), items, trackingPoints)
                     {
                         _projectRank = projectRank;
                         _factory = factory;
@@ -311,8 +313,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
                                 return content != null;
+                            case ProjectGuidKey:
+                                content = ProjectGuid;
+                                return ProjectGuid != Guid.Empty;
                             case StandardTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._projectId, _factory._documentId);
+                                // TODO: remove this once we move to new drop
+                                content = GetHierarchy(_factory._workspace, _factory._projectId);
                                 return content != null;
                             default:
                                 content = null;
