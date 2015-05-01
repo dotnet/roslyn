@@ -324,6 +324,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 return GetAttributeNodes(parent.Parent);
             }
+            else if (parent is AccessorDeclarationSyntax)
+            {
+                return GetAttributeNodes(((AccessorDeclarationSyntax)parent).AttributeLists);
+            }
 
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
