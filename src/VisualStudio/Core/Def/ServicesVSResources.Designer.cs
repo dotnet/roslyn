@@ -160,6 +160,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current block.
+        /// </summary>
+        internal static string CurrentBlock {
+            get {
+                return ResourceManager.GetString("CurrentBlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Debugger.
         /// </summary>
         internal static string Debugger {
@@ -201,6 +210,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string DeterminingBreakpointLocation {
             get {
                 return ResourceManager.GetString("DeterminingBreakpointLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Determining current block..
+        /// </summary>
+        internal static string DeterminingCurrentBlock {
+            get {
+                return ResourceManager.GetString("DeterminingCurrentBlock", resourceCulture);
             }
         }
         
