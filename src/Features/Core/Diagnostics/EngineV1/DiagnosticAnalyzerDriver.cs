@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private ImmutableArray<ISymbol> _lazySymbols;
         private ImmutableArray<SyntaxNode> _lazyAllSyntaxNodesToAnalyze;
 
-        private AnalyzerOptions _analyzerOptions = null;
+        private AnalyzerOptions _analyzerOptions;
 
         public DiagnosticAnalyzerDriver(
             Document document, 

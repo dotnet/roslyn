@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // At most one of these should be non-null.
         private Lazy<SemanticModel> _lazySemanticModel;
         private SemanticModel _semanticModel;
-        private WeakReference<SemanticModel> _weakModel = null;
+        private WeakReference<SemanticModel> _weakModel;
 
         /// <summary>
         /// Lockable object only instance is knowledgeable about.

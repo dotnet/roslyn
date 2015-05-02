@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedCompiler : ToolTask
     {
-        private CancellationTokenSource _sharedCompileCts = null;
+        private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         public ManagedCompiler()
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// to create our own.
         /// </summary>
         [Output]
-        public new int ExitCode { get; private set; } = 0;
+        public new int ExitCode { get; private set; }
 
         /// <summary>
         /// Handle a response from the server, reporting messages and returning

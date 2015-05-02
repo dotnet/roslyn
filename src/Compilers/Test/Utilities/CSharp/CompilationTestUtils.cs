@@ -149,10 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public ISymbol Symbol;
             public CandidateReason CandidateReason;
             public ImmutableArray<ISymbol> CandidateSymbols = ImmutableArray.Create<ISymbol>();
-            public ITypeSymbol Type = null;
-            public ITypeSymbol ConvertedType = null;
+            public ITypeSymbol Type;
+            public ITypeSymbol ConvertedType;
             public Conversion ImplicitConversion = default(Conversion);
-            public IAliasSymbol Alias = null;
+            public IAliasSymbol Alias;
             public Optional<object> ConstantValue = default(Optional<object>);
             public bool IsCompileTimeConstant { get { return ConstantValue.HasValue; } }
             public ImmutableArray<ISymbol> MemberGroup = ImmutableArray.Create<ISymbol>();

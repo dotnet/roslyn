@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public event Action<string> FileFound;
 
-        private readonly string _rootPath = null;
+        private readonly string _rootPath;
         public DirectoryHelper(string path)
         {
             if (!Directory.Exists(path))

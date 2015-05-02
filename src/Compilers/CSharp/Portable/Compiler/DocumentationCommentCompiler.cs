@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SyntaxNodeLocationComparer _lazyComparer;
         private DocumentationCommentIncludeCache _includedFileCache;
 
-        private int _indentDepth = 0;
+        private int _indentDepth;
 
         private Stack<TemporaryStringBuilder> _temporaryStringBuilders;
 

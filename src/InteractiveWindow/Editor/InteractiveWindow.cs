@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal class InteractiveWindow : IInteractiveWindow
     {
-        private bool _adornmentToMinimize = false;
+        private bool _adornmentToMinimize;
 
         // true iff code is being executed:
         private bool _isRunning;

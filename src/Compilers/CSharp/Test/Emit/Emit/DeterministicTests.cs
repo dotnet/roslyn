@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private class WriteOnlyStream : Stream
         {
-            private int _length = 0;
+            private int _length;
             public override bool CanRead { get { return false; } }
             public override bool CanSeek { get { return false; } }
             public override bool CanWrite { get { return true; } }

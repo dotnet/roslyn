@@ -10,7 +10,7 @@ namespace Roslyn.Test.Utilities.Parallel
 {
     internal class AsyncTestClassCommand : ITestClassCommand
     {
-        private readonly Dictionary<MethodInfo, object> _fixtures = null;
+        private readonly Dictionary<MethodInfo, object> _fixtures;
 
         public AsyncTestClassCommand(Dictionary<MethodInfo, object> fixtures)
         {

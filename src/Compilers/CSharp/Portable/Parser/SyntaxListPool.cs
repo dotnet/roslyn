@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal class SyntaxListPool
     {
         private ArrayElement<SyntaxListBuilder>[] _freeList = new ArrayElement<SyntaxListBuilder>[10];
-        private int _freeIndex = 0;
+        private int _freeIndex;
 
 #if DEBUG
         private readonly List<SyntaxListBuilder> _allocated = new List<SyntaxListBuilder>();

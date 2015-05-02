@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private sealed class TestableDiagnosticListener : IDiagnosticListener
         {
-            public int ProcessedCount = 0;
+            public int ProcessedCount;
             public DateTime? LastProcessedTime;
             public TimeSpan? KeepAlive;
 

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         private readonly List<string> _dependencyPaths = new List<string>();
         private readonly object _guard = new object();
 
-        private bool _hookedAssemblyResolve = false;
+        private bool _hookedAssemblyResolve;
 
         /// <summary>
         /// Implemented by derived types to handle the actual loading of an assembly from

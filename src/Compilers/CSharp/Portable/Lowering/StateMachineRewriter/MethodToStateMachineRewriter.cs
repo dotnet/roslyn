@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected readonly LocalSymbol cachedState;
 
-        private int _nextState = 0;
+        private int _nextState;
 
         /// <summary>
         /// For each distinct label, the set of states that need to be dispatched to that label.
