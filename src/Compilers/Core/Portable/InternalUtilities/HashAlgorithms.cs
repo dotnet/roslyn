@@ -59,7 +59,7 @@ namespace Roslyn.Utilities
                                                                   ps[2].ParameterType == typeof(int) &&
                                                                   ps[3].ParameterType == typeof(byte[]) &&
                                                                   ps[4].ParameterType == typeof(int)
-                                          select m).Single();
+                                          select m).SingleOrDefault();
 
                 // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.transformblock(v=vs.110).aspx
                 s_TransformFinalBlock_Method = (from m in type.GetTypeInfo().GetDeclaredMethods("TransformFinalBlock")
@@ -67,10 +67,10 @@ namespace Roslyn.Utilities
                                           where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) &&
                                                                   ps[1].ParameterType == typeof(int) &&
                                                                   ps[2].ParameterType == typeof(int)
-                                          select m).Single();
+                                          select m).SingleOrDefault();
 
                 // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.hash(v=vs.110).aspx
-                s_Hash_PropertyGetter = type.GetTypeInfo().GetDeclaredProperty("Hash").GetMethod;
+                s_Hash_PropertyGetter = type.GetTypeInfo().GetDeclaredProperty("Hash")?.GetMethod;
             }
         }
 
@@ -129,6 +129,11 @@ namespace Roslyn.Utilities
         {
             return (byte[])s_ComputeHash_stream_Method.Invoke(_hashInstance, new object[] { stream });
         }
+
+        public bool SupportsTransform =>
+            s_TransformBlock_Method != null &&
+            s_TransformFinalBlock_Method != null &&
+            s_Hash_PropertyGetter != null;
 
         /// <summary>
         /// Invoke the underlying HashAlgorithm's TransformBlock operation on the provided data.

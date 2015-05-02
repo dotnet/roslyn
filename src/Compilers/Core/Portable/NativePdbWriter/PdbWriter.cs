@@ -55,8 +55,17 @@ namespace Microsoft.Cci
         internal PdbLogger(bool logging)
         {
             _logging = logging;
-            _logData = logging ? new BinaryWriter(MemoryStream.GetInstance()) : default(BinaryWriter);
-            _hashAlgorithm = logging ? new SHA1CryptoServiceProvider() : null;
+            if (logging)
+            {
+                _logData = new BinaryWriter(MemoryStream.GetInstance());
+                _hashAlgorithm = new SHA1CryptoServiceProvider();
+                Debug.Assert(_hashAlgorithm.SupportsTransform);
+            }
+            else
+            {
+                _logData = default(BinaryWriter);
+                _hashAlgorithm = null;
+            }
         }
 
         private void MaybeFlush()
