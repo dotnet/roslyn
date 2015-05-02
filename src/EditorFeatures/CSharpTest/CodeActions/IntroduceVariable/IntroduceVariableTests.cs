@@ -1414,6 +1414,37 @@ compareTokens: false,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
+        [WorkItem(854662)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestInNestedCollectionInitializers()
+        {
+            Test(
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    public Dictionary<int, int> A { get; private set; }
+    static int Main(string[] args)
+    {
+        int a = 0;
+        return new Program { A = { { [|a + 2|], 0 } } }.A.Count;
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    public Dictionary<int, int> A { get; private set; }
+    static int Main(string[] args)
+    {
+        int a = 0;
+        var {|Rename:v|} = a + 2;
+        return new Program { A = { { v, 0 } } }.A.Count;
+    }
+}",
+compareTokens: false);
+        }
+
         [WorkItem(884961)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestInArrayInitializer()

@@ -9647,6 +9647,42 @@ class C
             TestExtractMethod(code, expected);
         }
 
+        [WorkItem(854662)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void TestExtractCollectionInitializer2()
+        {
+            var code =
+@"using System;
+using System.Collections.Generic;
+class Program
+{
+    public Dictionary<int, int> A { get; private set; }
+    static int Main(string[] args)
+    {
+        int a = 0;
+        return new Program { A = { { [|a + 2|], 0 } } }.A.Count;
+    }
+}";
+            var expected = @"using System;
+using System.Collections.Generic;
+class Program
+{
+    public Dictionary<int, int> A { get; private set; }
+    static int Main(string[] args)
+    {
+        int a = 0;
+        return new Program { A = { { NewMethod(a), 0 } } }.A.Count;
+    }
+
+    private static int NewMethod(int a)
+    {
+        return a + 2;
+    }
+}";
+
+            TestExtractMethod(code, expected);
+        }
+
         [WorkItem(530267)]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestCoClassImplicitConversion()
