@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
                     if (symbolUnderCaret != null)
                     {
-                        // Map symbols so that Call Hierachy works from metadata-as-source
+                        // Map symbols so that Call Hierarchy works from metadata-as-source
                         var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
                         var mapping = mappingService.MapSymbolAsync(document, symbolUnderCaret, waitcontext.CancellationToken).WaitAndGetResult(cancellationToken);
 
@@ -64,6 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                                 _presenter.PresentRoot((CallHierarchyItem)node);
                             }
                         }
+                    }
+                    else
+                    {
+                        var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                        notificationService.SendNotification(EditorFeaturesResources.CursorMustBeOnAMemberName, severity: NotificationSeverity.Information);
                     }
                 });
         }
