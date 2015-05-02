@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 {
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SimplifyLambda)]
-    internal partial class LambdaSimplifierCodeRefactoringProvider : CodeRefactoringProvider
+    internal partial class LambdaSimplifierCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
 {
-    internal abstract class AbstractIteratorCodeFixProvider : CodeFixProvider
+    internal abstract class AbstractIteratorCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
     {
         protected abstract Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken);
 

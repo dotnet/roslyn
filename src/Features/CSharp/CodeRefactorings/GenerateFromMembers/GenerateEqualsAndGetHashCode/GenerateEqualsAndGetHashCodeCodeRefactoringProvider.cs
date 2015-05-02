@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.Gen
 {
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCode)]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers, Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
-    internal class GenerateEqualsAndGetHashCodeCodeRefactoringProvider : CodeRefactoringProvider
+    internal class GenerateEqualsAndGetHashCodeCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedUsings
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
-    internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
+    internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {

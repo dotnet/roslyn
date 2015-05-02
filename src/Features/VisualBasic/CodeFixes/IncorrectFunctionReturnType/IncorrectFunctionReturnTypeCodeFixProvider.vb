@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementInterface)>
     Friend Class IncorrectFunctionReturnTypeCodeFixProvider
         Inherits CodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC36938 As String = "BC36938" ' Iterator functions must return either IEnumerable(Of T), or IEnumerator(Of T), or the non-generic forms IEnumerable or IEnumerator.
         Friend Const BC36945 As String = "BC36945" ' The 'Async' modifier can only be used on Subs, or on Functions that return Task or Task(Of T).

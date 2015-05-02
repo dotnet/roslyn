@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.CorrectNextControlVariable), [Shared]>
     Partial Friend Class CorrectNextControlVariableCodeFixProvider
         Inherits CodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30070 As String = "BC30070" ' Next control variable does not match For loop control variable 'x'.
         Friend Const BC30451 As String = "BC30451" 'BC30451: 'y' is not declared. It may be inaccessible due to its protection level.

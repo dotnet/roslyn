@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementAbstractClass), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateType)]
-    internal class ImplementAbstractClassCodeFixProvider : CodeFixProvider
+    internal class ImplementAbstractClassCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
     {
         private const string CS0534 = "CS0534"; // 'Program' does not implement inherited abstract member 'Foo.bar()'
 

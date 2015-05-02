@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineTemporary), Shared]
-    internal partial class InlineTemporaryCodeRefactoringProvider : CodeRefactoringProvider
+    internal partial class InlineTemporaryCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
     {
         internal static readonly SyntaxAnnotation DefinitionAnnotation = new SyntaxAnnotation();
         internal static readonly SyntaxAnnotation ReferenceAnnotation = new SyntaxAnnotation();

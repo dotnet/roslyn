@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
     {
         protected abstract bool IgnoreCase { get; }
 

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
 {
-    internal partial class SimplifyTypeNamesCodeFixProvider : CodeFixProvider
+    internal partial class SimplifyTypeNamesCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
     {
         private class SimplifyTypeNamesFixAllProvider : BatchSimplificationFixAllProvider
         {

@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ChangeToYield), [Shared]>
     Friend Class VisualBasicChangeToYieldCodeFixProvider
         Inherits AbstractIteratorCodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC36942 As String = "BC36942" ' error BC36942 : To return a value from an Iterator function, use 'Yield' rather than 'Return'. 
         Friend Shared ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC36942)

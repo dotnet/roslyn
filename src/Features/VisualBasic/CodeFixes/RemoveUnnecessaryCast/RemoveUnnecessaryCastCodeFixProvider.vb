@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEndConstruct)>
     Partial Friend Class RemoveUnnecessaryCastCodeFixProvider
         Inherits CodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get

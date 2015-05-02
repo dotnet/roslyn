@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.InsertMissingCast), [Shared]>
     Partial Friend Class InsertMissingCastCodeFixProvider
         Inherits CodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
 

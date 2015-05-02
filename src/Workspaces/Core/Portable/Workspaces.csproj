@@ -309,6 +309,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllScope.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProvider.cs" />
     <Compile Include="CodeFixes\CodeFix.cs" />
+    <Compile Include="CodeFixes\ReportCrashDumpsToMicrosoft.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService_FindDeclaration.cs" />
     <Compile Include="CodeGeneration\AbstractFlagsEnumGenerator.cs" />

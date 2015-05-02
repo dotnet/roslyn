@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateDefaultConstructors
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
-    internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
+    internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

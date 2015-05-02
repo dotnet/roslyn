@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InlineTemporary), [Shared]>
     Partial Friend Class InlineTemporaryCodeRefactoringProvider
         Inherits CodeRefactoringProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Public Overloads Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
             Dim document = context.Document

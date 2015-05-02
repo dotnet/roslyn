@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
-    internal abstract partial class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractFullyQualifyCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
     {
         protected AbstractFullyQualifyCodeFixProvider()
         {

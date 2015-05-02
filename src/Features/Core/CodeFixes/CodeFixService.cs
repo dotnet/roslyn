@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 foreach (var logger in _errorLoggers)
                 {
-                    logger.Value.LogError(fixer.GetType().Name, e.Message + Environment.NewLine + e.StackTrace);
+                    logger.Value.LogException(fixer, e);
                 }
                 return ImmutableArray<DiagnosticId>.Empty;
             }

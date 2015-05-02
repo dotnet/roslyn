@@ -7,6 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
     Partial Friend Class SimplifyTypeNamesCodeFixProvider
         Inherits CodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Private Class SimplifyTypeNamesFixAllProvider
             Inherits BatchSimplificationFixAllProvider

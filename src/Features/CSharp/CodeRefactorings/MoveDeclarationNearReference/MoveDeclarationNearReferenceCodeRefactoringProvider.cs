@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference
 {
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference)]
-    internal partial class MoveDeclarationNearReferenceCodeRefactoringProvider : CodeRefactoringProvider
+    internal partial class MoveDeclarationNearReferenceCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

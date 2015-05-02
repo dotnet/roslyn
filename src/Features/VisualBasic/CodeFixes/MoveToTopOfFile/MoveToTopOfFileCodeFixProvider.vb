@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementInterface)>
     Partial Friend Class MoveToTopOfFileCodeFixProvider
         Inherits CodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30465 As String = "BC30465" ' 'Imports' statements must precede any declarations.
         Friend Const BC30637 As String = "BC30637" ' Assembly or Module attribute statements must precede any declarations in a file.

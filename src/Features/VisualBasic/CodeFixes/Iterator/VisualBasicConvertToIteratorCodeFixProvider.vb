@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertToIterator), [Shared]>
     Friend Class VisualBasicConvertToIteratorCodeFixProvider
         Inherits AbstractIteratorCodeFixProvider
+        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30451 As String = "BC30451" ' error BC30451 : 'Yield' is not declared.  It may be inaccessible due its protection level.
 

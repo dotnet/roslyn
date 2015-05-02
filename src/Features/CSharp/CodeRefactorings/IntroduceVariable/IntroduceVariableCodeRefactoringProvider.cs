@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceVariable), Shared]
-    internal class IntroduceVariableCodeRefactoringProvider : CodeRefactoringProvider
+    internal class IntroduceVariableCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
