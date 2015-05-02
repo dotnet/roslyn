@@ -155,7 +155,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to _Highlight references to symbol under cursor.
+        '''  Looks up a localized string similar to Highlight related _keywords under cursor.
         '''</summary>
         Friend Shared ReadOnly Property Option_EnableHighlightKeywords() As String
             Get
@@ -164,7 +164,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Highlight related _keywords under cursor.
+        '''  Looks up a localized string similar to _Highlight references to symbol under cursor.
         '''</summary>
         Friend Shared ReadOnly Property Option_EnableHighlightReferences() As String
             Get
