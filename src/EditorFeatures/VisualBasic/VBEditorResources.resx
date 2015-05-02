@@ -183,4 +183,7 @@
   <data name="GenerateMember" xml:space="preserve">
     <value>Generate Member</value>
   </data>
+  <data name="LineCommit" xml:space="preserve">
+    <value>Line commit</value>
+  </data>
 </root>
