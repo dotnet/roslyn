@@ -212,6 +212,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private BaseDiagnosticIncrementalAnalyzer GetAnalyzer(bool useV2)
             {
+                // useV2 = true;
                 return useV2 ? (BaseDiagnosticIncrementalAnalyzer)_engineV2 : _engineV1;
             }
         }

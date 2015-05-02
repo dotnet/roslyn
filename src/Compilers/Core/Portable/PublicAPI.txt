@@ -275,8 +275,8 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Compilation.get -> M
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync() -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsAsync() -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsFromDocumentAsync(Microsoft.CodeAnalysis.SemanticModel model) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetDiagnosticsFromDocumentAsync(Microsoft.CodeAnalysis.SemanticModel model) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsFromModelAsync(Microsoft.CodeAnalysis.SemanticModel model) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetDiagnosticsFromModelAsync(Microsoft.CodeAnalysis.SemanticModel model) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetExceptionDiagnostics() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
 Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Compilation _compilation;
         private CancellationToken _cancellationToken;
         private ConcurrentSet<Diagnostic> _exceptionDiagnostics;
-        private Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>> _documentTasks = new Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>>();
+        private Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>> _modelTasks = new Dictionary<SyntaxTree, Task<ImmutableArray<Diagnostic>>>();
         private Task<ImmutableArray<Diagnostic>> _completeAnalysisTask;
         private Task _latestAnalysisTask;
         private readonly object _analysisLock = new object();
@@ -118,13 +118,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns diagnostics produced by diagnostic analyzers from analyzing a single document.
+        /// Returns diagnostics produced by diagnostic analyzers from analyzing a model that represents a single document.
+        /// Depending on analyzers' behavior, returned diagnostics can have locations outside the document,
+        /// and some diagnostics that would be reported for the document by an analysis of the complete project
+        /// can be absent.
         /// </summary>
         /// <param name="model">Semantic model for the document.</param>
-        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsFromDocumentAsync(SemanticModel model)
+        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsFromModelAsync(SemanticModel model)
         {
-            SyntaxTree documentTree = model.SyntaxTree;
-            Task<ImmutableArray<Diagnostic>> documentTask;
+            SyntaxTree modelTree = model.SyntaxTree;
+            Task<ImmutableArray<Diagnostic>> modelTask;
 
             while (true)
             {
@@ -136,11 +139,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 lock (_analysisLock)
                 {
-                    if (!_documentTasks.TryGetValue(documentTree, out documentTask))
+                    if (!_modelTasks.TryGetValue(modelTree, out modelTask))
                     {
                         if (_completeAnalysisTask != null)
                         {
-                            // Once complete analysis has begun, it is too late to start analysis of an individual document.
+                            // Once complete analysis has begun, it is too late to start analysis of an individual model.
                             return ImmutableArray<Diagnostic>.Empty;
                         }
 
@@ -152,31 +155,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             continue;
                         }
                         
-                        documentTask = Task.Run(async () =>
+                        modelTask = Task.Run(async () =>
                         {
                             // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
                             // Discard the returned diagnostics.
                             model.GetDiagnostics(null, _cancellationToken);
 
-                            return await _driver.GetPartialDiagnosticsAsync(documentTree, _cancellationToken).ConfigureAwait(false);
+                            return await _driver.GetPartialDiagnosticsAsync(modelTree, _cancellationToken).ConfigureAwait(false);
                         }, _cancellationToken);
 
-                        _documentTasks[documentTree] = documentTask;
-                        _latestAnalysisTask = documentTask;
+                        _modelTasks[modelTree] = modelTask;
+                        _latestAnalysisTask = modelTask;
                     }
                 }
 
-                return await documentTask.ConfigureAwait(false);
+                return await modelTask.ConfigureAwait(false);
             }
         }
 
         /// <summary>
-        /// Returns diagnostics produced compilation and by diagnostic analyzers from analyzing a single document.
+        /// Returns diagnostics produced by compilation and by diagnostic analyzers from analyzing a model that represents a single document.
         /// </summary>
         /// <param name="model">Semantic model for the document.</param>
-        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromDocumentAsync(SemanticModel model)
+        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsFromModelAsync(SemanticModel model)
         {
-            ImmutableArray<Diagnostic> analyzerDiagnostics = await GetAnalyzerDiagnosticsFromDocumentAsync(model).ConfigureAwait(false);
+            ImmutableArray<Diagnostic> analyzerDiagnostics = await GetAnalyzerDiagnosticsFromModelAsync(model).ConfigureAwait(false);
             return model.GetDiagnostics(null, _cancellationToken).AddRange(analyzerDiagnostics);
         }
         

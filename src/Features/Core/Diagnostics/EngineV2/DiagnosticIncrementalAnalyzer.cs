@@ -136,20 +136,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         (documentId == null && !compilationResult.CompletionStarted))
                     {
                         // There has been no request to analyze the project or document, so initiate analysis now.
-                        // The cancellation token provided here is actually not necessarily appropriate for
-                        // the analysis, because cancelling this diagnostics request should not necessarily
-                        // cancel the analysis.
                         if (documentId != null && vintage != CompilationVintage.Completed)
                         {
                             if (document != null)
                             {
+                                //Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                                //return GetDiagnosticData(project, await GetIsolatedDocumentDiagnostics(compilation, project, document, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
                                 await AnalyzeDocumentAsync(document, null, cancellationToken).ConfigureAwait(false);
                             }
                         }
                         else
                         {
+                            // The cancellation token provided here is actually not necessarily appropriate for
+                            // the analysis, because cancelling this diagnostics request should not necessarily
+                            // cancel the analysis.
                             await AnalyzeProjectAsync(project, false, cancellationToken).ConfigureAwait(false);
                         }
+
                         compilationResult = GetCompilationResult(project, projectVersion, vintage);
                     }
 
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             if (document != null)
                             {
-                                return GetDiagnosticData(project, await compilationResult.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+                                return GetDiagnosticData(project, await compilationResult.GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
                             }
                         }
                         else
@@ -236,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken)
         {
             ImmutableArray<DiagnosticData> diagnostics = await GetDiagnosticsAsync(document.Project.Solution, document.Project.Id, document.Id, cancellationToken).ConfigureAwait(false);
-            return diagnostics.Where(d => range.IntersectsWith(d.TextSpan));
+            return diagnostics.Where(d => d.HasTextSpan && range.IntersectsWith(d.TextSpan));
         }
 
         public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
@@ -322,11 +325,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // CompletedCompilation represents the most recent compilation of a project for which analysis came to full completion.
             // It includes all diagnostics but does not hold on to the Compilation object used to create them.
-            public CompilationResult CompletedCompilation = new CompilationResult(null, VersionStamp.Default, null);
+            public CompilationResult CompletedCompilation = new CompilationResult(null, null, VersionStamp.Default, null);
 
             // CurrentCompilation represents the most recent compilation of a project, with analysis possibly ongoing.
             // It includes a snapshot of current diagnostics and the Compilation being used to create more.
-            public CompilationResult CurrentCompilation = new CompilationResult(null, VersionStamp.Default, null);
+            public CompilationResult CurrentCompilation = new CompilationResult(null, null, VersionStamp.Default, null);
         }
 
         private enum CompilationVintage
@@ -381,10 +384,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     // The requested project version is not the same as that of the current compilation.
                     // Assume that the requested version is newer.
-                    
-                    ImmutableArray<DiagnosticAnalyzer> analyzers = Flatten(HostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project).Values);
-                    CompilationWithAnalyzers newCompilationWithAnalyzers = !analyzers.IsEmpty ? compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, GetOnAnalyzerException(project.Id), cancellationToken) : null;
-                    results.CurrentCompilation = new CompilationResult(project, projectVersion, newCompilationWithAnalyzers);
+                  
+                    results.CurrentCompilation = new CompilationResult(this, project, projectVersion, GetCompilationWithAnalzyers(compilation, project, cancellationToken));
                 }
 
                 return results.CurrentCompilation;
@@ -413,6 +414,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return builder.ToImmutable();
         }
 
+        private async Task<ImmutableArray<Diagnostic>> GetIsolatedDocumentDiagnostics(Compilation compilation, Project project, Document document, CancellationToken cancellationToken)
+        {
+            return await AnalyzeDocumentCoreAsync(GetCompilationWithAnalzyers(compilation, project, cancellationToken), document, cancellationToken).ConfigureAwait(false);
+        }
+
+        private CompilationWithAnalyzers GetCompilationWithAnalzyers(Compilation compilation, Project project, CancellationToken cancellationToken)
+        {
+            ImmutableArray<DiagnosticAnalyzer> analyzers = Flatten(HostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project).Values);
+            return !analyzers.IsEmpty ? compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, GetOnAnalyzerException(project.Id), cancellationToken) : null;
+        }
+
+        private static async Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(CompilationWithAnalyzers compilationWithAnalyzers, Document document, CancellationToken cancellationToken)
+        {
+            SyntaxTree documentSyntax = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            SemanticModel documentModel = compilationWithAnalyzers.Compilation.GetSemanticModel(documentSyntax);
+            return await compilationWithAnalyzers.GetAnalyzerDiagnosticsFromModelAsync(documentModel).ConfigureAwait(false);
+        }
+
         // A CompilationResult first computes and then stores diagnostics for a compilation.
         // It does not keep a compilation or project alive after analysis completes.
         private class CompilationResult
@@ -425,12 +444,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly DocumentId _noDocument;
             private CompilationWithAnalyzers _compilationWithAnalyzers;
             private Project _project;
+            private readonly DiagnosticIncrementalAnalyzer _owner;
 
             private Task _completionTask;
             private bool _completionCanceled;
 
-            public CompilationResult(Project project, VersionStamp projectVersion, CompilationWithAnalyzers compilation)
+            public CompilationResult(DiagnosticIncrementalAnalyzer owner, Project project, VersionStamp projectVersion, CompilationWithAnalyzers compilation)
             {
+                _owner = owner;
                 _compilationWithAnalyzers = compilation;
                 _project = project;
                 this.ProjectVersion = projectVersion;
@@ -475,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         }
                                         else
                                         {
-                                            diagnostics = diagnostics.AddRange(await GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false));
+                                            diagnostics = diagnostics.AddRange(await AnalyzeDocumentCoreAsync(_compilationWithAnalyzers, document, cancellationToken).ConfigureAwait(false));
                                         }
                                     }
                                 }
@@ -518,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             _analyzedDocuments[documentId] = Task.Run(async () =>
                             {
-                                diagnostics = await GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                                diagnostics = await AnalyzeDocumentCoreAsync(_compilationWithAnalyzers, document, cancellationToken).ConfigureAwait(false);
                                 DistributeDiagnostics(diagnostics);
                             }, cancellationToken);
                         }
@@ -531,13 +552,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return diagnostics;
-            }
-
-            private async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
-            {
-                SyntaxTree documentSyntax = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                SemanticModel documentModel = _compilationWithAnalyzers.Compilation.GetSemanticModel(documentSyntax);
-                return await _compilationWithAnalyzers.GetAnalyzerDiagnosticsFromDocumentAsync(documentModel).ConfigureAwait(false);
             }
 
             public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
@@ -561,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+            public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
             {
                 if (_compilationWithAnalyzers != null)
                 {
@@ -569,9 +583,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         await _analyzedDocuments[document.Id].ConfigureAwait(false);
                     }
-                    else if (CompletionStarted)
+                    else if (CompletionStarted /* && _completionTask.IsCompleted */)
                     {
                         await _completionTask.ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // The document has not been individually analyzed, and analysis
+                        // of the entire project has not completed. Create an independent task
+                        // to analyze the document in isolation.
+                        // return await _owner.GetIsolatedDocumentDiagnostics(_compilationWithAnalyzers.Compilation, _project, document, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
