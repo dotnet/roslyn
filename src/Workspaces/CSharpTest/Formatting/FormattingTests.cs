@@ -6220,5 +6220,5 @@ class Program
 }";
             AssertFormat(expected, code);
         }
-        }
     }
+}

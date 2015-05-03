@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 // MRU list, then we definitely want to include it.
                 if (filterText.Length == 0)
                 {
-                    if (item.Preselect || _completionService.GetMRUIndex(item) < 0)
+                    if (item.Preselect || _completionService.ShouldPreselect(item))
                     {
                         return true;
                     }
@@ -108,14 +108,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     return item1.Glyph == Glyph.Keyword;
                 }
 
-                // They matched on everything, including preselection values.  Item1 is better if it
-                // has a lower MRU index.
-
-                var item1MRUIndex = _completionService.GetMRUIndex(item1);
-                var item2MRUIndex = _completionService.GetMRUIndex(item2);
-
-                // The one with the lower index is the better one.
-                return item1MRUIndex < item2MRUIndex;
+                // They matched on everything, including preselection values.  See if the service 
+                // thinks they're better.
+                return _completionService.IsBetterFilterMatch(item1, item2);
             }
 
             public virtual bool? ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)

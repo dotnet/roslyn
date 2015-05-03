@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
 
-            languageServices.GetService(Of ICompletionService).ClearMRUCache()
+            languageServices.GetService(Of AbstractCompletionService).ClearMostRecentlyUsedCache()
         End Sub
 
         Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
