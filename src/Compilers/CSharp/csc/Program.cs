@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
                 args,
                 clientDir: AppContext.BaseDirectory,
                 workingDir: Directory.GetCurrentDirectory(),
-                sdkDir: @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\mscorlib.dll",
+                sdkDir: @"C:\Windows\Microsoft.NET\Framework\v4.0.30319", 
                 language: RequestLanguage.CSharpCompile,
                 fallbackCompiler: Csc.Run);
     }
