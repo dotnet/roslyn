@@ -1313,40 +1313,6 @@ End Module
 
         <WorkItem(939941)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestGenerateMethodFunctionStrictDisallowsLateBinding()
-            Test(
-<text>Option Strict On
-Module Module1
-    Dim bol As Boolean
-    Class C1
-    End Class
-    Sub foo()
-        Dim Obj As Object = New C1()
-        bol = [|Obj(1)|]
-    End Sub
-End Module
-</text>.Value.Replace(vbLf, vbCrLf),
-<text>Option Strict On
-Imports System
-
-Module Module1
-    Dim bol As Boolean
-    Class C1
-    End Class
-    Sub foo()
-        Dim Obj As Object = New C1()
-        bol = Obj(1)
-    End Sub
-
-    Private Function Obj(v As Integer) As Boolean
-        Throw New NotImplementedException()
-    End Function
-End Module
-</text>.Value.Replace(vbLf, vbCrLf), compareTokens:=False)
-        End Sub
-
-        <WorkItem(939941)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestGenerateMethodNoCallableOverloadCandidates2()
             Test(
 <text>Class M1
