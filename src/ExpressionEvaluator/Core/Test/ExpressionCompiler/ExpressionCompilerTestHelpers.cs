@@ -455,6 +455,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             LocalAndMethod localAndMethod,
             string expectedMethodName,
             string expectedLocalName,
+            string expectedLocalDisplayName,
             DkmClrCompilationResultFlags expectedFlags,
             Action<TMethodSymbol> verifyTypeParameters,
             string expectedILOpt,
@@ -464,6 +465,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             where TMethodSymbol : IMethodSymbol
         {
             Assert.Equal(expectedLocalName, localAndMethod.LocalName);
+            Assert.Equal(expectedLocalDisplayName, localAndMethod.LocalDisplayName);
             Assert.True(expectedMethodName.StartsWith(localAndMethod.MethodName, StringComparison.Ordinal), expectedMethodName + " does not start with " + localAndMethod.MethodName); // Expected name may include type arguments and parameters.
             Assert.Equal(expectedFlags, localAndMethod.Flags);
             var methodData = testData.GetMethodData(typeName + "." + expectedMethodName);

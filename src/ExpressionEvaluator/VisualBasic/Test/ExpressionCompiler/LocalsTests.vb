@@ -164,7 +164,7 @@ End Class"
                 typeName:=typeName,
                 testData:=testData)
             Assert.Equal(7, locals.Count)
-            VerifyLocal(testData, typeName, locals(0), "<>m0", "$exception", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "$exception", "Error", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       11 (0xb)
   .maxstack  1
@@ -172,7 +172,7 @@ End Class"
   IL_0005:  castclass  ""System.IO.IOException""
   IL_000a:  ret
 }")
-            VerifyLocal(testData, typeName, locals(1), "<>m1", "$ReturnValue2", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "$ReturnValue2", "Method M2 returned", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       12 (0xc)
   .maxstack  1
@@ -181,7 +181,7 @@ End Class"
   IL_0006:  castclass  ""String""
   IL_000b:  ret
 }")
-            VerifyLocal(testData, typeName, locals(2), "<>m2", "$ReturnValue", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(2), "<>m2", "$ReturnValue", "Method M returned", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -489,7 +489,7 @@ End Class
 
             VerifyLocal(testData, typeName, locals(0), "<>m0", "w")
             VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
-            VerifyLocal(testData, typeName, locals(2), "<>m2", "y", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(2), "<>m2", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -499,7 +499,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  ret
 }")
-            VerifyLocal(testData, typeName, locals(3), "<>m3", "v", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(3), "<>m3", "v", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -525,9 +525,9 @@ End Class
             VerifyLocal(testData, typeName, locals(0), "<>m0", "w")
             VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
             VerifyLocal(testData, typeName, locals(2), "<>m2", "u")
-            VerifyLocal(testData, typeName, locals(3), "<>m3", "y", DkmClrCompilationResultFlags.ReadOnlyResult)
-            VerifyLocal(testData, typeName, locals(4), "<>m4", "v", DkmClrCompilationResultFlags.ReadOnlyResult)
-            VerifyLocal(testData, typeName, locals(5), "<>m5", "z", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(3), "<>m3", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
+            VerifyLocal(testData, typeName, locals(4), "<>m4", "v", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
+            VerifyLocal(testData, typeName, locals(5), "<>m5", "z", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        6 (0x6)
   .maxstack  1
@@ -585,7 +585,7 @@ End Class"
             method = DirectCast(testData.GetMethodData("<>x.<>m1").Method, MethodSymbol)
             Assert.Equal(method.Parameters(0).Type, method.ReturnType)
 
-            VerifyLocal(testData, typeName, locals(1), "<>m1", "y", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -627,21 +627,21 @@ End Class"
             context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
             Assert.Equal(3, locals.Count)
 
-            VerifyLocal(testData, "<>x(Of T)", locals(0), "<>m0(Of U)", "x", DkmClrCompilationResultFlags.ReadOnlyResult, expectedGeneric:=True, expectedILOpt:=
+            VerifyLocal(testData, "<>x(Of T)", locals(0), "<>m0(Of U)", "x", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedGeneric:=True, expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  ret
 }")
-            VerifyLocal(testData, "<>x(Of T)", locals(1), "<>m1(Of U)", "y", DkmClrCompilationResultFlags.ReadOnlyResult, expectedGeneric:=True, expectedILOpt:=
+            VerifyLocal(testData, "<>x(Of T)", locals(1), "<>m1(Of U)", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedGeneric:=True, expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  ret
 }")
-            VerifyLocal(testData, "<>x(Of T)", locals(2), "<>m2(Of U)", "<>TypeVariables", DkmClrCompilationResultFlags.ReadOnlyResult, expectedGeneric:=True, expectedILOpt:=
+            VerifyLocal(testData, "<>x(Of T)", locals(2), "<>m2(Of U)", "<>TypeVariables", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedGeneric:=True, expectedILOpt:=
 "{
   // Code size        6 (0x6)
   .maxstack  1
@@ -1049,7 +1049,7 @@ End Class
             Assert.Equal(3, locals.Count)
             VerifyLocal(testData, "<>x(Of $CLS0)", locals(0), "<>m0", "y")
             VerifyLocal(testData, "<>x(Of $CLS0)", locals(1), "<>m1", "x")
-            VerifyLocal(testData, "<>x(Of $CLS0)", locals(2), "<>m2", "<>TypeVariables", DkmClrCompilationResultFlags.ReadOnlyResult)
+            VerifyLocal(testData, "<>x(Of $CLS0)", locals(2), "<>m2", "<>TypeVariables", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
 
             context = CreateMethodContext(
                 runtime,
@@ -1063,7 +1063,7 @@ End Class
             VerifyLocal(testData, "<>x(Of $CLS0)", locals(0), "<>m0", "z")
             VerifyLocal(testData, "<>x(Of $CLS0)", locals(1), "<>m1", "y")
             VerifyLocal(testData, "<>x(Of $CLS0)", locals(2), "<>m2", "x")
-            VerifyLocal(testData, "<>x(Of $CLS0)", locals(3), "<>m3", "<>TypeVariables", DkmClrCompilationResultFlags.ReadOnlyResult)
+            VerifyLocal(testData, "<>x(Of $CLS0)", locals(3), "<>m3", "<>TypeVariables", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
 
             locals.Free()
         End Sub
@@ -1185,7 +1185,7 @@ End Class
             method = DirectCast(testData.GetMethodData("<>x(Of T, U, V).<>m4(Of W)").Method, MethodSymbol)
             Assert.Equal(method.TypeParameters.Single(), method.ReturnType)
 
-            VerifyLocal(testData, "<>x(Of T, U, V)", locals(5), "<>m5(Of W)", "<>TypeVariables", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, "<>x(Of T, U, V)", locals(5), "<>m5(Of W)", "<>TypeVariables", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        6 (0x6)
   .maxstack  1
@@ -1250,7 +1250,7 @@ End Class
   IL_0001:  ldfld      ""C(Of T)._Closure$__1-0(Of $CLS0).$VB$Local_u1 As $CLS0""
   IL_0006:  ret
 }")
-            VerifyLocal(testData, "<>x(Of T, $CLS0)", locals(2), "<>m2", "<>TypeVariables", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, "<>x(Of T, $CLS0)", locals(2), "<>m2", "<>TypeVariables", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        6 (0x6)
   .maxstack  1
@@ -1393,7 +1393,7 @@ End Class
   IL_0006:  ret
 }
 ")
-            VerifyLocal(testData, "<>x(Of T)", locals(3), "<>m3", "<>TypeVariables", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, "<>x(Of T)", locals(3), "<>m3", "<>TypeVariables", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        6 (0x6)
   .maxstack  1
@@ -1818,7 +1818,7 @@ End Class
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")
-            VerifyLocal(testData, typeName, locals(1), "<>m1", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "d", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       15 (0xf)
   .maxstack  1
@@ -1859,7 +1859,7 @@ End Class
             Dim typeName As String = Nothing
             context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
             Assert.Equal(1, locals.Count)
-            VerifyLocal(testData, typeName, locals(0), "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "d", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size       12 (0xc)
   .maxstack  5

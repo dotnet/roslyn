@@ -623,21 +623,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName)
             Debug.Assert(type IsNot Nothing)
 
-            Dim id = [alias].FullName
+            Dim name = [alias].FullName
+            Dim displayName = [alias].Name
             Select Case [alias].Kind
                 Case DkmClrAliasKind.Exception
-                    Return New ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName)
+                    Return New ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetExceptionMethodName)
                 Case DkmClrAliasKind.StowedException
-                    Return New ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName)
+                    Return New ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetStowedExceptionMethodName)
                 Case DkmClrAliasKind.ReturnValue
                     Dim index As Integer = 0
-                    PseudoVariableUtilities.TryParseReturnValueIndex(id, index)
-                    Return New ReturnValueLocalSymbol(containingMethod, id, type, index)
+                    PseudoVariableUtilities.TryParseReturnValueIndex(name, index)
+                    Return New ReturnValueLocalSymbol(containingMethod, name, displayName, type, index)
                 Case DkmClrAliasKind.ObjectId
-                    Debug.Assert(id.Length > 0 AndAlso id(0) <> "$"c)
-                    Return New ObjectIdLocalSymbol(containingMethod, type, "$" + id, isReadOnly:=True)
+                    Debug.Assert(name.Length > 0 AndAlso name(0) <> "$"c)
+                    Return New ObjectIdLocalSymbol(containingMethod, type, "$" + name, displayName, isReadOnly:=True)
                 Case DkmClrAliasKind.Variable
-                    Return New ObjectIdLocalSymbol(containingMethod, type, id, isReadOnly:=False)
+                    Return New ObjectIdLocalSymbol(containingMethod, type, name, displayName, isReadOnly:=False)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue([alias].Kind)
             End Select

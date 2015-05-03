@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
                             });
                             var flags = aliasLocal.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
-                            localBuilder.Add(new CSharpLocalAndMethod(aliasLocal.Name, aliasMethod, flags));
+                            localBuilder.Add(new CSharpLocalAndMethod(aliasLocal, aliasMethod, flags));
                             methodBuilder.Add(aliasMethod);
                         }
                         aliasNames.Free();
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         {
                             var methodName = GetNextMethodName(methodBuilder);
                             var method = this.GetThisMethod(container, methodName);
-                            localBuilder.Add(new CSharpLocalAndMethod("this", method, DkmClrCompilationResultFlags.None)); // Note: writable in dev11.
+                            localBuilder.Add(new CSharpLocalAndMethod("this", "this", method, DkmClrCompilationResultFlags.None)); // Note: writable in dev11.
                             methodBuilder.Add(method);
                         }
                     }
@@ -328,10 +328,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             // Since we are showing hoisted method parameters first, the parameters may appear out of order
                             // in the Locals window if only some of the parameters are hoisted.  This is consistent with the
                             // behavior of the old EE.
-                            var localName = local.Name;
                             if (_hoistedParameterNames.Contains(local.Name))
                             {
-                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, this.GetLocalMethod, container, localIndex, GetLocalResultFlags(local));
+                                AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
                             }
 
                             localIndex++;
@@ -342,10 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     int parameterIndex = m.IsStatic ? 0 : 1;
                     foreach (var parameter in m.Parameters)
                     {
-                        var parameterName = parameter.Name;
-                        if (!_hoistedParameterNames.Contains(parameterName))
+                        if (!_hoistedParameterNames.Contains(parameter.Name))
                         {
-                            AppendLocalAndMethod(localBuilder, methodBuilder, parameterName, this.GetParameterMethod, container, parameterIndex, DkmClrCompilationResultFlags.None);
+                            AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex);
                         }
 
                         parameterIndex++;
@@ -357,10 +355,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         int localIndex = 0;
                         foreach (var local in _localsForBinding)
                         {
-                            var localName = local.Name;
-                            if (!_hoistedParameterNames.Contains(localName))
+                            if (!_hoistedParameterNames.Contains(local.Name))
                             {
-                                AppendLocalAndMethod(localBuilder, methodBuilder, localName, this.GetLocalMethod, container, localIndex, GetLocalResultFlags(local));
+                                AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
                             }
 
                             localIndex++;
@@ -372,7 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             var methodName = GetNextMethodName(methodBuilder);
                             var returnType = typeVariablesType.Construct(allTypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
                             var method = this.GetTypeVariablesMethod(container, methodName, returnType);
-                            localBuilder.Add(new CSharpLocalAndMethod(ExpressionCompilerConstants.TypeVariablesLocalName, method, DkmClrCompilationResultFlags.ReadOnlyResult));
+                            localBuilder.Add(new CSharpLocalAndMethod(
+                                ExpressionCompilerConstants.TypeVariablesLocalName,
+                                ExpressionCompilerConstants.TypeVariablesLocalName,
+                                method, 
+                                DkmClrCompilationResultFlags.ReadOnlyResult));
                             methodBuilder.Add(method);
                         }
                     }
@@ -403,22 +404,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return diagnostics.HasAnyErrors() ? null : module;
         }
 
-        private static void AppendLocalAndMethod(
+        private void AppendLocalAndMethod(
             ArrayBuilder<LocalAndMethod> localBuilder,
             ArrayBuilder<MethodSymbol> methodBuilder,
-            string name,
-            Func<EENamedTypeSymbol, string, string, int, MethodSymbol> getMethod,
+            LocalSymbol local,
             EENamedTypeSymbol container,
             int localOrParameterIndex,
             DkmClrCompilationResultFlags resultFlags)
         {
+            var methodName = GetNextMethodName(methodBuilder);
+            var method = this.GetLocalMethod(container, methodName, local.Name, localOrParameterIndex);
+            localBuilder.Add(new CSharpLocalAndMethod(local, method, resultFlags));
+            methodBuilder.Add(method);
+        }
+
+        private void AppendParameterAndMethod(
+            ArrayBuilder<LocalAndMethod> localBuilder,
+            ArrayBuilder<MethodSymbol> methodBuilder,
+            ParameterSymbol parameter,
+            EENamedTypeSymbol container,
+            int localOrParameterIndex)
+        {
             // Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
             // the ResultProvider needs to be able to disambiguate cases like "this" and "@this",
             // which it can't do correctly without semantic information.
-            name = SyntaxHelpers.EscapeKeywordIdentifiers(name);
+            var name = SyntaxHelpers.EscapeKeywordIdentifiers(parameter.Name);
             var methodName = GetNextMethodName(methodBuilder);
-            var method = getMethod(container, methodName, name, localOrParameterIndex);
-            localBuilder.Add(new CSharpLocalAndMethod(name, method, resultFlags));
+            var method = this.GetParameterMethod(container, methodName, name, localOrParameterIndex);
+            localBuilder.Add(new CSharpLocalAndMethod(name, name, method, DkmClrCompilationResultFlags.None));
             methodBuilder.Add(method);
         }
 

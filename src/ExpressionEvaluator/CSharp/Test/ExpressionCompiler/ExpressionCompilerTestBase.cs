@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             LocalAndMethod localAndMethod,
             string expectedMethodName,
             string expectedLocalName,
+            string expectedLocalDisplayName = null,
             DkmClrCompilationResultFlags expectedFlags = DkmClrCompilationResultFlags.None,
             string expectedILOpt = null,
             bool expectedGeneric = false,
@@ -259,6 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 localAndMethod,
                 expectedMethodName,
                 expectedLocalName,
+                expectedLocalDisplayName ?? expectedLocalName,
                 expectedFlags,
                 VerifyTypeParameters,
                 expectedILOpt,
@@ -330,8 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static Alias ObjectIdAlias(uint id, string typeAssemblyQualifiedName)
         {
             Assert.NotEqual(0u, id); // Not a valid id.
-            var name = id.ToString();
-            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            var name = $"${id}";
+            var fullName = id.ToString();
+            return new Alias(DkmClrAliasKind.ObjectId, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
         }
 
         internal static Alias ReturnValueAlias(int id = -1, Type type = null)
@@ -343,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var name = $"Method M{(id < 0 ? "" : id.ToString())} returned";
             var fullName = id < 0 ? "$ReturnValue" : $"$ReturnValue{id}";
-            return new Alias(DkmClrAliasKind.ReturnValue, fullName, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
         }
 
         internal static Alias ExceptionAlias(Type type = null, bool stowed = false)

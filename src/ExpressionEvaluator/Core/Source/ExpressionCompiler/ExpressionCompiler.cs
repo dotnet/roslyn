@@ -375,7 +375,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
-            return DkmClrLocalVariableInfo.Create(local.LocalName, local.MethodName, local.Flags, DkmEvaluationResultCategory.Data, local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
+            return DkmClrLocalVariableInfo.Create(
+                local.LocalDisplayName, 
+                local.LocalName,
+                local.MethodName, 
+                local.Flags, 
+                DkmEvaluationResultCategory.Data, 
+                local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 
         private struct GetLocalsResult

@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _id As String
         Private ReadOnly _isReadOnly As Boolean
 
-        Friend Sub New(method As MethodSymbol, type As TypeSymbol, id As String, isReadOnly As Boolean)
-            MyBase.New(method, id, type)
+        Friend Sub New(method As MethodSymbol, type As TypeSymbol, id As String, displayName As String, isReadOnly As Boolean)
+            MyBase.New(method, id, displayName, type)
             _id = id
             _isReadOnly = isReadOnly
         End Sub

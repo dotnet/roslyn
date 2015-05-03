@@ -15,11 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly string _name;
         private readonly TypeSymbol _type;
 
-        internal PlaceholderLocalSymbol(MethodSymbol method, string name, TypeSymbol type)
+        internal readonly string DisplayName;
+
+        internal PlaceholderLocalSymbol(MethodSymbol method, string name, string displayName, TypeSymbol type)
         {
             _method = method;
             _name = name;
             _type = type;
+
+            this.DisplayName = displayName;
         }
 
         internal override LocalDeclarationKind DeclarationKind

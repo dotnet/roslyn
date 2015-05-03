@@ -579,31 +579,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 type = dynamicType;
             }
 
-            var id = alias.FullName;
+            var name = alias.FullName;
+            var displayName = alias.Name;
             switch (alias.Kind)
             {
                 case DkmClrAliasKind.Exception:
                     additionalLocal = null;
-                    return new ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetExceptionMethodName);
+                    return new ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetExceptionMethodName);
                 case DkmClrAliasKind.StowedException:
                     additionalLocal = null;
-                    return new ExceptionLocalSymbol(containingMethod, id, type, ExpressionCompilerConstants.GetStowedExceptionMethodName);
+                    return new ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetStowedExceptionMethodName);
                 case DkmClrAliasKind.ReturnValue:
                 {
                     int index;
-                    PseudoVariableUtilities.TryParseReturnValueIndex(id, out index);
+                    PseudoVariableUtilities.TryParseReturnValueIndex(name, out index);
                     Debug.Assert(index >= 0);
-                    var lowerId = id.ToLowerInvariant(); // The id should be ascii, so locale shouldn't matter.
-                    additionalLocal = lowerId == id ? null : new ReturnValueLocalSymbol(containingMethod, lowerId, type, index);
-                    return new ReturnValueLocalSymbol(containingMethod, id, type, index);
+                    var lowerId = name.ToLowerInvariant(); // The id should be ascii, so locale shouldn't matter.
+                    additionalLocal = lowerId == name ? null : new ReturnValueLocalSymbol(containingMethod, lowerId, displayName, type, index);
+                    return new ReturnValueLocalSymbol(containingMethod, name, displayName, type, index);
                 }
                 case DkmClrAliasKind.ObjectId:
-                    Debug.Assert(id.Length > 0 && id[0] != '$');
+                    Debug.Assert(name.Length > 0 && name[0] != '$');
                     additionalLocal = null;
-                    return new ObjectIdLocalSymbol(containingMethod, type, "$" + id, isWritable: false);
+                    return new ObjectIdLocalSymbol(containingMethod, type, "$" + name, displayName, isWritable: false);
                 case DkmClrAliasKind.Variable:
                     additionalLocal = null;
-                    return new ObjectIdLocalSymbol(containingMethod, type, id, isWritable: true);
+                    return new ObjectIdLocalSymbol(containingMethod, type, name, displayName, isWritable: true);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(alias.Kind);
             }

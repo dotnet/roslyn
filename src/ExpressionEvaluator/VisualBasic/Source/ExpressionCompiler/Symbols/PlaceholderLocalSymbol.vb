@@ -12,9 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private ReadOnly _name As String
 
-        Friend Sub New(method As MethodSymbol, name As String, type As TypeSymbol)
+        Friend ReadOnly DisplayName As String
+
+        Friend Sub New(method As MethodSymbol, name As String, displayName As String, type As TypeSymbol)
             MyBase.New(method, type)
             _name = name
+            Me.DisplayName = displayName
         End Sub
 
         Friend Overrides ReadOnly Property DeclarationKind As LocalDeclarationKind

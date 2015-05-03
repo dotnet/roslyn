@@ -11,11 +11,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
 
-        public CSharpLocalAndMethod(string localName, MethodSymbol method, DkmClrCompilationResultFlags flags)
-            : base(localName, method.Name, flags)
+        public CSharpLocalAndMethod(string name, string displayName, MethodSymbol method, DkmClrCompilationResultFlags flags)
+            : base(name, displayName, method.Name, flags)
         {
             Debug.Assert(method is EEMethodSymbol); // Expected but not required.
             _method = method;
+        }
+
+        public CSharpLocalAndMethod(LocalSymbol local, MethodSymbol method, DkmClrCompilationResultFlags flags)
+            // Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
+            // the ResultProvider needs to be able to disambiguate cases like "this" and "@this",
+            // which it can't do correctly without semantic information.
+            : this(
+                  SyntaxHelpers.EscapeKeywordIdentifiers(local.Name),
+                  (local as PlaceholderLocalSymbol)?.DisplayName ?? SyntaxHelpers.EscapeKeywordIdentifiers(local.Name), 
+                  method, 
+                  flags)
+        {
         }
 
         public override CustomTypeInfo GetCustomTypeInfo() =>

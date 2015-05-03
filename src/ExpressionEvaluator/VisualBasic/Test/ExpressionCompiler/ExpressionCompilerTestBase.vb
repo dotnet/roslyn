@@ -286,6 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             localAndMethod As LocalAndMethod,
             expectedMethodName As String,
             expectedLocalName As String,
+            Optional expectedLocalDisplayName As String = Nothing,
             Optional expectedFlags As DkmClrCompilationResultFlags = DkmClrCompilationResultFlags.None,
             Optional expectedILOpt As String = Nothing,
             Optional expectedGeneric As Boolean = False,
@@ -298,6 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 localAndMethod,
                 expectedMethodName,
                 expectedLocalName,
+                If(expectedLocalDisplayName, expectedLocalName),
                 expectedFlags,
                 AddressOf VerifyTypeParameters,
                 expectedILOpt,
@@ -348,8 +350,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Function ObjectIdAlias(id As UInteger, typeAssemblyQualifiedName As String) As [Alias]
             Assert.NotEqual(Of UInteger)(0, id) ' Not a valid id.
-            Dim name = id.ToString()
-            Return New [Alias](DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, Nothing)
+            Dim name = $"${id}"
+            Dim fullName = id.ToString()
+            Return New [Alias](DkmClrAliasKind.ObjectId, name, fullName, typeAssemblyQualifiedName, Nothing)
         End Function
 
         Friend Shared Function ReturnValueAlias(Optional id As Integer = -1, Optional type As Type = Nothing) As [Alias]
