@@ -2685,6 +2685,64 @@ End Class
             locals.Free()
         End Sub
 
+        <WorkItem(2089, "https://github.com/dotnet/roslyn/issues/2089")>
+        <Fact>
+        Public Sub MultipleMeFields()
+            Const source =
+"Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Shared Function F(a As Action) As Task
+        a()
+    End Function
+    Sub G(s As String)
+    End Sub
+    Async Sub M()
+        Dim s As String = Nothing
+        Await F(Sub() G(s))
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithReferences(
+                MakeSources(source),
+                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_3_M.MoveNext")
+            Dim testData As New CompilationTestData()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            Assert.Equal(2, locals.Count)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "Me", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                Boolean V_2,
+                C.VB$StateMachine_3_M V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$Me As C""
+  IL_0006:  ret
+}")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "s", expectedILOpt:=
+"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                Boolean V_2,
+                C.VB$StateMachine_3_M V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$ResumableLocal_$VB$Closure_$0 As C._Closure$__3-0""
+  IL_0006:  ldfld      ""C._Closure$__3-0.$VB$Local_s As String""
+  IL_000b:  ret
+}")
+            locals.Free()
+        End Sub
+
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, argumentsOnly As Boolean, locals As ArrayBuilder(Of LocalAndMethod), count As Integer, ByRef typeName As String, ByRef testData As CompilationTestData)
             Dim context = CreateMethodContext(runtime, methodName)
             testData = New CompilationTestData()

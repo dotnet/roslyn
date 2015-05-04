@@ -262,31 +262,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static Symbol GetMethodOrTypeBySignature(Compilation compilation, string signature)
         {
-            string methodOrTypeName = signature;
-            string[] parameterTypeNames = null;
-            var parameterListStart = methodOrTypeName.IndexOf('(');
-            if (parameterListStart > -1)
-            {
-                parameterTypeNames = methodOrTypeName.Substring(parameterListStart).Trim('(', ')').Split(',');
-                methodOrTypeName = methodOrTypeName.Substring(0, parameterListStart);
-            }
+            string[] parameterTypeNames;
+            var methodOrTypeName = ExpressionCompilerTestHelpers.GetMethodOrTypeSignatureParts(signature, out parameterTypeNames);
 
             var candidates = compilation.GetMembers(methodOrTypeName);
-            Assert.Equal(parameterTypeNames == null, candidates.Length == 1);
+            var methodOrType = (parameterTypeNames == null) ?
+                candidates.FirstOrDefault() :
+                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.Type.Name)));
 
-            Symbol methodOrType = null;
-            foreach (var candidate in candidates)
-            {
-                methodOrType = candidate;
-                if ((parameterTypeNames == null) ||
-                    parameterTypeNames.SequenceEqual(methodOrType.GetParameters().Select(p => p.Type.Name)))
-                {
-                    // Found a match.
-                    break;
-                }
-            }
             Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
-
             return methodOrType;
         }
 
