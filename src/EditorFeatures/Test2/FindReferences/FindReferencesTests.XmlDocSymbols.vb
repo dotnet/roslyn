@@ -1365,126 +1365,8 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact(Skip:="641100"), Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestOperatorInCref1()
-            Dim input =
-<Workspace>
-    <Project Language="C#" CommonReferences="true">
-        <Document><![CDATA[
-                using System;
-                class Test
-                {
-                    /// <summary>
-                    /// <see cref="[|operator|] !"/>
-                    /// <see cref="[|operator|] +"/>
-                    /// <see cref="[|$$operator|]"/>
-                    /// </summary>
-                    /// <param name="t"></param>
-                    /// <returns></returns>
-                    public static Test {|Definition:operator|} !(Test t)
-                    {
-                        return new Test();
-                    }
-                    public static int {|Definition:operator|} +(Test t1, Test t2)
-                    {
-                        return 1;
-                    }
-                }]]>
-        </Document>
-    </Project>
-</Workspace>
-            Test(input)
-        End Sub
-
-        <Fact(Skip:="641100"), Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestOperatorInCref1_VisualBasic()
-            Dim input =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document><![CDATA[
-                Imports System
-                Class Test
-                    ''' <summary>
-                    ''' <see cref="[|Operator|] Not"/>
-                    ''' <see cref="[|Operator|] +"/>
-                    ''' <see cref="[|$$Operator|]"/>
-                    ''' </summary>
-                    ''' <param name="t"></param>
-                    ''' <returns></returns>
-                    Public Shared {|Definition:Operator|} Not(t As Test) As Test
-                        Return New Test()
-                    End Operator
-                    Public Shared {|Definition:Operator|} +(t1 As Test, t2 As Test) As Integer
-                        Return 1
-                    End Operator
-                End Class]]>
-        </Document>
-    </Project>
-</Workspace>
-            Test(input)
-        End Sub
-
-        <Fact(Skip:="641100"), Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestOperatorInCref2()
-            Dim input =
-<Workspace>
-    <Project Language="C#" CommonReferences="true">
-        <Document><![CDATA[
-                using System;
-                class Test
-                {
-                    /// <summary>
-                    /// <see cref="[|$$operator|] !"/>
-                    /// <see cref="operator +"/>
-                    /// <see cref="[|operator|]"/>
-                    /// </summary>
-                    /// <param name="t"></param>
-                    /// <returns></returns>
-                    public static Test {|Definition:operator|} !(Test t)
-                    {
-                        return new Test();
-                    }
-                    public static int operator +(Test t1, Test t2)
-                    {
-                        return 1;
-                    }
-                }]]>
-        </Document>
-    </Project>
-</Workspace>
-            Test(input)
-        End Sub
-
-        <Fact(Skip:="641100"), Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestOperatorInCref2_VisualBasic()
-            Dim input =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document><![CDATA[
-                Imports System
-                Class Test
-                    ''' <summary>
-                    ''' <see cref="[|$$Operator|] Not"/>
-                    ''' <see cref="Operator +"/>
-                    ''' <see cref="[|Operator|]"/>
-                    ''' </summary>
-                    ''' <param name="t"></param>
-                    ''' <returns></returns>
-                    Public Shared {|Definition:Operator|} Not(t As Test) As Test
-                        Return New Test()
-                    End Operator
-                    Public Shared Operator +(t1 As Test, t2 As Test) As Integer
-                        Return 1
-                    End Operator
-                End Class]]>
-        </Document>
-    </Project>
-</Workspace>
-            Test(input)
-        End Sub
-
-        <Fact(Skip:="641100"), Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestOperatorInCref3()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestOperatorInCref()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1494,9 +1376,7 @@ End Class]]>
                 {
                     /// <summary>
                     /// <see cref="operator !"/>
-                    /// <see cref="[|$$operator|] +"/>
-                    /// <see cref="[|operator|](Test,Test)"/>
-                    /// <see cref="[|operator|]"/>
+                    /// <see cref="operator [|+|]"/>
                     /// </summary>
                     /// <param name="t"></param>
                     /// <returns></returns>
@@ -1504,7 +1384,7 @@ End Class]]>
                     {
                         return new Test();
                     }
-                    public static int {|Definition:operator|} +(Test t1, Test t2)
+                    public static int operator {|Definition:$$+|}(Test t1, Test t2)
                     {
                         return 1;
                     }
@@ -1515,8 +1395,8 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact(Skip:="641100"), Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestOperatorInCref3_VisualBasic()
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestOperatorInCrefVisualBasic()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -1524,17 +1404,15 @@ End Class]]>
                 Imports System
                 Class Test
                     ''' <summary>
-                    ''' <see cref="Operator Not"/>
-                    ''' <see cref="[|$$Operator|] +"/>
-                    ''' <see cref="[|Operator|](Test,Test)"/>
-                    ''' <see cref="[|Operator|]"/>
+                    ''' <see cref="Operator Not(Test)"/>
+                    ''' <see cref="Operator [|+|](Test, Test)"/>
                     ''' </summary>
                     ''' <param name="t"></param>
                     ''' <returns></returns>
                     Public Shared Operator Not(t As Test) As Test
                         Return New Test()
                     End Operator
-                    Public Shared {|Definition:Operator|} +(t1 As Test, t2 As Test) As Integer
+                    Public Shared Operator {|Definition:$$+|}(t1 As Test, t2 As Test) As Integer
                         Return 1
                     End Operator
                 End Class]]>
