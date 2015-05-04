@@ -130,6 +130,10 @@ namespace Roslyn.Utilities
             return builder.ToImmutable();
         }
 
+        /// <summary>
+        /// Given a path to an assembly and a set of paths to possible dependencies,
+        /// identifies which of the assembly's references are missing.
+        /// </summary>
         public static ImmutableArray<AssemblyIdentity> IdentifyMissingDependencies(string assemblyPath, IEnumerable<string> assemblySet)
         {
             if (assemblyPath == null)
@@ -167,6 +171,26 @@ namespace Roslyn.Utilities
             assemblyReferences.ExceptWith(assemblyDefinitions);
 
             return ImmutableArray.CreateRange(assemblyReferences);
+        }
+
+        /// <summary>
+        /// Given a path to an assembly, returns true if the assembly has a strong
+        /// name (either a full key or a token) or false otherwise.
+        /// </summary>
+        public static bool HasStrongName(string assemblyPath)
+        {
+            if (assemblyPath == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyPath));
+            }
+
+            using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                var assemblyDefinition = metadataReader.ReadAssemblyIdentityOrThrow();
+
+                return assemblyDefinition.IsStrongName;
+            }
         }
     }
 }

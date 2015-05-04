@@ -213,5 +213,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Contains("mscorlib", results);
             Assert.Contains("Gamma", results);
         }
+
+        [Fact]
+        public void HasStrongName_False()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+
+            Assert.False(AssemblyUtilities.HasStrongName(alphaDll.Path));
+        }
+
+        [Fact]
+        public void HasStrongName_True()
+        {
+            string path = Assembly.GetExecutingAssembly().Location;
+
+            Assert.True(AssemblyUtilities.HasStrongName(path));
+        }
     }
 }
