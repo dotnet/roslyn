@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
@@ -24,6 +25,11 @@ namespace Roslyn.Utilities
         /// </remarks>
         public static ImmutableArray<string> FindAssemblySet(string filePath)
         {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
             Queue<string> workList = new Queue<string>();
             HashSet<string> assemblySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -59,6 +65,32 @@ namespace Roslyn.Utilities
             }
 
             return ImmutableArray.CreateRange(assemblySet);
+        }
+
+        /// <summary>
+        /// Given a path to an assembly and a loaded <see cref="Assembly"/>, returns
+        /// true if their MVIDs match, and false otherwise.
+        /// </summary>
+        public static bool MvidsMatch(string filePath, Assembly assembly)
+        {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (assembly == null)
+            {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+
+            using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                var fileMvid = metadataReader.GetGuid(mvidHandle);
+
+                return fileMvid == assembly.ManifestModule.ModuleVersionId;
+            }
         }
     }
 }

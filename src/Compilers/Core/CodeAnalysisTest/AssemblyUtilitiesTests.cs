@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -70,6 +72,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Contains(alphaDll.Path, results, StringComparer.OrdinalIgnoreCase);
             Assert.Contains(gammaDll.Path, results, StringComparer.OrdinalIgnoreCase);
             Assert.Contains(deltaDll.Path, results, StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void MvidsMatch_True()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+
+            var assembly = Assembly.Load(File.ReadAllBytes(alphaDll.Path));
+
+            var result = AssemblyUtilities.MvidsMatch(alphaDll.Path, assembly);
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void MvidsMatch_False()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Beta);
+
+            var assembly = Assembly.Load(File.ReadAllBytes(betaDll.Path));
+
+            var result = AssemblyUtilities.MvidsMatch(alphaDll.Path, assembly);
+
+            Assert.False(result);
         }
     }
 }
