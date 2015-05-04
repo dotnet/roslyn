@@ -76,7 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var result = SpecializedCollections.EmptyEnumerable<ISymbol>();
-            var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+
+            // To get a Speculative SemanticModel (which is much faster), we need to 
+            // walk up to the node the DocumentationTrivia is attached to.
+            var parentNode = token.GetAncestor<DocumentationCommentTriviaSyntax>().ParentTrivia.Token.Parent;
+            var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(false);
 
             // cref ""|, ""|"", ""a|""
             if (token.IsKind(SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken) && token.Parent.IsKind(SyntaxKind.XmlCrefAttribute))
