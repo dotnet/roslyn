@@ -28,6 +28,30 @@ class D
                 Part(EnvDTE.vsCMPart.vsCMPartBody,
                      TextPoint(line:=5, lineOffset:=1, absoluteOffset:=65, lineLength:=23)))
         End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPointExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=8, lineOffset:=5, absoluteOffset:=67, lineLength:=15)))
+        End Sub
 #End Region
 
 #Region "Get End Point"
@@ -48,6 +72,30 @@ class D
             TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartBody,
                      TextPoint(line:=6, lineOffset:=1, absoluteOffset:=89, lineLength:=5)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPointExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=11, lineOffset:=6, absoluteOffset:=108, lineLength:=5)))
         End Sub
 #End Region
 
@@ -353,6 +401,28 @@ class C
             TestFullName(code, "C.~C")
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.f1")
+        End Sub
+
 #End Region
 
 #Region "FunctionKind tests"
@@ -517,6 +587,28 @@ class C : B
 #End Region
 
 #Region "Name tests"
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestName(code, "I1.f1")
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Name_Destructor()
