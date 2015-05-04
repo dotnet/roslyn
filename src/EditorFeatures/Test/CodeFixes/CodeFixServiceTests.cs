@@ -262,22 +262,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         {
             public Dictionary<string, string> Messages = new Dictionary<string, string>();
 
-            public void LogError(string source, string message)
+            public void LogException(object source, Exception exception)
             {
-                Messages.Add(source, message);
+                Messages.Add(source.GetType().Name, ToLogFormat(exception));
             }
 
-            public bool TryLogError(string source, string message)
+            public bool TryLogException(object source, Exception exception)
             {
                 try
                 {
-                    Messages.Add(source, message);
+                    Messages.Add(source.GetType().Name, ToLogFormat(exception));
                     return true;
                 }
                 catch (Exception)
                 {
                     return false;
                 }
+            }
+
+            private static string ToLogFormat(Exception exception)
+            {
+                return exception.Message + Environment.NewLine + exception.StackTrace;
             }
         }
     }
