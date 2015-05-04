@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private Solution _intermediateSolutionContainingOnlyModifiedDocuments;
 
         // This is Lazy Initialized when it is first used
-        private ILookup<DocumentId, RelatedLocation> _relatedLocationsByDocumentId = null;
+        private ILookup<DocumentId, RelatedLocation> _relatedLocationsByDocumentId;
 
         public ConflictResolution(
             Solution oldSolution,

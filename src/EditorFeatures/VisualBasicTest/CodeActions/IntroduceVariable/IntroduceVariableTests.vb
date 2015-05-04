@@ -1416,6 +1416,73 @@ End Module
 </File>)
         End Sub
 
+        <WorkItem(2026, "https://github.com/dotnet/roslyn/issues/2026")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestReplaceAllFromInsideIfBlock()
+            Dim code =
+<File>
+Imports System
+Module DataTipInfoGetterModule
+    Friend Function GetInfoAsync() As DebugDataTipInfo
+        Dim expression As ExpressionSyntax = Nothing
+
+        Dim curr = DirectCast(expression.Parent, ExpressionSyntax)
+        If curr Is expression.Parent Then
+            Return New DebugDataTipInfo([|expression.Parent|].Span)
+        End If
+
+        Return Nothing
+    End Function
+End Module
+
+Friend Class TextSpan
+End Class
+
+Friend Class ExpressionSyntax
+    Public Property Parent As ExpressionSyntax
+    Public Property Span As TextSpan
+End Class
+
+Friend Class DebugDataTipInfo
+    Public Sub New(span As Object)
+    End Sub
+End Class
+</File>
+
+            Dim expected =
+<File>
+Imports System
+Module DataTipInfoGetterModule
+    Friend Function GetInfoAsync() As DebugDataTipInfo
+        Dim expression As ExpressionSyntax = Nothing
+        Dim {|Rename:parent|} As ExpressionSyntax = expression.Parent
+
+        Dim curr = DirectCast(parent, ExpressionSyntax)
+        If curr Is parent Then
+            Return New DebugDataTipInfo(parent.Span)
+        End If
+
+        Return Nothing
+    End Function
+End Module
+
+Friend Class TextSpan
+End Class
+
+Friend Class ExpressionSyntax
+    Public Property Parent As ExpressionSyntax
+    Public Property Span As TextSpan
+End Class
+
+Friend Class DebugDataTipInfo
+    Public Sub New(span As Object)
+    End Sub
+End Class
+</File>
+
+            Test(code, expected, index:=1, compareTokens:=False)
+        End Sub
+
         <WorkItem(1065661)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestIntroduceVariableTextDoesntSpanLines()

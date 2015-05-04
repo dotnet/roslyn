@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(858655)]
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new CA2237CodeFixProvider();
+            return new MarkTypesWithSerializableFixer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(858655)]
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CA2237CodeFixProvider();
+            return new MarkTypesWithSerializableFixer();
         }
 
         #region CA2237

@@ -439,6 +439,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cursor must be on a member name..
+        /// </summary>
+        internal static string CursorMustBeOnAMemberName {
+            get {
+                return ResourceManager.GetString("CursorMustBeOnAMemberName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Directly Called In.
         /// </summary>
         internal static string DirectlyCalledIn {

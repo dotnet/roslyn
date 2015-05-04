@@ -3521,5 +3521,28 @@ N1N2
 ]]>).VerifyDiagnostics()
         End Sub
 
+        <Fact, WorkItem(564, "https://github.com/dotnet/roslyn/issues/564")>
+        Public Sub NameOfTypeParameterInDefaultValue()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub M(Of TP)(Optional name As String = NameOf(TP))
+        System.Console.WriteLine(name)
+    End Sub
+    Sub Main()
+        M(Of String)()
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+TP
+]]>).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace

@@ -93,7 +93,7 @@ namespace BoundTreeGenerator
             new BoundNodeClassWriter(writer, tree, targetLang).WriteFile();
         }
 
-        private int _indent = 0;
+        private int _indent;
         private bool _needsIndent = true;
 
         private void Write(string format, params object[] args)

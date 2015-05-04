@@ -515,6 +515,104 @@ End Interface
 
 #End Region
 
+#Region "Attribute Tests"
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithNoSet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithNoGet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        $$Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithGet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        Get
+            Return 0
+        End Get
+        &lt;Obsolete&gt;
+        $$Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithSet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        $$Get
+            Return 0
+        End Get
+        &lt;Obsolete&gt;
+        Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attribute_1()
+            Dim code =
+<Code>
+Class Program
+    &lt;Obsolete&gt;
+    Sub F$$()
+
+    End Sub
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+#End Region
+
 #Region "CanOverride tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -928,6 +1026,48 @@ End Class
             TestName(code, "*")
         End Sub
 
+#End Region
+
+#Region "Kind tests"
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DeclareSubKind()
+            Dim code =
+<Code>
+Public Class Class1 
+Public Declare Sub $$f1 Lib "MyLib.dll" () 
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DeclareFunctionKind()
+            Dim code =
+<Code>
+Public Class Class1 
+Public Declare Function f2$$ Lib "MyLib.dll" () As Integer 
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SubKind()
+            Dim code =
+<Code>
+Public Class Class1 
+    Public Sub F1$$()
+    End Sub
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementFunction)
+        End Sub
 #End Region
 
 #Region "OverrideKind tests"

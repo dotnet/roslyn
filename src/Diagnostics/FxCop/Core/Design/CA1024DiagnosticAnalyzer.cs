@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         protected abstract class CA1024CodeBlockEndedAnalyzer
         {
-            protected bool suppress = false;
+            protected bool suppress;
 
             protected abstract Location GetDiagnosticLocation(SyntaxNode node);
 

@@ -6118,5 +6118,31 @@ class Module1
         }
 
         #endregion Dev10 bugs
+
+        [Fact, WorkItem(1115058, "DevDiv")]
+        public void UnterminatedElement()
+        {
+            var source = @"
+class Module1
+{
+    ///<summary>
+    /// Something
+    ///<summary>
+    static void Main()
+    {
+        System.Console.WriteLine(""Here"");
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "Here").VerifyDiagnostics(
+    // (7,1): warning CS1570: XML comment has badly formed XML -- 'Expected an end tag for element 'summary'.'
+    //     static void Main()
+    Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary").WithLocation(7, 1),
+    // (7,1): warning CS1570: XML comment has badly formed XML -- 'Expected an end tag for element 'summary'.'
+    //     static void Main()
+    Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary").WithLocation(7, 1)
+                );
+        }
     }
 }

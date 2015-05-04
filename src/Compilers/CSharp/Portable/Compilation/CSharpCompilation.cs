@@ -1877,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private DiagnosticBag _lazyDeclarationDiagnostics;
-        private bool _declarationDiagnosticsFrozen = false;
+        private bool _declarationDiagnosticsFrozen;
 
         /// <summary>
         /// A bag in which diagnostics that should be reported after code gen can be deposited.

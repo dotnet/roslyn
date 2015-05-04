@@ -193,6 +193,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parent = parent.Parent;
                 }
 
+
+                if (parent is MemberAccessExpressionSyntax)
+                {
+                    var awaitExpression = parent.GetAncestor<AwaitExpressionSyntax>();
+                    if (awaitExpression != null)
+                    {
+                        parent = awaitExpression;
+                    }
+                }
+
                 return parent.TypeSwitch(
                     (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator),
                     (ArgumentSyntax argument) => InferTypeInArgument(argument),

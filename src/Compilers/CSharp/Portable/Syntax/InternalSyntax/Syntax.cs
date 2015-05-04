@@ -44,7 +44,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxTrivia EndOfLine(string text, bool elastic = false)
         {
-            var trivia = SyntaxTrivia.Create(SyntaxKind.EndOfLineTrivia, text);
+            SyntaxTrivia trivia = null;
+
+            // use predefined trivia
+            switch (text)
+            {
+                case "\r":
+                    trivia = elastic ? SyntaxFactory.ElasticCarriageReturn : SyntaxFactory.CarriageReturn;
+                    break;
+                case "\n":
+                    trivia = elastic ? SyntaxFactory.ElasticLineFeed : SyntaxFactory.LineFeed;
+                    break;
+                case "\r\n":
+                    trivia = elastic ? SyntaxFactory.ElasticCarriageReturnLineFeed : SyntaxFactory.CarriageReturnLineFeed;
+                    break;
+            }
+
+            // note: predefined trivia might not yet be defined during initialization
+            if (trivia != null)
+            {
+                return trivia;
+            }
+
+            trivia = SyntaxTrivia.Create(SyntaxKind.EndOfLineTrivia, text);
             if (!elastic)
             {
                 return trivia;

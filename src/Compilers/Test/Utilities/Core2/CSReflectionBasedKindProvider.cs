@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private const string CS_DLL = "Microsoft.CodeAnalysis.CSharp.dll";
         private const string CS_KIND_TYPE = "Roslyn.Compilers.CSharp.SyntaxKind";
-        private Type _CSKindType = null;
-        private readonly string _folder = null;
+        private Type _CSKindType;
+        private readonly string _folder;
 
         public CSReflectionBasedKindProvider(string folder)
         {

@@ -606,5 +606,33 @@ End Class
             Dim text = "Dim args As String() : args?([|foo|])"
             TestInMethod(text, "System.Int32", testPosition:=True)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        Public Sub TestAwaitExpressionWithChainingMethod()
+            Dim text = "Imports System
+Imports System.Linq
+
+Module M
+    Async Sub T()
+        Dim x As Boolean = Await [|F|].ContinueWith(Function(a) True).ContinueWith(Function(a) False)
+    End Sub
+End Module"
+            Test(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        Public Sub TestAwaitExpressionWithChainingMethod2()
+            Dim text = "Imports System
+Imports System.Threading.Tasks
+
+Module M
+    Async Sub T()
+        Dim x As Boolean = Await [|F|].ConfigureAwait(False)
+    End Sub
+End Module"
+            Test(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
+        End Sub
     End Class
 End Namespace

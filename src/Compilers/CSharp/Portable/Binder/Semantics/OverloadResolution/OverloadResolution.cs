@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // lazily compute if the compiler is in "strict" mode (rather than duplicating bugs for compatibility)
-        private bool? _strict = null;
+        private bool? _strict;
         private bool Strict
         {
             get

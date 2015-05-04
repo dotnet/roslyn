@@ -2203,8 +2203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
 
-            public int StaticSyntaxLength = 0;
-            public int InstanceSyntaxLength = 0;
+            public int StaticSyntaxLength;
+            public int InstanceSyntaxLength;
 
             public MembersAndInitializers ToReadOnlyAndFree()
             {

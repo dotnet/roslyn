@@ -929,7 +929,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Const allowedParts = AssemblyIdentityParts.Name Or AssemblyIdentityParts.PublicKey
+            ' Allow public key token due to compatibility reasons, but we are not going to use its value.
+            Const allowedParts = AssemblyIdentityParts.Name Or AssemblyIdentityParts.PublicKey Or AssemblyIdentityParts.PublicKeyToken
 
             If (parts And Not allowedParts) <> 0 Then
                 diagnostics.Add(ERRID.ERR_FriendAssemblyBadArguments, If(nodeOpt IsNot Nothing, nodeOpt.GetLocation(), NoLocation.Singleton), displayName)

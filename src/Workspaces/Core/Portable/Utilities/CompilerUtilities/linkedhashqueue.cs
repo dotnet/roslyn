@@ -17,7 +17,7 @@ namespace Roslyn.Utilities
     {
         private readonly LinkedList<T> _list;
         private readonly Dictionary<T, LinkedListNode<T>> _map;
-        private int _insertionIndex = 0;
+        private int _insertionIndex;
 
         public LinkedHashQueue()
             : this(null)

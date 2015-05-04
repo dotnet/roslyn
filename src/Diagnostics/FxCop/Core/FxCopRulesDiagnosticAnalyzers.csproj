@@ -142,9 +142,9 @@
     <Compile Include="SolutionChangeAction.cs" />
     <Compile Include="Usage\CA2200DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2214DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CodeFixes\CA2229CodeFixProvider.cs" />
-    <Compile Include="Usage\CodeFixes\CA2235CodeFixProviderBase.cs" />
-    <Compile Include="Usage\CodeFixes\CA2237CodeFixProvider.cs" />
+    <Compile Include="Usage\ImplementSerializationConstructors.Fixer.cs" />
+    <Compile Include="Usage\MarkAllNonSerializableFields.Fixer.cs" />
+    <Compile Include="Usage\MarkTypesWithSerializable.Fixer.cs" />
     <Compile Include="Usage\SerializationRulesDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>

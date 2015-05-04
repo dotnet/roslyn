@@ -730,4 +730,7 @@ Do you want to proceed?</value>
   <data name="HighlightedWrittenReference" xml:space="preserve">
     <value>Highlighted Written Reference</value>
   </data>
+  <data name="CursorMustBeOnAMemberName" xml:space="preserve">
+    <value>Cursor must be on a member name.</value>
+  </data>
 </root>

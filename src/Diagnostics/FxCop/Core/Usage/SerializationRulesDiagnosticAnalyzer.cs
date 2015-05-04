@@ -168,10 +168,17 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 // If this is type is marked Serializable check it's fields types' as well
                 if (IsSerializable(namedTypeSymbol))
                 {
-                    var nonSerialableFields = namedTypeSymbol.GetMembers().OfType<IFieldSymbol>().Where(m => !IsSerializable(m.Type));
-                    foreach (var field in nonSerialableFields)
+                    var nonSerializableFields = namedTypeSymbol.GetMembers().OfType<IFieldSymbol>().Where(m => !IsSerializable(m.Type));
+                    foreach (var field in nonSerializableFields)
                     {
-                        context.ReportDiagnostic(field.CreateDiagnostic(RuleCA2235, field.Name, namedTypeSymbol.Name, field.Type));
+                        if (field.IsImplicitlyDeclared && field.AssociatedSymbol != null)
+                        {
+                            context.ReportDiagnostic(field.AssociatedSymbol.CreateDiagnostic(RuleCA2235, field.AssociatedSymbol.Name, namedTypeSymbol.Name, field.Type));
+                        }
+                        else
+                        {
+                            context.ReportDiagnostic(field.CreateDiagnostic(RuleCA2235, field.Name, namedTypeSymbol.Name, field.Type));
+                        }
                     }
                 }
             }

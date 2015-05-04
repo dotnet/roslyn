@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.IO;
 using System.Xml;
-using System.Xml.Schema;
+using System.Xml.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -56,23 +58,23 @@ namespace Microsoft.CodeAnalysis
             filePath = FileUtilities.NormalizeAbsolutePath(filePath);
             XmlReaderSettings settings = GetDefaultXmlReaderSettings();
 
-            XmlDocument ruleSetDocument = new XmlDocument();
-            XmlNode ruleSetNode = null;
+            XDocument ruleSetDocument = null;
+            XElement ruleSetNode = null;
 
             using (FileStream stream = FileUtilities.OpenRead(filePath))
             using (XmlReader xmlReader = XmlReader.Create(stream, settings))
             {
                 try
                 {
-                    ruleSetDocument.Load(xmlReader);
+                    ruleSetDocument = XDocument.Load(xmlReader);
                 }
-                catch (XmlException e)
+                catch (Exception e)
                 {
                     throw new InvalidRuleSetException(e.Message);
                 }
 
                 // Find the top level rule set node
-                XmlNodeList nodeList = ruleSetDocument.GetElementsByTagName(RuleSetNodeName);
+                List<XElement> nodeList = ruleSetDocument.Elements(RuleSetNodeName).ToList();
                 if (nodeList.Count != 1)
                 {
                     Debug.Fail("Multiple top-level nodes!");
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="ruleSetNode">The rule set node from which to create a rule set object</param>
         /// <param name="filePath">The file path to the rule set file</param>
         /// <returns>A rule set object with data from the given XML node</returns>
-        private static RuleSet ReadRuleSet(XmlNode ruleSetNode, string filePath)
+        private static RuleSet ReadRuleSet(XElement ruleSetNode, string filePath)
         {
             var specificOptions = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
             var generalOption = ReportDiagnostic.Default;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             ValidateAttribute(ruleSetNode, RuleSetNameAttributeName);
 
             // Loop through each rules or include node in this rule set
-            foreach (XmlNode childNode in ruleSetNode.ChildNodes)
+            foreach (XElement childNode in ruleSetNode.Elements())
             {
                 if (childNode.Name == RulesNodeName)
                 {
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="rulesNode">The rules node from which to loop through each child rule node</param>
         /// <returns>A list of rule objects with data from the given XML node</returns>
-        private static List<KeyValuePair<string, ReportDiagnostic>> ReadRules(XmlNode rulesNode)
+        private static List<KeyValuePair<string, ReportDiagnostic>> ReadRules(XElement rulesNode)
         {
             string analyzerId = ReadNonEmptyAttribute(rulesNode, RulesAnalyzerIdAttributeName);
             string ruleNamespace = ReadNonEmptyAttribute(rulesNode, RulesNamespaceAttributeName);
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis
             var rules = new List<KeyValuePair<string, ReportDiagnostic>>();
 
             // Loop through each rule node
-            foreach (XmlNode ruleNode in rulesNode.ChildNodes)
+            foreach (XElement ruleNode in rulesNode.Elements())
             {
                 if (ruleNode.Name == RuleNodeName)
                 {
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="analyzer">The analyzer this rule belongs to</param>
         /// <param name="space">The namespace this rule belongs to</param>
         /// <returns>A rule object with data from the given XML node</returns>
-        private static KeyValuePair<string, ReportDiagnostic> ReadRule(XmlNode ruleNode, string analyzer, string space)
+        private static KeyValuePair<string, ReportDiagnostic> ReadRule(XElement ruleNode, string analyzer, string space)
         {
             string ruleId = ReadNonEmptyAttribute(ruleNode, RuleIdAttributeName);
             ReportDiagnostic action = ReadAction(ruleNode, allowDefault: false);
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="includeNode">The include node from which to create a RuleSetInclude object</param>
         /// <returns>A RuleSetInclude object with data from the given XML node</returns>
-        private static RuleSetInclude ReadRuleSetInclude(XmlNode includeNode)
+        private static RuleSetInclude ReadRuleSetInclude(XElement includeNode)
         {
             string includePath = ReadNonEmptyAttribute(includeNode, IncludePathAttributeName);
             ReportDiagnostic action = ReadAction(includeNode, allowDefault: true);
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="node">The node to read the action, it can be a rule node or an include node.</param>
         /// <param name="allowDefault">Whether or not the default value is allowed.</param>
         /// <returns>The rule action</returns>
-        private static ReportDiagnostic ReadAction(XmlNode node, bool allowDefault)
+        private static ReportDiagnostic ReadAction(XElement node, bool allowDefault)
         {
             string action = ReadNonEmptyAttribute(node, RuleActionAttributeName);
 
@@ -237,7 +239,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="includeAllNode">The IncludeAll node from which to create a IncludeAll object</param>
         /// <returns>A IncludeAll object with data from the given XML node</returns>
-        private static ReportDiagnostic ReadIncludeAll(XmlNode includeAllNode)
+        private static ReportDiagnostic ReadIncludeAll(XElement includeAllNode)
         {
             return ReadAction(includeAllNode, allowDefault: false);
         }
@@ -248,9 +250,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="node">The XML node that contains the attribute</param>
         /// <param name="attributeName">The name of the attribute to read</param>
         /// <returns>The attribute value</returns>
-        private static string ReadNonEmptyAttribute(XmlNode node, string attributeName)
+        private static string ReadNonEmptyAttribute(XElement node, string attributeName)
         {
-            XmlAttribute attribute = node.Attributes[attributeName];
+            XAttribute attribute = node.Attribute(attributeName);
             if (attribute == null)
             {
                 throw new InvalidRuleSetException(string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, node.Name, attributeName));
@@ -282,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             return xmlReaderSettings;
         }
 
-        private static void ValidateAttribute(XmlNode node, string attributeName)
+        private static void ValidateAttribute(XElement node, string attributeName)
         {
             ReadNonEmptyAttribute(node, attributeName);
         }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<SyntaxNode> _exitPoints;
         private object _regionStartPointIsReachable;
         private object _regionEndPointIsReachable;
-        private bool? _succeeded = null;
+        private bool? _succeeded;
 
         internal CSharpControlFlowAnalysis(RegionAnalysisContext context)
         {

@@ -19650,7 +19650,7 @@ class B
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"));
         }
 
-        [Fact]
+        [Fact, WorkItem(909, "https://github.com/dotnet/roslyn/issues/909")]
         public void CS0675WRN_BitwiseOrSignExtend()
         {
             var text = @"
@@ -19695,6 +19695,22 @@ public class sign
       object v19 = 0xDEADBEEFU | (uint?)ni16;   // CS0675 
    }
 }
+
+class Test
+{
+    static void Main()
+    {
+        long bits = 0;
+        for (int i = 0; i < 32; i++)
+        {
+            if (i % 2 == 0)
+            {
+                bits |= (1 << i);
+                bits = bits | (1 << i);
+            }
+        }
+    }
+}
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
@@ -19721,7 +19737,13 @@ public class sign
                 Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "(ulong?)(uint?)(ushort?)ni08 | (ulong?)ni32_lo"),
                 // (40,20): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
                 //       object v19 = 0xDEADBEEFU | (uint?)ni16;   // CS0675 
-                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "0xDEADBEEFU | (uint?)ni16")
+                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "0xDEADBEEFU | (uint?)ni16"),
+                // (53,17): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
+                //                 bits |= (1 << i);
+                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "bits |= (1 << i)").WithLocation(53, 17),
+                // (54,24): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
+                //                 bits = bits | (1 << i);
+                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "bits | (1 << i)").WithLocation(54, 24)
                 );
         }
 

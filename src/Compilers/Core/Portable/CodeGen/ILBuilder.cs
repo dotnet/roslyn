@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // debug sequence points from all blocks, note that each 
         // sequence point references absolute IL offset via IL marker
-        public ArrayBuilder<RawSequencePoint> SeqPointsOpt = null;
+        public ArrayBuilder<RawSequencePoint> SeqPointsOpt;
 
         /// <summary> 
         /// In some cases we have to get a final IL offset during emit phase, for example for
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// will be put into allocatedILMarkers array. Note that only markers from reachable blocks 
         /// are materialized, the rest will have offset -1.
         /// </summary>
-        private ArrayBuilder<ILMarker> _allocatedILMarkers = null;
+        private ArrayBuilder<ILMarker> _allocatedILMarkers;
 
         // Since blocks are created lazily in GetCurrentBlock,
         // pendingBlockCreate is set to true when a block must be
         // created, in particular for leader blocks in exception handlers.
-        private bool _pendingBlockCreate = false;
+        private bool _pendingBlockCreate;
 
         internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations)
         {

@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private class OpenTypeVisitor : CSharpSyntaxVisitor
         {
-            private Dictionary<GenericNameSyntax, bool> _allowedMap = null;
-            private bool _seenConstructed = false;
-            private bool _seenGeneric = false;
+            private Dictionary<GenericNameSyntax, bool> _allowedMap;
+            private bool _seenConstructed;
+            private bool _seenGeneric;
 
             /// <param name="typeSyntax">The argument to typeof.</param>
             /// <param name="allowedMap">

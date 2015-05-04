@@ -34,9 +34,9 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         #region Private State
-        private TreeViewItem _currentSelection = null;
-        private bool _isNavigatingFromSourceToTree = false;
-        private bool _isNavigatingFromTreeToSource = false;
+        private TreeViewItem _currentSelection;
+        private bool _isNavigatingFromSourceToTree;
+        private bool _isNavigatingFromTreeToSource;
         private System.Windows.Forms.PropertyGrid _propertyGrid;
         private static readonly Thickness s_defaultBorderThickness = new Thickness(1);
         #endregion

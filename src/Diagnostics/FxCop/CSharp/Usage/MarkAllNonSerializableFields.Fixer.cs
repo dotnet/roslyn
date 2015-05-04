@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CA2237 CodeFix provider"), Shared]
-    public class CA2235CSharpCodeFixProvider : CA2235CodeFixProviderBase
+    public class CSharpMarkAllNonSerializableFieldsFixer : MarkAllNonSerializableFieldsFixer
     {
         protected override SyntaxNode GetFieldDeclarationNode(SyntaxNode node)
         {
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                 fieldNode = fieldNode.Parent;
             }
 
-            return fieldNode.Kind() == SyntaxKind.FieldDeclaration ? fieldNode : null;
+            return fieldNode?.Kind() == SyntaxKind.FieldDeclaration ? fieldNode : null;
         }
     }
 }

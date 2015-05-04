@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(858655)]
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return new CA2229CodeFixProvider();
+            return new ImplementSerializationConstructorsFixer();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new CA2229CodeFixProvider();
+            return new ImplementSerializationConstructorsFixer();
         }
 
         #region CA2229

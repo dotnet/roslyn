@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         private const string VB_DLL = "Microsoft.CodeAnalysis.VisualBasic.dll";
         private const string VB_KIND_TYPE = "Roslyn.Compilers.VisualBasic.SyntaxKind";
-        private Type _VBKindType = null;
-        private readonly string _folder = null;
+        private Type _VBKindType;
+        private readonly string _folder;
 
         public VBReflectionBasedKindProvider(string folder)
         {
