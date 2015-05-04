@@ -102,5 +102,116 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.False(result);
         }
+
+        [Fact]
+        public void FindSatelliteAssemblies_None()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
+
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+
+            Assert.Equal(expected: 0, actual: results.Length);
+        }
+
+        [Fact]
+        public void FindSatelliteAssemblies_DoesNotIncludeFileInSameDirectory()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
+            var satelliteFile = directory.CreateFile("FakeAssembly.resources.dll");
+
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+
+            Assert.Equal(expected: 0, actual: results.Length);
+        }
+
+        [Fact]
+        public void FindSatelliteAssemblies_OneLevelDown()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
+            var satelliteFile = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll");
+
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+
+            Assert.Equal(expected: 1, actual: results.Length);
+            Assert.Equal(expected: satelliteFile.Path, actual: results[0], comparer: StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void FindSatelliteAssemblies_TwoLevelsDown()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
+            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("FakeAssembly.resources").CreateFile("FakeAssembly.resources.dll");
+
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+
+            Assert.Equal(expected: 1, actual: results.Length);
+            Assert.Equal(expected: satelliteFile.Path, actual: results[0], comparer: StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void FindSatelliteAssemblies_MultipleAssemblies()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
+            var satelliteFileDE = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll");
+            var satelliteFileFR = directory.CreateDirectory("fr").CreateFile("FakeAssembly.resources.dll");
+
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+
+            Assert.Equal(expected: 2, actual: results.Length);
+            Assert.Contains(satelliteFileDE.Path, results, StringComparer.OrdinalIgnoreCase);
+            Assert.Contains(satelliteFileFR.Path, results, StringComparer.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void FindSatelliteAssemblies_WrongIntermediateDirectoryName()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll");
+            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("OtherAssembly.resources").CreateFile("FakeAssembly.resources.dll");
+
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile.Path);
+
+            Assert.Equal(expected: 0, actual: results.Length);
+        }
+
+        [Fact]
+        public void IdentifyMissingDependencies_OnlyMscorlibMissing()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Gamma);
+            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Delta);
+
+            var results = AssemblyUtilities.IdentifyMissingDependencies(alphaDll.Path, new[] { alphaDll.Path, gammaDll.Path, deltaDll.Path });
+
+            Assert.Equal(expected: 1, actual: results.Length);
+            Assert.Equal(expected: "mscorlib", actual: results[0].Name);
+        }
+
+        [Fact]
+        public void IdentifyMissingDependencies_MultipleMissing()
+        {
+            var directory = Temp.CreateDirectory();
+
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+
+            var results = AssemblyUtilities.IdentifyMissingDependencies(alphaDll.Path, new[] { alphaDll.Path }).Select(identity => identity.Name);
+
+            Assert.Equal(expected: 2, actual: results.Count());
+            Assert.Contains("mscorlib", results);
+            Assert.Contains("Gamma", results);
+        }
     }
 }

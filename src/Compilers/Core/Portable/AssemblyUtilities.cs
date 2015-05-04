@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -91,6 +92,81 @@ namespace Roslyn.Utilities
 
                 return fileMvid == assembly.ManifestModule.ModuleVersionId;
             }
+        }
+
+        /// <summary>
+        /// Given a path to an assembly, finds the paths to all of its satellite
+        /// assemblies.
+        /// </summary>
+        public static ImmutableArray<string> FindSatelliteAssemblies(string filePath)
+        {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            var builder = ImmutableArray.CreateBuilder<string>();
+
+            string directory = Path.GetDirectoryName(filePath);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
+            string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
+            string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";
+
+            foreach (var subDirectory in Directory.EnumerateDirectories(directory))
+            {
+                string satelliteAssemblyPath = Path.Combine(subDirectory, resourcesNameWithExtension);
+                if (File.Exists(satelliteAssemblyPath))
+                {
+                    builder.Add(satelliteAssemblyPath);
+                }
+
+                satelliteAssemblyPath = Path.Combine(subDirectory, resourcesNameWithoutExtension, resourcesNameWithExtension);
+                if (File.Exists(satelliteAssemblyPath))
+                {
+                    builder.Add(satelliteAssemblyPath);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public static ImmutableArray<AssemblyIdentity> IdentifyMissingDependencies(string assemblyPath, IEnumerable<string> assemblySet)
+        {
+            if (assemblyPath == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyPath));
+            }
+
+            if (assemblySet == null)
+            {
+                throw new ArgumentNullException(nameof(assemblySet));
+            }
+
+            HashSet<AssemblyIdentity> assemblyDefinitions = new HashSet<AssemblyIdentity>();
+            foreach (var potentialDependency in assemblySet)
+            {
+                using (var reader = new PEReader(FileUtilities.OpenRead(potentialDependency)))
+                {
+                    var metadataReader = reader.GetMetadataReader();
+                    var assemblyDefinition = metadataReader.ReadAssemblyIdentityOrThrow();
+
+                    assemblyDefinitions.Add(assemblyDefinition);
+                }
+            }
+
+            HashSet<AssemblyIdentity> assemblyReferences = new HashSet<AssemblyIdentity>();
+            using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
+            {
+                var metadataReader = reader.GetMetadataReader();
+
+                var references = metadataReader.GetReferencedAssembliesOrThrow();
+
+                assemblyReferences.AddAll(references);
+            }
+
+            assemblyReferences.ExceptWith(assemblyDefinitions);
+
+            return ImmutableArray.CreateRange(assemblyReferences);
         }
     }
 }
