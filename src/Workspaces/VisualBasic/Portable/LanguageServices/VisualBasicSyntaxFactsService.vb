@@ -33,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOperator(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsOperator
-            Return (IsUnaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso TypeOf token.Parent Is UnaryExpressionSyntax) OrElse
-                   (IsBinaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso TypeOf token.Parent Is BinaryExpressionSyntax)
+            Return (IsUnaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso (TypeOf token.Parent Is UnaryExpressionSyntax OrElse TypeOf token.Parent Is OperatorStatementSyntax)) OrElse
+                   (IsBinaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso (TypeOf token.Parent Is BinaryExpressionSyntax OrElse TypeOf token.Parent Is OperatorStatementSyntax))
         End Function
 
         Public Function IsContextualKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsContextualKeyword
