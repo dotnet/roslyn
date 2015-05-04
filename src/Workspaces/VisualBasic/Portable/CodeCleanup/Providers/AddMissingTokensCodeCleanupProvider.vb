@@ -418,6 +418,17 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return AddMissingOrOmittedTokenTransform(node, MyBase.VisitContinueStatement(node), Function(n) n.BlockKeyword, SyntaxKind.DoKeyword, SyntaxKind.ForKeyword, SyntaxKind.WhileKeyword)
             End Function
 
+            Public Overrides Function VisitOptionStatement(node As OptionStatementSyntax) As SyntaxNode
+                Select Case node.NameKeyword.Kind
+                    Case SyntaxKind.ExplicitKeyword,
+                        SyntaxKind.InferKeyword,
+                        SyntaxKind.StrictKeyword
+                        Return AddMissingOrOmittedTokenTransform(node, node, Function(n) n.ValueKeyword, SyntaxKind.OnKeyword, SyntaxKind.OffKeyword)
+                    Case Else
+                        Return node
+                End Select
+            End Function
+
             Public Overrides Function VisitSelectStatement(node As SelectStatementSyntax) As SyntaxNode
                 Dim newNode = DirectCast(MyBase.VisitSelectStatement(node), SelectStatementSyntax)
                 Return If(newNode.CaseKeyword.Kind = SyntaxKind.None,
@@ -508,6 +519,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                             End If
 
                         End If
+
+                    Case SyntaxKind.OnKeyword
+                        Dim optionStatement = TryCast(originalParent, OptionStatementSyntax)
+                        If optionStatement IsNot Nothing Then
+                            Return optionStatement.WithValueKeyword(newToken)
+                        End If
                 End Select
 
                 Return originalParent
@@ -524,6 +541,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return If(parent.GetAncestor(Of MultiLineIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
                 ElseIf parent.TypeSwitch(Function(p As IfDirectiveTriviaSyntax) p.ThenKeyword = originalToken) Then
                     Return CreateOmittedToken(token, SyntaxKind.ThenKeyword)
+                ElseIf parent.TypeSwitch(Function(p As OptionStatementSyntax) p.ValueKeyword = originalToken) Then
+                    Return CreateOmittedToken(token, SyntaxKind.OnKeyword)
                 End If
 
                 Return token
