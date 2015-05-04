@@ -475,7 +475,7 @@ class C
                 throw new NotImplementedException();
             }
 
-            public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position)
+            public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
             {
                 throw new NotImplementedException();
             }

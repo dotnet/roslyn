@@ -471,7 +471,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
-            Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFactsService.GetContainingMemberDeclaration
+            Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFactsService.GetContainingMemberDeclaration
                 Throw New NotImplementedException()
             End Function
 
