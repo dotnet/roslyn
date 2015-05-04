@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class AnalyzerFileReferenceTests : TestBase
     {
-        private static SimpleAnalyzerAssemblyLoader _analyzerLoader = new SimpleAnalyzerAssemblyLoader();
+        private static readonly SimpleAnalyzerAssemblyLoader _analyzerLoader = new SimpleAnalyzerAssemblyLoader();
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {

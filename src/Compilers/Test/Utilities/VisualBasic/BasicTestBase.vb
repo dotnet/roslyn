@@ -752,7 +752,7 @@ Public MustInherit Class BasicTestBaseBase
             MyBase.DefaultVisit(node)
         End Sub
 
-        Private _names As New List(Of NameSyntax)
+        Private ReadOnly _names As New List(Of NameSyntax)
 
         Public Shared Function FindNames(node As SyntaxNode) As List(Of NameSyntax)
             Dim finder As New NameSyntaxFinder()
@@ -777,7 +777,7 @@ Public MustInherit Class BasicTestBaseBase
             MyBase.DefaultVisit(node)
         End Sub
 
-        Private _expressions As New List(Of ExpressionSyntax)
+        Private ReadOnly _expressions As New List(Of ExpressionSyntax)
 
         Public Shared Function FindExpression(node As SyntaxNode) As List(Of ExpressionSyntax)
             Dim finder As New ExpressionSyntaxFinder()
@@ -801,8 +801,8 @@ Public MustInherit Class BasicTestBaseBase
             MyBase.DefaultVisit(node)
         End Sub
 
-        Private _nodes As New List(Of SyntaxNode)
-        Private _kinds As New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer)
+        Private ReadOnly _nodes As New List(Of SyntaxNode)
+        Private ReadOnly _kinds As New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer)
 
         Public Shared Function FindNodes(Of T As SyntaxNode)(node As SyntaxNode, ParamArray kinds() As SyntaxKind) As List(Of T)
             Return New List(Of T)(From s In FindNodes(node, kinds) Select DirectCast(s, T))

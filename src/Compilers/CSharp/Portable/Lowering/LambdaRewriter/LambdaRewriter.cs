@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The "this" symbol for the current method.
         private ParameterSymbol _currentFrameThis;
 
-        private ArrayBuilder<LambdaDebugInfo> _lambdaDebugInfoBuilder;
+        private readonly ArrayBuilder<LambdaDebugInfo> _lambdaDebugInfoBuilder;
 
         // ID dispenser for field names of frame references
         private int _synthesizedFieldNameIdDispenser;

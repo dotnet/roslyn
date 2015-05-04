@@ -10015,9 +10015,9 @@ AssemblyName
         End Sub
 
         Private Structure NameSyntaxInfo
-            Public Syntax As String
-            Public Symbols As String()
-            Public Types As String()
+            Public ReadOnly Syntax As String
+            Public ReadOnly Symbols As String()
+            Public ReadOnly Types As String()
 
             Public Sub New(syntax As String, symbols As String(), types As String())
                 Me.Syntax = syntax
@@ -11839,8 +11839,8 @@ xmlDoc)
 #Region "Helpers"
 
         Private Structure AliasInfo
-            Public Name As String
-            Public Target As String
+            Public ReadOnly Name As String
+            Public ReadOnly Target As String
 
             Public Sub New(name As String, target As String)
                 Me.Name = name

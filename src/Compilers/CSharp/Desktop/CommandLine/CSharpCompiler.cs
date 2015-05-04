@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal const string ResponseFileName = "csc.rsp";
 
-        private CommandLineDiagnosticFormatter _diagnosticFormatter;
+        private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
 
         protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
             : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories, analyzerLoader)

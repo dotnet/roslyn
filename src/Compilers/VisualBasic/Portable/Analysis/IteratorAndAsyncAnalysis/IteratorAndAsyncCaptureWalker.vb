@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' In Release builds we hoist only variables (locals And parameters) that are captured. 
         ' This set will contain such variables after the bound tree is visited.
-        Private _variablesToHoist As OrderedSet(Of Symbol)
-        Private _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
+        Private ReadOnly _variablesToHoist As OrderedSet(Of Symbol)
+        Private ReadOnly _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
 
         ' Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         ' The value is a list of all usage of each such variable.

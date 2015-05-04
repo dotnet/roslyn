@@ -2037,8 +2037,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ''' <summary> Queue element structure </summary>
             Public Structure QueueElement
-                Public Type As NamedTypeSymbol
-                Public Path As ConsList(Of FieldSymbol)
+                Public ReadOnly Type As NamedTypeSymbol
+                Public ReadOnly Path As ConsList(Of FieldSymbol)
 
                 Public Sub New(type As NamedTypeSymbol, path As ConsList(Of FieldSymbol))
                     Debug.Assert(type IsNot Nothing)

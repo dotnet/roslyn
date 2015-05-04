@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Box
             End Enum
 
-            Private _container As Symbol
+            Private ReadOnly _container As Symbol
 
             Private _counter As Integer = 0
             Private _evalStack As Integer = 0

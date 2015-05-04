@@ -2988,8 +2988,8 @@ public class Program
         /// </summary>
         private class TestError
         {
-            public bool IsWarning { get; set; }
-            public int ErrorCode { get; set; }
+            public bool IsWarning { get; }
+            public int ErrorCode { get; }
 
             public TestError(int code, bool warning)
             {

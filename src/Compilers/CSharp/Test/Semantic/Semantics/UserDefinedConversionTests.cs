@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SyntaxBinderTests : CompilingTestBase
     {
         #region "Source"
-        private string _userDefinedConversionTestTemplate = @"
+        private readonly string _userDefinedConversionTestTemplate = @"
 class C1 { }
 class C2 { }
 class D 

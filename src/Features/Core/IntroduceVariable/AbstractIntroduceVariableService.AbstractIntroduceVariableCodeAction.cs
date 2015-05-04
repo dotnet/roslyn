@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly TService _service;
             private readonly string _title;
 
-            private static Regex s_newlinePattern = new Regex(@"[\r\n]+", RegexOptions.Compiled);
+            private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+", RegexOptions.Compiled);
 
             internal AbstractIntroduceVariableCodeAction(
                 TService service,

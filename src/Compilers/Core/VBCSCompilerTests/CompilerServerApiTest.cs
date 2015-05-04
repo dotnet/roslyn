@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         private sealed class TestableClientConnection : IClientConnection
         {
-            internal string LoggingIdentifier = string.Empty;
+            internal readonly string LoggingIdentifier = string.Empty;
             internal Task<BuildRequest> ReadBuildRequestTask = TaskFromException<BuildRequest>(new Exception());
             internal Task WriteBuildResponseTask = TaskFromException(new Exception());
             internal Task MonitorTask = TaskFromException(new Exception());

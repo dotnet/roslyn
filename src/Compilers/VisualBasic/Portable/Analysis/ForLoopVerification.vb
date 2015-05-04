@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class ForLoopVerificationWalker
             Inherits BoundTreeWalker
 
-            Private _diagnostics As DiagnosticBag
-            Private _controlVariables As Stack(Of BoundExpression)
+            Private ReadOnly _diagnostics As DiagnosticBag
+            Private ReadOnly _controlVariables As Stack(Of BoundExpression)
 
             Public Sub New(diagnostics As DiagnosticBag)
                 _diagnostics = diagnostics

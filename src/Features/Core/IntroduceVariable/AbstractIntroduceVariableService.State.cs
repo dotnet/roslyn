@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
     {
         private partial class State
         {
-            public SemanticDocument Document { get; private set; }
+            public SemanticDocument Document { get; }
             public TExpressionSyntax Expression { get; private set; }
 
             public bool InAttributeContext { get; private set; }

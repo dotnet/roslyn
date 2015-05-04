@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _referenceDirectiveDiagnostics As ImmutableArray(Of Diagnostic)
         Private _referenceDirectives As ImmutableArray(Of ReferenceDirective)
-        Private _hasAssemblyAttributes As Boolean
+        Private ReadOnly _hasAssemblyAttributes As Boolean
 
         Public ReadOnly Property ReferenceDirectiveDiagnostics As ImmutableArray(Of Diagnostic)
             Get

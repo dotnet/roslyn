@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Shared s_reservedKeywords As SyntaxKind() = New SyntaxKind() {
+        Private Shared ReadOnly s_reservedKeywords As SyntaxKind() = New SyntaxKind() {
             SyntaxKind.AddressOfKeyword,
             SyntaxKind.AddHandlerKeyword,
             SyntaxKind.AliasKeyword,
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_reservedKeywords
         End Function
 
-        Private Shared s_contextualKeywords As SyntaxKind() = New SyntaxKind() {
+        Private Shared ReadOnly s_contextualKeywords As SyntaxKind() = New SyntaxKind() {
             SyntaxKind.AggregateKeyword,
             SyntaxKind.AllKeyword,
             SyntaxKind.AnsiKeyword,
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_contextualKeywords
         End Function
 
-        Private Shared s_punctuationKinds As SyntaxKind() = New SyntaxKind() {
+        Private Shared ReadOnly s_punctuationKinds As SyntaxKind() = New SyntaxKind() {
             SyntaxKind.ExclamationToken,
             SyntaxKind.AtToken,
             SyntaxKind.CommaToken,
@@ -345,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return s_punctuationKinds
         End Function
 
-        Private Shared s_preprocessorKeywords As SyntaxKind() = New SyntaxKind() {
+        Private Shared ReadOnly s_preprocessorKeywords As SyntaxKind() = New SyntaxKind() {
                                                             SyntaxKind.IfKeyword,
                                                             SyntaxKind.ThenKeyword,
                                                             SyntaxKind.ElseIfKeyword,

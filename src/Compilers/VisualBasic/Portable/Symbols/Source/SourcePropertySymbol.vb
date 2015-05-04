@@ -1112,12 +1112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return syntaxTree.GetLocation(block.BlockStatement.Span)
         End Function
 
-        Private Shared s_overridableModifierKinds() As SyntaxKind =
+        Private Shared ReadOnly s_overridableModifierKinds() As SyntaxKind =
             {
                 SyntaxKind.OverridableKeyword
             }
 
-        Private Shared s_accessibilityModifierKinds() As SyntaxKind =
+        Private Shared ReadOnly s_accessibilityModifierKinds() As SyntaxKind =
             {
                 SyntaxKind.PrivateKeyword,
                 SyntaxKind.ProtectedKeyword,

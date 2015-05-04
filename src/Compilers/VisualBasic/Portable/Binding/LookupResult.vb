@@ -237,14 +237,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _kind As LookupResultKind
 
         ' The symbol, unless the kind is empty.
-        Private _symList As ArrayBuilder(Of Symbol)
+        Private ReadOnly _symList As ArrayBuilder(Of Symbol)
 
         ' The diagnostic. This is always set for NonAccessible and NonViable results. It may be
         ' set for viable results.
         Private _diagInfo As DiagnosticInfo
 
         ' The pool used to get instances from.
-        Private _pool As ObjectPool(Of LookupResult)
+        Private ReadOnly _pool As ObjectPool(Of LookupResult)
 
         ''''''''''''''''''''''''''''''
         ' Access routines
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''''''''''''''''''''''''''''''
         ' Creation routines
 
-        Private Shared s_poolInstance As ObjectPool(Of LookupResult) = CreatePool()
+        Private Shared ReadOnly s_poolInstance As ObjectPool(Of LookupResult) = CreatePool()
 
         Private Shared Function CreatePool() As ObjectPool(Of LookupResult)
             Dim pool As ObjectPool(Of LookupResult) = Nothing
@@ -974,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Create a diagnostic for ambiguous names in a namespace
-        Private Shared s_ambiguousInNSError As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic) =
+        Private Shared ReadOnly s_ambiguousInNSError As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic) =
             Function(syms As ImmutableArray(Of Symbol)) As AmbiguousSymbolDiagnostic
                 Dim container As Symbol = syms(0).ContainingSymbol
                 If container.Name.Length > 0 Then

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
 
         // lazy binding
-        private NameSyntax _aliasTargetName;
+        private readonly NameSyntax _aliasTargetName;
         private readonly bool _isExtern;
         private ImmutableArray<Diagnostic> _aliasTargetDiagnostics;
 

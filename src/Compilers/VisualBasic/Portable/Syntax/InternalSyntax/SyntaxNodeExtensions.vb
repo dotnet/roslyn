@@ -447,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Maintain a list of tokens we're accumulating to put into a SkippedNodes trivia.
             Private _skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
 
-            Private _preserveExistingDiagnostics As Boolean
+            Private ReadOnly _preserveExistingDiagnostics As Boolean
             Private _addDiagnosticsToFirstTokenOnly As Boolean
             Private _diagnosticsToAdd As IEnumerable(Of DiagnosticInfo)
 

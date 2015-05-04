@@ -287,8 +287,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Sub
         End Structure
 
-        Private Shared s_keywords As New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer)
-        Private Shared s_keywordProperties As New Dictionary(Of UShort, KeywordDescription)
+        Private Shared ReadOnly s_keywords As New Dictionary(Of String, SyntaxKind)(IdentifierComparison.Comparer)
+        Private Shared ReadOnly s_keywordProperties As New Dictionary(Of UShort, KeywordDescription)
 
         Friend Shared Function TokenOfString(tokenName As String) As SyntaxKind
             Debug.Assert(tokenName IsNot Nothing)

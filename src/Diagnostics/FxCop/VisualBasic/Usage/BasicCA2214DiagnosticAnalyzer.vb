@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
 
         Private NotInheritable Class SyntaxNodeAnalyzer
 
-            Private _containingType As INamedTypeSymbol
+            Private ReadOnly _containingType As INamedTypeSymbol
 
             Public Sub New(constructorSymbol As IMethodSymbol)
                 _containingType = constructorSymbol.ContainingType

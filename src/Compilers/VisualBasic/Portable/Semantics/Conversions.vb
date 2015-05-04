@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' PERF: Use Integer instead of ConversionKind so the compiler can use array literal initialization.
             '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-            Private Shared s_convkind As Integer(,)
+            Private Shared ReadOnly s_convkind As Integer(,)
 
             Shared Sub New()
                 Const NOC As Integer = Nothing 'ConversionKind.NoConversion

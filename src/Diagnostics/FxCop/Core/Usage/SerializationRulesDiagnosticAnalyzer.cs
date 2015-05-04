@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     {
         // Implement serialization constructors
         internal const string RuleCA2229Id = "CA2229";
-        private static LocalizableString s_localizableTitleCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructor), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescriptionCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructorDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitleCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructor), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableDescriptionCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructorDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor RuleCA2229 = new DiagnosticDescriptor(RuleCA2229Id,
                                                                          s_localizableTitleCA2229,
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         // Mark ISerializable types with SerializableAttribute
         internal const string RuleCA2237Id = "CA2237";
-        private static LocalizableString s_localizableTitleCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessageCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.AddSerializableAttributeToType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescriptionCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttributeDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitleCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.AddSerializableAttributeToType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableDescriptionCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttributeDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor RuleCA2237 = new DiagnosticDescriptor(RuleCA2237Id,
                                                                          s_localizableTitleCA2237,
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         // Mark all non-serializable fields
         internal const string RuleCA2235Id = "CA2235";
-        private static LocalizableString s_localizableTitleCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFields), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessageCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.FieldIsOfNonSerializableType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescriptionCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFieldsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitleCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFields), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.FieldIsOfNonSerializableType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableDescriptionCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFieldsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor RuleCA2235 = new DiagnosticDescriptor(RuleCA2235Id,
                                                                          s_localizableTitleCA2235,
@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         private sealed class Analyzer
         {
-            private INamedTypeSymbol _iserializableTypeSymbol;
-            private INamedTypeSymbol _serializationInfoTypeSymbol;
-            private INamedTypeSymbol _streamingContextTypeSymbol;
-            private INamedTypeSymbol _serializableAttributeTypeSymbol;
+            private readonly INamedTypeSymbol _iserializableTypeSymbol;
+            private readonly INamedTypeSymbol _serializationInfoTypeSymbol;
+            private readonly INamedTypeSymbol _streamingContextTypeSymbol;
+            private readonly INamedTypeSymbol _serializableAttributeTypeSymbol;
 
             public Analyzer(
                 INamedTypeSymbol iserializableTypeSymbol,

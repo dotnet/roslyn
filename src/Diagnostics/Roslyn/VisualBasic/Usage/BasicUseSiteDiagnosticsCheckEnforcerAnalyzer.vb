@@ -13,10 +13,10 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
     Public Class BasicUseSiteDiagnosticsCheckEnforcerAnalyzer
         Inherits AbstractSyntaxNodeAnalyzer(Of SyntaxKind)
 
-        Private Shared s_localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerDescription), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
-        Private Shared s_localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerMessage), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
+        Private Shared ReadOnly s_localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerDescription), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
+        Private Shared ReadOnly s_localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerMessage), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
 
-        Private Shared s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(RoslynDiagnosticIds.UseSiteDiagnosticsCheckerRuleId,
+        Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(RoslynDiagnosticIds.UseSiteDiagnosticsCheckerRuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessage,
                                                                              "Usage",
@@ -24,7 +24,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
                                                                              False,
                                                                              WellKnownDiagnosticTags.Telemetry)
 
-        Private Shared s_propertiesToValidateMap As Dictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
+        Private Shared ReadOnly s_propertiesToValidateMap As Dictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
                 {
                     {s_baseTypeString, s_typeSymbolFullyQualifiedName},
                     {s_interfacesString, s_typeSymbolFullyQualifiedName},

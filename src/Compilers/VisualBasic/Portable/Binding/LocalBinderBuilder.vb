@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _nodeMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
         Private _listMap As ImmutableDictionary(Of SyntaxList(Of StatementSyntax), BlockBaseBinder)
-        Private _enclosingMethod As MethodSymbol
+        Private ReadOnly _enclosingMethod As MethodSymbol
         Private _containingBinder As Binder
 
         Public Sub New(enclosingMethod As MethodSymbol)

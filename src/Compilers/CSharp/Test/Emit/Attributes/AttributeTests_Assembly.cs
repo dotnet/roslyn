@@ -831,7 +831,7 @@ public class C {}
 
         #region Helpers
 
-        private static string s_defaultNetModuleSourceHeader =
+        private static readonly string s_defaultNetModuleSourceHeader =
             @"using System;
                 using System.Reflection;
                 using System.Security.Permissions;
@@ -842,7 +842,7 @@ public class C {}
                 [assembly: UserDefinedAssemblyAttrAllowMultiple(""UserDefinedAssemblyAttrAllowMultiple"")]
             ";
 
-        private static string s_defaultNetModuleSourceBody =
+        private static readonly string s_defaultNetModuleSourceBody =
                 @"
                 public class NetModuleClass { }
 

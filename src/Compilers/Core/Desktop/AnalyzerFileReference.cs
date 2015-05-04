@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<DiagnosticAnalyzer> _lazyAllAnalyzers;
         private ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _lazyAnalyzersPerLanguage;
         private Assembly _lazyAssembly;
-        private static string s_diagnosticNamespaceName = string.Format("{0}.{1}.{2}", nameof(Microsoft), nameof(CodeAnalysis), nameof(Diagnostics));
+        private static readonly string s_diagnosticNamespaceName = string.Format("{0}.{1}.{2}", nameof(Microsoft), nameof(CodeAnalysis), nameof(Diagnostics));
         private ImmutableDictionary<string, ImmutableHashSet<string>> _lazyAnalyzerTypeNameMap;
 
         public event EventHandler<AnalyzerLoadFailureEventArgs> AnalyzerLoadFailed;

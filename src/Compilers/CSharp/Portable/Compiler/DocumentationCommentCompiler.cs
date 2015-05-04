@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static string[] s_newLineSequences = new[] { "\r\n", "\r", "\n" };
+        private static readonly string[] s_newLineSequences = new[] { "\r\n", "\r", "\n" };
 
         /// <summary>
         /// Given the full text of a documentation comment, strip off the comment punctuation (///, /**, etc)

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
 
         private static Workspace s_primaryWorkspace;
 
-        private static List<TaskCompletionSource<Workspace>> s_primaryWorkspaceTaskSourceList =
+        private static readonly List<TaskCompletionSource<Workspace>> s_primaryWorkspaceTaskSourceList =
             new List<TaskCompletionSource<Workspace>>();
 
         /// <summary>

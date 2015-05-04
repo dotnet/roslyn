@@ -22,7 +22,7 @@ namespace System.Runtime.Analyzers
         internal const string AddAccessorCase = "AddAccessor";
         internal const string MakePublicCase = "MakePublic";
         internal const string RemoveSetterCase = "RemoveSetter";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitle,

@@ -314,9 +314,9 @@ class C
 
         private class ExpectedInitializer
         {
-            public string FieldName { get; set; }
-            public string InitialValue { get; set; }
-            public int LineNumber { get; set; } //0-indexed
+            public string FieldName { get; }
+            public string InitialValue { get; }
+            public int LineNumber { get; } //0-indexed
 
             public ExpectedInitializer(string fieldName, string initialValue, int lineNumber)
             {

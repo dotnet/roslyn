@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class CommandLineDiagnosticFormatter : CSharpDiagnosticFormatter
     {
         private readonly string _baseDirectory;
-        private Lazy<string> _lazyNormalizedBaseDirectory;
+        private readonly Lazy<string> _lazyNormalizedBaseDirectory;
         private readonly bool _displayFullPaths;
         private readonly bool _displayEndLocations;
 

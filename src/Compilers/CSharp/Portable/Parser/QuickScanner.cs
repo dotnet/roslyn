@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private Func<SyntaxToken> _createQuickTokenFunction;
+        private readonly Func<SyntaxToken> _createQuickTokenFunction;
 
         private SyntaxToken CreateQuickToken()
         {

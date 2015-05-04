@@ -514,7 +514,7 @@ namespace Roslyn.Test.Utilities
             return false;
         }
 
-        private static Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
+        private static readonly Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
         {
             AppDomain.CurrentDomain.DomainUnload += (_, __) =>
             {

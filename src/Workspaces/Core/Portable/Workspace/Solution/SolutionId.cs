@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Guid Id { get; }
 
-        private string _debugName;
+        private readonly string _debugName;
 
         private SolutionId(string debugName)
         {
