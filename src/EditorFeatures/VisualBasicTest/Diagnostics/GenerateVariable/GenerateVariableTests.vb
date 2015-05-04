@@ -911,8 +911,6 @@ index:=3)
         End Sub
 
         <WorkItem(1130960)>
-            Test(
-<WorkItem(1130960)>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestGeneratePropertyInTypeOfIsNot()
             Test(
