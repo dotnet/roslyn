@@ -26,6 +26,7 @@
       <Link>AssemblyIdentityExtensions.cs</Link>
     </Compile>
     <Compile Include="AnalyzerFileReferenceTests.cs" />
+    <Compile Include="AssemblyUtilitiesTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
