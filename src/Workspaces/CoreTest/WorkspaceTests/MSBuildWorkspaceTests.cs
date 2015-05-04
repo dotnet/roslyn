@@ -2607,5 +2607,18 @@ class C { }";
                 Assert.Equal(true, projFileText.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">"));
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(1101040)]
+        public void TestOpenProject_BadLink()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadLink.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
+            var docs = proj.Documents.ToList();
+            Assert.Equal(3, docs.Count);
+        }
     }
 }
