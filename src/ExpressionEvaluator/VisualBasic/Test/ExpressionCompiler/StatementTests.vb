@@ -835,6 +835,7 @@ End Class
             Dim result = context.CompileExpression(
                     expr,
                     compilationFlags,
+                    NoAliases,
                     VisualBasicDiagnosticFormatter.Instance,
                     resultProperties,
                     errorMessage,

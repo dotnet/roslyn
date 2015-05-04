@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
@@ -24,6 +26,59 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _type = type;
 
             this.DisplayName = displayName;
+        }
+
+        internal static LocalSymbol Create(
+            TypeNameDecoder<PEModuleSymbol, TypeSymbol> typeNameDecoder,
+            MethodSymbol containingMethod,
+            AssemblySymbol sourceAssembly,
+            Alias alias)
+        {
+            var typeName = alias.Type;
+            Debug.Assert(typeName.Length > 0);
+
+            var type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
+            Debug.Assert((object)type != null);
+
+            var dynamicFlagsInfo = alias.CustomTypeInfo.ToDynamicFlagsCustomTypeInfo();
+            if (dynamicFlagsInfo.Any())
+            {
+                var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+                dynamicFlagsInfo.CopyTo(flagsBuilder);
+                var dynamicType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
+                    type,
+                    sourceAssembly,
+                    RefKind.None,
+                    flagsBuilder.ToImmutableAndFree(),
+                    checkLength: false);
+                Debug.Assert(dynamicType != null);
+                Debug.Assert(dynamicType != type);
+                type = dynamicType;
+            }
+
+            var name = alias.FullName;
+            var displayName = alias.Name;
+            switch (alias.Kind)
+            {
+                case DkmClrAliasKind.Exception:
+                    return new ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetExceptionMethodName);
+                case DkmClrAliasKind.StowedException:
+                    return new ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetStowedExceptionMethodName);
+                case DkmClrAliasKind.ReturnValue:
+                    {
+                        int index;
+                        PseudoVariableUtilities.TryParseReturnValueIndex(name, out index);
+                        Debug.Assert(index >= 0);
+                        return new ReturnValueLocalSymbol(containingMethod, name, displayName, type, index);
+                    }
+                case DkmClrAliasKind.ObjectId:
+                    Debug.Assert(name.Length > 0 && name[0] != '$');
+                    return new ObjectIdLocalSymbol(containingMethod, type, "$" + name, displayName, isWritable: false);
+                case DkmClrAliasKind.Variable:
+                    return new ObjectIdLocalSymbol(containingMethod, type, name, displayName, isWritable: true);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(alias.Kind);
+            }
         }
 
         internal override LocalDeclarationKind DeclarationKind

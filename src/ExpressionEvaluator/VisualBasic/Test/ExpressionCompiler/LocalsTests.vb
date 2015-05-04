@@ -135,7 +135,8 @@ End Class"
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                "C.M",
+                "C.M")
+            Dim aliases = ImmutableArray.Create(
                 ExceptionAlias(GetType(System.IO.IOException)),
                 ReturnValueAlias(2, GetType(String)),
                 ReturnValueAlias(),
@@ -149,6 +150,7 @@ End Class"
             context.CompileGetLocals(
                 locals,
                 argumentsOnly:=True,
+                aliases:=aliases,
                 diagnostics:=diagnostics,
                 typeName:=typeName,
                 testData:=testData)
@@ -160,6 +162,7 @@ End Class"
             context.CompileGetLocals(
                 locals,
                 argumentsOnly:=False,
+                aliases:=aliases,
                 diagnostics:=diagnostics,
                 typeName:=typeName,
                 testData:=testData)
@@ -276,14 +279,13 @@ End Class"
 }")
             locals.Free()
 
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("b", resultProperties, errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            context.CompileExpression("b", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
             Assert.Equal(errorMessage, "(1) : error BC30451: 'b' is not declared. It may be inaccessible due to its protection level.")
 
             testData = New CompilationTestData()
-            context.CompileExpression("a(1)", resultProperties, errorMessage, testData)
+            context.CompileExpression("a(1)", errorMessage, testData)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size        4 (0x4)
@@ -1802,12 +1804,12 @@ End Class
                 methodName:="C.M")
 
             Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileAssignment("d", "Nothing", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
             Assert.Equal("(1) : error BC30074: Constant cannot be the target of an assignment.", errorMessage)
 
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
+            Dim testData As New CompilationTestData()
             context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
             Assert.Equal(2, locals.Count)
             VerifyLocal(testData, typeName, locals(0), "<>m0", "dt", expectedILOpt:=
@@ -1851,12 +1853,12 @@ End Class
                 methodName:="C.M")
 
             Dim errorMessage As String = Nothing
-            Dim testData As New CompilationTestData()
-            context.CompileAssignment("d", "Nothing", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
             Assert.Equal("(1) : error BC30074: Constant cannot be the target of an assignment.", errorMessage)
 
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
+            Dim testData As New CompilationTestData()
             context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
             Assert.Equal(1, locals.Count)
             VerifyLocal(testData, typeName, locals(0), "<>m0", "d", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=

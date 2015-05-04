@@ -18,18 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _method = method;
         }
 
-        public CSharpLocalAndMethod(LocalSymbol local, MethodSymbol method, DkmClrCompilationResultFlags flags)
-            // Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
-            // the ResultProvider needs to be able to disambiguate cases like "this" and "@this",
-            // which it can't do correctly without semantic information.
-            : this(
-                  SyntaxHelpers.EscapeKeywordIdentifiers(local.Name),
-                  (local as PlaceholderLocalSymbol)?.DisplayName ?? SyntaxHelpers.EscapeKeywordIdentifiers(local.Name), 
-                  method, 
-                  flags)
-        {
-        }
-
+        /// <remarks>
+        /// The custom type info payload depends on the return type, which is not available when
+        /// <see cref="CSharpLocalAndMethod"/> is created.
+        /// </remarks>
         public override CustomTypeInfo GetCustomTypeInfo() =>
             new CustomTypeInfo(DynamicFlagsCustomTypeInfo.PayloadTypeId, _method.GetCustomTypeInfoPayload());
     }

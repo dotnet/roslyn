@@ -31,7 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _metadataDecoder As MetadataDecoder
         Private ReadOnly _currentFrame As MethodSymbol
         Private ReadOnly _locals As ImmutableArray(Of LocalSymbol)
-        Private ReadOnly _aliasLocals As ImmutableArray(Of LocalSymbol)
         Private ReadOnly _displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable)
         Private ReadOnly _hoistedParameterNames As ImmutableHashSet(Of String)
         Private ReadOnly _localsForBinding As ImmutableArray(Of LocalSymbol)
@@ -47,14 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataDecoder As MetadataDecoder,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
-            aliasLocals As ImmutableArray(Of LocalSymbol),
             inScopeHoistedLocals As InScopeHoistedLocals,
             methodDebugInfo As MethodDebugInfo,
             syntax As ExecutableStatementSyntax)
 
             _syntax = syntax
             _currentFrame = currentFrame
-            _aliasLocals = aliasLocals
 
             Debug.Assert(compilation.Options.RootNamespace = "") ' Default value.
             Debug.Assert(methodDebugInfo.ExternAliasRecords.IsDefaultOrEmpty)
@@ -114,6 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Function Compile(
             typeName As String,
             methodName As String,
+            aliases As ImmutableArray(Of [Alias]),
             testData As Microsoft.CodeAnalysis.CodeGen.CompilationTestData,
             diagnostics As DiagnosticBag,
             <Out> ByRef resultProperties As ResultProperties) As CommonPEModuleBuilder
@@ -132,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Dim hasDisplayClassMe = _displayClassVariables.ContainsKey(StringConstants.HoistedMeName)
                     Dim bindAsExpression = _syntax.Kind = SyntaxKind.PrintStatement
                     Dim binder = ExtendBinderChain(
-                        _aliasLocals,
+                        aliases,
                         method,
                         NamespaceBinder,
                         hasDisplayClassMe,
@@ -190,6 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             typeName As String,
             localBuilder As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
+            aliases As ImmutableArray(Of [Alias]),
             testData As Microsoft.CodeAnalysis.CodeGen.CompilationTestData,
             diagnostics As DiagnosticBag) As CommonPEModuleBuilder
 
@@ -228,34 +227,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Dim methodBuilder = ArrayBuilder(Of MethodSymbol).GetInstance()
 
                     If Not argumentsOnly Then
-                        ' Pseudo-variables: $exception, $ReturnValue, etc.
-                        For Each aliasLocal As LocalSymbol In _aliasLocals
-                            Dim methodName = GetNextMethodName(methodBuilder)
-                            Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
-                            Dim aliasMethod = Me.CreateMethod(
-                                container,
-                                methodName,
-                                syntax,
-                                Function(method, diags)
-                                    Dim expression = New BoundLocal(syntax, aliasLocal, isLValue:=False, type:=aliasLocal.Type)
-                                    Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
-                                End Function)
-                            localBuilder.Add(New VisualBasicLocalAndMethod(aliasLocal, methodName, If(aliasLocal.IsReadOnly, DkmClrCompilationResultFlags.ReadOnlyResult, DkmClrCompilationResultFlags.None)))
-                            methodBuilder.Add(aliasMethod)
-                        Next
+                        If aliases.Length > 0 Then
+                            ' Pseudo-variables: $exception, $ReturnValue, etc.
+                            Dim typeNameDecoder = New EETypeNameDecoder(Me.Compilation, DirectCast(_currentFrame.ContainingModule, PEModuleSymbol))
+                            For Each [alias] As [Alias] In aliases
+                                Dim methodName = GetNextMethodName(methodBuilder)
+                                Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
+                                Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, [alias])
+                                Dim aliasMethod = Me.CreateMethod(
+                                    container,
+                                    methodName,
+                                    syntax,
+                                    Function(method, diags)
+                                        Dim expression = New BoundLocal(syntax, local, isLValue:=False, type:=local.Type)
+                                        Return New BoundReturnStatement(syntax, expression, Nothing, Nothing).MakeCompilerGenerated()
+                                    End Function)
+                                localBuilder.Add(MakeLocalAndMethod(local, methodName, If(local.IsReadOnly, DkmClrCompilationResultFlags.ReadOnlyResult, DkmClrCompilationResultFlags.None)))
+                                methodBuilder.Add(aliasMethod)
+                            Next
+                        End If
 
                         ' "Me" for non-shared methods that are not display class methods
                         ' or display class methods where the display class contains "$VB$Me".
                         If Not m.IsShared AndAlso (Not m.ContainingType.IsClosureOrStateMachineType() OrElse _displayClassVariables.ContainsKey(GeneratedNames.MakeStateMachineCapturedMeName())) Then
-                            Dim methodName = GetNextMethodName(methodBuilder)
-                            Dim method = Me.GetMeMethod(container, methodName)
-                            localBuilder.Add(New VisualBasicLocalAndMethod("Me", "Me", methodName, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
-                            methodBuilder.Add(method)
+                                Dim methodName = GetNextMethodName(methodBuilder)
+                                Dim method = Me.GetMeMethod(container, methodName)
+                                localBuilder.Add(New VisualBasicLocalAndMethod("Me", "Me", methodName, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
+                                methodBuilder.Add(method)
+                            End If
                         End If
-                    End If
 
-                    ' Hoisted method parameters (represented as locals in the EE).
-                    If Not _hoistedParameterNames.IsEmpty Then
+                        ' Hoisted method parameters (represented as locals in the EE).
+                        If Not _hoistedParameterNames.IsEmpty Then
                         Dim localIndex As Integer = 0
 
                         For Each local In _localsForBinding
@@ -341,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim methodName = GetNextMethodName(methodBuilder)
             Dim method = Me.GetLocalMethod(container, methodName, local.Name, localIndex)
-            localBuilder.Add(New VisualBasicLocalAndMethod(local, methodName, resultFlags))
+            localBuilder.Add(MakeLocalAndMethod(local, methodName, resultFlags))
             methodBuilder.Add(method)
         End Sub
 
@@ -361,6 +364,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             localBuilder.Add(New VisualBasicLocalAndMethod(name, name, methodName, DkmClrCompilationResultFlags.None))
             methodBuilder.Add(method)
         End Sub
+
+        Private Shared Function MakeLocalAndMethod(local As LocalSymbol, methodName As String, flags As DkmClrCompilationResultFlags) As LocalAndMethod
+            ' Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
+            ' the ResultProvider needs to be able to disambiguate cases Like "Me" And "[Me]",
+            ' which it can't do correctly without semantic information.
+            Dim escapedName = SyntaxHelpers.EscapeKeywordIdentifiers(local.Name)
+            Dim displayName = If(TryCast(local, PlaceholderLocalSymbol)?.DisplayName, escapedName)
+            Return New VisualBasicLocalAndMethod(escapedName, displayName, methodName, flags)
+        End Function
 
         Private Shared Function CreateModuleBuilder(
             compilation As VisualBasicCompilation,
@@ -559,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function ExtendBinderChain(
-            aliasLocals As ImmutableArray(Of LocalSymbol),
+            aliases As ImmutableArray(Of [Alias]),
             method As EEMethodSymbol,
             binder As Binder,
             hasDisplayClassMe As Boolean,
@@ -591,7 +603,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' We have chosen to explicitly disallow pseudo variables in that scenario.
             If methodNotType Then
                 ' Method locals and parameters shadow pseudo-variables.
-                binder = New PlaceholderLocalBinder(method, aliasLocals, allowImplicitDeclarations, binder)
+                Dim typeNameDecoder = New EETypeNameDecoder(binder.Compilation, DirectCast(substitutedSourceMethod.ContainingModule, PEModuleSymbol))
+                binder = New PlaceholderLocalBinder(aliases, method, typeNameDecoder, allowImplicitDeclarations, binder)
             End If
 
             ' Even if there are no parameters or locals, this has the effect of setting

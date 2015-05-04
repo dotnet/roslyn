@@ -59,6 +59,43 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this EvaluationContextBase context,
             string target,
             string expr,
+            out string error,
+            CompilationTestData testData = null,
+            DiagnosticFormatter formatter = null)
+        {
+            ResultProperties resultProperties;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var result = context.CompileAssignment(
+                target,
+                expr,
+                ImmutableArray<Alias>.Empty,
+                formatter ?? DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
+            // This is a crude way to test the language, but it's convenient to share this test helper.
+            var isCSharp = context.GetType().Namespace.IndexOf("csharp", StringComparison.OrdinalIgnoreCase) >= 0;
+            var expectedFlags = error != null
+                ? DkmClrCompilationResultFlags.None
+                : isCSharp
+                    ? DkmClrCompilationResultFlags.PotentialSideEffect
+                    : DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult;
+            Assert.Equal(expectedFlags, resultProperties.Flags);
+            Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category);
+            Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+            Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+            Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+            return result;
+        }
+
+        internal static CompileResult CompileAssignment(
+            this EvaluationContextBase context,
+            string target,
+            string expr,
+            ImmutableArray<Alias> aliases,
             DiagnosticFormatter formatter,
             out ResultProperties resultProperties,
             out string error,
@@ -67,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = context.CompileAssignment(target, expr, diagnostics, out resultProperties, testData);
+            var result = context.CompileAssignment(target, expr, aliases, diagnostics, out resultProperties, testData);
             if (diagnostics.HasAnyErrors())
             {
                 bool useReferencedModulesOnly;
@@ -94,11 +131,71 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var result = context.CompileGetLocals(
                 locals,
                 argumentsOnly,
+                ImmutableArray<Alias>.Empty,
                 diagnostics,
                 out typeName,
                 testData);
             diagnostics.Verify(expectedDiagnostics ?? DiagnosticDescription.None);
             diagnostics.Free();
+            return result;
+        }
+
+        internal static CompileResult CompileExpression(
+            this EvaluationContextBase context,
+            string expr,
+            out string error,
+            CompilationTestData testData = null,
+            DiagnosticFormatter formatter = null)
+        {
+            ResultProperties resultProperties;
+            return CompileExpression(context, expr, out resultProperties, out error, testData, formatter);
+        }
+
+        internal static CompileResult CompileExpression(
+            this EvaluationContextBase context,
+            string expr,
+            out ResultProperties resultProperties,
+            out string error,
+            CompilationTestData testData = null,
+            DiagnosticFormatter formatter = null)
+        {
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var result = context.CompileExpression(
+                expr,
+                DkmEvaluationFlags.TreatAsExpression,
+                ImmutableArray<Alias>.Empty,
+                formatter ?? DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
+            return result;
+        }
+
+        static internal CompileResult CompileExpression(
+            this EvaluationContextBase evaluationContext,
+            string expr,
+            DkmEvaluationFlags compilationFlags,
+            ImmutableArray<Alias> aliases,
+            out string error,
+            CompilationTestData testData = null,
+            DiagnosticFormatter formatter = null)
+        {
+            ResultProperties resultProperties;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var result = evaluationContext.CompileExpression(
+                expr,
+                compilationFlags,
+                aliases,
+                formatter ?? DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
             return result;
         }
 
@@ -112,6 +209,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this EvaluationContextBase evaluationContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
+            ImmutableArray<Alias> aliases,
             DiagnosticFormatter formatter,
             out ResultProperties resultProperties,
             out string error,
@@ -120,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompilationTestData testData)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = evaluationContext.CompileExpression(expr, compilationFlags, diagnostics, out resultProperties, testData);
+            var result = evaluationContext.CompileExpression(expr, compilationFlags, aliases, diagnostics, out resultProperties, testData);
             if (diagnostics.HasAnyErrors())
             {
                 bool useReferencedModulesOnly;
@@ -170,6 +268,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var compileResult = context.CompileExpression(
                         expr,
                         DkmEvaluationFlags.TreatAsExpression,
+                        ImmutableArray<Alias>.Empty,
                         diagnostics,
                         out resultProperties,
                         td);

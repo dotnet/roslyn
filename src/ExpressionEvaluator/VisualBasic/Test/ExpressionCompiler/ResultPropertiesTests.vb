@@ -294,6 +294,7 @@ End Class
             context.CompileAssignment(
                 "P",
                 "1",
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
@@ -329,6 +330,7 @@ End Class
             context.CompileExpression(
                 "z = 1", ' VB only supports implicit declarations
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,

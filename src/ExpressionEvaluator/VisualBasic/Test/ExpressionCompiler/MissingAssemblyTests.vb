@@ -95,6 +95,7 @@ End Class
             context.CompileExpression(
                 "parameter",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -151,6 +152,7 @@ End Class
             context.CompileExpression(
                 "New Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -183,6 +185,7 @@ End Class
             context.CompileExpression(
                 "<value/>",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -218,6 +221,7 @@ End Class
             context.CompileExpression(
                 "o = o",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -290,6 +294,7 @@ End Class
             context.CompileExpression(
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -302,6 +307,7 @@ End Class
             context.CompileExpression(
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -338,8 +344,8 @@ End Class
                 New SymReader(pdbBytes))
             Dim context = CreateMethodContext(
                 runtime,
-                "C.M",
-                ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a", stowed:=True))
+                "C.M")
+            Dim aliases = ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a", stowed:=True))
 
             Const expectedError = "(1,1): error BC30002: Type 'System.Void' is not defined."
             Dim expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity
@@ -351,6 +357,7 @@ End Class
             context.CompileExpression(
                 "$stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
+                aliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -386,6 +393,7 @@ End Class
             context.CompileExpression(
                 "Windows.UI.Colors",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -423,6 +431,7 @@ End Class
             context.CompileExpression(
                 "Windows.[UI].Xaml.Application",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -457,6 +466,7 @@ End Class
             context.CompileExpression(
                 "GetType([Windows].UI.Colors)",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,

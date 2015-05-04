@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly bool _isWritable;
 
-        internal ObjectIdLocalSymbol(MethodSymbol method, TypeSymbol type, string id, string displayName, bool isWritable) :
-            base(method, id, displayName, type)
+        internal ObjectIdLocalSymbol(MethodSymbol method, TypeSymbol type, string name, string displayName, bool isWritable) :
+            base(method, name, displayName, type)
         {
             _isWritable = isWritable;
         }

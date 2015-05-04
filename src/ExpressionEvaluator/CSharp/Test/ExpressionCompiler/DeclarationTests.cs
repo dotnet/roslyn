@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using Xunit;
-using Microsoft.VisualStudio.Debugger.Clr;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -39,21 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
-            string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "int z = 1, F = 2;",
-                DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "int z = 1, F = 2;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       85 (0x55)
@@ -111,26 +101,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                "C.M",
+                "C.M");
+            var aliases = ImmutableArray.Create(
                 VariableAlias("x", typeof(string)),
                 VariableAlias("y", typeof(int)),
                 VariableAlias("T", typeof(object)),
                 VariableAlias("D", "C"),
                 VariableAlias("F", typeof(int)));
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "(object)x ?? (object)y ?? (object)T ?? (object)F ?? ((C)D).F ?? C.G",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
@@ -186,20 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                "C.M",
-                VariableAlias("c", typeof(char)));
-            ResultProperties resultProperties;
+                "C.M");
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             var result = context.CompileExpression(
                 "*(&c) = 'A'",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                ImmutableArray.Create(VariableAlias("c", typeof(char))),
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -236,76 +215,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
 
             // Expression without ';' as statement.
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression("3", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            var result = context.CompileExpression("3", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Null(error);
 
             // Expression with ';' as statement.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("3;", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("3;", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Null(error);
 
             // Expression with format specifiers but without ';' as statement.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Null(error);
             AssertEx.SetEqual(result.FormatSpecifiers, new[] { "nq" });
 
             // Expression with format specifiers with ';' as statement.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Equal(error, "(1,13): error CS1002: ; expected");
             Assert.Null(result);
 
             // Assignment without ';' as statement.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("x = 2", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("x = 2", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Null(error);
 
             // Assignment with ';' as statement.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("x = 2;", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("x = 2;", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Null(error);
 
             // Statement without ';' as statement.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("int o", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Equal(error, "(1,6): error CS1002: ; expected");
 
             // Neither statement nor expression as statement.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("M(;", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
             Assert.Equal(error, "(1,3): error CS1026: ) expected");
 
             // Statement without ';' as expression.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
             Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
 
             // Statement with ';' as expression.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
             Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
 
             // Neither statement nor expression as expression.
-            testData = new CompilationTestData();
-            result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
+            result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
             Assert.Equal(error, "(1,3): error CS1026: ) expected");
         }
 
@@ -326,22 +281,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                "C.M",
-                ObjectIdAlias(3, typeof(int)));
-            ResultProperties resultProperties;
+                "C.M");
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "System.ValueType C = (int)$3;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                ImmutableArray.Create(ObjectIdAlias(3, typeof(int))),
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -385,21 +333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
-            string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "var x = 1;",
-                DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "var x = 1;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       43 (0x2b)
@@ -440,21 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
-            string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "dynamic d = 1;",
-                DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       58 (0x3a)
@@ -498,20 +424,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "object o = F();",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "error CS0103: The name 'F' does not exist in the current context");
         }
 
@@ -533,20 +451,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "var y;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "error CS0818: Implicitly-typed variables must be initialized");
         }
 
@@ -568,20 +478,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "var z = null;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "error CS0815: Cannot assign <null> to an implicitly-typed variable");
         }
 
@@ -603,20 +505,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "var w = M();",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "error CS0815: Cannot assign void to an implicitly-typed variable");
         }
 
@@ -638,20 +532,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "T x = default(T), y = x;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size      115 (0x73)
@@ -709,20 +597,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "object o = o ?? null;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             // The compiler reports "CS0165: Use of unassigned local variable 'o'"
             // in flow analysis. But since flow analysis is skipped in the EE,
             // compilation succeeds and references to the local in the initializer
@@ -756,13 +638,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             context.CompileExpression(
                 "string s = s.Substring(0);",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       63 (0x3f)
@@ -806,20 +684,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "object x = y, y;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "error CS0841: Cannot use local variable 'y' before it is declared");
         }
 
@@ -842,20 +712,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "var x = 4;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "...");
         }
 
@@ -879,20 +741,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "object y = 5;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "...");
         }
 
@@ -914,22 +768,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                "C.M",
-                VariableAlias("z", typeof(int)));
-            ResultProperties resultProperties;
+                "C.M");
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "object z = 6;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                ImmutableArray.Create(VariableAlias("z", typeof(int))),
+                out error);
             Assert.Equal(error, "...");
         }
 
@@ -952,20 +797,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 runtime,
                 methodName: "C.M");
             // Local declaration arguments (error only).
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "int a[3];",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "(1,6): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.");
         }
 
@@ -987,20 +824,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "object @class, @this = @class;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -1050,20 +881,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "const int x = 1;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             // Legacy EE reports "Invalid expression term 'const'".
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1105,20 +930,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "T y = x;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       47 (0x2f)
@@ -1162,64 +981,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
 
             // $1
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "var $1 = 1;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
 
             // $exception
-            testData = new CompilationTestData();
             context.CompileExpression(
                 "var $exception = 2;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
 
             // $ReturnValue
-            testData = new CompilationTestData();
             context.CompileExpression(
                 "var $ReturnValue = 3;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
 
             // $x
-            testData = new CompilationTestData();
             context.CompileExpression(
                 "var $x = 4;",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                NoAliases,
+                out error);
             Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
         }
 
@@ -1245,20 +1038,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
                 "System.Action b = () => { object c = null; };",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       73 (0x49)
@@ -1307,17 +1094,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, NoAliases, out error);
+            Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+            testData = new CompilationTestData();
+            context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, NoAliases, out error);
+            Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+        }
+
+        private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)
+        {
+            testData = new CompilationTestData();
+
             ResultProperties resultProperties;
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            var testData = new CompilationTestData();
-            context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
+            var result = context.CompileExpression(
+                declaration,
+                DkmEvaluationFlags.None,
+                NoAliases,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Null(error);
             Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
-            testData = new CompilationTestData();
-            context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
-            Assert.Empty(missingAssemblyIdentities);
-            Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+
+            flags = resultProperties.Flags;
         }
     }
 }

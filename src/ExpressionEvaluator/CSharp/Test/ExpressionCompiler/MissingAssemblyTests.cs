@@ -93,6 +93,7 @@ public class C
             context.CompileExpression(
                 "parameter",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -127,6 +128,7 @@ public class C
             context.CompileExpression(
                 "from i in array select i",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -164,6 +166,7 @@ public class C
             context.CompileExpression(
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -176,6 +179,7 @@ public class C
             context.CompileExpression(
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -225,6 +229,7 @@ namespace System.Linq
             context.CompileExpression(
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -237,6 +242,7 @@ namespace System.Linq
             context.CompileExpression(
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -300,6 +306,7 @@ class C
             context.CompileExpression(
                 "new global::Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -314,6 +321,7 @@ class C
             context.CompileExpression(
                 "new Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -328,6 +336,7 @@ class C
             context.CompileExpression(
                 "new NS.Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -466,22 +475,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-
-            byte[] exeBytes;
-            byte[] pdbBytes;
-            ImmutableArray<MetadataReference> unusedReferences;
-            var emitResult = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
-            Assert.True(emitResult);
-
-            var runtime = CreateRuntimeInstance(
-                GetUniqueName(), 
-                ImmutableArray.Create(CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference), 
-                exeBytes, 
-                new SymReader(pdbBytes));
-            var context = CreateMethodContext(
-                runtime, 
-                "C.M", 
-                ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", stowed: true));
+            var context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference);
 
             const string expectedError = "error CS0012: The type 'Exception' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.";
             var expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity;
@@ -492,6 +486,7 @@ class C
             context.CompileExpression(
                 "$stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
+                ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", stowed: true)),
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -527,6 +522,7 @@ class C
             context.CompileExpression(
                 "typeof(@Windows.UI.Colors)",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -565,6 +561,7 @@ class C
             context.CompileExpression(
                 "typeof(Windows.@UI.Xaml.Application)",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,

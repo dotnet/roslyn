@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract CompileResult CompileExpression(
             string expr,
             DkmEvaluationFlags compilationFlags,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             CompilationTestData testData);
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract CompileResult CompileAssignment(
             string target,
             string expr,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             CompilationTestData testData);
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out string typeName,
             CompilationTestData testData);

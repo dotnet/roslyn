@@ -1325,13 +1325,10 @@ class C
             int localSignatureToken;
             GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
-            var aliases = ImmutableArray<Alias>.Empty;
-
             int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
             var context = EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),
                 blocks,
-                aliases,
                 symReader,
                 moduleVersionId,
                 methodToken: methodToken,
@@ -1347,9 +1344,8 @@ class C
 
             ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 200);
             context = EvaluationContext.CreateMethodContext(
-                new CSharpMetadataContext(blocks, aliases, context),
+                new CSharpMetadataContext(blocks, context),
                 blocks,
-                aliases,
                 symReader,
                 moduleVersionId,
                 methodToken: methodToken,

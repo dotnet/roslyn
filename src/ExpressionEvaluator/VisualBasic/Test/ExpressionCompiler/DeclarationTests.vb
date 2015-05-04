@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M", ObjectIdAlias(3, GetType(Integer)))
+            Dim context = CreateMethodContext(runtime, "C.M")
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
@@ -38,6 +38,7 @@ End Class"
             context.CompileExpression(
                 "z = $3",
                 DkmEvaluationFlags.None,
+                ImmutableArray.Create(ObjectIdAlias(3, GetType(Integer))),
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
@@ -89,26 +90,21 @@ End Class"
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                "C.M",
+                "C.M")
+            Dim aliases = ImmutableArray.Create(
                 VariableAlias("x", GetType(String)),
                 VariableAlias("y", GetType(Integer)),
                 VariableAlias("t", GetType(Object)),
                 VariableAlias("d", "C"),
                 VariableAlias("f", GetType(Integer)))
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "If(If(If(If(If(x, y), T), F), DirectCast(D, C).F), C.G)",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                aliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             Assert.Equal(testData.Methods.Count, 2)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -158,20 +154,14 @@ End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "x = F()",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             Assert.Equal(errorMessage, "(1,5): error BC30451: 'F' is not declared. It may be inaccessible due to its protection level.")
         End Sub
 
@@ -189,20 +179,14 @@ End Module"
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "M.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "s = F(s)",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                Nothing,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       62 (0x3e)
@@ -229,13 +213,9 @@ End Module"
             context.CompileExpression(
                 "M(If(t, t))",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                Nothing,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       65 (0x41)
@@ -277,20 +257,14 @@ End Module"
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "M.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "F(o)",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       47 (0x2f)
@@ -321,21 +295,15 @@ End Module"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M", VariableAlias("class"))
-            Dim resultProperties As ResultProperties = Nothing
+            Dim context = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "[Me] = [Class]",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                ImmutableArray.Create(VariableAlias("class")),
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       57 (0x39)
@@ -369,20 +337,14 @@ End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "y = x",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       48 (0x30)
@@ -416,9 +378,7 @@ End Module"
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "M.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData As CompilationTestData
 
             ' Object
@@ -426,13 +386,9 @@ End Module"
             context.CompileExpression(
                 "x = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       48 (0x30)
@@ -459,13 +415,9 @@ End Module"
             context.CompileExpression(
                 "x% = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       43 (0x2b)
@@ -491,13 +443,9 @@ End Module"
             context.CompileExpression(
                 "x& = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       44 (0x2c)
@@ -524,13 +472,9 @@ End Module"
             context.CompileExpression(
                 "x! = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       47 (0x2f)
@@ -556,13 +500,9 @@ End Module"
             context.CompileExpression(
                 "x# = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       51 (0x33)
@@ -588,13 +528,9 @@ End Module"
             context.CompileExpression(
                 "x$ = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       48 (0x30)
@@ -621,13 +557,9 @@ End Module"
             context.CompileExpression(
                 "x@ = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       53 (0x35)
@@ -665,20 +597,15 @@ End Module"
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "M.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
             ' $1
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(
                 "$1 = 1",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
 
@@ -687,11 +614,8 @@ End Module"
             result = context.CompileExpression(
                 "$1 = 2",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
 
@@ -700,11 +624,8 @@ End Module"
             result = context.CompileExpression(
                 "$ReturnValue = 3",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
 
@@ -713,11 +634,8 @@ End Module"
             result = context.CompileExpression(
                 "$x = 4",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
         End Sub
@@ -733,20 +651,14 @@ End Module"
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "M.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "ReDim a(3)",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       48 (0x30)
@@ -771,13 +683,9 @@ End Module"
             context.CompileExpression(
                 "ReDim Preserve a(3)",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       68 (0x44)
@@ -815,20 +723,14 @@ End Module"
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(MakeSources(source, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName()), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "M.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
                 "x += 1",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       63 (0x3f)
@@ -864,21 +766,15 @@ End Module"
 End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C.M", VariableAlias("x", GetType(String)))
-            Dim resultProperties As ResultProperties = Nothing
+            Dim context = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(
                 "X",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                ImmutableArray.Create(VariableAlias("x", GetType(String))),
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -903,20 +799,14 @@ End Class"
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression(
                 "x = X",
                 DkmEvaluationFlags.None,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                NoAliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             Assert.Null(errorMessage) ' Use before initialization is allowed in the EE.
             ' Note that all x's are lowercase (i.e. normalized).
             testData.GetMethodData("<>x.<>m0").VerifyIL(

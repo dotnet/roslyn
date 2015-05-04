@@ -5,7 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
@@ -13,19 +16,42 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     internal sealed class PlaceholderLocalBinder : LocalScopeBinder
     {
         private readonly CSharpSyntaxNode _syntax;
-        private readonly ImmutableArray<LocalSymbol> _aliasLocals;
+        private readonly ImmutableArray<LocalSymbol> _aliases;
         private readonly MethodSymbol _containingMethod;
+        private readonly ImmutableDictionary<string, LocalSymbol> _lowercaseReturnValueAliases;
 
         internal PlaceholderLocalBinder(
             CSharpSyntaxNode syntax,
-            ImmutableArray<LocalSymbol> aliasLocals,
+            ImmutableArray<Alias> aliases,
             MethodSymbol containingMethod,
+            EETypeNameDecoder typeNameDecoder,
             Binder next) :
             base(next)
         {
             _syntax = syntax;
-            _aliasLocals = aliasLocals;
             _containingMethod = containingMethod;
+
+            var compilation = next.Compilation;
+            var sourceAssembly = compilation.SourceAssembly;
+
+            var aliasesBuilder = ArrayBuilder<LocalSymbol>.GetInstance(aliases.Length);
+            var lowercaseBuilder = ImmutableDictionary.CreateBuilder<string, LocalSymbol>();
+            foreach (Alias alias in aliases)
+            {
+                var local = PlaceholderLocalSymbol.Create(
+                    typeNameDecoder,
+                    containingMethod,
+                    sourceAssembly,
+                    alias);
+                aliasesBuilder.Add(local);
+
+                if (alias.Kind == DkmClrAliasKind.ReturnValue)
+                {
+                    lowercaseBuilder.Add(local.Name.ToLower(), local);
+                }
+            }
+            _lowercaseReturnValueAliases = lowercaseBuilder.ToImmutableDictionary();
+            _aliases = aliasesBuilder.ToImmutableAndFree();
         }
 
         internal sealed override void LookupSymbolsInSingleBinder(
@@ -57,7 +83,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                base.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+                LocalSymbol lowercaseReturnValueAlias;
+                if (_lowercaseReturnValueAliases.TryGetValue(name, out lowercaseReturnValueAlias))
+                {
+                    result.MergeEqual(this.CheckViability(lowercaseReturnValueAlias, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                }
+                else
+                {
+                    base.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+                }
             }
         }
 
@@ -69,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            builder.AddRange(_aliasLocals);
+            builder.AddRange(_aliases);
             var declaration = _syntax as LocalDeclarationStatementSyntax;
             if (declaration != null)
             {

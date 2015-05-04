@@ -27,6 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private ReadOnly _runtimeInstances As ArrayBuilder(Of IDisposable) = ArrayBuilder(Of IDisposable).GetInstance()
 
+        Friend Shared ReadOnly NoAliases As ImmutableArray(Of [Alias]) = ImmutableArray(Of [Alias]).Empty
+
         Public Overrides Sub Dispose()
             MyBase.Dispose()
 
@@ -114,34 +116,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Function CreateMethodContext(
             runtime As RuntimeInstance,
             methodName As String,
-            ParamArray aliases As [Alias]()) As EvaluationContext
-
-            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
-            Dim symReader As ISymUnmanagedReader = Nothing
-            Dim methodToken = 0
-            Dim localSignatureToken = 0
-            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            Const methodVersion = 1
-
-            Dim ilOffset As Integer = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
-
-            Return EvaluationContext.CreateMethodContext(
-                Nothing,
-                blocks,
-                aliases.ToImmutableArray(),
-                MakeDummyLazyAssemblyReaders(),
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion,
-                ilOffset,
-                localSignatureToken)
-        End Function
-
-        Friend Shared Function CreateMethodContext(
-            runtime As RuntimeInstance,
-            methodName As String,
             Optional atLineNumber As Integer = -1,
             Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing) As EvaluationContext
 
@@ -158,7 +132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
-                ImmutableArray(Of [Alias]).Empty,
                 If(lazyAssemblyReaders, MakeDummyLazyAssemblyReaders()),
                 symReader,
                 moduleVersionId,
@@ -231,6 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim result = context.CompileExpression(
                     expr,
                     DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
                     VisualBasicDiagnosticFormatter.Instance,
                     resultProperties,
                     errorMessage,

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
@@ -62,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override EvaluationContextBase CreateMethodContext(
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
-            ImmutableArray<Alias> aliases,
             Lazy<ImmutableArray<AssemblyReaders>> unusedLazyAssemblyReaders,
             object symReader,
             Guid moduleVersionId,
@@ -79,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId);
                 return EvaluationContext.CreateMethodContext(
                     compilation,
-                    aliases,
                     symReader,
                     moduleVersionId,
                     methodToken,
@@ -92,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var context = EvaluationContext.CreateMethodContext(
                 previous,
                 metadataBlocks,
-                aliases,
                 symReader,
                 moduleVersionId,
                 methodToken,
@@ -102,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (context != previous.EvaluationContext)
             {
-                appDomain.SetMetadataContext(new CSharpMetadataContext(metadataBlocks, aliases, context));
+                appDomain.SetMetadataContext(new CSharpMetadataContext(metadataBlocks, context));
             }
 
             return context;

@@ -301,7 +301,7 @@ class C
             string error;
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            context.CompileAssignment("P", "1", DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
+            context.CompileAssignment("P", "1", NoAliases, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
             Assert.Null(error);
             Assert.Empty(missingAssemblyIdentities);
 
@@ -336,6 +336,7 @@ class C
             context.CompileExpression(
                 "int z = 1;",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,

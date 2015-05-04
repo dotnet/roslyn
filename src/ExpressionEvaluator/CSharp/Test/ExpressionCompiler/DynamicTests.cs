@@ -437,6 +437,7 @@ public class Outer<T, U>
             result = context.CompileExpression(
                 "var dd = d;",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -445,7 +446,6 @@ public class Outer<T, U>
                 testData);
             Assert.Null(error);
             VerifyCustomTypeInfo(result, null);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -491,8 +491,9 @@ public class Outer<T, U>
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
-                runtime, 
-                "C.M", 
+                runtime,
+                "C.M");
+            var aliases = ImmutableArray.Create(
                 Alias(
                     DkmClrAliasKind.Variable, 
                     "d1", 
@@ -513,6 +514,7 @@ public class Outer<T, U>
             context.CompileGetLocals(
                 locals,
                 argumentsOnly: false,
+                aliases: aliases,
                 diagnostics: diagnostics,
                 typeName: out typeName,
                 testData: testData);

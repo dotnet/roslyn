@@ -2,7 +2,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 
@@ -16,8 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _implicitDeclarations As Dictionary(Of String, LocalSymbol)
 
         Friend Sub New(
+            aliases As ImmutableArray(Of [Alias]),
             containingMethod As MethodSymbol,
-            aliasLocals As ImmutableArray(Of LocalSymbol),
+            typeNameDecoder As EETypeNameDecoder,
             allowImplicitDeclarations As Boolean,
             containingBinder As Binder)
 
@@ -25,9 +28,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _containingMethod = containingMethod
             _allowImplicitDeclarations = allowImplicitDeclarations
 
+            Dim compilation = containingBinder.Compilation
+            Dim sourceAssembly = compilation.SourceAssembly
+
             _implicitDeclarations = New Dictionary(Of String, LocalSymbol)(CaseInsensitiveComparison.Comparer)
-            For Each aliasLocal As LocalSymbol In aliasLocals
-                _implicitDeclarations.Add(aliasLocal.Name, aliasLocal)
+            For Each [alias] As [Alias] In aliases
+                Dim local = PlaceholderLocalSymbol.Create(
+                    typeNameDecoder,
+                    containingMethod,
+                    [alias])
+                _implicitDeclarations.Add(local.Name, local)
             Next
         End Sub
 

@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.DiaSymReader;
-using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -33,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly MetadataDecoder _metadataDecoder;
         private readonly MethodSymbol _currentFrame;
         private readonly ImmutableArray<LocalSymbol> _locals;
-        private readonly ImmutableArray<LocalSymbol> _aliasLocals;
         private readonly InScopeHoistedLocals _inScopeHoistedLocals;
         private readonly MethodDebugInfo _methodDebugInfo;
 
@@ -43,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MetadataDecoder metadataDecoder,
             MethodSymbol currentFrame,
             ImmutableArray<LocalSymbol> locals,
-            ImmutableArray<LocalSymbol> aliasLocals,
             InScopeHoistedLocals inScopeHoistedLocals,
             MethodDebugInfo methodDebugInfo)
         {
@@ -54,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _metadataDecoder = metadataDecoder;
             _currentFrame = currentFrame;
             _locals = locals;
-            _aliasLocals = aliasLocals;
             _inScopeHoistedLocals = inScopeHoistedLocals;
             _methodDebugInfo = methodDebugInfo;
         }
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int typeToken)
         {
             // Re-use the previous compilation if possible.
-            var compilation = previous.Matches(metadataBlocks, ImmutableArray<Alias>.Empty) ?
+            var compilation = previous.Matches(metadataBlocks) ?
                 previous.Compilation :
                 metadataBlocks.ToCompilation();
 
@@ -102,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataDecoder,
                 currentFrame,
                 default(ImmutableArray<LocalSymbol>),
-                default(ImmutableArray<LocalSymbol>),
                 InScopeHoistedLocals.Empty,
                 default(MethodDebugInfo));
         }
@@ -112,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         /// <param name="previous">Previous context, if any, for possible re-use.</param>
         /// <param name="metadataBlocks">Module metadata</param>
-        /// <param name="aliases">Aliases (e.g. $exception, locals declared in the Immediate window).</param>
         /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/></param>
         /// <param name="moduleVersionId">Module containing method</param>
         /// <param name="methodToken">Method metadata token</param>
@@ -123,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static EvaluationContext CreateMethodContext(
             CSharpMetadataContext previous,
             ImmutableArray<MetadataBlock> metadataBlocks,
-            ImmutableArray<Alias> aliases,
             object symReader,
             Guid moduleVersionId,
             int methodToken,
@@ -133,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks, aliases))
+            if (previous.Matches(metadataBlocks))
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
@@ -152,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             return CreateMethodContext(
                 compilation,
-                aliases,
                 symReader,
                 moduleVersionId,
                 methodToken,
@@ -163,7 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static EvaluationContext CreateMethodContext(
             CSharpCompilation compilation,
-            ImmutableArray<Alias> aliases,
             object symReader,
             Guid moduleVersionId,
             int methodToken,
@@ -213,17 +203,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var locals = localsBuilder.ToImmutableAndFree();
 
-            var aliasLocalsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            GetAliasLocals(aliasLocalsBuilder, aliases, currentFrame, compilation);
-            var aliasLocals = aliasLocalsBuilder.ToImmutableAndFree();
-
             return new EvaluationContext(
                 methodContextReuseConstraints,
                 compilation,
                 metadataDecoder,
                 currentFrame,
                 locals,
-                aliasLocals,
                 inScopeHoistedLocals,
                 methodDebugInfo);
         }
@@ -235,7 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 _metadataDecoder,
                 _currentFrame,
                 _locals,
-                _aliasLocals,
                 _inScopeHoistedLocals,
                 _methodDebugInfo,
                 syntax);
@@ -244,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CompileResult CompileExpression(
             string expr,
             DkmEvaluationFlags compilationFlags,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
@@ -258,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var context = this.CreateCompilationContext(syntax);
             ResultProperties properties;
-            var moduleBuilder = context.CompileExpression(TypeName, MethodName, testData, diagnostics, out properties);
+            var moduleBuilder = context.CompileExpression(TypeName, MethodName, aliases, testData, diagnostics, out properties);
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
@@ -336,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CompileResult CompileAssignment(
             string target,
             string expr,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
@@ -349,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var context = this.CreateCompilationContext(assignment);
             ResultProperties properties;
-            var moduleBuilder = context.CompileAssignment(TypeName, MethodName, testData, diagnostics, out properties);
+            var moduleBuilder = context.CompileAssignment(TypeName, MethodName, aliases, testData, diagnostics, out properties);
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
@@ -387,12 +373,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out string typeName,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
         {
             var context = this.CreateCompilationContext(null);
-            var moduleBuilder = context.CompileGetLocals(TypeName, locals, argumentsOnly, testData, diagnostics);
+            var moduleBuilder = context.CompileGetLocals(TypeName, locals, argumentsOnly, aliases, testData, diagnostics);
             ReadOnlyCollection<byte> assembly = null;
 
             if ((moduleBuilder != null) && (locals.Count > 0))
@@ -527,86 +514,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     builder.Add(new EELocalConstantSymbol(method, name, type, constantValue));
                 }
-            }
-        }
-
-        private static void GetAliasLocals(
-            ArrayBuilder<LocalSymbol> builder,
-            ImmutableArray<Alias> aliases,
-            MethodSymbol method,
-            CSharpCompilation compilation)
-        {
-            var sourceAssembly = compilation.SourceAssembly;
-            var typeNameDecoder = new EETypeNameDecoder(compilation, (PEModuleSymbol)method.ContainingModule);
-            foreach (var alias in aliases)
-            {
-                LocalSymbol additionalLocal;
-                builder.Add(CreateAliasLocal(typeNameDecoder, method, sourceAssembly, alias, out additionalLocal));
-                if ((object)additionalLocal != null)
-                {
-                    Debug.Assert(alias.Kind == DkmClrAliasKind.ReturnValue);
-                    builder.Add(additionalLocal);
-                }
-            }
-        }
-
-        private static LocalSymbol CreateAliasLocal(
-            TypeNameDecoder<PEModuleSymbol, TypeSymbol> typeNameDecoder,
-            MethodSymbol containingMethod,
-            AssemblySymbol sourceAssembly,
-            Alias alias,
-            out LocalSymbol additionalLocal)
-        {
-            var typeName = alias.Type;
-            Debug.Assert(typeName.Length > 0);
-
-            var type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
-            Debug.Assert((object)type != null);
-
-            var dynamicFlagsInfo = alias.CustomTypeInfo.ToDynamicFlagsCustomTypeInfo();
-            if (dynamicFlagsInfo.Any())
-            {
-                var flagsBuilder = ArrayBuilder<bool>.GetInstance();
-                dynamicFlagsInfo.CopyTo(flagsBuilder);
-                var dynamicType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(
-                    type,
-                    sourceAssembly,
-                    RefKind.None,
-                    flagsBuilder.ToImmutableAndFree(),
-                    checkLength: false);
-                Debug.Assert(dynamicType != null);
-                Debug.Assert(dynamicType != type);
-                type = dynamicType;
-            }
-
-            var name = alias.FullName;
-            var displayName = alias.Name;
-            switch (alias.Kind)
-            {
-                case DkmClrAliasKind.Exception:
-                    additionalLocal = null;
-                    return new ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetExceptionMethodName);
-                case DkmClrAliasKind.StowedException:
-                    additionalLocal = null;
-                    return new ExceptionLocalSymbol(containingMethod, name, displayName, type, ExpressionCompilerConstants.GetStowedExceptionMethodName);
-                case DkmClrAliasKind.ReturnValue:
-                {
-                    int index;
-                    PseudoVariableUtilities.TryParseReturnValueIndex(name, out index);
-                    Debug.Assert(index >= 0);
-                    var lowerId = name.ToLowerInvariant(); // The id should be ascii, so locale shouldn't matter.
-                    additionalLocal = lowerId == name ? null : new ReturnValueLocalSymbol(containingMethod, lowerId, displayName, type, index);
-                    return new ReturnValueLocalSymbol(containingMethod, name, displayName, type, index);
-                }
-                case DkmClrAliasKind.ObjectId:
-                    Debug.Assert(name.Length > 0 && name[0] != '$');
-                    additionalLocal = null;
-                    return new ObjectIdLocalSymbol(containingMethod, type, "$" + name, displayName, isWritable: false);
-                case DkmClrAliasKind.Variable:
-                    additionalLocal = null;
-                    return new ObjectIdLocalSymbol(containingMethod, type, name, displayName, isWritable: true);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(alias.Kind);
             }
         }
 

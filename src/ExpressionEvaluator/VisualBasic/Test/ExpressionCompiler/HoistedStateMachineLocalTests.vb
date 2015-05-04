@@ -726,12 +726,11 @@ End Class
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
-            Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
             Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
-            testData = New CompilationTestData()
+            Dim testData = New CompilationTestData()
             context.CompileExpression("u1", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
@@ -1399,13 +1398,10 @@ End Class
             GetContextState(runtime, "C.VB$StateMachine_1_M.MoveNext", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             Const methodVersion = 1
 
-            Dim aliases = ImmutableArray(Of [Alias]).Empty
-
             Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=100)
             Dim context = EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
-                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,
@@ -1424,7 +1420,6 @@ End Class
             context = EvaluationContext.CreateMethodContext(
                 New VisualBasicMetadataContext(blocks, context),
                 blocks,
-                aliases,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
                 moduleVersionId,

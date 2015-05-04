@@ -192,14 +192,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }");
             locals.Free();
 
-            ResultProperties resultProperties;
             string error;
             testData = new CompilationTestData();
-            context.CompileExpression("b", out resultProperties, out error, testData);
+            context.CompileExpression("b", out error, testData);
             Assert.Equal(error, "error CS0103: The name 'b' does not exist in the current context");
 
             testData = new CompilationTestData();
-            context.CompileExpression("a[1]", out resultProperties, out error, testData);
+            context.CompileExpression("a[1]", out error, testData);
             string actualIL = testData.GetMethodData("<>x.<>m0").GetMethodIL();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(actualIL,
 @"{
@@ -229,7 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime, 
-                "C.M",
+                "C.M");
+            var aliases = ImmutableArray.Create(
                 ExceptionAlias(typeof(System.IO.IOException)),
                 ReturnValueAlias(2, typeof(string)),
                 ReturnValueAlias(),
@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             context.CompileGetLocals(
                 locals,
                 argumentsOnly: true,
+                aliases: aliases,
                 diagnostics: diagnostics,
                 typeName: out typeName,
                 testData: testData);
@@ -254,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             context.CompileGetLocals(
                 locals,
                 argumentsOnly: false,
+                aliases: aliases,
                 diagnostics: diagnostics,
                 typeName: out typeName,
                 testData: testData);
@@ -1768,10 +1770,9 @@ class C
                 methodName: "C.M",
                 atLineNumber: 999);
 
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("o = null", out resultProperties, out error, testData);
+            context.CompileExpression("o = null", out error, testData);
             Assert.Null(error); // In regular code, there would be an error about modifying a lock local.
 
             testData.GetMethodData("<>x.<>m0").VerifyIL(

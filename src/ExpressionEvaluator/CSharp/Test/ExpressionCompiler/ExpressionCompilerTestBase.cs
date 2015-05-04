@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private readonly ArrayBuilder<IDisposable> _runtimeInstances = ArrayBuilder<IDisposable>.GetInstance();
 
+        internal static readonly ImmutableArray<Alias> NoAliases = ImmutableArray<Alias>.Empty;
+
         public override void Dispose()
         {
             base.Dispose();
@@ -116,32 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static EvaluationContext CreateMethodContext(
             RuntimeInstance runtime,
             string methodName,
-            params Alias[] aliases)
-        {
-            ImmutableArray<MetadataBlock> blocks;
-            Guid moduleVersionId;
-            ISymUnmanagedReader symReader;
-            int methodToken;
-            int localSignatureToken;
-            GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
-
-            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
-
-            return EvaluationContext.CreateMethodContext(
-                default(CSharpMetadataContext),
-                blocks,
-                ImmutableArray.Create(aliases),
-                symReader,
-                moduleVersionId,
-                methodToken: methodToken,
-                methodVersion: 1,
-                ilOffset: ilOffset,
-                localSignatureToken: localSignatureToken);
-        }
-
-        internal static EvaluationContext CreateMethodContext(
-            RuntimeInstance runtime,
-            string methodName,
             int atLineNumber = -1)
         {
             ImmutableArray<MetadataBlock> blocks;
@@ -156,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),
                 blocks,
-                ImmutableArray<Alias>.Empty,
                 symReader,
                 moduleVersionId,
                 methodToken: methodToken,
@@ -218,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var result = context.CompileExpression(
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
