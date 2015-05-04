@@ -2159,7 +2159,7 @@ index:=1)
         End Sub
 
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestGenerateMethodWithMethodChaining()
             Test(
 NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
@@ -2167,12 +2167,20 @@ NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\
         End Sub
 
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestGenerateMethodWithMethodChaining2()
             Test(
 NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
 NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private ReadOnly Property F As Task(Of Boolean)\n        Get\n            Throw New NotImplementedException()\n        End Get\n    End Property\nEnd Module"),
 index:=1)
+        End Sub
+
+        <WorkItem(1130960)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestGenerateMethodInTypeOfIsNot()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf [|Prop|] IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n Private Function Prop() As TypeOfIsNotDerived \n Throw New NotImplementedException() \n End Function \n End Module"))
         End Sub
 
         Public Class GenerateConversionTests
