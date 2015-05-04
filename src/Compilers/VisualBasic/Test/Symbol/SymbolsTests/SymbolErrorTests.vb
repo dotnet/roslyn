@@ -13240,7 +13240,7 @@ BC31527: 'Microsoft.VisualBasic.ComClassAttribute' cannot be applied to a class 
         ' BC31531ERR_DllImportNotLegalOnEventMethod
         ' see AttributeTests
 
-        <Fact>
+        <Fact, WorkItem(1116455, "DevDiv")>
         Public Sub BC31534ERR_FriendAssemblyBadArguments()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
     <compilation name="FriendAssemblyBadArguments">
@@ -13261,6 +13261,7 @@ Imports System.Runtime.CompilerServices
 <Assembly: InternalsVisibleTo("Test, Version=1.1.1.*")>              ' error
 <Assembly: InternalsVisibleTo("Test, ProcessorArchitecture=MSIL")>   ' error
 <Assembly: InternalsVisibleTo("Test, CuLTure=EN")>                   ' error
+<Assembly: InternalsVisibleTo("Test, PublicKeyToken=null")>          ' ok
         ]]></file>
     </compilation>, {SystemCoreRef})
 
