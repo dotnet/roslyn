@@ -10,7 +10,7 @@ For now, the team has set the following limits on pull requests:
 - Only contributions against the master branch will be accepted. Authors submitting pull requests that target experimental feature branches or release branches will be asked target their pull request at the master branch.
 - Pull requests that do not merge easily with the tip of the master branch will be declined. The author will be asked to merge with tip and submit a new pull request.
 - Submissions must meet functional and performance expectations, including scenarios for which the team doesn’t yet have open source tests. This means you may be asked to fix and resubmit your pull request against a new open test case if it fails one of these tests.
-- Submissions must follow the [.Net Foundation Coding Guidelines](https://github.com/dotnet/corefx/wiki/Contributing#c-coding-style)
+- Submissions must follow the [.Net Foundation Coding Guidelines](https://github.com/dotnet/corefx/wiki/Coding-style)
 
 
 When you are ready to proceed with making a change, get set up to [[build|Building Testing and Debugging]] the code and familiarize yourself with our workflow and our coding conventions. These two blogs posts on contributing code to open source projects are good too: Open Source Contribution Etiquette by Miguel de Icaza and Don’t “Push” Your Pull Requests by Ilya Grigorik.
@@ -38,7 +38,7 @@ Please follow these guidelines when creating new issues in the issue tracker:
 
 ###Coding Conventions
 
-- Use the coding style outlined in the [.Net Foundation Coding Guidelines](https://github.com/dotnet/corefx/wiki/Contributing#c-coding-style)
+- Use the coding style outlined in the [.Net Foundation Coding Guidelines](https://github.com/dotnet/corefx/wiki/Coding-style)
 - Use plain code to validate parameters at public boundaries. Do not use Contracts or magic helpers.
 
 ```csharp
