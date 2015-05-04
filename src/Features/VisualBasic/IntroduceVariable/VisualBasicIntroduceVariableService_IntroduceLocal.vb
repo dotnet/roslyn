@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim localAnnotation = New SyntaxAnnotation()
             localDeclaration = localDeclaration.WithAdditionalAnnotations(Formatter.Annotation, localAnnotation)
 
-            Dim oldOutermostBlock = expression.GetContainingExecutableBlocks().FirstOrDefault()
+            Dim oldOutermostBlock = expression.GetContainingExecutableBlocks().LastOrDefault()
             If oldOutermostBlock.IsSingleLineExecutableBlock() Then
                 oldOutermostBlock = oldOutermostBlock.Parent
             End If
