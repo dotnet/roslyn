@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class BinaryOperators
         Inherits BasicTestBase
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/856")>
+        <Fact>
         Public Sub Test1()
 
             Dim compilationDef =
