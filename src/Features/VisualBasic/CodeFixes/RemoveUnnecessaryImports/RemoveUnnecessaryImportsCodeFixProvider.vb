@@ -13,7 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryImports
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddMissingReference)>
     Friend Class RemoveUnnecessaryImportsCodeFixProvider
         Inherits CodeFixProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get

@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FixIncorrectExitContinue)>
     Friend Class GenerateEndConstructCodeFixProvider
         Inherits CodeFixProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30025 As String = "BC30025" ' error BC30025: Property missing 'End Property'.
         Friend Const BC30026 As String = "BC30026" ' error BC30026: 'End Sub' expected.

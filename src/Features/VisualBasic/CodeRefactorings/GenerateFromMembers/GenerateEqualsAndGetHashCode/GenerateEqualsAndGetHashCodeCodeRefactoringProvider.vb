@@ -8,7 +8,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMember
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers)>
     Friend Class GenerateEqualsAndGetHashCodeCodeRefactoringProvider
         Inherits CodeRefactoringProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Public Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
             Dim document = context.Document

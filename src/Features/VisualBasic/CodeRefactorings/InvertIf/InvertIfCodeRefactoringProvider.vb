@@ -13,7 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     ' <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InvertIf)>
     Friend Class InvertIfCodeRefactoringProvider
         Inherits CodeRefactoringProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Public Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
             Dim document = context.Document

@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEnumMember)>
     Partial Friend Class GenerateEventCodeFixProvider
         Inherits CodeFixProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30401 As String = "BC30401" ' error BC30401: 'foo' cannot implement 'E' because there is no matching event on interface 'MyInterface'.
         Friend Const BC30590 As String = "BC30590" ' error BC30590: Event 'MyEvent' cannot be found.

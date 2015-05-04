@@ -11,7 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddMissingReference
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.SimplifyNames)>
     Friend Class AddMissingReferenceCodeFixProvider
         Inherits CodeFixProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30005 As String = "BC30005" ' ERR_UnreferencedAssemblyEvent3
         Friend Const BC30007 As String = "BC30007" ' ERR_UnreferencedAssemblyBase3

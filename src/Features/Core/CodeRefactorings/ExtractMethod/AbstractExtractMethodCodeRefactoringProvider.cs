@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 {
-    internal class AbstractExtractMethodCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
+    internal class AbstractExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected AbstractExtractMethodCodeRefactoringProvider()
         {

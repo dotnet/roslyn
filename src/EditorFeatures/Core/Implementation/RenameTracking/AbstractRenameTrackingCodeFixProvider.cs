@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
-    internal abstract class AbstractRenameTrackingCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
+    internal abstract class AbstractRenameTrackingCodeFixProvider : CodeFixProvider
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;

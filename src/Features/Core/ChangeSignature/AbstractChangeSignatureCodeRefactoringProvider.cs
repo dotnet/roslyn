@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal class AbstractChangeSignatureCodeRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
+    internal class AbstractChangeSignatureCodeRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

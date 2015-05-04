@@ -12,7 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementInterface
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementAbstractClass)>
     Friend Class ImplementInterfaceCodeFixProvider
         Inherits CodeFixProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub foo()' for interface 'ifoo'.
 

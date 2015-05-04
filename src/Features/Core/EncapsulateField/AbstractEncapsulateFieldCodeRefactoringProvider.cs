@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldRefactoringProvider : CodeRefactoringProvider, ReportCrashDumpsToMicrosoft
+    internal abstract class AbstractEncapsulateFieldRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

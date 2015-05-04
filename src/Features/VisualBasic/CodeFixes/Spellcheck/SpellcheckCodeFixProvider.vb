@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)>
     Partial Friend Class SpellcheckCodeFixProvider
         Inherits CodeFixProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         ''' <summary>
         ''' Type xxx is not defined

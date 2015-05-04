@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementInterface), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementAbstractClass)]
-    internal class ImplementInterfaceCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
+    internal class ImplementInterfaceCodeFixProvider : CodeFixProvider
     {
         private readonly Func<TypeSyntax, bool> _interfaceName = n => n.Parent is BaseTypeSyntax && n.Parent.Parent is BaseListSyntax && ((BaseTypeSyntax)n.Parent).Type == n;
         private readonly Func<IEnumerable<CodeAction>, bool> _codeActionAvailable = actions => actions != null && actions.Any();

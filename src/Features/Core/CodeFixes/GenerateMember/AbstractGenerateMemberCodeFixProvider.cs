@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 {
-    internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
+    internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
     {
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

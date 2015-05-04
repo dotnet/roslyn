@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddMissingReference
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddMissingReference), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.SimplifyNames)]
-    internal class AddMissingReferenceCodeFixProvider : CodeFixProvider, ReportCrashDumpsToMicrosoft
+    internal class AddMissingReferenceCodeFixProvider : CodeFixProvider
     {
         private const string CS0012 = "CS0012"; // The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'ProjectA, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
 

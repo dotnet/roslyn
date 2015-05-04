@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateType)>
     Friend Class ImplementAbstractClassCodeFixProvider
         Inherits CodeFixProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Friend Const BC30610 As String = "BC30610" ' Class 'foo' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
 

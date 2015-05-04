@@ -9,7 +9,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.IntroduceVariable
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.ExtractMethod)>
     Friend Class IntroduceVariableCodeRefactoringProvider
         Inherits CodeRefactoringProvider
-        Implements ReportCrashDumpsToMicrosoft
 
         Public Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
             Dim document = context.Document
