@@ -34,6 +34,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".frm")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".pag")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".vb")>
+    <ProvideLanguageCodeExpansion(GetType(VisualBasicLanguageService), "Basic", 101, "VB", "%InstallRoot%\VB\Snippets\%LCID%\SnippetIndex.xml",
+        SearchPaths:="%InstallRoot%\VB\Snippets\%LCID%\application\;%InstallRoot%\VB\Snippets\%LCID%\common code patterns\;%InstallRoot%\VB\Snippets\%LCID%\data\;%InstallRoot%\VB\Snippets\%LCID%\fundamentals\;%InstallRoot%\VB\Snippets\%LCID%\os\;%InstallRoot%\VB\Snippets\%LCID%\other\;%InstallRoot%\VB\Snippets\%LCID%\windowsforms\;%MyDocs%\Code Snippets\Visual Basic\My Code Snippets\",
+        ForceCreateDirs:="%MyDocs%\Code Snippets\Visual Basic\My Code Snippets\",
+        ShowRoots:=True)>
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorOptionPage(GetType(StyleOptionPage), "Basic", Nothing, "Code Style", "#109", 10161)>
     <ProvideAutomationProperties("TextEditor", "Basic", Guids.TextManagerPackageString, 103, 105, Guids.VisualBasicPackageIdString)>

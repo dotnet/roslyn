@@ -31,6 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideLanguageExtension(typeof(CSharpLanguageService), ".cs")]
     [ProvideLanguageService(Guids.CSharpLanguageServiceIdString, "CSharp", languageResourceID: 101, RequestStockColors = true, ShowDropDownOptions = true)]
+    [ProvideLanguageCodeExpansion(typeof(CSharpLanguageService), "CSharp", 115, "csharp", @"%InstallRoot%\VC#\Snippets\%LCID%\SnippetsIndex.xml", 
+        SearchPaths = @"%InstallRoot%\VC#\Snippets\%LCID%\Visual C#\;%MyDocs%\Code Snippets\Visual C#\My Code Snippets\",
+        ForceCreateDirs = @"%InstallRoot%\VC#\Snippets\%LCID%\Visual C#\;%MyDocs%\Code Snippets\Visual C#\My Code Snippets\",
+        ShowRoots = false)]
     [ProvideLanguageEditorToolsOptionCategory("CSharp", "Formatting", "#107")]
     [ProvideLanguageEditorOptionPage(typeof(Options.AdvancedOptionPage), "CSharp", null, "Advanced", pageNameResourceId: "#102", keywordListResourceId: 306)]
     [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingStylePage), "CSharp", null, @"Code Style", pageNameResourceId: "#114", keywordListResourceId: 313)]
