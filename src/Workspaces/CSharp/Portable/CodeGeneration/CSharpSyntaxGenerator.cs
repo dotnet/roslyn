@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.MethodDeclaration(
                 default(SyntaxList<AttributeListSyntax>),
                 AsModifierList(accessibility, modifiers, SyntaxKind.MethodDeclaration),
+                default(SyntaxToken),
                 returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
                 default(ExplicitInterfaceSpecifierSyntax),
                 name.ToIdentifierToken(),
@@ -2663,7 +2664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private EqualsValueClauseSyntax GetEqualsValue(SyntaxNode declaration)
+        private EqualsClauseSyntax GetEqualsValue(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {
@@ -3611,7 +3612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right)
         {
-            return SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, Parenthesize(right));
+            return SyntaxFactory.ValueAssignmentExpression(SyntaxKind.SimpleAssignmentExpression, (ExpressionSyntax)left, Parenthesize(right));
         }
 
         private SyntaxNode CreateBinaryExpression(SyntaxKind syntaxKind, SyntaxNode left, SyntaxNode right)

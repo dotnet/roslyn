@@ -83,7 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ' so the return type of GetVariableAddress(Of T)(name As String)
                 ' is an error type. Since the method is only used for emit, an
                 ' updated placeholder method is used instead.
-                Debug.Assert(method.ReturnType.TypeKind = TypeKind.Error) ' If byref return types are supported in the future, use method as is.
+
+                ' TODO: refs are available
+                'Debug.Assert(method.ReturnType.TypeKind = TypeKind.Error) ' If byref return types are supported in the future, use method as is.
                 method = New PlaceholderMethodSymbol(
                     method.ContainingType,
                     method.Name,

@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddCleanupAnnotationsTo(SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
+                refKeyword: method.ReturnsByRef ? SyntaxFactory.Token(SyntaxKind.RefKeyword) : default(SyntaxToken),
                 returnType: method.ReturnType.GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),

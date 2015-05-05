@@ -66,6 +66,8 @@ Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax
 Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax.Tokens.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 Microsoft.CodeAnalysis.Metadata.Id.get -> Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataId
+Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRef.get -> bool
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
 Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.ParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions

@@ -42,6 +42,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public override bool ReturnsByRef
+        {
+            get
+            {
+                return _constructedFrom.ReturnsByRef;
+            }
+        }
+
         public override ITypeSymbol ReturnType
         {
             get

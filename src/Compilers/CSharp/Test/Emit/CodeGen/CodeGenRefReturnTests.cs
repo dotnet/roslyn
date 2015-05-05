@@ -1426,7 +1426,7 @@ class Program
   IL_0022:  conv.i8
   IL_0023:  stloc.1
   IL_0024:  ldloc.0
-  IL_0025:  dup
+  IL_0025:  ldloc.0
   IL_0026:  callvirt   ""ref int Program.P.get""
   IL_002b:  ldind.i4
   IL_002c:  callvirt   ""void Program.N(int)""
@@ -1451,13 +1451,13 @@ class Program
   IL_0053:  add
   IL_0054:  stloc.1
   IL_0055:  ldloc.0
-  IL_0056:  dup
+  IL_0056:  ldloc.0
   IL_0057:  ldc.i4.0
   IL_0058:  callvirt   ""ref int Program.this[int].get""
   IL_005d:  ldind.i4
   IL_005e:  callvirt   ""void Program.N(int)""
   IL_0063:  ldloc.0
-  IL_0064:  dup
+  IL_0064:  ldloc.0
   IL_0065:  ldflda     ""int Program.field""
   IL_006a:  callvirt   ""ref int Program.M(ref int)""
   IL_006f:  ldind.i4
@@ -1465,14 +1465,14 @@ class Program
   IL_0071:  add
   IL_0072:  add
   IL_0073:  ldloc.0
-  IL_0074:  dup
+  IL_0074:  ldloc.0
   IL_0075:  ldflda     ""int Program.field""
   IL_007a:  callvirt   ""ref int Program.M(ref int)""
   IL_007f:  call       ""string int.ToString()""
   IL_0084:  pop
   IL_0085:  ldloc.1
   IL_0086:  ldloc.0
-  IL_0087:  dup
+  IL_0087:  ldloc.0
   IL_0088:  ldflda     ""int Program.field""
   IL_008d:  callvirt   ""ref int Program.M(ref int)""
   IL_0092:  ldind.i4
@@ -1480,8 +1480,8 @@ class Program
   IL_0094:  add
   IL_0095:  stloc.1
   IL_0096:  ldloc.0
-  IL_0097:  dup
-  IL_0098:  dup
+  IL_0097:  ldloc.0
+  IL_0098:  ldloc.0
   IL_0099:  ldflda     ""int Program.field""
   IL_009e:  callvirt   ""ref int Program.M(ref int)""
   IL_00a3:  ldind.i4

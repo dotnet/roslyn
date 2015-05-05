@@ -409,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // return;
                         new BoundReturnStatement(
                             syntax,
+                            RefKind.None,
                             null)
                         { WasCompilerGenerated = true }))
                 { WasCompilerGenerated = true };
@@ -490,6 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializeResult.Type == _returnType);
                 var returnStatement = new BoundReturnStatement(
                     syntax,
+                    RefKind.None,
                     initializeResult)
                 { WasCompilerGenerated = true };
 
