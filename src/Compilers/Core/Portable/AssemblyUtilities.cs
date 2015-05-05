@@ -30,6 +30,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<string> FindAssemblySet(string filePath)
         {
             Debug.Assert(filePath != null);
+            Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
             Queue<string> workList = new Queue<string>();
             HashSet<string> assemblySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -69,15 +70,15 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Given a path to an assembly and a loaded <see cref="Assembly"/>, returns
-        /// true if their MVIDs match, and false otherwise. May throw.
+        /// Given a path to an assembly, returns its MVID (Module Version ID).
+        /// May throw.
         /// </summary>
         /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
-        public static bool MvidsMatch(string filePath, Assembly assembly)
+        public static Guid ReadMvid(string filePath)
         {
             Debug.Assert(filePath != null);
-            Debug.Assert(assembly != null);
+            Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
             using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
             {
@@ -85,7 +86,7 @@ namespace Roslyn.Utilities
                 var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
                 var fileMvid = metadataReader.GetGuid(mvidHandle);
 
-                return fileMvid == assembly.ManifestModule.ModuleVersionId;
+                return fileMvid;
             }
         }
 
@@ -98,6 +99,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<string> FindSatelliteAssemblies(string filePath)
         {
             Debug.Assert(filePath != null);
+            Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
             var builder = ImmutableArray.CreateBuilder<string>();
 
@@ -130,13 +132,14 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <exception cref="IOException">If the files does not exist or cannot be accessed.</exception>
         /// <exception cref="BadImageFormatException">If one of the files is not an assembly or is somehow corrupted.</exception>
-        public static ImmutableArray<AssemblyIdentity> IdentifyMissingDependencies(string assemblyPath, IEnumerable<string> assemblySet)
+        public static ImmutableArray<AssemblyIdentity> IdentifyMissingDependencies(string assemblyPath, IEnumerable<string> dependencyFilePaths)
         {
             Debug.Assert(assemblyPath != null);
-            Debug.Assert(assemblySet != null);
+            Debug.Assert(PathUtilities.IsAbsolute(assemblyPath));
+            Debug.Assert(dependencyFilePaths != null);
 
             HashSet<AssemblyIdentity> assemblyDefinitions = new HashSet<AssemblyIdentity>();
-            foreach (var potentialDependency in assemblySet)
+            foreach (var potentialDependency in dependencyFilePaths)
             {
                 using (var reader = new PEReader(FileUtilities.OpenRead(potentialDependency)))
                 {
@@ -163,21 +166,22 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Given a path to an assembly, returns true if the assembly has a strong
-        /// name (either a full key or a token) or false otherwise. May throw.
+        /// Given a path to an assembly, returns the <see cref="AssemblyIdentity"/> for the assembly.
+        ///  May throw.
         /// </summary>
         /// <exception cref="IOException">If the file at <paramref name="assemblyPath"/> does not exist or cannot be accessed.</exception>
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
-        public static bool HasStrongName(string assemblyPath)
+        public static AssemblyIdentity GetAssemblyIdentity(string assemblyPath)
         {
             Debug.Assert(assemblyPath != null);
+            Debug.Assert(PathUtilities.IsAbsolute(assemblyPath));
 
             using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
             {
                 var metadataReader = reader.GetMetadataReader();
-                var assemblyDefinition = metadataReader.ReadAssemblyIdentityOrThrow();
+                var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
 
-                return assemblyDefinition.IsStrongName;
+                return assemblyIdentity;
             }
         }
     }

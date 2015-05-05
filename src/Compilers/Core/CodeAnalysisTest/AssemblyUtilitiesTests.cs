@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void MvidsMatch_True()
+        public void ReadMVid()
         {
             var directory = Temp.CreateDirectory();
 
@@ -83,24 +83,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var assembly = Assembly.Load(File.ReadAllBytes(alphaDll.Path));
 
-            var result = AssemblyUtilities.MvidsMatch(alphaDll.Path, assembly);
+            var result = AssemblyUtilities.ReadMvid(alphaDll.Path);
 
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void MvidsMatch_False()
-        {
-            var directory = Temp.CreateDirectory();
-
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
-            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Beta);
-
-            var assembly = Assembly.Load(File.ReadAllBytes(betaDll.Path));
-
-            var result = AssemblyUtilities.MvidsMatch(alphaDll.Path, assembly);
-
-            Assert.False(result);
+            Assert.Equal(expected: assembly.ManifestModule.ModuleVersionId, actual: result);
         }
 
         [Fact]
@@ -215,21 +200,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void HasStrongName_False()
+        public void GetAssemblyIdentity()
         {
             var directory = Temp.CreateDirectory();
 
             var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
 
-            Assert.False(AssemblyUtilities.HasStrongName(alphaDll.Path));
-        }
+            var result = AssemblyUtilities.GetAssemblyIdentity(alphaDll.Path);
 
-        [Fact]
-        public void HasStrongName_True()
-        {
-            string path = Assembly.GetExecutingAssembly().Location;
-
-            Assert.True(AssemblyUtilities.HasStrongName(path));
+            Assert.Equal(expected: "Alpha", actual: result.Name);
         }
     }
 }
