@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyDisplayName == null)
                 {
-                    _lazyDisplayName = Path.GetFileName(this.FullPath);
+                    _lazyDisplayName = Path.GetFileNameWithoutExtension(this.FullPath);
                 }
 
                 return _lazyDisplayName;
