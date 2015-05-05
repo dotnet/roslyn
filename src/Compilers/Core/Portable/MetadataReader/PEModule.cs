@@ -924,11 +924,6 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, ignoreCase ? AttributeDescription.CaseInsensitiveExtensionAttribute : AttributeDescription.CaseSensitiveExtensionAttribute).HasValue;
         }
 
-        internal bool HasFSharpInterfaceDataVersionAttribute(Handle token)
-        {
-            return FindTargetAttribute(token, AttributeDescription.FSharpInterfaceDataVersionAttribute).HasValue;
-        }
-
         internal bool HasVisualBasicEmbeddedAttribute(Handle token)
         {
             return FindTargetAttribute(token, AttributeDescription.VisualBasicEmbeddedAttribute).HasValue;
