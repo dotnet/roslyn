@@ -747,6 +747,34 @@ NewLines("Public Interface I \n  Sub Foo(a As X.Y.Z) \n End Interface \n Public 
 index:=0)
         End Sub
 
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields2()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class A \n Public B As New B() \n End Class \n\n Public Class B \n Public Sub New() \n End Sub \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields3()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class A \n Public B As New B() \n Public Class B \n Public Sub New() \n End Sub \n End Class \n End Class"),
+index:=2)
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
