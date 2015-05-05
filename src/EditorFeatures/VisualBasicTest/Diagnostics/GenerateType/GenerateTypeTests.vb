@@ -775,6 +775,62 @@ NewLines("Public Class A \n Public B As New B() \n Public Class B \n Public Sub 
 index:=2)
         End Sub
 
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields4()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class B \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields5()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class A \n Public B As New B \n End Class \n\n Public Class B \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields6()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class A \n Public B As New B \n Public Class B \n End Class \n End Class"),
+index:=2)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields7()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class B(Of T) \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields8()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class A \n Public B As New B(Of Integer) \n End Class \n\n Public Class B(Of T) \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields9()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class A \n Public B As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),
+index:=2)
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
