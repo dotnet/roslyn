@@ -90,8 +90,15 @@ namespace Microsoft.CodeAnalysis
                 services.TemporaryStorage);
         }
 
+        private const int MaximumRetryDelay = 1000; // 1 second
+        internal const int MaxRetries = 5;
+        internal const int RetryDelay = MaximumRetryDelay / MaxRetries;
+
         protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
         {
+            int retries = 0;
+        retry:
+
             try
             {
                 using (ExceptionHelpers.SuppressFailFast())
@@ -107,6 +114,12 @@ namespace Microsoft.CodeAnalysis
             }
             catch (IOException e)
             {
+                if (++retries <= MaxRetries)
+                {
+                    await Task.Delay(RetryDelay).ConfigureAwait(false);
+                    goto retry;
+                }
+
                 services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
                 return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
             }
