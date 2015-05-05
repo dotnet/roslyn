@@ -1112,6 +1112,8 @@ class C
         MD(() => ref i);
         MD(() => { return ref i; });
         MD(delegate { return ref i; });
+    }
+}
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();

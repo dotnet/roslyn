@@ -947,7 +947,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             ' paramInfo(0) contains information about return "parameter"
-            Debug.Assert(Not paramInfo(0).IsByRef)
             Dim returnParam = PEParameterSymbol.Create(moduleSymbol, Me, 0, paramInfo(0), isBad)
 
             If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then

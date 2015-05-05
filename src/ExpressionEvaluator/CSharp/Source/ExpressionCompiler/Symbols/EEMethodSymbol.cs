@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return this.SubstitutedSourceMethod.IsVararg; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return this.SubstitutedSourceMethod.RefKind; }
+        }
+
         public override bool ReturnsVoid
         {
             get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
@@ -464,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Insert an implicit return statement if necessary.
                 if (body.Kind != BoundKind.ReturnStatement)
                 {
-                    statementsBuilder.Add(new BoundReturnStatement(syntax, expressionOpt: null));
+                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null));
                 }
 
                 var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -479,7 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     if (!localsSet.Contains(local))
                     {
+                        Debug.Assert(!localsSet.Contains(local));
                         localsBuilder.Add(local);
+                        localsSet.Add(local);
                     }
                 }
                 localsSet.Free();

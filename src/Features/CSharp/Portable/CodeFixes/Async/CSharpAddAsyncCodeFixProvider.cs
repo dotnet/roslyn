@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                                 SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
                                 parenthesizedLambda.ParameterList,
                                 parenthesizedLambda.ArrowToken,
+                                parenthesizedLambda.RefKeyword,
                                 parenthesizedLambda.Body)
                                 .WithTriviaFrom(parenthesizedLambda)
                                 .WithAdditionalAnnotations(Formatter.Annotation);
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                                 SyntaxFactory.Token(SyntaxKind.AsyncKeyword),
                                 simpleLambda.Parameter,
                                 simpleLambda.ArrowToken,
+                                simpleLambda.RefKeyword,
                                 simpleLambda.Body)
                                 .WithTriviaFrom(simpleLambda)
                                 .WithAdditionalAnnotations(Formatter.Annotation);

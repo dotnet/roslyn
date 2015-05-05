@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     // But also add a simplification annotation so we can remove the parens if possible.
                     var argumentExpression = currentInvocation.ArgumentList.Arguments[0].Expression.Parenthesize();
 
-                    var expression = SyntaxFactory.AssignmentExpression(
+                    var expression = SyntaxFactory.ValueAssignmentExpression(
                         SyntaxKind.SimpleAssignmentExpression, currentInvocation.Expression, argumentExpression);
 
                     return expression.Parenthesize();

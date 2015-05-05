@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         yield return
                                 SyntaxFactory.LocalDeclarationStatement(
                                     declarationStatement.Modifiers,
+                                    declarationStatement.RefKeyword,
                                         SyntaxFactory.VariableDeclaration(
                                             declarationStatement.Declaration.Type,
                                             SyntaxFactory.SeparatedList(list)),
@@ -456,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
             {
-                return SyntaxFactory.AssignmentExpression(
+                return SyntaxFactory.ValueAssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
                     SyntaxFactory.IdentifierName(identifier),
                     rvalue);

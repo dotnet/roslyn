@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             parenthesizedLambda.AsyncKeyword,
                             newParameterSyntax.WithTrailingTrivia(parenthesizedLambda.ParameterList.GetTrailingTrivia()),
                             parenthesizedLambda.ArrowToken,
+                            parenthesizedLambda.RefKeyword,
                             parenthesizedLambda.Body);
 
                         return SimplificationHelpers.CopyAnnotations(parenthesizedLambda, newSimpleLambda).WithoutAnnotations(Simplifier.Annotation);

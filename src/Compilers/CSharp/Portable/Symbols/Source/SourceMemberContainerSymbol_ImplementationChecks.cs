@@ -700,13 +700,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
                             if ((overridingProperty.RefKind != RefKind.None) != (overriddenProperty.RefKind != RefKind.None))
-                            // Ignore custom modifiers because this diagnostic is based on the C# semantics.
-                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overridingProperty.RefKind != RefKind.None ? "not " : "");
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                             }
-                            else if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiers: true, ignoreDynamic: true))
+                            else if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched

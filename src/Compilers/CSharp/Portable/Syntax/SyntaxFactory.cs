@@ -1894,7 +1894,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static PropertyDeclarationSyntax PropertyDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
-            SyntaxToken refKeyword,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
             SyntaxToken identifier,
@@ -1903,14 +1902,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.PropertyDeclaration(
                 attributeLists,
                 modifiers,
-                refKeyword,
                 type,
                 explicitInterfaceSpecifier,
                 identifier,
                 accessorList,
                 default(ArrowExpressionClauseSyntax),
-                default(EqualsValueClauseSyntax),
-                default(SyntaxToken));
+                default(EqualsValueClauseSyntax));
         }
 
         public static MethodDeclarationSyntax MethodDeclaration(
@@ -1988,7 +1985,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IndexerDeclarationSyntax IndexerDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
-            SyntaxToken refKeyword,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, 
             BracketedParameterListSyntax parameterList,
@@ -1997,11 +1993,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.IndexerDeclaration(
                 attributeLists: attributeLists,
                 modifiers: modifiers,
-                refKeyword: refKeyword,
                 type: type,
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 parameterList: parameterList,
-                accessorList: accessorList);
+                accessorList: accessorList,
+                expressionBody: default(ArrowExpressionClauseSyntax));
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>

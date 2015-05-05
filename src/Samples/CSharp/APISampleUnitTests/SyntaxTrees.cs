@@ -51,6 +51,7 @@ namespace APISampleUnitTestsCS
             var newMethod = method.Update(
                 method.AttributeLists,
                 method.Modifiers,
+                method.RefKeyword,
                 method.ReturnType,
                 method.ExplicitInterfaceSpecifier,
                 SyntaxFactory.Identifier("NewMethodName"),

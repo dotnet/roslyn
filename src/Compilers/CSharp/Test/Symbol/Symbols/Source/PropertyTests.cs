@@ -2898,8 +2898,6 @@ unsafe class Test
                 //         ref int P { get { return ref field; } set { } } 
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P.set").WithLocation(5, 47));
         }
-    }
-
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
         public void LangVersioAndReadonlyAutoProperty()
