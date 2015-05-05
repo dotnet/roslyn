@@ -171,8 +171,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             private bool ApplyForceLinesOperation(AdjustNewLinesOperation operation, int pairIndex, CancellationToken cancellationToken)
             {
                 var triviaInfo = _tokenStream.GetTriviaData(pairIndex);
+                int indentation = getIndentation(pairIndex, triviaInfo);
 
-                var indentation = _context.GetBaseIndentation(_tokenStream.GetToken(pairIndex + 1));
                 if (triviaInfo.LineBreaks == operation.Line && triviaInfo.Spaces == indentation && !triviaInfo.TreatAsElastic)
                 {
                     // things are already in the shape we want, so we don't actually need to do
@@ -185,14 +185,31 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return true;
             }
 
+            private int getIndentation(int pairIndex, TriviaData triviaInfo)
+            {
+                var indentStyle = _context.OptionSet.GetOption(FormattingOptions.SmartIndent, _tokenStream.FirstTokenInStream.Token.Language);
+                if (!triviaInfo.TreatAsElastic)
+                {
+                    // User written code should be formatted when the indentationstyle is smart
+                    return indentStyle == FormattingOptions.IndentStyle.None || indentStyle == FormattingOptions.IndentStyle.Block ?
+                                  triviaInfo.Spaces : _context.GetBaseIndentation(_tokenStream.GetToken(pairIndex + 1));
+                }
+                else
+                {
+                    // When the trivia is elastic and the identationstyle is set to None then the indentation should be 0
+                    return indentStyle == FormattingOptions.IndentStyle.Block || indentStyle == FormattingOptions.IndentStyle.Smart ?
+                                  _context.GetBaseIndentation(_tokenStream.GetToken(pairIndex + 1)) : 0;
+                }
+            }
+
             public bool ApplyPreserveLinesOperation(
                 AdjustNewLinesOperation operation, int pairIndex, CancellationToken cancellationToken)
             {
                 var triviaInfo = _tokenStream.GetTriviaData(pairIndex);
+                var indentation = getIndentation(pairIndex, triviaInfo);
 
                 // okay, check whether there is line between token more than we want
                 // check whether we should force it if it is less than given number
-                var indentation = _context.GetBaseIndentation(_tokenStream.GetToken(pairIndex + 1));
                 if (operation.Line > triviaInfo.LineBreaks)
                 {
                     // alright force them
@@ -201,8 +218,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 // lines between tokens are as expected, but indentation is not right
-                if (triviaInfo.SecondTokenIsFirstTokenOnLine &&
-                    indentation != triviaInfo.Spaces)
+                if (triviaInfo.SecondTokenIsFirstTokenOnLine && indentation != triviaInfo.Spaces)
                 {
                     _tokenStream.ApplyChange(pairIndex, triviaInfo.WithIndentation(indentation, _context, _formattingRules, cancellationToken));
                     return true;

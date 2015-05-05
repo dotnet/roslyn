@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Moq
@@ -57,8 +58,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Sub
 
-        Public Sub AssertGeneratedResultIs(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement)
+        Public Sub AssertGeneratedResultIs(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing)
             Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceElement)
+                If changedOptionSet IsNot Nothing Then
+                    Dim optionSet = workspace.Options
+
+                    For Each entry In changedOptionSet
+                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
+                    Next
+
+                    workspace.Services.GetService(Of IOptionService)().SetOptions(optionSet)
+                End If
+
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = document.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
 
