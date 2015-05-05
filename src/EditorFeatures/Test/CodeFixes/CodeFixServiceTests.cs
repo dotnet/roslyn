@@ -221,6 +221,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 }
             }
 
+            public override string Id
+            {
+                get
+                {
+                    return "MockAnalyzerReference";
+                }
+            }
+
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             {
                 return ImmutableArray.Create<DiagnosticAnalyzer>(Analyzer);

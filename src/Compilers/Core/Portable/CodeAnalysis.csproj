@@ -116,6 +116,8 @@
     <Compile Include="Desktop\AssemblyVersion.cs" />
     <Compile Include="Desktop\DesktopAssemblyIdentityComparer.cs" />
     <Compile Include="Desktop\DesktopAssemblyIdentityComparer.Fx.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerFileReference.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\IAnalyzerAssemblyLoader.cs" />

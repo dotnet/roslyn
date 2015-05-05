@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
-            return new AnalyzerFileReference(fullPath, _analyzerLoader.LoadFromPath);
+            return new AnalyzerFileReference(fullPath, _analyzerLoader);
         }
 
         [Fact]
