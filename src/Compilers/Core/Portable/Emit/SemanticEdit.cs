@@ -5,38 +5,12 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    public enum SemanticEditKind
-    {
-        /// <summary>
-        /// No change.
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// Node value was updated.
-        /// </summary>
-        Update = 1,
-
-        /// <summary>
-        /// Node was inserted.
-        /// </summary>
-        Insert = 2,
-
-        /// <summary>
-        /// Node was deleted.
-        /// </summary>
-        Delete = 3,
-    }
-
     /// <summary>
     /// Describes a symbol edit between two compilations. 
     /// For example, an addition of a method, an update of a method, removal of a type, etc.
     /// </summary>
     public struct SemanticEdit : IEquatable<SemanticEdit>
     {
-        // TODO (tomat): we might need more detailed description of the edit, 
-        // like "method body update", etc.
-
         /// <summary>
         /// The type of edit.
         /// </summary>
@@ -89,9 +63,29 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <param name="preserveLocalVariables">
         /// True if the edit is an update of an active method and local values should be preserved; false otherwise.
         /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="oldSymbol"/> or <paramref name="newSymbol"/> is null and the edit isn't an <see cref="SemanticEditKind.Insert"/> or <see cref="SemanticEditKind.Delete"/>, respectively.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="kind"/> is not a valid kind.
+        /// </exception>
         public SemanticEdit(SemanticEditKind kind, ISymbol oldSymbol, ISymbol newSymbol, Func<SyntaxNode, SyntaxNode> syntaxMap = null, bool preserveLocalVariables = false)
         {
-            // TODO (tomat): more validation
+            if (oldSymbol == null && kind != SemanticEditKind.Insert)
+            {
+                throw new ArgumentNullException(nameof(oldSymbol));
+            }
+
+            if (newSymbol == null && kind != SemanticEditKind.Delete)
+            {
+                throw new ArgumentNullException(nameof(newSymbol));
+            }
+
+            if (kind <= SemanticEditKind.None || kind > SemanticEditKind.Delete)
+            {
+                throw new ArgumentOutOfRangeException(nameof(kind));
+            }
+
             this.Kind = kind;
             this.OldSymbol = oldSymbol;
             this.NewSymbol = newSymbol;

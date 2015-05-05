@@ -5917,7 +5917,7 @@ public class C
 
         [WorkItem(918650)]
         [Fact]
-        public void OutofMemoryDuringEditAndContinue()
+        public void ManyGenerations()
         {
             var source =
 @"class C
