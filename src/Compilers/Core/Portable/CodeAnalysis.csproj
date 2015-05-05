@@ -357,6 +357,10 @@
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
     <Compile Include="PortableShim.cs" />
+    <Compile Include="RuleSet\InvalidRuleSetException.cs" />
+    <Compile Include="RuleSet\RuleSet.cs" />
+    <Compile Include="RuleSet\RuleSetInclude.cs" />
+    <Compile Include="RuleSet\RuleSetProcessor.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
@@ -668,6 +672,9 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="RuleSet\RuleSetSchema.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
   <ItemGroup>

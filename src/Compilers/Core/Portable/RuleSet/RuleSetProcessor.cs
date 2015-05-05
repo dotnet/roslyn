@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                 List<XElement> nodeList = ruleSetDocument.Elements(RuleSetNodeName).ToList();
                 if (nodeList.Count != 1)
                 {
-                    Debug.Fail("Multiple top-level nodes!");
+                    Debug.Assert(false, "Multiple top-level nodes!");
                 }
                 Debug.Assert(nodeList[0].Name == RuleSetNodeName);
                 ruleSetNode = nodeList[0];
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     // Schema validation should prevent us from getting here
-                    Debug.Fail("Unknown child node in Rules node");
+                    Debug.Assert(false, "Unknown child node in Rules node");
                 }
             }
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis
                 return ReportDiagnostic.Default;
             }
 
-            throw new InvalidRuleSetException(string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, RuleActionAttributeName, action));
+            throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, RuleActionAttributeName, action));
         }
 
         /// <summary>
@@ -255,12 +255,12 @@ namespace Microsoft.CodeAnalysis
             XAttribute attribute = node.Attribute(attributeName);
             if (attribute == null)
             {
-                throw new InvalidRuleSetException(string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, node.Name, attributeName));
+                throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.RuleSetMissingAttribute, node.Name, attributeName));
             }
 
             if (string.IsNullOrEmpty(attribute.Value))
             {
-                throw new InvalidRuleSetException(string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, attributeName, attribute.Value));
+                throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, attributeName, attribute.Value));
             }
 
             return attribute.Value;

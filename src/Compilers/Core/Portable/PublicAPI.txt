@@ -2172,3 +2172,18 @@ Microsoft.CodeAnalysis.DesktopStrongNameProvider
 Microsoft.CodeAnalysis.DesktopStrongNameProvider.DesktopStrongNameProvider(System.Collections.Immutable.ImmutableArray<string> keyFileSearchPaths = default(System.Collections.Immutable.ImmutableArray<string>)) -> void
 override Microsoft.CodeAnalysis.DesktopStrongNameProvider.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.DesktopStrongNameProvider.GetHashCode() -> int
+static Microsoft.CodeAnalysis.RuleSet.GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out System.Collections.Generic.Dictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> specificDiagnosticOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
+static Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(string filePath) -> System.Collections.Immutable.ImmutableArray<string>
+static Microsoft.CodeAnalysis.RuleSet.LoadEffectiveRuleSetFromFile(string filePath) -> Microsoft.CodeAnalysis.RuleSet
+Microsoft.CodeAnalysis.RuleSet
+Microsoft.CodeAnalysis.RuleSet.FilePath.get -> string
+Microsoft.CodeAnalysis.RuleSet.GeneralDiagnosticOption.get -> Microsoft.CodeAnalysis.ReportDiagnostic
+Microsoft.CodeAnalysis.RuleSet.Includes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.RuleSetInclude>
+Microsoft.CodeAnalysis.RuleSet.RuleSet(string filePath, Microsoft.CodeAnalysis.ReportDiagnostic generalOption, System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> specificOptions, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.RuleSetInclude> includes) -> void
+Microsoft.CodeAnalysis.RuleSet.SpecificDiagnosticOptions.get -> System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>
+Microsoft.CodeAnalysis.RuleSet.WithEffectiveAction(Microsoft.CodeAnalysis.ReportDiagnostic action) -> Microsoft.CodeAnalysis.RuleSet
+Microsoft.CodeAnalysis.RuleSetInclude
+Microsoft.CodeAnalysis.RuleSetInclude.Action.get -> Microsoft.CodeAnalysis.ReportDiagnostic
+Microsoft.CodeAnalysis.RuleSetInclude.IncludePath.get -> string
+Microsoft.CodeAnalysis.RuleSetInclude.LoadRuleSet(Microsoft.CodeAnalysis.RuleSet parent) -> Microsoft.CodeAnalysis.RuleSet
+Microsoft.CodeAnalysis.RuleSetInclude.RuleSetInclude(string includePath, Microsoft.CodeAnalysis.ReportDiagnostic action) -> void

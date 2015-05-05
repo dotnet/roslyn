@@ -104,23 +104,5 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("MissingKeepAlive", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The attribute {0} has an invalid value of {1}..
-        /// </summary>
-        internal static string RuleSetBadAttributeValue {
-            get {
-                return ResourceManager.GetString("RuleSetBadAttributeValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The element {0} is missing an attribute named {1}..
-        /// </summary>
-        internal static string RuleSetMissingAttribute {
-            get {
-                return ResourceManager.GetString("RuleSetMissingAttribute", resourceCulture);
-            }
-        }
     }
 }

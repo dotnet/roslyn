@@ -436,4 +436,10 @@
   <data name="SymWriterNotDeterministic" xml:space="preserve">
     <value>SymWriter doesn't support deterministic compilation</value>
   </data>
+  <data name="RuleSetBadAttributeValue" xml:space="preserve">
+    <value>The attribute {0} has an invalid value of {1}.</value>
+  </data>
+  <data name="RuleSetMissingAttribute" xml:space="preserve">
+    <value>The element {0} is missing an attribute named {1}.</value>
+  </data>
 </root>

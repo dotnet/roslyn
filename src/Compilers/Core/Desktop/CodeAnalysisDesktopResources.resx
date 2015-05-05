@@ -132,10 +132,4 @@
   <data name="MissingKeepAlive" xml:space="preserve">
     <value>Missing argument for '/keepalive' option.</value>
   </data>
-  <data name="RuleSetBadAttributeValue" xml:space="preserve">
-    <value>The attribute {0} has an invalid value of {1}.</value>
-  </data>
-  <data name="RuleSetMissingAttribute" xml:space="preserve">
-    <value>The element {0} is missing an attribute named {1}.</value>
-  </data>
 </root>
