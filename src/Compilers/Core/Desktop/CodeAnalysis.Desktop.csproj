@@ -81,7 +81,6 @@
     <Compile Include="CommandLineAnalyzerReference.cs" />
     <Compile Include="EncodedStringText.cs" />
     <Compile Include="FileKey.cs" />
-    <Compile Include="FileUtilities.cs" />
     <Compile Include="Forwarders.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />

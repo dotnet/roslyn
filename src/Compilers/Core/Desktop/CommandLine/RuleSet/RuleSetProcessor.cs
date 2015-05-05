@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
             XDocument ruleSetDocument = null;
             XElement ruleSetNode = null;
 
-            using (FileStream stream = FileUtilities.OpenRead(filePath))
+            using (Stream stream = FileUtilities.OpenRead(filePath))
             using (XmlReader xmlReader = XmlReader.Create(stream, settings))
             {
                 try

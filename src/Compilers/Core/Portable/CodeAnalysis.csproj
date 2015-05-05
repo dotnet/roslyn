@@ -341,6 +341,7 @@
     <Compile Include="NativePdbWriter\IUnsafeComStream.cs" />
     <Compile Include="FileSystem\PathKind.cs" />
     <Compile Include="FileSystem\PathUtilities.cs" />
+    <Compile Include="FileSystem\FileUtilities.cs" />
     <Compile Include="PEWriter\ContentId.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
