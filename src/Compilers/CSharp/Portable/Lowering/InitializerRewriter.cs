@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(submissionResult.Type.SpecialType != SpecialType.System_Void);
 
                 // The expression is converted to the submission result type when the initializer is bound.
-                boundStatements.Add(new BoundReturnStatement(submissionResult.Syntax, submissionResult));
+                boundStatements.Add(new BoundReturnStatement(submissionResult.Syntax, RefKind.None, submissionResult));
             }
 
             return new BoundTypeOrInstanceInitializers(syntax, boundStatements.ToImmutableAndFree());

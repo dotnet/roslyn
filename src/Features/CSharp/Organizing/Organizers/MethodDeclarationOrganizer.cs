@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
         {
             return syntax.Update(syntax.AttributeLists,
                 ModifiersOrganizer.Organize(syntax.Modifiers),
+                syntax.RefKeyword,
                 syntax.ReturnType,
                 syntax.ExplicitInterfaceSpecifier,
                 syntax.Identifier,

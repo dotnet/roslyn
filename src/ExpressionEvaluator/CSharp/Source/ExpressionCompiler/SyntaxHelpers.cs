@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var targetSyntax = SyntaxHelpers.ParseDebuggerExpressionInternal(SourceText.From(target), consumeFullText: true);
             Debug.Assert(!targetSyntax.GetDiagnostics().Any(), "The target of an assignment should never contain Diagnostics if we're being allowed to assign to it in the debugger.");
 
-            var assignment = InternalSyntax.SyntaxFactory.AssignmentExpression(
+            var assignment = InternalSyntax.SyntaxFactory.ValueAssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 targetSyntax,
                 InternalSyntax.SyntaxFactory.Token(SyntaxKind.EqualsToken),

@@ -1770,13 +1770,14 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
 {
-  // Code size      106 (0x6a)
+  // Code size      108 (0x6c)
   .maxstack  3
   .locals init (int& V_0, //rl
                 System.TypedReference V_1, //tr
                 int& V_2,
                 int V_3,
-                pinned int& V_4) //i
+                pinned int& V_4, //i
+                int& V_5)
   IL_0000:  nop
   IL_0001:  ldsflda    ""int Program.field""
   IL_0006:  dup
@@ -1832,10 +1833,10 @@ class Program
   IL_005e:  ldsflda    ""int Program.field""
   IL_0063:  dup
   IL_0064:  stloc.0
-  IL_0065:  stloc.2
-  IL_0066:  br.s       IL_0068
-  IL_0068:  ldloc.2
-  IL_0069:  ret
+  IL_0065:  stloc.s    V_5
+  IL_0067:  br.s       IL_0069
+  IL_0069:  ldloc.s    V_5
+  IL_006b:  ret
 }");
         }
 

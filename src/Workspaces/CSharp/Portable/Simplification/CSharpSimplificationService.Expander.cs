@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                     .WithTrailingTrivia(newSimpleLambda.Parameter.GetTrailingTrivia())
                                     .WithLeadingTrivia(newSimpleLambda.Parameter.GetLeadingTrivia()),
                                 newSimpleLambda.ArrowToken,
+                                newSimpleLambda.RefKeyword,
                                 newSimpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
 
                             return SimplificationHelpers.CopyAnnotations(newNode, parenthesizedLambda);
