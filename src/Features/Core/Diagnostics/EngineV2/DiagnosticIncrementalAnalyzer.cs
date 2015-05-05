@@ -140,8 +140,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         {
                             if (document != null)
                             {
-                                //Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                                //return GetDiagnosticData(project, await GetIsolatedDocumentDiagnostics(compilation, project, document, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+                                // ZZZ
+                                // Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                                // return GetDiagnosticData(project, await GetIsolatedDocumentDiagnostics(compilation, project, document, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
                                 await AnalyzeDocumentAsync(document, null, cancellationToken).ConfigureAwait(false);
                             }
                         }
@@ -583,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         await _analyzedDocuments[document.Id].ConfigureAwait(false);
                     }
-                    else if (CompletionStarted /* && _completionTask.IsCompleted */)
+                    else if (CompletionStarted /* && _completionTask.IsCompleted /* ZZZ */)
                     {
                         await _completionTask.ConfigureAwait(false);
                     }
@@ -592,6 +593,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // The document has not been individually analyzed, and analysis
                         // of the entire project has not completed. Create an independent task
                         // to analyze the document in isolation.
+                        // ZZZ
                         // return await _owner.GetIsolatedDocumentDiagnostics(_compilationWithAnalyzers.Compilation, _project, document, cancellationToken).ConfigureAwait(false);
                     }
                 }
