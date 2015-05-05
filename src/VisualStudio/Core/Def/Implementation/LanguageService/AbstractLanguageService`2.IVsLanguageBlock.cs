@@ -30,7 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var span = default(TextSpan);
 
             var snapshot = this.EditorAdaptersFactoryService.GetDataBuffer(pTextLines).CurrentSnapshot;
-            var position = snapshot.GetPosition(iCurrentLine, iCurrentChar);
+            var position = snapshot?.TryGetPosition(iCurrentLine, iCurrentChar);
+            if  (position == null)
+            {
+                pbstrDescription = null;
+                pfBlockAvailable = 0;
+                return VSConstants.S_OK;
+            }
 
             var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
             waitIndicator.Wait(
@@ -39,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 allowCancel: true,
                 action: context =>
                 {
-                    foundBlock = VsLanguageBlock.GetCurrentBlock(snapshot, position, context.CancellationToken, ref description, ref span);
+                    foundBlock = VsLanguageBlock.GetCurrentBlock(snapshot, position.Value, context.CancellationToken, ref description, ref span);
                 });
 
             pfBlockAvailable = foundBlock ? 1 : 0;
@@ -63,6 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             ref TextSpan span)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
+
             var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var node = syntaxFactsService.GetContainingMemberDeclaration(syntaxRoot, position, useFullSpan: false);
