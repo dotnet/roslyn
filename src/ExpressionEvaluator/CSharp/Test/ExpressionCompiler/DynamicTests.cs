@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, method.ReturnType.TypeKind);
             VerifyCustomTypeInfo(locals[0], 0x01);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((ArrayTypeSymbol)method.ReturnType).ElementType.TypeKind);
             VerifyCustomTypeInfo(locals[0], 0x02);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -259,7 +260,7 @@ class Generic<T>
             AssertHasDynamicAttribute(method);
             Assert.Equal(TypeKind.Dynamic, ((NamedTypeSymbol)method.ReturnType).TypeArguments.Single().TypeKind);
             VerifyCustomTypeInfo(locals[0], 0x02);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt: @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -434,9 +435,9 @@ public class Outer<T, U>
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             testData = new CompilationTestData();
             result = context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "var dd = d;",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -445,7 +446,6 @@ public class Outer<T, U>
                 testData);
             Assert.Null(error);
             VerifyCustomTypeInfo(result, null);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -490,30 +490,31 @@ public class Outer<T, U>
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(runtime, methodName: "C.M");
+            var context = CreateMethodContext(
+                runtime,
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                Alias(
+                    DkmClrAliasKind.Variable, 
+                    "d1", 
+                    "d1", 
+                    typeof(object).AssemblyQualifiedName, 
+                    MakeCustomTypeInfo(true)),
+                Alias(
+                    DkmClrAliasKind.Variable,
+                    "d2",
+                    "d2",
+                    typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName,
+                    MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
             string typeName;
             var diagnostics = DiagnosticBag.GetInstance();
-            var builder = ArrayBuilder<Alias>.GetInstance();
-            builder.Add(new Alias(
-                AliasKind.DeclaredLocal, 
-                "d1", 
-                "d1", 
-                typeof(object).AssemblyQualifiedName, 
-                MakeCustomTypeInfo(true)));
-            builder.Add(new Alias(
-                AliasKind.DeclaredLocal, 
-                "d2", 
-                "d2", 
-                typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName, 
-                MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
-            var aliases = new ReadOnlyCollection<Alias>(builder.ToArrayAndFree());
 
             var testData = new CompilationTestData();
             context.CompileGetLocals(
-                aliases,
                 locals,
                 argumentsOnly: false,
+                aliases: aliases,
                 diagnostics: diagnostics,
                 typeName: out typeName,
                 testData: testData);

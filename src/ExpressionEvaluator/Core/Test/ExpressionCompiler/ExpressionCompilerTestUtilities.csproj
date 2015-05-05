@@ -64,9 +64,7 @@
       <Link>SymUnmanagedReaderTestExtensions.cs</Link>
     </Compile>
     <Compile Include="CustomDiagnosticFormatter.cs" />
-    <Compile Include="DefaultInspectionContext.cs" />
     <Compile Include="ExpressionCompilerTestHelpers.cs" />
-    <Compile Include="InspectionContextFactory.cs" />
     <Compile Include="MethodDebugInfo.cs" />
     <Compile Include="NotImplementedSymUnmanaged.cs" />
     <Compile Include="ModuleInstance.cs" />
@@ -76,7 +74,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="TestExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

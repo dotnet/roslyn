@@ -9,12 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class ObjectIdLocalSymbol
         Inherits PlaceholderLocalSymbol
 
-        Private ReadOnly _id As String
         Private ReadOnly _isReadOnly As Boolean
 
-        Friend Sub New(method As MethodSymbol, type As TypeSymbol, id As String, isReadOnly As Boolean)
-            MyBase.New(method, id, type)
-            _id = id
+        Friend Sub New(method As MethodSymbol, type As TypeSymbol, name As String, displayName As String, isReadOnly As Boolean)
+            MyBase.New(method, name, displayName, type)
             _isReadOnly = isReadOnly
         End Sub
 
@@ -97,6 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Function
 
             Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As VisualBasicSyntaxNode, name As String) As BoundExpression
+                If (name.Length > 1 AndAlso name(0) = "$"c) Then
+                    name = name.Substring(1)
+                End If
                 Dim argument As New BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),

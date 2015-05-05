@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -26,15 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
     }
 }";
-            ResultProperties resultProperties;
             string error;
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "$v",
-                resultProperties: out resultProperties,
-                error: out error);
+            Evaluate(source, "C.M", "$v", out error);
             Assert.Equal(error, "error CS0103: The name '$v' does not exist in the current context");
         }
 
@@ -78,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "this.$exception",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -112,22 +107,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
-            ResultProperties resultProperties;
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                ExceptionAlias(typeof(System.IO.IOException)),
+                ExceptionAlias(typeof(InvalidOperationException), stowed: true));
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             var result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("$exception", typeof(System.IO.IOException)).Add("$stowedexception", typeof(System.InvalidOperationException)),
                 "(System.Exception)$exception ?? $stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
+            Assert.Null(error);
             Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -161,22 +153,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
-            ResultProperties resultProperties;
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                ReturnValueAlias(type: typeof(object)),
+                ReturnValueAlias(2, typeof(string)));
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             var result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("$ReturnValue", typeof(object)).Add("$ReturnValue2", typeof(string)),
                 "$ReturnValue ?? $ReturnValue2",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -193,18 +181,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0015:  ret
 }");
             // Value type $ReturnValue.
+            context = CreateMethodContext(
+                runtime,
+                "C.M");
+            aliases = ImmutableArray.Create(
+                ReturnValueAlias(type: typeof(int?)));
             testData = new CompilationTestData();
             result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("$ReturnValue", typeof(Nullable<int>)),
                 "((int?)$ReturnValue).HasValue",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       20 (0x14)
@@ -233,11 +221,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
     }
 }";
+            string error;
             var testData = Evaluate(
                 source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "(int)$ReturnValue-2");
+                "C.M",
+                "(int)$ReturnValue-2",
+                out error,
+                ReturnValueAlias());
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       14 (0xe)
@@ -273,14 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            var testData = new CompilationTestData();
             context.CompileExpression(
                 "23#",
-                out resultProperties,
-                out error,
-                testData);
+                out error);
             Assert.Equal(error, "(1,1): error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.");
         }
 
@@ -301,22 +287,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
-            ResultProperties resultProperties;
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                ObjectIdAlias(23, typeof(string)),
+                ObjectIdAlias(4, typeof(Type)));
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("23", typeof(string)).Add("4", typeof(Type)),
                 "(object)$23 ?? $4.BaseType",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -358,15 +340,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                VariableAlias("s", "C+S`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"));
             ResultProperties resultProperties;
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("s", "C+S`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"),
                 "s.F + 1",
                 DkmEvaluationFlags.TreatAsExpression,
+                aliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -406,15 +390,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                VariableAlias("a", "C[]"),
+                VariableAlias("b", "System.Int32[,], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
             ResultProperties resultProperties;
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("a", "C[]").Add("b", "System.Int32[,], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
                 "a[b[1, 0]].F",
                 DkmEvaluationFlags.TreatAsExpression,
+                aliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -466,79 +453,68 @@ class C
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
-            var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
 
             // Unrecognized type.
+            var context = CreateMethodContext(
+                runtime,
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                VariableAlias("o", "T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("o", "T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 "o.P",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
 
             // Unrecognized array element type.
+            aliases = ImmutableArray.Create(
+                VariableAlias("a", "T[], 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("a", "T[], 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 "a[0].P",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
 
             // Unrecognized generic type argument.
+            aliases = ImmutableArray.Create(
+                VariableAlias("s", "S`1[[T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"));
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("s", "S`1[[T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"),
                 "s.F",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Equal(error, "error CS0648: '' is a type not supported by the language");
         }
 
         [Fact]
         public void Variables()
         {
-            CheckVariable("$exception", valid: true);
-            CheckVariable("$stowedexception", valid: true);
-            CheckVariable("$Exception", valid: false);
-            CheckVariable("$STOWEDEXCEPTION", valid: false);
-            CheckVariable("$ReturnValue", valid: true);
-            CheckVariable("$RETURNVALUE", valid: false);
-            CheckVariable("$returnvalue", valid: true); // Lowercase $ReturnValue supported.
-            CheckVariable("$ReturnValue0", valid: true);
-            CheckVariable("$returnvalue21", valid: true);
-            CheckVariable("$ReturnValue3A", valid: false);
-            CheckVariable("$33", valid: true);
-            CheckVariable("$03", valid: false);
-            CheckVariable("$3A", valid: false);
-            CheckVariable("$0", valid: false);
-            CheckVariable("$", valid: false);
-            CheckVariable("$Unknown", valid: false);
+            CheckVariable("$exception", ExceptionAlias(), valid: true);
+            CheckVariable("$stowedexception", ExceptionAlias(stowed: true), valid: true);
+            CheckVariable("$Exception", ExceptionAlias(), valid: false);
+            CheckVariable("$STOWEDEXCEPTION", ExceptionAlias(stowed: true), valid: false);
+            CheckVariable("$ReturnValue", ReturnValueAlias(), valid: true);
+            CheckVariable("$RETURNVALUE", ReturnValueAlias(), valid: false);
+            CheckVariable("$returnvalue", ReturnValueAlias(), valid: true); // Lowercase $ReturnValue supported.
+            CheckVariable("$ReturnValue0", ReturnValueAlias(0), valid: true);
+            CheckVariable("$returnvalue21", ReturnValueAlias(21), valid: true);
+            CheckVariable("$ReturnValue3A", ReturnValueAlias(0x3a), valid: false);
+            CheckVariable("$33", ObjectIdAlias(33), valid: true);
+            CheckVariable("$03", ObjectIdAlias(3), valid: false);
+            CheckVariable("$3A", ObjectIdAlias(0x3a), valid: false);
+            CheckVariable("$0", ObjectIdAlias(1), valid: false);
+            CheckVariable("$", ObjectIdAlias(1), valid: false);
+            CheckVariable("$Unknown", VariableAlias("x"), valid: false);
         }
 
-        private void CheckVariable(string variableName, bool valid)
+        private void CheckVariable(string variableName, Alias alias, bool valid)
         {
             var source =
 @"class C
@@ -547,15 +523,8 @@ class C
     {
     }
 }";
-            ResultProperties resultProperties;
             string error;
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: variableName,
-                resultProperties: out resultProperties,
-                error: out error);
+            var testData = Evaluate(source, "C.M", variableName, out error, alias);
             if (valid)
             {
                 var expectedNames = new[] { "<>x.<>m0()" };
@@ -578,23 +547,20 @@ class C
     {
     }
 }";
-            ResultProperties resultProperties;
             string error;
             var testData = Evaluate(
                 source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "$ReturnValue1<object>",
-                resultProperties: out resultProperties,
-                error: out error);
+                "C.M",
+                "$ReturnValue1<object>",
+                out error,
+                ReturnValueAlias(1));
             Assert.Equal(error, "error CS0307: The variable '$ReturnValue1' cannot be used with type arguments");
             testData = Evaluate(
                 source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "$ReturnValue2()",
-                resultProperties: out resultProperties,
-                error: out error);
+                "C.M",
+                "$ReturnValue2()",
+                out error,
+                ReturnValueAlias(2));
             Assert.Equal(error, "error CS0149: Method name expected");
         }
 
@@ -616,11 +582,13 @@ class C
     {
     }
 }";
+            string error;
             var testData = Evaluate(
                 source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "F(() => o ?? $exception)");
+                "C.M",
+                "F(() => o ?? $exception)",
+                out error,
+                ExceptionAlias());
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
   // Code size       16 (0x10)
@@ -652,13 +620,22 @@ class C
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                ExceptionAlias());
+            ResultProperties resultProperties;
             string error;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileAssignment(
                 target: "e",
                 expr: "$exception.InnerException ?? $exception",
+                aliases: aliases,
+                formatter: DiagnosticFormatter.Instance,
+                resultProperties: out resultProperties,
                 error: out error,
+                missingAssemblyIdentities: out missingAssemblyIdentities,
+                preferredUICulture: EnsureEnglishUICulture.PreferredOrNull,
                 testData: testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -685,15 +662,8 @@ class C
     {
     }
 }";
-            ResultProperties resultProperties;
             string error;
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "$exception = null",
-                resultProperties: out resultProperties,
-                error: out error);
+            Evaluate(source, "C.M", "$exception = null", out error, ExceptionAlias());
             Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
         }
 
@@ -717,135 +687,78 @@ class C
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.F");
-            ResultProperties resultProperties;
+                "C.F");
+            var aliases = ImmutableArray.Create(
+                ExceptionAlias(),
+                ReturnValueAlias(),
+                ObjectIdAlias(1),
+                VariableAlias("x", typeof(int)));
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
 
             // $exception
-            var testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "$exception = null",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "F(ref $exception)",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
             // Object at address
-            testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "@0x123 = null",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "F(ref @0x123)",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
             // $ReturnValue
-            testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "$ReturnValue = null",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "F(ref $ReturnValue)",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
             // Object id
-            testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "$1 = null",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS0131: The left-hand side of an assignment must be a variable, property or indexer");
-            testData = new CompilationTestData();
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "F(ref $1)",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
-                out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
-                testData);
-            Assert.Empty(missingAssemblyIdentities);
+                aliases,
+                out error);
             Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
 
             // Declared variable
-            testData = new CompilationTestData();
+            var testData = new CompilationTestData();
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("x", typeof(int)),
                 "x = 1",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
@@ -864,16 +777,11 @@ class C
 }");
             testData = new CompilationTestData();
             var result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("x", typeof(int)),
                 "F(ref x)",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
@@ -908,22 +816,17 @@ class C
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
-            ResultProperties resultProperties;
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                VariableAlias("s", "S"));
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("s", "S"),
                 "s.F = 1",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
@@ -962,22 +865,17 @@ class C
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
                 runtime,
-                methodName: "C.M");
-            ResultProperties resultProperties;
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                VariableAlias("s", "S"));
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("s", "S"),
                 "s.F += 2",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       24 (0x18)
@@ -1053,25 +951,23 @@ class C
                 exeBytes,
                 new SymReader(pdbBytes));
 
-            var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
+            //// typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
+            var context = CreateMethodContext(
+                runtime,
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                ExceptionAlias("System.Exception, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+                ObjectIdAlias(1, "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3"),
+                ObjectIdAlias(2, "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"));
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
+
             context.CompileExpression(
-                // typeof(Exception), typeof(A<B<object>>), typeof(B<A<object>[]>)
-                InspectionContextFactory.Empty.Add("$exception", "System.Exception, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").
-                    Add("1", "A`1[[B`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null]], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3").
-                    Add("2", "B`1[[A`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][], 397300B0-A, Version=2.1.2.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3]], 397300B0-B, Version=1.2.2.2, Culture=neutral, PublicKeyToken=null"),
                 "(object)$exception ?? (object)$1 ?? $2",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       44 (0x2c)
@@ -1157,22 +1053,21 @@ class B
 
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
             {
-                var context = CreateMethodContext(runtime, "A.M");
-                ResultProperties resultProperties;
+                var context = CreateMethodContext(
+                    runtime, 
+                    "A.M");
+                var aliases = ImmutableArray.Create(
+                        ExceptionAlias("E, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                    ObjectIdAlias(1, "A`1[[B, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], 0A93FF0B-31A2-47C8-B24D-16A2D77AB5C5, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
                 string error;
-                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 var testData = new CompilationTestData();
                 context.CompileExpression(
-                    InspectionContextFactory.Empty.Add("$exception", "E, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                     "$exception",
                     DkmEvaluationFlags.TreatAsExpression,
-                    DiagnosticFormatter.Instance,
-                    out resultProperties,
+                    aliases,
                     out error,
-                    out missingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
                     testData);
-                Assert.Empty(missingAssemblyIdentities);
+                Assert.Null(error);
                 testData.GetMethodData("<>x<T>.<>m0").VerifyIL(
 @"{
   // Code size       11 (0xb)
@@ -1182,11 +1077,13 @@ class B
   IL_0005:  castclass  ""E""
   IL_000a:  ret
 }");
+                ResultProperties resultProperties;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 testData = new CompilationTestData();
                 context.CompileAssignment(
-                    InspectionContextFactory.Empty.Add("1", "A`1[[B, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], 0A93FF0B-31A2-47C8-B24D-16A2D77AB5C5, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                     "o",
                     "$1",
+                    aliases,
                     DiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
@@ -1194,6 +1091,7 @@ class B
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData);
                 Assert.Empty(missingAssemblyIdentities);
+                Assert.Null(error);
                 testData.GetMethodData("<>x<T>.<>m0").VerifyIL(
 @"{
   // Code size       17 (0x11)
@@ -1222,22 +1120,16 @@ class B
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             var runtime = CreateRuntimeInstance(comp);
             var context = CreateMethodContext(runtime, "C.M");
+            var aliases = ImmutableArray.Create(ReturnValueAlias(type: typeof(int*)));
 
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             var result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("$ReturnValue", typeof(int*)),
                 "$ReturnValue",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             var methodData = testData.GetMethodData("<>x.<>m0");
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
             methodData.VerifyIL(
@@ -1266,22 +1158,16 @@ class B
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             var runtime = CreateRuntimeInstance(comp);
             var context = CreateMethodContext(runtime, "C.M");
+            var aliases = ImmutableArray.Create(VariableAlias("p", typeof(char*)));
 
-            ResultProperties resultProperties;
             string error;
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
             var result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("p", typeof(char*)),
                 "p",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             var methodData = testData.GetMethodData("<>x.<>m0");
             Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
             methodData.VerifyIL(
@@ -1294,6 +1180,26 @@ class B
   IL_000f:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
   IL_0014:  ret
 }");
+        }
+
+        private CompilationTestData Evaluate(
+            string source,
+            string methodName,
+            string expr,
+            out string error,
+            params Alias[] aliases)
+        {
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, methodName);
+            var testData = new CompilationTestData();
+            var result = context.CompileExpression(
+                expr,
+                DkmEvaluationFlags.TreatAsExpression,
+                ImmutableArray.Create(aliases),
+                out error,
+                testData);
+            return testData;
         }
     }
 }

@@ -11,12 +11,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal abstract class LocalAndMethod
     {
         public readonly string LocalName;
+        public readonly string LocalDisplayName;
         public readonly string MethodName;
         public readonly DkmClrCompilationResultFlags Flags;
 
-        public LocalAndMethod(string localName, string methodName, DkmClrCompilationResultFlags flags)
+        public LocalAndMethod(string localName, string localDisplayName, string methodName, DkmClrCompilationResultFlags flags)
         {
             this.LocalName = localName;
+            this.LocalDisplayName = localDisplayName;
             this.MethodName = methodName;
             this.Flags = flags;
         }
