@@ -80,6 +80,7 @@
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.vb" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.vb" />
     <Compile Include="Globalization\UseOrdinalStringComparison.vb" />
+    <Compile Include="Performance\BasicTestForEmptyStringsUsingStringLengthAnalyzer.vb" />
     <Compile Include="Reliability\DoNotLockOnObjectsWithWeakIdentity.vb" />
     <Compile Include="Usage\DisposableFieldsShouldBeDisposed.vb" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.vb" />

@@ -103,6 +103,7 @@
     <Compile Include="Design\EnumWithFlagsAttributeTests.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparisonTests.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparisonTests.cs" />
+    <Compile Include="Performance\TestForEmptyStringsUsingStringLengthTests.cs" />
     <Compile Include="Reliability\DoNotLockOnObjectsWithWeakIdentityTests.cs" />
     <Compile Include="Usage\DisposableFieldsShouldBeDisposedTests.Fixer.cs" />
     <Compile Include="Usage\DisposableFieldsShouldBeDisposedTests.cs" />

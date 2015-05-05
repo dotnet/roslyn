@@ -228,6 +228,12 @@
   <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
     <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
   </data>
+  <data name="TestForEmptyStringsUsingStringLengthDescription" xml:space="preserve">
+    <value>Comparing strings using the string.Length property or the string.IsNullOrEmpty method is significantly faster than using string.Equals. This is because Equals executes significantly more MSIL instructions than either IsNullOrEmpty or the number of instructions executed to retrieve the Length property value and compare it to zero.</value>
+  </data>
+  <data name="TestForEmptyStringsUsingStringLength" xml:space="preserve">
+    <value>Test for empty strings using 'string.Length' property or 'string.IsNullOrEmpty' method instead of an Equality check.</value>
+  </data>
   <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
     <value>Disposable fields should be disposed</value>
   </data>
