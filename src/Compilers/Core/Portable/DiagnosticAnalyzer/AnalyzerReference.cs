@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Path or name used in error messages to identity the reference.
         /// </summary>
+        /// <remarks>
+        /// Should not be null.
+        /// </remarks>
         public virtual string Display
         {
             get { return null; }
@@ -34,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// A unique identifier for this analyzer reference.
         /// </summary>
         /// <remarks>
+        /// Should not be null.
         /// Note that this and <see cref="FullPath"/> serve different purposes. An analyzer reference may not
         /// have a path, but it always has an ID. Further, two analyzer references with different paths may
         /// represent two copies of the same analyzer, in which case the IDs should also be the same.

@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public UnresolvedAnalyzerReference(string unresolvedPath)
         {
+            if (unresolvedPath == null)
+            {
+                throw new ArgumentNullException(nameof(unresolvedPath));
+            }
+
             _unresolvedPath = unresolvedPath;
         }
 

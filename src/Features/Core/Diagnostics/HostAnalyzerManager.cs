@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Loader for VSIX-based analyzers.
         /// </summary>
-        private static IAnalyzerAssemblyLoader s_assemblyLoader = new LoadContextAssemblyLoader();
+        private static readonly IAnalyzerAssemblyLoader s_assemblyLoader = new LoadContextAssemblyLoader();
 
         public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
             this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages), hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public string GetAnalyzerReferenceIdentity(AnalyzerReference reference)
         {
-            return GetAnalyzerReferenceId(reference);
+            return reference.Id;
         }
 
         /// <summary>
@@ -351,11 +351,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static string GetAnalyzerReferenceId(AnalyzerReference reference)
-        {
-            return reference.Id;
-        }
-
         private bool CheckAnalyzerReferenceIdentity(AnalyzerReference reference)
         {
             if (reference == null)
@@ -363,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            return !_hostAnalyzerReferencesMap.ContainsKey(GetAnalyzerReferenceId(reference));
+            return !_hostAnalyzerReferencesMap.ContainsKey(reference.Id);
         }
 
         private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> CreateDiagnosticAnalyzersPerReferenceMap(
@@ -391,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableDictionary.CreateBuilder<string, AnalyzerReference>();
             foreach (var reference in analyzerReferences)
             {
-                var key = GetAnalyzerReferenceId(reference);
+                var key = reference.Id;
 
                 // filter out duplicated analyzer reference
                 if (builder.ContainsKey(key))

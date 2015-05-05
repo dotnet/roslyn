@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(fullPath));
             }
 
+            if (assemblyLoader == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyLoader));
+            }
+
             _fullPath = fullPath;
             _lazyAllAnalyzers = default(ImmutableArray<DiagnosticAnalyzer>);
             _lazyAnalyzersPerLanguage = ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty;
