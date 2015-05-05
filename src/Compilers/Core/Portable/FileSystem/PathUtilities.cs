@@ -21,7 +21,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                return System.IO.Path.DirectorySeparatorChar == '/';
+                return PortableShim.Path.DirectorySeparatorChar == '/';
             }
         }
 

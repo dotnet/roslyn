@@ -90,8 +90,6 @@
     <Compile Include="Interop\SuppressUnmanagedCodeSecurityAttribute.cs" />
     <Compile Include="IVsSQM.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
-    <Compile Include="PathKind.cs" />
-    <Compile Include="PathUtilities.cs" />
     <Compile Include="SourceFileResolver.cs" />
     <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="XmlFileResolver.cs" />
