@@ -2789,6 +2789,39 @@ End Module";
             Verify(code, expected);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public void OptionExplicitOn()
+        {
+            var code = @"[|Option Explicit|]";
+            var expected = @"Option Explicit On
+";
+
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public void OptionInferOn()
+        {
+            var code = @"[|Option Infer|]";
+            var expected = @"Option Infer On
+";
+
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public void OptionStrictOn()
+        {
+            var code = @"[|Option Strict|]";
+            var expected = @"Option Strict On
+";
+
+            Verify(code, expected);
+        }
+
         private string CreateMethod(string body)
         {
             return @"Imports System
