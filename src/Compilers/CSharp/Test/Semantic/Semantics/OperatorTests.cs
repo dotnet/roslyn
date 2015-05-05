@@ -8653,5 +8653,28 @@ class M
             Assert.Equal((int)ErrorCode.ERR_ContantStringTooLong, err.Code);
             Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull));
         }
+
+        [Fact, WorkItem(2075, "https://github.com/dotnet/roslyn/issues/2075")]
+        public void NegateALiteral()
+        {
+            string source = @"
+using System;
+
+namespace roslynChanges
+{
+    class MainClass
+    {
+        public static void Main (string[] args)
+        {
+            Console.WriteLine ((-(2147483648)).GetType ());
+            Console.WriteLine ((-2147483648).GetType ());
+        }
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"System.Int64
+System.Int32
+");
+        }
     }
 }
