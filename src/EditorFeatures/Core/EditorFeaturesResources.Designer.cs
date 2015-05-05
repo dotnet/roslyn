@@ -638,6 +638,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Brace Matching.
+        /// </summary>
+        internal static string FontAndColors_BraceMatching {
+            get {
+                return ResourceManager.GetString("FontAndColors_BraceMatching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inline Rename.
         /// </summary>
         internal static string FontAndColors_InlineRename {
