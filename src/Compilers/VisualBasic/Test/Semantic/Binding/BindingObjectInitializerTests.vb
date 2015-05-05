@@ -1315,6 +1315,9 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
+BC30053: Arrays cannot be declared with 'New'.
+        Dim b13() As New Integer() {1,2,3}
+            ~~~~~
 BC30205: End of statement expected.
         Dim b13() As New Integer() {1,2,3}
                                    ~

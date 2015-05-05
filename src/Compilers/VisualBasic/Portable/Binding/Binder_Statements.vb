@@ -994,7 +994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
                     For i = 0 To names.Count - 1
                         Debug.Assert(locals(i).InitializedByAsNew)
-                        Debug.Assert(locals(i).InitializerOpt Is Nothing)
+                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression)
                     Next
 #End If
 
@@ -1170,7 +1170,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If name.ArrayBounds IsNot Nothing Then
                 ' It is an error to have both array bounds and an initializer expression
                 If valueExpression IsNot Nothing Then
-                    ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
+                    If Not isInitializedByAsNew Then
+                        ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
+                    Else
+                        ' Must have reported ERR_AsNewArray already.
+                        Debug.Assert(valueExpression.Kind = BoundKind.BadExpression)
+                    End If
                 Else
                     valueExpression = New BoundArrayCreation(name, boundArrayBounds, Nothing, type)
                 End If
