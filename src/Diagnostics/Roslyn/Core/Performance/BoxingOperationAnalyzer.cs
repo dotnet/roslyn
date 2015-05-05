@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Performance
                          }
                      }
 
+                     // Calls to instance methods of value types don’t have conversions.
                      if (operation.Kind == OperationKind.Invocation)
                      {
                          IInvocation invocation = (IInvocation)operation;
