@@ -102,14 +102,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' cases where we actually want fully qualified name
-            If errorCode = ERRID.ERR_AmbiguousAcrossInterfaces3 OrElse
-               errorCode = ERRID.ERR_TypeConflict6 OrElse
-               errorCode = ERRID.ERR_ExportedTypesConflict OrElse
-               errorCode = ERRID.ERR_ForwardedTypeConflictsWithDeclaration OrElse
-               errorCode = ERRID.ERR_ForwardedTypeConflictsWithExportedType OrElse
-               errorCode = ERRID.ERR_ForwardedTypesConflict Then
+            Select Case errorCode
+                Case ERRID.ERR_AmbiguousAcrossInterfaces3,
+                     ERRID.ERR_TypeConflict6,
+                     ERRID.ERR_ExportedTypesConflict,
+                     ERRID.ERR_ForwardedTypeConflictsWithDeclaration,
+                     ERRID.ERR_ForwardedTypeConflictsWithExportedType,
+                     ERRID.ERR_ForwardedTypesConflict
                 Return symbol.ToString()
-            End If
+            End Select
+
 
             ' show fully qualified name for missing special types
             If errorCode = ERRID.ERR_UnreferencedAssembly3 AndAlso
@@ -328,17 +330,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Overrides Sub ReportDuplicateMetadataReferenceStrong(diagnostics As DiagnosticBag, location As Location, reference As MetadataReference, identity As AssemblyIdentity, equivalentReference As MetadataReference, equivalentIdentity As AssemblyIdentity)
-            diagnostics.Add(ERRID.ERR_DuplicateReferenceStrong,
-                            DirectCast(location, Location),
-                            If(reference.Display, identity.GetDisplayName()),
-                            If(equivalentReference.Display, equivalentIdentity.GetDisplayName()))
+            diagnostics.Add(ERRID.ERR_DuplicateReferenceStrong, location,
+                            If(reference.Display, identity.GetDisplayName),
+                            If(equivalentReference.Display, equivalentIdentity.GetDisplayName))
         End Sub
 
         Public Overrides Sub ReportDuplicateMetadataReferenceWeak(diagnostics As DiagnosticBag, location As Location, reference As MetadataReference, identity As AssemblyIdentity, equivalentReference As MetadataReference, equivalentIdentity As AssemblyIdentity)
-            diagnostics.Add(ERRID.ERR_DuplicateReference2,
-                            DirectCast(location, Location),
-                            identity.Name,
-                            If(equivalentReference.Display, equivalentIdentity.GetDisplayName()))
+            diagnostics.Add(ERRID.ERR_DuplicateReference2, location, identity.Name,
+                            If(equivalentReference.Display, equivalentIdentity.GetDisplayName))
         End Sub
 
         ' signing:
