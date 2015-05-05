@@ -53,16 +53,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim actualResult = goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
 
                 If expectedResult Then
-                    If mockDocumentNavigationService._triedNavigationToSpan Then
-                        Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
+                    If mockDocumentNavigationService.TriedNavigationToSpan Then
+                        Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService.ProvidedDocumentId)
                         Assert.Equal(1, definitionDocument.SelectedSpans.Count)
-                        Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService._span)
+                        Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService.ProvidedTextSpan)
+                        Assert.False(mockDocumentNavigationService.ProvidedReopenDocument)
+                        Assert.True(mockDocumentNavigationService.ProvidedUsePreviewTab)
 
                         ' The INavigableItemsPresenter should not have been called
                         Assert.Null(items)
                     Else
-                        Assert.False(mockDocumentNavigationService._triedNavigationToPosition)
-                        Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
+                        Assert.False(mockDocumentNavigationService.TriedNavigationToPosition)
+                        Assert.False(mockDocumentNavigationService.TriedNavigationToLineAndOffset)
                         Assert.NotNull(items)
 
                         For Each location In items
@@ -71,10 +73,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                         Next
 
                         ' The IDocumentNavigationService should not have been called
-                        Assert.Null(mockDocumentNavigationService._documentId)
+                        Assert.Null(mockDocumentNavigationService.ProvidedDocumentId)
                     End If
                 Else
-                    Assert.Null(mockDocumentNavigationService._documentId)
+                    Assert.Null(mockDocumentNavigationService.ProvidedDocumentId)
                     Assert.True(items Is Nothing OrElse items.Count = 0)
                 End If
 
@@ -83,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         End Sub
 
         Friend Shared ReadOnly Catalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                        GetType(MockDocumentNavigationServiceFactory),
+                        GetType(MockDocumentNavigationServiceProvider),
                         GetType(DefaultSymbolNavigationServiceFactory),
                         GetType(GeneratedCodeRecognitionServiceFactory))
 

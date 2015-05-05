@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, usePreviewTab);
+                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, usePreviewTab: usePreviewTab);
                 }
             }
 

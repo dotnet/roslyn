@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
@@ -395,7 +396,7 @@ End Class
                     </Workspace>)
 
                 Dim navigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-                navigationService._canNavigateToSpan = False
+                navigationService.CanNavigateToSpanReturnValue = False
 
                 AssertTokenNotRenamable(workspace)
             End Using

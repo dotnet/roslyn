@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool usePreviewTab = false)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool reopenDocument = false, bool usePreviewTab = false)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 throw new InvalidOperationException(ServicesVSResources.NavigationMustBePerformedOnTheForegroundThread);
             }
 
-            var document = OpenDocument(workspace, documentId, usePreviewTab);
+            var document = OpenDocument(workspace, documentId, reopenDocument, usePreviewTab);
             if (document == null)
             {
                 return false;
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return NavigateTo(textBuffer, vsTextSpan);
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool usePreviewTab = false)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool reopenDocument = false, bool usePreviewTab = false)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 throw new InvalidOperationException(ServicesVSResources.NavigationMustBePerformedOnTheForegroundThread);
             }
 
-            var document = OpenDocument(workspace, documentId, usePreviewTab);
+            var document = OpenDocument(workspace, documentId, reopenDocument, usePreviewTab);
             if (document == null)
             {
                 return false;
@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return NavigateTo(textBuffer, vsTextSpan);
         }
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool usePreviewTab = false)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool reopenDocument = false, bool usePreviewTab = false)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 throw new InvalidOperationException(ServicesVSResources.NavigationMustBePerformedOnTheForegroundThread);
             }
 
-            var document = OpenDocument(workspace, documentId, usePreviewTab);
+            var document = OpenDocument(workspace, documentId, reopenDocument, usePreviewTab);
             if (document == null)
             {
                 return false;
@@ -176,12 +176,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return NavigateTo(textBuffer, vsTextSpan);
         }
 
-        private static Document OpenDocument(Workspace workspace, DocumentId documentId, bool usePreviewTab)
+        private static Document OpenDocument(Workspace workspace, DocumentId documentId, bool reopenDocument, bool usePreviewTab)
         {
-            // Always open the document again, even if the document is already open in the 
-            // workspace. If a document is already open in a preview tab and it is opened again 
-            // in a permanent tab, this allows the document to transition to the new state.
-            if (workspace.CanOpenDocuments)
+            if (workspace.CanOpenDocuments &&
+                (reopenDocument || !workspace.IsDocumentOpen(documentId)))
             {
                 if (usePreviewTab)
                 {
@@ -196,12 +194,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            if (!workspace.IsDocumentOpen(documentId))
-            {
-                return null;
-            }
-
-            return workspace.CurrentSolution.GetDocument(documentId);
+            return workspace.IsDocumentOpen(documentId)
+                ? workspace.CurrentSolution.GetDocument(documentId)
+                : null;
         }
 
         private bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan)
