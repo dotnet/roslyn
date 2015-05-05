@@ -176,8 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (builder.ElementType.IsPointerType() && collectionExpr.Type.IsArray()) ||
                 (builder.ElementType.IsNullableType() && builder.ElementType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single().IsErrorType() && collectionExpr.Type.IsArray()));
             Debug.Assert(builder.EnumeratorConversion.IsValid ||
-                this.Compilation.GetSpecialType(SpecialType.System_Object).TypeKind == TypeKind.Error,
-                "Conversions to object succeed unless there's a problem with the object type");
+                this.Compilation.GetSpecialType(SpecialType.System_Object).TypeKind == TypeKind.Error ||
+                !useSiteDiagnostics.IsNullOrEmpty(),
+                "Conversions to object succeed unless there's a problem with the object type or the source type");
 
             // If user-defined conversions could occur here, we would need to check for ObsoleteAttribute.
             Debug.Assert((object)builder.CollectionConversion.Method == null,
