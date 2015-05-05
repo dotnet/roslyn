@@ -747,6 +747,23 @@ NewLines("Public Interface I \n  Sub Foo(a As X.Y.Z) \n End Interface \n Public 
 index:=0)
         End Sub
 
+        <WorkItem(1130905)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInImports()
+            Test(
+NewLines("Imports [|Fizz|]"),
+NewLines("Friend Class Fizz\nEnd Class\n"), isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1130905)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInImports2()
+            Test(
+NewLines("Imports [|Fizz|]"),
+NewLines("Imports Fizz \n Friend Class Fizz \n End Class"),
+index:=1)
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
