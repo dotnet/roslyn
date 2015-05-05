@@ -6136,21 +6136,17 @@ public class IA
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
-            compilation.VerifyDiagnostics(
-                // (5,11): error CS1061: 'object' does not contain a definition for 'M' and no extension method 'M' accepting a 
-                // first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                //         o.M();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M"));
+            compilation.VerifyDiagnostics(); // we now regognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
             Assert.Equal(assembly.GetAttributes().Length, 0);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 1);
+            Assert.Equal(type.GetAttributes().Length, 0);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 1);
+            Assert.Equal(method.GetAttributes().Length, 0);
             Assert.True(method.TestIsExtensionBitSet);
-            Assert.False(method.TestIsExtensionBitTrue);
-            Assert.False(method.IsExtensionMethod);
+            Assert.True(method.TestIsExtensionBitTrue);
+            Assert.True(method.IsExtensionMethod);
         }
 
         [WorkItem(530524, "DevDiv")]
