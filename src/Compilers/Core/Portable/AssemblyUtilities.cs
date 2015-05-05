@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -15,7 +16,7 @@ namespace Roslyn.Utilities
     {
         /// <summary>
         /// Given a path to an assembly, identifies files in the same directory
-        /// that could satisfy the assembly's dependencies.
+        /// that could satisfy the assembly's dependencies. May throw.
         /// </summary>
         /// <remarks>
         /// Dependencies are identified by simply checking the name of an assembly
@@ -24,12 +25,11 @@ namespace Roslyn.Utilities
         /// are not considered, and so the returned collection may include items that
         /// cannot in fact satisfy the original assembly's dependencies.
         /// </remarks>
+        /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
+        /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<string> FindAssemblySet(string filePath)
         {
-            if (filePath == null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
+            Debug.Assert(filePath != null);
 
             Queue<string> workList = new Queue<string>();
             HashSet<string> assemblySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -70,19 +70,14 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Given a path to an assembly and a loaded <see cref="Assembly"/>, returns
-        /// true if their MVIDs match, and false otherwise.
+        /// true if their MVIDs match, and false otherwise. May throw.
         /// </summary>
+        /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
+        /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static bool MvidsMatch(string filePath, Assembly assembly)
         {
-            if (filePath == null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (assembly == null)
-            {
-                throw new ArgumentNullException(nameof(assembly));
-            }
+            Debug.Assert(filePath != null);
+            Debug.Assert(assembly != null);
 
             using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
             {
@@ -98,12 +93,11 @@ namespace Roslyn.Utilities
         /// Given a path to an assembly, finds the paths to all of its satellite
         /// assemblies.
         /// </summary>
+        /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
+        /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<string> FindSatelliteAssemblies(string filePath)
         {
-            if (filePath == null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
+            Debug.Assert(filePath != null);
 
             var builder = ImmutableArray.CreateBuilder<string>();
 
@@ -132,19 +126,14 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Given a path to an assembly and a set of paths to possible dependencies,
-        /// identifies which of the assembly's references are missing.
+        /// identifies which of the assembly's references are missing. May throw.
         /// </summary>
+        /// <exception cref="IOException">If the files does not exist or cannot be accessed.</exception>
+        /// <exception cref="BadImageFormatException">If one of the files is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<AssemblyIdentity> IdentifyMissingDependencies(string assemblyPath, IEnumerable<string> assemblySet)
         {
-            if (assemblyPath == null)
-            {
-                throw new ArgumentNullException(nameof(assemblyPath));
-            }
-
-            if (assemblySet == null)
-            {
-                throw new ArgumentNullException(nameof(assemblySet));
-            }
+            Debug.Assert(assemblyPath != null);
+            Debug.Assert(assemblySet != null);
 
             HashSet<AssemblyIdentity> assemblyDefinitions = new HashSet<AssemblyIdentity>();
             foreach (var potentialDependency in assemblySet)
@@ -175,14 +164,13 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Given a path to an assembly, returns true if the assembly has a strong
-        /// name (either a full key or a token) or false otherwise.
+        /// name (either a full key or a token) or false otherwise. May throw.
         /// </summary>
+        /// <exception cref="IOException">If the file at <paramref name="assemblyPath"/> does not exist or cannot be accessed.</exception>
+        /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static bool HasStrongName(string assemblyPath)
         {
-            if (assemblyPath == null)
-            {
-                throw new ArgumentNullException(nameof(assemblyPath));
-            }
+            Debug.Assert(assemblyPath != null);
 
             using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
             {
