@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     public static class Renamer
     {
+        internal static bool isRunningInUnitTests;
+
         public static async Task<Solution> RenameSymbolAsync(Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solution == null)
