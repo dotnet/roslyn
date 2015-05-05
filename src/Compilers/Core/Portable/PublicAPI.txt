@@ -2168,3 +2168,7 @@ virtual Microsoft.CodeAnalysis.Text.SourceText.WithChanges(System.Collections.Ge
 virtual Microsoft.CodeAnalysis.Text.SourceText.Write(System.IO.TextWriter writer, Microsoft.CodeAnalysis.Text.TextSpan span, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 virtual Microsoft.CodeAnalysis.Text.TextLineCollection.GetLineFromPosition(int position) -> Microsoft.CodeAnalysis.Text.TextLine
 virtual Microsoft.CodeAnalysis.Text.TextLineCollection.GetLinePosition(int position) -> Microsoft.CodeAnalysis.Text.LinePosition
+Microsoft.CodeAnalysis.DesktopStrongNameProvider
+Microsoft.CodeAnalysis.DesktopStrongNameProvider.DesktopStrongNameProvider(System.Collections.Immutable.ImmutableArray<string> keyFileSearchPaths = default(System.Collections.Immutable.ImmutableArray<string>)) -> void
+override Microsoft.CodeAnalysis.DesktopStrongNameProvider.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.DesktopStrongNameProvider.GetHashCode() -> int

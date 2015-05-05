@@ -98,6 +98,11 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(ExpandEnvironmentVariables))
                 .CreateDelegate(typeof(Func<string, string>));
+
+            internal static Func<string, string> GetEnvironmentVariable = (Func<string, string>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetEnvironmentVariable))
+                .CreateDelegate(typeof(Func<string, string>));
         }
 
         internal static class Path
@@ -122,6 +127,11 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetFullPath), paramTypes: new[] { typeof(string) })
                 .CreateDelegate(typeof(Func<string, string>));
+
+            internal static readonly Func<string> GetTempFileName = (Func<string>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetTempFileName), paramTypes: new Type[] { })
+                .CreateDelegate(typeof(Func<string>));
         }
 
         internal static class File
@@ -136,6 +146,21 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetLastWriteTimeUtc), new[] { typeof(string) })
                 .CreateDelegate(typeof(Func<string, DateTime>));
+
+            internal static readonly Func<string, bool> Exists = (Func<string, bool>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Exists), new[] { typeof(string) })
+                .CreateDelegate(typeof(Func<string, bool>));
+
+            internal static readonly Action<string> Delete = (Action<string>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Delete), new[] { typeof(string) })
+                .CreateDelegate(typeof(Action<string>));
+
+            internal static readonly Func<string, byte[]> ReadAllBytes = (Func<string, byte[]>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(ReadAllBytes), paramTypes: new[] { typeof(string) })
+                .CreateDelegate(typeof(Func<string, byte[]>));
         }
 
         internal static class FileMode
@@ -310,9 +335,18 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredConstructor(paramTypes: new[] { typeof(string), FileMode.Type, FileAccess.Type, FileShare.Type });
 
+            private static ConstructorInfo s_Ctor_String_FileMode = Type
+                .GetTypeInfo()
+                .GetDeclaredConstructor(paramTypes: new[] { typeof(string), FileMode.Type });
+
             private static ConstructorInfo s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions = Type
                 .GetTypeInfo()
                 .GetDeclaredConstructor(paramTypes: new[] { typeof(string), FileMode.Type, FileAccess.Type, FileShare.Type, typeof(int), FileOptions.Type });
+
+            public static Stream Create(string path, object mode)
+            {
+                return (Stream)s_Ctor_String_FileMode.Invoke(new[] { path, mode });
+            }
 
             public static Stream Create(string path, object mode, object access, object share)
             {

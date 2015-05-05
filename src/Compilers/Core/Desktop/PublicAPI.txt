@@ -50,6 +50,18 @@ Microsoft.CodeAnalysis.CommandLineSourceFile.IsScript.get -> bool
 Microsoft.CodeAnalysis.CommandLineSourceFile.Path.get -> string
 Microsoft.CodeAnalysis.DesktopStrongNameProvider
 Microsoft.CodeAnalysis.DesktopStrongNameProvider.DesktopStrongNameProvider(System.Collections.Immutable.ImmutableArray<string> keyFileSearchPaths = default(System.Collections.Immutable.ImmutableArray<string>)) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerFileReference(string fullPath, System.Func<string, System.Reflection.Assembly> getAssembly) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerLoadFailed -> System.EventHandler<Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs>
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference other) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssembly() -> System.Reflection.Assembly
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.AnalyzerLoadFailureEventArgs(Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode, System.Exception ex, string typeName) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers = 3 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer = 2 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer = 1 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.FileSystemExtensions
 Microsoft.CodeAnalysis.RuleSet
 Microsoft.CodeAnalysis.RuleSet.FilePath.get -> string
@@ -79,8 +91,17 @@ override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.Equals(object obj) 
 override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CommandLineReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CommandLineReference.GetHashCode() -> int
+<<<<<<< HEAD
 override Microsoft.CodeAnalysis.DesktopStrongNameProvider.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.DesktopStrongNameProvider.GetHashCode() -> int
+=======
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Display.get -> string
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.FullPath.get -> string
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
+>>>>>>> Move DesktopStrongNameProvider to Portable
 override Microsoft.CodeAnalysis.SourceFileResolver.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.SourceFileResolver.GetHashCode() -> int
 override Microsoft.CodeAnalysis.SourceFileResolver.NormalizePath(string path, string baseFilePath) -> string

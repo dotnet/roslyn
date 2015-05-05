@@ -118,6 +118,7 @@
     <Compile Include="Desktop\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerFileReference.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerLoadFailureEventArgs.cs" />
+    <Compile Include="Desktop\DesktopStrongNameProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\IAnalyzerAssemblyLoader.cs" />
@@ -131,6 +132,10 @@
     <Compile Include="Emit\EmitOptions.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
     <Compile Include="Emit\SemanticEditKind.cs" />
+    <Compile Include="FileSystem\FileUtilities.cs" />
+    <Compile Include="Interop\IClrMetaHost.cs" />
+    <Compile Include="Interop\IClrRuntimeInfo.cs" />
+    <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="InternalImplementationOnlyAttribute.cs" />
     <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
     <Compile Include="Emit\EditAndContinueMethodDebugInformation.cs" />
@@ -302,6 +307,7 @@
     <Compile Include="InternalUtilities\WeakList.cs" />
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
+    <Compile Include="Interop\ClrStrongName.cs" />
     <Compile Include="MemberDescriptor.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
