@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
                 // if generating quick info for an attribute, bind to the class instead of the constructor
                 if (syntaxFactsService.IsAttributeName(token.Parent) &&
-                    symbol.ContainingType.IsAttribute())
+                    symbol.ContainingType?.IsAttribute() == true)
                 {
                     symbol = symbol.ContainingType;
                 }
