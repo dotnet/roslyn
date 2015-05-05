@@ -2563,7 +2563,7 @@ class C { }";
                 var project = solution.Projects.First();
 
                 var myAnalyzerPath = GetSolutionFileName(@"Analyzers\MyAnalyzer.dll");
-                var aref = new AnalyzerFileReference(myAnalyzerPath, p => Assembly.Load(File.ReadAllBytes(p)));
+                var aref = new AnalyzerFileReference(myAnalyzerPath, new InMemoryAssemblyLoader());
 
                 // add reference to MyAnalyzer.dll
                 ws.TryApplyChanges(project.AddAnalyzerReference(aref).Solution);
@@ -2619,6 +2619,19 @@ class C { }";
             var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             var docs = proj.Documents.ToList();
             Assert.Equal(3, docs.Count);
+        }
+
+        private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                var bytes = File.ReadAllBytes(fullPath);
+                return Assembly.Load(bytes);
+            }
         }
     }
 }

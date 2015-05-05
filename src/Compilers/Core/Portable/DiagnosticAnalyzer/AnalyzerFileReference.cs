@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed partial class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
         private readonly string _fullPath;
-        private readonly Func<string, Assembly> _getAssembly;
+        private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
         private string _lazyDisplayName;
         private string _lazyId;
@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public event EventHandler<AnalyzerLoadFailureEventArgs> AnalyzerLoadFailed;
 
         /// <summary>
-        /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/>.
+        /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/> and <paramref name="assemblyLoader"/>.
         /// </summary>
         /// <param name="fullPath">Full path of the analyzer assembly.</param>
-        /// <param name="getAssembly">Function for loading the analyzer assembly</param>
-        public AnalyzerFileReference(string fullPath, Func<string, Assembly> getAssembly)
+        /// <param name="assemblyLoader">Loader for obtaining the <see cref="Assembly"/> from the <paramref name="fullPath"/></param>
+        public AnalyzerFileReference(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
         {
             if (fullPath == null)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _fullPath = fullPath;
             _lazyAllAnalyzers = default(ImmutableArray<DiagnosticAnalyzer>);
             _lazyAnalyzersPerLanguage = ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty;
-            _getAssembly = getAssembly;
+            _assemblyLoader = assemblyLoader;
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
@@ -406,8 +406,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_lazyAssembly == null)
             {
-                var assembly = _getAssembly(_fullPath);
-                Interlocked.CompareExchange(ref _lazyAssembly, assembly, null);
+                _lazyAssembly = _assemblyLoader.LoadFromPath(_fullPath);
             }
 
             return _lazyAssembly;

@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
+        /// <summary>
+        /// Loader for VSIX-based analyzers.
+        /// </summary>
+        private static IAnalyzerAssemblyLoader s_assemblyLoader = new LoadContextAssemblyLoader();
+
         public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
             this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages), hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
         {
@@ -409,14 +414,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerAssemblies = analyzerPackages.SelectMany(p => p.Assemblies);
 
-            // We want to load the analyzer assembly assets in default context.
-            // Use Assembly.Load instead of Assembly.LoadFrom to ensure that if the assembly is ngen'ed, then the native image gets loaded.
-            Func<string, Assembly> getAssembly = (fullPath) => Assembly.Load(AssemblyName.GetAssemblyName(fullPath));
-
             var builder = ImmutableArray.CreateBuilder<AnalyzerReference>();
             foreach (var analyzerAssembly in analyzerAssemblies.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                builder.Add(new AnalyzerFileReference(analyzerAssembly, getAssembly));
+                builder.Add(new AnalyzerFileReference(analyzerAssembly, s_assemblyLoader));
             }
 
             return builder.ToImmutable();
@@ -442,6 +443,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return current;
+        }
+
+        private class LoadContextAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                // We want to load the analyzer assembly assets in default context.
+                // Use Assembly.Load instead of Assembly.LoadFrom to ensure that if the assembly is ngen'ed, then the native image gets loaded.
+                return Assembly.Load(AssemblyName.GetAssemblyName(fullPath));
+            }
         }
     }
 }
