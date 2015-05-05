@@ -2088,9 +2088,9 @@ lReportErrorOnTwoTokens:
                                                                             fakeTypeParameters,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
                                                                             returnsByRef:=False,
-                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
-                                                                            ImmutableArray(Of CustomModifier).Empty,
-                                                                            ImmutableArray(Of MethodSymbol).Empty,
+                                                                            returnType:=retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
+                                                                            returnTypeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            explicitInterfaceImplementations:=ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If
 

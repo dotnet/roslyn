@@ -2867,9 +2867,15 @@ class C
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,51): error CS0133: The expression being assigned to 'b' must be constant
-                //         const Func<int> a = () => { const int b = a(); return 1; };
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
+    // (6,51): error CS0133: The expression being assigned to 'b' must be constant
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51),
+    // (6,51): error CS0110: The evaluation of the constant value for 'a' involves a circular definition
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_CircConstValue, "a").WithArguments("a").WithLocation(6, 51),
+    // (6,51): error CS0133: The expression being assigned to 'b' must be constant
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
                 );
         }
 

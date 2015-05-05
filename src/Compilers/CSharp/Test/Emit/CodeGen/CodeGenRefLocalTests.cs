@@ -1770,13 +1770,12 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
 {
-  // Code size      106 (0x6a)
+  // Code size       98 (0x62)
   .maxstack  3
   .locals init (int& V_0, //rl
                 System.TypedReference V_1, //tr
-                int& V_2,
-                int V_3,
-                pinned int& V_4) //i
+                pinned int& V_2, //i
+                int& V_3)
   IL_0000:  nop
   IL_0001:  ldsflda    ""int Program.field""
   IL_0006:  dup
@@ -1786,56 +1785,50 @@ class Program
   IL_000a:  ldsflda    ""int Program.field""
   IL_000f:  dup
   IL_0010:  stloc.0
-  IL_0011:  stloc.2
-  IL_0012:  ldloc.2
-  IL_0013:  ldloc.2
-  IL_0014:  ldind.i4
-  IL_0015:  ldc.i4.1
-  IL_0016:  add
-  IL_0017:  stind.i4
-  IL_0018:  ldsflda    ""int Program.field""
+  IL_0011:  dup
+  IL_0012:  ldind.i4
+  IL_0013:  ldc.i4.1
+  IL_0014:  add
+  IL_0015:  stind.i4
+  IL_0016:  ldsflda    ""int Program.field""
+  IL_001b:  dup
+  IL_001c:  stloc.0
   IL_001d:  dup
-  IL_001e:  stloc.0
-  IL_001f:  stloc.2
-  IL_0020:  ldloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  ldind.i4
-  IL_0023:  stloc.3
-  IL_0024:  ldloc.3
-  IL_0025:  ldc.i4.1
-  IL_0026:  add
-  IL_0027:  stind.i4
-  IL_0028:  ldsflda    ""int Program.field""
-  IL_002d:  dup
-  IL_002e:  stloc.0
-  IL_002f:  call       ""void Program.M(ref int)""
-  IL_0034:  nop
-  IL_0035:  ldsflda    ""int Program.field""
-  IL_003a:  dup
-  IL_003b:  stloc.0
-  IL_003c:  call       ""void Program.N(out int)""
-  IL_0041:  nop
-  IL_0042:  ldsflda    ""int Program.field""
-  IL_0047:  dup
-  IL_0048:  stloc.0
-  IL_0049:  stloc.s    V_4
-  IL_004b:  nop
-  IL_004c:  nop
-  IL_004d:  ldc.i4.0
-  IL_004e:  conv.u
-  IL_004f:  stloc.s    V_4
-  IL_0051:  ldsflda    ""int Program.field""
-  IL_0056:  dup
-  IL_0057:  stloc.0
-  IL_0058:  mkrefany   ""int""
-  IL_005d:  stloc.1
-  IL_005e:  ldsflda    ""int Program.field""
-  IL_0063:  dup
-  IL_0064:  stloc.0
-  IL_0065:  stloc.2
-  IL_0066:  br.s       IL_0068
-  IL_0068:  ldloc.2
-  IL_0069:  ret
+  IL_001e:  ldind.i4
+  IL_001f:  ldc.i4.1
+  IL_0020:  add
+  IL_0021:  stind.i4
+  IL_0022:  ldsflda    ""int Program.field""
+  IL_0027:  dup
+  IL_0028:  stloc.0
+  IL_0029:  call       ""void Program.M(ref int)""
+  IL_002e:  nop
+  IL_002f:  ldsflda    ""int Program.field""
+  IL_0034:  dup
+  IL_0035:  stloc.0
+  IL_0036:  call       ""void Program.N(out int)""
+  IL_003b:  nop
+  IL_003c:  ldsflda    ""int Program.field""
+  IL_0041:  dup
+  IL_0042:  stloc.0
+  IL_0043:  stloc.2
+  IL_0044:  nop
+  IL_0045:  nop
+  IL_0046:  ldc.i4.0
+  IL_0047:  conv.u
+  IL_0048:  stloc.2
+  IL_0049:  ldsflda    ""int Program.field""
+  IL_004e:  dup
+  IL_004f:  stloc.0
+  IL_0050:  mkrefany   ""int""
+  IL_0055:  stloc.1
+  IL_0056:  ldsflda    ""int Program.field""
+  IL_005b:  dup
+  IL_005c:  stloc.0
+  IL_005d:  stloc.3
+  IL_005e:  br.s       IL_0060
+  IL_0060:  ldloc.3
+  IL_0061:  ret
 }");
         }
 
@@ -1872,12 +1865,11 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("Program.Main()", @"
 {
-  // Code size       53 (0x35)
+  // Code size       51 (0x33)
   .maxstack  3
   .locals init (int& V_0, //rl
                 System.TypedReference V_1, //tr
-                int V_2,
-                pinned int& V_3) //i
+                pinned int& V_2) //i
   IL_0000:  nop
   IL_0001:  ldsflda    ""int Program.field""
   IL_0006:  stloc.0
@@ -1893,28 +1885,26 @@ class Program
   IL_0010:  ldloc.0
   IL_0011:  ldloc.0
   IL_0012:  ldind.i4
-  IL_0013:  stloc.2
-  IL_0014:  ldloc.2
-  IL_0015:  ldc.i4.1
-  IL_0016:  add
-  IL_0017:  stind.i4
-  IL_0018:  ldloc.0
-  IL_0019:  call       ""void Program.M(ref int)""
-  IL_001e:  nop
-  IL_001f:  ldloc.0
-  IL_0020:  call       ""void Program.N(out int)""
-  IL_0025:  nop
-  IL_0026:  ldloc.0
-  IL_0027:  stloc.3
-  IL_0028:  nop
-  IL_0029:  nop
-  IL_002a:  ldc.i4.0
-  IL_002b:  conv.u
-  IL_002c:  stloc.3
-  IL_002d:  ldloc.0
-  IL_002e:  mkrefany   ""int""
-  IL_0033:  stloc.1
-  IL_0034:  ret
+  IL_0013:  ldc.i4.1
+  IL_0014:  add
+  IL_0015:  stind.i4
+  IL_0016:  ldloc.0
+  IL_0017:  call       ""void Program.M(ref int)""
+  IL_001c:  nop
+  IL_001d:  ldloc.0
+  IL_001e:  call       ""void Program.N(out int)""
+  IL_0023:  nop
+  IL_0024:  ldloc.0
+  IL_0025:  stloc.2
+  IL_0026:  nop
+  IL_0027:  nop
+  IL_0028:  ldc.i4.0
+  IL_0029:  conv.u
+  IL_002a:  stloc.2
+  IL_002b:  ldloc.0
+  IL_002c:  mkrefany   ""int""
+  IL_0031:  stloc.1
+  IL_0032:  ret
 }");
         }
 

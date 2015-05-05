@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                     .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
                                     .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
                                 simpleLambda.ArrowToken,
+                                simpleLambda.RefKeyword,
                                 simpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
 
                             return SimplificationHelpers.CopyAnnotations(from: simpleLambda, to: parenthesizedLambda);

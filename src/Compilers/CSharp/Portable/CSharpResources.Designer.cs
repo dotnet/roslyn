@@ -404,6 +404,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use ref local &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression.
+        /// </summary>
+        internal static string ERR_AnonDelegateCantUseLocal {
+            get {
+                return ResourceManager.GetString("ERR_AnonDelegateCantUseLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Foreach cannot operate on a &apos;{0}&apos;. Did you intend to invoke the &apos;{0}&apos;?.
         /// </summary>
         internal static string ERR_AnonMethGrpInForEach {
@@ -737,6 +746,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented properties cannot return by reference.
+        /// </summary>
+        internal static string ERR_AutoPropertyCannotBeRefReturning {
+            get {
+                return ResourceManager.GetString("ERR_AutoPropertyCannotBeRefReturning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Auto-implemented properties inside interfaces cannot have initializers..
         /// </summary>
         internal static string ERR_AutoPropertyInitializerInInterface {
@@ -895,6 +913,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadAsyncLacksBody {
             get {
                 return ResourceManager.GetString("ERR_BadAsyncLacksBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async methods cannot have by reference locals.
+        /// </summary>
+        internal static string ERR_BadAsyncLocalType {
+            get {
+                return ResourceManager.GetString("ERR_BadAsyncLocalType", resourceCulture);
             }
         }
         
@@ -1556,11 +1583,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Iterators cannot have by reference locals.
+        /// </summary>
+        internal static string ERR_BadIteratorLocalType {
+            get {
+                return ResourceManager.GetString("ERR_BadIteratorLocalType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The body of &apos;{0}&apos; cannot be an iterator block because &apos;{1}&apos; is not an iterator interface type.
         /// </summary>
         internal static string ERR_BadIteratorReturn {
             get {
                 return ResourceManager.GetString("ERR_BadIteratorReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The body of &apos;{0}&apos; cannot be an iterator block because &apos;{0}&apos; returns by reference.
+        /// </summary>
+        internal static string ERR_BadIteratorReturnRef {
+            get {
+                return ResourceManager.GetString("ERR_BadIteratorReturnRef", resourceCulture);
             }
         }
         
@@ -1732,6 +1777,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadProtectedAccess {
             get {
                 return ResourceManager.GetString("ERR_BadProtectedAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lambda expressions that return by reference cannot be converted to expression trees.
+        /// </summary>
+        internal static string ERR_BadRefReturnExpressionTree {
+            get {
+                return ResourceManager.GetString("ERR_BadRefReturnExpressionTree", resourceCulture);
             }
         }
         
@@ -2267,6 +2321,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; must {2}return by reference to match overridden member &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_CantChangeRefReturnOnOverride {
+            get {
+                return ResourceManager.GetString("ERR_CantChangeRefReturnOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: return type must be &apos;{2}&apos; to match overridden member &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_CantChangeReturnTypeOnOverride {
@@ -2614,6 +2677,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_CloseUnimplementedInterfaceMemberStatic {
             get {
                 return ResourceManager.GetString("ERR_CloseUnimplementedInterfaceMemberStatic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;. &apos;{2}&apos; cannot implement &apos;{1}&apos; because it does not return by {3}.
+        /// </summary>
+        internal static string ERR_CloseUnimplementedInterfaceMemberWrongRefReturn {
+            get {
+                return ResourceManager.GetString("ERR_CloseUnimplementedInterfaceMemberWrongRefReturn", resourceCulture);
             }
         }
         
@@ -4859,6 +4931,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot initialize a by-reference variable with a value.
+        /// </summary>
+        internal static string ERR_InitializeByReferenceVariableWithValue {
+            get {
+                return ResourceManager.GetString("ERR_InitializeByReferenceVariableWithValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot initialize a by-value variable with a reference.
+        /// </summary>
+        internal static string ERR_InitializeByValueVariableWithReference {
+            get {
+                return ResourceManager.GetString("ERR_InitializeByValueVariableWithReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The best overloaded method match &apos;{0}&apos; for the collection initializer element cannot be used. Collection initializer &apos;Add&apos; methods cannot have ref or out parameters..
         /// </summary>
         internal static string ERR_InitializerAddHasParamModifiers {
@@ -5885,11 +5975,47 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be assigned a reference because it is not a by-reference local.
+        /// </summary>
+        internal static string ERR_MustBeRefAssignable {
+            get {
+                return ResourceManager.GetString("ERR_MustBeRefAssignable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected a by-reference local.
+        /// </summary>
+        internal static string ERR_MustBeRefAssignableLocal {
+            get {
+                return ResourceManager.GetString("ERR_MustBeRefAssignableLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to In order for &apos;{0}&apos; to be applicable as a short circuit operator, its declaring type &apos;{1}&apos; must define operator true and operator false.
         /// </summary>
         internal static string ERR_MustHaveOpTF {
             get {
                 return ResourceManager.GetString("ERR_MustHaveOpTF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to By-value returns may only be used in methods that return by value.
+        /// </summary>
+        internal static string ERR_MustHaveRefReturn {
+            get {
+                return ResourceManager.GetString("ERR_MustHaveRefReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to By-reference returns may only be used in methods that return by reference.
+        /// </summary>
+        internal static string ERR_MustNotHaveRefReturn {
+            get {
+                return ResourceManager.GetString("ERR_MustNotHaveRefReturn", resourceCulture);
             }
         }
         
@@ -7415,6 +7541,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The expression must be of type &apos;{0}&apos; because it is being assigned by reference.
+        /// </summary>
+        internal static string ERR_RefAssignmentMustHaveIdentityConversion {
+            get {
+                return ResourceManager.GetString("ERR_RefAssignmentMustHaveIdentityConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a reference type in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_RefConstraintNotSatisfied {
@@ -7456,6 +7591,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefProperty {
             get {
                 return ResourceManager.GetString("ERR_RefProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Properties which return by reference cannot have set accessors.
+        /// </summary>
+        internal static string ERR_RefPropertyCannotHaveSetAccessor {
+            get {
+                return ResourceManager.GetString("ERR_RefPropertyCannotHaveSetAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Properties which return by reference must have a get accessor.
+        /// </summary>
+        internal static string ERR_RefPropertyMustHaveGetAccessor {
+            get {
+                return ResourceManager.GetString("ERR_RefPropertyMustHaveGetAccessor", resourceCulture);
             }
         }
         
@@ -7519,6 +7672,186 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReadonlyStatic2 {
             get {
                 return ResourceManager.GetString("ERR_RefReadonlyStatic2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return or assign a reference to the result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned or assigned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnCall {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return or assign a reference to a member ther result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned or assigned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnCall2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnCall2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a call to &apos;{0}&apos; because it returns by reference.
+        /// </summary>
+        internal static string ERR_RefReturningCallAndAwait {
+            get {
+                return ResourceManager.GetString("ERR_RefReturningCallAndAwait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference.
+        /// </summary>
+        internal static string ERR_RefReturningCallInExpressionTree {
+            get {
+                return ResourceManager.GetString("ERR_RefReturningCallInExpressionTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return or assign a reference to local &apos;{0}&apos; because it is not a ref local.
+        /// </summary>
+        internal static string ERR_RefReturnLocal {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return or assign a reference to a member of local &apos;{0}&apos; because it is not a ref local.
+        /// </summary>
+        internal static string ERR_RefReturnLocal2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnLocal2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference.
+        /// </summary>
+        internal static string ERR_RefReturnLvalueExpected {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnLvalueExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference.
+        /// </summary>
+        internal static string ERR_RefReturnLvalueExpected2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnLvalueExpected2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The return expression must be of type &apos;{0}&apos; because this method returns by reference.
+        /// </summary>
+        internal static string ERR_RefReturnMustHaveIdentityConversion {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnMustHaveIdentityConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return or assign a reference to parameter &apos;{0}&apos; because it is not a ref or out parameter.
+        /// </summary>
+        internal static string ERR_RefReturnParameter {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return or assign a reference to a member of parameter &apos;{0}&apos; because it is not a ref or out parameter.
+        /// </summary>
+        internal static string ERR_RefReturnParameter2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnParameter2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return the range variable &apos;{0}&apos; by reference.
+        /// </summary>
+        internal static string ERR_RefReturnRangeVariable {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnRangeVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A readonly field cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnReadonly {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnReadonly2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonly2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return &apos;{0}&apos; by reference because it is read-only.
+        /// </summary>
+        internal static string ERR_RefReturnReadonlyLocal {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonlyLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return fields of &apos;{0}&apos; by reference because it is a &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_RefReturnReadonlyLocal2Cause {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonlyLocal2Cause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return &apos;{0}&apos; by reference because it is a &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_RefReturnReadonlyLocalCause {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonlyLocalCause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A static readonly field cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnReadonlyStatic {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonlyStatic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnReadonlyStatic2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReadonlyStatic2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return or assign a reference to &apos;{0}&apos; because its receiver may not be returned or assigned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnReceiver {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnReceiver", resourceCulture);
             }
         }
         
@@ -8653,6 +8986,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_VoidError {
             get {
                 return ResourceManager.GetString("ERR_VoidError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Void-returning methods cannot return by reference.
+        /// </summary>
+        internal static string ERR_VoidReturningMethodCannotReturnByRef {
+            get {
+                return ResourceManager.GetString("ERR_VoidReturningMethodCannotReturnByRef", resourceCulture);
             }
         }
         

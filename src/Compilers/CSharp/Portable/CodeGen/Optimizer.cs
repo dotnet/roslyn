@@ -954,6 +954,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
 
                     break;
+
+                case BoundKind.Call:
+                    Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
+                    Debug.Assert(node.RefKind == RefKind.None, "methods cannot be ref-assignable");
+                    return true;
+
+                case BoundKind.AssignmentOperator:
+                    Debug.Assert(((BoundAssignmentOperator)lhs).RefKind == RefKind.Ref, "only ref assignments are assignable");
+                    Debug.Assert(node.RefKind == RefKind.None, "assignments cannot be ref-assignable");
+                    return true;
             }
 
             Debug.Assert(node.RefKind == RefKind.None, "this is not something that can be assigned indirectly");

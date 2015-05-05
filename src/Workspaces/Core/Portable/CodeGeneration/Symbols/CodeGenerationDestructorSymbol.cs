@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  Accessibility.NotApplicable,
                  default(DeclarationModifiers),
                  returnType: null,
+                 returnsByRef: false,
                  explicitInterfaceSymbolOpt: null,
                  name: string.Empty,
                  typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),
