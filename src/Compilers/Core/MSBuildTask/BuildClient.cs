@@ -76,33 +76,40 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var response = responseTask.Result;
                 if (response != null)
                 {
-                    return HandleResponse(response);
+                    return HandleResponse(response, clientDir, sdkDir, analyzerLoader, fallbackCompiler, parsedArgs);
                 }
             }
 
             return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray(), analyzerLoader);
         }
 
-        private static int HandleResponse(BuildResponse response)
+        private static int HandleResponse(BuildResponse response, string clientDir, string sdkDir, IAnalyzerAssemblyLoader analyzerLoader, Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler, List<string> parsedArgs)
         {
-            if (response.Type == BuildResponse.ResponseType.Completed)
+            switch (response.Type)
             {
-                var completedResponse = (CompletedBuildResponse)response;
-                return ConsoleUtil.RunWithOutput(
-                    completedResponse.Utf8Output,
-                    (outWriter, errorWriter) =>
-                    {
-                        outWriter.Write(completedResponse.Output);
-                        errorWriter.Write(completedResponse.ErrorOutput);
-                        return completedResponse.ReturnCode;
-                    });
-            }
-            else
-            {
-                Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
-                return CommonCompiler.Failed;
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
+                    return CommonCompiler.Failed;
+
+                case BuildResponse.ResponseType.Completed:
+                    var completedResponse = (CompletedBuildResponse)response;
+                    return ConsoleUtil.RunWithOutput(
+                        completedResponse.Utf8Output,
+                        (outWriter, errorWriter) =>
+                        {
+                            outWriter.Write(completedResponse.Output);
+                            errorWriter.Write(completedResponse.ErrorOutput);
+                            return completedResponse.ReturnCode;
+                        });
+
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray(), analyzerLoader);
+
+                default:
+                    throw new InvalidOperationException("Encountered unknown response type");
             }
         }
+
 
         /// <summary>
         /// Returns a Task with a null BuildResponse if no server

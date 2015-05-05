@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,26 +17,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public static int RunCompiler(
+        public static BuildResponse RunCompiler(
             string clientDirectory,
             string[] args,
             string baseDirectory,
             string sdkDirectory,
             string libDirectory,
             IAnalyzerAssemblyLoader analyzerLoader,
-            TextWriter output,
-            CancellationToken cancellationToken,
-            out bool utf8output)
+            CancellationToken cancellationToken)
         {
             var compiler = new CSharpCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
-            utf8output = compiler.Arguments.Utf8Output;
+            bool utf8output = compiler.Arguments.Utf8Output;
 
             foreach (var analyzer in compiler.Arguments.AnalyzerReferences)
             {
                 CompilerServerFileWatcher.AddPath(analyzer.FilePath);
             }
 
-            return compiler.Run(output, cancellationToken);
+            var whiteList = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis");
+            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, whiteList, analyzerLoader))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            int returnCode = compiler.Run(output, cancellationToken);
+
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
         }
 
         public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
