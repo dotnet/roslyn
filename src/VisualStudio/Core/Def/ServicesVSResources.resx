@@ -471,4 +471,10 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="FromBing" xml:space="preserve">
     <value> from Bing</value>
   </data>
+  <data name="CurrentBlock" xml:space="preserve">
+    <value>Current block</value>
+  </data>
+  <data name="DeterminingCurrentBlock" xml:space="preserve">
+    <value>Determining current block.</value>
+  </data>
 </root>
