@@ -68,18 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
-            // For spacing in the parenthesis of typeof, treat like a Method Call
-            if (currentKind == SyntaxKind.OpenParenToken && currentParentKind == SyntaxKind.TypeOfExpression)
+            // For spacing around: typeof, default, and sizeof; treat like a Method Call
+            if (currentKind == SyntaxKind.OpenParenToken &&
+                (currentParentKind == SyntaxKind.TypeOfExpression || currentParentKind == SyntaxKind.DefaultExpression || currentParentKind == SyntaxKind.SizeOfExpression))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
             }
 
-            if (previousKind == SyntaxKind.OpenParenToken && previousParentKind == SyntaxKind.TypeOfExpression)
+            if (previousKind == SyntaxKind.OpenParenToken &&
+                (previousParentKind == SyntaxKind.TypeOfExpression || previousParentKind == SyntaxKind.DefaultExpression || previousParentKind == SyntaxKind.SizeOfExpression))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
-            if (currentKind == SyntaxKind.CloseParenToken && currentParentKind == SyntaxKind.TypeOfExpression)
+            if (currentKind == SyntaxKind.CloseParenToken &&
+                (currentParentKind == SyntaxKind.TypeOfExpression || currentParentKind == SyntaxKind.DefaultExpression || currentParentKind == SyntaxKind.SizeOfExpression))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
@@ -111,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousKind == SyntaxKind.OpenParenToken &&
                 (previousParentKind == SyntaxKind.IfStatement || previousParentKind == SyntaxKind.WhileStatement || previousParentKind == SyntaxKind.SwitchStatement ||
                 previousParentKind == SyntaxKind.ForStatement || previousParentKind == SyntaxKind.ForEachStatement || previousParentKind == SyntaxKind.DoStatement ||
-                previousParentKind == SyntaxKind.CatchDeclaration || previousParentKind == SyntaxKind.UsingStatement || previousParentKind == SyntaxKind.LockStatement))
+                previousParentKind == SyntaxKind.CatchDeclaration || previousParentKind == SyntaxKind.UsingStatement || previousParentKind == SyntaxKind.LockStatement ||
+                previousParentKind == SyntaxKind.FixedStatement))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }
@@ -135,7 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentKind == SyntaxKind.CloseParenToken &&
                 (currentParentKind == SyntaxKind.IfStatement || currentParentKind == SyntaxKind.WhileStatement || currentParentKind == SyntaxKind.SwitchStatement ||
                 currentParentKind == SyntaxKind.ForStatement || currentParentKind == SyntaxKind.ForEachStatement || currentParentKind == SyntaxKind.DoStatement ||
-                currentParentKind == SyntaxKind.CatchDeclaration || currentParentKind == SyntaxKind.UsingStatement || currentParentKind == SyntaxKind.LockStatement))
+                currentParentKind == SyntaxKind.CatchDeclaration || currentParentKind == SyntaxKind.UsingStatement || currentParentKind == SyntaxKind.LockStatement ||
+                currentParentKind == SyntaxKind.FixedStatement))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }

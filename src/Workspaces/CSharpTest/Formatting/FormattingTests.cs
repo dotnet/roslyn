@@ -4799,6 +4799,9 @@ class Program
 
         lock(somevar)
         { }
+
+        fixed(char* p = str)
+        { }
     }
 }";
             const string expected = @"
@@ -4837,6 +4840,9 @@ class Program
         { }
 
         lock ( somevar )
+        { }
+
+        fixed ( char* p = str )
         { }
     }
 }";
@@ -6127,6 +6133,8 @@ class Program
     {
         var a = typeof(A);
         var b = M(a);
+        var c = default(A);
+        var d = sizeof(A);
         M();
     }
 }";
@@ -6138,6 +6146,8 @@ class Program
     {
         var a = typeof ( A );
         var b = M ( a );
+        var c = default ( A );
+        var d = sizeof ( A );
         M ( );
     }
 }";
