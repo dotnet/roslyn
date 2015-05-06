@@ -74,6 +74,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var commonToken1 = this.Token1;
                 var commonToken2 = this.Token2;
 
+                if (commonToken1.IsMissing || commonToken2.IsMissing)
+                {
+                    return false;
+                }
+
+                var span = TextSpan.FromBounds(commonToken1.Span.End, commonToken2.Span.Start);
+
+                if (context.IsSpacingSuppressed(span))
+                {
+                    return false;
+                }
+
                 var triviaList = new TriviaList(commonToken1.TrailingTrivia, commonToken2.LeadingTrivia);
                 Contract.ThrowIfFalse(triviaList.Count > 0);
 
