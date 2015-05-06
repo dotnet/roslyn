@@ -97,41 +97,45 @@ namespace Microsoft.CodeAnalysis
         protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
         {
             int retries = 0;
-        retry:
 
-            try
+            while (true)
             {
-                using (ExceptionHelpers.SuppressFailFast())
+                try
                 {
-                    var result = await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                    return result;
+                    using (ExceptionHelpers.SuppressFailFast())
+                    {
+                        var result = await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                        return result;
+                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                // if load text is failed due to a cancellation, make sure we propagate it out to the caller
-                throw;
-            }
-            catch (IOException e)
-            {
-                if (++retries <= MaxRetries)
+                catch (OperationCanceledException)
                 {
-                    await Task.Delay(RetryDelay).ConfigureAwait(false);
-                    goto retry;
+                    // if load text is failed due to a cancellation, make sure we propagate it out to the caller
+                    throw;
+                }
+                catch (IOException e) 
+                {
+                    if (++retries > MaxRetries)
+                    {
+                        services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
+                        return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
+                    }
+
+                    // fall out to try again
+                }
+                catch (InvalidDataException e)
+                {
+                    // TODO: Adjust this behavior in the future if we add support for non-text additional files
+                    if (reportInvalidDataException)
+                    {
+                        services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
+                    }
+
+                    return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
                 }
 
-                services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
-                return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
-            }
-            catch (InvalidDataException e)
-            {
-                // TODO: Adjust this behavior in the future if we add support for non-text additional files
-                if (reportInvalidDataException)
-                {
-                    services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
-                }
-
-                return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
+                // try again after a delay
+                await Task.Delay(RetryDelay).ConfigureAwait(false);
             }
         }
 
