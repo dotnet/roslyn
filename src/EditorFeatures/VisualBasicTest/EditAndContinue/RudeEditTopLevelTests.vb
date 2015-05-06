@@ -2002,7 +2002,7 @@ End Class
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "a += Await F(1)"))
         End Sub
 
-        <Fact(Skip:="TODO: Enable lambda edits")>
+        <Fact>
         Public Sub MethodWithLambda_Update()
             Dim src1 = "
 Class C
