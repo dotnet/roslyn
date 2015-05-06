@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Func<string, object, object, object, Stream> FileOpen
         {
-            get { return _fileOpen ?? PortableShim.FileStream.CreateEx; }
+            get { return _fileOpen ?? PortableShim.FileStream.Create_String_FileMode_FileAccess_FileShare; }
             set { _fileOpen = value; }
         }
         private Func<string, object, object, object, Stream> _fileOpen;

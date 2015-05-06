@@ -3,9 +3,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
@@ -309,64 +311,43 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredConstructor(paramTypes: new[] { typeof(string), FileMode.Type, FileAccess.Type, FileShare.Type, typeof(int), FileOptions.Type });
 
-            public static Stream Create(string path, object mode)
+            private static Stream InvokeConstructor(ConstructorInfo constructorInfo, object[] args)
             {
                 try
                 {
-                    return (Stream)s_Ctor_String_FileMode.Invoke(new[] { path, mode });
+                    return (Stream)constructorInfo.Invoke(args);
                 }
                 catch (TargetInvocationException e)
                 {
-                    throw e.InnerException;
+                    ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                    Debug.Assert(false, "Unreachable");
+                    return null;
                 }
+            }
+
+            public static Stream Create(string path, object mode)
+            {
+                return InvokeConstructor(s_Ctor_String_FileMode, new[] { path, mode }));
             }
 
             public static Stream Create(string path, object mode, object access)
             {
-                try
-                {
-                    return (Stream)s_Ctor_String_FileMode_FileAccess.Invoke(new[] { path, mode, access });
-                }
-                catch (TargetInvocationException e)
-                {
-                    throw e.InnerException;
-                }
+                return InvokeConstructor(s_Ctor_String_FileMode_FileAccess, new[] { path, mode, access });
             }
 
             public static Stream Create(string path, object mode, object access, object share)
             {
-                try
-                {
-                    return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare.Invoke(new[] { path, mode, access, share });
-                }
-                catch (TargetInvocationException e)
-                {
-                    throw e.InnerException;
-                }
-            }
-
-            public static Stream CreateEx(string path, object mode, object access, object share)
-            {
-                try
-                {
-                    return Create(path, mode, access, share);
-                }
-                catch (TargetInvocationException e)
-                {
-                    throw e.InnerException;
-                }
+                return InvokeConstructor(s_Ctor_String_FileMode_FileAccess_FileShare, new[] { path, mode, access, share });
             }
 
             public static Stream Create(string path, object mode, object access, object share, int bufferSize, object options)
             {
-                try
-                {
-                    return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions.Invoke(new[] { path, mode, access, share, bufferSize, options });
-                }
-                catch (TargetInvocationException e)
-                {
-                    throw e.InnerException;
-                }
+                return InvokeConstructor(s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions, new[] { path, mode, access, share, bufferSize, options });
+            }
+
+            public static Stream Create_String_FileMode_FileAccess_FileShare(string path, object mode, object access, object share)
+            {
+                return Create(path, mode, access, share);
             }
         }
 
