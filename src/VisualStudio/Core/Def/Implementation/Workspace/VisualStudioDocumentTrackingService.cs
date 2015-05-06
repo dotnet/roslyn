@@ -8,9 +8,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -142,14 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public void OnNonRoslynBufferOpened(ITextBuffer buffer)
+        public void OnNonRoslynViewOpened(ITextView view)
         {
-            _tracker.OnOpened(buffer);
-        }
-
-        public void OnNonRoslynBufferClosed(ITextBuffer buffer)
-        {
-            _tracker.OnClosed(buffer);
+            _tracker.OnOpened(view);
         }
 
         public void Dispose()
@@ -289,38 +283,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private class NonRoslynTextBufferTracker : ForegroundThreadAffinitizedObject
         {
             private readonly VisualStudioDocumentTrackingService _owner;
-            private readonly HashSet<ITextBuffer> _buffers;
+            private readonly HashSet<ITextView> _views;
 
             public NonRoslynTextBufferTracker(VisualStudioDocumentTrackingService owner)
             {
                 _owner = owner;
-                _buffers = new HashSet<ITextBuffer>();
+                _views = new HashSet<ITextView>();
             }
 
-            public void OnOpened(ITextBuffer buffer)
+            public void OnOpened(ITextView view)
             {
                 AssertIsForeground();
 
-                if (_buffers.Contains(buffer))
+                if (!_views.Add(view))
                 {
                     return;
                 }
 
-                _buffers.Add(buffer);
-                buffer.PostChanged += OnTextChanged;
+                view.TextBuffer.PostChanged += OnTextChanged;
+                view.Closed += OnClosed;
             }
 
-            public void OnClosed(ITextBuffer buffer)
+            private void OnClosed(object sender, EventArgs e)
             {
                 AssertIsForeground();
 
-                if (!_buffers.Contains(buffer))
+                var view = sender as ITextView;
+                if (view == null || !_views.Contains(view))
                 {
                     return;
                 }
 
-                buffer.PostChanged -= OnTextChanged;
-                _buffers.Remove(buffer);
+                view.TextBuffer.PostChanged -= OnTextChanged;
+                _views.Remove(view);
             }
 
             private void OnTextChanged(object sender, EventArgs e)

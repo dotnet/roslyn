@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -29,23 +31,46 @@ namespace Microsoft.VisualStudio.LanguageServices
             _documentTrackingService?.DocumentFrameShowing(frame, id, firstShow);
         }
 
-        protected override void OnBeforeNonRoslynDocumentWindowShow(ITextBuffer buffer, bool firstShow)
+        protected override void OnBeforeNonRoslynDocumentWindowShow(IVsWindowFrame frame, bool firstShow)
         {
-            base.OnBeforeNonRoslynDocumentWindowShow(buffer, firstShow);
+            base.OnBeforeNonRoslynDocumentWindowShow(frame, firstShow);
 
             if (!firstShow)
             {
                 return;
             }
 
-            _documentTrackingService?.OnNonRoslynBufferOpened(buffer);
+            var view = GetTextViewFromFrame(frame);
+            if (view != null)
+            {
+                _documentTrackingService?.OnNonRoslynViewOpened(view);
+            }
         }
 
-        protected override void OnBeforeNonRoslynDocumentClose(ITextBuffer buffer)
+        private ITextView GetTextViewFromFrame(IVsWindowFrame frame)
         {
-            base.OnBeforeNonRoslynDocumentClose(buffer);
+            IntPtr unknown;
+            if (ErrorHandler.Failed(frame.QueryViewInterface(typeof(IVsCodeWindow).GUID, out unknown)) || unknown == IntPtr.Zero)
+            {
+                return null;
+            }
 
-            _documentTrackingService?.OnNonRoslynBufferClosed(buffer);
+            try
+            {
+                var codeWindow = Marshal.GetTypedObjectForIUnknown(unknown, typeof(IVsCodeWindow)) as IVsCodeWindow;
+
+                IVsTextView vsTextView;
+                if (ErrorHandler.Failed(codeWindow.GetLastActiveView(out vsTextView)))
+                {
+                    return null;
+                }
+
+                return EditorAdaptersFactoryService.GetWpfTextView(vsTextView);
+            }
+            finally
+            {
+                Marshal.Release(unknown);
+            }
         }
     }
 }

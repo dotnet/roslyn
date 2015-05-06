@@ -270,11 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (ids.Count == 0)
             {
                 // deal with non roslyn text file opened in the editor
-                var buffer = TryGetTextBufferFromDocData(RunningDocumentTable.GetDocumentData(docCookie));
-                if (buffer != null)
-                {
-                    OnBeforeNonRoslynDocumentWindowShow(buffer, firstShow);
-                }
+                OnBeforeNonRoslynDocumentWindowShow(frame, firstShow);
             }
         }
 
@@ -282,11 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
         }
 
-        protected virtual void OnBeforeNonRoslynDocumentWindowShow(ITextBuffer buffer, bool firstShow)
-        {
-        }
-
-        protected virtual void OnBeforeNonRoslynDocumentClose(ITextBuffer buffer)
+        protected virtual void OnBeforeNonRoslynDocumentWindowShow(IVsWindowFrame frame, bool firstShow)
         {
         }
 
@@ -320,13 +312,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             List<DocumentKey> documentKeys;
             if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
             {
-                // let others know about non roslyn document close
-                var buffer = TryGetTextBufferFromDocData(RunningDocumentTable.GetDocumentData(docCookie));
-                if (buffer != null)
-                {
-                    OnBeforeNonRoslynDocumentClose(buffer);
-                }
-
                 return;
             }
 
