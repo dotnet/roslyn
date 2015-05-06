@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (blendedTokens != null)
             {
                 _blendedTokens = null;
-                Array.Clear(blendedTokens, 0, blendedTokens.Length);
                 if (blendedTokens.Length < 4096)
                 {
+                    Array.Clear(blendedTokens, 0, blendedTokens.Length);
                     s_blendedNodesPool.Free(blendedTokens);
                 }
                 else
