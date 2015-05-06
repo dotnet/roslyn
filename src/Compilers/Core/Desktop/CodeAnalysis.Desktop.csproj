@@ -50,7 +50,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdditionalTextFile.cs" />
-    <Compile Include="AnalyzerLoadFailureEventArgs.cs" />
     <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="CodeAnalysisDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -90,7 +89,6 @@
     <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="Interop\SuppressUnmanagedCodeSecurityAttribute.cs" />
     <Compile Include="IVsSQM.cs" />
-    <Compile Include="AnalyzerFileReference.cs" />
     <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="PathKind.cs" />
     <Compile Include="PathUtilities.cs" />

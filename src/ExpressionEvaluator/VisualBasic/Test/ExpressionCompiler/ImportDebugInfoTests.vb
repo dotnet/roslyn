@@ -207,7 +207,7 @@ End Class
                 "@FA:SC=System.Collections") ' Valid
 
             Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
-            Dim evalContext = CreateMethodContext(runtime, "C.Main", Nothing)
+            Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
 
             Dim rootNamespace As NamespaceSymbol = Nothing
@@ -247,7 +247,7 @@ End Class
                 "@FA:SC=System.Collections") ' Valid
 
             Dim runtime = CreateRuntimeInstance("assemblyName", references, exeBytes, symReader)
-            Dim evalContext = CreateMethodContext(runtime, "C.Main", Nothing)
+            Dim evalContext = CreateMethodContext(runtime, "C.Main")
             Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
 
             Dim rootNamespace As NamespaceSymbol = Nothing

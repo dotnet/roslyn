@@ -91,9 +91,9 @@ public class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "parameter",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -126,9 +126,9 @@ public class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "from i in array select i",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -164,9 +164,9 @@ public class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -177,9 +177,9 @@ public class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -227,9 +227,9 @@ namespace System.Linq
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -240,9 +240,9 @@ namespace System.Linq
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -304,9 +304,9 @@ class C
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "new global::Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -319,9 +319,9 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "new Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -334,9 +334,9 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "new NS.Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -483,10 +483,10 @@ class C
             ResultProperties resultProperties;
             string actualError;
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
-            var result = context.CompileExpression(
-                InspectionContextFactory.Empty.Add("$stowedexception", "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+            context.CompileExpression(
                 "$stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
+                ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", stowed: true)),
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -520,9 +520,9 @@ class C
             string actualError;
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "typeof(@Windows.UI.Colors)",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
@@ -559,9 +559,9 @@ class C
             string actualError;
             ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "typeof(Windows.@UI.Xaml.Application)",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,

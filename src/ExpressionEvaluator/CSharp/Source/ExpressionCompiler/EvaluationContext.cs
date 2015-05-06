@@ -195,13 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert((object)currentFrame != null);
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureToken);
-            var localBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var sourceAssembly = compilation.SourceAssembly;
-            GetLocals(localBuilder, currentFrame, localNames, localInfo, methodDebugInfo.DynamicLocalMap, sourceAssembly);
-            GetConstants(localBuilder, currentFrame, containingScopes, metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
+            GetLocals(localsBuilder, currentFrame, localNames, localInfo, methodDebugInfo.DynamicLocalMap, sourceAssembly);
+            GetConstants(localsBuilder, currentFrame, containingScopes, metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
             containingScopes.Free();
 
-            var locals = localBuilder.ToImmutableAndFree();
+            var locals = localsBuilder.ToImmutableAndFree();
 
             return new EvaluationContext(
                 methodContextReuseConstraints,
@@ -226,9 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override CompileResult CompileExpression(
-            InspectionContext inspectionContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var context = this.CreateCompilationContext(syntax);
             ResultProperties properties;
-            var moduleBuilder = context.CompileExpression(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
+            var moduleBuilder = context.CompileExpression(TypeName, MethodName, aliases, testData, diagnostics, out properties);
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
@@ -319,9 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override CompileResult CompileAssignment(
-            InspectionContext inspectionContext,
             string target,
             string expr,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var context = this.CreateCompilationContext(assignment);
             ResultProperties properties;
-            var moduleBuilder = context.CompileAssignment(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
+            var moduleBuilder = context.CompileAssignment(TypeName, MethodName, aliases, testData, diagnostics, out properties);
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
@@ -371,15 +371,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(new byte[0]);
 
         internal override ReadOnlyCollection<byte> CompileGetLocals(
-            ReadOnlyCollection<Alias> aliases,
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out string typeName,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
         {
             var context = this.CreateCompilationContext(null);
-            var moduleBuilder = context.CompileGetLocals(aliases, TypeName, locals, argumentsOnly, testData, diagnostics);
+            var moduleBuilder = context.CompileGetLocals(TypeName, locals, argumentsOnly, aliases, testData, diagnostics);
             ReadOnlyCollection<byte> assembly = null;
 
             if ((moduleBuilder != null) && (locals.Count > 0))

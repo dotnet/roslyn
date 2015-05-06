@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (File.Exists(_fullPath))
                 {
-                    _analyzerReference = new AnalyzerFileReference(_fullPath, _loader.LoadFromPath);
+                    _analyzerReference = new AnalyzerFileReference(_fullPath, _loader);
                     ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed += OnAnalyzerLoadError;
                 }
                 else

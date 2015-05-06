@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
@@ -314,18 +315,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, optionSet, cancellationToken).WaitAndGetResult(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
-                // Notify third parties about the coming rename operation on the workspace, and let
-                // any exceptions propagate through
-                refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
-
-                if (!workspace.TryApplyChanges(newSolution))
+                var undoTitle = string.Format(EditorFeaturesResources.RenameTo, symbol.Name, newName);
+                using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoTitle))
                 {
-                    Exceptions.ThrowEFail();
-                }
+                    // Notify third parties about the coming rename operation on the workspace, and let
+                    // any exceptions propagate through
+                    refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
 
-                // Notify third parties about the completed rename operation on the workspace, and
-                // let any exceptions propagate through
-                refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
+                    if (!workspace.TryApplyChanges(newSolution))
+                    {
+                        Exceptions.ThrowEFail();
+                    }
+
+                    // Notify third parties about the completed rename operation on the workspace, and
+                    // let any exceptions propagate through
+                    refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
+
+                    workspaceUndoTransaction.Commit();
+                }
 
                 RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
                 return true;

@@ -649,10 +649,9 @@ End Module
             VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
             locals.Free()
 
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("Me", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me", errorMessage, testData)
             Assert.Null(errorMessage)
             VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
         End Sub
@@ -684,10 +683,9 @@ End Module
             AssertEx.None(locals, Function(l) l.LocalName.Contains("Me"))
             locals.Free()
 
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("Me", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC32001: 'Me' is not valid within a Module.",
@@ -695,7 +693,7 @@ End Module
                             })
 
             testData = New CompilationTestData()
-            context.CompileExpression("MyBase.ToString()", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC32001: 'MyBase' is not valid within a Module.",
@@ -703,7 +701,7 @@ End Module
                             })
 
             testData = New CompilationTestData()
-            context.CompileExpression("MyClass.ToString()", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyClass.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC30470: 'MyClass' cannot be used outside of a class.",
@@ -731,7 +729,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -767,7 +765,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -805,7 +803,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -846,7 +844,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -890,7 +888,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -932,7 +930,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {

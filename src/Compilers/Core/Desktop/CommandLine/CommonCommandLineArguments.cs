@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis
 
             if (resolvedPath != null)
             {
-                return new AnalyzerFileReference(resolvedPath, analyzerLoader.LoadFromPath);
+                return new AnalyzerFileReference(resolvedPath, analyzerLoader);
             }
 
             return null;

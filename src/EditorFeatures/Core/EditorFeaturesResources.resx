@@ -733,4 +733,7 @@ Do you want to proceed?</value>
   <data name="CursorMustBeOnAMemberName" xml:space="preserve">
     <value>Cursor must be on a member name.</value>
   </data>
+  <data name="FontAndColors_BraceMatching" xml:space="preserve">
+    <value>Brace Matching</value>
+  </data>
 </root>

@@ -191,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
+    <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
     <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
     <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />

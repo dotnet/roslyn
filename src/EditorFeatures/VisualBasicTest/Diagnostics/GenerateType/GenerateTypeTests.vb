@@ -747,6 +747,107 @@ NewLines("Public Interface I \n  Sub Foo(a As X.Y.Z) \n End Interface \n Public 
 index:=0)
         End Sub
 
+        <WorkItem(1130905)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInImports()
+            Test(
+NewLines("Imports [|Fizz|]"),
+NewLines("Friend Class Fizz\nEnd Class\n"), isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1130905)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInImports2()
+            Test(
+NewLines("Imports [|Fizz|]"),
+NewLines("Imports Fizz \n Friend Class Fizz \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields2()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class A \n Public B As New B() \n End Class \n\n Public Class B \n Public Sub New() \n End Sub \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields3()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class A \n Public B As New B() \n Public Class B \n Public Sub New() \n End Sub \n End Class \n End Class"),
+index:=2)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields4()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class B \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields5()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class A \n Public B As New B \n End Class \n\n Public Class B \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields6()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class A \n Public B As New B \n Public Class B \n End Class \n End Class"),
+index:=2)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields7()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class B(Of T) \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields8()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class A \n Public B As New B(Of Integer) \n End Class \n\n Public Class B(Of T) \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields9()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class A \n Public B As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),
+index:=2)
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

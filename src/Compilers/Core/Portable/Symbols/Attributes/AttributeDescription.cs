@@ -389,8 +389,6 @@ namespace Microsoft.CodeAnalysis
             s_signature_HasThis_Void_String_DeprecationType_UInt32_Type
         };
 
-        private static readonly byte[][] s_signaturesOfFSharpInterfaceDataVersionAttribute = { s_signature_HasThis_Void_Int32_Int32_Int32 };
-
         // early decoded attributes:
         internal static readonly AttributeDescription OptionalAttribute = new AttributeDescription("System.Runtime.InteropServices", "OptionalAttribute", s_signaturesOfOptionalAttribute);
         internal static readonly AttributeDescription ComImportAttribute = new AttributeDescription("System.Runtime.InteropServices", "ComImportAttribute", s_signaturesOfComImportAttribute);
@@ -398,7 +396,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription ConditionalAttribute = new AttributeDescription("System.Diagnostics", "ConditionalAttribute", s_signaturesOfConditionalAttribute);
         internal static readonly AttributeDescription CaseInsensitiveExtensionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ExtensionAttribute", s_signaturesOfExtensionAttribute, matchIgnoringCase: true);
         internal static readonly AttributeDescription CaseSensitiveExtensionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ExtensionAttribute", s_signaturesOfExtensionAttribute, matchIgnoringCase: false);
-        internal static readonly AttributeDescription FSharpInterfaceDataVersionAttribute = new AttributeDescription("Microsoft.FSharp.Core", "FSharpInterfaceDataVersionAttribute", s_signaturesOfFSharpInterfaceDataVersionAttribute);
 
         internal static readonly AttributeDescription InternalsVisibleToAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InternalsVisibleToAttribute", s_signaturesOfInternalsVisibleToAttribute);
         internal static readonly AttributeDescription AssemblySignatureKeyAttribute = new AttributeDescription("System.Reflection", "AssemblySignatureKeyAttribute", s_signaturesOfAssemblySignatureKeyAttribute);

@@ -233,11 +233,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return containingType.DeclaredAccessibility
             End If
 
+            ' Determine accessibility of field or event
+            '  Public B as B
             If type.IsParentKind(SyntaxKind.SimpleAsClause) AndAlso
                 type.Parent.IsParentKind(SyntaxKind.VariableDeclarator) Then
                 If type.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration) OrElse
                    type.Parent.Parent.IsParentKind(SyntaxKind.EventStatement) Then
                     Dim variableDeclarator = DirectCast(type.Parent.Parent, VariableDeclaratorSyntax)
+                    If variableDeclarator.Names.Count > 0 Then
+                        Dim variableDeclaration = semanticModel.GetDeclaredSymbol(variableDeclarator.Names(0), cancellationToken)
+                        Return variableDeclaration.DeclaredAccessibility
+                    End If
+                End If
+            End If
+
+            ' Determine accessibility of field or event
+            '  Public B as New B()
+            If type.IsParentKind(SyntaxKind.ObjectCreationExpression) AndAlso
+                type.Parent.IsParentKind(SyntaxKind.AsNewClause) AndAlso
+                type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) Then
+                If type.Parent.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration) OrElse
+                   type.Parent.Parent.Parent.IsParentKind(SyntaxKind.EventStatement) Then
+                    Dim variableDeclarator = DirectCast(type.Parent.Parent.Parent, VariableDeclaratorSyntax)
                     If variableDeclarator.Names.Count > 0 Then
                         Dim variableDeclaration = semanticModel.GetDeclaredSymbol(variableDeclarator.Names(0), cancellationToken)
                         Return variableDeclaration.DeclaredAccessibility

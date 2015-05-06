@@ -537,6 +537,9 @@
   <data name="ModifyingTheInitializerInPartialType" xml:space="preserve">
     <value>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</value>
   </data>
+  <data name="InsertConstructorToTypeWithInitializersWithLambdas" xml:space="preserve">
+    <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</value>
+  </data>
   <data name="ModifyingACatchFinallyHandler" xml:space="preserve">
     <value>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</value>
   </data>
@@ -551,15 +554,6 @@
   </data>
   <data name="ModifyingAWhichContainsOnErrorResume" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsAnonymousMethod" xml:space="preserve">
-    <value>Modifying '{0}' which contains an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsLambda" xml:space="preserve">
-    <value>Modifying '{0}' which contains a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsQuery" xml:space="preserve">
-    <value>Modifying '{0}' which contains a query expression will prevent the debug session from continuing.</value>
   </data>
   <data name="ModifyingAWhichContainsComplexQuery" xml:space="preserve">
     <value>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</value>
