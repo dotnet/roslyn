@@ -366,6 +366,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     variableDeclaration.Variables[0], cancellationToken)).DeclaredAccessibility;
             }
 
+            // Also do the same check if we are in an object creation expression
+            if (type.IsParentKind(SyntaxKind.ObjectCreationExpression) &&
+                type.Parent.IsParentKind(SyntaxKind.EqualsValueClause) &&
+                type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
+                type.Parent.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                type.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration))
+            {
+                var variableDeclaration = (VariableDeclarationSyntax)type.Parent.Parent.Parent.Parent;
+                return ((ISymbol)semanticModel.GetDeclaredSymbol(
+                    variableDeclaration.Variables[0], cancellationToken)).DeclaredAccessibility;
+            }
+
             // 3) The return type of a delegate type must be at least as accessible as the
             //    delegate type itself.
             // 6) The return type of a method must be at least as accessible as the method

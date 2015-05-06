@@ -2389,7 +2389,8 @@ B");
                 // mscorlib.dll
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(mscorlib.Name, "mscorlib");
-                Assert.False(mscorlib.MightContainExtensionMethods);
+                // We assume every PE assembly may contain extension methods.
+                Assert.True(mscorlib.MightContainExtensionMethods);
 
                 // TODO: Original references are not included in symbol validator.
                 if (isFromSource)
@@ -2432,7 +2433,9 @@ B");
             {
                 var assembly = module.ContainingAssembly;
                 var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
-                Assert.Equal(isFromSource, mightContainExtensionMethods);
+                // Every PE assembly is assumed to be capable of having an extension method.
+                // The source assembly doesn't know (so reports "true") until all methods have been inspected.
+                Assert.True(mightContainExtensionMethods);
                 if (isFromSource)
                 {
                     Assert.Null(sourceAssembly);

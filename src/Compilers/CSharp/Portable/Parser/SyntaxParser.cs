@@ -73,17 +73,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void Dispose()
         {
-            if (_blendedTokens != null)
+            var blendedTokens = _blendedTokens;
+            if (blendedTokens != null)
             {
-                if (_blendedTokens.Length < 4096)
+                _blendedTokens = null;
+                Array.Clear(blendedTokens, 0, blendedTokens.Length);
+                if (blendedTokens.Length < 4096)
                 {
-                    Array.Clear(_blendedTokens, 0, _blendedTokens.Length);
-                    s_blendedNodesPool.Free(_blendedTokens);
-                    _blendedTokens = null;
+                    s_blendedNodesPool.Free(blendedTokens);
                 }
                 else
                 {
-                    s_blendedNodesPool.ForgetTrackedObject(_blendedTokens);
+                    s_blendedNodesPool.ForgetTrackedObject(blendedTokens);
                 }
             }
         }
