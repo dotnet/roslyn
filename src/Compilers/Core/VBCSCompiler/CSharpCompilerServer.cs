@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var compiler = new CSharpCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
             bool utf8output = compiler.Arguments.Utf8Output;
 
-            foreach (var analyzer in compiler.Arguments.AnalyzerReferences)
-            {
-                CompilerServerFileWatcher.AddPath(analyzer.FilePath);
-            }
-
             if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
             {
                 return new AnalyzerInconsistencyBuildResponse();
