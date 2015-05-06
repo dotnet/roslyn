@@ -10,21 +10,22 @@ using System.Reflection;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// The 4.5 portable API surface area does not contain many of the APIs Roslyn needs to fucntion.  In 
-    /// particular it lacks APIs to access the file system.  The project is constrained from moving to the
-    /// 4.6 framework until post VS 2015 though.  
+    /// The 4.5 portable API surface area does not contain many of the APIs Roslyn needs to function.  In 
+    /// particular it lacks APIs to access the file system.  The Roslyn project though is constrained 
+    /// from moving to the 4.6 framework until post VS 2015.
     /// 
     /// This puts us in a difficult position.  These APIs are necessary for us to have our public API set
-    /// in the DLLS we prefer (non Desktop variants) but we can't use them directly.  Putting the APIs
-    /// into the Desktop variants would create instant legacy for the Roslyn project that we'd have to 
-    /// maintain for the remainder of the project.
+    /// in the DLLS we prefer (non Desktop variants) but we can't use them directly when targetting 
+    /// the 4.5 framework.  Putting the APIs into the Desktop variants would create instant legacy for 
+    /// the Roslyn project that we'd have to maintain forever (even if it was just as assemblies with
+    /// only type forward entries).  This is not a place we'd like to be in.  
     /// 
-    /// As a compromise we've decided to grab this APIs via reflection for the time being.  This is a 
+    /// As a compromise we've decided to grab these APIs via reflection for the time being.  This is a 
     /// *very* unfortunate path to be on but it's a short term solution that sets us up for long term
-    /// success. 
+    /// success.  
     /// 
     /// This is an unfortunate situation but it will all be removed fairly quickly after RTM and converted
-    /// to the proper 4.5 portable contracts.  
+    /// to the proper 4.6 portable contracts.  
     /// </summary>
     internal static class PortableShim
     {
