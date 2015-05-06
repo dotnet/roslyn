@@ -7022,7 +7022,7 @@ public static class Extensions
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"({CSharpEditorResources.Extension}) void C.Do(string x)";
+            var expectedDescription = $"({CSharpFeaturesResources.Extension}) void C.Do(string x)";
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
         }
 
