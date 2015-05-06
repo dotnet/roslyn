@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerFileWatcher.AddPath(analyzer.FilePath);
             }
 
-            var whiteList = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis");
-            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, whiteList, analyzerLoader))
+            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
             {
                 return new AnalyzerInconsistencyBuildResponse();
             }

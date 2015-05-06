@@ -6,20 +6,25 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class AnalyzerConsistencyChecker
     {
-        public static bool Check(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzerReferences, ImmutableArray<string> referenceWhiteList, IAnalyzerAssemblyLoader loader)
+        private static readonly ImmutableArray<string> s_defaultWhiteList = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis");
+
+        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> referenceWhiteList = null)
         {
+            if (referenceWhiteList == null)
+            {
+                referenceWhiteList = s_defaultWhiteList;
+            }
+
             try
             {
                 CompilerServerLogger.Log("Begin Analyzer Consistency Check");
-                return CheckCore(baseDirectory, analyzerReferences, referenceWhiteList, loader);
+                return CheckCore(baseDirectory, analyzerReferences, loader, referenceWhiteList);
             }
             catch (Exception e)
             {
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static bool CheckCore(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzerReferences, ImmutableArray<string> referenceWhiteList, IAnalyzerAssemblyLoader loader)
+        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> referenceWhiteList)
         {
             var resolvedPaths = new List<string>();
 
