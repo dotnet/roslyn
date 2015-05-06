@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis
                 services.TemporaryStorage);
         }
 
-        private const int MaximumRetryDelay = 1000; // 1 second
-        internal const int MaxRetries = 5;
-        internal const int RetryDelay = MaximumRetryDelay / MaxRetries;
+        private const double MaxDelaySecs = 1.0;
+        private const int MaxRetries = 5;
+        internal static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(MaxDelaySecs / MaxRetries);
 
         protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException, CancellationToken cancellationToken)
         {
