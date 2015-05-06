@@ -624,7 +624,7 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
         <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0xa"" hidden=""true"" document=""0"" />
+        <entry offset=""0xa"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
         <entry offset=""0x10"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
         <entry offset=""0x17"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
         <entry offset=""0x1e"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
@@ -712,7 +712,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x11"" endOffset=""0xe0"" />
+          <slot startOffset=""0x11"" endOffset=""0xdf"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -724,21 +724,20 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
         <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0x11"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1d"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x35"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x41"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
-        <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" document=""0"" />
-        <entry offset=""0x86"" hidden=""true"" document=""0"" />
-        <entry offset=""0xe1"" hidden=""true"" document=""0"" />
-        <entry offset=""0xf9"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x101"" hidden=""true"" document=""0"" />
+        <entry offset=""0x11"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x28"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x34"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x40"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
+        <entry offset=""0x57"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" document=""0"" />
+        <entry offset=""0x85"" hidden=""true"" document=""0"" />
+        <entry offset=""0xe0"" hidden=""true"" document=""0"" />
+        <entry offset=""0xf8"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x100"" hidden=""true"" document=""0"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x98"" resume=""0xb3"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x97"" resume=""0xb2"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -815,7 +814,7 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
         <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0xa"" hidden=""true"" document=""0"" />
+        <entry offset=""0xa"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
         <entry offset=""0x15"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
         <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
         <entry offset=""0x2d"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
@@ -898,7 +897,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x11"" endOffset=""0xcf"" />
+          <slot startOffset=""0xe"" endOffset=""0xcb"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -910,22 +909,21 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
         <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0x11"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1d"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x35"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x41"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
-        <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" document=""0"" />
-        <entry offset=""0x64"" hidden=""true"" document=""0"" />
-        <entry offset=""0xbd"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""0"" />
-        <entry offset=""0xd0"" hidden=""true"" document=""0"" />
-        <entry offset=""0xe8"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
-        <entry offset=""0xf0"" hidden=""true"" document=""0"" />
+        <entry offset=""0xe"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x19"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x25"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x31"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x3d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
+        <entry offset=""0x54"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x60"" hidden=""true"" document=""0"" />
+        <entry offset=""0xb9"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""0"" />
+        <entry offset=""0xcc"" hidden=""true"" document=""0"" />
+        <entry offset=""0xe4"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0"" />
+        <entry offset=""0xec"" hidden=""true"" document=""0"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x76"" resume=""0x91"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x72"" resume=""0x8d"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
