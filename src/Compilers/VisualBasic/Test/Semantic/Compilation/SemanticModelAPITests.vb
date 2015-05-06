@@ -4351,5 +4351,30 @@ BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protec
                                                                   </errors>, suppressInfos:=False)
         End Sub
 
+        <Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        Public Sub ConstantValueOfInterpolatedString()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Module Program
+    ''' <summary>
+    ''' <see cref=""/>
+    ''' </summary>
+    Sub Main(args As String())
+        System.Console.WriteLine($""Hello, world!"");
+        System.Console.WriteLine($""{DateTime.Now.ToString()}.{args(0)}"");
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim model = compilation.GetSemanticModel(tree)
+            For Each interp In root.DescendantNodes().OfType(Of InterpolatedStringExpressionSyntax)
+                Assert.False(model.GetConstantValue(interp).HasValue)
+            Next
+        End Sub
+
     End Class
 End Namespace

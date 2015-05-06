@@ -3410,6 +3410,29 @@ class C
             var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
         }
 
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfInterpolatedString()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""Hello, world!"");
+        Console.WriteLine($""{DateTime.Now.ToString()}.{args[0]}"");
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
+            {
+                Assert.False(model.GetConstantValue(interp).HasValue);
+            }
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {
