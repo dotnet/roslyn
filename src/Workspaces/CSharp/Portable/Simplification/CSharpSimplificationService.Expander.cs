@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
                 if (originalSimpleName.GetAncestor<AttributeSyntax>() != null)
                 {
-                    if (symbol.IsConstructor() && symbol.ContainingType.IsAttribute())
+                    if (symbol.IsConstructor() && symbol.ContainingType?.IsAttribute() == true)
                     {
                         symbol = symbol.ContainingType;
                         var name = symbol.Name;

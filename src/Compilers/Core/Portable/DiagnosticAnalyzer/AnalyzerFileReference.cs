@@ -27,9 +27,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed partial class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
         private readonly string _fullPath;
-        private readonly Func<string, Assembly> _getAssembly;
+        private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
         private string _lazyDisplayName;
+        private string _lazyId;
         private ImmutableArray<DiagnosticAnalyzer> _lazyAllAnalyzers;
         private ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _lazyAnalyzersPerLanguage;
         private Assembly _lazyAssembly;
@@ -39,32 +40,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public event EventHandler<AnalyzerLoadFailureEventArgs> AnalyzerLoadFailed;
 
         /// <summary>
-        /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/>.
+        /// Creates an AnalyzerFileReference with the given <paramref name="fullPath"/> and <paramref name="assemblyLoader"/>.
         /// </summary>
         /// <param name="fullPath">Full path of the analyzer assembly.</param>
-        /// <param name="getAssembly">Function for loading the analyzer assembly</param>
-        public AnalyzerFileReference(string fullPath, Func<string, Assembly> getAssembly)
+        /// <param name="assemblyLoader">Loader for obtaining the <see cref="Assembly"/> from the <paramref name="fullPath"/></param>
+        public AnalyzerFileReference(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
         {
             if (fullPath == null)
             {
                 throw new ArgumentNullException(nameof(fullPath));
             }
 
-            // TODO: remove full path normalization
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
-
-            try
+            if (assemblyLoader == null)
             {
-                _fullPath = Path.GetFullPath(fullPath);
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message, "fullPath");
+                throw new ArgumentNullException(nameof(assemblyLoader));
             }
 
+            _fullPath = fullPath;
             _lazyAllAnalyzers = default(ImmutableArray<DiagnosticAnalyzer>);
             _lazyAnalyzersPerLanguage = ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty;
-            _getAssembly = getAssembly;
+            _assemblyLoader = assemblyLoader;
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
@@ -118,35 +113,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static string GetAssemblyNameFromPath(string path)
-        {
-            // AssemblyName.GetAssemblyName(path) is not available on CoreCLR.
-            // Use our metadata reader to do the equivalent thing.
-            using (var reader = new PEReader(FileUtilities.OpenRead(path)))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var assemblyDefinition = metadataReader.GetAssemblyDefinition();
-                return metadataReader.GetString(assemblyDefinition.Name);
-            }
-        }
-
         public override string Display
         {
             get
             {
                 if (_lazyDisplayName == null)
                 {
-                    try
-                    {
-                        _lazyDisplayName = GetAssemblyNameFromPath(_fullPath);
-                    }
-                    catch (Exception)
-                    { }
-
-                    _lazyDisplayName = _lazyDisplayName ?? Path.GetFileName(this.FullPath);
+                    _lazyDisplayName = Path.GetFileNameWithoutExtension(this.FullPath);
                 }
 
                 return _lazyDisplayName;
+            }
+        }
+
+        public override string Id
+        {
+            get
+            {
+                if (_lazyId == null)
+                {
+                    _lazyId = Path.GetFileName(this.FullPath).ToLower();
+                }
+                
+                return _lazyId;
             }
         }
 
@@ -266,14 +255,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticAnalyzer analyzer = null;
                 try
                 {
-                    var type = analyzerAssembly.GetType(typeName, throwOnError: true, ignoreCase: false);
+                    var type = analyzerAssembly.GetType(typeName);
                     if (DerivesFromDiagnosticAnalyzer(type))
                     {
                         analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type);
                     }
                 }
-                catch (Exception e) when (e is TypeLoadException || e is BadImageFormatException || e is FileNotFoundException || e is FileLoadException ||
-                                          e is ArgumentException || e is NotSupportedException || e is TargetInvocationException || e is MemberAccessException)
+                catch (Exception e)
                 {
                     this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e, typeName));
                     analyzer = null;
@@ -408,8 +396,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (other != null)
             {
                 return other.Display == this.Display &&
-                       other.FullPath == this.FullPath &&
-                       other.IsUnresolved == this.IsUnresolved;
+                       other.FullPath == this.FullPath;
             }
 
             return base.Equals(other);
@@ -417,16 +404,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Display,
-                        Hash.Combine(this.FullPath, this.IsUnresolved.GetHashCode()));
+            return Hash.Combine(this.Display, this.FullPath.GetHashCode());
         }
 
         public Assembly GetAssembly()
         {
             if (_lazyAssembly == null)
             {
-                var assembly = _getAssembly(_fullPath);
-                Interlocked.CompareExchange(ref _lazyAssembly, assembly, null);
+                _lazyAssembly = _assemblyLoader.LoadFromPath(_fullPath);
             }
 
             return _lazyAssembly;

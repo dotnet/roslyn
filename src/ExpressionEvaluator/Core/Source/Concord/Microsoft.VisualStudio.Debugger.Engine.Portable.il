@@ -19686,6 +19686,11 @@
 			ret
 		}
 		.method public hidebysig specialname 
+			instance string get_FullName()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
 			instance string get_MethodName()
 		{
 			ret
@@ -19706,7 +19711,7 @@
 			ret
 		}
 		.method public static hidebysig 
-			class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo Create(string VariableName, string MethodName, valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCompilationResultFlags CompilationFlags, valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory ResultCategory, class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo CustomTypeInfo)
+			class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo Create(string VariableName, string FullName, string MethodName, valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCompilationResultFlags CompilationFlags, valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory ResultCategory, class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo CustomTypeInfo)
 		{
 			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
 			ret
@@ -19718,6 +19723,10 @@
 		.property instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo CustomTypeInfo()
 		{
 			.get instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo::get_CustomTypeInfo()
+		}
+		.property instance string FullName()
+		{
+			.get instance string Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo::get_FullName()
 		}
 		.property instance string MethodName()
 		{

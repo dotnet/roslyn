@@ -164,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         // (whitespace* (single-comment|multi-comment) whitespace* newline)+ OneOrMoreBlankLines
         private static readonly Matcher<SyntaxTrivia> s_bannerMatcher;
 
+        // Used to match the following:
+        //
+        // <start-of-file> (whitespace* (single-comment|multi-comment) whitespace* newline)+ blankLine*
+        private static readonly Matcher<SyntaxTrivia> s_fileBannerMatcher;
+
         static SyntaxNodeExtensions()
         {
             var whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"));
@@ -181,6 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
                     s_oneOrMoreBlankLines);
+            s_fileBannerMatcher =
+                Matcher.Sequence(
+                    Matcher.OneOrMore(commentLine),
+                    Matcher.Repeat(singleBlankLine));
         }
 
         private static Matcher<SyntaxTrivia> Match(SyntaxKind kind, string description)
@@ -668,11 +677,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 leadingTriviaToStrip = new List<SyntaxTrivia>();
             }
 
-            // Now, consume as many banners as we can.
+            // Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
+            // the start of the file.
             var index = 0;
             while (
                 s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index) ||
-                s_bannerMatcher.TryMatch(leadingTriviaToKeep, ref index))
+                s_bannerMatcher.TryMatch(leadingTriviaToKeep, ref index) ||
+                (node.FullSpan.Start == 0 && s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, ref index)))
             {
             }
 

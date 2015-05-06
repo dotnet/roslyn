@@ -481,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' 2. If it's an attribute, make sure the identifier matches the attribute's class name without the attribute suffix.
                 '
                 If originalSimpleName.GetAncestor(Of AttributeSyntax)() IsNot Nothing Then
-                    If symbol.IsConstructor() AndAlso symbol.ContainingType.IsAttribute() Then
+                    If symbol.IsConstructor() AndAlso symbol.ContainingType?.IsAttribute() Then
                         symbol = symbol.ContainingType
                         Dim name = symbol.Name
                         Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText, StringComparison.Ordinal))

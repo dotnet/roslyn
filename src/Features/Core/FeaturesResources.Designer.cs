@@ -1123,6 +1123,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing..
+        /// </summary>
+        internal static string InsertConstructorToTypeWithInitializersWithLambdas {
+            get {
+                return ResourceManager.GetString("InsertConstructorToTypeWithInitializersWithLambdas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; that accesses captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
         /// </summary>
         internal static string InsertLambdaWithMultiScopeCapture {
@@ -1366,15 +1375,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an anonymous method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsAnonymousMethod {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingAWhichContainsComplexQuery {
@@ -1384,29 +1384,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsLambda {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsLambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying an active &apos;{0}&apos; which contains &apos;On Error&apos; or &apos;Resume&apos; statements will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingAWhichContainsOnErrorResume {
             get {
                 return ResourceManager.GetString("ModifyingAWhichContainsOnErrorResume", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsQuery {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsQuery", resourceCulture);
             }
         }
         

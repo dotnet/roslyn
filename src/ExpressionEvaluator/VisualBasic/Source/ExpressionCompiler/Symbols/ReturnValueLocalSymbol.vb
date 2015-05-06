@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private ReadOnly _index As Integer
 
-        Friend Sub New(method As MethodSymbol, name As String, type As TypeSymbol, index As Integer)
-            MyBase.New(method, name, type)
+        Friend Sub New(method As MethodSymbol, name As String, displayName As String, type As TypeSymbol, index As Integer)
+            MyBase.New(method, name, displayName, type)
             _index = index
         End Sub
 

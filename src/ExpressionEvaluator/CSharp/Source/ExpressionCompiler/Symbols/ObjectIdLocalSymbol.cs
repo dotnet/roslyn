@@ -9,13 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class ObjectIdLocalSymbol : PlaceholderLocalSymbol
     {
-        private readonly string _id;
         private readonly bool _isWritable;
 
-        internal ObjectIdLocalSymbol(MethodSymbol method, TypeSymbol type, string id, bool isWritable) :
-            base(method, id, type)
+        internal ObjectIdLocalSymbol(MethodSymbol method, TypeSymbol type, string name, string displayName, bool isWritable) :
+            base(method, name, displayName, type)
         {
-            _id = id;
             _isWritable = isWritable;
         }
 
@@ -80,6 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             private static BoundExpression InvokeGetMethod(MethodSymbol method, CSharpSyntaxNode syntax, string name)
             {
+                if (name.Length > 1 && name[0] == '$')
+                {
+                    name = name.Substring(1);
+                }
                 var argument = new BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),

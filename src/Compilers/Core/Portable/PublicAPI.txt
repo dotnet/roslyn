@@ -233,8 +233,20 @@ Microsoft.CodeAnalysis.DiagnosticSeverity.Warning = 2 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action, params Microsoft.CodeAnalysis.SymbolKind[] symbolKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerFileReference(string fullPath, Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader assemblyLoader) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerLoadFailed -> System.EventHandler<Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs>
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference other) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssembly() -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.AnalyzerImageReference(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.AnalyzerLoadFailureEventArgs(Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode, System.Exception ex, string typeName) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers = 3 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer = 2 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer = 1 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText>
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalFiles) -> void
@@ -1535,6 +1547,7 @@ abstract Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSyntaxTreeAc
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.FullPath.get -> string
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.Id.get -> string
 abstract Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.RegisterCodeBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.RegisterSyntaxNodeAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterCodeBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext> action) -> void
@@ -1739,17 +1752,25 @@ override Microsoft.CodeAnalysis.CompilationReference.Display.get -> string
 override Microsoft.CodeAnalysis.Diagnostic.ToString() -> string
 override Microsoft.CodeAnalysis.DiagnosticDescriptor.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.DiagnosticDescriptor.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Display.get -> string
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.FullPath.get -> string
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Id.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.Display.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.FullPath.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.Id.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.Display.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.FullPath.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
-override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.IsUnresolved.get -> bool
+override Microsoft.CodeAnalysis.Diagnostics.UnresolvedAnalyzerReference.Id.get -> string
 override Microsoft.CodeAnalysis.Emit.EmitOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Emit.EmitOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Emit.SemanticEdit.Equals(object obj) -> bool
@@ -1865,6 +1886,9 @@ override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.ToString()
 override sealed Microsoft.CodeAnalysis.LocalizableString.Equals(object other) -> bool
 override sealed Microsoft.CodeAnalysis.LocalizableString.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.LocalizableString.ToString() -> string
+readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ErrorCode -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Exception -> System.Exception
+readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.TypeName -> string
 readonly Microsoft.CodeAnalysis.Emit.EmitBaseline.OriginalMetadata -> Microsoft.CodeAnalysis.ModuleMetadata
 readonly Microsoft.CodeAnalysis.Emit.SemanticEdit.Kind -> Microsoft.CodeAnalysis.Emit.SemanticEditKind
 readonly Microsoft.CodeAnalysis.Emit.SemanticEdit.NewSymbol -> Microsoft.CodeAnalysis.ISymbol
@@ -2078,7 +2102,6 @@ virtual Microsoft.CodeAnalysis.Diagnostic.DefaultSeverity.get -> Microsoft.CodeA
 virtual Microsoft.CodeAnalysis.Diagnostic.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 virtual Microsoft.CodeAnalysis.DiagnosticFormatter.Format(Microsoft.CodeAnalysis.Diagnostic diagnostic, System.IFormatProvider formatter = null) -> string
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.Display.get -> string
-virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.IsUnresolved.get -> bool
 virtual Microsoft.CodeAnalysis.Emit.EmitResult.GetDebuggerDisplay() -> string
 virtual Microsoft.CodeAnalysis.Location.GetDebuggerDisplay() -> string
 virtual Microsoft.CodeAnalysis.Location.GetLineSpan() -> Microsoft.CodeAnalysis.FileLinePositionSpan

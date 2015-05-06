@@ -1652,8 +1652,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933)>
@@ -1674,8 +1673,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1694,8 +1692,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(849649)>
@@ -1807,8 +1804,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "3"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", FeaturesResources.Field))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "3"))
         End Sub
 
         <Fact, WorkItem(849649)>
@@ -1829,8 +1825,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>

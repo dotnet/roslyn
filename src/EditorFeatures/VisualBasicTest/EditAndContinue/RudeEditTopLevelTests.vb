@@ -1742,7 +1742,9 @@ End Class
                 "Insert [a]@30",
                 "Insert [As Integer]@32")
 
-            edits.VerifyRudeDiagnostics()
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
@@ -2000,7 +2002,7 @@ End Class
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "a += Await F(1)"))
         End Sub
 
-        <Fact(Skip:="TODO: Enable lambda edits")>
+        <Fact>
         Public Sub MethodWithLambda_Update()
             Dim src1 = "
 Class C
@@ -2608,7 +2610,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2667,9 +2669,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                {SemanticEdit(SemanticEditKind.Update, Function(c)
-                                                           Return c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
-                                                       End Function)})
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2800,7 +2800,7 @@ End Class
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {srcB1},
                                   {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2816,7 +2816,7 @@ End Class
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {srcB1},
                                   {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2832,7 +2832,7 @@ End Class
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {srcB1},
                                   {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2848,7 +2848,7 @@ End Class
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {srcB1},
                                   {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2864,7 +2864,7 @@ End Class
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {srcB1},
                                   {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2901,6 +2901,271 @@ End Class
                                   Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()"))
         End Sub
 
+        <Fact>
+        Public Sub InstanceCtor_Partial_Update_LambdaInInitializer1()
+            Dim src1 = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>)), A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
+    Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
+    Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.5>Function(b) b + 1</N:0.5>)
+
+    Public Sub New()
+        F(<N:0.6>Function(c) c + 1</N:0.6>)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>)), A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
+    Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
+    Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.5>Function(b) b + 1</N:0.5>)
+
+    Public Sub New()
+        F(<N:0.6>Function(c) c + 2</N:0.6>)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub InstanceCtor_Partial_Update_LambdaInInitializer_Trivia1()
+            Dim src1 = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Public Sub New()
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+       Public Sub New()
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub InstanceCtor_Partial_Update_LambdaInInitializer_ExplicitInterfaceImpl1()
+            Dim src1 As String = "
+Imports System
+
+Public Interface I
+    ReadOnly Property B As Integer
+End Interface
+
+Public Interface J
+    ReadOnly Property B As Integer
+End Interface
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    Implements I, J
+
+    Private ReadOnly Property I_B As Integer = F(<N:0.1>Function(ib) ib + 1</N:0.1>) Implements I.B
+    Private ReadOnly Property J_B As Integer = F(<N:0.2>Function(jb) jb + 1</N:0.2>) Implements J.B
+
+    Public Sub New()
+        F(<N:0.3>Function(c) c + 1</N:0.3>)
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+
+Public Interface I
+    ReadOnly Property B As Integer
+End Interface
+
+Public Interface J
+    ReadOnly Property B As Integer
+End Interface
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    Implements I, J
+
+    Private ReadOnly Property I_B As Integer = F(<N:0.1>Function(ib) ib + 1</N:0.1>) Implements I.B
+    Private ReadOnly Property J_B As Integer = F(<N:0.2>Function(jb) jb + 1</N:0.2>) Implements J.B
+
+    Public Sub New()
+        F(<N:0.3>Function(c) c + 2</N:0.3>)   ' update
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub InstanceCtor_Partial_Insert_Parameterless_LambdaInInitializer1()
+            Dim src1 = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.1>Function(a) a + 1</N:0.1>)
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.1>Function(a) a + 1</N:0.1>)
+
+    Sub New()      ' new ctor
+        F(Function(c) c + 1)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact, WorkItem(2504)>
+        Public Sub InstanceCtor_Partial_Insert_WithParameters_LambdaInInitializer1()
+            Dim src1 As String = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+End Class
+"
+            Dim src2 As String = "
+Imports System
+
+Partial Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    ReadOnly Property B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(x As Integer)              ' new ctor
+        F(Function(c) c + 1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Sub New(x As Integer)"))
+
+            ' TODO bug https://github.com/dotnet/roslyn/issues/2504
+            ' edits.VerifySemantics(
+            '     ActiveStatementsDescription.Empty,
+            '     {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap(0))})
+
+        End Sub
 #End Region
 
 #Region "Declare"
@@ -3525,6 +3790,176 @@ End Class
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.Field, FeaturesResources.Class))
         End Sub
 
+        <Fact>
+        Public Sub FieldInsert_WithInitializersAndLambdas1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+
+    Public Sub New()
+        F(<N:0.1>Function(c) c + 1</N:0.1>)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(Function(b) b + 1)   ' new field
+
+    Public Sub New()
+        F(<N:0.1>Function(c) c + 1</N:0.1>)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
+                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInsert_ParameterlessConstructorInsert_WithInitializersAndLambdas1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+
+    Dim B As Integer = F(Function(b) b + 1)   ' new field
+
+    Sub New()                                 ' new ctor
+        F(Function(c) c + 1)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
+                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact, WorkItem(2504)>
+        Public Sub FieldInsert_ConstructorInsert_WithInitializersAndLambdas1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+
+    Dim B As Integer = F(Function(b) b + 1)   ' new field
+
+    Sub New(x As Integer)                     ' new ctor
+        F(Function(c) c + 1)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
+                 SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single())})
+
+            ' TODO (bug https//github.com/dotnet/roslyn/issues/2504):
+            'edits.VerifySemantics(
+            '    ActiveStatementsDescription.Empty,
+            '    {
+            '        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
+            '        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))
+            '    })
+
+        End Sub
+
+        <Fact, WorkItem(2504)>
+        Public Sub FieldInsert_ConstructorInsert_WithInitializersButNoExistingLambdas1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(Nothing)
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Dim A As Integer = F(Nothing)
+    Dim B As Integer = F(Function(b) b + 1)   ' new field
+
+    Sub New(x As Integer)                     ' new ctor
+        F(Function(c) c + 1)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single())
+                })
+        End Sub
+
 #End Region
 
 #Region "Properties"
@@ -3683,16 +4118,16 @@ End Structure
 
         <Fact>
         Public Sub PropertyInsert_IntoLayoutClass_Sequential()
-            Dim src1 = <![CDATA[
+            Dim src1 = "
 Imports System.Runtime.InteropServices
 
 <StructLayoutAttribute(LayoutKind.Sequential)>
 Class C
     Private a As Integer
 End Class
-]]>.Value
+"
 
-            Dim src2 = <![CDATA[
+            Dim src2 = "
 Imports System.Runtime.InteropServices
 
 <StructLayoutAttribute(LayoutKind.Sequential)>
@@ -3719,7 +4154,7 @@ Class C
         End Set
     End Property
 End Class
-]]>.Value
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Property b As Integer", FeaturesResources.AutoProperty, FeaturesResources.Class),
@@ -3739,10 +4174,10 @@ End Class
                 "Update [a As Integer = 0]@14 -> [a As Integer = 1]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact>
+        <Fact(Skip:="2543"), WorkItem(2543)>
         Public Sub Field_InitializerUpdate2()
             Dim src1 = "Class C : Dim a, b As Integer = 0 : End Class"
             Dim src2 = "Class C : Dim a, b As Integer = 1 : End Class"
@@ -3752,7 +4187,7 @@ End Class
                 "Update [a, b As Integer = 0]@14 -> [a, b As Integer = 1]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3765,7 +4200,7 @@ End Class
                 "Update [Property a As Integer = 0]@10 -> [Property a As Integer = 1]@10")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3778,7 +4213,7 @@ End Class
                 "Update [Property a As New C(0)]@10 -> [Property a As New C(1)]@10")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3791,7 +4226,7 @@ End Class
                 "Update [a(1)]@14 -> [a(2)]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3804,10 +4239,10 @@ End Class
                 "Update [a As New D(1)]@14 -> [a As New D(2)]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact>
+        <Fact(Skip:="2543"), WorkItem(2543)>
         Public Sub Field_InitializerUpdate_AsNew2()
             Dim src1 = "Class C : Dim a, b As New C(1) : End Class"
             Dim src2 = "Class C : Dim a, b As New C(2) : End Class"
@@ -3817,7 +4252,7 @@ End Class
                 "Update [a, b As New C(1)]@14 -> [a, b As New C(2)]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3830,7 +4265,7 @@ End Class
                 "Update [Property a As New D(1)]@10 -> [Property a As New D(2)]@10")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3843,7 +4278,7 @@ End Class
                 "Update [a = 1]@14 -> [a = 2]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3856,7 +4291,7 @@ End Class
                 "Update [Property a = 1]@10 -> [Property a = 2]@10")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3869,7 +4304,7 @@ End Class
                 "Update [a As Integer = 0]@14 -> [a As Integer]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3882,7 +4317,7 @@ End Class
                 "Update [Property a As Integer = 0]@10 -> [Property a As Integer]@10")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3895,7 +4330,7 @@ End Class
                 "Update [Property a As Integer = 0]@14 -> [Property a As Integer]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3908,7 +4343,7 @@ End Class
                 "Update [a As Integer]@14 -> [a As Integer = 0]@14")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -3921,7 +4356,7 @@ End Class
                 "Update [Property a As Integer]@10 -> [Property a As Integer = 0]@10")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4065,8 +4500,11 @@ End Class
             Dim src2 = "Class C : Shared a As Integer = 0 : " & vbLf & "Shared Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
+            edits.VerifyEdits(
+                "Update [a As Integer]@17 -> [a As Integer = 0]@17")
+
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4075,8 +4513,11 @@ End Class
             Dim src2 = "Module C : Dim a As Integer = 0 : " & vbLf & "Sub New() : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
+            edits.VerifyEdits(
+                "Update [a As Integer]@15 -> [a As Integer = 0]@15")
+
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4086,7 +4527,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4096,7 +4537,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4106,7 +4547,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4116,7 +4557,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4126,7 +4567,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4136,7 +4577,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4146,7 +4587,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4156,7 +4597,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4166,8 +4607,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)")),
-                                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)"), preserveLocalVariables:=True),
+                                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4177,8 +4618,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)")),
-                                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)"), preserveLocalVariables:=True),
+                                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4188,7 +4629,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4198,7 +4639,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4208,7 +4649,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4218,7 +4659,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4228,8 +4669,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)"), preserveLocalVariables:=True),
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4239,8 +4680,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Integer)"), preserveLocalVariables:=True),
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.ToString() = "Private Sub New(a As Boolean)"), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4330,7 +4771,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4340,7 +4781,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4363,44 +4804,40 @@ End Class
                 Diagnostic(RudeEditKind.GenericTypeInitializerUpdate, "Property a", FeaturesResources.AutoProperty))
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub FieldUpdate_LambdaInConstructor()
             Dim src1 = "Class C : Dim a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(Sub() System.Console.WriteLine()) : End Sub : End Class"
             Dim src2 = "Class C : Dim a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(Sub() System.Console.WriteLine()) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub PropertyUpdate_LambdaInConstructor()
             Dim src1 = "Class C : Property a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(Sub() System.Console.WriteLine()) : End Sub : End Class"
             Dim src2 = "Class C : Property a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(Sub() System.Console.WriteLine()) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub FieldUpdate_QueryInConstructor()
             Dim src1 = "Class C : Dim a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(From a In b Select c) : End Sub : End Class"
             Dim src2 = "Class C : Dim a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(From a In b Select c) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="726990")>
+        <Fact>
         Public Sub PropertyUpdate_QueryInConstructor()
             Dim src1 = "Class C : Property a As Integer = 1 : " & vbLf & "Sub New()" & vbLf & "F(From a In b Select c) : End Sub : End Class"
             Dim src2 = "Class C : Property a As Integer = 2 : " & vbLf & "Sub New()" & vbLf & "F(From a In b Select c) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", "constructor"))
+            edits.VerifySemanticDiagnostics()
         End Sub
 
         <Fact>
@@ -4495,10 +4932,10 @@ End Class
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact>
+        <Fact(Skip:="2543"), WorkItem(2543)>
         Public Sub PrivateFieldInsert2()
             Dim src1 = "Class C : Private a As Integer = 1 : End Class"
             Dim src2 = "Class C : Private a, b As Integer = 1 : End Class"
@@ -4510,7 +4947,7 @@ End Class
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.b")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4525,7 +4962,7 @@ End Class
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4541,7 +4978,7 @@ End Class
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4555,7 +4992,7 @@ End Class
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4572,7 +5009,7 @@ End Class
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4647,8 +5084,7 @@ End Class
             Dim src2 = "Class C : Dim a As Integer = F(2, Function(x, y) x + y) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x, y)", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4657,8 +5093,7 @@ End Class
             Dim src2 = "Class C : Property a As Integer = F(2, Function(x, y) x + y) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x, y)", FeaturesResources.AutoProperty))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4667,8 +5102,7 @@ End Class
             Dim src2 = "Class C : Dim a As Integer = F(2, Function(x)" & vbLf & "Return x" & vbLf & "End Function) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4677,8 +5111,7 @@ End Class
             Dim src2 = "Class C : Property a As Integer = F(2, Function(x)" & vbLf & "Return x" & vbLf & "End Function) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function(x)", FeaturesResources.AutoProperty))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4687,8 +5120,7 @@ End Class
             Dim src2 = "Class C : Dim a = F(2, From foo In bar Select baz) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4697,8 +5129,7 @@ End Class
             Dim src2 = "Class C : Property a = F(2, From foo In bar Select baz) : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, "From", FeaturesResources.AutoProperty))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -4758,6 +5189,649 @@ End Class
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Const x = 0", FeaturesResources.ConstField))
         End Sub
 
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_ImplicitCtor_EditInitializerWithLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 2</N:0.1>)
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_ImplicitCtor_EditInitializerWithoutLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = 1
+    Dim B As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = 2
+    Dim B As Integer = F(<N:0.0>Function(b) b + 2</N:0.0>)
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_CtorIncludingInitializers_EditInitializerWithLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 2</N:0.1>)
+
+    Sub New
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_CtorIncludingInitializers_EditInitializerWithoutLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = 1
+    Dim B As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+
+    Sub New
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = 2
+    Dim B As Integer = F(<N:0.0>Function(b) b + 2</N:0.0>)
+
+    Sub New
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializers_EditInitializerWithLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer)
+    End Sub
+
+    Sub New(b As Boolean)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 2</N:0.1>)
+
+    Sub New(a As Integer)
+    End Sub
+
+    Sub New(b As Boolean)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
+                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer)
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+
+    Sub New(b As Boolean)
+        F(<N:0.3>Function(d) d + 1</N:0.3>)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(b) b + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 2</N:0.1>)
+
+    Sub New(a As Integer)
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+
+    Sub New(b As Boolean)
+        F(<N:0.3>Function(d) d + 1</N:0.3>)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
+                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditInitializerWithLambda_Trivia1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer)
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+
+    Sub New(b As Boolean)
+        F(<N:0.3>Function(d) d + 1</N:0.3>)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer =      F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer)
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+
+    Sub New(b As Boolean)
+        F(<N:0.3>Function(d) d + 1</N:0.3>)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
+                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer)
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+
+    Sub New(b As Boolean)
+        F(Function(d) d + 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer)
+        F(<N:0.2>Function(c) c + 2</N:0.2>)
+    End Sub
+
+    Sub New(b As Boolean)
+        F(Function(d) d + 1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(ctor) ctor.ToTestDisplayString() = "Sub C..ctor(a As System.Int32)"), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda_Trivia1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer) 
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+    
+    Sub New(b As Boolean)
+        F(Function(d) d + 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+        Sub New(a As Integer) 
+        F(<N:0.2>Function(c) c + 1</N:0.2>)
+    End Sub
+    
+    Sub New(b As Boolean) 
+        F(Function(d) d + 1) 
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(ctor) ctor.ToTestDisplayString() = "Sub C..ctor(a As System.Int32)"), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithoutLambda1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer) 
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer) 
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        Console.WriteLine(2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(ctor) ctor.ToTestDisplayString() = "Sub C..ctor(b As System.Boolean)"), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_EditContructorNotIncludingInitializers()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(Function(a) a + 1)
+    Dim B As Integer = F(Function(b) b + 1)
+
+    Sub New(a As Integer) 
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        MyClass.New(1)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(Function(a) a + 1)
+    Dim B As Integer = F(Function(b) b + 1)
+
+    Sub New(a As Integer) 
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        MyClass.New(1)
+        Console.WriteLine(2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(ctor) ctor.ToTestDisplayString() = "Sub C..ctor(b As System.Boolean)"))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_RemoveCtorInitializer1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer) 
+        ' method with a static local is currently non-editable
+        Static s As Integer = 1
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        MyClass.New(1)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(<N:0.0>Function(a) a + 1</N:0.0>)
+    Dim B As Integer = F(<N:0.1>Function(b) b + 1</N:0.1>)
+
+    Sub New(a As Integer) 
+        ' method with a static local is currently non-editable
+        Static s As Integer = 1
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(ctor) ctor.ToTestDisplayString() = "Sub C..ctor(b As System.Boolean)"), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_AddCtorInitializer1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(Function(a) a + 1)
+    Dim B As Integer = F(Function(b) b + 1)
+
+    Sub New(a As Integer) 
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+    End Function
+
+    Dim A As Integer = F(Function(a) a + 1)
+    Dim B As Integer = F(Function(b) b + 1)
+
+    Sub New(a As Integer) 
+        F(Function(c) c + 1)
+    End Sub
+    
+    Sub New(b As Boolean)
+        MyClass.New(1)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(ctor) ctor.ToTestDisplayString() = "Sub C..ctor(b As System.Boolean)"))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_ImplicitCtor_ArrayBounds1()
+            Dim src1 = "Class C : Dim a((<N:0.0>Function(n) n + 1</N:0.0>)(1)), b(1) : End Class"
+            Dim src2 = "Class C : Dim a((<N:0.0>Function(n) n + 1</N:0.0>)(2)), b(1) : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a((       Function(n) n + 1        )(1))]@14 -> [a((       Function(n) n + 1        )(2))]@14")
+
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact(Skip:="2543"), WorkItem(2543)>
+        Public Sub FieldInitializerUpdate_Lambdas_ImplicitCtor_AsNew1()
+            Dim src1 = "Class C : Dim a, b As New C((<N:0.0>Function(n) n + 1</N:0.0>)(1))" & vbCrLf & "Sub New(a As Integer) : End Sub : End Class"
+            Dim src2 = "Class C : Dim a, b As New C((<N:0.0>Function(n) n + 1</N:0.0>)(2))" & vbCrLf & "Sub New(a As Integer) : End Sub : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact>
+        Public Sub FieldInitializerUpdate_ActiveStatements1()
+            Dim src1 As String = "
+Imports System
+
+Class C
+    <AS:0>Dim A As Integer = <N:0.0>1</N:0.0></AS:0>
+    Dim B As Integer = 1
+
+    Public Sub New(a As Integer) 
+        Console.WriteLine(1)
+    End Sub
+
+    Public Sub New(b As Boolean) 
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+
+Class C
+    <AS:0>Dim A As Integer = <N:0.0>1</N:0.0></AS:0>
+    Dim B As Integer = 2
+
+    Public Sub New(a As Integer) 
+        Console.WriteLine(1)
+    End Sub
+
+    Public Sub New(b As Boolean) 
+        Console.WriteLine(1)
+    End Sub
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            Dim activeStatements = GetActiveStatements(src1, src2)
+
+            edits.VerifySemantics(
+                activeStatements,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
+                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))})
+        End Sub
 #End Region
 
 #Region "Events"

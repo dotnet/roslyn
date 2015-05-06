@@ -308,6 +308,7 @@
     <Compile Include="Implementation\BraceMatching\BraceHighlightingViewTaggerProvider.cs" />
     <Compile Include="Implementation\BraceMatching\BraceHighlightTag.cs" />
     <Compile Include="Implementation\BraceMatching\BraceMatchingService.cs" />
+    <Compile Include="Implementation\BraceMatching\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\CallHierarchy\AbstractCallHierarchyCommandHandler.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyDetail.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyItem.cs" />

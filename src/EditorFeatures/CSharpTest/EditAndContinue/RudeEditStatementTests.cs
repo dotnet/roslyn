@@ -755,7 +755,7 @@ yield return /*2*/ 3;
 foreach (var x in y) { yield return /*3*/ 2; }
 ";
 
-            var match = GetMethodMatches(src1, src2, stateMachine: StateMachineKind.Iterator);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
             var actual = ToMatchingPairs(match);
 
             // note that yield returns are matched in source order, regardless of the yielded expressions:
@@ -816,6 +816,51 @@ Console.WriteLine(1)/*4*/;
             {
                 { "Console.WriteLine(1)/*1*/;", "Console.WriteLine(1)/*3*/;" },
                 { "Console.WriteLine(1)/*2*/;", "Console.WriteLine(1)/*4*/;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchConstructorWithInitializer1()
+        {
+            var src1 = @"
+(int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
+";
+            var src2 = @"
+(int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.ConstructorWithParameters);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "a => a + 1", "a => a + 1" },
+                { "{ Console.WriteLine(1); }", "{ Console.WriteLine(1); }" },
+                { "Console.WriteLine(1);", "Console.WriteLine(1);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchConstructorWithInitializer2()
+        {
+            var src1 = @"
+() : base(a => a + 1) { Console.WriteLine(1); }
+";
+            var src2 = @"
+() { Console.WriteLine(1); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.ConstructorWithParameters);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "{ Console.WriteLine(1); }", "{ Console.WriteLine(1); }" },
+                { "Console.WriteLine(1);", "Console.WriteLine(1);" }
             };
 
             expected.AssertEqual(actual);
@@ -3054,7 +3099,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", "lambda", "x1", "x0")
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.Lambda, "x1", "x0")
                 );
         }
 
@@ -4750,6 +4795,58 @@ class C
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "y1", CSharpFeaturesResources.Lambda).WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"));
         }
 
+        [Fact]
+        public void Lambdas_Update_Accessing_Closure_NestedLambdas()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<int, Func<int, int>> f) {}
+
+    void F()                       
+    {                              
+        { int x0 = 0;      // Group #0             
+            { int x1 = 0;  // Group #1               
+                                         
+                G(a => b => x0);
+                G(a => b => x1);
+            }
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, Func<int, int>> f) {}
+
+    void F()
+    {
+        { int x0 = 0;      // Group #0          
+            { int x1 = 0;  // Group #1              
+                                         
+                G(a => b => x0);
+                G(a => b => x1);
+
+                G(a => b => x0);      // ok
+                G(a => b => x1);      // ok
+                G(a => b => x0 + x1); // error
+            }
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
         #endregion
 
         #region Queries
@@ -5889,7 +5986,7 @@ yield return 1;
 yield return 3;
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Iterator);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Iterator);
 
             bodyEdits.VerifyEdits(
                 "Delete [yield return 2;]@42");
@@ -5939,7 +6036,7 @@ yield return 3;
 yield return 4;
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Iterator);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Iterator);
 
             bodyEdits.VerifyEdits(
                 "Insert [yield return 2;]@42",
@@ -6102,7 +6199,7 @@ await F(1);
 await F(3);
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Async);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Async);
 
             bodyEdits.VerifyEdits(
                 "Delete [await F(2);]@37",
@@ -6227,7 +6324,7 @@ await F(3);
 await F(4);
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Async);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Async);
 
             bodyEdits.VerifyEdits(
                 "Insert [await F(2);]@37",

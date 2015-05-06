@@ -214,9 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 testData = new CompilationTestData();
                 context.CompileExpression(
-                    InspectionContextFactory.Empty,
                     "(new B()).F",
                     DkmEvaluationFlags.None,
+                    NoAliases,
                     DiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
@@ -274,9 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // B.F should result in missing assembly AS2 since there were no direct references to AS2.
                 testData = new CompilationTestData();
                 context.CompileExpression(
-                    InspectionContextFactory.Empty,
                     "(new B()).F",
                     DkmEvaluationFlags.None,
+                    NoAliases,
                     DiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,

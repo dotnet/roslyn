@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
-            return new AnalyzerFileReference(fullPath, _analyzerLoader.LoadFromPath);
+            return new AnalyzerFileReference(fullPath, _analyzerLoader);
         }
 
         [Fact]
@@ -134,7 +134,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
             AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
 
-            Assert.Equal(expected: "Foo.txt", actual: reference.Display);
+            Assert.Equal(expected: "Foo", actual: reference.Display);
+        }
+
+        [Fact]
+        public void ValidAnalyzerReference_DisplayName()
+        {
+            var directory = Temp.CreateDirectory();
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+
+            Assert.Equal(expected: "Alpha", actual: reference.Display);
         }
 
         [Fact]

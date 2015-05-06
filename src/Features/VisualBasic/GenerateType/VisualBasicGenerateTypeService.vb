@@ -90,10 +90,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 document As SemanticDocument, simpleName As SimpleNameSyntax, cancellationToken As CancellationToken, ByRef generateTypeServiceStateOptions As GenerateTypeServiceStateOptions) As Boolean
             generateTypeServiceStateOptions = New GenerateTypeServiceStateOptions()
 
-            If simpleName.GetAncestorOrThis(Of ImportsStatementSyntax)() IsNot Nothing Then
-                Return False
-            End If
-
             If simpleName.IsParentKind(SyntaxKind.DictionaryAccessExpression) Then
                 Return False
             End If
