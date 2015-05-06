@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 if (partCount == 0)
                 {
-                    return SpecializedCollections.EmptyArray<TextChunk>();
+                    return Array.Empty<TextChunk>();
                 }
 
                 var result = new TextChunk[partCount];
@@ -165,9 +165,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _compareInfo = culture.CompareInfo;
 
             _fullPatternSegment = new Segment(pattern, verbatimIdentifierPrefixIsWordCharacter);
-            _dotSeparatedSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
-                                            .Select(text => new Segment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter))
-                                            .ToArray();
+
+            if (pattern.IndexOf('.') < 0)
+            {
+                // PERF: Avoid string.Split allocations when the pattern doesn't contain a dot.
+                _dotSeparatedSegments = pattern.Length > 0 ? new Segment[1] { _fullPatternSegment } : Array.Empty<Segment>();
+            }
+            else
+            {
+                _dotSeparatedSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(text => new Segment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter))
+                                                .ToArray();
+            }
+
             _invalidPattern = _dotSeparatedSegments.Length == 0 || _dotSeparatedSegments.Any(s => s.IsInvalid);
         }
 
