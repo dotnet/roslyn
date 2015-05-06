@@ -5294,4 +5294,16 @@
   <data name="FEATURE_NameOfExpressions" xml:space="preserve">
     <value>'nameof' expressions</value>
   </data>
+  <data name="WRN_LoadedAnalyzerDiffers" xml:space="preserve">
+    <value>The analyzer assembly {0} does not match the loaded assembly '{1}'.  Analyzers may not work as expected.</value>
+  </data>
+  <data name="WRN_LoadedAnalyzerDiffers_Title" xml:space="preserve">
+    <value>Specified analyzer does not match the loaded assembly</value>
+  </data>
+  <data name="WRN_MissingAnalyzerDependency" xml:space="preserve">
+    <value>The assembly '{0}' is required by analyzer {1} but was not found.  Analyzers may not work as expected.</value>
+  </data>
+  <data name="WRN_MissingAnalyzerDependency_Title" xml:space="preserve">
+    <value>An assembly required by an analyzer was not found</value>
+  </data>
 </root>

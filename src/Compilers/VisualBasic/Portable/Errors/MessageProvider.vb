@@ -327,6 +327,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property WRN_LoadedAnalyzerDiffers As Integer
+            Get
+                Return ERRID.WRN_LoadedAnalyzerDiffers
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property WRN_MissingAnalyzerDependency As Integer
+            Get
+                Return ERRID.WRN_MissingAnalyzerDependency
+            End Get
+        End Property
+
         Public Overrides Sub ReportDuplicateMetadataReferenceStrong(diagnostics As DiagnosticBag, location As Location, reference As MetadataReference, identity As AssemblyIdentity, equivalentReference As MetadataReference, equivalentIdentity As AssemblyIdentity)
             diagnostics.Add(ERRID.ERR_DuplicateReferenceStrong,
                             DirectCast(location, Location),

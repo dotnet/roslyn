@@ -4633,4 +4633,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ContantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+  <data name="WRN_LoadedAnalyzerDiffers" xml:space="preserve">
+    <value>The analyzer assembly {0} does not match the loaded assembly '{1}'.  Analyzers may not work as expected.</value>
+  </data>
+  <data name="WRN_LoadedAnalyzerDiffers_Title" xml:space="preserve">
+    <value>Specified analyzer does not match the loaded assembly</value>
+  </data>
+  <data name="WRN_MissingAnalyzerDependency" xml:space="preserve">
+    <value>The assembly '{0}' is required by analyzer {1} but was not found.  Analyzers may not work as expected.</value>
+  </data>
+  <data name="WRN_MissingAnalyzerDependency_Title" xml:space="preserve">
+    <value>An assembly required by an analyzer was not found</value>
+  </data>
 </root>

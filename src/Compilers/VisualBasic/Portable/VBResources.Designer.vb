@@ -13306,6 +13306,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The analyzer assembly {0} does not match the loaded assembly &apos;{1}&apos;.  Analyzers may not work as expected..
+        '''</summary>
+        Friend ReadOnly Property WRN_LoadedAnalyzerDiffers() As String
+            Get
+                Return ResourceManager.GetString("WRN_LoadedAnalyzerDiffers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Specified analyzer does not match the loaded assembly.
+        '''</summary>
+        Friend ReadOnly Property WRN_LoadedAnalyzerDiffers_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_LoadedAnalyzerDiffers_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to The entry point of the program is global script code; ignoring &apos;{0}&apos; entry point..
         '''</summary>
         Friend ReadOnly Property WRN_MainIgnored() As String
@@ -13338,6 +13356,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_MemberShadowsSynthMember6_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_MemberShadowsSynthMember6_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The assembly &apos;{0}&apos; is required by analyzer {1} but was not found.  Analyzers may not work as expected..
+        '''</summary>
+        Friend ReadOnly Property WRN_MissingAnalyzerDependency() As String
+            Get
+                Return ResourceManager.GetString("WRN_MissingAnalyzerDependency", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to An assembly required by an analyzer was not found.
+        '''</summary>
+        Friend ReadOnly Property WRN_MissingAnalyzerDependency_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MissingAnalyzerDependency_Title", resourceCulture)
             End Get
         End Property
         

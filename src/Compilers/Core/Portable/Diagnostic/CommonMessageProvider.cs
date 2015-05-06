@@ -202,6 +202,10 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_MetadataNameTooLong { get; }
         public abstract int ERR_EncReferenceToAddedMember { get; }
 
+        // Analyzers:
+        public abstract int WRN_MissingAnalyzerDependency { get; }
+        public abstract int WRN_LoadedAnalyzerDiffers { get; }
+
         public abstract void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute);
         public abstract void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName);
         public abstract void ReportParameterNotValidForType(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex);
