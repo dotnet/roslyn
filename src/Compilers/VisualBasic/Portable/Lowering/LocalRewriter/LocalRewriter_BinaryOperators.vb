@@ -778,22 +778,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We may also statically know if one is definitely not a null
             ' we cannot know, though, if whole operator yields null or not.
 
-            If rightHasValue AndAlso left.Kind = BoundKind.LoweredConditionalAccess Then
-                Dim rightValue = NullableValueOrDefault(right)
-                Dim conditional = DirectCast(left, BoundLoweredConditionalAccess)
+            If rightHasValue Then
+                Dim whenNotNull As BoundExpression = Nothing
+                Dim whenNull As BoundExpression = Nothing
+                If IsConditionalAccess(left, whenNotNull, whenNull) Then
+                    Dim rightValue = NullableValueOrDefault(right)
 
-                If (rightValue.IsConstant OrElse rightValue.Kind = BoundKind.Local OrElse rightValue.Kind = BoundKind.Parameter) AndAlso
-                   HasValue(conditional.WhenNotNull) AndAlso HasNoValue(conditional.WhenNullOpt) Then
+                    If (rightValue.IsConstant OrElse rightValue.Kind = BoundKind.Local OrElse rightValue.Kind = BoundKind.Parameter) AndAlso
+                       HasValue(whenNotNull) AndAlso HasNoValue(whenNull) Then
 
-                    Return conditional.Update(conditional.ReceiverOrCondition,
-                                              conditional.CaptureReceiver,
-                                              conditional.PlaceholderId,
-                                              WrapInNullable(ApplyUnliftedBinaryOp(node,
-                                                                                   NullableValueOrDefault(conditional.WhenNotNull),
-                                                                                   rightValue),
-                                                             node.Type),
-                                              NullableNull(conditional.WhenNullOpt, node.Type),
-                                              node.Type)
+                        Return UpdateConditionalAccess(left,
+                                                       WrapInNullable(ApplyUnliftedBinaryOp(node,
+                                                                                            NullableValueOrDefault(whenNotNull),
+                                                                                            rightValue),
+                                                                      node.Type),
+                                                       NullableNull(whenNull, node.Type))
+                    End If
                 End If
             End If
 
@@ -1134,16 +1134,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     resultType))
             Else
 
-                If operand.Kind = BoundKind.LoweredConditionalAccess Then
-                    Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
-
-                    If HasNoValue(conditional.WhenNullOpt) Then
-                        Return conditional.Update(conditional.ReceiverOrCondition,
-                                                  conditional.CaptureReceiver,
-                                                  conditional.PlaceholderId,
-                                                  RewriteNullableIsOrIsNotOperator(isIs, conditional.WhenNotNull, resultType),
-                                                  RewriteNullableIsOrIsNotOperator(isIs, conditional.WhenNullOpt, resultType),
-                                                  resultType)
+                Dim whenNotNull As BoundExpression = Nothing
+                Dim whenNull As BoundExpression = Nothing
+                If IsConditionalAccess(operand, whenNotNull, whenNull) Then
+                    If HasNoValue(whenNull) Then
+                        Return UpdateConditionalAccess(operand,
+                                                       RewriteNullableIsOrIsNotOperator(isIs, whenNotNull, resultType),
+                                                       RewriteNullableIsOrIsNotOperator(isIs, whenNull, resultType))
                     End If
                 End If
 

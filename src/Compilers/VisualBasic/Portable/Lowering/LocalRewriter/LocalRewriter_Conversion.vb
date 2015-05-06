@@ -288,16 +288,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' converting null
                         Return NullableNull(result.Syntax, resultType)
                     Else
-                        If rewrittenOperand.Kind = BoundKind.LoweredConditionalAccess Then
-                            Dim conditional = DirectCast(rewrittenOperand, BoundLoweredConditionalAccess)
-
-                            If HasValue(conditional.WhenNotNull) AndAlso HasNoValue(conditional.WhenNullOpt) Then
-                                Return conditional.Update(conditional.ReceiverOrCondition,
-                                                          conditional.CaptureReceiver,
-                                                          conditional.PlaceholderId,
-                                                          FinishRewriteNullableConversion(node, resultType, NullableValueOrDefault(conditional.WhenNotNull), Nothing, Nothing, Nothing),
-                                                          NullableNull(result.Syntax, resultType),
-                                                          resultType)
+                        Dim whenNotNull As BoundExpression = Nothing
+                        Dim whenNull As BoundExpression = Nothing
+                        If IsConditionalAccess(rewrittenOperand, whenNotNull, whenNull) Then
+                            If HasValue(whenNotNull) AndAlso HasNoValue(whenNull) Then
+                                Return UpdateConditionalAccess(rewrittenOperand,
+                                                               FinishRewriteNullableConversion(node, resultType, NullableValueOrDefault(whenNotNull), Nothing, Nothing, Nothing),
+                                                               NullableNull(result.Syntax, resultType))
                             End If
                         End If
 
