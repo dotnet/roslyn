@@ -41,15 +41,7 @@ namespace Roslyn.Utilities
         /// </summary>
         private static Type GetTypeFromEither(string contractName, string desktopName)
         {
-            Type type;
-            try
-            {
-                type = Type.GetType(contractName, throwOnError: false);
-            }
-            catch (Exception)
-            {
-                type = null;
-            }
+            var type = Type.GetType(contractName, throwOnError: false);
 
             if (type == null)
             {
