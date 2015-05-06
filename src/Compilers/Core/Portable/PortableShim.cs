@@ -327,7 +327,7 @@ namespace Roslyn.Utilities
 
             public static Stream Create(string path, object mode)
             {
-                return InvokeConstructor(s_Ctor_String_FileMode, new[] { path, mode }));
+                return InvokeConstructor(s_Ctor_String_FileMode, new[] { path, mode });
             }
 
             public static Stream Create(string path, object mode, object access)
