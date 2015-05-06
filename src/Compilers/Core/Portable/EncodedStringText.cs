@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             try
             {
-                return Encoding.GetEncoding("Windows-1252");
+                return PortableShim.Encoding.GetEncoding(1252);
             }
             catch (NotSupportedException)
             {
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Text
                 buffer = null;
                 return false;
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception)
             {
                 buffer = null;
                 return false;

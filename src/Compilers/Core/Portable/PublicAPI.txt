@@ -233,11 +233,6 @@ Microsoft.CodeAnalysis.DiagnosticSeverity.Warning = 2 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action, params Microsoft.CodeAnalysis.SymbolKind[] symbolKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerFileReference(string fullPath, Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader assemblyLoader) -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerLoadFailed -> System.EventHandler<Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs>
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference other) -> bool
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssembly() -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.AnalyzerImageReference(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs
@@ -1752,13 +1747,6 @@ override Microsoft.CodeAnalysis.CompilationReference.Display.get -> string
 override Microsoft.CodeAnalysis.Diagnostic.ToString() -> string
 override Microsoft.CodeAnalysis.DiagnosticDescriptor.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.DiagnosticDescriptor.GetHashCode() -> int
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Display.get -> string
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.FullPath.get -> string
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Id.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.Display.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.FullPath.get -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
@@ -2246,11 +2234,6 @@ override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.GetHashCode() -> in
 override Microsoft.CodeAnalysis.CommandLineReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CommandLineReference.GetHashCode() -> int
 static Microsoft.CodeAnalysis.CommandLineParser.SplitCommandLineIntoArguments(string commandLine, bool removeHashComments) -> System.Collections.Generic.IEnumerable<string>
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerFileReference(string fullPath, System.Func<string, System.Reflection.Assembly> getAssembly) -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerLoadFailed -> System.EventHandler<Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs>
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference other) -> bool
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssembly() -> System.Reflection.Assembly
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.AnalyzerLoadFailureEventArgs(Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode, System.Exception ex, string typeName) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
@@ -2267,12 +2250,6 @@ Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.
 Microsoft.CodeAnalysis.XmlFileResolver
 Microsoft.CodeAnalysis.XmlFileResolver.BaseDirectory.get -> string
 Microsoft.CodeAnalysis.XmlFileResolver.XmlFileResolver(string baseDirectory) -> void
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Display.get -> string
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.FullPath.get -> string
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
-override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.SourceFileResolver.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.SourceFileResolver.GetHashCode() -> int
 override Microsoft.CodeAnalysis.SourceFileResolver.NormalizePath(string path, string baseFilePath) -> string
@@ -2290,3 +2267,15 @@ static readonly Microsoft.CodeAnalysis.SourceFileResolver.Default -> Microsoft.C
 static readonly Microsoft.CodeAnalysis.XmlFileResolver.Default -> Microsoft.CodeAnalysis.XmlFileResolver
 virtual Microsoft.CodeAnalysis.SourceFileResolver.FileExists(string resolvedPath) -> bool
 virtual Microsoft.CodeAnalysis.XmlFileResolver.FileExists(string resolvedPath) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerFileReference(string fullPath, Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader assemblyLoader) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerLoadFailed -> System.EventHandler<Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs>
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference other) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssembly() -> System.Reflection.Assembly
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Display.get -> string
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.FullPath.get -> string
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzers(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAnalyzersForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Id.get -> string

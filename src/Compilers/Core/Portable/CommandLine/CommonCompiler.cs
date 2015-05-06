@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
         {
             DiagnosticInfo diagnosticInfo;
 
-            if (e is FileNotFoundException)
+            if (e is FileNotFoundException || e.GetType().Name == "DirectoryNotFoundException")
             {
                 diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_FileNotFound, file.Path);
             }
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return PortableShim.FileStream.Create(filePath, mode, access, share);
+                return FileOpen(filePath, mode, access, share);
             }
             catch (Exception e)
             {

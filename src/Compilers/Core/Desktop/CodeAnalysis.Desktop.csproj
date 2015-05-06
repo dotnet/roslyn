@@ -49,15 +49,6 @@
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CodeAnalysisDesktopResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CodeAnalysisDesktopResources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Forwarders.cs" />
-    <Compile Include="Interop\SuppressUnmanagedCodeSecurityAttribute.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -120,16 +111,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CodeAnalysisDesktopResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CodeAnalysisDesktopResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\CodeAnalysisRules.ruleset">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>

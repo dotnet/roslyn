@@ -59,16 +59,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\AssemblyReferenceResolver.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\AssemblyReferenceResolver.cs">
       <Link>InternalUtilities\AssemblyReferenceResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\MetadataFileReferenceResolver.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\MetadataFileReferenceResolver.cs">
       <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\EncodedStringText.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
       <Link>InternalUtilities\EncodedStringText.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\FileKey.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
       <Link>InternalUtilities\FileKey.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\PortableShim.cs">

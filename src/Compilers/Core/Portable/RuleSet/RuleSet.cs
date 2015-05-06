@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (IOException e)
             {
-                if (e is FileNotFoundException)
+                if (e is FileNotFoundException || e.GetType().Name == "DirectoryNotFoundException")
                 {
                     if (diagnosticsOpt != null && messageProviderOpt != null)
                     {

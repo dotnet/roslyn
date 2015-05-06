@@ -38,12 +38,21 @@ namespace Roslyn.Utilities
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
         /// would exist in mscorlib.  This helps satisfy both the CoreCLR and Desktop scenarios. 
         /// </summary>
-        private static Type GetTypeFromEither(string contractName, string corlibName)
+        private static Type GetTypeFromEither(string contractName, string desktopName)
         {
-            var type = Type.GetType(contractName, throwOnError: false);
+            Type type;
+            try
+            {
+                type = Type.GetType(contractName, throwOnError: false);
+            }
+            catch (Exception)
+            {
+                type = null;
+            }
+
             if (type == null)
             {
-                type = Type.GetType(corlibName, throwOnError: false);
+                type = Type.GetType(desktopName, throwOnError: false);
             }
 
             return type;
@@ -95,16 +104,16 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_Runtime_Extensions_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static Func<string, string> ExpandEnvironmentVariables = (Func<string, string>)Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(ExpandEnvironmentVariables))
+                .GetDeclaredMethod(nameof(ExpandEnvironmentVariables), paramTypes: new[] { typeof(string) })
                 .CreateDelegate(typeof(Func<string, string>));
 
             internal static Func<string, string> GetEnvironmentVariable = (Func<string, string>)Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(GetEnvironmentVariable))
+                .GetDeclaredMethod(nameof(GetEnvironmentVariable), paramTypes: new[] { typeof(string) })
                 .CreateDelegate(typeof(Func<string, string>));
         }
 
@@ -114,7 +123,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_Runtime_Extensions_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly char DirectorySeparatorChar = (char)Type
                 .GetTypeInfo()
@@ -143,7 +152,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly Func<string, DateTime> GetLastWriteTimeUtc = (Func<string, DateTime>)Type
                 .GetTypeInfo()
@@ -182,7 +191,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             private static readonly MethodInfo s_enumerateFiles = Type
                 .GetTypeInfo()
@@ -200,7 +209,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly object CreateNew = Enum.ToObject(Type, 1);
 
@@ -221,7 +230,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly object Read = Enum.ToObject(Type, 1);
 
@@ -236,7 +245,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly object None = Enum.ToObject(Type, 0);
 
@@ -259,7 +268,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly object None = Enum.ToObject(Type, 0);
 
@@ -272,7 +281,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly object TopDirectoryOnly = Enum.ToObject(Type, 0);
 
@@ -285,7 +294,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"${TypeName}, ${System_IO_FileSystem_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly PropertyInfo Name = Type
                 .GetTypeInfo()
@@ -309,27 +318,62 @@ namespace Roslyn.Utilities
 
             public static Stream Create(string path, object mode)
             {
-                return (Stream)s_Ctor_String_FileMode.Invoke(new[] { path, mode });
+                try
+                {
+                    return (Stream)s_Ctor_String_FileMode.Invoke(new[] { path, mode });
+                }
+                catch (TargetInvocationException e)
+                {
+                    throw e.InnerException;
+                }
             }
 
             public static Stream Create(string path, object mode, object access)
             {
-                return (Stream)s_Ctor_String_FileMode_FileAccess.Invoke(new[] { path, mode, access });
+                try
+                {
+                    return (Stream)s_Ctor_String_FileMode_FileAccess.Invoke(new[] { path, mode, access });
+                }
+                catch (TargetInvocationException e)
+                {
+                    throw e.InnerException;
+                }
             }
 
             public static Stream Create(string path, object mode, object access, object share)
             {
-                return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare.Invoke(new[] { path, mode, access, share });
+                try
+                {
+                    return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare.Invoke(new[] { path, mode, access, share });
+                }
+                catch (TargetInvocationException e)
+                {
+                    throw e.InnerException;
+                }
             }
 
             public static Stream CreateEx(string path, object mode, object access, object share)
             {
-                return Create(path, mode, access, share);
+                try
+                {
+                    return Create(path, mode, access, share);
+                }
+                catch (TargetInvocationException e)
+                {
+                    throw e.InnerException;
+                }
             }
 
             public static Stream Create(string path, object mode, object access, object share, int bufferSize, object options)
             {
-                return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions.Invoke(new[] { path, mode, access, share, bufferSize, options });
+                try
+                {
+                    return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions.Invoke(new[] { path, mode, access, share, bufferSize, options });
+                }
+                catch (TargetInvocationException e)
+                {
+                    throw e.InnerException;
+                }
             }
         }
 
@@ -337,9 +381,11 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.Diagnostics.FileVersionInfo";
 
+            internal static readonly string DesktopName = $"{TypeName}, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
+
             internal static readonly Type Type = GetTypeFromEither(
-                contractName: $"${TypeName}, ${System_Diagnotsics_FileVersionInfo_Name}",
-                corlibName: TypeName);
+                contractName: $"{TypeName}, {System_Diagnotsics_FileVersionInfo_Name}",
+                desktopName: DesktopName);
 
             internal static readonly Func<string, object> GetVersionInfo = (Func<string, object>)Type
                 .GetTypeInfo()
@@ -357,7 +403,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Type Type = GetTypeFromEither(
                 contractName: $"${TypeName}, ${System_Threading_Thread_Name}",
-                corlibName: TypeName);
+                desktopName: TypeName);
 
             internal static readonly PropertyInfo CurrentThread = Type
                 .GetTypeInfo()

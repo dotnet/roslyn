@@ -155,7 +155,6 @@
     <Compile Include="EncodedStringText.cs" />
     <Compile Include="FileKey.cs" />
     <Compile Include="FileSystemExtensions.cs" />
-    <Compile Include="FileSystem\FileUtilities.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
     <Compile Include="Interop\IClrStrongName.cs" />
@@ -656,6 +655,7 @@
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.Roslyn" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
