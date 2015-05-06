@@ -500,37 +500,6 @@ namespace Microsoft.CodeAnalysis
             extends = row.BaseType;
         }
 
-        internal TypeDefinitionHandle FindSystemObjectTypeDef()
-        {
-            MetadataReader reader = MetadataReader;
-
-            foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
-            {
-                try
-                {
-                    var typeDef = reader.GetTypeDefinition(handle);
-
-                    if (typeDef.BaseType.IsNil &&
-                        (typeDef.Attributes & (TypeAttributes.Public | TypeAttributes.Interface)) == TypeAttributes.Public &&
-                        IsSystemObjectOrThrow(typeDef))
-                    {
-                        return handle;
-                    }
-                }
-                catch (BadImageFormatException)
-                { }
-            }
-
-            return default(TypeDefinitionHandle);
-        }
-
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private bool IsSystemObjectOrThrow(TypeDefinition typeDef)
-        {
-            return MetadataReader.StringComparer.Equals(typeDef.Name, "Object") &&
-                   MetadataReader.StringComparer.Equals(typeDef.Namespace, "System");
-        }
-
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal bool IsNestedTypeDefOrThrow(TypeDefinitionHandle typeDef)
         {

@@ -157,5 +157,34 @@ namespace Microsoft.CodeAnalysis
                 contentType: (AssemblyContentType)((int)(flags & AssemblyFlags.ContentTypeMask) >> 9),
                 noThrow: true);
         }
+
+        internal static bool DeclaresTheObjectClass(this MetadataReader reader)
+        {
+            foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
+            {
+                try
+                {
+                    var typeDef = reader.GetTypeDefinition(handle);
+                    if (typeDef.BaseType.IsNil &&
+                        (typeDef.Attributes & (TypeAttributes.Public | TypeAttributes.Interface)) == TypeAttributes.Public &&
+                        reader.IsSystemObjectOrThrow(typeDef))
+                    {
+                        return true;
+                    }
+                }
+                catch (BadImageFormatException)
+                {
+                }
+            }
+
+            return false;
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static bool IsSystemObjectOrThrow(this MetadataReader reader, TypeDefinition typeDef)
+        {
+            return reader.StringComparer.Equals(typeDef.Name, "Object") &&
+                reader.StringComparer.Equals(typeDef.Namespace, "System");
+        }
     }
 }

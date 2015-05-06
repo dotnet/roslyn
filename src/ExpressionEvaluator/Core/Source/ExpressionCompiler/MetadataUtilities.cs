@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             var identitiesBuilder = (identityComparer == null) ? null : ArrayBuilder<AssemblyIdentity>.GetInstance();
+            AssemblyIdentity corLibrary = null;
 
             foreach (var metadata in metadataBuilder)
             {
@@ -95,8 +96,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 if (identitiesBuilder != null)
                 {
-                    var identity = metadata.MetadataReader.ReadAssemblyIdentityOrThrow();
+                    var reader = metadata.MetadataReader;
+                    var identity = reader.ReadAssemblyIdentityOrThrow();
                     identitiesBuilder.Add(identity);
+                    // If this assembly has no references, and declares
+                    // System.Object, assume it is the COR library.
+                    if ((corLibrary == null) &&
+                        (reader.AssemblyReferences.Count == 0) &&
+                        reader.DeclaresTheObjectClass())
+                    {
+                        corLibrary = identity;
+                    }
                 }
                 var reference = MakeAssemblyMetadata(metadata, modulesByName);
                 referencesBuilder.Add(reference);
@@ -112,6 +122,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var referencedModules = ArrayBuilder<AssemblyIdentity>.GetInstance();
                     referencedModules.Add(module.MetadataReader.ReadAssemblyIdentityOrThrow());
                     referencedModules.AddRange(module.MetadataReader.GetReferencedAssembliesOrThrow());
+                    // Ensure COR library is included, otherwise any compilation will fail.
+                    // (Note, an equivalent assembly may have already been included from
+                    // GetReferencedAssembliesOrThrow above but RemoveUnreferencedModules
+                    // allows duplicates.)
+                    Debug.Assert(corLibrary != null);
+                    if (corLibrary != null)
+                    {
+                        referencedModules.Add(corLibrary);
+                    }
                     RemoveUnreferencedModules(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
                     referencedModules.Free();
                 }

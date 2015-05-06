@@ -6,15 +6,15 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using Xunit;
 using Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
-using Roslyn.Test.PdbUtilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

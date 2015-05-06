@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -463,7 +464,7 @@ public class B
         /// compiled against portable framework assemblies.
         /// </summary>
         [WorkItem(1150981)]
-        [Fact(Skip = "1150981")]
+        [Fact]
         public void MissingMscorlib()
         {
             var sourceA =
@@ -507,6 +508,10 @@ class C
             var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
             var moduleB = referenceB.ToModuleInstance(exeBytesB, new SymReader(pdbBytesB));
 
+            // Include an empty assembly to verify that not all assemblies
+            // with no references are treated as mscorlib.
+            var referenceC = AssemblyMetadata.CreateFromImage(Resources.Empty).GetReference();
+
             // At runtime System.Runtime.dll contract assembly is replaced
             // by mscorlib.dll and System.Runtime.dll facade assemblies.
             var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
@@ -514,6 +519,7 @@ class C
             moduleBuilder.Add(SystemRuntimeFacadeRef.ToModuleInstance(null, null));
             moduleBuilder.Add(moduleA);
             moduleBuilder.Add(moduleB);
+            moduleBuilder.Add(referenceC.ToModuleInstance(null, null));
             var modules = moduleBuilder.ToImmutableAndFree();
 
             using (var runtime = new RuntimeInstance(modules))
