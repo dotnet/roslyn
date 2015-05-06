@@ -4053,7 +4053,7 @@ class B
                 "Insert [()]@25");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertExtern, "public extern C()", "constructor"));
+                Diagnostic(RudeEditKind.InsertExtern, "public extern C()", FeaturesResources.Constructor));
         }
 
         #endregion
