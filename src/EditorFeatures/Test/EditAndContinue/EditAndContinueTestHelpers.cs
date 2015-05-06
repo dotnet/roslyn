@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = new List<RudeEditDiagnostic>();
             var actualNewActiveStatements = new LinePositionSpan[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
-            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMethodInfo>();
+            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMemberInfo>();
             var editMap = Analyzer.BuildEditMap(editScript);
 
             DocumentId documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
 
             var oldActiveStatements = activeStatements.OldSpans.AsImmutable();
-            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMethodInfo>();
+            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMemberInfo>();
             var triviaEdits = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
             var actualLineEdits = new List<LineChange>();
             var actualSemanticEdits = new List<SemanticEdit>();
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         newNodes.Add(newNode);
                     }
                 }
-                else
+                else if (!expectedSemanticEdits[i].PreserveLocalVariables)
                 {
                     Assert.Null(actualSyntaxMap);
                 }
