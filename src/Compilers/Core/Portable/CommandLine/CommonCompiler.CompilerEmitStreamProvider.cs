@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    return _streamToDispose = _compiler.FileOpen(_filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                    return _streamToDispose = _compiler.FileOpen(_filePath, PortableShim.FileMode.Create, PortableShim.FileAccess.ReadWrite, PortableShim.FileShare.None);
                 }
                 catch (Exception e)
                 {

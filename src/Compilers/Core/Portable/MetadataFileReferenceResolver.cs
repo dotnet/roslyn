@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
         protected virtual bool FileExists(string fullPath)
         {
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return File.Exists(fullPath);
+            return PortableShim.File.Exists(fullPath);
         }
 
         public override bool Equals(object obj)

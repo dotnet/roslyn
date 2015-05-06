@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 
@@ -27,9 +28,11 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class PortableShim
     {
+        private const string System_Diagnotsics_FileVersionInfo_Name = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
         private const string System_IO_FileSystem_Name = "System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
         private const string System_IO_FileSystem_Primitives_Name = "System.IO.FileSystem.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
         private const string System_Runtime_Extensions_Name = "System.Runtime.Extensions, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+        private const string System_Threading_Thread_Name = "System.Threading.Thread, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
 
         /// <summary>
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
@@ -147,6 +150,16 @@ namespace Roslyn.Utilities
                 .GetDeclaredMethod(nameof(GetLastWriteTimeUtc), new[] { typeof(string) })
                 .CreateDelegate(typeof(Func<string, DateTime>));
 
+            internal static readonly Func<string, Stream> Create = (Func<string, Stream>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Create), paramTypes: new[] { typeof(string) })
+                .CreateDelegate(typeof(Func<string, Stream>));
+
+            internal static readonly Func<string, Stream> OpenRead = (Func<string, Stream>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(OpenRead), paramTypes: new[] { typeof(string) })
+                .CreateDelegate(typeof(Func<string, Stream>));
+
             internal static readonly Func<string, bool> Exists = (Func<string, bool>)Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(Exists), new[] { typeof(string) })
@@ -163,6 +176,24 @@ namespace Roslyn.Utilities
                 .CreateDelegate(typeof(Func<string, byte[]>));
         }
 
+        internal static class Directory
+        {
+            internal const string TypeName = "System.IO.Directory";
+
+            internal static readonly Type Type = GetTypeFromEither(
+                contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
+                corlibName: TypeName);
+
+            private static readonly MethodInfo s_enumerateFiles = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(EnumerateFiles), new[] { typeof(string), typeof(string), SearchOption.Type });
+
+            internal static IEnumerable<string> EnumerateFiles(string path, string searchPattern, object searchOption)
+            {
+                return (IEnumerable<string>)s_enumerateFiles.Invoke(null, new object[] { path, searchPattern, searchOption });
+            }
+        }
+
         internal static class FileMode
         {
             internal const string TypeName = "System.IO.FileMode";
@@ -171,46 +202,17 @@ namespace Roslyn.Utilities
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
                 corlibName: TypeName);
 
-            internal static readonly object CreateNew;
+            internal static readonly object CreateNew = Enum.ToObject(Type, 1);
 
-            internal static readonly object Create;
+            internal static readonly object Create = Enum.ToObject(Type, 2);
 
-            internal static readonly object Open;
+            internal static readonly object Open = Enum.ToObject(Type, 3);
 
-            internal static readonly object OpenOrCreate;
+            internal static readonly object OpenOrCreate = Enum.ToObject(Type, 4);
 
-            internal static readonly object Truncate;
+            internal static readonly object Truncate = Enum.ToObject(Type, 5);
 
-            internal static readonly object Append;
-
-            static FileMode()
-            {
-                foreach (object value in Enum.GetValues(Type))
-                {
-                    var i = (int)value;
-                    switch (i)
-                    {
-                        case 1:
-                            CreateNew = value;
-                            break;
-                        case 2:
-                            Create = value;
-                            break;
-                        case 3:
-                            Open = value;
-                            break;
-                        case 4:
-                            OpenOrCreate = value;
-                            break;
-                        case 5:
-                            Truncate = value;
-                            break;
-                        case 6:
-                            Append = value;
-                            break;
-                    }
-                }
-            }
+            internal static readonly object Append = Enum.ToObject(Type, 6);
         }
 
         internal static class FileAccess
@@ -221,31 +223,11 @@ namespace Roslyn.Utilities
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
                 corlibName: TypeName);
 
-            internal static readonly object Read;
+            internal static readonly object Read = Enum.ToObject(Type, 1);
 
-            internal static readonly object Write;
+            internal static readonly object Write = Enum.ToObject(Type, 2);
 
-            internal static readonly object ReadWrite;
-
-            static FileAccess()
-            {
-                foreach (object value in Enum.GetValues(Type))
-                {
-                    var i = (int)value;
-                    switch (i)
-                    {
-                        case 1:
-                            Read = value;
-                            break;
-                        case 2:
-                            Write = value;
-                            break;
-                        case 3:
-                            ReadWrite = value;
-                            break;
-                    }
-                }
-            }
+            internal static readonly object ReadWrite = Enum.ToObject(Type, 3);
         }
 
         internal static class FileShare
@@ -256,46 +238,19 @@ namespace Roslyn.Utilities
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
                 corlibName: TypeName);
 
-            internal static readonly object None;
+            internal static readonly object None = Enum.ToObject(Type, 0);
 
-            internal static readonly object Read;
+            internal static readonly object Read = Enum.ToObject(Type, 1);
 
-            internal static readonly object Write;
+            internal static readonly object Write = Enum.ToObject(Type, 2);
 
-            internal static readonly object ReadWrite;
+            internal static readonly object ReadWrite = Enum.ToObject(Type, 3);
 
-            internal static readonly object Delete;
+            internal static readonly object Delete = Enum.ToObject(Type, 4);
 
-            internal static readonly object Inheritable;
+            internal static readonly object Inheritable = Enum.ToObject(Type, 16);
 
-            static FileShare()
-            {
-                foreach (object value in Enum.GetValues(Type))
-                {
-                    var i = (int)value;
-                    switch (i)
-                    {
-                        case 0:
-                            None = value;
-                            break;
-                        case 1:
-                            Read = value;
-                            break;
-                        case 2:
-                            Write = value;
-                            break;
-                        case 3:
-                            ReadWrite = value;
-                            break;
-                        case 4:
-                            Delete = value;
-                            break;
-                        case 16:
-                            Inheritable = value;
-                            break;
-                    }
-                }
-            }
+            internal static readonly object ReadWriteBitwiseOrDelete = Enum.ToObject(Type, 3 | 4);
         }
 
         internal static class FileOptions
@@ -306,21 +261,22 @@ namespace Roslyn.Utilities
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
                 corlibName: TypeName);
 
-            internal static readonly object Asynchronous;
+            internal static readonly object None = Enum.ToObject(Type, 0);
 
-            static FileOptions()
-            {
-                foreach (object value in Enum.GetValues(Type))
-                {
-                    var i = (int)value;
-                    switch (i)
-                    {
-                        case 1073741824:
-                            Asynchronous = value;
-                            break;
-                    }
-                }
-            }
+            internal static readonly object Asynchronous = Enum.ToObject(Type,  1073741824);
+        }
+
+        internal static class SearchOption
+        {
+            internal const string TypeName = "System.IO.SearchOption";
+
+            internal static readonly Type Type = GetTypeFromEither(
+                contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
+                corlibName: TypeName);
+
+            internal static readonly object TopDirectoryOnly = Enum.ToObject(Type, 0);
+
+            internal static readonly object AllDirectories = Enum.ToObject(Type, 1);
         }
 
         internal static class FileStream
@@ -331,9 +287,17 @@ namespace Roslyn.Utilities
                 contractName: $"${TypeName}, ${System_IO_FileSystem_Name}",
                 corlibName: TypeName);
 
+            internal static readonly PropertyInfo Name = Type
+                .GetTypeInfo()
+                .GetDeclaredProperty(nameof(Name));
+
             private static ConstructorInfo s_Ctor_String_FileMode_FileAccess_FileShare = Type
                 .GetTypeInfo()
                 .GetDeclaredConstructor(paramTypes: new[] { typeof(string), FileMode.Type, FileAccess.Type, FileShare.Type });
+
+            private static ConstructorInfo s_Ctor_String_FileMode_FileAccess = Type
+                .GetTypeInfo()
+                .GetDeclaredConstructor(paramTypes: new[] { typeof(string), FileMode.Type, FileAccess.Type });
 
             private static ConstructorInfo s_Ctor_String_FileMode = Type
                 .GetTypeInfo()
@@ -348,14 +312,94 @@ namespace Roslyn.Utilities
                 return (Stream)s_Ctor_String_FileMode.Invoke(new[] { path, mode });
             }
 
+            public static Stream Create(string path, object mode, object access)
+            {
+                return (Stream)s_Ctor_String_FileMode_FileAccess.Invoke(new[] { path, mode, access });
+            }
+
             public static Stream Create(string path, object mode, object access, object share)
             {
                 return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare.Invoke(new[] { path, mode, access, share });
             }
 
+            public static Stream CreateEx(string path, object mode, object access, object share)
+            {
+                return Create(path, mode, access, share);
+            }
+
             public static Stream Create(string path, object mode, object access, object share, int bufferSize, object options)
             {
                 return (Stream)s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions.Invoke(new[] { path, mode, access, share, bufferSize, options });
+            }
+        }
+
+        internal static class FileVersionInfo
+        {
+            internal const string TypeName = "System.Diagnostics.FileVersionInfo";
+
+            internal static readonly Type Type = GetTypeFromEither(
+                contractName: $"${TypeName}, ${System_Diagnotsics_FileVersionInfo_Name}",
+                corlibName: TypeName);
+
+            internal static readonly Func<string, object> GetVersionInfo = (Func<string, object>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetVersionInfo), new[] { typeof(string) })
+                .CreateDelegate(typeof(Func<string, object>));
+
+            internal static readonly PropertyInfo FileVersion = Type
+                .GetTypeInfo()
+                .GetDeclaredProperty(nameof(FileVersion));
+        }
+
+        internal static class Thread
+        {
+            internal const string TypeName = "System.Threading.Thread";
+
+            internal static readonly Type Type = GetTypeFromEither(
+                contractName: $"${TypeName}, ${System_Threading_Thread_Name}",
+                corlibName: TypeName);
+
+            internal static readonly PropertyInfo CurrentThread = Type
+                .GetTypeInfo()
+                .GetDeclaredProperty(nameof(CurrentThread));
+
+            internal static readonly PropertyInfo CurrentUICulture = Type
+                .GetTypeInfo()
+                .GetDeclaredProperty(nameof(CurrentUICulture));
+        }
+
+        internal static class Encoding
+        {
+            internal static readonly Type Type = typeof(System.Text.Encoding);
+
+            internal static readonly Func<int, System.Text.Encoding> GetEncoding = (Func<int, System.Text.Encoding>)Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetEncoding), paramTypes: new[] { typeof(int) })
+                .CreateDelegate(typeof(Func<int, System.Text.Encoding>));
+        }
+
+        internal static class MemoryStream
+        {
+            internal static readonly Type Type = typeof(System.IO.MemoryStream);
+
+            internal static readonly MethodInfo GetBuffer = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetBuffer));
+        }
+
+        internal static class Misc
+        {
+            internal static string GetFileVersion(string path)
+            {
+                var fileVersionInfo = FileVersionInfo.GetVersionInfo(path);
+                return (string)FileVersionInfo.FileVersion.GetValue(fileVersionInfo);
+            }
+
+            internal static void SetCurrentUICulture(CultureInfo cultureInfo)
+            {
+                // TODO: CoreClr needs to go through CultureInfo.CurrentUICulture
+                var thread = Thread.CurrentThread.GetValue(null);
+                Thread.CurrentUICulture.SetValue(thread, cultureInfo);
             }
         }
     }

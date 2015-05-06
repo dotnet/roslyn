@@ -13,8 +13,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             _clientDirectory = clientDirectory;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
-            if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
+            if (!SuppressDefaultResponseFile(args) && PortableShim.File.Exists(responseFile))
             {
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
             }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var name = $"{typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
-                return FileVersionInfo.GetVersionInfo(filePath).FileVersion;
+                return PortableShim.Misc.GetFileVersion(filePath);
             }
 
             return "";
@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis
                 // PERF: Using a very small buffer size for the FileStream opens up an optimization within EncodedStringText where
                 // we read the entire FileStream into a byte array in one shot. For files that are actually smaller than the buffer
                 // size, FileStream.Read still allocates the internal buffer.
-                using (var data = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize: 1))
+                using (var data = PortableShim.FileStream.Create(file.Path, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite, bufferSize: 1, options: PortableShim.FileOptions.None))
                 {
-                    normalizedFilePath = data.Name;
+                    normalizedFilePath = (string)PortableShim.FileStream.Name.GetValue(data);
                     return EncodedStringText.Create(data, encoding, checksumAlgorithm);
                 }
             }
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
         {
             DiagnosticInfo diagnosticInfo;
 
-            if (e is FileNotFoundException || e is DirectoryNotFoundException)
+            if (e is FileNotFoundException)
             {
                 diagnosticInfo = new DiagnosticInfo(MessageProvider, MessageProvider.ERR_FileNotFound, file.Path);
             }
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
-            var errorLog = OpenFile(Arguments.ErrorLogPath, consoleOutput, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+            var errorLog = OpenFile(Arguments.ErrorLogPath, consoleOutput, PortableShim.FileMode.Create, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWriteBitwiseOrDelete);
             if (errorLog == null)
             {
                 return null;
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var saveUICulture = Thread.CurrentThread.CurrentUICulture;
+            var saveUICulture = CultureInfo.CurrentUICulture;
             ErrorLogger errorLogger = null;
 
             try
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
                 var culture = this.Culture;
                 if (culture != null)
                 {
-                    Thread.CurrentThread.CurrentUICulture = culture;
+                    PortableShim.Misc.SetCurrentUICulture(culture);
                 }
 
                 if (Arguments.ErrorLogPath != null)
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                PortableShim.Misc.SetCurrentUICulture(saveUICulture);
                 errorLogger?.Dispose();
             }
         }
@@ -394,14 +394,14 @@ namespace Microsoft.CodeAnalysis
                 string finalPdbFilePath;
                 string finalXmlFilePath;
 
-                FileStream xmlStreamOpt = null;
+                Stream xmlStreamOpt = null;
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 finalXmlFilePath = Arguments.DocumentationPath;
                 if (finalXmlFilePath != null)
                 {
-                    xmlStreamOpt = OpenFile(finalXmlFilePath, consoleOutput, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                    xmlStreamOpt = OpenFile(finalXmlFilePath, consoleOutput, PortableShim.FileMode.OpenOrCreate, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWriteBitwiseOrDelete);
                     if (xmlStreamOpt == null)
                     {
                         return Failed;
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis
                         touchedFilesLogger.AddWritten(finalXmlFilePath);
                     }
 
-                    var readStream = OpenFile(Arguments.TouchedFilesPath + ".read", consoleOutput, FileMode.OpenOrCreate);
+                    var readStream = OpenFile(Arguments.TouchedFilesPath + ".read", consoleOutput, mode: PortableShim.FileMode.OpenOrCreate);
                     if (readStream == null)
                     {
                         return Failed;
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis
                         touchedFilesLogger.WriteReadPaths(writer);
                     }
 
-                    var writtenStream = OpenFile(Arguments.TouchedFilesPath + ".write", consoleOutput, FileMode.OpenOrCreate);
+                    var writtenStream = OpenFile(Arguments.TouchedFilesPath + ".write", consoleOutput, mode: PortableShim.FileMode.OpenOrCreate);
                     if (writtenStream == null)
                     {
                         return Failed;
@@ -642,18 +642,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Test hook for intercepting File.Open.
         /// </summary>
-        internal Func<string, FileMode, FileAccess, FileShare, FileStream> FileOpen
+        internal Func<string, object, object, object, Stream> FileOpen
         {
-            get { return _fileOpen ?? File.Open; }
+            get { return _fileOpen ?? PortableShim.FileStream.CreateEx; }
             set { _fileOpen = value; }
         }
-        private Func<string, FileMode, FileAccess, FileShare, FileStream> _fileOpen;
+        private Func<string, object, object, object, Stream> _fileOpen;
 
-        private FileStream OpenFile(string filePath, TextWriter consoleOutput, FileMode mode = FileMode.Open, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.None)
+        private Stream OpenFile(string filePath, TextWriter consoleOutput, object mode = null, object access = null, object share = null)
         {
+            mode = mode ?? PortableShim.FileMode.Open;
+            access = access ?? PortableShim.FileAccess.ReadWrite;
+            share = share ?? PortableShim.FileShare.None;
+
             try
             {
-                return FileOpen(filePath, mode, access, share);
+                return PortableShim.FileStream.Create(filePath, mode, access, share);
             }
             catch (Exception e)
             {
@@ -706,14 +710,14 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        private static FileStream OpenManifestStream(CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, List<DiagnosticInfo> errorList)
+        private static Stream OpenManifestStream(CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, List<DiagnosticInfo> errorList)
         {
             return outputKind.IsNetModule()
                 ? null
                 : OpenStream(messageProvider, arguments.Win32Manifest, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Manifest, errorList);
         }
 
-        private static FileStream OpenStream(CommonMessageProvider messageProvider, string path, string baseDirectory, int errorCode, IList<DiagnosticInfo> errors)
+        private static Stream OpenStream(CommonMessageProvider messageProvider, string path, string baseDirectory, int errorCode, IList<DiagnosticInfo> errors)
         {
             if (path == null)
             {
@@ -728,7 +732,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read);
             }
             catch (Exception ex)
             {

@@ -44,6 +44,8 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AdditionalTextFile.cs" />
+    <Compile Include="AssemblyReferenceResolver.cs" />
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
@@ -110,8 +112,26 @@
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="Collections\OrderedSet.cs" />
     <Compile Include="Collections\StaticCast.cs" />
+    <Compile Include="CommandLine\CommandLineAnalyzerReference.cs" />
+    <Compile Include="CommandLine\CommandLineReference.cs" />
+    <Compile Include="CommandLine\CommandLineSourceFile.cs" />
+    <Compile Include="CommandLine\CommonCommandLineArguments.cs" />
+    <Compile Include="CommandLine\CommonCommandLineParser.cs" />
+    <Compile Include="CommandLine\CommonCompiler.CompilerEmitStreamProvider.cs" />
+    <Compile Include="CommandLine\CommonCompiler.cs" />
+    <Compile Include="CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingMetadataFileResolver.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingSourceFileResolver.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingStrongNameProvider.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
+    <Compile Include="CommandLine\ErrorLogger.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Issue.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Value.cs" />
+    <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
+    <Compile Include="CommandLine\TouchedFileLogger.cs" />
     <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
+    <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
     <Compile Include="Desktop\AssemblyVersion.cs" />
     <Compile Include="Desktop\DesktopAssemblyIdentityComparer.cs" />
@@ -132,6 +152,9 @@
     <Compile Include="Emit\EmitOptions.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
     <Compile Include="Emit\SemanticEditKind.cs" />
+    <Compile Include="EncodedStringText.cs" />
+    <Compile Include="FileKey.cs" />
+    <Compile Include="FileSystemExtensions.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
     <Compile Include="Interop\IClrMetaHost.cs" />
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
@@ -308,7 +331,9 @@
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
     <Compile Include="Interop\ClrStrongName.cs" />
+    <Compile Include="Interop\IVsSQM.cs" />
     <Compile Include="MemberDescriptor.cs" />
+    <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
     <Compile Include="MetadataReader\MetadataDecoder.cs" />
@@ -361,6 +386,8 @@
     <Compile Include="RuleSet\RuleSet.cs" />
     <Compile Include="RuleSet\RuleSetInclude.cs" />
     <Compile Include="RuleSet\RuleSetProcessor.cs" />
+    <Compile Include="SourceFileResolver.cs" />
+    <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
@@ -609,6 +636,7 @@
     <Compile Include="WellKnownMember.cs" />
     <Compile Include="WellKnownMembers.cs" />
     <Compile Include="WellKnownTypes.cs" />
+    <Compile Include="XmlFileResolver.cs" />
     <Compile Include="Xml\XmlCharType.cs" />
   </ItemGroup>
   <ItemGroup>
