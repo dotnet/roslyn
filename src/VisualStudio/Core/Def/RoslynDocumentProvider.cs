@@ -1,10 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -23,10 +26,53 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         protected override void OnBeforeDocumentWindowShow(IVsWindowFrame frame, DocumentId id, bool firstShow)
         {
-            if (_documentTrackingService != null)
+            base.OnBeforeDocumentWindowShow(frame, id, firstShow);
+
+            _documentTrackingService?.DocumentFrameShowing(frame, id, firstShow);
+        }
+
+        protected override void OnBeforeNonRoslynDocumentWindowShow(IVsWindowFrame frame, bool firstShow)
+        {
+            base.OnBeforeNonRoslynDocumentWindowShow(frame, firstShow);
+
+            if (!firstShow)
             {
-                _documentTrackingService.DocumentFrameShowing(frame, id, firstShow);
+                return;
             }
+
+            var view = GetTextViewFromFrame(frame);
+            if (view != null)
+            {
+                _documentTrackingService?.OnNonRoslynViewOpened(view);
+            }
+        }
+
+        private ITextView GetTextViewFromFrame(IVsWindowFrame frame)
+        {
+            object documentView;
+            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out documentView)))
+            {
+                return null;
+            }
+
+            var vsTextView = documentView as IVsTextView;
+            if (vsTextView != null)
+            {
+                return EditorAdaptersFactoryService.GetWpfTextView(vsTextView);
+            }
+
+            var codeWindow = documentView as IVsCodeWindow;
+            if (codeWindow == null)
+            {
+                return null;
+            }
+
+            if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out vsTextView)) || vsTextView == null)
+            {
+                return null;
+            }
+
+            return EditorAdaptersFactoryService.GetWpfTextView(vsTextView);
         }
     }
 }
