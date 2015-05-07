@@ -58,7 +58,7 @@ namespace Roslyn.Utilities
                         string referencePath = Path.Combine(directory, referenceName + ".dll");
 
                         if (!assemblySet.Contains(referencePath) &&
-                            File.Exists(referencePath))
+                            PortableShim.File.Exists(referencePath))
                         {
                             workList.Enqueue(referencePath);
                         }
@@ -108,16 +108,16 @@ namespace Roslyn.Utilities
             string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
             string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";
 
-            foreach (var subDirectory in Directory.EnumerateDirectories(directory))
+            foreach (var subDirectory in PortableShim.Directory.EnumerateDirectories(directory, "*", PortableShim.SearchOption.TopDirectoryOnly))
             {
                 string satelliteAssemblyPath = Path.Combine(subDirectory, resourcesNameWithExtension);
-                if (File.Exists(satelliteAssemblyPath))
+                if (PortableShim.File.Exists(satelliteAssemblyPath))
                 {
                     builder.Add(satelliteAssemblyPath);
                 }
 
                 satelliteAssemblyPath = Path.Combine(subDirectory, resourcesNameWithoutExtension, resourcesNameWithExtension);
-                if (File.Exists(satelliteAssemblyPath))
+                if (PortableShim.File.Exists(satelliteAssemblyPath))
                 {
                     builder.Add(satelliteAssemblyPath);
                 }
