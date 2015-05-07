@@ -40,7 +40,7 @@ namespace Roslyn.Utilities
                 try
                 {
                     var value = (int)CultureInfo.CultureTypes.GetValue(cultureInfo);
-                    return 0 != (value & CultureTypes.UserCustomCulture);
+                    return (value & CultureTypes.UserCustomCulture) != 0;
                 }
                 catch (Exception ex)
                 {
