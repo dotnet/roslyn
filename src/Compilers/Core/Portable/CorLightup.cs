@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 
@@ -36,8 +37,16 @@ namespace Roslyn.Utilities
                     return null;
                 }
 
-                var value = (int)CultureInfo.CultureTypes.GetValue(cultureInfo);
-                return 0 != (value & CultureTypes.UserCustomCulture);
+                try
+                {
+                    var value = (int)CultureInfo.CultureTypes.GetValue(cultureInfo);
+                    return 0 != (value & CultureTypes.UserCustomCulture);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Assert(false, ex.Message);
+                    return null;
+                }
             }
         }
     }
