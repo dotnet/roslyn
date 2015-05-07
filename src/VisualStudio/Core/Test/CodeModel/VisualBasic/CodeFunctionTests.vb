@@ -1475,6 +1475,42 @@ End Class
             TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Sub
 
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddParameter_DeclareFunction()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" (a As Integer) As String
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Function getUserName Lib "My1.dll" (a As Integer, b As String) As String
+End Class
+</Code>
+            TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddParameter_DeclareSub()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Sub $$getUserName Lib "My1.dll" (a As Integer)
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Sub getUserName Lib "My1.dll" (a As Integer, b As String)
+End Class
+</Code>
+            TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+        End Sub
+
 #End Region
 
 #Region "RemoveParamter tests"
@@ -2174,6 +2210,63 @@ Class C
     End Operator
 End Class
 </Code>
+
+            TestSetTypeProp(code, expected, "System.Int32")
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SetType_DeclareFunction()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" (a As Integer) As String
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Function getUserName Lib "My1.dll" (a As Integer) As Integer
+End Class
+</Code>
+            TestSetTypeProp(code, expected, "System.Int32")
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SetType_DeclareFunctionToSub()
+            Dim code =
+            <Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" (a As Integer) As String
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Sub getUserName Lib "My1.dll" (a As Integer)
+End Class
+</Code>
+
+            TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SetType_DeclareSubToFunction()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Sub $$getUserName Lib "My1.dll" (a As Integer)
+End Class
+</Code>
+            Dim expected =
+            <Code>
+Public Class C1
+    Declare Function getUserName Lib "My1.dll" (a As Integer) As Integer
+End Class
+</Code>
+
 
             TestSetTypeProp(code, expected, "System.Int32")
         End Sub
