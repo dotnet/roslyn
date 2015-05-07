@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             // We calculate the set of supported projects
             candidateResults.Remove(bestBinding);
-
             foreach (var candidate in candidateResults)
             {
-                if (!candidate.Item3.SequenceEqual(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.Instance))
+                // Does the candidate have anything remotely equivalent?
+                if (!candidate.Item3.Any(c => !c.IsErrorType() && bestBinding.Item3.Contains(c, LinkedFilesSymbolEquivalenceComparer.Instance)))
                 {
                     invalidProjects.Add(candidate.Item1.ProjectId);
                 }
