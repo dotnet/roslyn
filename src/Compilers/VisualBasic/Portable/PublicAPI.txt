@@ -5911,3 +5911,14 @@ Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Tab -> Microsof
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.EqualityComparer -> System.Collections.Generic.IEqualityComparer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.Instance -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.New(isInteractive As Boolean = False) -> Void
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Parse(args As System.Collections.Generic.IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.CompilationOptionsCore() -> Microsoft.CodeAnalysis.CompilationOptions
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.ParseOptionsCore() -> Microsoft.CodeAnalysis.ParseOptions
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.RegularFileExtension() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.ScriptFileExtension() -> String
+Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(symbolList As String, ByRef diagnostics As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.Diagnostic), symbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> System.Collections.Generic.IReadOnlyDictionary(Of String, Object)
+Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Default -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
+Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Interactive -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser

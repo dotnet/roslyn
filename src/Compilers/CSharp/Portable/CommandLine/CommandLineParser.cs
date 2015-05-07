@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         try
                         {
                             preferredUILang = new CultureInfo(value);
-                            if ((preferredUILang.CultureTypes & CultureTypes.UserCustomCulture) != 0)
+                            if (CorLightup.Desktop.IsUserCustomCulture(preferredUILang) ?? false)
                             {
                                 // Do not use user custom cultures.
                                 preferredUILang = null;
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     AddDiagnostic(diagnostics, ErrorCode.WRN_InvalidSearchPathDir, path, origin.Localize(), MessageID.IDS_DirectoryHasInvalidPath.Localize());
                 }
-                else if (!Directory.Exists(resolvedPath))
+                else if (!PortableShim.Directory.Exists(resolvedPath))
                 {
                     AddDiagnostic(diagnostics, ErrorCode.WRN_InvalidSearchPathDir, path, origin.Localize(), MessageID.IDS_DirectoryDoesNotExist.Localize());
                 }
@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             {
                                                 // Use FileShare.ReadWrite because the file could be opened by the current process.
                                                 // For example, it is an XML doc file produced by the build.
-                                                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite);
                                             };
             return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
         }
