@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         moduleId = moduleId.Substring(0, moduleId.Length - extension.Length)
                     End If
 
-                    moduleId = MetadataHelpers.MangleForTypeNameIfNeeded(moduleId)
+                    moduleId = "<" & MetadataHelpers.MangleForTypeNameIfNeeded(moduleId) & ">"
                 Else
                     moduleId = String.Empty
                 End If
