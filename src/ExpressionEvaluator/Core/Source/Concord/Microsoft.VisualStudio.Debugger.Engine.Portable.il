@@ -41,7 +41,6 @@
 	.method public static hidebysig 
 		int32 GetLCIDFromCultureInfo(class [System.Globalization]System.Globalization.CultureInfo cultureInfo)
 	{
-		.custom instance void [System.Runtime]System.Security.SecurityCriticalAttribute::.ctor() = { }
 		ret
 	}
 	.method public static hidebysig 
@@ -10730,12 +10729,6 @@
 			ret
 		}
 		.method public hidebysig 
-			instance string GetObjectTypeByAlias(string Alias)
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig 
 			instance class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<class Microsoft.VisualStudio.Debugger.Clr.DkmClrAlias> GetAliases(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext)
 		{
 			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
@@ -12455,30 +12448,6 @@
 		}
 		.method public virtual hidebysig newslot abstract 
 			instance void GetLocalValues(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmCompiledClrLocalsQuery compiledClrLocalsQuery, class Microsoft.VisualStudio.Debugger.DkmWorkList workList, class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext, class Microsoft.VisualStudio.Debugger.Evaluation.DkmILContext iLContext, int32 firstLocalIndex, int32 count, class 'Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1'<valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmGetLocalValuesAsyncResult> completionRoutine)
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext EnumClrDebuggerGeneratedLocals(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext, class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame stackFrame)
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance void GetItemsForLocalsEnum(class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext clrDebuggerGeneratedLocalEnumContext, class Microsoft.VisualStudio.Debugger.DkmWorkList workList, int32 startIndex, int32 count, class 'Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1'<valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalsAsyncResult> completionRoutine)
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string GetClrReturnValueType(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext, int32 index)
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string GetObjectTypeByAlias(class Microsoft.VisualStudio.Debugger.Clr.DkmClrRuntimeInstance clrRuntimeInstance, string alias)
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string GetClrExceptionType(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext, class Microsoft.VisualStudio.Debugger.DkmThread thread)
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string GetClrStowedExceptionType(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext inspectionContext)
 		{
 		}
 		.method public virtual hidebysig newslot abstract 
@@ -18130,30 +18099,6 @@
 			ret
 		}
 		.method public hidebysig 
-			instance class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext EnumClrDebuggerGeneratedLocals(class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame StackFrame)
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig 
-			instance string GetClrReturnValueType(int32 Index)
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig 
-			instance string GetClrExceptionType(class Microsoft.VisualStudio.Debugger.DkmThread Thread)
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig 
-			instance string GetClrStowedExceptionType()
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig 
 			instance void EvaluateReturnValue2(class Microsoft.VisualStudio.Debugger.DkmWorkList WorkList, class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame StackFrame, class Microsoft.VisualStudio.Debugger.Evaluation.DkmRawReturnValueContainer RawReturnValue, class 'Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1'<valuetype Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluateReturnValueAsyncResult2> CompletionRoutine)
 		{
 			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
@@ -19416,129 +19361,6 @@
 		.property instance string Value()
 		{
 			.get instance string Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerDisplayAttribute::get_Value()
-		}
-	}
-	.class public DkmClrDebuggerGeneratedLocalEnumContext
-		extends Microsoft.VisualStudio.Debugger.DkmDataContainer
-		implements [System.Runtime]System.IDisposable
-	{
-		.custom instance void [System.Runtime.InteropServices]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = { string('7d6eb4a4-8155-3b9b-467e-4a11d60c7021') }
-		.method private final virtual hidebysig newslot 
-			instance void System.IDisposable.Dispose()
-		{
-			.override [System.Runtime]System.IDisposable::Dispose
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext get_InspectionContext()
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame get_StackFrame()
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig specialname 
-			instance int32 get_Count()
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig specialname 
-			instance valuetype [System.Runtime]System.Guid get_UniqueId()
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession get_InspectionSession()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance get_RuntimeInstance()
-		{
-			ret
-		}
-		.method public hidebysig 
-			instance void Close()
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public static hidebysig 
-			class Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext Create(class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext, class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame StackFrame, int32 Count, class Microsoft.VisualStudio.Debugger.DkmDataItem DataItem)
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig 
-			instance void GetItems(class Microsoft.VisualStudio.Debugger.DkmWorkList WorkList, int32 StartIndex, int32 Count, class 'Microsoft.VisualStudio.Debugger.DkmCompletionRoutine`1'<valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalsAsyncResult> CompletionRoutine)
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.property instance int32 Count()
-		{
-			.get instance int32 Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext::get_Count()
-		}
-		.property instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext InspectionContext()
-		{
-			.get instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionContext Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext::get_InspectionContext()
-		}
-		.property instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession InspectionSession()
-		{
-			.get instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmInspectionSession Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext::get_InspectionSession()
-		}
-		.property instance class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance RuntimeInstance()
-		{
-			.get instance class Microsoft.VisualStudio.Debugger.DkmRuntimeInstance Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext::get_RuntimeInstance()
-		}
-		.property instance class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame StackFrame()
-		{
-			.get instance class Microsoft.VisualStudio.Debugger.CallStack.DkmStackWalkFrame Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext::get_StackFrame()
-		}
-		.property instance valuetype [System.Runtime]System.Guid UniqueId()
-		{
-			.get instance valuetype [System.Runtime]System.Guid Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalEnumContext::get_UniqueId()
-		}
-	}
-	.class public sealed DkmClrDebuggerGeneratedLocalsAsyncResult
-		extends [System.Runtime]System.ValueType
-	{
-		.method public static hidebysig 
-			valuetype Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalsAsyncResult CreateErrorResult(class [System.Runtime]System.Exception exception)
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance int32 get_ErrorCode()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult[] get_Items()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance void .ctor(class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult[] Items)
-		{
-			ret
-		}
-
-		//This private field was generated by ASMMETA as a placeholder and does not exist in the actual assembly.
-		.field private int32 __Asmmeta_Private_Field
-		.property instance int32 ErrorCode()
-		{
-			.get instance int32 Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalsAsyncResult::get_ErrorCode()
-		}
-		.property instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult[] Items()
-		{
-			.get instance class Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResult[] Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrDebuggerGeneratedLocalsAsyncResult::get_Items()
 		}
 	}
 	.class public DkmClrDebuggerTypeProxyAttribute
