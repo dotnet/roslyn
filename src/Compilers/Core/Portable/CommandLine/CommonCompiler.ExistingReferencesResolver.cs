@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis
 {

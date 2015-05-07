@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal virtual TextReader CreateTextFileReader(string fullPath)
         {
-            return new StreamReader(File.OpenRead(fullPath), detectEncodingFromByteOrderMarks: true);
+            return new StreamReader(
+                PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read),
+                detectEncodingFromByteOrderMarks: true);
         }
 
         /// <summary>
@@ -52,10 +54,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="fileNamePattern">File name pattern. May contain wildcards '*' (matches zero or more characters) and '?' (matches any character).</param>
         /// <param name="searchOption">Specifies whether to search the specified <paramref name="directory"/> only, or all its subdirectories as well.</param>
         /// <returns>Sequence of file paths.</returns>
-        internal virtual IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, SearchOption searchOption)
+        internal virtual IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, object searchOption)
         {
             Debug.Assert(PathUtilities.IsAbsolute(directory));
-            return Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
+            return PortableShim.Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
         internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories);
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Check some ancient reserved device names, such as COM1,..9, LPT1..9, PRN, CON, or AUX etc., and bail out earlier
                     // Win32 API - GetFullFileName - will resolve them, say 'COM1', as "\\.\COM1" 
-                    resolvedPath = Path.GetFullPath(resolvedPath);
+                    resolvedPath = PortableShim.Path.GetFullPath(resolvedPath);
                     // preserve possible invalid path info for diagnostic purpose
                     invalidPath = resolvedPath;
 
@@ -368,7 +370,7 @@ namespace Microsoft.CodeAnalysis
                         arg[prefixLength] != ':' &&
                         arg[prefixLength] != '=')
                     {
-                        errorMessage = CodeAnalysisDesktopResources.MissingKeepAlive;
+                        errorMessage = CodeAnalysisResources.MissingKeepAlive;
                         return false;
                     }
 
@@ -378,14 +380,14 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (intValue < -1)
                         {
-                            errorMessage = CodeAnalysisDesktopResources.KeepAliveIsTooSmall;
+                            errorMessage = CodeAnalysisResources.KeepAliveIsTooSmall;
                             return false;
                         }
                         keepAliveValue = value;
                     }
                     else
                     {
-                        errorMessage = CodeAnalysisDesktopResources.KeepAliveIsNotAnInteger;
+                        errorMessage = CodeAnalysisResources.KeepAliveIsNotAnInteger;
                         return false;
                     }
                     continue;
@@ -401,7 +403,7 @@ namespace Microsoft.CodeAnalysis
 
             if (keepAliveValue != null && !containsShared)
             {
-                errorMessage = CodeAnalysisDesktopResources.KeepAliveWithoutShared;
+                errorMessage = CodeAnalysisResources.KeepAliveWithoutShared;
                 return false;
             }
             else
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static string MismatchedVersionErrorText => CodeAnalysisDesktopResources.MismatchedVersion;
+        internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;
 
         /// <summary>
         /// Parse a response file into a set of arguments. Errors openening the response file are output into "errors".
@@ -800,7 +802,7 @@ namespace Microsoft.CodeAnalysis
             int wildcard = path.IndexOfAny(s_wildcards);
             if (wildcard != -1)
             {
-                foreach (var file in ExpandFileNamePattern(path, baseDirectory, SearchOption.TopDirectoryOnly, errors))
+                foreach (var file in ExpandFileNamePattern(path, baseDirectory, PortableShim.SearchOption.TopDirectoryOnly, errors))
                 {
                     yield return file;
                 }
@@ -832,7 +834,7 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseRecurseArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            return ExpandFileNamePattern(arg, baseDirectory, SearchOption.AllDirectories, errors);
+            return ExpandFileNamePattern(arg, baseDirectory, PortableShim.SearchOption.AllDirectories, errors);
         }
 
         internal Encoding TryParseEncodingName(string arg)
@@ -844,7 +846,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    return Encoding.GetEncoding((int)codepage);
+                    return PortableShim.Encoding.GetEncoding((int)codepage);
                 }
                 catch (Exception)
                 {
@@ -872,7 +874,7 @@ namespace Microsoft.CodeAnalysis
             return SourceHashAlgorithm.None;
         }
 
-        private IEnumerable<CommandLineSourceFile> ExpandFileNamePattern(string path, string baseDirectory, SearchOption searchOption, IList<Diagnostic> errors)
+        private IEnumerable<CommandLineSourceFile> ExpandFileNamePattern(string path, string baseDirectory, object searchOption, IList<Diagnostic> errors)
         {
             string directory = PathUtilities.GetDirectoryName(path);
             string pattern = PathUtilities.GetFileName(path);
@@ -934,7 +936,7 @@ namespace Microsoft.CodeAnalysis
                 // the pattern didn't match any files:
                 if (!yielded)
                 {
-                    if (searchOption == SearchOption.AllDirectories)
+                    if (searchOption == PortableShim.SearchOption.AllDirectories)
                     {
                         // handling /recurse
                         GenerateErrorForNoFilesFoundInRecurse(path, errors);

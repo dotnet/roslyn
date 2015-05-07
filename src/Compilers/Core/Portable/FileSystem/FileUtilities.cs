@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace Roslyn.Utilities
 {
@@ -192,15 +191,8 @@ namespace Roslyn.Utilities
             {
                 return Path.GetDirectoryName(resolvedBasePath);
             }
-            catch (ArgumentException)
+            catch (Exception)
             {
-                // invalid characters in path
-                // TODO (tomat): parse the directory name ourselves and handle invalid characters
-                return null;
-            }
-            catch (PathTooLongException)
-            {
-                // TODO (tomat): parse the directory name ourselves and handle arbitrarily long path
                 return null;
             }
         }
@@ -243,7 +235,7 @@ namespace Roslyn.Utilities
 
             try
             {
-                return Path.GetFullPath(path);
+                return PortableShim.Path.GetFullPath(path);
             }
             catch (ArgumentException e)
             {
@@ -261,7 +253,7 @@ namespace Roslyn.Utilities
 
         internal static string NormalizeDirectoryPath(string path)
         {
-            return NormalizeAbsolutePath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return NormalizeAbsolutePath(path).TrimEnd(PortableShim.Path.DirectorySeparatorChar, PortableShim.Path.AltDirectorySeparatorChar);
         }
 
         internal static string TryNormalizeAbsolutePath(string path)
@@ -270,7 +262,7 @@ namespace Roslyn.Utilities
 
             try
             {
-                return Path.GetFullPath(path);
+                return PortableShim.Path.GetFullPath(path);
             }
             catch
             {
@@ -278,13 +270,13 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static FileStream OpenRead(string fullPath)
+        internal static Stream OpenRead(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
             try
             {
-                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read);
             }
             catch (IOException)
             {
@@ -296,13 +288,13 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static FileStream OpenAsyncRead(string fullPath)
+        internal static Stream OpenAsyncRead(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
             try
             {
-                return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read, 4096, PortableShim.FileOptions.Asynchronous);
             }
             catch (IOException)
             {
@@ -318,7 +310,7 @@ namespace Roslyn.Utilities
         /// Used to create a file given a path specified by the user.
         /// paramName - Provided by the Public surface APIs to have a clearer message. Internal API just rethrow the exception
         /// </summary>
-        internal static FileStream CreateFileStreamChecked(Func<string, FileStream> factory, string path, string paramName = null)
+        internal static Stream CreateFileStreamChecked(Func<string, Stream> factory, string path, string paramName = null)
         {
             try
             {
@@ -356,39 +348,13 @@ namespace Roslyn.Utilities
             }
         }
 
-        [DllImport("kernel32.dll", PreserveSig = false)]
-        private static extern void SetFileInformationByHandle(SafeFileHandle handle, int fileInformationClass, ref uint fileDispositionInfoDeleteFile, int bufferSize);
-
-        private const int FileDispositionInfo = 4;
-
-        internal static void PrepareDeleteOnCloseStreamForDisposal(FileStream stream)
-        {
-            // tomat: Set disposition to "delete" on the stream, so to avoid ForeFront EndPoint
-            // Protection driver scanning the file. Note that after calling this on a file that's open with DeleteOnClose, 
-            // the file can't be opened again, not even by the same process.
-            uint trueValue = 1;
-            SetFileInformationByHandle(stream.SafeFileHandle, FileDispositionInfo, ref trueValue, sizeof(uint));
-        }
-
-        /// <summary>
-        /// Marks given file for automatic deletion when all its handles are closed.
-        /// Note that after doing this the file can't be opened again, not even by the same process.
-        /// </summary>
-        internal static void DeleteFileOnClose(string fullPath)
-        {
-            using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Delete | FileShare.ReadWrite, 8, FileOptions.DeleteOnClose))
-            {
-                PrepareDeleteOnCloseStreamForDisposal(stream);
-            }
-        }
-
         /// <exception cref="IOException"/>
         internal static DateTime GetFileTimeStamp(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             try
             {
-                return File.GetLastWriteTimeUtc(fullPath);
+                return PortableShim.File.GetLastWriteTimeUtc(fullPath);
             }
             catch (Exception e)
             {

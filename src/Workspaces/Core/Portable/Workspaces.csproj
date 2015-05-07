@@ -118,7 +118,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs">
       <Link>InternalUtilities\IReadOnlySet.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\PathKind.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs">
       <Link>InternalUtilities\PathKind.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">

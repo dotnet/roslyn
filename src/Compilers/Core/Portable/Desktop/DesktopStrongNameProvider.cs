@@ -17,28 +17,90 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class DesktopStrongNameProvider : StrongNameProvider
     {
-        private sealed class TempFileStream : FileStream
+        private sealed class TempFileStream : Stream
         {
-            public TempFileStream(string path, FileMode mode, FileAccess access, FileShare share)
-                : base(path, mode, access, share)
+            private readonly string _path;
+            private readonly Stream _stream;
+
+            public string Path
             {
+                get { return _path; }
+            }
+
+            public TempFileStream(string path, Stream stream)
+            {
+                _path = path;
+                _stream = stream;
             }
 
             public void DisposeUnderlyingStream()
             {
-                base.Dispose(disposing: true);
+                _stream.Dispose();
             }
 
             protected override void Dispose(bool disposing)
             {
                 base.Dispose(disposing);
+
+                _stream.Dispose();
                 try
                 {
-                    File.Delete(Name);
+                    PortableShim.File.Delete(_path);
                 }
                 catch
                 {
                 }
+            }
+
+            public override bool CanRead
+            {
+                get { return _stream.CanRead; }
+            }
+
+            public override bool CanSeek
+            {
+                get { return _stream.CanSeek; }
+            }
+
+            public override bool CanWrite
+            {
+                get { return _stream.CanWrite; }
+            }
+
+            public override void Flush()
+            {
+                _stream.Flush();
+            }
+
+            public override long Length
+            {
+                get { return _stream.Length; }
+            }
+
+            public override long Position
+            {
+                get { return _stream.Position; }
+                set { _stream.Position = value; }
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                return _stream.Read(buffer, offset, count);
+            }
+
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                return _stream.Seek(offset, origin);
+            }
+
+            public override void SetLength(long value)
+            {
+                _stream.SetLength(value);
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                _stream.Write(buffer, offset, count);
             }
         }
 
@@ -66,13 +128,13 @@ namespace Microsoft.CodeAnalysis
         internal virtual bool FileExists(string fullPath)
         {
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return File.Exists(fullPath);
+            return PortableShim.File.Exists(fullPath);
         }
 
         internal virtual byte[] ReadAllBytes(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return File.ReadAllBytes(fullPath);
+            return PortableShim.File.ReadAllBytes(fullPath);
         }
 
         /// <summary>
@@ -112,8 +174,8 @@ namespace Microsoft.CodeAnalysis
 
         internal override Stream CreateInputStream()
         {
-            var path = Path.GetTempFileName();
-            Func<string, FileStream> streamConstructor = lPath => new TempFileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+            var path = PortableShim.Path.GetTempFileName();
+            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath, PortableShim.FileStream.Create(lPath, PortableShim.FileMode.Create, PortableShim.FileAccess.ReadWrite, PortableShim.FileShare.ReadWrite));
             return FileUtilities.CreateFileStreamChecked(streamConstructor, path);
         }
 
@@ -198,7 +260,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(inputStream is TempFileStream);
 
             var tempStream = (TempFileStream)inputStream;
-            string assemblyFilePath = tempStream.Name;
+            string assemblyFilePath = tempStream.Path;
             tempStream.DisposeUnderlyingStream();
 
             if (keys.KeyContainer != null)
@@ -210,7 +272,7 @@ namespace Microsoft.CodeAnalysis
                 Sign(assemblyFilePath, keys.KeyPair);
             }
 
-            using (var fileToSign = new FileStream(assemblyFilePath, FileMode.Open))
+            using (var fileToSign = PortableShim.FileStream.Create(assemblyFilePath, PortableShim.FileMode.Open))
             {
                 fileToSign.CopyTo(outputStream);
             }

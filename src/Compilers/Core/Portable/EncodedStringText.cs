@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             try
             {
-                return Encoding.GetEncoding(codepage: 1252);
+                return PortableShim.Encoding.GetEncoding(1252);
             }
             catch (NotSupportedException)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="stream">The stream containing encoded text.</param>
         /// <param name="defaultEncoding">
         /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
+        /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be Encoding.Default.
         /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
         /// <param name="checksumAlgorithm">Hash algorithm used to calculate document checksum.</param>
@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // PERF: If the input is a FileStream, we may be able to minimize allocations
-            var fileStream = data as FileStream;
-            if (fileStream != null && TryGetByteArrayFromFileStream(fileStream, out buffer))
+            if (data.GetType() == PortableShim.FileStream.Type &&
+                TryGetByteArrayFromFileStream(data, out buffer))
             {
                 return buffer;
             }
@@ -154,10 +154,16 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                buffer = data.GetBuffer();
-                return true;
+                if (PortableShim.MemoryStream.GetBuffer != null)
+                {
+                    buffer = (byte[])PortableShim.MemoryStream.GetBuffer.Invoke(data, null);
+                    return true;
+                }
+
+                buffer = null;
+                return false;
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception)
             {
                 buffer = null;
                 return false;
@@ -165,12 +171,12 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Read the contents of a <see cref="FileStream"/> into a byte array.
+        /// Read the contents of a FileStream into a byte array.
         /// </summary>
         /// <param name="stream">The FileStream with encoded text.</param>
         /// <param name="buffer">A byte array filled with the contents of the file.</param>
         /// <returns>True if a byte array could be created.</returns>
-        private static bool TryGetByteArrayFromFileStream(FileStream stream, out byte[] buffer)
+        private static bool TryGetByteArrayFromFileStream(Stream stream, out byte[] buffer)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.Position == 0);

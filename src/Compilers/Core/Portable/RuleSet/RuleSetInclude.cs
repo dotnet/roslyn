@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security;
 using System.Xml;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -49,7 +50,6 @@ namespace Microsoft.CodeAnalysis
         {
             // Try to load the rule set
             RuleSet ruleSet = null;
-            Exception ex = null;
 
             string path = _includePath;
             try
@@ -57,30 +57,9 @@ namespace Microsoft.CodeAnalysis
                 path = GetIncludePath(parent);
                 ruleSet = RuleSetProcessor.LoadFromFile(path);
             }
-            catch (ArgumentException e)
-            { ex = e; }
-            catch (FileNotFoundException)
+            catch (Exception e)
             {
-                // The compiler uses the same rule set files as FxCop, but doesn't have all of
-                // the same logic for resolving included files. For the moment, just ignore any
-                // includes we can't resolve.
-            }
-            catch (IOException e)
-            { ex = e; }
-            catch (UriFormatException e)
-            { ex = e; }
-            catch (SecurityException e)
-            { ex = e; }
-            catch (UnauthorizedAccessException e)
-            { ex = e; }
-            catch (XmlException e)
-            { ex = e; }
-            catch (InvalidRuleSetException e)
-            { ex = e; }
-
-            if (ex != null)
-            {
-                throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, path, ex.Message));
+                throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, path, e.Message));
             }
 
             return ruleSet;
@@ -93,12 +72,12 @@ namespace Microsoft.CodeAnalysis
         private string GetIncludePath(RuleSet parent)
         {
             List<string> found = new List<string>();
-            string expandedPath = Environment.ExpandEnvironmentVariables(_includePath);
+            string expandedPath = PortableShim.Environment.ExpandEnvironmentVariables(_includePath);
 
             // If a full path is specified then use it
             if (Path.IsPathRooted(expandedPath))
             {
-                if (File.Exists(expandedPath))
+                if (PortableShim.File.Exists(expandedPath))
                 {
                     found.Add(expandedPath);
                 }
@@ -108,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             if (parent != null && !string.IsNullOrEmpty(parent.FilePath))
             {
                 string local = Path.Combine(Path.GetDirectoryName(parent.FilePath), expandedPath);
-                if (File.Exists(local))
+                if (PortableShim.File.Exists(local))
                 {
                     found.Add(local);
                 }
@@ -122,7 +101,7 @@ namespace Microsoft.CodeAnalysis
 
             // Return the canonical full path
             Debug.Assert(found.Count > 0);
-            return Path.GetFullPath(found[0]);
+            return PortableShim.Path.GetFullPath(found[0]);
         }
     }
 }
