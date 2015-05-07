@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         try
                         {
                             preferredUILang = new CultureInfo(value);
-                            if (CorLightup.Desktop.IsUserCustomCultor(preferredUILang) ?? false)
+                            if (CorLightup.Desktop.IsUserCustomCulture(preferredUILang) ?? false)
                             {
                                 // Do not use user custom cultures.
                                 preferredUILang = null;

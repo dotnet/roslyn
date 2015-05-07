@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
                 internal const int UserCustomCulture = 8;
             }
 
-            internal static bool? IsUserCustomCultor(System.Globalization.CultureInfo cultureInfo)
+            internal static bool? IsUserCustomCulture(System.Globalization.CultureInfo cultureInfo)
             {
                 if (CultureInfo.CultureTypes == null)
                 {

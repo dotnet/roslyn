@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Try
                             preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCultor(preferredUILang)) Then
+                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
                                 ' Do not use user custom cultures.
                                 preferredUILang = Nothing
                             End If
