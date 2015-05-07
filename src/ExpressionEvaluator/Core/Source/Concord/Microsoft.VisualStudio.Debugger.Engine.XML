@@ -9569,6 +9569,14 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
+        <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo.FullName">
+             <summary>
+             The full name of the variable.  This is the expression evaluated if the variable
+             is added to the Watch window.
+            
+             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
+             </summary>
+        </member>
         <member name="P:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo.MethodName">
              <summary>
              The name of the method to execute to get the value of this variable.
@@ -9599,7 +9607,7 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo.Create(System.String,System.String,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCompilationResultFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo)">
+        <member name="M:Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrLocalVariableInfo.Create(System.String,System.String,System.String,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCompilationResultFlags,Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationResultCategory,Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrCustomTypeInfo)">
              <summary>
              Create a new DkmClrLocalVariableInfo object instance.
             
@@ -9607,6 +9615,10 @@
              </summary>
              <param name="VariableName">
              [In] The user-visible name of the variable.
+             </param>
+             <param name="FullName">
+             [In] The full name of the variable.  This is the expression evaluated if the
+             variable is added to the Watch window.
              </param>
              <param name="MethodName">
              [In] The name of the method to execute to get the value of this variable.
