@@ -315,6 +315,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 view.TextBuffer.PostChanged -= OnTextChanged;
+                view.Closed -= OnClosed;
+
                 _views.Remove(view);
             }
 
