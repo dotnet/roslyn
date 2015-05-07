@@ -80,6 +80,7 @@
     <Compile Include="Design\UseGenericEventHandler.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
+    <Compile Include="Performance\CSharpTestForEmptyStringsUsingStringLengthAnalyzer.cs" />
     <Compile Include="Reliability\DoNotLockOnObjectsWithWeakIdentity.cs" />
     <Compile Include="Usage\DisposableFieldsShouldBeDisposed.cs" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.cs" />

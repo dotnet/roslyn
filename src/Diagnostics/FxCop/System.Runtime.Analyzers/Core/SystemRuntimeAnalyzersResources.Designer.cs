@@ -476,6 +476,24 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Test for empty strings using &apos;string.Length&apos; property or &apos;string.IsNullOrEmpty&apos; method instead of an Equality check..
+        /// </summary>
+        internal static string TestForEmptyStringsUsingStringLength {
+            get {
+                return ResourceManager.GetString("TestForEmptyStringsUsingStringLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comparing strings using the string.Length property or the string.IsNullOrEmpty method is significantly faster than using string.Equals. This is because Equals executes significantly more MSIL instructions than either IsNullOrEmpty or the number of instructions executed to retrieve the Length property value and compare it to zero..
+        /// </summary>
+        internal static string TestForEmptyStringsUsingStringLengthDescription {
+            get {
+                return ResourceManager.GetString("TestForEmptyStringsUsingStringLengthDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; owns disposable fields but is not disposable.
         /// </summary>
         internal static string TypeOwnsDisposableFieldButIsNotDisposable {

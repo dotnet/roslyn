@@ -9,11 +9,13 @@
     <CodeAnalysisRuleSetOverrides>$(CodeAnalysisRuleSetOverrides);
       -Microsoft.Design#CA1003;
       -Microsoft.Design#CA1019;
-      
+
       -Microsoft.Globalization#CA1309;
-      
+
+      -Microsoft.Performance#CA1820;
+
       -Microsoft.Reliability#CA2002;
-      
+
       -Microsoft.Usage#CA2213;
     </CodeAnalysisRuleSetOverrides>
   </PropertyGroup>
