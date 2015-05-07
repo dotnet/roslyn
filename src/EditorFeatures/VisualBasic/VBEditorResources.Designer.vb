@@ -115,15 +115,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Extension.
-        '''</summary>
-        Friend ReadOnly Property Extension() As String
-            Get
-                Return ResourceManager.GetString("Extension", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Format Document.
         '''</summary>
         Friend ReadOnly Property FormatDocument() As String

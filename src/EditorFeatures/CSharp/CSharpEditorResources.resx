@@ -126,10 +126,4 @@
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
-  <data name="Awaitable" xml:space="preserve">
-    <value>awaitable</value>
-  </data>
-  <data name="Extension" xml:space="preserve">
-    <value>extension</value>
-  </data>
 </root>
