@@ -60,8 +60,7 @@ End Class"
 "{
   // Code size       12 (0xc)
   .maxstack  2
-  .locals init (Boolean V_0,
-                Boolean V_1)
+  .locals init (Boolean V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.$STATIC$M$2001$x As Object""
   IL_0006:  dup
@@ -96,8 +95,7 @@ End Class"
   // Code size       16 (0x10)
   .maxstack  1
   .locals init (Boolean V_0,
-                Boolean V_1,
-                Boolean V_2)
+                Boolean V_1)
   IL_0000:  ldsfld     ""C.$STATIC$M$001$y As Object""
   IL_0005:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_000a:  stsfld     ""C.$STATIC$M$001$x As Object""
@@ -111,8 +109,7 @@ End Class"
 "{
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (Boolean V_0,
-                Boolean V_1)
+  .locals init (Boolean V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""C.$STATIC$N$2001$z As C""
@@ -241,16 +238,16 @@ End Class"
             Assert.Equal(3, locals.Count)
             VerifyLocal(testData, typeName, locals(0), "<>m0", "i")
             VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
-            VerifyLocal(testData, typeName, locals(2), "<>m2", "x", expectedILOpt:=
-"{
+            VerifyLocal(testData, typeName, locals(2), "<>m2", "x", expectedILOpt:="
+{
   // Code size        6 (0x6)
   .maxstack  1
   .locals init (Object V_0, //F
-                Boolean V_1,
-                Boolean V_2)
+                Boolean V_1)
   IL_0000:  ldsfld     ""C.$STATIC$F$011C8$x As Object""
   IL_0005:  ret
-}")
+}
+")
             locals.Free()
         End Sub
 

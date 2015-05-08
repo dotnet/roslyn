@@ -943,7 +943,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
             Dim compilation3 = compilation2.WithSource(source3.Tree)
@@ -1432,47 +1432,48 @@ End Class
 
             diff1.VerifyIL("C..ctor", "
 {
-  // Code size      144 (0x90)
+  // Code size      145 (0x91)
   .maxstack  3
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       ""Sub Object..ctor()""
-  IL_0007:  ldarg.0
-  IL_0008:  ldsfld     ""C._Closure$__.$I0-0 As System.Func(Of Integer, Integer)""
-  IL_000d:  brfalse.s  IL_0016
-  IL_000f:  ldsfld     ""C._Closure$__.$I0-0 As System.Func(Of Integer, Integer)""
-  IL_0014:  br.s       IL_002c
-  IL_0016:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
-  IL_001b:  ldftn      ""Function C._Closure$__._Lambda$__0-0(Integer) As Integer""
-  IL_0021:  newobj     ""Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)""
-  IL_0026:  dup
-  IL_0027:  stsfld     ""C._Closure$__.$I0-0 As System.Func(Of Integer, Integer)""
-  IL_002c:  call       ""Function C.F(System.Func(Of Integer, Integer)) As Integer""
-  IL_0031:  stfld      ""C.A As Integer""
-  IL_0036:  ldarg.0
-  IL_0037:  ldsfld     ""C._Closure$__.$I0-1#1 As System.Func(Of Integer, Integer)""
-  IL_003c:  brfalse.s  IL_0045
-  IL_003e:  ldsfld     ""C._Closure$__.$I0-1#1 As System.Func(Of Integer, Integer)""
-  IL_0043:  br.s       IL_005b
-  IL_0045:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
-  IL_004a:  ldftn      ""Function C._Closure$__._Lambda$__0-1#1(Integer) As Integer""
-  IL_0050:  newobj     ""Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)""
-  IL_0055:  dup
-  IL_0056:  stsfld     ""C._Closure$__.$I0-1#1 As System.Func(Of Integer, Integer)""
-  IL_005b:  call       ""Function C.F(System.Func(Of Integer, Integer)) As Integer""
-  IL_0060:  stfld      ""C.B As Integer""
-  IL_0065:  ldsfld     ""C._Closure$__.$I0-2#1 As System.Func(Of Integer, Integer)""
-  IL_006a:  brfalse.s  IL_0073
-  IL_006c:  ldsfld     ""C._Closure$__.$I0-2#1 As System.Func(Of Integer, Integer)""
-  IL_0071:  br.s       IL_0089
-  IL_0073:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
-  IL_0078:  ldftn      ""Function C._Closure$__._Lambda$__0-2#1(Integer) As Integer""
-  IL_007e:  newobj     ""Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)""
-  IL_0083:  dup
-  IL_0084:  stsfld     ""C._Closure$__.$I0-2#1 As System.Func(Of Integer, Integer)""
-  IL_0089:  call       ""Function C.F(System.Func(Of Integer, Integer)) As Integer""
-  IL_008e:  pop
-  IL_008f:  ret
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldsfld     ""C._Closure$__.$I0-0 As System.Func(Of Integer, Integer)""
+  IL_000e:  brfalse.s  IL_0017
+  IL_0010:  ldsfld     ""C._Closure$__.$I0-0 As System.Func(Of Integer, Integer)""
+  IL_0015:  br.s       IL_002d
+  IL_0017:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_001c:  ldftn      ""Function C._Closure$__._Lambda$__0-0(Integer) As Integer""
+  IL_0022:  newobj     ""Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)""
+  IL_0027:  dup
+  IL_0028:  stsfld     ""C._Closure$__.$I0-0 As System.Func(Of Integer, Integer)""
+  IL_002d:  call       ""Function C.F(System.Func(Of Integer, Integer)) As Integer""
+  IL_0032:  stfld      ""C.A As Integer""
+  IL_0037:  ldarg.0
+  IL_0038:  ldsfld     ""C._Closure$__.$I0-1#1 As System.Func(Of Integer, Integer)""
+  IL_003d:  brfalse.s  IL_0046
+  IL_003f:  ldsfld     ""C._Closure$__.$I0-1#1 As System.Func(Of Integer, Integer)""
+  IL_0044:  br.s       IL_005c
+  IL_0046:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_004b:  ldftn      ""Function C._Closure$__._Lambda$__0-1#1(Integer) As Integer""
+  IL_0051:  newobj     ""Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)""
+  IL_0056:  dup
+  IL_0057:  stsfld     ""C._Closure$__.$I0-1#1 As System.Func(Of Integer, Integer)""
+  IL_005c:  call       ""Function C.F(System.Func(Of Integer, Integer)) As Integer""
+  IL_0061:  stfld      ""C.B As Integer""
+  IL_0066:  ldsfld     ""C._Closure$__.$I0-2#1 As System.Func(Of Integer, Integer)""
+  IL_006b:  brfalse.s  IL_0074
+  IL_006d:  ldsfld     ""C._Closure$__.$I0-2#1 As System.Func(Of Integer, Integer)""
+  IL_0072:  br.s       IL_008a
+  IL_0074:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_0079:  ldftn      ""Function C._Closure$__._Lambda$__0-2#1(Integer) As Integer""
+  IL_007f:  newobj     ""Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)""
+  IL_0084:  dup
+  IL_0085:  stsfld     ""C._Closure$__.$I0-2#1 As System.Func(Of Integer, Integer)""
+  IL_008a:  call       ""Function C.F(System.Func(Of Integer, Integer)) As Integer""
+  IL_008f:  pop
+  IL_0090:  ret
 }
 ")
         End Sub

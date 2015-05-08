@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
             {
-                // We need to include contructor initializer in the match, since it may contain lambdas.
+                // We need to include constructor initializer in the match, since it may contain lambdas.
                 // Use the constructor declaration as a root.
                 Debug.Assert(oldBody.IsKind(SyntaxKind.Block));
                 Debug.Assert(newBody.IsKind(SyntaxKind.Block));

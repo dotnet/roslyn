@@ -112,10 +112,10 @@ End Namespace
         <method containingType="Boo.C1" name=".ctor">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
-                <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
+                <entry offset="0x7" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
+                <entry offset="0x17" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x27">
+            <scope startOffset="0x0" endOffset="0x28">
                 <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
                 <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
                 <alias name="file1" target="System.Collections" kind="namespace" importlevel="file"/>
@@ -285,10 +285,10 @@ End Namespace
         <method containingType="DefaultNamespace.Boo.C1" name=".ctor">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
-                <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
+                <entry offset="0x7" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
+                <entry offset="0x17" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x27">
+            <scope startOffset="0x0" endOffset="0x28">
                 <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
                 <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
                 <alias name="file1" target="System.Collections" kind="namespace" importlevel="file"/>

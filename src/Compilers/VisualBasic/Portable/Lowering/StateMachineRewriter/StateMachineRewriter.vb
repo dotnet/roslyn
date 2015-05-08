@@ -167,10 +167,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case variable.Kind
                     Case SymbolKind.Local
                         Dim local = DirectCast(variable, LocalSymbol)
-                        Dim synthesizedKind = local.SynthesizedKind
 
                         ' No need to hoist constants
                         If local.IsConst Then
+                            Continue For
+                        End If
+
+                        If local.SynthesizedKind = SynthesizedLocalKind.ConditionalBranchDiscriminator Then
                             Continue For
                         End If
 
