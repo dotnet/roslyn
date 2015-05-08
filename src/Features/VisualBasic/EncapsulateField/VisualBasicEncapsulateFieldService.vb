@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         End Function
 
         Private Function CanEncapsulate(field As FieldDeclarationSyntax) As Boolean
-            Return TypeOf field.Parent Is EnumBlockSyntax OrElse TypeOf field.Parent Is TypeBlockSyntax
+            Return TypeOf field.Parent Is TypeBlockSyntax
         End Function
 
         Protected Function MakeUnique(baseName As String, originalFieldName As String, containingType As INamedTypeSymbol, Optional willChangeFieldName As Boolean = True) As String

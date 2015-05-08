@@ -980,5 +980,25 @@ namespace ConsoleApplication1
 
             Test(text, expected);
         }
+
+        [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void DoNotEncapsulateOutsideTypeDeclaration()
+        {
+            TestMissing(@"
+var [|x|] = 1;");
+
+            TestMissing(@"
+namespace N
+{
+    var [|x|] = 1;
+}");
+
+            TestMissing(@"
+enum E
+{
+    [|x|] = 1;
+}");
+        }
     }
 }

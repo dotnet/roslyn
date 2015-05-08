@@ -132,8 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
 
         private bool CanEncapsulate(FieldDeclarationSyntax field)
         {
-            return field.Parent is TypeDeclarationSyntax
-                || field.Parent is EnumDeclarationSyntax;
+            return field.Parent is TypeDeclarationSyntax;
         }
 
         protected override Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field)
