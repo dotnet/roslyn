@@ -414,9 +414,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (ProjectTracker.TryGetProjectByBinPath(filePath, out project))
             {
                 var projectReference = new ProjectReference(project.Id, properties.Aliases, properties.EmbedInteropTypes);
-                AddProjectReference(projectReference);
-                _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
-                return VSConstants.S_OK;
+                if (CanAddProjectReference(projectReference))
+                {
+                    AddProjectReference(projectReference);
+                    _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
+                    return VSConstants.S_OK;
+                }
             }
 
             if (!File.Exists(filePath))
@@ -512,7 +515,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected void AddProjectReference(ProjectReference projectReference)
         {
             // dev11 is sometimes calling us multiple times for the same data
-            if (_projectReferences.Contains(projectReference))
+            if (!CanAddProjectReference(projectReference))
             {
                 return;
             }
@@ -529,6 +532,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectReferenceAdded(this.Id, projectReference));
             }
+        }
+
+        protected bool CanAddProjectReference(ProjectReference projectReference)
+        {
+            if (projectReference.ProjectId == this.Id)
+            {
+                // cannot self reference
+                return false;
+            }
+
+            if (_projectReferences.Contains(projectReference))
+            {
+                // already have this reference
+                return false;
+            }
+
+            var project = this.ProjectTracker.GetProject(projectReference.ProjectId);
+            if (project != null)
+            {
+                // cannot add a reference to a project that references us (it would make a cycle)
+                return !project.TransitivelyReferences(this.Id);
+            }
+
+            return true;
+        }
+
+        private bool TransitivelyReferences(ProjectId projectId)
+        {
+            foreach (var pr in this._projectReferences)
+            {
+                if (projectId == pr.ProjectId)
+                {
+                    return true;
+                }
+
+                var project = this.ProjectTracker.GetProject(pr.ProjectId);
+                if (project != null)
+                {
+                    if (project.TransitivelyReferences(projectId))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected void RemoveProjectReference(ProjectReference projectReference)
@@ -803,10 +852,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     metadataReference.Properties.Aliases,
                     metadataReference.Properties.EmbedInteropTypes);
 
-                RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
-                AddProjectReference(projectReference);
+                if (CanAddProjectReference(projectReference))
+                {
+                    RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
+                    AddProjectReference(projectReference);
 
-                _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                    _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                }
             }
         }
 

@@ -161,6 +161,7 @@
     <Compile Include="Debugging\DataTipInfoGetterTests.cs" />
     <Compile Include="Debugging\LocationInfoGetterTests.cs" />
     <Compile Include="Debugging\NameResolverTests.cs" />
+    <Compile Include="ProjectSystemShim\CSharpReferencesTests.cs" />
     <Compile Include="ProjectSystemShim\SourceFileHandlingTests.cs" />
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.cs" />
