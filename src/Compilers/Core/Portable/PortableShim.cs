@@ -188,9 +188,18 @@ namespace Roslyn.Utilities
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
                 desktopName: TypeName);
 
+            private static readonly MethodInfo s_enumerateDirectories = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(EnumerateDirectories), new[] { typeof(string), typeof(string), SearchOption.Type });
+
             private static readonly MethodInfo s_enumerateFiles = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(EnumerateFiles), new[] { typeof(string), typeof(string), SearchOption.Type });
+
+            internal static IEnumerable<string> EnumerateDirectories(string path, string searchPattern, object searchOption)
+            {
+                return (IEnumerable<string>)s_enumerateDirectories.Invoke(null, new object[] { path, searchPattern, searchOption });
+            }
 
             internal static IEnumerable<string> EnumerateFiles(string path, string searchPattern, object searchOption)
             {

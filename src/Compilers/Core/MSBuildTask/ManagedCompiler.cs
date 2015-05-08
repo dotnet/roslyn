@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (!UseSharedCompilation || this.ToolPath != null )
+            if (!UseSharedCompilation || this.ToolPath != null)
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -324,9 +324,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
-                    ExitCode = responseTask.Result != null
-                        ? HandleResponse(responseTask.Result)
-                        : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    var response = responseTask.Result;
+                    if (response != null)
+                    {
+                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                    }
+                    else
+                    {
+                        ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -342,6 +348,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return ExitCode;
         }
 
+
+
         /// <summary>
         /// Try to get the directory this assembly is in. Returns null if assembly
         /// was in the GAC.
@@ -354,7 +362,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return null;
 
             var uri = new Uri(assembly.CodeBase);
-            string assemblyPath = uri.IsFile 
+            string assemblyPath = uri.IsFile
                 ? uri.LocalPath
                 : Assembly.GetCallingAssembly().Location;
             return Path.GetDirectoryName(assemblyPath);
@@ -418,32 +426,35 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse response)
+        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            var completedResponse = response as CompletedBuildResponse;
-            if (completedResponse != null)
+            switch (response.Type)
             {
-                LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
+                    return -1;
 
-                if (LogStandardErrorAsError)
-                {
-                    LogErrorOutput(completedResponse.ErrorOutput);
-                }
-                else
-                {
-                    LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
-                }
+                case BuildResponse.ResponseType.Completed:
+                    var completedResponse = (CompletedBuildResponse)response;
+                    LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
 
-                ExitCode = completedResponse.ReturnCode;
+                    if (LogStandardErrorAsError)
+                    {
+                        LogErrorOutput(completedResponse.ErrorOutput);
+                    }
+                    else
+                    {
+                        LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
+                    }
+
+                    return completedResponse.ReturnCode;
+
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
+                default:
+                    throw new InvalidOperationException("Encountered unknown response type");
             }
-            else
-            {
-                Debug.Assert(response is MismatchedVersionBuildResponse);
-
-                LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
-                ExitCode = -1;
-            }
-            return ExitCode;
         }
 
         private void LogErrorOutput(string output)
