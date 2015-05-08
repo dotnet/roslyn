@@ -41,7 +41,10 @@ namespace Roslyn.Utilities
             {
                 string assemblyPath = workList.Dequeue();
 
-                assemblySet.Add(assemblyPath);
+                if (!assemblySet.Add(assemblyPath))
+                {
+                    continue;
+                }
 
                 var directory = Path.GetDirectoryName(assemblyPath);
 
