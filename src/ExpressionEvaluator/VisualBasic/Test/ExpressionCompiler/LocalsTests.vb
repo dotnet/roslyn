@@ -2707,9 +2707,8 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_3_M V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_3_M V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$Me As C""
   IL_0006:  ret
@@ -2720,9 +2719,8 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_3_M V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_3_M V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$ResumableLocal_$VB$Closure_$0 As C._Closure$__3-0""
   IL_0006:  ldfld      ""C._Closure$__3-0.$VB$Local_s As String""
