@@ -1228,12 +1228,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End If
 
                 If displayClassVariablesBuilder.ContainsKey(variableName) Then
+                    ' Only expecting duplicates for async state machine
+                    ' fields (that should be at the top-level).
+                    Debug.Assert(displayClassVariablesBuilder(variableName).DisplayClassFields.Count() = 1)
+                    Debug.Assert(instance.Fields.Count() >= 1) ' greater depth
                     ' There are two ways names could collide:
                     '   1) hoisted state machine locals in different scopes
                     '   2) hoisted state machine parameters that are also captured by lambdas
                     ' The former should be impossible since we dropped out-of-scope hoisted
                     ' locals above.  We assert that we are seeing the latter.
-                    Debug.Assert(variableKind = DisplayClassVariableKind.Parameter)
+                    Debug.Assert((variableKind = DisplayClassVariableKind.Parameter) OrElse
+                        (variableKind = DisplayClassVariableKind.Me))
                 Else
                     displayClassVariableNamesInOrder.Add(variableName)
                     displayClassVariablesBuilder.Add(variableName, instance.ToVariable(variableName, variableKind, field))
