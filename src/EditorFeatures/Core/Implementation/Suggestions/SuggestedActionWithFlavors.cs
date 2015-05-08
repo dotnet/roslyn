@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Light bulb will always invoke this property on the UI thread.
             AssertIsForeground();
 
-                if (_actionSets == null)
-                {
+            if (_actionSets == null)
+            {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
                 _actionSets = await extensionManager.PerformFunctionAsync(Provider, async () =>
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return builder.ToImmutable();
                     // We use ConfigureAwait(true) to stay on the UI thread.
-                }).ConfigureAwait(true);
-                }
-
-                return _actionSets;
+                }, defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
+
+            return _actionSets;
+        }
 
         private async Task<SuggestedActionSet> GetPreviewChangesSuggestedActionSetAsync(CancellationToken cancellationToken)
         {

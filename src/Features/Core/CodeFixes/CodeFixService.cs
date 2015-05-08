@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         await task.ConfigureAwait(false);
                         return fixes;
                     };
+
                 await AppendFixesOrSuppressionsAsync(document, span, diagnostics, result, fixer,
                     hasFix, getFixes, cancellationToken).ConfigureAwait(false);
             }
@@ -261,8 +262,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // this can happen for suppression case where all diagnostics can't be suppressed
                 return result;
             }
+
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
-            var fixes = await extensionManager.PerformFunctionAsync(fixer, () => getFixes(diagnostics)).ConfigureAwait(false);
+            var fixes = await extensionManager.PerformFunctionAsync(fixer, () => getFixes(diagnostics), defaultValue: SpecializedCollections.EmptyEnumerable<CodeFix>()).ConfigureAwait(false);
+
             if (fixes != null && fixes.Any())
             {
                 FixAllCodeActionContext fixAllContext = null;
@@ -270,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (codeFixProvider != null)
                 {
                     // If the codeFixProvider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
-                    var fixAllProviderInfo = extensionManager.PerformFunction(codeFixProvider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, codeFixProvider, FixAllProviderInfo.Create));
+                    var fixAllProviderInfo = extensionManager.PerformFunction(codeFixProvider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, codeFixProvider, FixAllProviderInfo.Create), defaultValue: null);
+
                     if (fixAllProviderInfo != null)
                     {
                         fixAllContext = new FixAllCodeActionContext(document, fixAllProviderInfo, codeFixProvider, diagnostics, this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
@@ -409,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return extensionManager.PerformFunction(
                     fixer,
                     () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => f.FixableDiagnosticIds),
-                    ImmutableArray<DiagnosticId>.Empty);
+                    defaultValue: ImmutableArray<DiagnosticId>.Empty);
             }
 
             try
