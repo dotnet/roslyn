@@ -19,10 +19,6 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Desktop">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
       <Private>false</Private>

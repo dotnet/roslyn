@@ -23,10 +23,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
       <Name>csc</Name>
