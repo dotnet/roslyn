@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             foreach (var candidate in candidateResults)
             {
                 // Does the candidate have anything remotely equivalent?
-                if (!candidate.Item3.Any(c => !c.IsErrorType() && bestBinding.Item3.Contains(c, LinkedFilesSymbolEquivalenceComparer.Instance)))
+                if (!candidate.Item3.Intersect(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
                 {
                     invalidProjects.Add(candidate.Item1.ProjectId);
                 }
