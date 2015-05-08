@@ -1337,7 +1337,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // fields (that should be at the top-level).
                     Debug.Assert(displayClassVariablesBuilder[variableName].DisplayClassFields.Count() == 1);
                     Debug.Assert(instance.Fields.Count() >= 1); // greater depth
-                    Debug.Assert(variableKind == DisplayClassVariableKind.Parameter);
+                    Debug.Assert((variableKind == DisplayClassVariableKind.Parameter) ||
+                        (variableKind == DisplayClassVariableKind.This));
                 }
                 else if (variableKind != DisplayClassVariableKind.This || GeneratedNames.GetKind(instance.Type.ContainingType.Name) != GeneratedNameKind.LambdaDisplayClass)
                 {

@@ -2702,6 +2702,64 @@ class C
             locals.Free();
         }
 
+        [WorkItem(2089, "https://github.com/dotnet/roslyn/issues/2089")]
+        [Fact]
+        public void MultipleThisFields()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    async static Task F(Action a)
+    {
+        a();
+    }
+    void G(string s)
+    {
+    }
+    async void M()
+    {
+        string s = null;
+        await F(() => G(s));
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(compilation);
+            var context = CreateMethodContext(runtime, "C.<M>d__2.MoveNext()");
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            var testData = new CompilationTestData();
+            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            Assert.Equal(locals.Count, 2);
+            VerifyLocal(testData, "<>x", locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<M>d__2 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<M>d__2.<>4__this""
+  IL_0006:  ret
+}");
+            VerifyLocal(testData, "<>x", locals[1], "<>m1", "s", expectedILOpt:
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<M>d__2 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass2_0 C.<M>d__2.<>8__1""
+  IL_0006:  ldfld      ""string C.<>c__DisplayClass2_0.s""
+  IL_000b:  ret
+}");
+            locals.Free();
+        }
+
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
         {
             var context = CreateMethodContext(runtime, methodName);

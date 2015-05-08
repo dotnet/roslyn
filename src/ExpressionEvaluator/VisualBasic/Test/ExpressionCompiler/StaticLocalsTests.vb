@@ -224,7 +224,7 @@ End Class"
 }")
             locals.Free()
 
-            GetContextState(runtime, "C.F(Integer)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "C.F(Int32)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             context = EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,

@@ -282,31 +282,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 expectedValueSourceLine)
         End Sub
 
-
         Friend Shared Function GetMethodOrTypeBySignature(compilation As Compilation, signature As String) As Symbol
-            Dim methodOrTypeName As String = signature
             Dim parameterTypeNames() As String = Nothing
-            Dim parameterListStart = methodOrTypeName.IndexOf("("c)
-            If parameterListStart > -1 Then
-                parameterTypeNames = methodOrTypeName.Substring(parameterListStart).Trim("("c, ")"c).Split(","c)
-                methodOrTypeName = methodOrTypeName.Substring(0, parameterListStart)
-            End If
+            Dim methodOrTypeName = ExpressionCompilerTestHelpers.GetMethodOrTypeSignatureParts(signature, parameterTypeNames)
 
             Dim candidates = compilation.GetMembers(methodOrTypeName)
-            Assert.NotEmpty(candidates)
-            Assert.Equal(parameterTypeNames Is Nothing, candidates.Length = 1)
+            Dim methodOrType = If(parameterTypeNames Is Nothing,
+                candidates.FirstOrDefault(),
+                candidates.FirstOrDefault(Function(c) parameterTypeNames.SequenceEqual(DirectCast(c, MethodSymbol).Parameters.Select(Function(p) p.Type.Name))))
 
-            Dim methodOrType As Symbol = Nothing
-            For Each candidate In candidates
-                methodOrType = candidate
-                If (parameterTypeNames Is Nothing) OrElse
-                    parameterTypeNames.SequenceEqual(DirectCast(methodOrType, MethodSymbol).Parameters.Select(Function(p) p.Type.Name)) Then
-                    ' Found a match.
-                    Exit For
-                End If
-            Next
             Assert.False(methodOrType Is Nothing, "Could not find method or type with signature '" + signature + "'.")
-
             Return methodOrType
         End Function
 
