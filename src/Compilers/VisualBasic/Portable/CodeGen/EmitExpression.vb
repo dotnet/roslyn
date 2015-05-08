@@ -1022,7 +1022,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
                 EmitPopIfUnused(used)
-            ElseIf _optimizations = OptimizationLevel.Debug AndAlso Not [call].WasCompilerGenerated Then
+            ElseIf _optimizations = OptimizationLevel.Debug Then
+                Debug.Assert(Not used, "Using the return value of a void method.")
+                Debug.Assert(_method.GenerateDebugInfo, "Implied by emitSequencePoints")
+
                 ' DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
                 ' debugger sees an event indicating that a user break (vs a breakpoint) has occurred.
                 ' When this happens, it uses ICorDebugILFrame.GetIP(out uint, out CorDebugMappingResult)
@@ -1041,6 +1044,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 '   window and take him to the calling line.
 
                 ' CONSIDER: The native compiler does not appear to consider whether we are optimizing or emitting debug info.
+
+                ' CONSIDER: The native compiler also checks !(tree->flags & EXF_NODEBUGINFO).  We don't have
+                ' this mutable bit on our bound nodes, so we can't exactly match the behavior.  We might be
+                ' able to approximate the native behavior by inspecting call.WasCompilerGenerated, but it is
+                ' Not in a reliable state after lowering.
 
                 _builder.EmitOpCode(ILOpCode.Nop)
             End If

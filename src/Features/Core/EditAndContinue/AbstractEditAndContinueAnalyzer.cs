@@ -2617,7 +2617,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (IsPartial(newType))
             {
-                // Since we don't calculate match accross partial declarations we need to disallow
+                // Since we don't calculate match across partial declarations we need to disallow
                 // adding and updating fields/properties with initializers of a partial type declaration.
                 // Assuming this restriction we can allow editing all constructors of partial types. 
                 // The ones that include initializers won't differ in the field initialization.

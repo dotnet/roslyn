@@ -91,10 +91,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                ' Hoist all user-defined locals that can be hoisted:
-                ' TODO: filter out synthesized variables which do not need hoist
-                ' (see MustSurviveStateMachineSuspension in C#)
-                Return Not local.Type.IsRestrictedType()
+                ' hoist all user-defined locals that can be hoisted
+                If local.SynthesizedKind = SynthesizedLocalKind.UserDefined Then
+                    Return Not local.Type.IsRestrictedType()
+                End If
+
+                ' hoist all synthesized variables that have to survive state machine suspension
+                Return local.SynthesizedKind <> SynthesizedLocalKind.ConditionalBranchDiscriminator
             End If
 
             Return False
