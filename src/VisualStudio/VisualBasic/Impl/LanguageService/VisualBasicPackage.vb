@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -149,6 +150,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Protected Overrides ReadOnly Property RoslynLanguageName As String
             Get
                 Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property LibraryManager As AbstractObjectBrowserLibraryManager
+            Get
+                Return _libraryManager
             End Get
         End Property
     End Class

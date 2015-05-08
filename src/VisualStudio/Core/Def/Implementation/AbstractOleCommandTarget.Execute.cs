@@ -240,6 +240,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     goto default;
 
+                case VSConstants.VSStd97CmdID.SyncClassView:
+                    ExecuteSyncClassView(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
                 default:
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
@@ -880,6 +884,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             CurrentHandlers.Execute<FindReferencesCommandArgs>(contentType,
                 args: new FindReferencesCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
+        }
+
+        protected virtual void SyncClassView(SnapshotPoint caretPosition)
+        {
+        }
+
+        void ExecuteSyncClassView(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            var subjectCaretPoint = _wpfTextView.BufferGraph.MapDownToSnapshot(_wpfTextView.Caret.Position.BufferPosition, PointTrackingMode.Positive, subjectBuffer.CurrentSnapshot, PositionAffinity.Successor);
+            if (subjectCaretPoint == null)
+            {
+                return;
+            }
+
+            SyncClassView(subjectCaretPoint.Value);
         }
 
         protected void ExecutePaste(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)

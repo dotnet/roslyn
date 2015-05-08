@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -153,6 +154,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             get
             {
                 return LanguageNames.CSharp;
+            }
+        }
+
+        public override AbstractObjectBrowserLibraryManager LibraryManager
+        {
+            get
+            {
+                return _libraryManager;
             }
         }
     }
