@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Syntax, cancellationToken).ConfigureAwait(false);
                     }
                     else if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Syntax, diagnosticIds).ConfigureAwait(false) &&
-                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, stateSet.Analyzer)))
+                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, document.Project.CompilationOptions, stateSet.Analyzer)))
                     {
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
                     }
                     else if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Document, diagnosticIds).ConfigureAwait(false) &&
-                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, stateSet.Analyzer)))
+                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, document.Project.CompilationOptions, stateSet.Analyzer)))
                     {
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         await HandleSuppressedAnalyzerAsync(project, stateSet, cancellationToken).ConfigureAwait(false);
                     }
                     else if (await ShouldRunAnalyzerForStateTypeAsync(analyzerDriver, stateSet.Analyzer, StateType.Project, diagnosticIds: null).ConfigureAwait(false) &&
-                            (ShouldRunAnalyzerForClosedFile(openedDocument: false, analyzer: stateSet.Analyzer)))
+                            (ShouldRunAnalyzerForClosedFile(openedDocument: false, options: project.CompilationOptions, analyzer: stateSet.Analyzer)))
                     {
                         var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return getter.Diagnostics;
         }
 
-        private bool ShouldRunAnalyzerForClosedFile(bool openedDocument, DiagnosticAnalyzer analyzer)
+        private bool ShouldRunAnalyzerForClosedFile(bool openedDocument, CompilationOptions options, DiagnosticAnalyzer analyzer)
         {
             // we have opened document, doesnt matter
             if (openedDocument)
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return true;
             }
 
-            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => d.DefaultSeverity != DiagnosticSeverity.Hidden);
+            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => d.GetEffectiveSeverity(options) != ReportDiagnostic.Hidden);
         }
 
         private async Task<bool> ShouldRunAnalyzerForStateTypeAsync(DiagnosticAnalyzerDriver driver, DiagnosticAnalyzer analyzer, StateType stateTypeId, ImmutableHashSet<string> diagnosticIds)
