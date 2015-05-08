@@ -142,12 +142,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
-                    if (userDiagnosticDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
+                    if (SkipRunningAnalyzer(document.Project.CompilationOptions, userDiagnosticDriver, openedDocument, skipClosedFileChecks, stateSet))
                     {
-                        await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Syntax, cancellationToken).ConfigureAwait(false);
+                        await ClearExistingDiagnostics(document, stateSet, StateType.Syntax, cancellationToken).ConfigureAwait(false);
+                        continue;
                     }
-                    else if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Syntax, diagnosticIds).ConfigureAwait(false) &&
-                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, document.Project.CompilationOptions, stateSet.Analyzer)))
+
+                    if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Syntax, diagnosticIds).ConfigureAwait(false))
                     {
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -220,9 +221,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     if (spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
                     {
-                        await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
+                        await ClearExistingDiagnostics(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
+                        continue;
                     }
-                    else if (await ShouldRunAnalyzerForStateTypeAsync(spanBasedDriver, stateSet.Analyzer, StateType.Document).ConfigureAwait(false))
+
+                    if (await ShouldRunAnalyzerForStateTypeAsync(spanBasedDriver, stateSet.Analyzer, StateType.Document).ConfigureAwait(false))
                     {
                         var supportsSemanticInSpan = await stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysisAsync(spanBasedDriver).ConfigureAwait(false);
                         var userDiagnosticDriver = supportsSemanticInSpan ? spanBasedDriver : documentBasedDriver;
@@ -264,12 +267,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
                 {
-                    if (userDiagnosticDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
+                    if (SkipRunningAnalyzer(document.Project.CompilationOptions, userDiagnosticDriver, openedDocument, skipClosedFileChecks, stateSet))
                     {
-                        await HandleSuppressedAnalyzerAsync(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
+                        await ClearExistingDiagnostics(document, stateSet, StateType.Document, cancellationToken).ConfigureAwait(false);
+                        continue;
                     }
-                    else if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Document, diagnosticIds).ConfigureAwait(false) &&
-                        (skipClosedFileChecks || ShouldRunAnalyzerForClosedFile(openedDocument, document.Project.CompilationOptions, stateSet.Analyzer)))
+
+                    if (await ShouldRunAnalyzerForStateTypeAsync(userDiagnosticDriver, stateSet.Analyzer, StateType.Document, diagnosticIds).ConfigureAwait(false))
                     {
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -318,12 +322,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var versions = new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
                 foreach (var stateSet in _stateManger.GetOrUpdateStateSets(project))
                 {
-                    if (analyzerDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
+                    if (SkipRunningAnalyzer(project.CompilationOptions, analyzerDriver, openedDocument: false, skipClosedFileChecks: false, stateSet: stateSet))
                     {
-                        await HandleSuppressedAnalyzerAsync(project, stateSet, cancellationToken).ConfigureAwait(false);
+                        await ClearExistingDiagnostics(project, stateSet, cancellationToken).ConfigureAwait(false);
+                        continue;
                     }
-                    else if (await ShouldRunAnalyzerForStateTypeAsync(analyzerDriver, stateSet.Analyzer, StateType.Project, diagnosticIds: null).ConfigureAwait(false) &&
-                            (ShouldRunAnalyzerForClosedFile(openedDocument: false, options: project.CompilationOptions, analyzer: stateSet.Analyzer)))
+
+                    if (await ShouldRunAnalyzerForStateTypeAsync(analyzerDriver, stateSet.Analyzer, StateType.Project, diagnosticIds: null).ConfigureAwait(false))
                     {
                         var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -343,6 +348,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private bool SkipRunningAnalyzer(
+            CompilationOptions compilationOptions,
+            DiagnosticAnalyzerDriver userDiagnosticDriver,
+            bool openedDocument,
+            bool skipClosedFileChecks,
+            StateSet stateSet)
+        {
+            if (userDiagnosticDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
+            {
+                return true;
+            }
+
+            if (skipClosedFileChecks)
+            {
+                return false;
+            }
+
+            if (ShouldRunAnalyzerForClosedFile(compilationOptions, openedDocument, stateSet.Analyzer))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static async Task PersistProjectData(Project project, DiagnosticState state, AnalysisData data)
@@ -439,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return getter.Diagnostics;
         }
 
-        private bool ShouldRunAnalyzerForClosedFile(bool openedDocument, CompilationOptions options, DiagnosticAnalyzer analyzer)
+        private bool ShouldRunAnalyzerForClosedFile(CompilationOptions options, bool openedDocument, DiagnosticAnalyzer analyzer)
         {
             // we have opened document, doesnt matter
             if (openedDocument)
@@ -889,7 +919,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
         }
 
-        private async Task HandleSuppressedAnalyzerAsync(Document document, StateSet stateSet, StateType type, CancellationToken cancellationToken)
+        private async Task ClearExistingDiagnostics(Document document, StateSet stateSet, StateType type, CancellationToken cancellationToken)
         {
             var state = stateSet.GetState(type);
             var existingData = await state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
@@ -899,7 +929,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task HandleSuppressedAnalyzerAsync(Project project, StateSet stateSet, CancellationToken cancellationToken)
+        private async Task ClearExistingDiagnostics(Project project, StateSet stateSet, CancellationToken cancellationToken)
         {
             var state = stateSet.GetState(StateType.Project);
             var existingData = await state.TryGetExistingDataAsync(project, cancellationToken).ConfigureAwait(false);
