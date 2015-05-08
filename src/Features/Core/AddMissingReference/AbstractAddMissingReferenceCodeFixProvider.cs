@@ -1,11 +1,9 @@
-﻿using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                 var nodes = FindNodes(root, diagnostic);
                 var types = GetTypesForNodes(model, nodes, cancellationToken).Distinct();
                 AssemblyIdentity identity = GetAssemblyIdentity(types);
-                if (identity != null && !uniqueIdentities.Contains(identity))
+                if (identity != null && !uniqueIdentities.Contains(identity) && !identity.Equals(model.Compilation.Assembly.Identity))
                 {
                     uniqueIdentities.Add(identity);
                     context.RegisterCodeFix(
