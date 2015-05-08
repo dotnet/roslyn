@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private class TemplateArgEnumerable : IEnumerable<string>
         {
-            public static IEnumerable<string> Instance = new TemplateArgEnumerable();
+            public static readonly IEnumerable<string> Instance = new TemplateArgEnumerable();
 
             public IEnumerator<string> GetEnumerator()
             {

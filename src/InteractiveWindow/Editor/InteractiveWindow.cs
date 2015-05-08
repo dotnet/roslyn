@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal class InteractiveWindow : IInteractiveWindow
     {
-        private bool _adornmentToMinimize = false;
+        private bool _adornmentToMinimize;
 
         // true iff code is being executed:
         private bool _isRunning;
@@ -352,7 +352,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (value == null)
                 {
-                    throw new ArgumentNullException("engine");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 if (_engine != value)
@@ -2577,9 +2577,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private struct SpanRangeEdit
         {
-            public int Start;
-            public int Count;
-            public ReplSpan[] Replacement;
+            public readonly int Start;
+            public readonly int Count;
+            public readonly ReplSpan[] Replacement;
 
             public SpanRangeEdit(int start, int count, ReplSpan[] replacement)
             {

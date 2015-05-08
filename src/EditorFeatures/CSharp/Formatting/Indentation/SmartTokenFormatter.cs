@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
@@ -85,7 +86,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             }
 
             var smartTokenformattingRules = (new SmartTokenFormattingRule()).Concat(_formattingRules);
-            return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(previousToken.SpanStart, adjustedEndPosition) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
+            var adjustedStartPosition = previousToken.SpanStart;
+            var indentStyle = workspace.Options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            if (token.IsKind(SyntaxKind.OpenBraceToken) && token.IsFirstTokenOnLine(token.SyntaxTree.GetText()) && indentStyle != FormattingOptions.IndentStyle.Smart)
+            {
+                adjustedStartPosition = token.SpanStart;
+            }
+
+            return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule

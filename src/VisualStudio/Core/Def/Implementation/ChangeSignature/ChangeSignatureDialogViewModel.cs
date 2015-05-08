@@ -178,7 +178,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 List<SymbolDisplayPart> displayParts = GetSignatureDisplayParts();
 
                 var textBlock = displayParts.ToTextBlock(_classificationTypeMap);
-                textBlock.TextWrapping = System.Windows.TextWrapping.Wrap;
 
                 foreach (var inline in textBlock.Inlines)
                 {

@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             return fullPath;
         }
 
-        private static char[] s_pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        private static readonly char[] s_pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         public static string GetRelativePath(string baseDirectory, string fullPath)
         {

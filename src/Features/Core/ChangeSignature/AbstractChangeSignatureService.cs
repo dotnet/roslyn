@@ -259,6 +259,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                 }
 
+                // Find and annotate all the relevant definitions
+
                 if (includeDefinitionLocations)
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                 }
 
-                // TODO: Find references to containing type for Add methods & collection initializers (for example)
+                // Find and annotate all the relevant references
 
                 foreach (var location in symbol.Locations)
                 {
@@ -314,6 +316,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
+            // Construct all the relevant syntax trees from the base solution
+
+            var updatedRoots = new Dictionary<DocumentId, SyntaxNode>();
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var doc = updatedSolution.GetDocument(docId);
@@ -337,7 +342,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
 
-                updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, formattedRoot);
+                updatedRoots[docId] = formattedRoot;
+            }
+
+            // Update the documents using the updated syntax trees
+
+            foreach (var docId in nodesToUpdate.Keys)
+            {
+                updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, updatedRoots[docId]);
             }
 
             return true;

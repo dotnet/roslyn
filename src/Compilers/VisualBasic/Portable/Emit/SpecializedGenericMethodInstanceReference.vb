@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits SpecializedMethodReference
         Implements Cci.IGenericMethodInstanceReference
 
-        Private _genericMethod As SpecializedMethodReference
+        Private ReadOnly _genericMethod As SpecializedMethodReference
 
         Public Sub New(underlyingMethod As MethodSymbol)
             MyBase.New(underlyingMethod)

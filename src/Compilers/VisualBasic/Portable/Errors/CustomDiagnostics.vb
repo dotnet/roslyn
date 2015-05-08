@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IDiagnosticInfoWithSymbols
 
         ' not serialized
-        Private _badSymbol As Symbol
+        Private ReadOnly _badSymbol As Symbol
 
         ' Create a new bad symbol diagnostic with the given error id. This error message
         ' should have a single fill-in string, which is filled in with the symbol.

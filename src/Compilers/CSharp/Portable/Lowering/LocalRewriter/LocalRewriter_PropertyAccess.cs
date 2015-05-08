@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // check for System.Array.[Length|LongLength] on a single dimensional array,
             // we have a special node for such cases.
-            if (rewrittenReceiverOpt != null && rewrittenReceiverOpt.Type.IsArray())
+            if (rewrittenReceiverOpt != null && rewrittenReceiverOpt.Type.IsArray() && !isLeftOfAssignment)
             {
                 var asArrayType = (ArrayTypeSymbol)rewrittenReceiverOpt.Type;
                 if (asArrayType.Rank == 1)

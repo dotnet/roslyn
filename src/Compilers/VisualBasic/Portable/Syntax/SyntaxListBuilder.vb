@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Friend Structure SyntaxListBuilder(Of TNode As SyntaxNode)
-        Private _builder As SyntaxListBuilder
+        Private ReadOnly _builder As SyntaxListBuilder
 
         Public Shared Function Create() As SyntaxListBuilder(Of TNode)
             Return New SyntaxListBuilder(Of TNode)(8)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
 
         private int _counter;
-        private bool _trackActiveTokens = false;
+        private bool _trackActiveTokens;
         private HashSet<DiagnosticAsyncToken> _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null)

@@ -365,7 +365,7 @@ public class B
             private readonly SyntaxTree _underlyingTree;
             private readonly CompilationUnitSyntax _root;
 
-            public int AccessCount = 0;
+            public int AccessCount;
 
             public CountedSyntaxTree(SyntaxTree underlying)
             {

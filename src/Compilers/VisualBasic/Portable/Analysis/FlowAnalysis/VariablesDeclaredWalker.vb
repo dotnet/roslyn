@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Try
         End Function
 
-        Private _variablesDeclared As New HashSet(Of Symbol)
+        Private ReadOnly _variablesDeclared As New HashSet(Of Symbol)
 
         Private Overloads Function Analyze() As Boolean
             ' only one pass needed.

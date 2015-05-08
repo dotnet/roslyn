@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (Result == null)
             {
-                throw new ArgumentNullException("Result");
+                throw new ArgumentNullException(nameof(Result));
             }
 
             _result = Result;

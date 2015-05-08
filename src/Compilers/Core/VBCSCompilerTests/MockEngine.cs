@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             throw new NotImplementedException();
         }
 
-        private StringBuilder _messages = new StringBuilder();
-        private StringBuilder _errors = new StringBuilder();
-        private StringBuilder _warnings = new StringBuilder();
+        private readonly StringBuilder _messages = new StringBuilder();
+        private readonly StringBuilder _errors = new StringBuilder();
+        private readonly StringBuilder _warnings = new StringBuilder();
 
         public void LogCustomEvent(CustomBuildEventArgs e)
         {

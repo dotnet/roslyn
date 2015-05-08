@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
 
         private static string GetBannerText(DocumentationCommentTriviaSyntax documentationComment, CancellationToken cancellationToken)
         {
+            // TODO: Consider unifying code to extract text from an Xml Documentation Comment (https://github.com/dotnet/roslyn/issues/2290)
             var summaryElement = documentationComment.ChildNodes().OfType<XmlElementSyntax>()
                                               .FirstOrDefault(e => e.StartTag.Name.ToString() == "summary");
 
@@ -35,12 +37,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
             string text;
             if (summaryElement != null)
             {
-                var summaryText = from xmlText in summaryElement.ChildNodes().OfType<XmlTextSyntax>()
-                                  from tk in xmlText.TextTokens
-                                  let s = tk.ToString().Trim()
-                                  where s.Length > 0
-                                  select s;
-                text = prefix + " <summary> " + string.Join(" ", summaryText);
+                var sb = new StringBuilder(summaryElement.Span.Length);
+                sb.Append(prefix);
+                sb.Append(" <summary>");
+                foreach (var node in summaryElement.ChildNodes())
+                {
+                    if (node is XmlTextSyntax)
+                    {
+                        var textTokens = ((XmlTextSyntax)node).TextTokens;
+                        AppendTextTokens(sb, textTokens);
+                    }
+                    else if (node is XmlEmptyElementSyntax)
+                    {
+                        var e = (XmlEmptyElementSyntax)node;
+                        var cref = e.Attributes.OfType<XmlCrefAttributeSyntax>().FirstOrDefault();
+                        if (cref != null)
+                        {
+                            sb.Append(" ");
+                            sb.Append(cref.Cref.ToString());
+                        }
+
+                        var nameattribute = e.Attributes.OfType<XmlNameAttributeSyntax>().FirstOrDefault();
+                        if (nameattribute != null)
+                        {
+                            sb.Append(" ");
+                            sb.Append(nameattribute.Identifier.Identifier.Text);
+                        }
+
+                        var langword = e.Attributes.OfType<XmlTextAttributeSyntax>().FirstOrDefault(a => a.Name.LocalName.ToString() == "langword");
+                        if (langword != null)
+                        {
+                            AppendTextTokens(sb, langword.TextTokens);
+                        }
+                    }
+                }
+
+                text = sb.ToString();
             }
             else
             {
@@ -57,6 +89,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
             }
 
             return text;
+        }
+
+        private static void AppendTextTokens(StringBuilder sb, SyntaxTokenList textTokens)
+        {
+            foreach (var tk in textTokens)
+            {
+                var s = tk.ToString().Trim();
+                if (s.Length > 0)
+                {
+                    sb.Append(" ");
+                    sb.Append(s);
+                }
+            }
         }
 
         protected override void CollectOutliningSpans(

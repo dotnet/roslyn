@@ -198,6 +198,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
+        protected void TestEquivalenceKey(
+            string initialMarkup,
+            string equivalenceKey,
+            int index = 0,
+            ParseOptions parseOptions = null,
+            CompilationOptions compilationOptions = null)
+        {
+            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            {
+                var diagnosticAndFix = GetDiagnosticAndFix(workspace);
+                Assert.Equal(equivalenceKey, diagnosticAndFix.Item2.Fixes.ElementAt(index).Action.EquivalenceKey);
+            }
+        }
+
         protected void TestExactActionSetOffered(
             string initialMarkup,
             IEnumerable<string> expectedActionSet,

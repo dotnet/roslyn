@@ -58,6 +58,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractSyntaxNodeAnalyzer.cs" />
     <Compile Include="Design\AssemblyAttributesDiagnosticAnalyzer.cs" />
     <Compile Include="Design\EnumWithFlagsAttribute.Fixer.cs" />
     <Compile Include="Design\MarkAllAssembliesWithComVisible.cs" />
@@ -68,17 +69,21 @@
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.Fixer.cs" />
     <Compile Include="Design\TypesThatOwnDisposableFieldsShouldBeDisposable.cs" />
+    <Compile Include="Design\UseGenericEventHandler.cs" />
     <Compile Include="DiagnosticCategory.cs" />
     <Compile Include="Design\EnumWithFlagsAttribute.cs" />
+    <Compile Include="Performance\TestForEmptyStringsUsingStringLength.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributes.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributes.Fixer.cs" />
+    <Compile Include="Reliability\DoNotLockOnObjectsWithWeakIdentity.cs" />
     <Compile Include="Shared\DiagnosticExtensions.cs" />
     <Compile Include="DocumentChangeAction.cs" />
     <Compile Include="Shared\DiagnosticHelpers.cs" />
     <Compile Include="Shared\INamedTypeSymbolExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shared\ISymbolExtensions.cs" />
     <Compile Include="SystemRuntimeAnalyzersResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -94,12 +99,12 @@
     <EmbeddedResource Include="SystemRuntimeAnalyzersResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SystemRuntimeAnalyzersResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

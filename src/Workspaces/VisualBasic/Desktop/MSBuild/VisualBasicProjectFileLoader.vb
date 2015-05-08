@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicProjectFileLoader
         Inherits ProjectFileLoader
 
-        Private _workspaceServices As HostWorkspaceServices
+        Private ReadOnly _workspaceServices As HostWorkspaceServices
 
         Friend Sub New(workspaceServices As HostWorkspaceServices)
             Me._workspaceServices = workspaceServices
@@ -143,7 +143,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory())
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(AddressOf _analyzerService.GetAnalyzer)
+
+                Dim loader = _analyzerService.GetLoader()
+                For Each path In commandLineArgs.AnalyzerReferences.Select(Function(r) r.FilePath)
+                    loader.AddDependencyLocation(path)
+                Next
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(loader)
 
             End Sub
 
@@ -261,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If Not MSBUILD12 Then
                 Implements MSB.Tasks.Hosting.IAnalyzerHostObject
 #End If
-                Private _projectFile As VisualBasicProjectFile
+                Private ReadOnly _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
                 Private _parseOptions As VisualBasicParseOptions
                 Private _compilationOptions As VisualBasicCompilationOptions
@@ -271,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _references As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _analyzerReferences As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _noStandardLib As Boolean
-                Private _warnings As Dictionary(Of String, ReportDiagnostic)
+                Private ReadOnly _warnings As Dictionary(Of String, ReportDiagnostic)
                 Private _sdkPath As String
                 Private _targetCompactFramework As Boolean
                 Private _vbRuntime As String

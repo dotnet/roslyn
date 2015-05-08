@@ -2389,7 +2389,8 @@ B");
                 // mscorlib.dll
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(mscorlib.Name, "mscorlib");
-                Assert.False(mscorlib.MightContainExtensionMethods);
+                // We assume every PE assembly may contain extension methods.
+                Assert.True(mscorlib.MightContainExtensionMethods);
 
                 // TODO: Original references are not included in symbol validator.
                 if (isFromSource)
@@ -2432,7 +2433,9 @@ B");
             {
                 var assembly = module.ContainingAssembly;
                 var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
-                Assert.Equal(isFromSource, mightContainExtensionMethods);
+                // Every PE assembly is assumed to be capable of having an extension method.
+                // The source assembly doesn't know (so reports "true") until all methods have been inspected.
+                Assert.True(mightContainExtensionMethods);
                 if (isFromSource)
                 {
                     Assert.Null(sourceAssembly);
@@ -3614,6 +3617,55 @@ namespace N
                 // (4,5): hidden CS8019: Unnecessary using directive.
                 //     using X = N.S;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.S;").WithLocation(4, 5));
+        }
+
+        [WorkItem(1094849, "DevDiv"), WorkItem(2288, "https://github.com/dotnet/roslyn/issues/2288")]
+        [Fact]
+        public void LookupSymbolsWithPartialInference()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+namespace ConsoleApplication22
+{
+    static class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+
+        internal static void GetEnumerableDisposable1<T, TEnumerator>(this IEnumerable<T> enumerable)
+            where TEnumerator : struct , IEnumerator<T>
+        {
+        }
+
+        internal static void GetEnumerableDisposable2<T, TEnumerator>(this IEnumerable<T> enumerable)
+            where TEnumerator : struct
+        {
+        }
+
+        private static void Overlaps<T, TEnumerator>(IEnumerable<T> other) where TEnumerator : struct, IEnumerator<T>
+        {
+            other.GetEnumerableDisposable1<T, TEnumerator>();
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+
+            compilation.VerifyDiagnostics();
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(syntaxTree);
+
+            var member = (MemberAccessExpressionSyntax)syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            Assert.Equal("other.GetEnumerableDisposable1<T, TEnumerator>", member.ToString());
+
+            var type = model.GetTypeInfo(member.Expression).Type;
+            Assert.Equal("System.Collections.Generic.IEnumerable<T>", type.ToTestDisplayString());
+
+            var symbols = model.LookupSymbols(member.Expression.EndPosition, type, includeReducedExtensionMethods: true).Select(s => s.Name).ToArray();
+            Assert.Contains("GetEnumerableDisposable2", symbols);
+            Assert.Contains("GetEnumerableDisposable1", symbols);
         }
     }
 }

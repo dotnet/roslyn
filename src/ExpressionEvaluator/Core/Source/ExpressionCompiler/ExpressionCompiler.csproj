@@ -60,14 +60,12 @@
     <Compile Include="ExpressionCompiler.cs" />
     <Compile Include="ExpressionCompilerConstants.cs" />
     <Compile Include="DkmUtilities.cs" />
-    <Compile Include="InspectionContext.cs" />
     <Compile Include="LocalAndMethod.cs" />
     <Compile Include="MetadataBlock.cs" />
     <Compile Include="MetadataUtilities.cs" />
     <Compile Include="AbstractTypeParameterChecker.cs" />
     <Compile Include="MethodContextReuseConstraints.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
-    <Compile Include="RuntimeInspectionContext.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />

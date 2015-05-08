@@ -1726,11 +1726,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Given a list of arguments, create arrays of the bound arguments and the names of those
         // arguments.
-        private void BindArgumentsAndNames(ArgumentListSyntax argumentListOpt, DiagnosticBag diagnostics, AnalyzedArguments result, bool allowArglist = false)
+        private void BindArgumentsAndNames(ArgumentListSyntax argumentListOpt, DiagnosticBag diagnostics, AnalyzedArguments result, bool allowArglist = false, bool isDelegateCreation = false)
         {
             if (argumentListOpt != null)
             {
-                BindArgumentsAndNames(argumentListOpt.Arguments, diagnostics, result, allowArglist);
+                BindArgumentsAndNames(argumentListOpt.Arguments, diagnostics, result, allowArglist, isDelegateCreation: isDelegateCreation);
             }
         }
 
@@ -1746,7 +1746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<ArgumentSyntax> arguments,
             DiagnosticBag diagnostics,
             AnalyzedArguments result,
-            bool allowArglist)
+            bool allowArglist,
+            bool isDelegateCreation = false)
         {
             // Only report the first "duplicate name" or "named before positional" error, 
             // so as to avoid "cascading" errors.
@@ -1756,7 +1757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argumentSyntax = arguments[i];
 
-                hadError = BindArgumentAndName(result, diagnostics, hadError, argumentSyntax, allowArglist);
+                hadError = BindArgumentAndName(result, diagnostics, hadError, argumentSyntax, allowArglist, isDelegateCreation: isDelegateCreation);
             }
         }
 
@@ -1765,9 +1766,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool hadError,
             ArgumentSyntax argumentSyntax,
-            bool allowArglist)
+            bool allowArglist,
+            bool isDelegateCreation = false)
         {
-            RefKind refKind = argumentSyntax.RefOrOutKeyword.Kind().GetRefKind();
+            // The old native compiler ignores ref/out in a delegate creation expression.
+            // For compatibility we implement the same bug except in strict mode.
+            RefKind refKind = (!isDelegateCreation || Compilation.FeatureStrictEnabled)
+                ? argumentSyntax.RefOrOutKeyword.Kind().GetRefKind()
+                : RefKind.None;
 
             hadError |= BindArgumentAndName(
                 result,
@@ -2796,7 +2802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, isDelegateCreation: true);
 
                 bool hasErrors = false;
                 if (analyzedArguments.HasErrors)

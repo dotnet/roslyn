@@ -98,11 +98,6 @@
     <Compile Include="SyntaxTreeExtensions.cs" />
     <Compile Include="TestOptions.cs" />
   </ItemGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\Helpers\InMemoryAssemblyProvider.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
-    </Compile>
-  </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />

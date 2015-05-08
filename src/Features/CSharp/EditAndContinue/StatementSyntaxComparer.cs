@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         //   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
         internal enum Label
         {
+            ConstructorDeclaration, 
             Block,
             CheckedStatement,
             UnsafeStatement,
@@ -271,6 +272,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             switch (kind)
             {
+                case SyntaxKind.ConstructorDeclaration:
+                    // Root when matching constructor bodies.
+                    return Label.ConstructorDeclaration;
+
                 case SyntaxKind.Block:
                     return Label.Block;
 
@@ -715,8 +720,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private bool TryComputeWeightedDistance(BlockSyntax leftBlock, BlockSyntax rightBlock, out double distance)
         {
-            // no block can be matched with the root block:
-            if (leftBlock.Parent == null || rightBlock.Parent == null)
+            // No block can be matched with the root block.
+            // Note that in constructors the root is the constructor declaration, since we need to include 
+            // the constructor initializer in the match.
+            if (leftBlock.Parent == null || 
+                rightBlock.Parent == null || 
+                leftBlock.Parent.IsKind(SyntaxKind.ConstructorDeclaration) ||
+                rightBlock.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
             {
                 distance = 0.0;
                 return true;

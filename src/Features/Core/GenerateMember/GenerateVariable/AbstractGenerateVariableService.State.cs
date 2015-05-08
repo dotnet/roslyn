@@ -273,8 +273,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     document.SemanticModel, this.SimpleNameOrMemberAccessExpressionOpt,
                     objectAsDefault: true,
                     cancellationToken: cancellationToken);
+                var compilation = document.SemanticModel.Compilation;
                 inferredType = inferredType.SpecialType == SpecialType.System_Void
-                    ? document.SemanticModel.Compilation.ObjectType
+                    ? compilation.ObjectType
                     : inferredType;
 
                 if (this.IsInConditionalAccessExpression)
@@ -282,17 +283,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     inferredType = inferredType.RemoveNullableIfPresent();
                 }
 
+                if (inferredType.IsDelegateType() && !inferredType.CanBeReferencedByName)
+                {
+                    var namedDelegateType = inferredType.GetDelegateType(compilation)?.DelegateInvokeMethod?.ConvertToType(compilation);
+                    if (namedDelegateType != null)
+                    {
+                        inferredType = namedDelegateType;
+                    }
+                }
+
                 // Substitute 'object' for all captured method type parameters.  Note: we may need to
                 // do this for things like anonymous types, as well as captured type parameters that
                 // aren't in scope in the destination type.
                 var capturedMethodTypeParameters = inferredType.GetReferencedMethodTypeParameters();
                 var mapping = capturedMethodTypeParameters.ToDictionary(tp => tp,
-                    tp => document.SemanticModel.Compilation.ObjectType);
+                    tp => compilation.ObjectType);
 
-                this.TypeMemberType = inferredType.SubstituteTypes(mapping, document.SemanticModel.Compilation);
+                this.TypeMemberType = inferredType.SubstituteTypes(mapping, compilation);
                 var availableTypeParameters = this.TypeToGenerateIn.GetAllTypeParameters();
                 this.TypeMemberType = TypeMemberType.RemoveUnavailableTypeParameters(
-                    document.SemanticModel.Compilation, availableTypeParameters);
+                    compilation, availableTypeParameters);
 
                 var enclosingMethodSymbol = document.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(this.SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
                 if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Count() != 0)
@@ -301,7 +311,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     combinedTypeParameters.AddRange(availableTypeParameters);
                     combinedTypeParameters.AddRange(enclosingMethodSymbol.TypeParameters);
                     this.LocalType = inferredType.RemoveUnavailableTypeParameters(
-                    document.SemanticModel.Compilation, combinedTypeParameters);
+                    compilation, combinedTypeParameters);
                 }
                 else
                 {

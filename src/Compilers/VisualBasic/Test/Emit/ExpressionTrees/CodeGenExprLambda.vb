@@ -7737,9 +7737,9 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #Region "Expression Tree Test Helpers"
 
-        Private _exprTesting As XElement = <file name="exprlambdatest.vb"><%= ExpTreeTestResources.ExprLambdaUtils %></file>
+        Private ReadOnly _exprTesting As XElement = <file name="exprlambdatest.vb"><%= ExpTreeTestResources.ExprLambdaUtils %></file>
 
-        Private _queryTesting As XElement = <file name="QueryHelper.vb"><%= ExpTreeTestResources.QueryHelper %></file>
+        Private ReadOnly _queryTesting As XElement = <file name="QueryHelper.vb"><%= ExpTreeTestResources.QueryHelper %></file>
 
 #End Region
 

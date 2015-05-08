@@ -192,15 +192,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return 0;
 
                 case SyntaxKind.OpenBraceToken:
-                    return currentToken.Parent.IsKind(SyntaxKind.Interpolation) ? 0 : 1;
+                    return LineBreaksAfterOpenBrace(currentToken, nextToken);
 
                 case SyntaxKind.FinallyKeyword:
                     return 1;
 
                 case SyntaxKind.CloseBraceToken:
-                    return currentToken.Parent.IsKind(SyntaxKind.Interpolation) 
-                        ? 0 
-                        : LineBreaksAfterCloseBrace(nextToken);
+                    return LineBreaksAfterCloseBrace(currentToken, nextToken);
 
                 case SyntaxKind.CloseParenToken:
                     return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.CloseBraceToken:
-                    return nextToken.Parent.IsKind(SyntaxKind.Interpolation) ? 0 : 1;
+                    return (nextToken.Parent.IsKind(SyntaxKind.Interpolation) || nextToken.Parent is InitializerExpressionSyntax) ? 0 : 1;
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.FinallyKeyword:
                     return 1;
@@ -257,8 +255,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return 0;
         }
 
-        private static int LineBreaksAfterCloseBrace(SyntaxToken nextToken)
+        private static int LineBreaksAfterOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
+            if (currentToken.Parent is InitializerExpressionSyntax ||
+                currentToken.Parent.IsKind(SyntaxKind.Interpolation))
+            {
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        private static int LineBreaksAfterCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
+        {
+            if (currentToken.Parent is InitializerExpressionSyntax ||
+                currentToken.Parent.IsKind(SyntaxKind.Interpolation))
+            {
+                return 0;
+            }
+
             var kind = nextToken.Kind();
             switch (kind)
             {
@@ -312,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            if (IsXmlTextToken(token.Kind()) || IsXmlTextToken(token.Kind()))
+            if (IsXmlTextToken(token.Kind()) || IsXmlTextToken(next.Kind()))
             {
                 return false;
             }

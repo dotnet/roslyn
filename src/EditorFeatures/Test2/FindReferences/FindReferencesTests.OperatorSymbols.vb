@@ -21,7 +21,49 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharpFindReferencesOnOperatorOverload()
+        Public Sub CSharpFindReferencesOnUnaryOperatorOverload()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    void Foo()
+    {
+        A a;
+        var x = $$[|-|]a;
+    }
+    public static A operator {|Definition:-|}(A a) { return a; }}
+}
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub CSharpFindReferencesOnUnaryOperatorOverloadFromDefinition()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    void Foo()
+    {
+        A a;
+        var x = [|-|]a;
+    }
+    public static A operator {|Definition:$$-|}(A a) { return a; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub CSharpFindReferencesOnBinaryOperatorOverload()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -39,8 +81,73 @@ class A
 </Workspace>
             Test(input)
         End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub VisualBasicFindReferencesOnOperatorOverload()
+        Public Sub CSharpFindReferencesOnBinaryOperatorOverloadFromDefinition()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    void Foo()
+    {
+        var x = new A() [|+|] new A();
+    }
+    public static A operator {|Definition:$$+|}(A a, A b) { return a; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub VisualBasicFindReferencesOnUnaryOperatorOverload()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Shared Operator {|Definition:-|}(x As A) As A
+        Return x
+    End Operator
+
+    Sub Foo()
+        Dim a As A
+        Dim b = $$[|-|]a
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub VisualBasicFindReferencesOnUnaryOperatorOverloadFromDefinition()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Shared Operator {|Definition:$$-|}(x As A) As A
+        Return x
+    End Operator
+
+    Sub Foo()
+        Dim a As A
+        Dim b = [|-|]a
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub VisualBasicFindReferencesOnBinaryOperatorOverload()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -52,6 +159,27 @@ Class A
 
     Sub Foo()
         Dim a = New A [|^$$|] New A
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub VisualBasicFindReferencesOnBinaryOperatorOverloadFromDefinition()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Shared Operator {|Definition:$$^|}(x As A, y As A) As A
+        Return y
+    End Operator
+
+    Sub Foo()
+        Dim a = New A [|^|] New A
     End Sub
 End Class
         </Document>

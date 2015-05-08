@@ -22,13 +22,11 @@
     <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\InMemoryAssemblyProvider.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
-    </Compile>
     <Compile Include="..\..\Helpers\AssemblyIdentityExtensions.cs">
       <Link>AssemblyIdentityExtensions.cs</Link>
     </Compile>
     <Compile Include="AnalyzerFileReferenceTests.cs" />
+    <Compile Include="AssemblyUtilitiesTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
@@ -36,6 +34,7 @@
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="PEWriter\BinaryWriterTests.cs" />
+    <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="Text\LargeEncodedTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />

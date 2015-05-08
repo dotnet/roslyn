@@ -4713,7 +4713,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TooDeepObjectInitializer()
         {
             var builder = new StringBuilder();
@@ -4758,7 +4758,7 @@ class Test
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         [WorkItem(1085618, "DevDiv")]
         public void TooDeepDelegateDeclaration()
         {
@@ -4791,7 +4791,7 @@ class Program
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TooDeepObjectInitializerAsExpression()
         {
             var builder = new StringBuilder();
@@ -4818,7 +4818,7 @@ class Program
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TooDeepObjectInitializerAsStatement()
         {
             var builder = new StringBuilder();

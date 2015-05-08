@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public class Vbc : ManagedCompiler
     {
-        private bool _useHostCompilerIfAvailable = false;
+        private bool _useHostCompilerIfAvailable;
 
         // The following 1 fields are used, set and re-set in LogEventsFromTextOutput()
         /// <summary>
         /// This stores the origional lines and error priority together in the order in which they were recieved.
         /// </summary>
-        private Queue<VBError> _vbErrorLines = new Queue<VBError>();
+        private readonly Queue<VBError> _vbErrorLines = new Queue<VBError>();
 
         // Used when parsing vbc output to determine the column number of an error
-        private bool _isDoneOutputtingErrorMessage = false;
-        private int _numberOfLinesInErrorMessage = 0;
+        private bool _isDoneOutputtingErrorMessage;
+        private int _numberOfLinesInErrorMessage;
 
         #region Properties
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal override BuildProtocolConstants.RequestLanguage Language
             => BuildProtocolConstants.RequestLanguage.VisualBasicCompile;
 
-        private static string[] s_separator = { "\r\n" };
+        private static readonly string[] s_separator = { "\r\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -840,13 +840,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     param = "AdditionalFiles"; this.CheckHostObjectSupport(param, analyzerHostObject.SetAdditionalFiles(this.AdditionalFiles));
                 }
 
-                // For host objects which support them, set the analyzers' dependencies.
-                IAnalyzerDependencyHostObject analyzerDependencyHostObject = vbcHostObject as IAnalyzerDependencyHostObject;
-                if (analyzerDependencyHostObject != null)
-                {
-                    param = "AnalyzerDependencies"; this.CheckHostObjectSupport(param, analyzerDependencyHostObject.SetAnalyzerDependencies(this.AnalyzerDependencies));
-                }
-
                 param = "BaseAddress"; this.CheckHostObjectSupport(param, vbcHostObject.SetBaseAddress(this.TargetType, this.GetBaseAddressInHex()));
                 param = "CodePage"; this.CheckHostObjectSupport(param, vbcHostObject.SetCodePage(this.CodePage));
                 param = "DebugType"; this.CheckHostObjectSupport(param, vbcHostObject.SetDebugType(this.EmitDebugInformation, this.DebugType));
@@ -1111,8 +1104,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private class VBError
         {
-            public string Message { get; set; }
-            public MessageImportance MessageImportance { get; set; }
+            public string Message { get; }
+            public MessageImportance MessageImportance { get; }
 
             public VBError(string message, MessageImportance importance)
             {

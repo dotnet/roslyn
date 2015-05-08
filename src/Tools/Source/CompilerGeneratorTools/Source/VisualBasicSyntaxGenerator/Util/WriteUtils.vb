@@ -704,7 +704,7 @@ Public MustInherit Class WriteUtils
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    Private _VBKeywords As String() = {
+    Private ReadOnly _VBKeywords As String() = {
         "ADDHANDLER",
         "ADDRESSOF",
         "ALIAS",

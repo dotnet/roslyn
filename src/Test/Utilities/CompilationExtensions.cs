@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             DiagnosticDescription[] expectedWarnings = null)
         {
             var stream = new MemoryStream();
-            MemoryStream pdbStream = (compilation.Options.OptimizationLevel == OptimizationLevel.Debug) ? new MemoryStream() : null;
+            MemoryStream pdbStream = 
+                (compilation.Options.OptimizationLevel == OptimizationLevel.Debug) && !CLRHelpers.IsRunningOnMono() 
+                ? new MemoryStream() 
+                : null;
 
             var emitResult = compilation.Emit(
                 peStream: stream,

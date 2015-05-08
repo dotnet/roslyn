@@ -70,7 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly IFormattingRule _vbHelperFormattingRule;
         private readonly string _itemMoniker;
-        private readonly IVsHierarchy _sharedHierarchy;
 
         public AbstractProject Project { get { return _containedLanguage.Project; } }
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
@@ -79,14 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public IReadOnlyList<string> Folders { get; }
         public TextLoader Loader { get; }
         public DocumentKey Key { get; }
-
-        public IVsHierarchy SharedHierarchy
-        {
-            get
-            {
-                return _sharedHierarchy;
-            }
-        }
 
         public ContainedDocument(
             AbstractContainedLanguage containedLanguage,
@@ -108,11 +99,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var rdt = (IVsRunningDocumentTable)componentModel.GetService<SVsServiceProvider>().GetService(typeof(SVsRunningDocumentTable));
 
+            IVsHierarchy sharedHierarchy;
             uint itemIdInSharedHierarchy;
-            var isSharedHierarchy = LinkedFileUtilities.TryGetSharedHierarchyAndItemId(hierarchy, itemId, out _sharedHierarchy, out itemIdInSharedHierarchy);
+            var isSharedHierarchy = LinkedFileUtilities.TryGetSharedHierarchyAndItemId(hierarchy, itemId, out sharedHierarchy, out itemIdInSharedHierarchy);
 
             var filePath = isSharedHierarchy
-                ? rdt.GetMonikerForHierarchyAndItemId(_sharedHierarchy, itemIdInSharedHierarchy)
+                ? rdt.GetMonikerForHierarchyAndItemId(sharedHierarchy, itemIdInSharedHierarchy)
                 : rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
 
             // we couldn't look up the document moniker in RDT for a hierarchy/item pair

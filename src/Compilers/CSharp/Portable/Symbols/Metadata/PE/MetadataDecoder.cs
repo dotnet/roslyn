@@ -168,10 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
         {
-            var assemblies = this.moduleSymbol.GetReferencedAssemblySymbols();
+            // Go through all assemblies referenced by the current module and
+            // find the one which *exactly* matches the given identity.
+            // No unification will be performed
+            var assemblies = this.moduleSymbol.GetReferencedAssemblies();
             for (int i = 0; i < assemblies.Length; i++)
             {
-                if (identity.Equals(assemblies[i].Identity))
+                if (identity.Equals(assemblies[i]))
                 {
                     return i;
                 }

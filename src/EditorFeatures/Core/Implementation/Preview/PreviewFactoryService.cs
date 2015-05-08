@@ -357,27 +357,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // We also need to show the spans that are in conflict.
             var originalSpans = GetOriginalSpans(diffResult, cancellationToken);
             var changedSpans = GetChangedSpans(diffResult, cancellationToken);
+            var description = default(string);
+            var allSpans = default(NormalizedSpanCollection);
 
-            var newRoot = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
-            var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
-            var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
-                                                    .Select(a => ConflictAnnotation.GetDescription(a))
-                                                    .Distinct();
+            if (newDocument.SupportsSyntaxTree)
+            {
+                var newRoot = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
+                var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
+                var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
+                                                        .Select(a => ConflictAnnotation.GetDescription(a))
+                                                        .Distinct();
 
-            var warningNodes = newRoot.GetAnnotatedNodesAndTokens(WarningAnnotation.Kind);
-            var warningSpans = warningNodes.Select(n => n.Span.ToSpan()).ToList();
-            var warningDescriptions = warningNodes.SelectMany(n => n.GetAnnotations(WarningAnnotation.Kind))
-                                                    .Select(a => WarningAnnotation.GetDescription(a))
-                                                    .Distinct();
+                var warningNodes = newRoot.GetAnnotatedNodesAndTokens(WarningAnnotation.Kind);
+                var warningSpans = warningNodes.Select(n => n.Span.ToSpan()).ToList();
+                var warningDescriptions = warningNodes.SelectMany(n => n.GetAnnotations(WarningAnnotation.Kind))
+                                                        .Select(a => WarningAnnotation.GetDescription(a))
+                                                        .Distinct();
 
-            AttachConflictAndWarningAnnotationToBuffer(newBuffer, conflictSpans, warningSpans);
+                AttachConflictAndWarningAnnotationToBuffer(newBuffer, conflictSpans, warningSpans);
 
-            var description = conflictSpans.Count == 0 && warningSpans.Count == 0
-                ? null
-                : string.Join(Environment.NewLine, conflictDescriptions.Concat(warningDescriptions));
-
-            var allSpans = new NormalizedSpanCollection(conflictSpans.Concat(warningSpans).Concat(changedSpans));
+                description = conflictSpans.Count == 0 && warningSpans.Count == 0
+                    ? null
+                    : string.Join(Environment.NewLine, conflictDescriptions.Concat(warningDescriptions));
+                allSpans = new NormalizedSpanCollection(conflictSpans.Concat(warningSpans).Concat(changedSpans));
+            }
+            else
+            {
+                allSpans = new NormalizedSpanCollection(changedSpans);
+            }
 
             var originalLineSpans = CreateLineSpans(oldBuffer.CurrentSnapshot, originalSpans, cancellationToken);
             var changedLineSpans = CreateLineSpans(newBuffer.CurrentSnapshot, allSpans, cancellationToken);
@@ -392,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
             var leftDocument = oldDocument.Project
                 .RemoveDocument(oldDocument.Id)
-                .AddDocument(oldDocument.Name, oldBuffer.AsTextContainer().CurrentText);
+                .AddDocument(oldDocument.Name, oldBuffer.AsTextContainer().CurrentText, oldDocument.Folders, oldDocument.FilePath);
             var leftWorkspace = new PreviewWorkspace(leftDocument.Project.Solution);
             leftWorkspace.OpenDocument(leftDocument.Id);
 

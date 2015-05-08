@@ -1,17 +1,17 @@
 .assembly extern 'System.Globalization'
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:10:0
 }
 .assembly extern 'System.IO'
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:10:0
 }
 .assembly extern 'System.Reflection'
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:10:0
 }
 .assembly extern 'System.Reflection.Extensions'
 {
@@ -26,12 +26,12 @@
 .assembly extern 'System.Runtime'
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:20:0
 }
 .assembly extern 'System.Runtime.InteropServices'
 {
 	.publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A)
-	.ver 4:0:0:0
+	.ver 4:0:20:0
 }
 .assembly 'Microsoft.VisualStudio.Debugger.Metadata'
 {
@@ -3847,6 +3847,21 @@
 		}
 		.method public static hidebysig 
 			bool 'GetIsCOMObject'(class ['System.Runtime']'System'.'Type' 'type')
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class ['System.Reflection']'System.Reflection'.'ConstructorInfo' 'GetConstructor'(class ['System.Runtime']'System'.'Type' 'type', class ['System.Runtime']'System'.'Type'[] 'argumentTypes')
+		{
+			ret
+		}
+		.method public static hidebysig 
+			bool 'ParameterTypesMatch'(class ['System.Runtime']'System'.'Type'[] 'parameterTypes', class ['System.Reflection']'System.Reflection'.'MethodBase' 'method')
+		{
+			ret
+		}
+		.method public static hidebysig 
+			valuetype ['System.Runtime']'System'.'TypeCode' 'GetTypeCode'(class ['System.Runtime']'System'.'Type' 'type')
 		{
 			ret
 		}

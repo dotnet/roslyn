@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim newBuffer = If(newSnapshotPoint.HasValue, newSnapshotPoint.Value.Snapshot.TextBuffer, Nothing)
 
             _waitIndicator.Wait(
-                "Commit",
+                VBEditorResources.LineCommit,
                 VBEditorResources.CommittingLine,
                 allowCancel:=True,
                 action:=

@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Shared s_docCommentCrLfToken As XmlTextTokenSyntax = SyntaxFactory.DocumentationCommentLineBreakToken(vbCrLf, vbLf, Nothing, Nothing)
+        Private Shared ReadOnly s_docCommentCrLfToken As XmlTextTokenSyntax = SyntaxFactory.DocumentationCommentLineBreakToken(vbCrLf, vbLf, Nothing, Nothing)
 
         Private Function MakeDocCommentLineBreakToken(
                 precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),

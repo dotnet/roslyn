@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return SpecializedTasks.EmptyTask;
         }
 
+        public virtual Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyTask;
+        }
+
         public virtual Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;

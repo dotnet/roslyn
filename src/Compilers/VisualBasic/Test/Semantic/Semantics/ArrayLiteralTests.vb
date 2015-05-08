@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ArrayLiteralTests
         Inherits BasicTestBase
 
-        Private _strictOff As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off)
-        Private _strictOn As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On)
-        Private _strictCustom As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)
+        Private ReadOnly _strictOff As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off)
+        Private ReadOnly _strictOn As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On)
+        Private ReadOnly _strictCustom As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)
 
         <Fact()>
         Public Sub TestArrayLiteralInferredType()

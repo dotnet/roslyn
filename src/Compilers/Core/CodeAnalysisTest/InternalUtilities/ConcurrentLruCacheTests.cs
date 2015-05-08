@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             : IEnumerable<KeyValuePair<K, V>>
         {
             private readonly KeyValuePair<K, V>[] _store;
-            private int _index = 0;
+            private int _index;
             public OrderedTestDictionary(int capacity)
             {
                 _store = new KeyValuePair<K, V>[capacity];

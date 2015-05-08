@@ -547,7 +547,7 @@ class Program
                 );
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
         public void TestNameofIndexerName()
         {
             var source = @"

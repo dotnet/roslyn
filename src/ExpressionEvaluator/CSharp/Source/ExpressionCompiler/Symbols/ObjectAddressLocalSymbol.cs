@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly ulong _address;
 
         internal ObjectAddressLocalSymbol(MethodSymbol method, string name, TypeSymbol type, ulong address) :
-            base(method, name, type)
+            base(method, name, name, type)
         {
             Debug.Assert(type.SpecialType == SpecialType.System_Object);
             _address = address;

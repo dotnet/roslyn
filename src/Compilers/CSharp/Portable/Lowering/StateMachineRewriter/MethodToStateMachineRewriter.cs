@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected readonly LocalSymbol cachedState;
 
-        private int _nextState = 0;
+        private int _nextState;
 
         /// <summary>
         /// For each distinct label, the set of states that need to be dispatched to that label.
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+        private readonly EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.

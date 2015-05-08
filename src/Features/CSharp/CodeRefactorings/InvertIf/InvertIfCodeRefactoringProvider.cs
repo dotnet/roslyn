@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf)]
     internal partial class InvertIfCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>> s_binaryMap =
+        private static readonly Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>> s_binaryMap =
             new Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>>(SyntaxFacts.EqualityComparer)
                 {
                     { SyntaxKind.EqualsExpression, Tuple.Create(SyntaxKind.NotEqualsExpression, SyntaxKind.ExclamationEqualsToken) },

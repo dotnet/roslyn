@@ -214,6 +214,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var span = _textSpan.HasValue ? _textSpan.Value : GetTextSpan(tree.GetText());
                 location = tree.GetLocation(span);
             }
+            else if (OriginalFilePath != null && _textSpan != null)
+            {
+                var span = _textSpan.Value;
+                location = Location.Create(OriginalFilePath, span, new LinePositionSpan(
+                    new LinePosition(OriginalStartLine, OriginalStartColumn),
+                    new LinePosition(OriginalEndLine, OriginalEndColumn)));
+            }
 
             return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags, properties: this.Properties);
         }

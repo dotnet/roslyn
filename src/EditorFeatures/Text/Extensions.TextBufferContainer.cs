@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (buffer == null)
                 {
-                    throw new ArgumentNullException("buffer");
+                    throw new ArgumentNullException(nameof(buffer));
                 }
 
                 return s_textContainerMap.GetValue(buffer, s_createContainerCallback);

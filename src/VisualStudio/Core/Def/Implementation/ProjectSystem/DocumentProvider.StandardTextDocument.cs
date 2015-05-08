@@ -44,11 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public SourceCodeKind SourceCodeKind { get; }
             public DocumentKey Key { get; }
 
-            /// <summary>
-            /// <see cref="IVsHierarchy"/> of shared or project k project.
-            /// </summary>
-            public IVsHierarchy SharedHierarchy { get; }
-
             public event EventHandler UpdatedOnDisk;
             public event EventHandler<bool> Opened;
             public event EventHandler<bool> Closing;
@@ -72,11 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
                 this.Folders = project.GetFolderNames(itemId);
 
-                // TODO: 
-                // this one doesn't work for asynchronous project load situation where shared projects is loaded after one uses shared file. 
-                // we need to figure out what to do on those case. but this works for project k case.
-                // opened an issue to track this issue - https://github.com/dotnet/roslyn/issues/1859
-                this.SharedHierarchy = project.Hierarchy == null ? null : LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
                 _documentProvider = documentProvider;
 
                 this.Key = documentKey;

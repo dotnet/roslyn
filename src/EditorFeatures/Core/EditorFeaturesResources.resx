@@ -618,9 +618,6 @@
   <data name="PreviewCodeChanges" xml:space="preserve">
     <value>Preview Code Changes:</value>
   </data>
-  <data name="RenameToWithPreview" xml:space="preserve">
-    <value>Rename '{0}' to '{1}' with preview...</value>
-  </data>
   <data name="PreviewChanges" xml:space="preserve">
     <value>Preview Changes</value>
   </data>
@@ -732,5 +729,11 @@ Do you want to proceed?</value>
   </data>
   <data name="HighlightedWrittenReference" xml:space="preserve">
     <value>Highlighted Written Reference</value>
+  </data>
+  <data name="CursorMustBeOnAMemberName" xml:space="preserve">
+    <value>Cursor must be on a member name.</value>
+  </data>
+  <data name="FontAndColors_BraceMatching" xml:space="preserve">
+    <value>Brace Matching</value>
   </data>
 </root>

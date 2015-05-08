@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public class OptionsDiagnosticAnalyzer<TLanguageKindEnum> : TestDiagnosticAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
-        private AnalyzerOptions _expectedOptions;
-        private Dictionary<string, AnalyzerOptions> _mismatchedOptions = new Dictionary<string, AnalyzerOptions>();
+        private readonly AnalyzerOptions _expectedOptions;
+        private readonly Dictionary<string, AnalyzerOptions> _mismatchedOptions = new Dictionary<string, AnalyzerOptions>();
 
         public OptionsDiagnosticAnalyzer(AnalyzerOptions expectedOptions)
         {

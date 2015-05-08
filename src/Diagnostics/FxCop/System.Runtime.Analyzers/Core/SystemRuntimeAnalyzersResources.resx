@@ -228,6 +228,12 @@
   <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
     <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
   </data>
+  <data name="TestForEmptyStringsUsingStringLengthDescription" xml:space="preserve">
+    <value>Comparing strings using the string.Length property or the string.IsNullOrEmpty method is significantly faster than using string.Equals. This is because Equals executes significantly more MSIL instructions than either IsNullOrEmpty or the number of instructions executed to retrieve the Length property value and compare it to zero.</value>
+  </data>
+  <data name="TestForEmptyStringsUsingStringLength" xml:space="preserve">
+    <value>Test for empty strings using 'string.Length' property or 'string.IsNullOrEmpty' method instead of an Equality check.</value>
+  </data>
   <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
     <value>Disposable fields should be disposed</value>
   </data>
@@ -254,5 +260,14 @@
   </data>
   <data name="MarkEnumsWithFlagsCodeFix" xml:space="preserve">
     <value>Apply FlagsAttribute to enum.</value>
+  </data>
+  <data name="DoNotLockOnObjectsWithWeakIdentity" xml:space="preserve">
+    <value>Do not lock on objects with weak identity.</value>
+  </data>
+  <data name="DoNotLockOnWeakIdentity" xml:space="preserve">
+    <value>Do not lock on a reference of type '{0}' as it has weak identity. Replace that with a lock against an object with strong identity.</value>
+  </data>
+  <data name="UseGenericEventHandlerInstances" xml:space="preserve">
+    <value>Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler</value>
   </data>
 </root>

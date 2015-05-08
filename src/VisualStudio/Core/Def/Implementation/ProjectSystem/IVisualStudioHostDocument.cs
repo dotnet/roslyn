@@ -97,12 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         uint GetItemId();
 
         /// <summary>
-        /// Returns <see cref="IVsHierarchy"/> of the shared (or project k) project this <see cref="IVisualStudioHostDocument"/> belongs to.
-        /// it will return null if it belongs to a normal project.
-        /// </summary>
-        IVsHierarchy SharedHierarchy { get; }
-
-        /// <summary>
         /// Gets the text container associated with the document when it is in an opened state.
         /// </summary>
         /// <returns></returns>

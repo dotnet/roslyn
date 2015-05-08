@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
         public static string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute";
-        private static string s_globalSuppressionsFileName = "GlobalSuppressions";
-        private static string s_suppressionsFileCommentTemplate =
+        private static readonly string s_globalSuppressionsFileName = "GlobalSuppressions";
+        private static readonly string s_suppressionsFileCommentTemplate =
 @"
 {0} This file is used by Code Analysis to maintain SuppressMessage 
 {0} attributes that are applied to this project.

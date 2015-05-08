@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class DeterministicTests : EmitMetadataTestBase
     {
-        private Guid CompiledGuid(string source, string assemblyName)
+        private Guid CompiledGuid(string source, string assemblyName, bool debug)
         {
             var compilation = CreateCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: TestOptions.ReleaseExe.WithFeatures(ImmutableArray.Create("deterministic")));
+                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithFeatures(ImmutableArray.Create("deterministic")));
 
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, emitters: TestEmitters.CCI, validator: (a, eo) =>
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             return compilation.EmitToArray();
         }
 
-        [Fact(Skip = "900646"), WorkItem(900646)]
+        [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
         public void Simple()
         {
             var source =
@@ -54,13 +54,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public static void Main(string[] args) {}
 }";
-            var mvid1 = CompiledGuid(source, "X1");
-            var mvid2 = CompiledGuid(source, "X1");
-            var mvid3 = CompiledGuid(source, "X2");
-            var mvid4 = CompiledGuid(source, "X2");
+            // Two identical compilations should produce the same MVID
+            var mvid1 = CompiledGuid(source, "X1", false);
+            var mvid2 = CompiledGuid(source, "X1", false);
             Assert.Equal(mvid1, mvid2);
-            Assert.Equal(mvid3, mvid4);
+
+            // Changing the module name should change the MVID
+            var mvid3 = CompiledGuid(source, "X2", false);
             Assert.NotEqual(mvid1, mvid3);
+
+            // Two identical debug compilations should produce the same MVID also
+            var mvid5 = CompiledGuid(source, "X1", true);
+            var mvid6 = CompiledGuid(source, "X1", true);
+            Assert.Equal(mvid5, mvid6);
+
+            // But even in debug, a changed module name changes the MVID
+            var mvid7 = CompiledGuid(source, "X2", true);
+            Assert.NotEqual(mvid5, mvid7);
+
+            // adding the debug option should change the MVID
+            Assert.NotEqual(mvid1, mvid5);
+            Assert.NotEqual(mvid3, mvid7);
         }
 
         [Fact]
@@ -80,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             AssertEx.Equal(result3, result4);
         }
 
-        [Fact(Skip="https://github.com/dotnet/roslyn/issues/926"), WorkItem(926)]
+        [Fact, WorkItem(926)]
         public void CompareAllBytesEmitted_Debug()
         {
             var source =
@@ -111,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private class WriteOnlyStream : Stream
         {
-            private int _length = 0;
+            private int _length;
             public override bool CanRead { get { return false; } }
             public override bool CanSeek { get { return false; } }
             public override bool CanWrite { get { return true; } }

@@ -1024,7 +1024,7 @@ Imports System.Reflection
 
 #Region "Helpers"
 
-    Private Shared s_defaultNetModuleSourceHeader As String = <![CDATA[
+    Private Shared ReadOnly s_defaultNetModuleSourceHeader As String = <![CDATA[
 Imports System
 Imports System.Reflection
 Imports System.Security.Permissions
@@ -1035,7 +1035,7 @@ Imports System.Security.Permissions
 <Assembly: UserDefinedAssemblyAttrAllowMultiple("UserDefinedAssemblyAttrAllowMultiple")>
 ]]>.Value
 
-    Private Shared s_defaultNetModuleSourceBody As String = <![CDATA[
+    Private Shared ReadOnly s_defaultNetModuleSourceBody As String = <![CDATA[
 Public Class NetModuleClass
 End Class
 

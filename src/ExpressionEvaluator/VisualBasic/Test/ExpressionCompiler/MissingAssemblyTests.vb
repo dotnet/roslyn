@@ -93,9 +93,9 @@ End Class
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "parameter",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -150,9 +150,9 @@ End Class
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "New Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -183,9 +183,9 @@ End Class
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "<value/>",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -219,9 +219,9 @@ End Class
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "o = o",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -292,9 +292,9 @@ End Class
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -305,9 +305,9 @@ End Class
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single())
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -330,7 +330,22 @@ Public Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, {}, TestOptions.DebugDll)
-            Dim context = CreateMethodContextWithReferences(comp, "C.M", CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference)
+
+            Dim exeBytes As Byte() = Nothing
+            Dim pdbBytes As Byte() = Nothing
+            Dim unusedReferences As ImmutableArray(Of MetadataReference) = Nothing
+            Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
+            Assert.True(result)
+
+            Dim runtime = CreateRuntimeInstance(
+                GetUniqueName(),
+                ImmutableArray.Create(CSharpRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference),
+                exeBytes,
+                New SymReader(pdbBytes))
+            Dim context = CreateMethodContext(
+                runtime,
+                "C.M")
+            Dim aliases = ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a", stowed:=True))
 
             Const expectedError = "(1,1): error BC30002: Type 'System.Void' is not defined."
             Dim expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity
@@ -340,9 +355,9 @@ End Class
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
 
             context.CompileExpression(
-                InspectionContextFactory.Empty.Add("$stowedexception", "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a"),
                 "$stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
+                aliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -376,9 +391,9 @@ End Class
             Dim actualError As String = Nothing
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "Windows.UI.Colors",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -414,9 +429,9 @@ End Class
             Dim actualError As String = Nothing
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "Windows.[UI].Xaml.Application",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
@@ -449,9 +464,9 @@ End Class
             Dim actualError As String = Nothing
             Dim actualMissingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "GetType([Windows].UI.Colors)",
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,

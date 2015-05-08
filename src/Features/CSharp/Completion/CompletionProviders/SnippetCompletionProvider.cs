@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class SnippetCompletionProvider : AbstractCompletionProvider
     {
         // If null, the document's language service will be used.
-        private ISnippetInfoService _snippetInfoService;
+        private readonly ISnippetInfoService _snippetInfoService;
 
         public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
         {
-            return false;
+            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
@@ -138,11 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return snippets.Select(snippet => new CompletionItem(
+            return snippets.Select(snippet => new CSharpCompletionItem(
+                workspace,
                 this,
                 displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
                 sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
+                descriptionFactory: c => Task.FromResult((snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts()),
                 filterSpan: CompletionUtilities.GetTextChangeSpan(text, position),
                 glyph: Glyph.Snippet,
                 shouldFormatOnCommit: service.ShouldFormatSnippet(snippet)));

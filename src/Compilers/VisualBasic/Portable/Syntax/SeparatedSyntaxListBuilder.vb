@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Friend Structure SeparatedSyntaxListBuilder(Of TNode As SyntaxNode)
-        Private _builder As SyntaxListBuilder
+        Private ReadOnly _builder As SyntaxListBuilder
         Private _expectSeparator As Boolean
 
         Public Shared Function Create() As SeparatedSyntaxListBuilder(Of TNode)

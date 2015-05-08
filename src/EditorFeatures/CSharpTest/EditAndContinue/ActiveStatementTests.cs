@@ -1224,6 +1224,65 @@ class C : D
             edits.VerifyRudeDiagnostics(active);
         }
 
+        [Fact]
+        public void InstanceConstructorWithInitializerWithLambda_Update1()
+        {
+            string src1 = @"
+class C
+{
+    public C() : this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> }) { }
+}";
+            string src2 = @"
+class C
+{
+    public C() : base((a, b) => { <AS:0>Console.WriteLine(a - b);</AS:0> }) { }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void InstanceConstructorWithInitializerWithLambda_Update2()
+        {
+            string src1 = @"
+class C
+{
+    public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> })</AS:1> { Console.WriteLine(1); }
+}";
+            string src2 = @"
+class C
+{
+    public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> })</AS:1> { Console.WriteLine(2); }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void InstanceConstructorWithInitializerWithLambda_Update3()
+        {
+            string src1 = @"
+class C
+{
+    public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a + b);</AS:0> })</AS:1> { Console.WriteLine(1); }
+}";
+            string src2 = @"
+class C
+{
+    public C() : <AS:1>this((a, b) => { <AS:0>Console.WriteLine(a - b);</AS:0> })</AS:1> { Console.WriteLine(1); }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // TODO: should be allowed (https://github.com/dotnet/roslyn/issues/1359)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "this((a, b) => {       Console.WriteLine(a - b);        })"));
+        }
+
         #endregion
 
         #region Field and Property Initializers
@@ -1685,8 +1744,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.Field));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -1715,8 +1773,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.AutoProperty));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -1745,8 +1802,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.Field));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -1775,8 +1831,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "z", FeaturesResources.AutoProperty));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]

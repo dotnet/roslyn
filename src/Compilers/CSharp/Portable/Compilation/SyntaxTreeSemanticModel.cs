@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
             {
-                throw new ArgumentOutOfRangeException("tree", CSharpResources.TreeNotPartOfCompilation);
+                throw new ArgumentOutOfRangeException(nameof(syntaxTree), CSharpResources.TreeNotPartOfCompilation);
             }
 
             _binderFactory = compilation.GetBinderFactory(SyntaxTree);
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             // TODO(cyrusn): Check arguments.  This is a public entrypoint, so we must do appropriate
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var model = this.GetMemberModel(expression);
@@ -1837,7 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeParameter == null)
             {
-                throw new ArgumentNullException("typeParameter");
+                throw new ArgumentNullException(nameof(typeParameter));
             }
 
             if (!IsInTree(typeParameter))
@@ -1902,12 +1902,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (firstStatement == null)
             {
-                throw new ArgumentNullException("firstStatement");
+                throw new ArgumentNullException(nameof(firstStatement));
             }
 
             if (lastStatement == null)
             {
-                throw new ArgumentNullException("lastStatement");
+                throw new ArgumentNullException(nameof(lastStatement));
             }
 
             if (!IsInTree(firstStatement))
@@ -1930,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null)
             {
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             }
 
             if (!IsInTree(expression))

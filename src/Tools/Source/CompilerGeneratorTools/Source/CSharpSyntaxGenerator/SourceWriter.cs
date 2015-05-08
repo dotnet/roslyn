@@ -741,7 +741,7 @@ namespace CSharpSyntaxGenerator
                 if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
                     WriteLine("      if ({0} == null)", CamelCase(field.Name));
-                    WriteLine("        throw new ArgumentNullException(\"{0}\");", CamelCase(field.Name));
+                    WriteLine("        throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
                 }
                 if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
                 {
@@ -1594,7 +1594,7 @@ namespace CSharpSyntaxGenerator
                 else if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
                     WriteLine("      if ({0} == null)", CamelCase(field.Name));
-                    WriteLine("        throw new ArgumentNullException(\"{0}\");", CamelCase(field.Name));
+                    WriteLine("        throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
                 }
             }
 

@@ -543,7 +543,7 @@ static class FooClass
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpEditorResources.Extension}) void G.Foo<T>()", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) void G.Foo<T>()", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Enable the script case when we have support for extension methods in scripts
             Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);

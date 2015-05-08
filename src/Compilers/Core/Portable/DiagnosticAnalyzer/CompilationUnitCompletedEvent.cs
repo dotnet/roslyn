@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             this.CompilationUnit = compilationUnit;
         }
-        private WeakReference<SemanticModel> _weakModel = null;
+        private WeakReference<SemanticModel> _weakModel;
         public SemanticModel SemanticModel
         {
             get

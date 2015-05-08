@@ -12,7 +12,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpSymbolDeclaredEventAnalyzer : SymbolDeclaredEventAnalyzer<SyntaxKind>
     {
-        private static HashSet<string> s_symbolTypesWithExpectedSymbolDeclaredEvent = new HashSet<string>(
+        private static readonly HashSet<string> s_symbolTypesWithExpectedSymbolDeclaredEvent = new HashSet<string>(
             new[] { "SourceNamespaceSymbol", "SourceNamedTypeSymbol", "SourceEventSymbol", "SourceFieldSymbol", "SourceMethodSymbol", "SourcePropertySymbol" });
 
         protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol symbolType)

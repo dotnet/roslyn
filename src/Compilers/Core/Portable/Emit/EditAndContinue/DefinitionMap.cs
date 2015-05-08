@@ -14,22 +14,20 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class DefinitionMap
     {
-        protected struct MethodUpdate
+        protected struct MappedMethod
         {
-            public MethodUpdate(IMethodSymbolInternal previousMethod, bool preserveLocalVariables, Func<SyntaxNode, SyntaxNode> syntaxMap)
+            public MappedMethod(IMethodSymbolInternal previousMethodOpt, Func<SyntaxNode, SyntaxNode> syntaxMap)
             {
-                this.PreviousMethod = previousMethod;
-                this.PreserveLocalVariables = preserveLocalVariables;
+                this.PreviousMethod = previousMethodOpt;
                 this.SyntaxMap = syntaxMap;
             }
 
             public readonly IMethodSymbolInternal PreviousMethod;
-            public readonly bool PreserveLocalVariables;
             public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
         }
 
         protected readonly PEModule module;
-        protected readonly IReadOnlyDictionary<IMethodSymbol, MethodUpdate> methodUpdates;
+        protected readonly IReadOnlyDictionary<IMethodSymbol, MappedMethod> mappedMethods;
 
         protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits)
         {
@@ -37,28 +35,42 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(edits != null);
 
             this.module = module;
-            this.methodUpdates = GetMethodUpdates(edits);
+            this.mappedMethods = GetMappedMethods(edits);
         }
 
-        private static IReadOnlyDictionary<IMethodSymbol, MethodUpdate> GetMethodUpdates(IEnumerable<SemanticEdit> edits)
+        private static IReadOnlyDictionary<IMethodSymbol, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
         {
-            var methodUpdates = new Dictionary<IMethodSymbol, MethodUpdate>();
+            var mappedMethods = new Dictionary<IMethodSymbol, MappedMethod>();
             foreach (var edit in edits)
             {
-                if (edit.Kind == SemanticEditKind.Update)
+                // We should always "preserve locals" of iterator and async methods since the state machine 
+                // might be active without MoveNext method being on stack. We don't enforce this requirement here,
+                // since a method may be incorrectly marked by Iterator/AsyncStateMachine attribute by the user, 
+                // in which case we can't reliably figure out that it's an error in semantic edit set. 
+
+                // We should also "preserve locals" of any updated method containing lambdas. The goal is to 
+                // treat lambdas the same as method declarations. Lambdas declared in a method body that escape 
+                // the method (are assigned to a field, added to an event, e.g.) might be invoked after the method 
+                // is updated and when it no longer contains active statements. If we didn't map the lambdas of 
+                // the updated body to the original lambdas we would run the out-of-date lambda bodies, 
+                // which would not happen if the lambdas were named methods.
+
+                // TODO (bug https://github.com/dotnet/roslyn/issues/2504)
+                // Note that in some cases an Insert might also need to map syntax. For example, a new constructor added 
+                // to a class that has field/property initializers with lambdas. These lambdas get "copied" into the constructor
+                // (assuming it doesn't have "this" constructor initializer) and thus their generated names need to be preserved. 
+
+                if (edit.Kind == SemanticEditKind.Update && edit.PreserveLocalVariables)
                 {
                     var method = edit.NewSymbol as IMethodSymbol;
                     if (method != null)
                     {
-                        methodUpdates.Add(method, new MethodUpdate(
-                            (IMethodSymbolInternal)edit.OldSymbol,
-                            edit.PreserveLocalVariables,
-                            edit.SyntaxMap));
+                        mappedMethods.Add(method, new MappedMethod((IMethodSymbolInternal)edit.OldSymbol, edit.SyntaxMap));
                     }
                 }
             }
 
-            return methodUpdates;
+            return mappedMethods;
         }
 
         internal abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
@@ -141,33 +153,19 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method)
         {
-            MethodDefinitionHandle handle;
-            if (!this.TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out handle))
+            MappedMethod mappedMethod;
+            if (!this.mappedMethods.TryGetValue(method, out mappedMethod))
+            {
+                return null;
+            }
+
+            // TODO (bug https://github.com/dotnet/roslyn/issues/2504):
+            // Handle cases when the previous method doesn't exist.
+
+            MethodDefinitionHandle previousHandle;
+            if (!this.TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
-                return null;
-            }
-
-            MethodUpdate methodUpdate;
-            if (!this.methodUpdates.TryGetValue(method, out methodUpdate))
-            {
-                // Not part of changeset. No need to preserve locals.
-                return null;
-            }
-
-            if (!methodUpdate.PreserveLocalVariables)
-            {
-                // We should always "preserve locals" of iterator and async methods since the state machine 
-                // might be active without MoveNext method being on stack. We don't enforce this requirement here,
-                // since a method may be incorrectly marked by Iterator/AsyncStateMachine attribute by the user, 
-                // in which case we can't reliably figure out that it's an error in semantic edit set. 
-
-                // We should also "preserve locals" of any updated method containing lambdas. The goal is to 
-                // treat lambdas the same as method declarations. Lambdas declared in a method body that escape 
-                // the method (are assigned to a field, added to an event, e.g.) might be invoked after the method 
-                // is updated and when it no longer contains active statements. If we didn't map the lambdas of 
-                // the updated body to the original lambdas we would run the out-of-date lambda bodies, 
-                // which would not happen if the lambdas were named methods.
                 return null;
             }
 
@@ -182,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string stateMachineTypeNameOpt = null;
             TSymbolMatcher symbolMap;
 
-            uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
+            uint methodIndex = (uint)MetadataTokens.GetRowNumber(previousHandle);
             DebugId methodId;
 
             // Check if method has changed previously. If so, we already have a map.
@@ -224,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
-                var debugInfo = baseline.DebugInformationProvider(handle);
+                var debugInfo = baseline.DebugInformationProvider(previousHandle);
 
                 methodId = new DebugId(debugInfo.MethodOrdinal, 0);
 
@@ -233,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     MakeLambdaAndClosureMaps(debugInfo.Lambdas, debugInfo.Closures, out lambdaMap, out closureMap);
                 }
 
-                ITypeSymbol stateMachineType = TryGetStateMachineType(handle);
+                ITypeSymbol stateMachineType = TryGetStateMachineType(previousHandle);
                 if (stateMachineType != null)
                 {
                     // method is async/iterator kickoff method
@@ -249,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 else
                 {
-                    previousLocals = TryGetLocalSlotMapFromMetadata(handle, debugInfo);
+                    previousLocals = TryGetLocalSlotMapFromMetadata(previousHandle, debugInfo);
                     if (previousLocals.IsDefault)
                     {
                         // TODO: Report error that metadata is not supported.
@@ -262,8 +260,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return new EncVariableSlotAllocator(
                 symbolMap,
-                methodUpdate.SyntaxMap,
-                methodUpdate.PreviousMethod,
+                mappedMethod.SyntaxMap,
+                mappedMethod.PreviousMethod,
                 methodId,
                 previousLocals,
                 lambdaMap,
@@ -287,13 +285,13 @@ namespace Microsoft.CodeAnalysis.Emit
             for (int i = 0; i < lambdaDebugInfo.Length; i++)
             {
                 var lambdaInfo = lambdaDebugInfo[i];
-                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(new DebugId(i, lambdaInfo.Generation), lambdaInfo.ClosureOrdinal);
+                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
             }
 
             for (int i = 0; i < closureDebugInfo.Length; i++)
             {
                 var closureInfo = closureDebugInfo[i];
-                closures[closureInfo.SyntaxOffset] = new DebugId(i, closureInfo.Generation);
+                closures[closureInfo.SyntaxOffset] = closureInfo.ClosureId;
             }
 
             lambdaMap = lambdas;

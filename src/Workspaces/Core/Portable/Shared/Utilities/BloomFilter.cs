@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (bitArray == null)
             {
-                throw new ArgumentNullException("bitArray");
+                throw new ArgumentNullException(nameof(bitArray));
             }
 
             _bitArray = bitArray;

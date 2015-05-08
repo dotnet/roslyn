@@ -583,7 +583,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                expression.IsParentKind(SyntaxKind.ForEachStatement) OrElse
                expression.IsParentKind(SyntaxKind.ForStatement) OrElse
                expression.IsParentKind(SyntaxKind.ConditionalAccessExpression) OrElse
-               expression.IsParentKind(SyntaxKind.TypeOfIsExpression) Then
+               expression.IsParentKind(SyntaxKind.TypeOfIsExpression) OrElse
+               expression.IsParentKind(SyntaxKind.TypeOfIsNotExpression) Then
 
                 Return True
             End If

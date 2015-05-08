@@ -920,8 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static Func<Symbol, MethodSymbol> s_toMethodSymbolFunc = s => (MethodSymbol)s;
-        private static Func<Symbol, PropertySymbol> s_toPropertySymbolFunc = s => (PropertySymbol)s;
+        private static readonly Func<Symbol, MethodSymbol> s_toMethodSymbolFunc = s => (MethodSymbol)s;
+        private static readonly Func<Symbol, PropertySymbol> s_toPropertySymbolFunc = s => (PropertySymbol)s;
 
         private NamedTypeSymbol ConstructNamedType(
             NamedTypeSymbol type,
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class ConsistentSymbolOrder : IComparer<Symbol>
         {
-            public static ConsistentSymbolOrder Instance = new ConsistentSymbolOrder();
+            public static readonly ConsistentSymbolOrder Instance = new ConsistentSymbolOrder();
             public int Compare(Symbol fst, Symbol snd)
             {
                 if (snd == fst) return 0;

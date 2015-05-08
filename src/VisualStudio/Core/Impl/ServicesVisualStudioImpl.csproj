@@ -241,6 +241,7 @@
     <Compile Include="CodeModel\InternalElements\CodeEvent.cs" />
     <Compile Include="CodeModel\InternalElements\CodeFunction.cs" />
     <Compile Include="CodeModel\InternalElements\CodeFunction.IMethodXML.cs" />
+    <Compile Include="CodeModel\InternalElements\CodeFunctionDeclareDecl.cs" />
     <Compile Include="CodeModel\InternalElements\CodeFunctionWithEventHandler.cs" />
     <Compile Include="CodeModel\InternalElements\CodeImplementsStatement.cs" />
     <Compile Include="CodeModel\InternalElements\CodeImport.cs" />

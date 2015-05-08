@@ -2521,6 +2521,108 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_0()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"
+            "
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_1()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"
+     {0} what"
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_2()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"what
+            "
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_3()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"what
+            {0}"
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_4()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"what{0}
+            "
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideMultiLineString()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"1
+            2"
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
         Private Shared Sub AssertSmartIndentIndentationInProjection(markup As String,
                                                                     expectedIndentation As Integer)
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines({markup})

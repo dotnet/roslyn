@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             if (newBuffer == null)
             {
-                throw new ArgumentNullException("newBuffer");
+                throw new ArgumentNullException(nameof(newBuffer));
             }
 
             _newBuffer = newBuffer;

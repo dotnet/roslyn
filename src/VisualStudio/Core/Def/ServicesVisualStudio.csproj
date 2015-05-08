@@ -18,13 +18,17 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
-    <Compile Include="..\..\..\Compilers\Core\Desktop\IVsSQM.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
+    <Compile Include="..\..\..\Compilers\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="Implementation\AnalyzerDependencyChecker.cs" />
     <Compile Include="Implementation\AnalyzerDependencyCheckingService.cs" />
     <Compile Include="Implementation\AnalyzerDependencyConflict.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
@@ -34,9 +38,8 @@
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.cs" />
     <Compile Include="Implementation\ProjectSystem\AbstractEncProject.cs" />
-    <Compile Include="Implementation\ProjectSystem\Interop\IAnalyzerDependencyHost.cs" />
     <Compile Include="Implementation\ProjectSystem\IVisualStudioWorkingFolder.cs" />
-    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerServiceFactory.cs" />
+    <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Implementation\ProjectSystem\RuleSets\RuleSetEventHandler.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioProjectTracker_IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\Diagnostics\MiscellaneousDiagnosticAnalyzerService.cs" />
@@ -69,7 +72,9 @@
     <Compile Include="Implementation\Watson\Watson.cs" />
     <Compile Include="Implementation\Watson\WatsonErrorReport.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
+    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTableAccessor.cs" />
     <Compile Include="Implementation\Workspace\Esent\EsentLogger.cs" />
+    <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
@@ -82,9 +87,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\InMemoryAssemblyProvider.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
@@ -519,7 +521,6 @@
     <Compile Include="Implementation\RQName\Nodes\RQArrayType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQConstructedType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQConstructor.cs" />
-    <Compile Include="Implementation\RQName\Nodes\RQDynamicType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQErrorType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQEvent.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQExplicitInterfaceMemberName.cs" />
@@ -551,7 +552,7 @@
     <Compile Include="Implementation\RQName\Nodes\RQUnconstructedType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQVoidType.cs" />
     <Compile Include="Implementation\RQName\ParenthesesTreeWriter.cs" />
-    <Compile Include="Implementation\RQName\RQNameService.cs" />
+    <Compile Include="Implementation\RQName\RQName.cs" />
     <Compile Include="Implementation\RQName\RQNameStrings.cs" />
     <Compile Include="Implementation\RQName\RQNodeBuilder.cs" />
     <Compile Include="Implementation\RQName\SimpleTree\SimpleGroupNode.cs" />

@@ -116,12 +116,10 @@ End Class"
                     typeToken)
                 Dim errorMessage As String = Nothing
                 ' A is ambiguous since there were no explicit references to AS1 or AS2.
-                Dim testData = New CompilationTestData()
-                context.CompileExpression("New A()", errorMessage, testData)
+                context.CompileExpression("New A()", errorMessage)
                 Assert.Equal(errorMessage, "(1,6): error BC30554: 'A' is ambiguous.")
-                testData = New CompilationTestData()
                 ' Ideally, B should be resolved to BS1.
-                context.CompileExpression("New B()", errorMessage, testData)
+                context.CompileExpression("New B()", errorMessage)
                 Assert.Equal(errorMessage, "(1,6): error BC30554: 'B' is ambiguous.")
 
                 ' Compile expression with method context.
@@ -137,9 +135,8 @@ End Class"
                     ilOffset:=0,
                     localSignatureToken:=localSignatureToken)
                 Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
-                testData = New CompilationTestData()
                 ' Ideally, B should be resolved to BS1.
-                context.CompileExpression("New B()", errorMessage, testData)
+                context.CompileExpression("New B()", errorMessage)
                 Assert.Equal(errorMessage, "(1,6): error BC30554: 'B' is ambiguous.")
             End Using
         End Sub
@@ -372,10 +369,10 @@ End Class"
                     ilOffset:=0,
                     localSignatureToken:=localSignatureToken)
                 Dim errorMessage As String = Nothing
-                Dim testData As New CompilationTestData()
-                context.CompileExpression("F()", errorMessage, testData)
+                context.CompileExpression("F()", errorMessage)
                 Assert.Equal(errorMessage, "(1,2): error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
 
+                Dim testData As New CompilationTestData()
                 Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
                 Assert.Null(errorMessage)

@@ -81,7 +81,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Design\CA1003Tests.cs" />
     <Compile Include="Design\CA1008Tests.cs" />
     <Compile Include="Design\CA1012Tests.cs" />
     <Compile Include="Design\CA1024Tests.cs" />
@@ -92,17 +91,16 @@
     <Compile Include="HardeningAnalyzer\HardeningAnalyzerTests.cs" />
     <Compile Include="Naming\CA1708Tests.cs" />
     <Compile Include="Naming\CA1715Tests.cs" />
-    <Compile Include="Performance\CA1821Tests.cs" />
-    <Compile Include="Performance\CodeFixes\CA1821FixerTests.cs" />
-    <Compile Include="Reliability\CA2002Tests.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizersTests.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizersTests.Fixer.cs" />
     <Compile Include="Usage\CA2200Tests.cs" />
     <Compile Include="Usage\CA2214Tests.cs" />
     <Compile Include="Usage\CA2229Tests.cs" />
     <Compile Include="Usage\CA2235Tests.cs" />
     <Compile Include="Usage\CA2237Tests.cs" />
-    <Compile Include="Usage\CodeFixes\CA2229FixerTests.cs" />
-    <Compile Include="Usage\CodeFixes\CA2235FixerTests.cs" />
-    <Compile Include="Usage\CodeFixes\CA2237FixerTests.cs" />
+    <Compile Include="Usage\ImplementSerializationConstructorsTests.Fixer.cs" />
+    <Compile Include="Usage\MarkAllNonSerializableFieldsTests.Fixer.cs" />
+    <Compile Include="Usage\MarkTypesWithSerializableTests.Fixer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

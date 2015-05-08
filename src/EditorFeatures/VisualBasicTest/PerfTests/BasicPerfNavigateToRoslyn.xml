@@ -28,8 +28,8 @@
       <WaitForCodeMarkers />
       <CloseNavigateToWindow />
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />-->
     </Scenario>
   </ScenarioList>
 

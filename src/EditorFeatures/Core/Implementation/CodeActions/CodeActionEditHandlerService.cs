@@ -167,6 +167,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             foreach (var documentId in changedDocuments)
             {
                 var document = newSolution.GetDocument(documentId);
+                if (!document.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
                 var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var renameTokenOpt = root.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind)

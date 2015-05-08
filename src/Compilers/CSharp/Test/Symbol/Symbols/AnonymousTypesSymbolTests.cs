@@ -746,7 +746,7 @@ class Query
                 expectedOutput: "{ ToString = Field }-Field");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AnonymousTypeSymbol_StandardNames3()
         {
             var source = @"
@@ -1739,7 +1739,7 @@ class Program
             Assert.True(statement2.Span.Contains(typeA4.Locations[0].SourceSpan));
         }
 
-        private static SyntaxTree s_equalityComparerSourceTree = Parse(@"
+        private static readonly SyntaxTree s_equalityComparerSourceTree = Parse(@"
 namespace System.Collections
 {
   public interface IEqualityComparer

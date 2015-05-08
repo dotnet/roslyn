@@ -292,9 +292,9 @@ End Class
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData As New CompilationTestData()
             context.CompileAssignment(
-                DefaultInspectionContext.Instance,
                 "P",
                 "1",
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
@@ -328,9 +328,9 @@ End Class
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData As New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "z = 1", ' VB only supports implicit declarations
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,

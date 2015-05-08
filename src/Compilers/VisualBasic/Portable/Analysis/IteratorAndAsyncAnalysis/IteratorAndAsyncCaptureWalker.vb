@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' In Release builds we hoist only variables (locals And parameters) that are captured. 
         ' This set will contain such variables after the bound tree is visited.
-        Private _variablesToHoist As OrderedSet(Of Symbol)
-        Private _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
+        Private ReadOnly _variablesToHoist As OrderedSet(Of Symbol)
+        Private ReadOnly _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
 
         ' Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         ' The value is a list of all usage of each such variable.
@@ -91,10 +91,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                ' Hoist all user-defined locals that can be hoisted:
-                ' TODO: filter out synthesized variables which do not need hoist
-                ' (see MustSurviveStateMachineSuspension in C#)
-                Return Not local.Type.IsRestrictedType()
+                ' hoist all user-defined locals that can be hoisted
+                If local.SynthesizedKind = SynthesizedLocalKind.UserDefined Then
+                    Return Not local.Type.IsRestrictedType()
+                End If
+
+                ' hoist all synthesized variables that have to survive state machine suspension
+                Return local.SynthesizedKind <> SynthesizedLocalKind.ConditionalBranchDiscriminator
             End If
 
             Return False

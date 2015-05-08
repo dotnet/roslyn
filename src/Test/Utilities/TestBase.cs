@@ -234,7 +234,22 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_aacorlibRef == null)
                 {
-                    s_aacorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928).GetReference(display: "mscorlib.v4_0_30319.dll");
+                    var source = TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928_cs;
+                    var syntaxTree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(source);
+
+                    var compilationOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+                    var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create("aacorlib.v15.0.3928.dll", new[] { syntaxTree }, null, compilationOptions);
+
+                    Stream dllStream = new MemoryStream();
+                    var emitResult = compilation.Emit(dllStream);
+                    if (!emitResult.Success)
+                    {
+                        emitResult.Diagnostics.Verify();
+                    }
+                    dllStream.Seek(0, SeekOrigin.Begin);
+
+                    s_aacorlibRef = AssemblyMetadata.CreateFromStream(dllStream).GetReference(display: "mscorlib.v4_0_30319.dll");
                 }
 
                 return s_aacorlibRef;

@@ -44,10 +44,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("this", out resultProperties, out error, testData);
+            var result = context.CompileExpression("this", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -101,10 +100,9 @@ public interface I
                 exeBytes,
                 new SymReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("o", out resultProperties, out error, testData);
+            var result = context.CompileExpression("o", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -198,7 +196,7 @@ public interface I
 
                 // Bind to local of embedded PIA type.
                 var testData = new CompilationTestData();
-                context.CompileExpression("x", out resultProperties, out error, testData);
+                context.CompileExpression("x", out error, testData);
                 Assert.Null(error);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -212,9 +210,9 @@ public interface I
                 // since it was not included in embedded type.
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 context.CompileExpression(
-                    DefaultInspectionContext.Instance,
                     "x.F()",
                     DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
                     DiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
@@ -228,7 +226,7 @@ public interface I
                 // in assembly referencing PIA.dll.
                 context = CreateMethodContext(runtime, "B.Main");
                 testData = new CompilationTestData();
-                context.CompileExpression("y.F()", out resultProperties, out error, testData);
+                context.CompileExpression("y.F()", out error, testData);
                 Assert.Null(error);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{

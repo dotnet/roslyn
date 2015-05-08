@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedCompiler : ToolTask
     {
-        private CancellationTokenSource _sharedCompileCts = null;
+        private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         public ManagedCompiler()
@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store["Analyzers"] = value; }
             get { return (ITaskItem[])_store["Analyzers"]; }
-        }
-
-        public ITaskItem[] AnalyzerDependencies
-        {
-            set { _store["AnalyzerDependencies"] = value; }
-            get { return (ITaskItem[])_store["AnalyzerDependencies"]; }
         }
 
         // We do not support BugReport because it always requires user interaction,
@@ -311,7 +305,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (!UseSharedCompilation || this.ToolPath != null )
+            if (!UseSharedCompilation || this.ToolPath != null)
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -330,9 +324,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
-                    ExitCode = responseTask.Result != null
-                        ? HandleResponse(responseTask.Result)
-                        : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    var response = responseTask.Result;
+                    if (response != null)
+                    {
+                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                    }
+                    else
+                    {
+                        ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -348,6 +348,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return ExitCode;
         }
 
+
+
         /// <summary>
         /// Try to get the directory this assembly is in. Returns null if assembly
         /// was in the GAC.
@@ -360,7 +362,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return null;
 
             var uri = new Uri(assembly.CodeBase);
-            string assemblyPath = uri.IsFile 
+            string assemblyPath = uri.IsFile
                 ? uri.LocalPath
                 : Assembly.GetCallingAssembly().Location;
             return Path.GetDirectoryName(assemblyPath);
@@ -418,38 +420,41 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// to create our own.
         /// </summary>
         [Output]
-        public new int ExitCode { get; private set; } = 0;
+        public new int ExitCode { get; private set; }
 
         /// <summary>
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse response)
+        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            var completedResponse = response as CompletedBuildResponse;
-            if (completedResponse != null)
+            switch (response.Type)
             {
-                LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
+                    return -1;
 
-                if (LogStandardErrorAsError)
-                {
-                    LogErrorOutput(completedResponse.ErrorOutput);
-                }
-                else
-                {
-                    LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
-                }
+                case BuildResponse.ResponseType.Completed:
+                    var completedResponse = (CompletedBuildResponse)response;
+                    LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
 
-                ExitCode = completedResponse.ReturnCode;
+                    if (LogStandardErrorAsError)
+                    {
+                        LogErrorOutput(completedResponse.ErrorOutput);
+                    }
+                    else
+                    {
+                        LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
+                    }
+
+                    return completedResponse.ReturnCode;
+
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
+                default:
+                    throw new InvalidOperationException("Encountered unknown response type");
             }
-            else
-            {
-                Debug.Assert(response is MismatchedVersionBuildResponse);
-
-                LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
-                ExitCode = -1;
-            }
-            return ExitCode;
         }
 
         private void LogErrorOutput(string output)
@@ -593,9 +598,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Append the analyzers.
             this.AddAnalyzersToCommandLine(commandLine);
 
-            // Append the analyzer dependencies.
-            this.AddAnalyzerDependenciesToCommandLine(commandLine);
-
             // Append additional files.
             this.AddAdditionalFilesToCommandLine(commandLine);
 
@@ -618,27 +620,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             foreach (ITaskItem analyzer in this.Analyzers)
             {
                 commandLine.AppendSwitchIfNotNull("/analyzer:", analyzer.ItemSpec);
-            }
-        }
-
-        /// <summary>
-        /// Adds a "/analyzerdependency:" switch to the command line for each provided analyzer dependency.
-        /// 
-        /// Note that even though MSBuild makes a distinction between analyzers and dependencies, the
-        /// command-line compilers do not--both are passed in via "/analyzer".
-        /// </summary>
-        private void AddAnalyzerDependenciesToCommandLine(CommandLineBuilderExtension commandLine)
-        {
-            // If there were no analyzers passed in, don't add any /analyzer: switches
-            // on the command-line.
-            if ((this.AnalyzerDependencies == null) || (this.AnalyzerDependencies.Length == 0))
-            {
-                return;
-            }
-
-            foreach (ITaskItem dependency in this.AnalyzerDependencies)
-            {
-                commandLine.AppendSwitchIfNotNull("/analyzer:", dependency.ItemSpec);
             }
         }
 

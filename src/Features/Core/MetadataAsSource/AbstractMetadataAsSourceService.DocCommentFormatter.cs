@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal class DocCommentFormatter
         {
-            private static int s_indentSize = 2;
-            private static int s_wrapLength = 80;
+            private static readonly int s_indentSize = 2;
+            private static readonly int s_wrapLength = 80;
 
-            private static string s_summaryHeader = FeaturesResources.Summary;
-            private static string s_paramHeader = FeaturesResources.Parameters;
-            private static string s_labelFormat = "{0}:";
-            private static string s_typeParameterHeader = FeaturesResources.TypeParameters;
-            private static string s_returnsHeader = FeaturesResources.Returns;
-            private static string s_exceptionsHeader = FeaturesResources.Exceptions;
-            private static string s_remarksHeader = FeaturesResources.Remarks;
+            private static readonly string s_summaryHeader = FeaturesResources.Summary;
+            private static readonly string s_paramHeader = FeaturesResources.Parameters;
+            private static readonly string s_labelFormat = "{0}:";
+            private static readonly string s_typeParameterHeader = FeaturesResources.TypeParameters;
+            private static readonly string s_returnsHeader = FeaturesResources.Returns;
+            private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions;
+            private static readonly string s_remarksHeader = FeaturesResources.Remarks;
 
             internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)
             {

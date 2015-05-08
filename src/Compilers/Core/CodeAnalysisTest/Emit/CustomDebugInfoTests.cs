@@ -214,14 +214,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray.Create(
-                new ClosureDebugInfo(-100, 0),
-                new ClosureDebugInfo(10, 0),
-                new ClosureDebugInfo(-200, 0));
+                new ClosureDebugInfo(-100, new DebugId(0, 0)),
+                new ClosureDebugInfo(10, new DebugId(1, 0)),
+                new ClosureDebugInfo(-200, new DebugId(2, 0)));
 
             var lambdas = ImmutableArray.Create(
-                new LambdaDebugInfo(20, 1, 0),
-                new LambdaDebugInfo(-50, 0, 0),
-                new LambdaDebugInfo(-180, LambdaDebugInfo.StaticClosureOrdinal, 0));
+                new LambdaDebugInfo(20, new DebugId(0, 0), 1),
+                new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
+                new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var customMetadata = new Cci.MemoryStream();
             var cmw = new Cci.BinaryWriter(customMetadata);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
-            var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, LambdaDebugInfo.StaticClosureOrdinal, 0));
+            var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, new DebugId(0, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var customMetadata = new Cci.MemoryStream();
             var cmw = new Cci.BinaryWriter(customMetadata);
@@ -293,14 +293,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                new LocalSlotDebugInfo(SynthesizedLocalKind.TryAwaitPendingCaughtException, new LocalDebugId(-20000, 10)));
 
             var closures = ImmutableArray.Create(
-               new ClosureDebugInfo(-100, 0),
-               new ClosureDebugInfo(10, 0),
-               new ClosureDebugInfo(-200, 0));
+               new ClosureDebugInfo(-100, new DebugId(0, 0)),
+               new ClosureDebugInfo(10, new DebugId(1, 0)),
+               new ClosureDebugInfo(-200, new DebugId(2, 0)));
 
             var lambdas = ImmutableArray.Create(
-                new LambdaDebugInfo(20, 1, 0),
-                new LambdaDebugInfo(-50, 0, 0),
-                new LambdaDebugInfo(-180, LambdaDebugInfo.StaticClosureOrdinal, 0));
+                new LambdaDebugInfo(20, new DebugId(0, 0), 1),
+                new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
+                new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
             var records = new ArrayBuilder<Cci.MemoryStream>();
@@ -366,6 +366,89 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0x80, 0xDC, 0x03, 0x80,
                 0x96, 0x02, 0x14, 0x01
             }, deserialized[1].Data);
+        }
+
+        [Fact]
+        public void InvalidAlignment1()
+        {
+            // CDIs that don't support alignment:
+            var bytes = new byte[]
+            {
+                0x04, // version
+                0x01, // count
+                0x00,
+                0x00,
+
+                0x04, // version
+                0x06, // kind
+                0x00,
+                0x03, // bad alignment
+
+                // body size
+                0x0a, 0x00, 0x00, 0x00,
+
+                // payload
+                0x01, 0x00
+            };
+
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray());
+        }
+
+        [Fact]
+        public void InvalidAlignment2()
+        {
+            // CDIs that don't support alignment:
+            var bytes = new byte[]
+            {
+                0x04, // version
+                0x01, // count
+                0x00,
+                0x00,
+
+                0x04, // version
+                0x06, // kind
+                0x00,
+                0x03, // bad alignment
+
+                // body size
+                0x02, 0x00, 0x00, 0x00,
+
+                // payload
+                0x01, 0x00, 0x00, 0x06
+            };
+
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray());
+        }
+
+        [Fact]
+        public void InvalidAlignment_KindDoesntSupportAlignment()
+        {
+            // CDIs that don't support alignment:
+            var bytes = new byte[]
+            {
+                0x04, // version
+                0x01, // count
+                0x00,
+                0x00,
+
+                0x04, // version
+                0x01, // kind
+                0x11, // invalid data
+                0x14, // invalid data
+
+                // body size
+                0x0c, 0x00, 0x00, 0x00,
+
+                // payload
+                0x01, 0x00, 0x00, 0x06
+            };
+
+            var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
+            Assert.Equal(1, records.Length);
+
+            Assert.Equal(CustomDebugInfoKind.ForwardInfo, records[0].Kind);
+            Assert.Equal(4, records[0].Version);
+            AssertEx.Equal(new byte[] { 0x01, 0x00, 0x00, 0x06 }, records[0].Data);
         }
     }
 }

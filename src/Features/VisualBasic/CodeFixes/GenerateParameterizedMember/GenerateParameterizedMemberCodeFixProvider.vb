@@ -26,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Foo' is not a member of 'Sibling'.
         Friend Const BC30401 As String = "BC30401" ' error BC30401: 'Blah' cannot implement 'Snarf' because there is no matching sub on interface 'IFoo'.
         Friend Const BC30516 As String = "BC30516" ' error BC30516: Overload resolution failed because no accessible 'Blah' accepts this number of arguments.
-        Friend Const BC30574 As String = "BC30574" ' error BC30574: Option Strict On disallows late binding.
         Friend Const BC32016 As String = "BC32016" ' error BC32016: 'blah' has no parameters and its return type cannot be indexed.
         Friend Const BC32045 As String = "BC32045" ' error BC32045: 'Private Sub Blah()' has no type parameters and so cannot have type arguments.
         Friend Const BC32087 As String = "BC32087" ' error BC32087: Overload resolution failed because no accessible 'Blah' accepts this number of type arguments.
@@ -34,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30518, BC30519, BC30520, BC30521, BC30057, BC30112, BC30451, BC30455, BC30456, BC30401, BC30516, BC30574, BC32016, BC32045, BC32087, BC36625)
+                Return ImmutableArray.Create(BC30518, BC30519, BC30520, BC30521, BC30057, BC30112, BC30451, BC30455, BC30456, BC30401, BC30516, BC32016, BC32045, BC32087, BC36625)
             End Get
         End Property
 

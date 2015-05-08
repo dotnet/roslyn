@@ -87,12 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A cache for remember which structs are empty.
         /// </summary>
-        private EmptyStructTypeCache _emptyStructTypeCache;
+        private readonly EmptyStructTypeCache _emptyStructTypeCache;
 
         /// <summary>
         /// true if we should check to ensure that out parameters are assigned on every exit point.
         /// </summary>
-        private bool _requireOutParamsAssigned;
+        private readonly bool _requireOutParamsAssigned;
 
         /// <summary>
         /// The topmost method of this analysis.

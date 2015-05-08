@@ -906,6 +906,20 @@ End Class
         </errors>)
     End Sub
 
+    <WorkItem(620, "https://github.com/dotnet/roslyn/issues/620")>
+    <Fact>
+    Public Sub TestRecentUnicodeVersion()
+        ' Ensure that the characters Ǉ and ǈ are considered matching under case insensitivity
+        ParseAndVerify(<![CDATA[
+#Const Ǉ = True
+#if ǈ
+Class MissingEnd
+#end if
+        ]]>,
+        Diagnostic(ERRID.ERR_ExpectedEndClass, "Class MissingEnd").WithLocation(4, 1)
+        )
+    End Sub
+
     <WorkItem(893259, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30012_ParsePreProcessorIfIncompleteExpression()

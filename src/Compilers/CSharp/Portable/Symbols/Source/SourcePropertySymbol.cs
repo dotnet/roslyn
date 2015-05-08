@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
         /// </summary>
-        private string _sourceName;
+        private readonly string _sourceName;
 
         private string _lazyDocComment;
-        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers = null;
-        private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor = null;
+        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
+        private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).

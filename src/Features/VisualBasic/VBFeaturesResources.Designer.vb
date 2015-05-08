@@ -837,6 +837,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Too many arguments to &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_TooManyArgs1() As String
+            Get
+                Return ResourceManager.GetString("ERR_TooManyArgs1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; is not defined..
+        '''</summary>
+        Friend ReadOnly Property ERR_UndefinedType1() As String
+            Get
+                Return ResourceManager.GetString("ERR_UndefinedType1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Simulates the occurrence of an error..
         '''</summary>
         Friend ReadOnly Property ErrorKeywordToolTip() As String

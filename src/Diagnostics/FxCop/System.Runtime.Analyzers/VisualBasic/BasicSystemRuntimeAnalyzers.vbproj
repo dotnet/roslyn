@@ -75,16 +75,18 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\UseGenericEventHandler.vb" />
     <Compile Include="Design\DefineAccessorsForAttributeArguments.vb" />
     <Compile Include="Design\OverrideMethodsOnComparableTypes.Fixer.vb" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.vb" />
     <Compile Include="Globalization\UseOrdinalStringComparison.vb" />
+    <Compile Include="Performance\BasicTestForEmptyStringsUsingStringLengthAnalyzer.vb" />
+    <Compile Include="Reliability\DoNotLockOnObjectsWithWeakIdentity.vb" />
     <Compile Include="Usage\DisposableFieldsShouldBeDisposed.vb" />
     <Compile Include="Usage\OverloadOperatorEqualsOnOverridingValueTypeEquals.Fixer.vb" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (fullyQualifiedMetadataName == null)
             {
-                throw new ArgumentNullException("fullyQualifiedMetadataName");
+                throw new ArgumentNullException(nameof(fullyQualifiedMetadataName));
             }
 
             var emittedName = MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (fullyQualifiedMetadataName == null)
             {
-                throw new ArgumentNullException("fullyQualifiedMetadataName");
+                throw new ArgumentNullException(nameof(fullyQualifiedMetadataName));
             }
 
             return this.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: false, isWellKnownType: false);

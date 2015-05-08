@@ -1,5 +1,16 @@
 #!/bin/bash
 
+usage()
+{
+    echo "Runs our integration suite on Linux"
+    echo "usage: cibuild.sh [options]"
+    echo ""
+    echo "Options"
+    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
+	echo "  --os <os>			OS to run (Linux / Darwin)"
+	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
+}
+
 XUNIT_VERSION=2.0.0-alpha-build2576
 FULL_RUN=true
 OS_NAME=$(uname -s)
@@ -15,10 +26,10 @@ do
         CUSTOM_MONO_PATH=$2
         shift 2
         ;;
-		--os)
-		OS_NAME=$2
-		shift 2
-		;;
+        --os)
+        OS_NAME=$2
+        shift 2
+        ;;
         --minimal)
         FULL_RUN=false
         shift 1
@@ -73,7 +84,7 @@ compile_toolset()
 # Save the toolset binaries from Binaries/Debug to Binaries/Bootstrap
 save_toolset()
 {
-    compiler_binaries=(
+    local compiler_binaries=(
         csc.exe
         Microsoft.CodeAnalysis.dll
         Microsoft.CodeAnalysis.Desktop.dll
@@ -114,15 +125,13 @@ build_roslyn()
     BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
 
     echo Running the bootstrap build 
-    echo -e "\tCompiling the C# compiler"
-    run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/csc/csc.csproj
 
     if [ "$FULL_RUN" = "true" ]; then
-        echo -e "\tCompiling the VB compiler"
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/vbc/vbc.csproj
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/Test/Syntax/CSharpCompilerSyntaxTest.csproj
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/Test/CommandLine/CSharpCommandLineTest.csproj
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/VisualBasic/Test/Syntax/BasicCompilerSyntaxTest.vbproj
+        echo -e "\tCompiling CrossPlatform.sln"
+        run_xbuild $BOOTSTRAP_ARG src/CrossPlatform.sln
+    else
+        echo -e "\tCompiling the C# compiler"
+        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/csc/csc.csproj
     fi
 }
 
@@ -132,26 +141,27 @@ test_roslyn()
         return
     fi
     
-    XUNIT_RUNNER=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
-    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll -noshadow
-    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll -noshadow
-    mono $XUNIT_RUNNER Binaries/Debug/Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll -noshadow
+    local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local test_binaries=(
+        Roslyn.Compilers.CSharp.CommandLine.UnitTests
+        Roslyn.Compilers.CSharp.Syntax.UnitTests
+        Roslyn.Compilers.CSharp.Semantic.UnitTests
+        Roslyn.Compilers.CSharp.Symbol.UnitTests
+        Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
+    local any_failed=false
 
-    if [ $? -ne 0 ]; then
-        echo Unit tests failed
+    for i in "${test_binaries[@]}"
+    do
+        mono $xunit_runner Binaries/Debug/$i.dll -xml Binaries/Debug/$i.TestResults.xml -noshadow
+        if [ $? -ne 0 ]; then
+            any_failed=true
+        fi
+    done
+
+    if [ "$any_failed" = "true" ]; then
+        echo Unit test failed
         exit 1
     fi
-}
-
-usage()
-{
-    echo "Runs our integration suite on Linux"
-    echo "usage: cibuild.sh [options]"
-    echo ""
-    echo "Options"
-    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
-	echo "  --os <os>			OS to run (Linux / Darwin)"
-	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
 }
 
 # As a bootstrap mechanism in Jenkins we assume that Linux is a

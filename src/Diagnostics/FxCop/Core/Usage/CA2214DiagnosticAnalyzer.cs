@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     public abstract class CA2214DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         public const string RuleId = "CA2214";
-        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotCallOverridableMethodsInConstructors), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotCallOverridableMethodsInConstructorsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotCallOverridableMethodsInConstructors), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotCallOverridableMethodsInConstructorsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableMessageAndTitle,

@@ -13,8 +13,8 @@ Friend Class GreenNodeWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.
-    Private _nonterminalsWithOneChild As List(Of String) = New List(Of String)
-    Private _nonterminalsWithTwoChildren As List(Of String) = New List(Of String)
+    Private ReadOnly _nonterminalsWithOneChild As List(Of String) = New List(Of String)
+    Private ReadOnly _nonterminalsWithTwoChildren As List(Of String) = New List(Of String)
 
     ' Initialize the class with the parse tree to write.
     Public Sub New(parseTree As ParseTree)
@@ -477,13 +477,7 @@ Friend Class GreenNodeWriter
 
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
 
-        'TODO Merge first and second into a function
-        ' First Constructor
-        If Not _parseTree.IsAbstract(nodeStructure) Then
-            _writer.Write("        Friend Sub New(")
-        Else
-            _writer.Write("        Friend Sub New(")
-        End If
+         _writer.Write("        Friend Sub New(")
 
         ' Generate each of the field parameters
         _writer.Write("ByVal kind As {0}", NodeKindType())
@@ -605,7 +599,7 @@ Friend Class GreenNodeWriter
 
     Private Sub GenerateNodeStructureConstructorParameters(nodeStructure As ParseNodeStructure, errorParam As String, annotationParam As String, precedingTriviaParam As String, followingTriviaParam As String)
         ' Generate each of the field parameters
-        _writer.Write("(kind", NodeKindType())
+        _writer.Write("(Me.Kind")
 
         _writer.Write(", {0}", errorParam)
         _writer.Write(", {0}", annotationParam)
@@ -619,7 +613,7 @@ Friend Class GreenNodeWriter
                 _writer.Write(", {0}, {1}", precedingTriviaParam, followingTriviaParam)
             End If
         ElseIf nodeStructure.IsTrivia AndAlso nodeStructure.IsTriviaRoot Then
-            _writer.Write(", text")
+            _writer.Write(", Me.Text")
         End If
 
         For Each field In GetAllFieldsOfStructure(nodeStructure)

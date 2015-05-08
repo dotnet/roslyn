@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             using (_guard.DisposableWait())
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         private class FileActions
         {
-            private FileTracker _tracker;
+            private readonly FileTracker _tracker;
             private readonly string _path;
             private ImmutableArray<Action> _actions;
             private Task _invokeTask;

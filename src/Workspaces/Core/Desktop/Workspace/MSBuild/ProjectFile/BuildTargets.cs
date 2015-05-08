@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     internal class BuildTargets
     {
-        private MSB.Evaluation.Project _project;
-        private List<string> _buildTargets;
+        private readonly MSB.Evaluation.Project _project;
+        private readonly List<string> _buildTargets;
 
         public BuildTargets(MSB.Evaluation.Project project, params string[] targets)
         {

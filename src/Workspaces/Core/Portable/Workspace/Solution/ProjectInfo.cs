@@ -6,12 +6,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// A class that represents all the arguments necessary to create a new project instance.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public sealed class ProjectInfo
     {
         /// <summary>
@@ -114,22 +116,22 @@ namespace Microsoft.CodeAnalysis
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (name == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (assemblyName == null)
             {
-                throw new ArgumentNullException("assemblyName");
+                throw new ArgumentNullException(nameof(assemblyName));
             }
 
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.Id = id;
@@ -322,6 +324,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
             return this.With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
         }
     }
 }

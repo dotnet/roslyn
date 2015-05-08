@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
@@ -120,15 +121,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            if (item.ShouldFormatOnCommit)
+            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            if (formattingService != null && 
+                (item.ShouldFormatOnCommit || (commitChar != null && formattingService.SupportsFormattingOnTypedCharacter(document, commitChar.GetValueOrDefault()))))
             {
                 // Formatting the completion item affected span is done as a separate transaction because this gives the user
                 // the flexibility to undo the formatting but retain the changes associated with the completion item
                 using (var formattingTransaction = _undoHistoryRegistry.GetHistory(this.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.IntellisenseCommitFormatting))
                 {
-                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var newDocument = Formatter.FormatAsync(document, textChange.Span).WaitAndGetResult(CancellationToken.None);
-                    document.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None);
+                    var changes = formattingService.GetFormattingChangesAsync(document, textChange.Span, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
                     formattingTransaction.Complete();
                 }
             }
