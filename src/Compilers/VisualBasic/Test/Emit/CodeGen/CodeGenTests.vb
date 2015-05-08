@@ -7198,48 +7198,39 @@ End Module
                 options:=TestOptions.DebugExe,
                 expectedOutput:="")
 
-            c.VerifyIL("M1.Main",
-            <![CDATA[
+            c.VerifyIL("M1.Main", "
 {
-  // Code size       38 (0x26)
+  // Code size       25 (0x19)
   .maxstack  2
   .locals init (Boolean V_0, //b1
-  Boolean V_1, //b2
-  Boolean V_2)
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
+                Boolean V_1, //b2
+                Boolean V_2,
+                Boolean V_3,
+                Boolean V_4)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
   IL_0002:  stloc.0
-  IL_0003:  ldc.i4.0
+ -IL_0003:  ldc.i4.0
   IL_0004:  stloc.1
-  IL_0005:  ldloc.0
+ -IL_0005:  ldloc.0
   IL_0006:  ldloc.1
   IL_0007:  and
-  IL_0008:  ldc.i4.0
-  IL_0009:  ceq
-  IL_000b:  stloc.2
-  IL_000c:  ldloc.2
-  IL_000d:  brtrue.s   IL_0010
-  IL_000f:  nop
-  IL_0010:  nop
-  IL_0011:  ldc.i4.1
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  stloc.2
-  IL_0016:  ldloc.2
-  IL_0017:  brtrue.s   IL_001a
-  IL_0019:  nop
-  IL_001a:  nop
-  IL_001b:  ldc.i4.0
-  IL_001c:  ldc.i4.0
-  IL_001d:  ceq
-  IL_001f:  stloc.2
-  IL_0020:  ldloc.2
-  IL_0021:  brtrue.s   IL_0024
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ret
+  IL_0008:  stloc.2
+ ~IL_0009:  ldloc.2
+  IL_000a:  brfalse.s  IL_000d
+ -IL_000c:  nop
+ -IL_000d:  nop
+ -IL_000e:  ldc.i4.1
+  IL_000f:  stloc.3
+ -IL_0010:  nop
+ -IL_0011:  nop
+ -IL_0012:  ldc.i4.0
+  IL_0013:  stloc.s    V_4
+  IL_0015:  br.s       IL_0017
+ -IL_0017:  nop
+ -IL_0018:  ret
 }
-        ]]>)
+", sequencePoints:="M1.Main")
         End Sub
 
         <Fact>
@@ -10144,11 +10135,11 @@ End Module
 
             comp.VerifyIL("Module1.Main", <![CDATA[
 {
-  // Code size       80 (0x50)
+  // Code size       77 (0x4d)
   .maxstack  3
   .locals init (String V_0, //a
-  Double V_1, //b
-  Boolean V_2)
+                Double V_1, //b
+                Boolean V_2)
   IL_0000:  nop
   IL_0001:  ldstr      "1"
   IL_0006:  stloc.0
@@ -10164,22 +10155,20 @@ End Module
   IL_0021:  ldc.r8     0.1
   IL_002a:  cgt
   IL_002c:  or
-  IL_002d:  ldc.i4.0
-  IL_002e:  ceq
-  IL_0030:  stloc.2
-  IL_0031:  ldloc.2
-  IL_0032:  brtrue.s   IL_0042
-  IL_0034:  ldstr      "Fail"
-  IL_0039:  call       "Sub System.Console.WriteLine(String)"
-  IL_003e:  nop
+  IL_002d:  stloc.2
+  IL_002e:  ldloc.2
+  IL_002f:  brfalse.s  IL_003f
+  IL_0031:  ldstr      "Fail"
+  IL_0036:  call       "Sub System.Console.WriteLine(String)"
+  IL_003b:  nop
+  IL_003c:  nop
+  IL_003d:  br.s       IL_004c
   IL_003f:  nop
-  IL_0040:  br.s       IL_004f
-  IL_0042:  nop
-  IL_0043:  ldstr      "Pass"
-  IL_0048:  call       "Sub System.Console.WriteLine(String)"
-  IL_004d:  nop
-  IL_004e:  nop
-  IL_004f:  ret
+  IL_0040:  ldstr      "Pass"
+  IL_0045:  call       "Sub System.Console.WriteLine(String)"
+  IL_004a:  nop
+  IL_004b:  nop
+  IL_004c:  ret
 }
 ]]>)
         End Sub
@@ -10228,11 +10217,11 @@ End Module
 
             c.VerifyIL("Module1.Main", <![CDATA[
 {
-  // Code size       80 (0x50)
+  // Code size       77 (0x4d)
   .maxstack  3
   .locals init (String V_0, //a
-  Double V_1, //b
-  Boolean V_2)
+                Double V_1, //b
+                Boolean V_2)
   IL_0000:  nop
   IL_0001:  ldstr      "1"
   IL_0006:  stloc.0
@@ -10248,24 +10237,21 @@ End Module
   IL_0021:  ldc.r8     0.1
   IL_002a:  cgt
   IL_002c:  or
-  IL_002d:  ldc.i4.0
-  IL_002e:  ceq
-  IL_0030:  stloc.2
-  IL_0031:  ldloc.2
-  IL_0032:  brtrue.s   IL_0042
-  IL_0034:  ldstr      "Fail"
-  IL_0039:  call       "Sub System.Console.WriteLine(String)"
-  IL_003e:  nop
+  IL_002d:  stloc.2
+  IL_002e:  ldloc.2
+  IL_002f:  brfalse.s  IL_003f
+  IL_0031:  ldstr      "Fail"
+  IL_0036:  call       "Sub System.Console.WriteLine(String)"
+  IL_003b:  nop
+  IL_003c:  nop
+  IL_003d:  br.s       IL_004c
   IL_003f:  nop
-  IL_0040:  br.s       IL_004f
-  IL_0042:  nop
-  IL_0043:  ldstr      "Pass"
-  IL_0048:  call       "Sub System.Console.WriteLine(String)"
-  IL_004d:  nop
-  IL_004e:  nop
-  IL_004f:  ret
-}
-]]>)
+  IL_0040:  ldstr      "Pass"
+  IL_0045:  call       "Sub System.Console.WriteLine(String)"
+  IL_004a:  nop
+  IL_004b:  nop
+  IL_004c:  ret
+}]]>)
         End Sub
 
         <WorkItem(539392, "DevDiv")>
@@ -12511,48 +12497,53 @@ End Module
             c.VerifyIL("Module1.Main",
             <![CDATA[
 {
-  // Code size       96 (0x60)
+  // Code size      102 (0x66)
   .maxstack  2
   .locals init (BoolBreaker V_0, //x
-                Boolean V_1)
+                Boolean V_1,
+                Boolean V_2)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
   IL_0003:  ldc.i4.2
   IL_0004:  stfld      "BoolBreaker.i As Integer"
   IL_0009:  ldloc.0
   IL_000a:  ldfld      "BoolBreaker.bool As Boolean"
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  brtrue.s   IL_0021
-  IL_0013:  ldstr      "i=2 -> x.bool <> True "
-  IL_0018:  call       "Sub System.Console.Write(String)"
-  IL_001d:  nop
-  IL_001e:  nop
-  IL_001f:  br.s       IL_002e
+  IL_000f:  ldc.i4.0
+  IL_0010:  ceq
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.1
+  IL_0014:  brfalse.s  IL_0024
+  IL_0016:  ldstr      "i=2 -> x.bool <> True "
+  IL_001b:  call       "Sub System.Console.Write(String)"
+  IL_0020:  nop
   IL_0021:  nop
-  IL_0022:  ldstr      "i=2 -> x.bool = True "
-  IL_0027:  call       "Sub System.Console.Write(String)"
-  IL_002c:  nop
-  IL_002d:  nop
-  IL_002e:  ldloca.s   V_0
-  IL_0030:  ldc.i4     0x7fffffff
-  IL_0035:  stfld      "BoolBreaker.i As Integer"
-  IL_003a:  ldloc.0
-  IL_003b:  ldfld      "BoolBreaker.bool As Boolean"
-  IL_0040:  stloc.1
-  IL_0041:  ldloc.1
-  IL_0042:  brtrue.s   IL_0052
-  IL_0044:  ldstr      "i=2147483647 -> x.bool <> True "
-  IL_0049:  call       "Sub System.Console.Write(String)"
-  IL_004e:  nop
-  IL_004f:  nop
-  IL_0050:  br.s       IL_005f
-  IL_0052:  nop
-  IL_0053:  ldstr      "i=21474836472 -> x.bool = True "
-  IL_0058:  call       "Sub System.Console.Write(String)"
-  IL_005d:  nop
-  IL_005e:  nop
-  IL_005f:  ret
+  IL_0022:  br.s       IL_0031
+  IL_0024:  nop
+  IL_0025:  ldstr      "i=2 -> x.bool = True "
+  IL_002a:  call       "Sub System.Console.Write(String)"
+  IL_002f:  nop
+  IL_0030:  nop
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  ldc.i4     0x7fffffff
+  IL_0038:  stfld      "BoolBreaker.i As Integer"
+  IL_003d:  ldloc.0
+  IL_003e:  ldfld      "BoolBreaker.bool As Boolean"
+  IL_0043:  ldc.i4.0
+  IL_0044:  ceq
+  IL_0046:  stloc.2
+  IL_0047:  ldloc.2
+  IL_0048:  brfalse.s  IL_0058
+  IL_004a:  ldstr      "i=2147483647 -> x.bool <> True "
+  IL_004f:  call       "Sub System.Console.Write(String)"
+  IL_0054:  nop
+  IL_0055:  nop
+  IL_0056:  br.s       IL_0065
+  IL_0058:  nop
+  IL_0059:  ldstr      "i=21474836472 -> x.bool = True "
+  IL_005e:  call       "Sub System.Console.Write(String)"
+  IL_0063:  nop
+  IL_0064:  nop
+  IL_0065:  ret
 }
 ]]>)
         End Sub

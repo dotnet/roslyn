@@ -2011,7 +2011,7 @@ End Class
                                                        End Sub
             Dim expectedAdd = <![CDATA[
 {
-  // Code size       40 (0x28)
+  // Code size       41 (0x29)
   .maxstack  4
   IL_0000:  nop
   IL_0001:  ldtoken    "I1"
@@ -2023,12 +2023,13 @@ End Class
   IL_0017:  ldftn      "Sub C.M()"
   IL_001d:  newobj     "Sub D..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Sub System.Runtime.InteropServices.ComAwareEventInfo.AddEventHandler(Object, System.Delegate)"
-  IL_0027:  ret
+  IL_0027:  nop
+  IL_0028:  ret
 }
 ]]>
             Dim expectedRemove = <![CDATA[
 {
-  // Code size       45 (0x2d)
+  // Code size       46 (0x2e)
   .maxstack  4
   IL_0000:  nop
   IL_0001:  ldtoken    "I1"
@@ -2041,7 +2042,8 @@ End Class
   IL_001c:  ldftn      "Sub C.M()"
   IL_0022:  newobj     "Sub D..ctor(Object, System.IntPtr)"
   IL_0027:  callvirt   "Sub System.Runtime.InteropServices.ComAwareEventInfo.RemoveEventHandler(Object, System.Delegate)"
-  IL_002c:  ret
+  IL_002c:  nop
+  IL_002d:  ret
 }
 ]]>
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(

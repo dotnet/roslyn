@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         // VB TODO:
         ForStep = 12,
         // VB TODO:
-        ForLoopObject = 13,
+        ForInitialValue = 13,
         // VB TODO:
         ForDirection = 14,
 

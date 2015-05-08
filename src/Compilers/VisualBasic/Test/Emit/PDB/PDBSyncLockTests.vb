@@ -39,13 +39,12 @@ End Class
 
             v.VerifyIL("C1.Main", "
 {
-  // Code size       76 (0x4c)
+  // Code size       69 (0x45)
   .maxstack  2
   .locals init (Object V_0, //lock
                 Object V_1,
                 Boolean V_2,
-                Integer V_3, //x
-                Boolean V_4)
+                Integer V_3) //x
  -IL_0000:  nop
   .try
   {
@@ -73,27 +72,23 @@ End Class
     finally
     {
      ~IL_002a:  ldloc.2
-      IL_002b:  ldc.i4.0
-      IL_002c:  ceq
-      IL_002e:  stloc.s    V_4
-      IL_0030:  ldloc.s    V_4
-      IL_0032:  brtrue.s   IL_003b
-      IL_0034:  ldloc.1
-      IL_0035:  call       ""Sub System.Threading.Monitor.Exit(Object)""
-      IL_003a:  nop
-     -IL_003b:  nop
-      IL_003c:  endfinally
+      IL_002b:  brfalse.s  IL_0034
+      IL_002d:  ldloc.1
+      IL_002e:  call       ""Sub System.Threading.Monitor.Exit(Object)""
+      IL_0033:  nop
+     -IL_0034:  nop
+      IL_0035:  endfinally
     }
   }
   catch System.Exception
   {
-   ~IL_003d:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-   -IL_0042:  nop
-    IL_0043:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_0048:  leave.s    IL_004a
+   ~IL_0036:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+   -IL_003b:  nop
+    IL_003c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0041:  leave.s    IL_0043
   }
- -IL_004a:  nop
- -IL_004b:  ret
+ -IL_0043:  nop
+ -IL_0044:  ret
 }", sequencePoints:="C1.Main")
 
             v.VerifyPdb("C1.Main",
@@ -107,7 +102,6 @@ End Class
                     <slot kind="3" offset="55"/>
                     <slot kind="2" offset="55"/>
                     <slot kind="0" offset="99"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -119,16 +113,16 @@ End Class
                 <entry offset="0x21" startLine="14" startColumn="21" endLine="14" endColumn="38" document="0"/>
                 <entry offset="0x24" startLine="15" startColumn="17" endLine="15" endColumn="38" document="0"/>
                 <entry offset="0x2a" hidden="true" document="0"/>
-                <entry offset="0x3b" startLine="17" startColumn="13" endLine="17" endColumn="25" document="0"/>
-                <entry offset="0x3d" hidden="true" document="0"/>
-                <entry offset="0x42" startLine="18" startColumn="9" endLine="18" endColumn="14" document="0"/>
-                <entry offset="0x4a" startLine="19" startColumn="9" endLine="19" endColumn="16" document="0"/>
-                <entry offset="0x4b" startLine="20" startColumn="5" endLine="20" endColumn="12" document="0"/>
+                <entry offset="0x34" startLine="17" startColumn="13" endLine="17" endColumn="25" document="0"/>
+                <entry offset="0x36" hidden="true" document="0"/>
+                <entry offset="0x3b" startLine="18" startColumn="9" endLine="18" endColumn="14" document="0"/>
+                <entry offset="0x43" startLine="19" startColumn="9" endLine="19" endColumn="16" document="0"/>
+                <entry offset="0x44" startLine="20" startColumn="5" endLine="20" endColumn="12" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x4c">
+            <scope startOffset="0x0" endOffset="0x45">
                 <importsforward declaringType="C1" methodName="Something" parameterNames="x"/>
-                <scope startOffset="0x2" endOffset="0x3c">
-                    <local name="lock" il_index="0" il_start="0x2" il_end="0x3c" attributes="0"/>
+                <scope startOffset="0x2" endOffset="0x35">
+                    <local name="lock" il_index="0" il_start="0x2" il_end="0x35" attributes="0"/>
                     <scope startOffset="0x21" endOffset="0x29">
                         <local name="x" il_index="3" il_start="0x21" il_end="0x29" attributes="0"/>
                     </scope>
