@@ -49,30 +49,20 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private ITextView GetTextViewFromFrame(IVsWindowFrame frame)
         {
-            object documentView;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out documentView)))
+            try
             {
-                return null;
+                var vsTextView = Shell.VsShellUtilities.GetTextView(frame);
+                if (vsTextView != null)
+                {
+                    return EditorAdaptersFactoryService.GetWpfTextView(vsTextView);
+                }
+            }
+            catch
+            {
+                // if we couldn't get view due to any reason, return null
             }
 
-            var vsTextView = documentView as IVsTextView;
-            if (vsTextView != null)
-            {
-                return EditorAdaptersFactoryService.GetWpfTextView(vsTextView);
-            }
-
-            var codeWindow = documentView as IVsCodeWindow;
-            if (codeWindow == null)
-            {
-                return null;
-            }
-
-            if (ErrorHandler.Failed(codeWindow.GetPrimaryView(out vsTextView)) || vsTextView == null)
-            {
-                return null;
-            }
-
-            return EditorAdaptersFactoryService.GetWpfTextView(vsTextView);
+            return null;
         }
     }
 }
