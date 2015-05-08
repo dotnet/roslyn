@@ -2,7 +2,7 @@
 
 Before submitting a feature or substantial code contribution please discuss it with the team and ensure it follows the product [[roadmap|Roadmap]]. The team rigorously reviews and tests all code submissions. The submissions must meet an extremely high bar for quality, design, and roadmap appropriateness.
 
-The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet)) and follow the same [developer guide](https://github.com/dotnet/corefx/wiki/Developer-Guide).  The team enforces this by regularly running the [.NET code formatter tool](https://github.com/dotnet/codeformatter) on the code base.  Contributors should ensure they follow these guidelines when making submissions.  
+The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follow the same [developer guide](https://github.com/dotnet/corefx/wiki/Developer-Guide).  The team enforces this by regularly running the [.NET code formatter tool](https://github.com/dotnet/codeformatter) on the code base.  Contributors should ensure they follow these guidelines when making submissions.  
 
 For now, the team has set the following limits on pull requests:
 
