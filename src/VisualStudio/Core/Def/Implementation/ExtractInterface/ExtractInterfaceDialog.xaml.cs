@@ -45,18 +45,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             DataContext = viewModel;
 
             Loaded += ExtractInterfaceDialog_Loaded;
+            ContentRendered += ExtractInterfaceDialog_ContentRendered;
         }
 
         private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
         {
             interfaceNameTextBox.Focus();
             interfaceNameTextBox.SelectAll();
+        }
 
-            var handler = TEST_DialogLoaded;
-            if (handler != null)
-            {
-                handler();
-            }
+        private void ExtractInterfaceDialog_ContentRendered(object sender, EventArgs e)
+        {
+            TEST_DialogLoaded?.Invoke();
         }
 
         private void SetCommandBindings()

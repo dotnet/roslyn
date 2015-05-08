@@ -54,16 +54,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             InitializeComponent();
             DataContext = viewModel;
 
-            Loaded += GenerateTypeDialog_Loaded;
+            ContentRendered += GenerateTypeDialog_ContentRendered;
         }
 
-        private void GenerateTypeDialog_Loaded(object sender, RoutedEventArgs e)
+        private void GenerateTypeDialog_ContentRendered(object sender, EventArgs e)
         {
-            var handler = TEST_DialogLoaded;
-            if (handler != null)
-            {
-                handler();
-            }
+            TEST_DialogLoaded?.Invoke();
         }
 
         private void SetCommandBindings()
