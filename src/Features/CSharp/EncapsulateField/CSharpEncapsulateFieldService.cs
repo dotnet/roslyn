@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                                     .OfType<FieldDeclarationSyntax>()
                                     .Where(n => n.Span.IntersectsWith(span));
 
-            var declarations = fields.Select(f => f.Declaration);
+            var declarations = fields.Where(CanEncapsulate).Select(f => f.Declaration);
 
             IEnumerable<VariableDeclaratorSyntax> declarators;
             if (span.IsEmpty)
@@ -128,6 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             return declarators.Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
                                 .WhereNotNull()
                                 .Where(f => f.Name.Length != 0);
+        }
+
+        private bool CanEncapsulate(FieldDeclarationSyntax field)
+        {
+            return field.Parent is TypeDeclarationSyntax
+                || field.Parent is EnumDeclarationSyntax;
         }
 
         protected override Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field)
