@@ -263,8 +263,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntaxTree = (SyntaxTree)_semanticModel.SyntaxTree;
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, _cancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
-
                 var parent = token.Parent;
+
+                // A strange broken code scenario:
+                // new Form
+                // {
+                //     Location = new $$
+                //     StartPosition = FormStartPosition.CenterParent
+                // };
+                // The 'new' token is part of an assignment of the assignment to StartPosition,
+                // but the user is really trying to assign to Location.
+                // In this case, we need to detect that the 'new' token is on the left side of 
+                // its parent assignment and on the right side of its grandparent assignment and
+                // return the inferred type of the grandparent.
+                if (token.Kind() == SyntaxKind.NewKeyword &&
+                    token.Parent.IsKind(SyntaxKind.ObjectCreationExpression) &&
+                    token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    var parentAssignment = token.Parent.Parent as AssignmentExpressionSyntax;
+                    if (token.Parent == parentAssignment.Left)
+                    {
+                        var grandparentAssignment = parentAssignment.Parent as AssignmentExpressionSyntax;
+                        if (grandparentAssignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
+                            parentAssignment == grandparentAssignment.Right)
+                        {
+                            parent = grandparentAssignment;
+                            token = grandparentAssignment.OperatorToken;
+                        }
+                    }
+                }
+
                 return parent.TypeSwitch(
                     (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator, token),
                     (ArgumentSyntax argument) => InferTypeInArgument(argument, token),
@@ -294,6 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
                     (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
+                    (ObjectCreationExpressionSyntax objectCreation) => InferTypesWorker(objectCreation),
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary, token),
