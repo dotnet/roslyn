@@ -341,7 +341,6 @@
     <Compile Include="Implementation\GenerateType\GenerateTypeDialogViewModel.cs" />
     <Compile Include="Implementation\GenerateType\VisualStudioGenerateTypeOptionsServiceFactory.cs" />
     <Compile Include="Implementation\GoToDefinition\NavigableItemsPresenter.cs" />
-    <Compile Include="Implementation\Interop\BlindAggregatorFactory.cs" />
     <Compile Include="Implementation\Interop\Feedback.cs" />
     <Compile Include="Implementation\Interop\IVsSolutionWorkingFoldersEvents.cs" />
     <Compile Include="Implementation\LanguageService\HACK_AbstractCreateServicesOnUiThread.cs" />
