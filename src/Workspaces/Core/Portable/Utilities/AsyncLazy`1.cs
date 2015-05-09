@@ -58,19 +58,19 @@ namespace Roslyn.Utilities
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,
         /// and will never be empty.
         /// </summary>
-        private HashSet<Request> _requests = null;
+        private HashSet<Request> _requests;
 
         /// <summary>
         /// If an asynchronous request is active, the CancellationTokenSource that allows for
         /// cancelling the underlying computation.
         /// </summary>
-        private CancellationTokenSource _asynchronousComputationCancellationSource = null;
+        private CancellationTokenSource _asynchronousComputationCancellationSource;
 
         /// <summary>
         /// Whether a computation is active or queued on any thread, whether synchronous or
         /// asynchronous.
         /// </summary>
-        private bool _computationActive = false;
+        private bool _computationActive;
 
         /// <summary>
         /// Creates an AsyncLazy that always returns the value, analogous to <see cref="Task.FromResult{T}" />.
@@ -220,7 +220,7 @@ namespace Roslyn.Utilities
                 // cancelled this new computation if we were the only requestor.
                 if (newAsynchronousComputation != null)
                 {
-                    StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
+                    StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
                 }
 
                 return request.Task.WaitAndGetResult(cancellationToken);
@@ -254,7 +254,7 @@ namespace Roslyn.Utilities
 
                     if (newAsynchronousComputation != null)
                     {
-                        StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: null, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
+                        StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: null, callerCancellationToken: cancellationToken);
                     }
 
                     throw;
@@ -271,6 +271,10 @@ namespace Roslyn.Utilities
 
                 // We have a value, so complete
                 CompleteWithTask(Task.FromResult(result), CancellationToken.None);
+
+                // Optimization: if they did cancel and the computation never observed it, let's throw so we don't keep
+                // processing a value somebody never wanted
+                cancellationToken.ThrowIfCancellationRequested();
 
                 return result;
             }
@@ -324,7 +328,7 @@ namespace Roslyn.Utilities
 
             if (newAsynchronousComputation != null)
             {
-                StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, requestToCompleteSynchronouslyCancellationToken: cancellationToken);
+                StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
             }
 
             return request.Task;
@@ -352,7 +356,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request requestToCompleteSynchronously, CancellationToken requestToCompleteSynchronouslyCancellationToken)
+        private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request requestToCompleteSynchronously, CancellationToken callerCancellationToken)
         {
             var cancellationToken = computationToStart.CancellationTokenSource.Token;
 
@@ -387,6 +391,8 @@ namespace Roslyn.Utilities
                             task = GetCachedValueAndCacheThisValueIfNoneCached_NoLock(task);
                         }
 
+                        // It's safe to synchronously complete this task, since the Task object hasn't been returned
+                        // to the caller of GetValueAsync yet
                         requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
                     }
                 }
@@ -399,7 +405,7 @@ namespace Roslyn.Utilities
             {
                 // The underlying computation cancelled with the correct token, but we must ourselves ensure that the caller
                 // on our stack gets an OperationCanceledException thrown with the right token
-                requestToCompleteSynchronouslyCancellationToken.ThrowIfCancellationRequested();
+                callerCancellationToken.ThrowIfCancellationRequested();
 
                 // We can only be here if the computation was cancelled, which means all requests for the value
                 // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
@@ -565,17 +571,19 @@ namespace Roslyn.Utilities
 
                 try
                 {
-                    if (task.Status == TaskStatus.RanToCompletion)
+                    // As an optimization, we'll cancel the request even we did get a value for it.
+                    // That way things abort sooner.
+                    if (task.IsCanceled || _cancellationToken.IsCancellationRequested)
                     {
-                        _taskBuilder.SetResult(task.Result);
+                        CancelSynchronously();
                     }
-                    else if (task.Status == TaskStatus.Faulted)
+                    else if (task.IsFaulted)
                     {
                         _taskBuilder.SetException(task.Exception);
                     }
                     else
                     {
-                        CancelSynchronously();
+                        _taskBuilder.SetResult(task.Result);
                     }
                 }
                 catch (InvalidOperationException)

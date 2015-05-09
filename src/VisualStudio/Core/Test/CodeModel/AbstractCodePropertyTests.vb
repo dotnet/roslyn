@@ -88,6 +88,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.AddParameter(data.Name, data.Type, data.Position)
         End Function
 
+        Protected Overrides Function GetParameters(codeElement As EnvDTE80.CodeProperty2) As EnvDTE.CodeElements
+            Return codeElement.Parameters
+        End Function
+
         Protected Overrides Sub RemoveChild(codeElement As EnvDTE80.CodeProperty2, child As Object)
             codeElement.RemoveParameter(child)
         End Sub

@@ -21,7 +21,7 @@ namespace System.Runtime.Analyzers
         protected const string NotImplementedExceptionName = "System.NotImplementedException";
         protected const string IDisposableName = "System.IDisposable";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(TypesThatOwnDisposableFieldsShouldBeDisposableAnalyzer.RuleId); 
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(TypesThatOwnDisposableFieldsShouldBeDisposableAnalyzer.RuleId);
 
         public async override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,7 +39,7 @@ namespace System.Runtime.Analyzers
             // We cannot have multiple overlapping diagnostics of this id.
             var diagnostic = context.Diagnostics.Single();
 
-            context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.ImplementIDisposableInterface, 
+            context.RegisterCodeFix(new MyCodeAction(SystemRuntimeAnalyzersResources.ImplementIDisposableInterface,
                                                      async ct => await ImplementIDisposable(context.Document, declaration, ct).ConfigureAwait(false)),
                                     diagnostic);
         }
@@ -53,7 +53,7 @@ namespace System.Runtime.Analyzers
             // Add the interface to the baselist.
             var interfaceType = generator.TypeExpression(WellKnownTypes.IDisposable(model.Compilation));
             editor.AddInterfaceType(declaration, interfaceType);
-            
+
             // Find a Dispose method. If one exists make that implement IDisposable, else generate a new method.
             var typeSymbol = model.GetDeclaredSymbol(declaration) as INamedTypeSymbol;
             var disposeMethod = (typeSymbol?.GetMembers("Dispose"))?.OfType<IMethodSymbol>()?.Where(m => m.Parameters.Length == 0).FirstOrDefault();

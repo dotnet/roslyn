@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Inherits AbstractSemanticQuickInfoSourceTests
 
         Protected Overrides Sub Test(markup As String, ParamArray expectedResults() As Action(Of Object))
-            TestWithReferences(markup, {}, expectedResults)
+            TestWithReferences(markup, Array.Empty(Of String)(), expectedResults)
         End Sub
 
         Protected Sub TestShared(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object))
@@ -147,6 +147,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Public Sub TestStringAtEndOfToken()
             TestInClass("Dim i As String$$",
              MainDescription("Class System.String"))
+        End Sub
+
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestStringLiteral()
+            TestInClass("Dim i = ""cat""$$",
+             MainDescription("Class System.String"))
+        End Sub
+
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestInterpolatedStringLiteral()
+            TestInClass("Dim i = $""cat""$$", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""c$$at""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""$$cat""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Structure System.Int32"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -814,6 +830,52 @@ End Class]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.Field}) Class1Attribute.x As Class1Attribute"))
         End Sub
 
+        <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub AttributeQuickInfoBindsToClassTest()
+            Test("
+Imports System
+
+''' <summary>
+''' class comment
+''' </summary>
+<Some$$>
+Class SomeAttribute
+    Inherits Attribute
+
+    ''' <summary>
+    ''' ctor comment
+    ''' </summary>
+    Public Sub New()
+    End Sub
+End Class
+",
+                Documentation("class comment"))
+        End Sub
+
+        <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub AttributeConstructorQuickInfo()
+            Test("
+Imports System
+
+''' <summary>
+''' class comment
+''' </summary>
+Class SomeAttribute
+    Inherits Attribute
+
+    ''' <summary>
+    ''' ctor comment
+    ''' </summary>
+    Public Sub New()
+        Dim s = New Some$$Attribute()
+    End Sub
+End Class
+",
+                Documentation("ctor comment"))
+        End Sub
+
         <WorkItem(542613)>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestUnboundGeneric()
@@ -1374,7 +1436,7 @@ End Class
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.foo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", VBFeaturesResources.Usage, "  Await foo()")
+            Dim doc = StringFromLines("", WorkspacesResources.Usage, $"  {VBFeaturesResources.Await} foo()")
 
             TestFromXml(markup,
                  MainDescription(description), Usage(doc))
@@ -1789,7 +1851,7 @@ End Class
                          </Workspace>.ToString()
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= FeaturesResources.PrefixTextForAwaitKeyword %> Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
-            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & "TResult is Integer"))
+            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.Is} Integer"))
         End Sub
 
         <WorkItem(756226), WorkItem(522342)>

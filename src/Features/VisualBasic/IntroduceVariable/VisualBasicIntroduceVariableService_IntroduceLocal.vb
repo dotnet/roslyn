@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Partial Class VisualBasicIntroduceVariableService
+    Friend Partial Class VisualBasicIntroduceVariableService
         Protected Overrides Async Function IntroduceLocalAsync(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim localAnnotation = New SyntaxAnnotation()
             localDeclaration = localDeclaration.WithAdditionalAnnotations(Formatter.Annotation, localAnnotation)
 
-            Dim oldOutermostBlock = expression.GetContainingExecutableBlocks().FirstOrDefault()
+            Dim oldOutermostBlock = expression.GetContainingExecutableBlocks().LastOrDefault()
             If oldOutermostBlock.IsSingleLineExecutableBlock() Then
                 oldOutermostBlock = oldOutermostBlock.Parent
             End If

@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 var language = workspace.Services.GetLanguageServices(buffer).Language;
                 return service.GetOption(option, language);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
         }
     }
+}

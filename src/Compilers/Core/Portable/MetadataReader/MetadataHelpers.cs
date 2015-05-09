@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis
             internal readonly string TopLevelType;
             internal readonly string[] NestedTypes;
             internal readonly AssemblyQualifiedTypeName[] TypeArguments;
+            internal readonly int PointerCount;
             internal readonly int[] ArrayRanks;
             internal readonly string AssemblyName;
 
@@ -39,12 +40,14 @@ namespace Microsoft.CodeAnalysis
                 string topLevelType,
                 string[] nestedTypes,
                 AssemblyQualifiedTypeName[] typeArguments,
+                int pointerCount,
                 int[] arrayRanks,
                 string assemblyName)
             {
                 this.TopLevelType = topLevelType;
                 this.NestedTypes = nestedTypes;
                 this.TypeArguments = typeArguments;
+                this.PointerCount = pointerCount;
                 this.ArrayRanks = arrayRanks;
                 this.AssemblyName = assemblyName;
             }
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private struct SerializedTypeDecoder
         {
-            private static readonly char[] s_typeNameDelimiters = new char[] { '+', ',', '[', ']' };
+            private static readonly char[] s_typeNameDelimiters = { '+', ',', '[', ']', '*' };
             private readonly string _input;
             private int _offset;
 
@@ -124,15 +127,16 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!isTypeArgumentWithAssemblyName || isTypeArgument);
 
                 string topLevelType = null;
-                ArrayBuilder<string> nestedTypesbuilder = null;
+                ArrayBuilder<string> nestedTypesBuilder = null;
                 AssemblyQualifiedTypeName[] typeArguments = null;
+                int pointerCount = 0;
                 ArrayBuilder<int> arrayRanksBuilder = null;
                 string assemblyName = null;
                 bool decodingTopLevelType = true;
                 bool isGenericTypeName = false;
 
                 var pooledStrBuilder = PooledStringBuilder.GetInstance();
-                StringBuilder typeNamebuilder = pooledStrBuilder.Builder;
+                StringBuilder typeNameBuilder = pooledStrBuilder.Builder;
 
                 while (!EndOfInput)
                 {
@@ -148,22 +152,37 @@ namespace Microsoft.CodeAnalysis
 
                         // Type name is generic if the decoded name of the top level type OR any of the outer types of a nested type had the '`' character.
                         isGenericTypeName = isGenericTypeName || decodedString.IndexOf(GenericTypeNameManglingChar) >= 0;
-                        typeNamebuilder.Append(decodedString);
+                        typeNameBuilder.Append(decodedString);
 
                         switch (c)
                         {
-                            case '+':
+                            case '*':
                                 if (arrayRanksBuilder != null)
                                 {
                                     // Error case, array shape must be specified at the end of the type name.
                                     // Process as a regular character and continue.
-                                    typeNamebuilder.Append('+');
+                                    typeNameBuilder.Append(c);
+                                }
+                                else
+                                {
+                                    pointerCount++;
+                                }
+
+                                Advance();
+                                break;
+
+                            case '+':
+                                if (arrayRanksBuilder != null || pointerCount > 0)
+                                {
+                                    // Error case, array shape must be specified at the end of the type name.
+                                    // Process as a regular character and continue.
+                                    typeNameBuilder.Append(c);
                                 }
                                 else
                                 {
                                     // Type followed by nested type. Handle nested class separator and collect the nested types.
-                                    HandleDecodedTypeName(typeNamebuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesbuilder);
-                                    typeNamebuilder.Clear();
+                                    HandleDecodedTypeName(typeNameBuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesBuilder);
+                                    typeNameBuilder.Clear();
                                     decodingTopLevelType = false;
                                 }
 
@@ -175,11 +194,11 @@ namespace Microsoft.CodeAnalysis
                                 if (isGenericTypeName && typeArguments == null)
                                 {
                                     Advance();
-                                    if (arrayRanksBuilder != null)
+                                    if (arrayRanksBuilder != null || pointerCount > 0)
                                     {
                                         // Error case, array shape must be specified at the end of the type name.
                                         // Process as a regular character and continue.
-                                        typeNamebuilder.Append('[');
+                                        typeNameBuilder.Append(c);
                                     }
                                     else
                                     {
@@ -190,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                                 else
                                 {
                                     // Decode array shape.
-                                    DecodeArrayShape(typeNamebuilder, ref arrayRanksBuilder);
+                                    DecodeArrayShape(typeNameBuilder, ref arrayRanksBuilder);
                                 }
 
                                 break;
@@ -205,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                                 else
                                 {
                                     // Error case, process as a regular character and continue.
-                                    typeNamebuilder.Append(']');
+                                    typeNameBuilder.Append(c);
                                     Advance();
                                     break;
                                 }
@@ -233,24 +252,25 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        typeNamebuilder.Append(DecodeGenericName(_input.Length));
+                        typeNameBuilder.Append(DecodeGenericName(_input.Length));
                         goto ExitDecodeTypeName;
                     }
                 }
 
             ExitDecodeTypeName:
-                HandleDecodedTypeName(typeNamebuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesbuilder);
+                HandleDecodedTypeName(typeNameBuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesBuilder);
                 pooledStrBuilder.Free();
 
                 return new AssemblyQualifiedTypeName(
                     topLevelType,
-                    nestedTypesbuilder != null ? nestedTypesbuilder.ToArrayAndFree() : null,
+                    nestedTypesBuilder?.ToArrayAndFree(),
                     typeArguments,
-                    arrayRanksBuilder != null ? arrayRanksBuilder.ToArrayAndFree() : null,
+                    pointerCount,
+                    arrayRanksBuilder?.ToArrayAndFree(),
                     assemblyName);
             }
 
-            private static void HandleDecodedTypeName(string decodedTypeName, bool decodingTopLevelType, ref string topLevelType, ref ArrayBuilder<string> nestedTypesbuilder)
+            private static void HandleDecodedTypeName(string decodedTypeName, bool decodingTopLevelType, ref string topLevelType, ref ArrayBuilder<string> nestedTypesBuilder)
             {
                 if (decodedTypeName.Length != 0)
                 {
@@ -261,12 +281,12 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        if (nestedTypesbuilder == null)
+                        if (nestedTypesBuilder == null)
                         {
-                            nestedTypesbuilder = ArrayBuilder<string>.GetInstance();
+                            nestedTypesBuilder = ArrayBuilder<string>.GetInstance();
                         }
 
-                        nestedTypesbuilder.Add(decodedTypeName);
+                        nestedTypesBuilder.Add(decodedTypeName);
                     }
                 }
             }
@@ -361,7 +381,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                int i = -1;
+                int i;
                 if (isTypeArgumentWithAssemblyName)
                 {
                     i = _input.IndexOf(']', _offset);
@@ -517,7 +537,6 @@ namespace Microsoft.CodeAnalysis
               string name)
         {
             Debug.Assert(name != null);
-            Debug.Assert(name.IndexOf(MangledNameRegionStartChar) < 0);
 
             if (name.Length == 0)
             {
@@ -626,7 +645,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(name != null);
 
-            if (qualifier != null && qualifier.Length > 0)
+            if (!string.IsNullOrEmpty(qualifier))
             {
                 return String.Concat(qualifier, DotDelimiterString, name);
             }
@@ -790,7 +809,6 @@ namespace Microsoft.CodeAnalysis
         /// Simple name of a top level child namespace, the left-most name following parent namespace name 
         /// in the fully qualified name.
         /// </returns>
-        /// <remarks></remarks>
         private static string ExtractSimpleNameOfChildNamespace(
             int parentNamespaceNameLength,
             string fullName)
@@ -984,7 +1002,7 @@ namespace Microsoft.CodeAnalysis
             private static uint ToUInt32(ImmutableArray<byte> bytes, int offset)
             {
                 Debug.Assert((bytes.Length - offset) > sizeof(int));
-                return (uint)((int)bytes[offset] | ((int)bytes[offset + 1] << 8) | ((int)bytes[offset + 2] << 16) | ((int)bytes[offset + 3] << 24));
+                return (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
             }
 
             // From StrongNameInternal.cpp
@@ -1028,6 +1046,20 @@ namespace Microsoft.CodeAnalysis
 
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Given an input string changes it to be acceptable as a part of a type name.
+        /// For now we will simply replace '.' with '_'as the most common case.
+        /// </summary>
+        internal static string MangleForTypeNameIfNeeded(string moduleName)
+        {
+            // TODO: it may make sense to strenthen this algorithm 
+            //       to result in 1-1 mapping to reduce chances of
+            //       producing matching results for distinct original strings
+            var result = moduleName.Replace('.', '_');
+
+            return result;
         }
     }
 }

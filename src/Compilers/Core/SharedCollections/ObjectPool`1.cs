@@ -68,7 +68,7 @@ namespace Roslyn.Utilities
             private volatile bool disposed;
 
 #if TRACE_LEAKS
-            internal volatile System.Diagnostics.StackTrace Trace = null;
+            internal volatile object Trace = null;
 #endif
 
             public void Dispose()
@@ -88,18 +88,14 @@ namespace Roslyn.Utilities
 
             ~LeakTracker()
             {
-                if (!this.disposed &&
-                    !Environment.HasShutdownStarted &&
-                    !AppDomain.CurrentDomain.IsFinalizingForUnload())
+                if (!this.disposed && !Environment.HasShutdownStarted)
                 {
-                    string report = string.Format("Pool detected potential leaking of {0}. \n Location of the leak: \n {1} ",
-                        typeof(T).ToString(),
-                        GetTrace());
+                    var trace = GetTrace();
 
                     // If you are seeing this message it means that object has been allocated from the pool 
                     // and has not been returned back. This is not critical, but turns pool into rather 
                     // inefficient kind of "new".
-                    Debug.WriteLine("TRACEOBJECTPOOLLEAKS_BEGIN\n" + report + "TRACEOBJECTPOOLLEAKS_END");
+                    Debug.WriteLine($"TRACEOBJECTPOOLLEAKS_BEGIN\nPool detected potential leaking of {typeof(T)}. \n Location of the leak: \n {GetTrace()} TRACEOBJECTPOOLLEAKS_END");
                 }
             }
         }
@@ -147,7 +143,7 @@ namespace Roslyn.Utilities
             leakTrackers.Add(inst, tracker);
 
 #if TRACE_LEAKS
-            var frame = new System.Diagnostics.StackTrace(false);
+            var frame = CaptureStackTrace();
             tracker.Trace = frame;
 #endif
 #endif
@@ -157,14 +153,13 @@ namespace Roslyn.Utilities
         private T AllocateSlow()
         {
             var items = _items;
-            T inst;
 
             for (int i = 0; i < items.Length; i++)
             {
                 // Note that the initial read is optimistically not synchronized. That is intentional. 
                 // We will interlock only when we have a candidate. in a worst case we may miss some
                 // recently returned objects. Not a big deal.
-                inst = items[i].Value;
+                T inst = items[i].Value;
                 if (inst != null)
                 {
                     if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
@@ -239,11 +234,8 @@ namespace Roslyn.Utilities
             }
             else
             {
-                string report = string.Format("Object of type {0} was freed, but was not from pool. \n Callstack: \n {1} ",
-                    typeof(T).ToString(),
-                    new System.Diagnostics.StackTrace(false));
-
-                Debug.WriteLine("TRACEOBJECTPOOLLEAKS_BEGIN\n" + report + "TRACEOBJECTPOOLLEAKS_END");
+                var trace = CaptureStackTrace();
+                Debug.WriteLine($"TRACEOBJECTPOOLLEAKS_BEGIN\nObject of type {typeof(T)} was freed, but was not from pool. \n Callstack: \n {trace} TRACEOBJECTPOOLLEAKS_END");
             }
 
             if (replacement != null)
@@ -253,6 +245,15 @@ namespace Roslyn.Utilities
             }
 #endif
         }
+
+#if DETECT_LEAKS
+        private static Lazy<Type> _stackTraceType = new Lazy<Type>(() => Type.GetType("System.Diagnostics.StackTrace"));
+
+        private static object CaptureStackTrace()
+        {
+            return Activator.CreateInstance(_stackTraceType.Value);
+        }
+#endif
 
         [Conditional("DEBUG")]
         private void Validate(object obj)

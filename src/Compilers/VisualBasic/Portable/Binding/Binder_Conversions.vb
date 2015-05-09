@@ -593,39 +593,39 @@ DoneWithDiagnostics:
         End Function
 
         Private Structure VarianceSuggestionTypeParameterInfo
-            Private m_IsViable As Boolean
-            Private m_TypeParameter As TypeParameterSymbol
-            Private m_DerivedArgument As TypeSymbol
-            Private m_BaseArgument As TypeSymbol
+            Private _isViable As Boolean
+            Private _typeParameter As TypeParameterSymbol
+            Private _derivedArgument As TypeSymbol
+            Private _baseArgument As TypeSymbol
 
             Public Sub [Set](parameter As TypeParameterSymbol, derived As TypeSymbol, base As TypeSymbol)
-                m_TypeParameter = parameter
-                m_DerivedArgument = derived
-                m_BaseArgument = base
-                m_IsViable = True
+                _typeParameter = parameter
+                _derivedArgument = derived
+                _baseArgument = base
+                _isViable = True
             End Sub
 
             Public ReadOnly Property IsViable As Boolean
                 Get
-                    Return m_IsViable
+                    Return _isViable
                 End Get
             End Property
 
             Public ReadOnly Property TypeParameter As TypeParameterSymbol
                 Get
-                    Return m_TypeParameter
+                    Return _typeParameter
                 End Get
             End Property
 
             Public ReadOnly Property DerivedArgument As TypeSymbol
                 Get
-                    Return m_DerivedArgument
+                    Return _derivedArgument
                 End Get
             End Property
 
             Public ReadOnly Property BaseArgument As TypeSymbol
                 Get
-                    Return m_BaseArgument
+                    Return _baseArgument
                 End Get
             End Property
         End Structure

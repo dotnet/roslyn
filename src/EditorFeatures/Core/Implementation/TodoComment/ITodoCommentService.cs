@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor
     /// </summary>
     internal struct TodoCommentDescriptor
     {
-        public string Text { get; private set; }
-        public int Priority { get; private set; }
+        public string Text { get; }
+        public int Priority { get; }
 
         public TodoCommentDescriptor(string text, int priority) : this()
         {
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor
     /// </summary>
     internal struct TodoComment
     {
-        public TodoCommentDescriptor Descriptor { get; private set; }
-        public string Message { get; private set; }
-        public int Position { get; private set; }
+        public TodoCommentDescriptor Descriptor { get; }
+        public string Message { get; }
+        public int Position { get; }
 
         public TodoComment(TodoCommentDescriptor descriptor, string message, int position) : this()
         {

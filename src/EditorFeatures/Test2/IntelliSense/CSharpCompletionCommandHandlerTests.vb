@@ -4,6 +4,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 state.AssertSelectedCompletionItem(displayText:="Net", isSoftSelected:=True)
                 state.SendTab()
                 state.AssertNoCompletionSession()
-                Assert.Contains("using System.Net", state.GetLineTextFromCaretPosition())
+                Assert.Contains("using System.Net", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 state.SendTypeChars("us")
                 state.SendTab()
                 state.AssertNoCompletionSession()
-                Assert.Contains("using", state.GetLineTextFromCaretPosition())
+                Assert.Contains("using", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -48,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 state.SendTypeChars("u")
                 state.AssertNoCompletionSession()
-                Assert.Contains("using", state.GetLineTextFromCaretPosition())
+                Assert.Contains("using", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -209,7 +210,7 @@ class C
                 state.SendBackspace()
                 state.AssertSelectedCompletionItem(displayText:="List<int>", isHardSelected:=True)
                 state.SendTab()
-                Assert.Contains("new List<int>", state.GetLineTextFromCaretPosition())
+                Assert.Contains("new List<int>", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -271,7 +272,7 @@ class @return
                 state.SendTypeChars("r")
                 state.AssertSelectedCompletionItem(displayText:="@return", isHardSelected:=True)
                 state.SendTab()
-                Assert.Contains("@return", state.GetLineTextFromCaretPosition())
+                Assert.Contains("@return", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -292,7 +293,7 @@ class Program
 
                 state.SendCommitUniqueCompletionListItem()
                 state.AssertNoCompletionSession()
-                Assert.Contains("WriteLine()", state.GetLineTextFromCaretPosition())
+                Assert.Contains("WriteLine()", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -327,7 +328,7 @@ class Program
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars("(")
                 state.AssertNoCompletionSession()
-                Assert.Contains("using Sys(", state.GetLineTextFromCaretPosition())
+                Assert.Contains("using Sys(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -342,7 +343,7 @@ class Program
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(".")
                 state.AssertCompletionSession()
-                Assert.Contains("using System.", state.GetLineTextFromCaretPosition())
+                Assert.Contains("using System.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -351,13 +352,13 @@ class Program
             Using state = TestState.CreateCSharpTestState(
                               <Document>
                                   $$
-                              </Document>)
+                              </Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
 
                 state.SendTypeChars("using Sys")
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(";")
                 state.AssertNoCompletionSession()
-                Assert.Contains("using System;", state.GetLineTextFromCaretPosition())
+                state.AssertMatchesTextStartingAtLine(1, "using System;")
             End Using
         End Sub
 
@@ -372,7 +373,7 @@ class Program
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 state.AssertNoCompletionSession()
-                Assert.Contains("using Sys ", state.GetLineTextFromCaretPosition())
+                Assert.Contains("using Sys ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -481,7 +482,7 @@ class Foo
                 </Document>)
 
                 state.SendTypeChars("Nu.")
-                Assert.Contains("Numeros num = Numeros.", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Numeros num = Numeros.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -510,7 +511,7 @@ class Foo
                 state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 state.SendTypeChars(c.ToString())
                 state.AssertNoCompletionSession()
-                Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition())
+                Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -589,7 +590,7 @@ class Program
 
                 state.SendTypeChars("(")
                 state.SendTab()
-                Assert.Contains("Environment.SpecialFolder", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Environment.SpecialFolder", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -608,7 +609,7 @@ public class @event
 
                 state.SendTypeChars("public ")
                 state.AssertNoCompletionSession()
-                Assert.Contains("public @event", state.GetLineTextFromCaretPosition())
+                Assert.Contains("public @event", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -634,7 +635,7 @@ class Program
                 state.SendTypeChars("can")
                 state.SendTab()
                 state.AssertNoCompletionSession()
-                Assert.Contains("Foo(cancellationToken)", state.GetLineTextFromCaretPosition())
+                Assert.Contains("Foo(cancellationToken)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -747,7 +748,7 @@ class D : C
                 state.SendTypeChars(" Foo")
                 state.SendTab()
                 state.AssertNoCompletionSession()
-                Assert.Contains("public override void Foo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText())
+                Assert.Contains("public override void Foo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -774,7 +775,7 @@ class C : B
                 state.SendTypeChars(" Foo")
                 state.SendTab()
                 state.AssertNoCompletionSession()
-                Assert.Contains("    public override void Foo(int x = 0, int[] y = null)", state.SubjectBuffer.CurrentSnapshot.GetText())
+                Assert.Contains("    public override void Foo(int x = 0, int[] y = null)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Sub
 
@@ -1381,7 +1382,7 @@ class C
         Private Class SlowProvider
             Implements ICompletionProvider
 
-            Public checkpoint As checkpoint = New checkpoint()
+            Public checkpoint As Checkpoint = New Checkpoint()
 
             Public Async Function GetGroupAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionItemGroup) Implements ICompletionProvider.GetGroupAsync
                 Await checkpoint.Task.ConfigureAwait(False)
@@ -1451,6 +1452,78 @@ class C
                 state.TextView.Selection.Mode = VisualStudio.Text.Editor.TextSelectionMode.Box
                 state.SendCommitUniqueCompletionListItem()
                 state.AssertNoCompletionSession()
+            End Using
+        End Sub
+
+        <WorkItem(1594, "https://github.com/dotnet/roslyn/issues/1594")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoPreselectionOnSpaceWhenAbuttingWord()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class Program
+{
+    void Main()
+    {
+        Program p = new $$Program();
+    }
+}]]></Document>)
+                state.SendTypeChars(" ")
+                state.AssertNoCompletionSession()
+            End Using
+        End Sub
+
+        <WorkItem(1594, "https://github.com/dotnet/roslyn/issues/1594")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SpacePreselectionAtEndOfFile()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class Program
+{
+    void Main()
+    {
+        Program p = new $$]]></Document>)
+                state.SendTypeChars(" ")
+                state.AssertCompletionSession()
+            End Using
+        End Sub
+
+        <WorkItem(1659, "https://github.com/dotnet/roslyn/issues/1659")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub DismissOnSelectAllCommand()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {
+        $$]]></Document>)
+                ' Note: the caret is at the file, so the Select All command's movement
+                ' of the caret to the end of the selection isn't responsible for 
+                ' dismissing the session.
+                state.SendInvokeCompletionList()
+                state.AssertCompletionSession()
+                state.SendSelectAll()
+                state.AssertNoCompletionSession()
+            End Using
+        End Sub
+
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub CompletionCommitAndFormatAreSeparateUndoTransactions()
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    void foo(int x)
+    {
+        int doodle;
+$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendTypeChars("doo;")
+                state.AssertMatchesTextStartingAtLine(6, "        doodle;")
+                state.SendUndo()
+                state.AssertMatchesTextStartingAtLine(6, "doodle;")
+                state.SendUndo()
+                state.AssertMatchesTextStartingAtLine(6, "doo;")
             End Using
         End Sub
     End Class

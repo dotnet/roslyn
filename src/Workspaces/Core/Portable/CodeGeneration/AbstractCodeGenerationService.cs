@@ -96,11 +96,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected static void CheckDeclarationNode<TDeclarationNode>(SyntaxNode destination) where TDeclarationNode : SyntaxNode
         {
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
             if (!(destination is TDeclarationNode))
             {
                 throw new ArgumentException(
-                    string.Format(WorkspacesResources.InvalidDestinationNode, typeof(TDeclarationNode).Name),
-                    "destination");
+                    string.Format(WorkspacesResources.InvalidDestinationNode, typeof(TDeclarationNode).Name, destination.GetType().Name),
+                    nameof(destination));
             }
         }
 
@@ -108,13 +113,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             where TDeclarationNode1 : SyntaxNode
             where TDeclarationNode2 : SyntaxNode
         {
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
             if (!(destination is TDeclarationNode1) &&
                 !(destination is TDeclarationNode2))
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode2,
-                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name),
-                    "destination");
+                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, destination.GetType().Name),
+                    nameof(destination));
             }
         }
 
@@ -123,14 +133,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             where TDeclarationNode2 : SyntaxNode
             where TDeclarationNode3 : SyntaxNode
         {
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
             if (!(destination is TDeclarationNode1) &&
                 !(destination is TDeclarationNode2) &&
                 !(destination is TDeclarationNode3))
             {
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode3,
-                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name),
-                    "destination");
+                        typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, destination.GetType().Name),
+                    nameof(destination));
             }
         }
 
@@ -148,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(
                     string.Format(WorkspacesResources.InvalidDestinationNode3,
                         typeof(TDeclarationNode1).Name, typeof(TDeclarationNode2).Name, typeof(TDeclarationNode3).Name, typeof(TDeclarationNode4).Name),
-                    "destination");
+                    nameof(destination));
             }
         }
 
@@ -349,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (namespaceOrType == null)
             {
-                throw new ArgumentNullException("namespaceOrType");
+                throw new ArgumentNullException(nameof(namespaceOrType));
             }
 
             if (namespaceOrType is INamespaceSymbol)

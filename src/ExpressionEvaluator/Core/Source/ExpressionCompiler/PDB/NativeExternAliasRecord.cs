@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly AssemblyIdentity _targetAssemblyIdentity;
 
         public NativeExternAliasRecord(
-            string alias, 
+            string alias,
             AssemblyIdentity targetAssemblyIdentity)
             : base(alias)
         {

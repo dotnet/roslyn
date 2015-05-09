@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression disposeCall;
 
             MethodSymbol disposeMethodSymbol;
-            if (TryGetSpecialTypeMember(syntax, SpecialMember.System_IDisposable__Dispose, out disposeMethodSymbol))
+            if (Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out disposeMethodSymbol))
             {
                 disposeCall = BoundCall.Synthesized(syntax, disposedExpression, disposeMethodSymbol);
             }
@@ -308,9 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isNullableValueType)
             {
-                MethodSymbol hasValue = GetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_get_HasValue);
                 // local.HasValue
-                ifCondition = BoundCall.Synthesized(syntax, local, hasValue);
+                ifCondition = MakeNullableHasValue(syntax, local);
             }
             else if (local.Type.IsValueType)
             {

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class ModuleMetadataTests : TestBase
     {
-        private char _systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
+        private readonly char _systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
 
         [Fact]
         public unsafe void CreateFromMetadata_Errors()

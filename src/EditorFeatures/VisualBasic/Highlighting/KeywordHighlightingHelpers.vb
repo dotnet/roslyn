@@ -17,18 +17,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             If blockKind <> SyntaxKind.None AndAlso TypeOf node Is ExitStatementSyntax Then
                 With DirectCast(node, ExitStatementSyntax)
                     If .BlockKeyword.Kind = blockKind Then
-                        highlights.Add( .Span)
+                        highlights.Add(.Span)
                     End If
                 End With
             ElseIf blockKind <> SyntaxKind.None AndAlso TypeOf node Is ContinueStatementSyntax Then
                 With DirectCast(node, ContinueStatementSyntax)
                     If .BlockKeyword.Kind = blockKind Then
-                        highlights.Add( .Span)
+                        highlights.Add(.Span)
                     End If
                 End With
             ElseIf checkReturns AndAlso TypeOf node Is ReturnStatementSyntax Then
                 With DirectCast(node, ReturnStatementSyntax)
-                    highlights.Add( .ReturnKeyword.Span)
+                    highlights.Add(.ReturnKeyword.Span)
                 End With
             Else
                 For Each child In node.ChildNodes()
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     If Not previousToken.Span.IsEmpty Then
                         Dim text = node.SyntaxTree.GetText(cancellationToken)
                         Dim previousLine = text.Lines.IndexOf(previousToken.SpanStart)
-                        Dim awaitLine = text.Lines.IndexOf( .AwaitKeyword.SpanStart)
+                        Dim awaitLine = text.Lines.IndexOf(.AwaitKeyword.SpanStart)
 
                         If previousLine = awaitLine Then
                             Dim index = highlights.FindIndex(Function(s) s.Contains(previousToken.Span))
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     End If
 
                     If Not handled Then
-                        highlights.Add( .AwaitKeyword.Span)
+                        highlights.Add(.AwaitKeyword.Span)
                     End If
                 End With
             End If
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Private Sub HighlightRelatedYieldStatements(Of T)(node As SyntaxNode, highlights As List(Of TextSpan))
             If TypeOf node Is YieldStatementSyntax Then
                 With DirectCast(node, YieldStatementSyntax)
-                    highlights.Add( .YieldKeyword.Span)
+                    highlights.Add(.YieldKeyword.Span)
                 End With
             Else
                 For Each child In node.ChildNodes()

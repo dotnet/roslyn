@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
@@ -13,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteConstant(node As BoundExpression, constantValue As ConstantValue) As BoundExpression
             Dim result As BoundNode = node
 
-            If Not inExpressionLambda AndAlso Not node.HasErrors Then
+            If Not _inExpressionLambda AndAlso Not node.HasErrors Then
                 If constantValue.Discriminator = ConstantValueTypeDiscriminator.Decimal Then
-                    Return RewriteDecimalConstant(node, constantValue, Me.topMethod, Me.diagnostics)
+                    Return RewriteDecimalConstant(node, constantValue, Me._topMethod, Me._diagnostics)
 
                 ElseIf constantValue.Discriminator = ConstantValueTypeDiscriminator.DateTime Then
-                    Return RewriteDateConstant(node, constantValue, Me.topMethod, Me.diagnostics)
+                    Return RewriteDateConstant(node, constantValue, Me._topMethod, Me._diagnostics)
                 End If
             End If
 
@@ -28,14 +29,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function RewriteDecimalConstant(node As BoundExpression, nodeValue As ConstantValue, currentMethod As MethodSymbol, diagnostics As DiagnosticBag) As BoundExpression
             Dim assembly As AssemblySymbol = currentMethod.ContainingAssembly
 
-            Dim decInfo As DecimalData = nodeValue.DecimalValue.GetBits()
-
-            Dim isNegative As Boolean = decInfo.sign
+            Dim isNegative As Boolean
+            Dim scale As Byte
+            Dim low, mid, high As UInteger
+            nodeValue.DecimalValue.GetBits(isNegative, scale, low, mid, high)
 
             ' if we have a number which only uses the bottom 4 bytes and
             ' has no fraction part, then we can generate more optimal code
 
-            If decInfo.scale = 0 AndAlso decInfo.Hi32 = 0 AndAlso decInfo.Mid32 = 0 Then
+            If scale = 0 AndAlso high = 0 AndAlso mid = 0 Then
 
                 ' If we are building static constructor of System.Decimal, accessing static fields 
                 ' would be bad.
@@ -44,10 +46,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim useField As Symbol = Nothing
 
-                    If decInfo.Lo32 = 0 Then
+                    If low = 0 Then
                         ' whole value == 0 if we get here
                         useField = assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__Zero)
-                    ElseIf decInfo.Lo32 = 1 Then
+                    ElseIf low = 1 Then
                         If isNegative Then
                             ' whole value == -1 if we get here
                             useField = assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne)
@@ -59,14 +61,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If useField IsNot Nothing AndAlso useField.GetUseSiteErrorInfo() Is Nothing AndAlso useField.ContainingType.GetUseSiteErrorInfo() Is Nothing Then
                         Dim fieldSymbol = DirectCast(useField, FieldSymbol)
-                        Return New BoundFieldAccess(node.Syntax, Nothing, fieldSymbol, IsLValue:=False, Type:=fieldSymbol.Type)
+                        Return New BoundFieldAccess(node.Syntax, Nothing, fieldSymbol, isLValue:=False, type:=fieldSymbol.Type)
                     End If
                 End If
 
                 ' Convert from unsigned to signed.  To do this, store into a
                 ' larger data type (this won't do sign extension), and then set the sign
                 ' 
-                Dim value As Int64 = decInfo.Lo32
+                Dim value As Long = low
 
                 If isNegative Then
                     value = -value
@@ -109,12 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundObjectCreationExpression(
                     node.Syntax,
                     decCtor,
-                    ImmutableArrayExtensions.AsImmutableOrNull(Of BoundExpression)(
-                        {New BoundLiteral(node.Syntax, ConstantValue.Create(UncheckedCInt(decInfo.Lo32)), decCtor.Parameters(0).Type),
-                         New BoundLiteral(node.Syntax, ConstantValue.Create(UncheckedCInt(decInfo.Mid32)), decCtor.Parameters(1).Type),
-                         New BoundLiteral(node.Syntax, ConstantValue.Create(UncheckedCInt(decInfo.Hi32)), decCtor.Parameters(2).Type),
-                         New BoundLiteral(node.Syntax, ConstantValue.Create(decInfo.sign), decCtor.Parameters(3).Type),
-                         New BoundLiteral(node.Syntax, ConstantValue.Create(decInfo.scale), decCtor.Parameters(4).Type)}),
+                    ImmutableArray.Create(Of BoundExpression)(
+                         New BoundLiteral(node.Syntax, ConstantValue.Create(UncheckedCInt(low)), decCtor.Parameters(0).Type),
+                         New BoundLiteral(node.Syntax, ConstantValue.Create(UncheckedCInt(mid)), decCtor.Parameters(1).Type),
+                         New BoundLiteral(node.Syntax, ConstantValue.Create(UncheckedCInt(high)), decCtor.Parameters(2).Type),
+                         New BoundLiteral(node.Syntax, ConstantValue.Create(isNegative), decCtor.Parameters(3).Type),
+                         New BoundLiteral(node.Syntax, ConstantValue.Create(scale), decCtor.Parameters(4).Type)),
                    Nothing,
                    node.Type)
             End If

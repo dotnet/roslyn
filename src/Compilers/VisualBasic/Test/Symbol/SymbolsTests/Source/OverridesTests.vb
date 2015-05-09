@@ -1296,7 +1296,7 @@ Module Test
 End Module
     </file>
     </compilation>, {csharpRef}, TestOptions.ReleaseExe)
-            CompileAndVerify(vbComp, emitOptions:=TestEmitters.CCI, expectedOutput:=<![CDATA[
+            CompileAndVerify(vbComp, emitters:=TestEmitters.CCI, expectedOutput:=<![CDATA[
 D1.P.set
 D1.P.get
 D2.P.set
@@ -1493,7 +1493,7 @@ Module Test
 End Module
     </file>
     </compilation>, {csharpRef}, TestOptions.ReleaseExe)
-            CompileAndVerify(vbComp, emitOptions:=TestEmitters.CCI, expectedOutput:=<![CDATA[
+            CompileAndVerify(vbComp, emitters:=TestEmitters.CCI, expectedOutput:=<![CDATA[
 D1.P.set
 D1.P.get
 D2.P.set
@@ -2560,7 +2560,7 @@ End Class     ]]></file>
 
         <WorkItem(608228, "DevDiv")>
         <Fact>
-        Sub OverridePropertyWithByRefParameter()
+        Public Sub OverridePropertyWithByRefParameter()
             Dim il = <![CDATA[
 .class public auto ansi Base
        extends [mscorlib]System.Object
@@ -4234,7 +4234,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe,
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe,
                                                         expectedOutput:="Derived.M1" & vbCrLf & "Derived.M2" & vbCrLf & "Derived.M3" & vbCrLf &
                                                                         "Derived.M11" & vbCrLf & "Derived.M12" & vbCrLf & "Derived.M13" & vbCrLf &
                                                                         "Derived.M4")
@@ -4426,7 +4426,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -4615,7 +4615,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -4837,7 +4837,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim verifier = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim verifier = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Base.P2_get" & vbCrLf &
@@ -5695,7 +5695,7 @@ End Class
             'Base1.P1_set
             'Base1.P2_get
             'Base1.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Base2.P1_get" & vbCrLf &
 "Base2.P1_set" & vbCrLf &
 "Base2.P2_get" & vbCrLf &
@@ -6095,7 +6095,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
@@ -6218,7 +6218,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
@@ -6341,7 +6341,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
@@ -6522,7 +6522,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -6711,7 +6711,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -6826,7 +6826,7 @@ BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Fri
 
         <WorkItem(1067044, "DevDiv")>
         <Fact>
-        Sub Bug1067044()
+        Public Sub Bug1067044()
             Dim il = <![CDATA[
 .class public abstract auto ansi beforefieldinit C1
        extends [mscorlib]System.Object

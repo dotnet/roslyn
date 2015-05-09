@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal sealed class NavigationBarItemSelectedEventArgs : EventArgs
     {
-        public NavigationBarItem Item { get; private set; }
+        public NavigationBarItem Item { get; }
 
         public NavigationBarItemSelectedEventArgs(NavigationBarItem item)
         {

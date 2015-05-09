@@ -154,7 +154,7 @@ index: 1);
         {
             TestSmartTagText(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-@"Generate 'Equals(object)'");
+FeaturesResources.GenerateEqualsObject);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -162,7 +162,7 @@ index: 1);
         {
             TestSmartTagText(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-@"Generate 'GetHashCode()'",
+FeaturesResources.GenerateGetHashCode,
 index: 1);
         }
 
@@ -171,7 +171,7 @@ index: 1);
         {
             TestSmartTagText(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
-@"Generate Both",
+FeaturesResources.GenerateBoth,
 index: 2);
         }
     }

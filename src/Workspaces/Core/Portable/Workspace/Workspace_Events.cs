@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newSolution == null)
             {
-                throw new ArgumentNullException("newSolution");
+                throw new ArgumentNullException(nameof(newSolution));
             }
 
             if (oldSolution == newSolution)
@@ -48,16 +48,13 @@ namespace Microsoft.CodeAnalysis
                 projectId = documentId.ProjectId;
             }
 
-            var handlers = _eventMap.GetEventHandlers<EventHandler<WorkspaceChangeEventArgs>>(WorkspaceChangeEventName);
-            if (handlers.Length > 0)
+            var ev = _eventMap.GetEventHandlers<EventHandler<WorkspaceChangeEventArgs>>(WorkspaceChangeEventName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                    foreach (var handler in handlers)
-                    {
-                        handler(this, args);
-                    }
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.WorkspaceChanged");
             }
             else
@@ -85,14 +82,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
-            var handlers = _eventMap.GetEventHandlers<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName);
-            if (handlers.Length > 0)
+            var ev = _eventMap.GetEventHandlers<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName);
+            if (ev.HasHandlers)
             {
                 var args = new WorkspaceDiagnosticEventArgs(diagnostic);
-                foreach (var handler in handlers)
-                {
-                    handler(this, args);
-                }
+                ev.RaiseEvent(handler => handler(this, args));
             }
         }
 
@@ -114,16 +108,13 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentOpenedEventAsync(Document document)
         {
-            var handlers = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName);
-            if (handlers.Length > 0)
+            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    foreach (var handler in handlers)
-                    {
-                        handler(this, args);
-                    }
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.WorkspaceChanged");
             }
             else
@@ -150,16 +141,13 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentClosedEventAsync(Document document)
         {
-            var handlers = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentClosedEventName);
-            if (handlers.Length > 0)
+            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentClosedEventName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    foreach (var handler in handlers)
-                    {
-                        handler(this, args);
-                    }
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.DocumentClosed");
             }
             else
@@ -187,16 +175,13 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         {
-            var handlers = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName);
-            if (handlers.Length > 0)
+            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName);
+            if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
                 {
                     var args = new DocumentEventArgs(document);
-                    foreach (var handler in handlers)
-                    {
-                        handler(this, args);
-                    }
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.WorkspaceChanged");
             }
             else

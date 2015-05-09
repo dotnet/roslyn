@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Action<CompilationStartAnalysisContext> Action { get { return _action; } }
     }
 
-    internal sealed class CompilationEndAnalyzerAction : AnalyzerAction
+    internal sealed class CompilationAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<CompilationEndAnalysisContext> _action;
+        private readonly Action<CompilationAnalysisContext> _action;
 
-        public CompilationEndAnalyzerAction(Action<CompilationEndAnalysisContext> action, DiagnosticAnalyzer analyzer)
+        public CompilationAnalyzerAction(Action<CompilationAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
             _action = action;
         }
 
-        public Action<CompilationEndAnalysisContext> Action { get { return _action; } }
+        public Action<CompilationAnalysisContext> Action { get { return _action; } }
     }
 
     internal sealed class SemanticModelAnalyzerAction : AnalyzerAction
@@ -114,16 +114,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get { return _action; } }
     }
 
-    internal sealed class CodeBlockEndAnalyzerAction : AnalyzerAction
+    internal sealed class CodeBlockAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<CodeBlockEndAnalysisContext> _action;
+        private readonly Action<CodeBlockAnalysisContext> _action;
 
-        public CodeBlockEndAnalyzerAction(Action<CodeBlockEndAnalysisContext> action, DiagnosticAnalyzer analyzer)
+        public CodeBlockAnalyzerAction(Action<CodeBlockAnalysisContext> action, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
             _action = action;
         }
 
-        public Action<CodeBlockEndAnalysisContext> Action { get { return _action; } }
+        public Action<CodeBlockAnalysisContext> Action { get { return _action; } }
     }
 }

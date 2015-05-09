@@ -24,9 +24,10 @@ namespace Roslyn.VisualStudio.ProjectSystem
 
         public int OnPropertyChanged(uint itemid, int propid, uint flags)
         {
-            if (propid == (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy)
+            if (propid == (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy ||
+                propid == (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext)
             {
-                _workspace.UpdateContextHierarchyIfContainsDocument(_sharedHierarchy, _documentId);
+                _workspace.UpdateDocumentContextIfContainsDocument(_sharedHierarchy, _documentId);
                 return VSConstants.S_OK;
             }
 

@@ -3,7 +3,7 @@
 using System;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal class RunKeepAliveTests : ExecutionCondition
     {

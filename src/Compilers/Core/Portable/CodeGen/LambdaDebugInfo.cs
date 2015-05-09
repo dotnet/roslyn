@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <remarks>
     /// The information is emitted to PDB in Custom Debug Information record for a method containing the lambda.
     /// </remarks>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct LambdaDebugInfo : IEquatable<LambdaDebugInfo>
     {
         /// <summary>
@@ -20,23 +21,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public readonly int SyntaxOffset;
 
         /// <summary>
-        /// The ordinal of the closure frame the lambda belongs to, or -1 if not applicable 
-        /// (static lambdas, lambdas closing over this pointer only).
+        /// The ordinal of the closure frame the lambda belongs to, or
+        /// <see cref="StaticClosureOrdinal"/> if the lambda is static, or
+        /// <see cref="ThisOnlyClosureOrdinal"/> if the lambda is closed over "this" pointer only.
         /// </summary>
         public readonly int ClosureOrdinal;
 
-        public LambdaDebugInfo(int syntaxOffset, int closureOrdinal)
-        {
-            Debug.Assert(closureOrdinal >= -1);
+        public readonly DebugId LambdaId;
 
-            this.SyntaxOffset = syntaxOffset;
-            this.ClosureOrdinal = closureOrdinal;
+        public const int StaticClosureOrdinal = -1;
+        public const int ThisOnlyClosureOrdinal = -2;
+        public const int MinClosureOrdinal = ThisOnlyClosureOrdinal;
+
+        public LambdaDebugInfo(int syntaxOffset, DebugId lambdaId, int closureOrdinal)
+        {
+            Debug.Assert(closureOrdinal >= MinClosureOrdinal);
+
+            SyntaxOffset = syntaxOffset;
+            ClosureOrdinal = closureOrdinal;
+            LambdaId = lambdaId;
         }
 
         public bool Equals(LambdaDebugInfo other)
         {
-            return this.SyntaxOffset == other.SyntaxOffset
-                && this.ClosureOrdinal == other.ClosureOrdinal;
+            return SyntaxOffset == other.SyntaxOffset
+                && ClosureOrdinal == other.ClosureOrdinal 
+                && LambdaId.Equals(other.LambdaId);
         }
 
         public override bool Equals(object obj)
@@ -46,12 +56,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override int GetHashCode()
         {
-            return Hash.Combine(ClosureOrdinal, SyntaxOffset);
+            return Hash.Combine(ClosureOrdinal, 
+                   Hash.Combine(SyntaxOffset, LambdaId.GetHashCode()));
         }
 
-        public override string ToString()
+        internal string GetDebuggerDisplay()
         {
-            return $"({SyntaxOffset}, {ClosureOrdinal})";
+            return 
+                ClosureOrdinal == StaticClosureOrdinal ? $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, static)" :
+                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, this)" :
+                $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset} in {ClosureOrdinal})";
         }
     }
 }

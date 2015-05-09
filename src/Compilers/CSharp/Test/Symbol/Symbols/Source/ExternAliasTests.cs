@@ -98,7 +98,7 @@ Bar::NS.Foo d = new Bar::NS.Foo();
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void ExternAliasInInteractive_Error()
         {
             var src = "extern alias Bar;";

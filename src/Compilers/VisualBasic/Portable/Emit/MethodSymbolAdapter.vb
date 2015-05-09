@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Class MethodSymbol
+    Friend Partial Class MethodSymbol
         Implements Cci.ITypeMemberReference
         Implements Cci.IMethodReference
         Implements Cci.IGenericMethodInstanceReference

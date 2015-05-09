@@ -10,7 +10,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         ' File: Parser.cpp
         ' Lines: 13261 - 13261
@@ -2009,7 +2009,7 @@ TryResync:
             beginXmlEmbedded = TransitionFromXmlToVB(beginXmlEmbedded)
             TryEatNewLine(ScannerState.VB)
 
-            Dim value = ParseExpression()
+            Dim value = ParseExpressionCore()
 
             Dim endXmlEmbedded As PunctuationSyntax = Nothing
             If Not TryEatNewLineAndGetToken(SyntaxKind.PercentGreaterThanToken, endXmlEmbedded, createIfMissing:=False, state:=enclosingState) Then
@@ -2064,7 +2064,7 @@ TryResync:
 
         Private _options As WhiteSpaceOptions
 
-        Sub New()
+        Public Sub New()
         End Sub
 
         Public Overrides Function VisitXmlDeclaration(node As XmlDeclarationSyntax) As VisualBasicSyntaxNode
@@ -2427,9 +2427,9 @@ TryResync:
     End Class
 
     Friend Structure XmlContext
-        Private _start As XmlElementStartTagSyntax
+        Private ReadOnly _start As XmlElementStartTagSyntax
         Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
-        Private _pool As SyntaxListPool
+        Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)
             _pool = pool

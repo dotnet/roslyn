@@ -13,10 +13,11 @@
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -179,7 +180,19 @@
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
-    <Compile Include="Diagnostics\WorkspaceAnalyzerManager.cs" />
+    <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
+    <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
+    <Compile Include="Diagnostics\PredefinedErrorSources.cs" />
+    <Compile Include="Diagnostics\DiagnosticAnalyzerService_BuildSynchronization.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.ProjectAnalyzerReferenceChangedEventArgs.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.HostStates.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.ProjectStates.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateSet.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_BuildSynchronization.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetLatestDiagnosticsForSpan.cs" />
+    <Compile Include="Diagnostics\ErrorSourceId.cs" />
+    <Compile Include="Diagnostics\HostAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.cs" />
@@ -193,14 +206,12 @@
     <Compile Include="Diagnostics\DiagnosticProviderMetadata.cs" />
     <Compile Include="Diagnostics\DiagnosticService.cs" />
     <Compile Include="Diagnostics\DiagnosticsUpdatedArgs.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.IncrementalAnalyzer.AnalyzerExecutor.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.AnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetDiagnostics.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.NestedTypes.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateType.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_IncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_UpdateSource.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerService_Test.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.WorkspaceAnalyzersAndStates.PerLanguageAnalyzersAndStates.cs" />
     <Compile Include="Diagnostics\IAnalyzerDriverService.cs" />
     <Compile Include="Diagnostics\IBuiltInAnalyzer.cs" />
     <Compile Include="Diagnostics\IDiagnosticAnalyzerService.cs" />
@@ -210,9 +221,13 @@
     <Compile Include="Diagnostics\IWorkspaceDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
+    <Compile Include="Diagnostics\ISupportLiveUpdate.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
+    <Compile Include="EditAndContinue\DebuggingState.cs" />
+    <Compile Include="EditAndContinue\DebuggingStateChangedEventArgs.cs" />
     <Compile Include="EditAndContinue\EncDebuggingSessionInfo.cs" />
     <Compile Include="EditAndContinue\EncEditSessionInfo.cs" />
+    <Compile Include="EditAndContinue\BidirectionalMap.cs" />
     <Compile Include="EditAndContinue\TraceLog.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -238,7 +253,7 @@
     <Compile Include="Completion\Rules\ICompletionRules.cs" />
     <Compile Include="Diagnostics\EngineV1\AbstractSyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\AddImportDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\IDocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\IProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />
@@ -246,11 +261,8 @@
     <Compile Include="Diagnostics\Analyzers\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticAnalyzerDriver.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticAnalyzerCategory.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.DiagnosticAnalyzersAndStates.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.DiagnosticState.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.ProjectAnalyzersAndStates.cs" />
-    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.WorkspaceAnalyzersAndStates.cs" />
     <Compile Include="Diagnostics\EngineV1\ISyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\EngineV1\MemberRangeMap.cs" />
     <Compile Include="DocumentationCommentFormatting\AbstractDocumentationCommentFormattingService.cs" />
@@ -505,7 +517,7 @@
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerLogger.cs" />
-    <Compile Include="SolutionCrawler\SolutionCrawlerOptions.cs" />
+    <Compile Include="SolutionCrawler\InternalSolutionCrawlerOptions.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerProgressReporter.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\State\AbstractAnalyzerState.cs" />

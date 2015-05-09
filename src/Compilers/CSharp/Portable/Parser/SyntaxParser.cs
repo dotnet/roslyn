@@ -76,9 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var blendedTokens = _blendedTokens;
             if (blendedTokens != null)
             {
-                Array.Clear(_blendedTokens, 0, _blendedTokens.Length);
-                s_blendedNodesPool.Free(_blendedTokens);
                 _blendedTokens = null;
+                if (blendedTokens.Length < 4096)
+                {
+                    Array.Clear(blendedTokens, 0, blendedTokens.Length);
+                    s_blendedNodesPool.Free(blendedTokens);
+                }
+                else
+                {
+                    s_blendedNodesPool.ForgetTrackedObject(blendedTokens);
+                }
             }
         }
 

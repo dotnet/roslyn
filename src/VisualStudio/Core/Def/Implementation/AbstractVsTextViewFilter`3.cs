@@ -75,12 +75,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             var braceMatcher = _languageService.Package.ComponentModel.GetService<IBraceMatchingService>();
             return GetPairExtentsWorker(
-                WpfTextView, 
-                _languageService.Workspace, 
-                braceMatcher, 
-                iLine, 
-                iIndex, 
-                pSpan, 
+                WpfTextView,
+                _languageService.Workspace,
+                braceMatcher,
+                iLine,
+                iIndex,
+                pSpan,
                 (VSConstants.VSStd2KCmdID)this.CurrentlyExecutingCommand == VSConstants.VSStd2KCmdID.GOTOBRACE_EXT,
                 cancellationToken);
         }
@@ -110,8 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             foreach (var documentId in vsWorkspace.GetRelatedDocumentIds(container))
             {
-                var hostProject = (AbstractProject)vsWorkspace.GetHostProject(documentId.ProjectId);
-                if (hostProject.EditAndContinueImplOpt != null)
+                var hostProject = vsWorkspace.GetHostProject(documentId.ProjectId) as AbstractEncProject;
+                if (hostProject?.EditAndContinueImplOpt != null)
                 {
                     if (hostProject.EditAndContinueImplOpt.OnEdit(documentId))
                     {

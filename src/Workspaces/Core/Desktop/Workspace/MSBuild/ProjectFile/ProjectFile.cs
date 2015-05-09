@@ -52,19 +52,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         public abstract Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
 
-        protected class BuildResult
-        {
-            public readonly MSB.Execution.BuildResult Result;
-            public readonly MSB.Execution.ProjectInstance Instance;
-
-            internal BuildResult(MSB.Execution.BuildResult result, MSB.Execution.ProjectInstance instance)
-            {
-                this.Result = result;
-                this.Instance = instance;
-            }
-        }
-
-        protected async Task<BuildResult> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
+        protected async Task<ProjectInstance> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
         {
             // prepare for building
             var buildTargets = new BuildTargets(_loadedProject, "Compile");
@@ -82,6 +70,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // The executed project will hold the final model of the project after execution via msbuild.
             var executedProject = _loadedProject.CreateProjectInstance();
 
+            if (!executedProject.Targets.ContainsKey("Compile"))
+            {
+                return executedProject;
+            }
+
             var hostServices = new Microsoft.Build.Execution.HostServices();
 
             // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
@@ -98,11 +91,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw result.Exception;
             }
 
-            return new BuildResult(result, executedProject);
+            return executedProject;
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process
-        private static readonly AsyncSemaphore s_buildManagerLock = new AsyncSemaphore(1);
+        private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
 
         private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
@@ -189,22 +182,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return PathUtilities.GetFileName(assemblyName);
         }
 
-        protected virtual IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)
-        {
-            return executedProject.GetItems("ProjectReference")
-                .Select(reference => new ProjectFileReference(
-                    path: reference.EvaluatedInclude,
-                    aliases: ImmutableArray<string>.Empty));
-        }
-
-        protected IEnumerable<ProjectItemInstance> GetProjectReferenceItems(ProjectInstance executedProject)
+        protected IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
         {
             return executedProject
                 .GetItems("ProjectReference")
                 .Where(i => !string.Equals(
                     i.GetMetadataValue("ReferenceOutputAssembly"),
                     bool.FalseString,
-                    StringComparison.OrdinalIgnoreCase));
+                    StringComparison.OrdinalIgnoreCase))
+                .Select(CreateProjectFileReference);
+        }
+
+        /// <summary>
+        /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
+        /// </summary>
+        protected virtual ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
+        {
+            return new ProjectFileReference(
+                path: reference.EvaluatedInclude,
+                aliases: ImmutableArray<string>.Empty);
         }
 
         protected virtual IEnumerable<MSB.Framework.ITaskItem> GetDocumentsFromModel(MSB.Execution.ProjectInstance executedProject)
@@ -220,6 +216,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected virtual IEnumerable<MSB.Framework.ITaskItem> GetAnalyzerReferencesFromModel(MSB.Execution.ProjectInstance executedProject)
         {
             return executedProject.GetItems("Analyzer");
+        }
+
+        protected virtual IEnumerable<MSB.Framework.ITaskItem> GetAdditionalFilesFromModel(MSB.Execution.ProjectInstance executedProject)
+        {
+            return executedProject.GetItems("AdditionalFiles");
         }
 
         public MSB.Evaluation.ProjectProperty GetProperty(string name)
@@ -389,7 +390,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return !string.IsNullOrEmpty(documentItem.GetMetadata("Link"));
         }
 
-        private IDictionary<string, MSB.Evaluation.ProjectItem> _documents = null;
+        private IDictionary<string, MSB.Evaluation.ProjectItem> _documents;
 
         protected bool IsDocumentGenerated(MSB.Framework.ITaskItem documentItem)
         {

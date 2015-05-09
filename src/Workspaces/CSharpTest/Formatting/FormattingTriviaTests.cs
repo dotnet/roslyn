@@ -1,4 +1,11 @@
-﻿using Microsoft.CodeAnalysis.Test.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1699,6 +1706,22 @@ class Program
 }";
 
             AssertFormat(expected, content);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NewLineOptions_LineFeedOnly()
+        {
+            var tree = SyntaxFactory.ParseCompilationUnit("class C\r\n{\r\n}");
+
+            // replace all EOL trivia with elastic markers to force the formatter to add EOL back
+            tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.EndOfLineTrivia)), (o, r) => SyntaxFactory.ElasticMarker);
+
+            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"));
+
+            var actual = formatted.ToFullString();
+            var expected = "class C\n{\n}";
+
+            Assert.Equal(expected, actual);
         }
     }
 }

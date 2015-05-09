@@ -23,7 +23,7 @@ namespace N
     }
 }"
                 );
-        
+
             var referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream());
 
             var compilationB = CreateCompilationWithMscorlib(@"
@@ -37,7 +37,7 @@ class B
     }
 }
 
-", new MetadataReference[] {referenceA}, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+", new MetadataReference[] { referenceA }, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var syntaxTree = compilationB.SyntaxTrees[0];
             return compilationB.GetSemanticModel(syntaxTree, ignoreAccessibility: true);
@@ -51,7 +51,7 @@ class B
             var position = invocation.FullSpan.Start;
 
             Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
-            Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).Symbol.Name);            
+            Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).Symbol.Name);
             Assert.NotEmpty(semanticModel.LookupSymbols(position, name: "A"));
         }
 
@@ -114,8 +114,8 @@ class C
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single().Body;
 
-            var symbolInfo = model.GetSpeculativeSymbolInfo(expr.FullSpan.Start, 
-                                                           SyntaxFactory.ParseExpression("a._p"), 
+            var symbolInfo = model.GetSpeculativeSymbolInfo(expr.FullSpan.Start,
+                                                           SyntaxFactory.ParseExpression("a._p"),
                                                            SpeculativeBindingOption.BindAsExpression);
 
             Assert.Equal("_p", symbolInfo.Symbol.Name);
@@ -167,7 +167,7 @@ class B
             var position = invocation.FullSpan.Start;
 
             Assert.Equal("Int32", semanticModel.GetSpeculativeTypeInfo(position, speculativeInvocation, SpeculativeBindingOption.BindAsExpression).Type.Name);
-            Assert.Equal("InternalExtension", semanticModel.GetSpeculativeSymbolInfo(position, speculativeInvocation, SpeculativeBindingOption.BindAsExpression).Symbol.Name);            
+            Assert.Equal("InternalExtension", semanticModel.GetSpeculativeSymbolInfo(position, speculativeInvocation, SpeculativeBindingOption.BindAsExpression).Symbol.Name);
         }
 
         [Fact]
@@ -205,7 +205,7 @@ class C : R
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             AccessorDeclarationSyntax accesorDecl = root.DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
-            
+
             var speculatedMethod = accesorDecl.ReplaceNode(accesorDecl.Body, blockStatement);
 
             SemanticModel speculativeModel;
@@ -229,7 +229,7 @@ class C : R
 
             var typeSpeculation =
                 speculativeModel.GetSpeculativeTypeInfo(p.FullSpan.Start, p, SpeculativeBindingOption.BindAsExpression);
-            
+
             Assert.Equal("Int32", typeSpeculation.Type.Name);
         }
     }

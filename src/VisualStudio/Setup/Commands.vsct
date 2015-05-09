@@ -37,23 +37,27 @@
       <Group guid="guidRoslynGrpId" id="grpAnalyzerRemove" priority="0x000">
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerContextMenu"/>
       </Group>
-      
+
       <Group guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJWIN_SCOPE" priority="0x001">
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerContextMenu"/>
       </Group>
-    
+
       <Group guid="guidRoslynGrpId" id="grpAnalyzerProperties" priority="0x002">
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerContextMenu"/>
       </Group>
-    
+
       <Group guid="guidRoslynGrpId" id="grpDiagnosticSeverity" priority="0x000">
         <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
+      </Group>
+
+      <Group guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" priority="0x000">
+        <Parent guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu"/>
       </Group>
 
       <Group guid="guidRoslynGrpId" id="grpDiagnosticProperties" priority="0x002">
         <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
       </Group>
-    
+
       <Group guid="guidRoslynGrpId" id="grpSetActiveRuleSet">
       </Group>
     </Groups>
@@ -138,7 +142,7 @@
         </Strings>
       </Button>
       <!-- <project context menu> | Add | Analyzer... -->
-      <Button guid="guidRoslynGrpId" id="cmdidProjectContextAddAnalyzer" priority="0x0280" type="Button">
+      <Button guid="guidRoslynGrpId" id="cmdidProjectContextAddAnalyzer" priority="0x0400" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD_REFERENCES" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -149,7 +153,7 @@
         </Strings>
       </Button>
       <!-- Project | Add Analyzer... -->
-      <Button guid="guidRoslynGrpId" id="cmdidProjectAddAnalyzer" priority="0x0180" type="Button">
+      <Button guid="guidRoslynGrpId" id="cmdidProjectAddAnalyzer" priority="0x0296" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_PROJ_OPTIONS" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -160,7 +164,7 @@
         </Strings>
       </Button>
       <!-- <References node context menu> | Add Analyzer -->
-      <Button guid="guidRoslynGrpId" id="cmdidReferencesContextAddAnalyzer" priority="0x0180" type="Button">
+      <Button guid="guidRoslynGrpId" id="cmdidReferencesContextAddAnalyzer" priority="0x1100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_REFROOT_ADD" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -193,15 +197,24 @@
       <Button guid="guidRoslynGrpId" id="cmdidOpenRuleSet" priority="200" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpAnalyzerFolderContextMenu" />
         <Strings>
-          <ButtonText>&amp;Open Rule Set</ButtonText>
-          <CanonicalName>OpenRuleSet</CanonicalName>
-          <LocCanonicalName>OpenRuleSet</LocCanonicalName>
-          <CommandName>OpenRuleSet</CommandName>
+          <ButtonText>&amp;Open Active Rule Set</ButtonText>
+          <CanonicalName>OpenActiveRuleSet</CanonicalName>
+          <LocCanonicalName>OpenActiveRuleSet</LocCanonicalName>
+          <CommandName>OpenActiveRuleSet</CommandName>
         </Strings>
       </Button>
       <!-- Buttons to set severity of diagnostics -->
-      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityError" priority="100" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityDefault" priority="100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Default</ButtonText>
+          <CanonicalName>Default</CanonicalName>
+          <LocCanonicalName>Default</LocCanonicalName>
+          <CommandName>SetSeverityDefault</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityError" priority="200" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Error</ButtonText>
           <CanonicalName>Error</CanonicalName>
@@ -209,8 +222,8 @@
           <CommandName>SetSeverityError</CommandName>
         </Strings>
       </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityWarning" priority="200" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityWarning" priority="300" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Warning</ButtonText>
           <CanonicalName>Warning</CanonicalName>
@@ -218,8 +231,8 @@
           <CommandName>SetSeverityWarning</CommandName>
         </Strings>
       </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityInfo" priority="300" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityInfo" priority="400" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Info</ButtonText>
           <CanonicalName>Info</CanonicalName>
@@ -227,8 +240,8 @@
           <CommandName>SetSeverityInfo</CommandName>
         </Strings>
       </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityHidden" priority="400" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityHidden" priority="500" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;Hidden</ButtonText>
           <CanonicalName>Hidden</CanonicalName>
@@ -236,8 +249,8 @@
           <CommandName>SetSeverityHidden</CommandName>
         </Strings>
       </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityNone" priority="500" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+      <Button guid="guidRoslynGrpId" id="cmdidSetSeverityNone" priority="600" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
           <ButtonText>&amp;None</ButtonText>
           <CanonicalName>None</CanonicalName>
@@ -289,7 +302,7 @@
           <CommandName>&amp;Organize Usings</CommandName>
         </Strings>
       </Menu>
-      
+
       <Menu guid="guidRoslynGrpId" id="cmdidAnalyzerContextMenu" priority="100" type="Context">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLNEXPL_ALL" />
         <Strings>
@@ -307,13 +320,23 @@
           <LocCanonicalName>Analyzers</LocCanonicalName>
         </Strings>
       </Menu>
-    
+
       <Menu guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu" priority="100" type="Context">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLNEXPL_ALL" />
         <Strings>
           <ButtonText>Diagnostic</ButtonText>
           <CanonicalName>Diagnostic</CanonicalName>
           <LocCanonicalName>Diagnostic</LocCanonicalName>
+        </Strings>
+      </Menu>
+
+      <Menu guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu" priority="50" type="Menu">
+        <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
+        <Strings>
+          <ButtonText>Set Rule Set Severity</ButtonText>
+          <CommandName>Set Rule Set Severity</CommandName>
+          <CanonicalName>Set Rule Set Severity</CanonicalName>
+          <LocCanonicalName>Set Rule Set Severity</LocCanonicalName>
         </Strings>
       </Menu>
     </Menus>
@@ -333,17 +356,17 @@
     <CommandPlacement guid="guidVSStd97" id="cmdidPropSheetOrProperties" priority="200">
       <Parent guid="guidRoslynGrpId" id="grpAnalyzerProperties" />
     </CommandPlacement>
-    
+
     <!-- Diagnostic node entries -->
     <CommandPlacement guid="guidVSStd97" id="cmdidPropSheetOrProperties" priority="200">
       <Parent guid="guidRoslynGrpId" id="grpDiagnosticProperties" />
     </CommandPlacement>
-  
+
     <!-- "Set as Active Rule Set" entries -->
     <CommandPlacement guid="guidRoslynGrpId" id="grpSetActiveRuleSet" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE"/>
     </CommandPlacement>
-    
+
     <CommandPlacement guid="guidRoslynGrpId" id="grpSetActiveRuleSet" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
     </CommandPlacement>
@@ -398,6 +421,9 @@
       <IDSymbol name="cmdidOpenDiagnosticHelpLink"    value="0x0116" />
       <IDSymbol name="grpSetActiveRuleSet"            value="0x0117" />
       <IDSymbol name="cmdidSetActiveRuleSet"          value="0x0118" />
+      <IDSymbol name="cmdidSetSeveritySubMenu"        value="0x0119" />
+      <IDSymbol name="grpDiagnosticSeverityItems"     value="0x011a" />
+      <IDSymbol name="cmdidSetSeverityDefault"        value="0x011b" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

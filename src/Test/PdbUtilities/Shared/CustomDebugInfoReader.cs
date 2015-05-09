@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.DiaSymReader;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
 
-namespace Microsoft.VisualStudio.SymReaderInterop
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// A collection of utility method for consuming custom debug info from a PDB.
@@ -35,10 +35,11 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// After the global header (see <see cref="ReadGlobalHeader"/> comes list of custom debug info record.
         /// Each record begins with a standard header.
         /// </summary>
-        private static void ReadRecordHeader(byte[] bytes, ref int offset, out byte version, out CustomDebugInfoKind kind, out int size)
+        private static void ReadRecordHeader(byte[] bytes, ref int offset, out byte version, out CustomDebugInfoKind kind, out int size, out int alignmentSize)
         {
             version = bytes[offset + 0];
             kind = (CustomDebugInfoKind)bytes[offset + 1];
+            alignmentSize = bytes[offset + 3];
 
             // two bytes of padding after kind
             size = BitConverter.ToInt32(bytes, offset + 4);
@@ -87,20 +88,28 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                 byte version;
                 CustomDebugInfoKind kind;
                 int size;
+                int alignmentSize;
 
-                ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size);
+                ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size, out alignmentSize);
                 if (size < CDI.CdiRecordHeaderSize)
                 {
                     throw new InvalidOperationException("Invalid header.");
                 }
 
+                if (kind != CustomDebugInfoKind.EditAndContinueLambdaMap &&
+                    kind != CustomDebugInfoKind.EditAndContinueLocalSlotMap)
+                {
+                    // ignore alignment for CDIs that don't support it
+                    alignmentSize = 0;
+                }
+
                 int bodySize = size - CDI.CdiRecordHeaderSize;
-                if (offset > customDebugInfo.Length - bodySize)
+                if (offset > customDebugInfo.Length - bodySize || alignmentSize > 3 || alignmentSize > bodySize)
                 {
                     throw new InvalidOperationException("Invalid header.");
                 }
 
-                yield return new CustomDebugInfoRecord(kind, version, ImmutableArray.Create(customDebugInfo, offset, bodySize));
+                yield return new CustomDebugInfoRecord(kind, version, ImmutableArray.Create(customDebugInfo, offset, bodySize - alignmentSize));
                 offset += bodySize;
             }
         }
@@ -464,35 +473,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             return importStrings;
         }
 
-        // TODO (acasey): caller should depend on abstraction (GH #702)
-        public static ImmutableSortedSet<int> GetCSharpInScopeHoistedLocalIndices(byte[] customDebugInfo, int methodToken, int methodVersion, int ilOffset)
-        {
-            var record = TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
-            if (record.IsDefault)
-            {
-                return ImmutableSortedSet<int>.Empty;
-            }
-
-            var scopes = DecodeStateMachineHoistedLocalScopesRecord(record);
-
-            ArrayBuilder<int> builder = ArrayBuilder<int>.GetInstance();
-            for (int i = 0; i < scopes.Length; i++)
-            {
-                StateMachineHoistedLocalScope scope = scopes[i];
-
-                // NB: scopes are end-inclusive.
-                if (ilOffset >= scope.StartOffset && ilOffset <= scope.EndOffset)
-                {
-                    builder.Add(i);
-                }
-            }
-
-            ImmutableSortedSet<int> result = builder.ToImmutableSortedSet();
-            builder.Free();
-            return result;
-        }
-
-        // TODO (acasey): caller should depend on abstraction (GH #702)
+        // TODO (https://github.com/dotnet/roslyn/issues/702): caller should depend on abstraction
         /// <exception cref="InvalidOperationException">Bad data.</exception>
         public static void GetCSharpDynamicLocalInfo(
             byte[] customDebugInfo,

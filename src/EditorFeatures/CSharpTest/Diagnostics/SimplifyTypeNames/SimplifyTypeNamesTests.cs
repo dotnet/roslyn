@@ -509,7 +509,7 @@ class A
 
             foreach (var pair in builtInTypeMap)
             {
-                int position = content.IndexOf(@"[||]");
+                int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 Test(newContent, expected, index: 0);
@@ -1817,6 +1817,201 @@ class Program
   compareTokens: false, index: 0);
         }
 
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref()
+        {
+            TestMissing(
+@"using System;
+/// <summary>
+/// <see cref=""[|Nullable{T}|]""/>
+/// </summary>
+class A { }");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref2()
+        {
+            TestMissing(
+@"/// <summary>
+/// <see cref=""[|System.Nullable{T}|]""/>
+/// </summary>
+class A { }");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref3()
+        {
+            TestMissing(
+@"/// <summary>
+/// <see cref=""[|System.Nullable{T}|].Value""/>
+/// </summary>
+class A { }");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref4()
+        {
+            TestMissing(
+@"using System;
+/// <summary>
+/// <see cref=""C{[|Nullable{T}|]}""/>
+/// </summary>
+class C<T> {  }");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref5()
+        {
+            TestMissing(
+@"/// <summary>
+/// <see cref=""A.M{[|Nullable{T}|]}()""/>
+/// </summary>
+class A 
+{
+    public void M<U>() where U : struct { }
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref6()
+        {
+            TestMissing(
+@"using System;
+/// <summary>
+/// <see cref=""[|Nullable{int}|]""/>
+/// </summary>
+class A { }");
+        }
+
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref7()
+        {
+            TestMissing(
+@"using System;
+/// <summary>
+/// <see cref=""C{[|Nullable{int}|]}""/>
+/// </summary>
+class C<T> { }");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestMissingNullableSimplificationInsideCref8()
+        {
+            TestMissing(
+@"/// <summary>
+/// <see cref=""A.M{[|Nullable{int}|]}()""/>
+/// </summary>
+class A 
+{
+    public void M<U>() where U : struct { }
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestNullableSimplificationInsideCref()
+        {
+            Test(
+@"/// <summary>
+/// <see cref=""A.M([|System.Nullable{A}|])""/>
+/// </summary>
+struct A
+{ 
+    public void M(A? x) { }
+}",
+@"/// <summary>
+/// <see cref=""A.M(A?)""/>
+/// </summary>
+struct A
+{ 
+    public void M(A? x) { }
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestNullableSimplificationInsideCref2()
+        {
+            Test(
+@"using System;
+using System.Collections.Generic;
+/// <summary>
+/// <see cref=""A.M(List{[|Nullable{int}|]})""/>
+/// </summary>
+class A
+{ 
+    public void M(List<int?> x) { }
+}",
+@"using System;
+using System.Collections.Generic;
+/// <summary>
+/// <see cref=""A.M(List{int?})""/>
+/// </summary>
+class A
+{ 
+    public void M(List<int?> x) { }
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestNullableSimplificationInsideCref3()
+        {
+            Test(
+@"using System;
+using System.Collections.Generic;
+/// <summary>
+/// <see cref=""A.M{U}(List{[|Nullable{U}|]})""/>
+/// </summary>
+class A
+{ 
+    public void M<U>(List<U?> x) where U : struct { }
+}",
+@"using System;
+using System.Collections.Generic;
+/// <summary>
+/// <see cref=""A.M{U}(List{U?})""/>
+/// </summary>
+class A
+{ 
+    public void M<U>(List<U?> x) where U : struct { }
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public void TestNullableSimplificationInsideCref4()
+        {
+            Test(
+@"using System;
+using System.Collections.Generic;
+/// <summary>
+/// <see cref=""A.M{T}(List{Nullable{T}}, [|Nullable{T}|])""/>
+/// </summary>
+class A
+{ 
+    public void M<U>(List<U?> x, U? y) where U : struct { }
+}",
+@"using System;
+using System.Collections.Generic;
+/// <summary>
+/// <see cref=""A.M{T}(List{Nullable{T}}, T?})""/>
+/// </summary>
+class A
+{ 
+    public void M<U>(List<U?> x, U? y) where U : struct { }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public void TestColorColorCase1()
         {
@@ -2413,7 +2608,7 @@ class Program
             {
                 var diagnosticAndFix = GetDiagnosticAndFix(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.Equal(span.Start, expected.IndexOf(@"Generic.List<int>()"));
+                Assert.Equal(span.Start, expected.IndexOf(@"Generic.List<int>()", StringComparison.Ordinal));
                 Assert.Equal(span.Length, "System.Collections".Length);
             }
         }
@@ -2449,7 +2644,7 @@ class Program
             {
                 var diagnosticAndFix = GetDiagnosticAndFix(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
-                Assert.Equal(span.Start, expected.IndexOf(@"Console.WriteLine(""foo"")"));
+                Assert.Equal(span.Start, expected.IndexOf(@"Console.WriteLine(""foo"")", StringComparison.Ordinal));
                 Assert.Equal(span.Length, "System".Length);
             }
         }

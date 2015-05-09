@@ -1,18 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -173,22 +161,25 @@ DefaultInstanceTest2 None
             verifier.VerifyIL("MyTests.set_DefaultInstanceTest1",
             <![CDATA[
 {
-  // Code size       37 (0x25)
+  // Code size       42 (0x2a)
   .maxstack  2
   IL_0000:  ldarg.1
   IL_0001:  ldarg.0
   IL_0002:  ldfld      "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
-  IL_0007:  bne.un.s   IL_000b
-  IL_0009:  br.s       IL_0024
-  IL_000b:  ldarg.1
-  IL_000c:  brfalse.s  IL_0019
-  IL_000e:  ldstr      "Property can only be set to Nothing"
-  IL_0013:  newobj     "Sub System.ArgumentException..ctor(String)"
-  IL_0018:  throw
-  IL_0019:  ldarg.0
-  IL_001a:  ldflda     "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
-  IL_001f:  call       "Sub MyTests.Dispose(Of DefaultInstanceTest1)(ByRef DefaultInstanceTest1)"
-  IL_0024:  ret
+  IL_0007:  ceq
+  IL_0009:  brfalse.s  IL_000d
+  IL_000b:  br.s       IL_0029
+  IL_000d:  ldarg.1
+  IL_000e:  ldnull
+  IL_000f:  cgt.un
+  IL_0011:  brfalse.s  IL_001e
+  IL_0013:  ldstr      "Property can only be set to Nothing"
+  IL_0018:  newobj     "Sub System.ArgumentException..ctor(String)"
+  IL_001d:  throw
+  IL_001e:  ldarg.0
+  IL_001f:  ldflda     "MyTests.m_DefaultInstanceTest1 As DefaultInstanceTest1"
+  IL_0024:  call       "Sub MyTests.Dispose(Of DefaultInstanceTest1)(ByRef DefaultInstanceTest1)"
+  IL_0029:  ret
 }
 ]]>)
         End Sub
@@ -2866,7 +2857,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-                <![CDATA[
+            <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "DefaultInstanceTest1.Factory")> _
@@ -2927,7 +2918,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-                <![CDATA[
+            <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.MyTests")> _
@@ -3008,7 +2999,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-                <![CDATA[
+            <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.MyTests")> _
@@ -3104,7 +3095,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-                <![CDATA[
+            <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.+MyTests")> _
@@ -3166,7 +3157,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-                <![CDATA[
+            <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory.MyTests.DefaultInstanceTest1 : System.Console.WriteLine()")> _
@@ -3232,7 +3223,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-                <![CDATA[
+            <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory")> _
@@ -3301,7 +3292,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
-                <![CDATA[
+            <![CDATA[
 Imports System
 
 <Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory")> _

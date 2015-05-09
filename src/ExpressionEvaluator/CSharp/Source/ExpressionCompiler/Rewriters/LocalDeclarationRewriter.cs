@@ -2,9 +2,11 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -57,29 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             declaredLocals.Add(local);
 
-            var voidType = compilation.GetSpecialType(SpecialType.System_Void);
-            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
+            var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor);
 
-            // <>CreateVariable(Type type, string name)
-            var method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.CreateVariableMethodName,
-                (c, n, s) => new PlaceholderMethodSymbol(
-                    c,
-                    s,
-                    n,
-                    voidType,
-                    m => ImmutableArray.Create<ParameterSymbol>(
-                        new SynthesizedParameterSymbol(m, typeType, ordinal: 0, refKind: RefKind.None),
-                        new SynthesizedParameterSymbol(m, stringType, ordinal: 1, refKind: RefKind.None))));
+            // CreateVariable(Type type, string name)
+            var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
+
+            bool hasCustomTypeInfoPayload;
+            var customTypeInfoPayload = GetCustomTypeInfoPayload(local, syntax, compilation, out hasCustomTypeInfoPayload);
+            var customTypeInfoPayloadId = GetCustomTypeInfoPayloadId(syntax, guidConstructor, hasCustomTypeInfoPayload);
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
                 method: method,
-                arguments: ImmutableArray.Create<BoundExpression>(type, name));
+                arguments: ImmutableArray.Create(type, name, customTypeInfoPayloadId, customTypeInfoPayload));
             statements.Add(new BoundExpressionStatement(syntax, call));
 
             var initializer = node.InitializerOpt;
@@ -95,6 +91,52 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     local.Type);
                 statements.Add(new BoundExpressionStatement(syntax, assignment));
             }
+        }
+
+        private static BoundExpression GetCustomTypeInfoPayloadId(CSharpSyntaxNode syntax, MethodSymbol guidConstructor, bool hasCustomTypeInfoPayload)
+        {
+            if (!hasCustomTypeInfoPayload)
+            {
+                return new BoundDefaultOperator(syntax, guidConstructor.ContainingType);
+            }
+
+            var value = ConstantValue.Create(DynamicFlagsCustomTypeInfo.PayloadTypeId.ToString());
+            return new BoundObjectCreationExpression(
+                syntax,
+                guidConstructor,
+                new BoundLiteral(syntax, value, guidConstructor.ContainingType));
+        }
+
+        private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, CSharpSyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
+        {
+            var byteArrayType = new ArrayTypeSymbol(
+                compilation.Assembly,
+                compilation.GetSpecialType(SpecialType.System_Byte));
+
+            var flags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, customModifiersCount: 0, refKind: RefKind.None).ToArray();
+            var bytes = new DynamicFlagsCustomTypeInfo(new BitArray(flags)).GetCustomTypeInfoPayload();
+            hasCustomTypeInfoPayload = bytes != null;
+            if (!hasCustomTypeInfoPayload)
+            {
+                return new BoundLiteral(syntax, ConstantValue.Null, byteArrayType);
+            }
+
+            var byteType = byteArrayType.ElementType;
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+
+            var numBytes = bytes.Length;
+            var initializerExprs = ArrayBuilder<BoundExpression>.GetInstance(numBytes);
+            foreach (var b in bytes)
+            {
+                initializerExprs.Add(new BoundLiteral(syntax, ConstantValue.Create(b), byteType));
+            }
+
+            var lengthExpr = new BoundLiteral(syntax, ConstantValue.Create(numBytes), intType);
+            return new BoundArrayCreation(
+                syntax,
+                ImmutableArray.Create<BoundExpression>(lengthExpr),
+                new BoundArrayInitialization(syntax, initializerExprs.ToImmutableAndFree()),
+                byteArrayType);
         }
     }
 }

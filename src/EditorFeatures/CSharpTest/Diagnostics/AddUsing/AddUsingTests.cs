@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddImport;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -712,7 +712,7 @@ using System.Linq.Expressions;
 
 Expression",
 parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MetadataFileReferenceResolver(new string[0], null), MetadataFileReferenceProvider.Default)),
+compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(new MetadataFileReferenceResolver(Array.Empty<string>(), null), MetadataFileReferenceProvider.Default)),
 compareTokens: false);
         }
 
@@ -1322,7 +1322,7 @@ class Test
 
             var expectedText =
 @"using System;
-using Outer;
+using static Outer;
 
 public static class Outer
 {
@@ -1364,7 +1364,7 @@ class Test
 
             var expectedText =
 @"using System;
-using Outer.Inner;
+using static Outer.Inner;
 
 public static class Outer
 {
@@ -1434,7 +1434,7 @@ class Test
             var expectedText =
 @"using System;
 using Outer;
-using Outer.Inner;
+using static Outer.Inner;
 
 public static class Outer
 {
@@ -1927,12 +1927,91 @@ namespace ConsoleApplication1
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; using A ; class Program { public B B { get { return B . Instance ; } } } namespace A { public class B { public static readonly B Instance ; } } ");
         }
 
+        [WorkItem(1893, "https://github.com/dotnet/roslyn/issues/1893")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNameSimplification()
+        {
+            // Generated using directive must be simplified from "using A.B;" to "using B;" below.
+            Test(
+@"
+namespace A.B
+{
+    class T1 { }
+}
+namespace A.C
+{
+    using System;
+    class T2
+    {
+        void Test()
+        {
+            Console.WriteLine();
+            [|T1|] t1;
+        }
+    }
+}",
+@"
+namespace A.B
+{
+    class T1 { }
+}
+namespace A.C
+{
+    using System;
+    using B;
+    class T2
+    {
+        void Test()
+        {
+            Console.WriteLine();
+            T1 t1;
+        }
+    }
+}");
+        }
+
+        [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope()
+        {
+            Test(
+@"using System . Linq ; using System . Collections ; using X ; namespace X { public static class Ext { public static void ExtMethod ( this int a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int a , int v ) { } } } public class B { static void Main ( ) { var b = 0 ; b . [|ExtMethod|] ( 0 ) ; } } ",
+@"using System . Linq ; using System . Collections ; using X ; using Y ; namespace X { public static class Ext { public static void ExtMethod ( this int a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int a , int v ) { } } } public class B { static void Main ( ) { var b = 0 ; b . ExtMethod ( 0 ) ; } } ");
+        }
+
+        [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope2()
+        {
+            Test(
+@"using System . Linq ; using System . Collections ; using X ; namespace X { public static class Ext { public static void ExtMethod ( this int ? a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int ? a , int v ) { } } } public class B { static void Main ( ) { var b = new int ? ( ) ; b ? [|. ExtMethod|] ( 0 ) ; } } ",
+@"using System . Linq ; using System . Collections ; using X ; using Y ; namespace X { public static class Ext { public static void ExtMethod ( this int ? a ) { } } } namespace Y { public static class Ext { public static void ExtMethod ( this int ? a , int v ) { } } } public class B { static void Main ( ) { var b = new int ? ( ) ; b ? . ExtMethod ( 0 ) ; } } ");
+        }
+
+        [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope3()
+        {
+            Test(
+@"using System . Linq ; class C { int i = 0 . [|All|] ( ) ; } namespace X { static class E { public static int All ( this int o ) => 0 ; } } ",
+@"using System . Linq ; using X ; class C { int i = 0 . All ( ) ; } namespace X { static class E { public static int All ( this int o ) => 0 ; } } ");
+        }
+
+        [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingWithOtherExtensionsInScope4()
+        {
+            Test(
+@"using System . Linq ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? [|. All|] ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ",
+@"using System . Linq ; using X ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? . All ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
                 return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                        new CSharpAddImportDiagnosticAnalyzer(),
+                        new CSharpUnboundIdentifiersDiagnosticAnalyzer(),
                         new CSharpAddImportCodeFixProvider());
             }
 
@@ -2016,6 +2095,33 @@ namespace ConsoleApplication1
                 Test(
     @"using System ; class Program { Func < [|FlowControl|] x } ",
     @"using System ; using System . Reflection . Emit ; class Program { Func < FlowControl x } ");
+            }
+
+            [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public void TestIncompleteCatchBlockInLambda()
+            {
+                Test(
+    @"class A { System . Action a = ( ) => { try { } catch ( [|Exception|] ",
+    @"using System ; class A { System . Action a = ( ) => { try { } catch ( Exception ");
+            }
+
+            [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public void TestIncompleteLambda1()
+            {
+                Test(
+    @"using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new [|Byte|] ",
+    @"using System ; using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new Byte ");
+            }
+
+            [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public void TestIncompleteLambda2()
+            {
+                Test(
+    @"using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new [|Byte|] ( ) } ",
+    @"using System ; using System . Linq ; class C { C ( ) { """" . Select ( ( ) => { new Byte ( ) } ");
             }
         }
     }

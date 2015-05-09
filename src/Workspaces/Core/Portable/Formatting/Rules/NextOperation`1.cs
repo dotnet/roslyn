@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal struct NextOperation<TResult>
     {
-        private int _index;
+        private readonly int _index;
         private SyntaxToken _token1;
         private SyntaxToken _token2;
-        private IOperationHolder<TResult> _operationCache;
+        private readonly IOperationHolder<TResult> _operationCache;
 
         public NextOperation(int index, SyntaxToken token1, SyntaxToken token2, IOperationHolder<TResult> operationCache)
         {

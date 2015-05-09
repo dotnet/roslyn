@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LocalBinderFactory : CSharpSyntaxVisitor
     {
-        private SmallDictionary<CSharpSyntaxNode, Binder> _map;
+        private readonly SmallDictionary<CSharpSyntaxNode, Binder> _map;
         private bool _sawYield;
         private readonly MethodSymbol _method;
         private Binder _enclosing;
@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitBlock((BlockSyntax)body);
             }
+        }
+
+        public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
+        {
+            // Do nothing, expressions do not need special binders.
         }
 
         public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)

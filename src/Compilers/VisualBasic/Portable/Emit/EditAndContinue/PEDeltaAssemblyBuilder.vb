@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
         Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly m_PreviousGeneration As EmitBaseline
-        Private ReadOnly m_PreviousDefinitions As VisualBasicDefinitionMap
-        Private ReadOnly m_Changes As SymbolChanges
+        Private ReadOnly _previousGeneration As EmitBaseline
+        Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
+        Private ReadOnly _changes As SymbolChanges
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
@@ -52,14 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
             End If
 
-            Me.m_PreviousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
-            Me.m_PreviousGeneration = previousGeneration
-            Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits, isAddedSymbol)
+            Me._previousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
+            Me._previousGeneration = previousGeneration
+            Me._changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
         End Sub
 
         Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
             Get
-                Return m_PreviousGeneration.Ordinal + 1
+                Return _previousGeneration.Ordinal + 1
             End Get
         End Property
 
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim index As Integer = 0
                 If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
-                    Dim key = New AnonymousTypeKey(GetAnonymousTypeKeyFields(type))
+                    Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type)
                     result.Add(key, value)
                 ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
@@ -94,16 +94,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
-        Private Shared Function GetAnonymousTypeKeyFields(type As NamedTypeSymbol) As ImmutableArray(Of String)
+        Private Shared Function GetAnonymousTypeKey(type As NamedTypeSymbol) As AnonymousTypeKey
             ' The key is the set of properties that correspond to type parameters.
             ' For each type parameter, get the name of the property of that type.
             Dim n = type.TypeParameters.Length
             If n = 0 Then
-                Return ImmutableArray(Of String).Empty
+                Return New AnonymousTypeKey(ImmutableArray(Of AnonymousTypeKeyField).Empty)
             End If
 
-            ' Names of properties indexed by type parameter ordinal.
-            Dim propertyNames = New String(n - 1) {}
+            ' Properties indexed by type parameter ordinal.
+            Dim properties = New AnonymousTypeKeyField(n - 1) {}
             For Each member In type.GetMembers()
                 If member.Kind <> SymbolKind.Property Then
                     Continue For
@@ -115,13 +115,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim typeParameter = DirectCast(propertyType, TypeParameterSymbol)
                     Debug.Assert(typeParameter.ContainingSymbol = type)
                     Dim index = typeParameter.Ordinal
-                    Debug.Assert(propertyNames(index) Is Nothing)
-                    propertyNames(index) = [property].Name
+                    Debug.Assert(properties(index).Name Is Nothing)
+                    ' ReadOnly anonymous type properties were 'Key' properties.
+                    properties(index) = AnonymousTypeKeyField.CreateField([property].Name, isKey:=[property].IsReadOnly)
                 End If
             Next
 
-            Debug.Assert(propertyNames.All(Function(f) Not String.IsNullOrEmpty(f)))
-            Return ImmutableArray.Create(propertyNames)
+            Debug.Assert(properties.All(Function(f) Not String.IsNullOrEmpty(f.Name)))
+            Return New AnonymousTypeKey(ImmutableArray.Create(properties))
         End Function
 
         Private Shared Function GetAnonymousDelegateKey(type As NamedTypeSymbol) As AnonymousTypeKey
@@ -133,10 +134,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(members.Length = 1 AndAlso members(0).Kind = SymbolKind.Method)
             Dim method = DirectCast(members(0), MethodSymbol)
             Debug.Assert(method.Parameters.Count + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
-            Dim parameterNames = ArrayBuilder(Of String).GetInstance()
-            parameterNames.AddRange(method.Parameters.SelectAsArray(Function(p) p.Name))
-            parameterNames.Add(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub))
-            Return New AnonymousTypeKey(parameterNames.ToImmutableAndFree(), isDelegate:=True)
+            Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
+            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) AnonymousTypeKeyField.CreateField(p.Name, isKey:=False)))
+            parameters.Add(AnonymousTypeKeyField.CreateField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False))
+            Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
         Private Shared Function EnsureInitialized(previousGeneration As EmitBaseline,
@@ -151,13 +152,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend ReadOnly Property PreviousGeneration As EmitBaseline
             Get
-                Return m_PreviousGeneration
+                Return _previousGeneration
             End Get
         End Property
 
         Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
-                Return m_PreviousDefinitions
+                Return _previousDefinitions
             End Get
         End Property
 
@@ -172,35 +173,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overloads Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousTypeMap
             Dim anonymousTypes = Compilation.AnonymousTypeManager.GetAnonymousTypeMap()
             ' Should contain all entries in previous generation.
-            Debug.Assert(m_PreviousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
+            Debug.Assert(_previousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
             Return anonymousTypes
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol) As VariableSlotAllocator
-            Return m_PreviousDefinitions.TryCreateVariableSlotAllocator(m_PreviousGeneration, method)
+            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(m_PreviousGeneration.AnonymousTypeMap.Keys)
+            Return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
-            Return m_PreviousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
+            Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
         Friend Overrides Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
-            Return m_PreviousDefinitions.TryGetAnonymousTypeName(template, name, index)
+            Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
 
         Friend ReadOnly Property Changes As SymbolChanges
             Get
-                Return m_Changes
+                Return _changes
             End Get
         End Property
 
         Friend Overrides Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Return m_Changes.GetTopLevelTypes(context)
+            Return _changes.GetTopLevelTypes(context)
         End Function
 
         Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices

@@ -15,6 +15,7 @@
     <BoundTreeGeneratorToolPath>$(OutDir)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
     <VBErrorFactsGeneratorToolPath>$(OutDir)\VBErrorFactsGenerator.exe</VBErrorFactsGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
@@ -101,7 +102,7 @@
     <Compile Include="Analysis\FlowAnalysis\ControlFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.vb" />
-    <Compile Include="Analysis\FlowAnalysis\DataFlowAnalysis.vb" />
+    <Compile Include="Analysis\FlowAnalysis\VisualBasicDataFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.SlotCollection.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.Symbols.vb" />
@@ -180,6 +181,7 @@
     <Compile Include="Binding\ForOrForEachBlockBinder.vb" />
     <Compile Include="Binding\ForEachEnumeratorInfo.vb" />
     <Compile Include="Binding\GetTypeBinder.vb" />
+    <Compile Include="Binding\IgnoreAccessibilityBinder.vb" />
     <Compile Include="Binding\IgnoreBaseClassesBinder.vb" />
     <Compile Include="Binding\ImplicitVariableBinder.vb" />
     <Compile Include="Binding\ImportAliasesBinder.vb" />
@@ -319,6 +321,10 @@
     <Compile Include="CodeGen\Optimizer\StackScheduler.LocalDefUseSpan.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.Rewriter.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.vb" />
+    <Compile Include="CommandLine\CommandLineArguments.vb" />
+    <Compile Include="CommandLine\CommandLineDiagnosticFormatter.vb" />
+    <Compile Include="CommandLine\CommandLineParser.vb" />
+    <Compile Include="CommandLine\VisualBasicCompiler.vb" />
     <Compile Include="Compilation\AwaitExpressionInfo.vb" />
     <Compile Include="Compilation\BoundNodeSummary.vb" />
     <Compile Include="Compilation\ClsComplianceChecker.vb" />
@@ -446,7 +452,6 @@
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.vb" />
     <Compile Include="Lowering\AsyncRewriter\AsyncStateMachine.vb" />
     <Compile Include="Lowering\AsyncRewriter\ClosureKind.vb" />
-    <Compile Include="Lowering\DebugAttributes.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass_ExpressionLambdas.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter.vb" />
@@ -464,6 +469,7 @@
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.Analysis.vb" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.vb" />
     <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaMethod.vb" />
+    <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaCacheFieldSymbol.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_AddRemoveHandler.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_AnonymousTypeCreationExpression.vb" />
@@ -510,6 +516,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_RedimClause.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Return.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SelectCase.vb" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SyncLock.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Throw.vb" />
@@ -896,7 +903,7 @@
     <Compile Include="Syntax\SyntaxExtensions.vb" />
     <Compile Include="Syntax\SyntaxFactory.vb" />
     <Compile Include="Syntax\SyntaxFacts.vb" />
-    <Compile Include="Syntax\SyntaxFormatter.vb" />
+    <Compile Include="Syntax\SyntaxNormalizer.vb" />
     <Compile Include="Syntax\SyntaxKind.vb" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
     <Compile Include="Syntax\SyntaxKindExtensions.vb" />
@@ -920,7 +927,7 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
-    <Compile Include="Syntax\SyntaxUtilities.vb" />
+    <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />
@@ -944,6 +951,7 @@
     </Compile>
     <Compile Include="VisualBasicCompilationOptions.vb" />
     <Compile Include="VisualBasicExtensions.vb" />
+    <Compile Include="VisualBasicFileSystemExtensions.vb" />
     <Compile Include="VisualBasicParseOptions.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
@@ -999,18 +1007,19 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

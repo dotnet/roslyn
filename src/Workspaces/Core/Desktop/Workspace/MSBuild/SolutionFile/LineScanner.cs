@@ -1,10 +1,13 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class LineScanner
     {
         private readonly string _line;
-        private int _currentPosition = 0;
+        private int _currentPosition;
 
         public LineScanner(string line)
         {
@@ -13,7 +16,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public string ReadUpToAndEat(string delimiter)
         {
-            int index = _line.IndexOf(delimiter, _currentPosition);
+            int index = _line.IndexOf(delimiter, _currentPosition, StringComparison.Ordinal);
 
             if (index == -1)
             {

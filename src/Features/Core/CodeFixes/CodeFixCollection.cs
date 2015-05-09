@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal class CodeFixCollection
     {
-        public object Provider { get; private set; }
-        public TextSpan TextSpan { get; private set; }
-        public ImmutableArray<CodeFix> Fixes { get; private set; }
+        public object Provider { get; }
+        public TextSpan TextSpan { get; }
+        public ImmutableArray<CodeFix> Fixes { get; }
 
         /// <summary>
         /// Optional fix all context, which is non-null if the given <see cref="Provider"/> supports fix all occurrences code fix.
         /// </summary>
-        public FixAllCodeActionContext FixAllContext { get; private set; }
+        public FixAllCodeActionContext FixAllContext { get; }
 
         public CodeFixCollection(object provider, TextSpan span, IEnumerable<CodeFix> fixes, FixAllCodeActionContext fixAllContext = null) :
             this(provider, span, fixes.ToImmutableArray(), fixAllContext)

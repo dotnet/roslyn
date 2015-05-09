@@ -726,10 +726,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            BitArray byRefs;
+            BitVector byRefs;
             if (hasByRefs)
             {
-                byRefs = BitArray.Create(1 + (loweredReceiver != null ? 1 : 0) + loweredArguments.Length + (loweredRight != null ? 1 : 0));
+                byRefs = BitVector.Create(1 + (loweredReceiver != null ? 1 : 0) + loweredArguments.Length + (loweredRight != null ? 1 : 0));
 
                 int j = 1;
                 if (loweredReceiver != null)
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                byRefs = default(BitArray);
+                byRefs = default(BitVector);
             }
 
             int parameterCount = delegateSignature.Length - (returnsVoid ? 0 : 1);

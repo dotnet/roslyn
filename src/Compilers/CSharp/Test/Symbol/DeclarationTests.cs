@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -364,7 +365,7 @@ public class B
             private readonly SyntaxTree _underlyingTree;
             private readonly CompilationUnitSyntax _root;
 
-            public int AccessCount = 0;
+            public int AccessCount;
 
             public CountedSyntaxTree(SyntaxTree underlying)
             {
@@ -411,6 +412,11 @@ public class B
             public override bool TryGetText(out SourceText text)
             {
                 return _underlyingTree.TryGetText(out text);
+            }
+
+            public override Encoding Encoding
+            {
+                get { return _underlyingTree.Encoding; }
             }
 
             public override int Length

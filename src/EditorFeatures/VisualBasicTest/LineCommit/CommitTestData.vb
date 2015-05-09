@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Public ReadOnly Workspace As TestWorkspace
         Public ReadOnly View As ITextView
         Public ReadOnly UndoHistory As ITextUndoHistory
-        Private ReadOnly Formatter As FormatterMock
-        Private ReadOnly InlineRenameService As InlineRenameServiceMock
+        Private ReadOnly _formatter As FormatterMock
+        Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Sub New(test As XElement)
             Workspace = TestWorkspaceFactory.CreateWorkspace(test)
@@ -45,9 +45,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             Dim textUndoHistoryRegistry = Workspace.GetService(Of ITextUndoHistoryRegistry)()
             UndoHistory = textUndoHistoryRegistry.GetHistory(View.TextBuffer)
 
-            Formatter = New FormatterMock(Workspace)
-            InlineRenameService = New InlineRenameServiceMock()
-            Dim commitManagerFactory As New CommitBufferManagerFactory(Formatter, InlineRenameService)
+            _formatter = New FormatterMock(Workspace)
+            _inlineRenameService = New InlineRenameServiceMock()
+            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter, _inlineRenameService)
 
             ' Make sure the manager exists for the buffer
             Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)
@@ -62,15 +62,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         End Sub
 
         Friend Sub AssertHadCommit(expectCommit As Boolean)
-            Assert.Equal(expectCommit, Formatter.GotCommit)
+            Assert.Equal(expectCommit, _formatter.GotCommit)
         End Sub
 
         Friend Sub AssertUsedSemantics(expected As Boolean)
-            Assert.Equal(expected, Formatter.UsedSemantics)
+            Assert.Equal(expected, _formatter.UsedSemantics)
         End Sub
 
         Friend Sub StartInlineRenameSession()
-            InlineRenameService.HasSession = True
+            _inlineRenameService.HasSession = True
         End Sub
 
         Public Sub Dispose() Implements IDisposable.Dispose

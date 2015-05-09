@@ -1,15 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -33,23 +26,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            current As FieldSymbol,
-                           HoistedVariables As IReadOnlySet(Of Symbol),
+                           hoistedVariables As IReadOnlySet(Of Symbol),
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
                            SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
                            slotAllocatorOpt As VariableSlotAllocator,
                            nextFreeHoistedLocalSlot As Integer,
                            diagnostics As DiagnosticBag)
 
-                MyBase.New(F, state, HoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                MyBase.New(F, state, hoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 
                 Me._current = current
 
                 Me._originalMethodDeclaration = method.DeclaringSyntaxReferences(0).GetVisualBasicSyntax
             End Sub
 
-            Sub GenerateMoveNextAndDispose(Body As BoundStatement,
-                                           moveNextMethod As SynthesizedStateMachineMethod,
-                                           disposeMethod As SynthesizedStateMachineMethod)
+            Public Sub GenerateMoveNextAndDispose(Body As BoundStatement,
+                                           moveNextMethod As SynthesizedMethod,
+                                           disposeMethod As SynthesizedMethod)
 
                 ' Generate the body for MoveNext()
                 F.CurrentMethod = moveNextMethod

@@ -9,8 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -352,7 +352,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static void Throws<T>(Action del, bool allowDerived = false)
+        public static T Throws<T>(Action del, bool allowDerived = false) where T : Exception
         {
             try
             {
@@ -364,13 +364,13 @@ namespace Roslyn.Test.Utilities
                 if (type.Equals(typeof(T)))
                 {
                     // We got exactly the type we wanted
-                    return;
+                    return (T)ex;
                 }
 
                 if (allowDerived && typeof(T).IsAssignableFrom(type))
                 {
                     // We got a derived type
-                    return;
+                    return (T)ex;
                 }
 
                 // We got some other type. We know that type != typeof(T), and so we'll use Assert.Equal since Xunit
@@ -378,7 +378,7 @@ namespace Roslyn.Test.Utilities
                 Assert.Equal(typeof(T), type);
             }
 
-            Assert.True(false, "No exception was thrown.");
+            throw new Exception("No exception was thrown.");
         }
 
         public static void AssertEqualToleratingWhitespaceDifferences(
@@ -401,7 +401,7 @@ namespace Roslyn.Test.Utilities
         {
             expectedSubString = NormalizeWhitespace(expectedSubString);
             actualString = NormalizeWhitespace(actualString);
-            Assert.Contains(expectedSubString, actualString);
+            Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
         }
 
         internal static string NormalizeWhitespace(string input)
@@ -413,7 +413,7 @@ namespace Roslyn.Test.Utilities
                 var trimmedLine = line.Trim();
                 if (trimmedLine.Length > 0)
                 {
-                    if (!(trimmedLine.StartsWith("{", StringComparison.Ordinal) || trimmedLine.StartsWith("}", StringComparison.Ordinal)))
+                    if (!(trimmedLine[0] == '{' || trimmedLine[0] == '}'))
                     {
                         output.Append("  ");
                     }
@@ -514,7 +514,7 @@ namespace Roslyn.Test.Utilities
             return false;
         }
 
-        private static Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
+        private static readonly Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
         {
             AppDomain.CurrentDomain.DomainUnload += (_, __) =>
             {
@@ -528,5 +528,6 @@ namespace Roslyn.Test.Utilities
 
             return new List<Tuple<string, int, string>>();
         });
+
     }
 }

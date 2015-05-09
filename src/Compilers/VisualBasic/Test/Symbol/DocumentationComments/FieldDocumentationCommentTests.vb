@@ -6,14 +6,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class FieldDocumentationCommentTests
 
-        Private m_compilation As VisualBasicCompilation
-        Private m_acmeNamespace As NamespaceSymbol
-        Private m_widgetClass As NamedTypeSymbol
-        Private m_enumSymbol As NamedTypeSymbol
-        Private m_valueType As NamedTypeSymbol
+        Private ReadOnly _compilation As VisualBasicCompilation
+        Private ReadOnly _acmeNamespace As NamespaceSymbol
+        Private ReadOnly _widgetClass As NamedTypeSymbol
+        Private ReadOnly _enumSymbol As NamedTypeSymbol
+        Private ReadOnly _valueType As NamedTypeSymbol
 
         Public Sub New()
-            m_compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            _compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="FieldDocumentationCommentTests">
     <file name="a.vb"><![CDATA[
 Namespace Acme
@@ -45,16 +45,16 @@ End Namespace
     </file>
 </compilation>)
 
-            m_acmeNamespace = DirectCast(m_compilation.GlobalNamespace.GetMembers("Acme").Single(), NamespaceSymbol)
-            m_widgetClass = DirectCast(m_acmeNamespace.GetTypeMembers("Widget").Single(), NamedTypeSymbol)
-            m_enumSymbol = DirectCast(m_acmeNamespace.GetTypeMembers("E").Single(), NamedTypeSymbol)
-            m_ValueType = DirectCast(m_acmeNamespace.GetTypeMembers("ValueType").Single(), NamedTypeSymbol)
+            _acmeNamespace = DirectCast(_compilation.GlobalNamespace.GetMembers("Acme").Single(), NamespaceSymbol)
+            _widgetClass = DirectCast(_acmeNamespace.GetTypeMembers("Widget").Single(), NamedTypeSymbol)
+            _enumSymbol = DirectCast(_acmeNamespace.GetTypeMembers("E").Single(), NamedTypeSymbol)
+            _valueType = DirectCast(_acmeNamespace.GetTypeMembers("ValueType").Single(), NamedTypeSymbol)
         End Sub
 
         <Fact>
         Public Sub TestFieldInStruct()
-            Dim total1 = m_valueType.GetMembers("total1").Single()
-            Dim total2 = m_valueType.GetMembers("total2").Single()
+            Dim total1 = _valueType.GetMembers("total1").Single()
+            Dim total2 = _valueType.GetMembers("total2").Single()
             Assert.Equal("F:Acme.ValueType.total1", total1.GetDocumentationCommentId())
             Assert.Equal(<![CDATA[
 <member name="F:Acme.ValueType.total1">
@@ -73,49 +73,49 @@ End Namespace
         <Fact>
         Public Sub TestFieldInNestedClass()
             Assert.Equal("F:Acme.Widget.NestedClass.value",
-                         m_widgetClass.GetTypeMembers("NestedClass").Single() _
+                         _widgetClass.GetTypeMembers("NestedClass").Single() _
                             .GetMembers("value").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>
         Public Sub TestInstanceField()
             Assert.Equal("F:Acme.Widget.message",
-                         m_widgetClass.GetMembers("message").Single().GetDocumentationCommentId())
+                         _widgetClass.GetMembers("message").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>
         Public Sub TestSharedField()
             Assert.Equal("F:Acme.Widget.defaultColor",
-                         m_widgetClass.GetMembers("defaultColor").Single().GetDocumentationCommentId())
+                         _widgetClass.GetMembers("defaultColor").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>
         Public Sub TestConstField()
             Assert.Equal("F:Acme.Widget.PI",
-                         m_widgetClass.GetMembers("PI").Single().GetDocumentationCommentId())
+                         _widgetClass.GetMembers("PI").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>
         Public Sub TestReadOnlyField()
             Assert.Equal("F:Acme.Widget.monthlyAverage",
-                         m_widgetClass.GetMembers("monthlyAverage").Single().GetDocumentationCommentId())
+                         _widgetClass.GetMembers("monthlyAverage").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>
         Public Sub TestArray1()
             Assert.Equal("F:Acme.Widget.array1",
-                         m_widgetClass.GetMembers("array1").Single().GetDocumentationCommentId())
+                         _widgetClass.GetMembers("array1").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>
         Public Sub TestArray2()
             Assert.Equal("F:Acme.Widget.array2",
-                         m_widgetClass.GetMembers("array2").Single().GetDocumentationCommentId())
+                         _widgetClass.GetMembers("array2").Single().GetDocumentationCommentId())
         End Sub
 
         <Fact>
         Public Sub TestEnumField()
-            Dim field = m_enumSymbol.GetMembers("A").Single()
+            Dim field = _enumSymbol.GetMembers("A").Single()
             Assert.Equal("F:Acme.E.A", field.GetDocumentationCommentId())
             Assert.Equal(<![CDATA[
 <member name="F:Acme.E.A">

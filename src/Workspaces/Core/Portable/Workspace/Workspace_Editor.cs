@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (container == null)
             {
-                throw new ArgumentNullException("container");
+                throw new ArgumentNullException(nameof(container));
             }
 
             using (_stateLock.DisposableWait())

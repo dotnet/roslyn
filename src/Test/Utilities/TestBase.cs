@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
+
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,6 +23,7 @@ using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using System.Reflection.PortableExecutable;
 
 namespace Roslyn.Test.Utilities
 {
@@ -84,10 +87,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_portableRefsMinimal == null)
                 {
-                    var mscorlibPortable = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib.dll");
-                    var systemRuntimePortable = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime.dll");
-
-                    s_portableRefsMinimal = new MetadataReference[] { mscorlibPortable, systemRuntimePortable };
+                    s_portableRefsMinimal = new MetadataReference[] { MscorlibPP7Ref, SystemRuntimePP7Ref };
                 }
 
                 return s_portableRefsMinimal;
@@ -234,7 +234,22 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_aacorlibRef == null)
                 {
-                    s_aacorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928).GetReference(display: "mscorlib.v4_0_30319.dll");
+                    var source = TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928_cs;
+                    var syntaxTree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(source);
+
+                    var compilationOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+                    var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create("aacorlib.v15.0.3928.dll", new[] { syntaxTree }, null, compilationOptions);
+
+                    Stream dllStream = new MemoryStream();
+                    var emitResult = compilation.Emit(dllStream);
+                    if (!emitResult.Success)
+                    {
+                        emitResult.Diagnostics.Verify();
+                    }
+                    dllStream.Seek(0, SeekOrigin.Begin);
+
+                    s_aacorlibRef = AssemblyMetadata.CreateFromStream(dllStream).GetReference(display: "mscorlib.v4_0_30319.dll");
                 }
 
                 return s_aacorlibRef;
@@ -413,17 +428,59 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_facadeSystemRuntimeRef;
-        public static MetadataReference FacadeSystemRuntimeRef
+        private static MetadataReference s_mscorlibFacadeRef;
+        public static MetadataReference MscorlibFacadeRef
         {
             get
             {
-                if (s_facadeSystemRuntimeRef == null)
+                if (s_mscorlibFacadeRef == null)
                 {
-                    s_facadeSystemRuntimeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
+                    s_mscorlibFacadeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45.mscorlib).GetReference(display: "mscorlib.dll");
                 }
 
-                return s_facadeSystemRuntimeRef;
+                return s_mscorlibFacadeRef;
+            }
+        }
+
+        private static MetadataReference s_systemRuntimeFacadeRef;
+        public static MetadataReference SystemRuntimeFacadeRef
+        {
+            get
+            {
+                if (s_systemRuntimeFacadeRef == null)
+                {
+                    s_systemRuntimeFacadeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
+                }
+
+                return s_systemRuntimeFacadeRef;
+            }
+        }
+
+        private static MetadataReference s_mscorlibPP7Ref;
+        public static MetadataReference MscorlibPP7Ref
+        {
+            get
+            {
+                if (s_mscorlibPP7Ref == null)
+                {
+                    s_mscorlibPP7Ref = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib.dll");
+                }
+
+                return s_mscorlibPP7Ref;
+            }
+        }
+
+        private static MetadataReference s_systemRuntimePP7Ref;
+        public static MetadataReference SystemRuntimePP7Ref
+        {
+            get
+            {
+                if (s_systemRuntimePP7Ref == null)
+                {
+                    s_systemRuntimePP7Ref = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime.dll");
+                }
+
+                return s_systemRuntimePP7Ref;
             }
         }
 
@@ -544,7 +601,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Used to validate metadata blobs emitted for MarshalAs.
         /// </summary>
-        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitOptions, bool isField = true)
+        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitters, bool isField = true)
         {
             var metadataReader = assembly.GetMetadataReader();
 
@@ -564,7 +621,7 @@ namespace Roslyn.Test.Utilities
                     var field = metadataReader.GetFieldDefinition(fieldDef);
                     string fieldName = metadataReader.GetString(field.Name);
 
-                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitOptions);
+                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitters);
                     if (expectedBlob != null)
                     {
                         BlobHandle descriptor = metadataReader.GetFieldDefinition(fieldDef).GetMarshallingDescriptor();
@@ -594,7 +651,7 @@ namespace Roslyn.Test.Utilities
                         var paramRow = metadataReader.GetParameter(paramHandle);
                         string paramName = metadataReader.GetString(paramRow.Name);
 
-                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly, emitOptions);
+                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly, emitters);
                         if (expectedBlob != null)
                         {
                             Assert.NotEqual(0, (int)(paramRow.Attributes & ParameterAttributes.HasFieldMarshal));
@@ -664,21 +721,7 @@ namespace Roslyn.Test.Utilities
 
         public static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
         {
-            string actual = null;
-            using (var exebits = new MemoryStream())
-            {
-                using (var pdbbits = new MemoryStream())
-                {
-                    compilation.Emit(exebits, pdbbits);
-
-                    pdbbits.Position = 0;
-                    exebits.Position = 0;
-
-                    actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
-                }
-            }
-
-            return actual;
+            return SharedCompilationUtils.GetPdbXml(compilation, qualifiedMethodName);
         }
 
         public static Dictionary<int, string> GetMarkers(string pdbXml)
@@ -747,16 +790,6 @@ namespace Roslyn.Test.Utilities
                     return Token2SourceLineExporter.TokenToSourceMap2Xml(pdbbits, maskToken);
                 }
             }
-        }
-
-        public static void AssertXmlEqual(string expected, string actual)
-        {
-            XmlElementDiff.AssertEqual(XElement.Parse(expected), XElement.Parse(actual), null, 0, expectedIsXmlLiteral: true);
-        }
-
-        public static void AssertXmlEqual(XElement expected, XElement actual)
-        {
-            XmlElementDiff.AssertEqual(expected, actual, null, 0, expectedIsXmlLiteral: false);
         }
 
         protected static string ConsolidateArguments(string[] args)

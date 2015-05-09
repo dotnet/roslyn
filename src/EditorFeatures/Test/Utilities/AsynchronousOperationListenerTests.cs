@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                         signal1.Set();
                         sleepHelper.Sleep(TimeSpan.FromMilliseconds(500));
                         firstDone = true;
-                    });
+                    }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
                 firstTask.CompletesAsyncOperation(asyncToken1);
                 firstTask.Wait();
 
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                         signal2.Set();
                         sleepHelper.Sleep(TimeSpan.FromMilliseconds(500));
                         secondDone = true;
-                    });
+                    }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
                 secondTask.CompletesAsyncOperation(asyncToken2);
 
                 // give it two signals since second one might not have started when WaitTask.Wait is called - race condition

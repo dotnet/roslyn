@@ -1378,6 +1378,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Error reading debug information for &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadPdbData() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadPdbData", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Property accessors cannot be declared &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_BadPropertyAccessorFlags() As String
@@ -6135,7 +6144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to the value &apos;{0}&apos; is invalid for option &apos;{1}&apos;.
+        '''  Looks up a localized string similar to the value &apos;{1}&apos; is invalid for option &apos;{0}&apos;.
         '''</summary>
         Friend ReadOnly Property ERR_InvalidSwitchValue() As String
             Get
@@ -7315,6 +7324,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Compilation options &apos;{0}&apos; and &apos;{1}&apos; can&apos;t both be specified at the same time..
+        '''</summary>
+        Friend ReadOnly Property ERR_MutuallyExclusiveOptions() As String
+            Get
+                Return ResourceManager.GetString("ERR_MutuallyExclusiveOptions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;MyBase&apos; cannot be used with method &apos;{0}&apos; because it is declared &apos;MustOverride&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_MyBaseAbstractCall1() As String
@@ -7693,7 +7711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The feature &apos;Parameterless Instance Constructors in Structures&apos; requires language version 14 or above..
+        '''  Looks up a localized string similar to Structures cannot declare a non-shared &apos;Sub New&apos; with no parameters..
         '''</summary>
         Friend ReadOnly Property ERR_NewInStruct() As String
             Get
@@ -9929,15 +9947,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Parameterless instance constructors in structures must be public..
-        '''</summary>
-        Friend ReadOnly Property ERR_StructParameterlessInstanceCtorMustBePublic() As String
-            Get
-                Return ResourceManager.GetString("ERR_StructParameterlessInstanceCtorMustBePublic", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Methods declared in structures cannot have &apos;Handles&apos; clauses..
         '''</summary>
         Friend ReadOnly Property ERR_StructsCannotHandleEvents() As String
@@ -11767,7 +11776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Microsoft (R) Visual Basic Compiler version {0}.
+        '''  Looks up a localized string similar to {0} version {1}.
         '''</summary>
         Friend ReadOnly Property IDS_LogoLine1() As String
             Get
@@ -11826,6 +11835,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property IDS_TheSystemCannotFindThePathSpecified() As String
             Get
                 Return ResourceManager.GetString("IDS_TheSystemCannotFindThePathSpecified", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Microsoft (R) Visual Basic Compiler.
+        '''</summary>
+        Friend ReadOnly Property IDS_ToolName() As String
+            Get
+                Return ResourceManager.GetString("IDS_ToolName", resourceCulture)
             End Get
         End Property
         

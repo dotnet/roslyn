@@ -201,7 +201,7 @@ namespace Roslyn.Test.Utilities
 
         private static void AddMatch(string input, string value, int currentIndex, List<Tuple<int, string>> matches)
         {
-            var index = input.IndexOf(value, currentIndex);
+            var index = input.IndexOf(value, currentIndex, StringComparison.Ordinal);
             if (index >= 0)
             {
                 matches.Add(Tuple.Create(index, value));

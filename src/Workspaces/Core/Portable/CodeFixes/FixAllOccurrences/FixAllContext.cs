@@ -27,39 +27,39 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Project within which fix all occurrences was triggered.
         /// </summary>
-        public Project Project { get; private set; }
+        public Project Project { get; }
 
         /// <summary>
         /// Document within which fix all occurrences was triggered.
         /// </summary>
-        public Document Document { get; private set; }
+        public Document Document { get; }
 
         /// <summary>
         /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
         /// </summary>
-        public CodeFixProvider CodeFixProvider { get; private set; }
+        public CodeFixProvider CodeFixProvider { get; }
 
         /// <summary>
         /// FixAllScope to fix all occurrences.
         /// </summary>
-        public FixAllScope Scope { get; private set; }
+        public FixAllScope Scope { get; }
 
         /// <summary>
         /// Diagnostic Ids to fix.
         /// Note that <see cref="GetDocumentDiagnosticsAsync(Document)"/>, <see cref="GetProjectDiagnosticsAsync(Project)"/> and <see cref="GetAllDiagnosticsAsync(Project)"/> methods
         /// return only diagnostics whose IDs are contained in this set of Ids.
         /// </summary>
-        public ImmutableHashSet<string> DiagnosticIds { get; private set; }
+        public ImmutableHashSet<string> DiagnosticIds { get; }
 
         /// <summary>
         /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public string CodeActionEquivalenceKey { get; private set; }
+        public string CodeActionEquivalenceKey { get; }
 
         /// <summary>
         /// CancellationToken for fix all session.
         /// </summary>
-        public CancellationToken CancellationToken { get; private set; }
+        public CancellationToken CancellationToken { get; }
 
         internal FixAllContext(
             Document document,

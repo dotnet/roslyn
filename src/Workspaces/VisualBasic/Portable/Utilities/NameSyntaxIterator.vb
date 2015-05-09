@@ -13,20 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Friend Class NameSyntaxIterator
         Implements IEnumerable(Of NameSyntax)
 
-        Private ReadOnly name As NameSyntax
+        Private ReadOnly _name As NameSyntax
 
         Public Sub New(name As NameSyntax)
             If name Is Nothing Then
-                Throw New ArgumentNullException("name")
+                Throw New ArgumentNullException(NameOf(name))
             End If
 
-            Me.name = name
+            Me._name = name
         End Sub
 
         Public Function GetEnumerator() As IEnumerator(Of NameSyntax) Implements IEnumerable(Of NameSyntax).GetEnumerator
             Dim nodes = New LinkedList(Of NameSyntax)
 
-            Dim current = name
+            Dim current = _name
             While True
                 If TypeOf current Is QualifiedNameSyntax Then
                     Dim qualifiedName = DirectCast(current, QualifiedNameSyntax)

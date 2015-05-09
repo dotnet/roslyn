@@ -1,24 +1,19 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Resources;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
-
 using Microsoft.Build.Framework;
-using Microsoft.Build.Shared;
-using Microsoft.Build.Tasks;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CompilerServer;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// This class defines all of the common stuff that is shared between the Vbc and Csc tasks.
@@ -26,7 +21,13 @@ namespace Microsoft.CodeAnalysis.BuildTask
     /// </summary>
     public abstract class ManagedCompiler : ToolTask
     {
+        private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
+
+        public ManagedCompiler()
+        {
+            this.TaskResources = ErrorString.ResourceManager;
+        }
 
         #region Properties
 
@@ -92,6 +93,12 @@ namespace Microsoft.CodeAnalysis.BuildTask
         {
             set { _store["EmitDebugInformation"] = value; }
             get { return _store.GetOrDefault("EmitDebugInformation", false); }
+        }
+
+        public string ErrorLog
+        {
+            set { _store[nameof(ErrorLog)] = value; }
+            get { return (string)_store[nameof(ErrorLog)]; }
         }
 
         public int FileAlignment
@@ -179,6 +186,12 @@ namespace Microsoft.CodeAnalysis.BuildTask
             get { return (ITaskItem[])_store["References"]; }
         }
 
+        public bool ReportAnalyzer
+        {
+            set { _store[nameof(ReportAnalyzer)] = value; }
+            get { return _store.GetOrDefault(nameof(ReportAnalyzer), false); }
+        }
+
         public ITaskItem[] Resources
         {
             set { _store["Resources"] = value; }
@@ -190,8 +203,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
             set { _store["ResponseFiles"] = value; }
             get { return (ITaskItem[])_store["ResponseFiles"]; }
         }
-
-
 
         public ITaskItem[] Sources
         {
@@ -249,6 +260,18 @@ namespace Microsoft.CodeAnalysis.BuildTask
             get { return (string)_store["Win32Resource"]; }
         }
 
+        /// <summary>
+        /// If this property is true then the task will take every C# or VB
+        /// compilation which is queued by MSBuild and send it to the 
+        /// VBCSCompiler server instance, starting a new instance if necessary.
+        /// If false, we will use the values from ToolPath/Exe.
+        /// </summary>
+        public bool UseSharedCompilation
+        {
+            set { _store[nameof(UseSharedCompilation)] = value; }
+            get { return _store.GetOrDefault(nameof(UseSharedCompilation), false); }
+        }
+
         // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the 
         // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit 
         // property is set. 
@@ -256,7 +279,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
         {
             get
             {
-
                 string platform = this.Platform;
                 if ((String.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && this.Prefer32Bit)
                 {
@@ -278,6 +300,211 @@ namespace Microsoft.CodeAnalysis.BuildTask
         }
 
         #endregion
+
+        internal abstract BuildProtocolConstants.RequestLanguage Language { get; }
+
+        protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
+        {
+            if (!UseSharedCompilation || this.ToolPath != null)
+            {
+                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            }
+
+            using (_sharedCompileCts = new CancellationTokenSource())
+            {
+                try
+                {
+                    var responseTask = BuildClient.TryRunServerCompilation(
+                        Language,
+                        TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
+                        CurrentDirectoryToUse(),
+                        GetArguments(commandLineCommands, responseFileCommands),
+                        _sharedCompileCts.Token,
+                        libEnvVariable: LibDirectoryToUse());
+
+                    responseTask.Wait(_sharedCompileCts.Token);
+
+                    var response = responseTask.Result;
+                    if (response != null)
+                    {
+                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                    }
+                    else
+                    {
+                        ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    ExitCode = 0;
+                }
+                catch (Exception e)
+                {
+                    Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                    LogErrorOutput(e.ToString());
+                    ExitCode = -1;
+                }
+            }
+            return ExitCode;
+        }
+
+
+
+        /// <summary>
+        /// Try to get the directory this assembly is in. Returns null if assembly
+        /// was in the GAC.
+        /// </summary>
+        private static string TryGetClientDir()
+        {
+            var assembly = typeof(ManagedCompiler).Assembly;
+
+            if (assembly.GlobalAssemblyCache)
+                return null;
+
+            var uri = new Uri(assembly.CodeBase);
+            string assemblyPath = uri.IsFile
+                ? uri.LocalPath
+                : Assembly.GetCallingAssembly().Location;
+            return Path.GetDirectoryName(assemblyPath);
+        }
+
+        /// <summary>
+        /// Cancel the in-process build task.
+        /// </summary>
+        public override void Cancel()
+        {
+            base.Cancel();
+
+            _sharedCompileCts?.Cancel();
+        }
+
+        /// <summary>
+        /// Get the current directory that the compiler should run in.
+        /// </summary>
+        private string CurrentDirectoryToUse()
+        {
+            // ToolTask has a method for this. But it may return null. Use the process directory
+            // if ToolTask didn't override. MSBuild uses the process directory.
+            string workingDirectory = GetWorkingDirectory();
+            if (string.IsNullOrEmpty(workingDirectory))
+                workingDirectory = Directory.GetCurrentDirectory();
+            return workingDirectory;
+        }
+
+        /// <summary>
+        /// Get the "LIB" environment variable, or NULL if none.
+        /// </summary>
+        private string LibDirectoryToUse()
+        {
+            // First check the real environment.
+            string libDirectory = Environment.GetEnvironmentVariable("LIB");
+
+            // Now go through additional environment variables.
+            string[] additionalVariables = this.EnvironmentVariables;
+            if (additionalVariables != null)
+            {
+                foreach (string var in this.EnvironmentVariables)
+                {
+                    if (var.StartsWith("LIB=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        libDirectory = var.Substring(4);
+                    }
+                }
+            }
+
+            return libDirectory;
+        }
+
+        /// <summary>
+        /// The return code of the compilation. Strangely, this isn't overridable from ToolTask, so we need 
+        /// to create our own.
+        /// </summary>
+        [Output]
+        public new int ExitCode { get; private set; }
+
+        /// <summary>
+        /// Handle a response from the server, reporting messages and returning
+        /// the appropriate exit code.
+        /// </summary>
+        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
+        {
+            switch (response.Type)
+            {
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
+                    return -1;
+
+                case BuildResponse.ResponseType.Completed:
+                    var completedResponse = (CompletedBuildResponse)response;
+                    LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
+
+                    if (LogStandardErrorAsError)
+                    {
+                        LogErrorOutput(completedResponse.ErrorOutput);
+                    }
+                    else
+                    {
+                        LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
+                    }
+
+                    return completedResponse.ReturnCode;
+
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
+                default:
+                    throw new InvalidOperationException("Encountered unknown response type");
+            }
+        }
+
+        private void LogErrorOutput(string output)
+        {
+            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string line in lines)
+            {
+                string trimmedMessage = line.Trim();
+                if (trimmedMessage != "")
+                {
+                    Log.LogError(trimmedMessage);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Log each of the messages in the given output with the given importance.
+        /// We assume each line is a message to log.
+        /// </summary>
+        /// <remarks>
+        /// Should be "private protected" visibility once it is introduced into C#.
+        /// </remarks>
+        internal abstract void LogMessages(string output, MessageImportance messageImportance);
+
+        /// <summary>
+        /// Get the command line arguments to pass to the compiler.
+        /// </summary>
+        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
+        {
+            CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
+            CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
+            var commandLineArguments =
+                CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
+            var responseFileArguments =
+                CommandLineParser.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
+            return commandLineArguments.Concat(responseFileArguments).ToArray();
+        }
+
+        /// <summary>
+        /// Returns the command line switch used by the tool executable to specify the response file
+        /// Will only be called if the task returned a non empty string from GetResponseFileCommands
+        /// Called after ValidateParameters, SkipTaskExecution and GetResponseFileCommands
+        /// </summary>
+        override protected string GenerateResponseFileCommands()
+        {
+            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
+            AddResponseFileCommands(commandLineBuilder);
+            return commandLineBuilder.ToString();
+        }
 
         protected override string GenerateCommandLineCommands()
         {
@@ -356,7 +583,10 @@ namespace Microsoft.CodeAnalysis.BuildTask
             commandLine.AppendPlusOrMinusSwitch("/optimize", this._store, "Optimize");
             commandLine.AppendSwitchIfNotNull("/out:", this.OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", this.CodeAnalysisRuleSet);
+            commandLine.AppendSwitchIfNotNull("/errorlog:", this.ErrorLog);
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", this.SubsystemVersion);
+            // TODO: uncomment the below line once "/reportanalyzer" switch is added to compiler.
+            //commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
             commandLine.AppendSwitchIfNotNull("/resource:", this.Resources, new string[] { "LogicalName", "Access" });
             commandLine.AppendSwitchIfNotNull("/target:", this.TargetType);
@@ -394,7 +624,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
         }
 
         /// <summary>
-        /// Adds a "/analyzer:" switch to the command line for each provided analyzer.
+        /// Adds a "/additionalfile:" switch to the command line for each additional file.
         /// </summary>
         private void AddAdditionalFilesToCommandLine(CommandLineBuilderExtension commandLine)
         {
@@ -503,11 +733,11 @@ namespace Microsoft.CodeAnalysis.BuildTask
                 {
                     if (disambiguatingMetadataName == null || String.IsNullOrEmpty(disambiguatingMetadataValue))
                     {
-                        Log.LogErrorWithCodeFromResources("General.DuplicateItemsNotSupported", item.ItemSpec, parameterName);
+                        Log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupported", item.ItemSpec, parameterName);
                     }
                     else
                     {
-                        Log.LogErrorWithCodeFromResources("General.DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
+                        Log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
                     }
                     return false;
                 }
@@ -564,11 +794,11 @@ namespace Microsoft.CodeAnalysis.BuildTask
             set;
         }
 
-        private bool hostCompilerSupportsAllParameters;
+        private bool _hostCompilerSupportsAllParameters;
         protected bool HostCompilerSupportsAllParameters
         {
-            get { return this.hostCompilerSupportsAllParameters; }
-            set { this.hostCompilerSupportsAllParameters = value; }
+            get { return _hostCompilerSupportsAllParameters; }
+            set { _hostCompilerSupportsAllParameters = value; }
         }
 
         /// <summary>
@@ -586,8 +816,8 @@ namespace Microsoft.CodeAnalysis.BuildTask
         {
             if (!resultFromHostObjectSetOperation)
             {
-                Log.LogMessageFromResources(MessageImportance.Normal, "General.ParameterUnsupportedOnHostCompiler", parameterName);
-                this.hostCompilerSupportsAllParameters = false;
+                Log.LogMessageFromResources(MessageImportance.Normal, "General_ParameterUnsupportedOnHostCompiler", parameterName);
+                _hostCompilerSupportsAllParameters = false;
             }
         }
 
@@ -610,7 +840,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                 if (!File.Exists(reference.ItemSpec))
                 {
                     success = false;
-                    Log.LogErrorWithCodeFromResources("General.ReferenceDoesNotExist", reference.ItemSpec);
+                    Log.LogErrorWithCodeFromResources("General_ReferenceDoesNotExist", reference.ItemSpec);
                 }
             }
 
@@ -634,8 +864,6 @@ namespace Microsoft.CodeAnalysis.BuildTask
         /// This method will only be called during the initialization of the host object,
         /// which is only used during IDE builds.
         /// </summary>
-        /// <param name="noDefaultWin32Manifest"></param>
-        /// <param name="win32Manifest"></param>
         /// <returns>the path to the win32 manifest to provide to the host object</returns>
         internal string GetWin32ManifestSwitch
         (
@@ -647,12 +875,10 @@ namespace Microsoft.CodeAnalysis.BuildTask
             {
                 if (String.IsNullOrEmpty(win32Manifest) && String.IsNullOrEmpty(this.Win32Resource))
                 {
-
                     // We only want to consider the default.win32manifest if this is an executable
                     if (!String.Equals(TargetType, "library", StringComparison.OrdinalIgnoreCase)
                        && !String.Equals(TargetType, "module", StringComparison.OrdinalIgnoreCase))
                     {
-
                         // We need to compute the path to the default win32 manifest
                         string pathToDefaultManifest = ToolLocationHelper.GetPathToDotNetFrameworkFile
                                                        (
@@ -666,7 +892,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                             // So just a message is fine.
                             Log.LogMessageFromResources
                             (
-                                "General.ExpectedFileMissing",
+                                "General_ExpectedFileMissing",
                                 "default.win32manifest"
                             );
                         }

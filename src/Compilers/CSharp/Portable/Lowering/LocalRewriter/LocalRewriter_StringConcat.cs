@@ -427,6 +427,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
         }
-
     }
 }

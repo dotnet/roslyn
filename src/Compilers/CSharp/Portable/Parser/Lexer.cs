@@ -674,12 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '<':
-                    if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar(1) == '>')
-                    {
-                        // For "<>f_AnonymousType", which is an identifier in DebuggerSyntax mode
-                        goto case 'a';
-                    }
-
                     TextWindow.AdvanceChar();
                     if (TextWindow.PeekChar() == '=')
                     {
@@ -688,13 +682,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (TextWindow.PeekChar() == '<')
                     {
-                        if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar(1) == '>')
-                        {
-                            // For "GenericOf<<>f__AnonymousType>"
-                            info.Kind = SyntaxKind.LessThanToken;
-                            break;
-                        }
-
                         TextWindow.AdvanceChar();
                         if (TextWindow.PeekChar() == '=')
                         {

@@ -31,29 +31,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                                                                              workspace, document,
                                                                              cancellationToken:=Nothing).Result
                                    Order By tag.Span.Start
-                                   Let spanType = If(tag.Tag.Type = DefinitionHighlightTag.TagId, "Definition", "Reference")
-                                   Select spanType + ": " + tag.Span.Span.ToTextSpan().ToString()
+                                   Let spanType = If(tag.Tag.Type = DefinitionHighlightTag.TagId, "Definition",
+                                       If(tag.Tag.Type = WrittenReferenceHighlightTag.TagId, "WrittenReference", "Reference"))
+                                   Select spanType + ":" + tag.Span.Span.ToTextSpan().ToString()
 
-                Dim expectedDefinitionSpans As New List(Of Tuple(Of String, TextSpan))
+                Dim expectedTags As New List(Of String)
 
                 For Each hostDocument In workspace.Documents
-                    If hostDocument.AnnotatedSpans.ContainsKey("Definition") Then
-                        For Each definitionSpan In hostDocument.AnnotatedSpans("Definition")
-                            expectedDefinitionSpans.Add(Tuple.Create("Definition", definitionSpan))
+                    For Each nameAndSpans In hostDocument.AnnotatedSpans
+                        For Each span In nameAndSpans.Value
+                            expectedTags.Add(nameAndSpans.Key + ":" + span.ToString())
                         Next
-                    End If
+                    Next
                 Next
-
-                Dim expectedReferenceSpans = workspace.Documents.SelectMany(Function(d) d.SelectedSpans).Select(Function(s) Tuple.Create("Reference", s))
-
-                Dim expectedTags = From span In expectedDefinitionSpans.Concat(expectedReferenceSpans)
-                                   Order By span.Item2.Start
-                                   Select span.Item1 + ": " + span.Item2.ToString()
 
                 AssertEx.Equal(expectedTags, producedTags)
             End Using
         End Sub
-
     End Class
-
 End Namespace

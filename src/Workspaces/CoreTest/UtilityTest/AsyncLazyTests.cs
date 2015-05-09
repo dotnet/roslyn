@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     synchronousRequestThread = null;
                 }
-            }, CancellationToken.None);
+            }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Current);
 
             // Wait until this request has actually started
             synchronousComputationStartedEvent.WaitOne();
@@ -126,50 +126,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expectedTaskStatus, observedAntecedentTaskStatus.Value);
         }
 
-        [Fact(Skip = "GitHub Issue 204")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueAsyncStillCachesResult()
         {
-            using (new StopTheThreadPoolContext())
-            {
-                int computations = 0;
-                var requestCancellationTokenSource = new CancellationTokenSource();
-
-                var lazy = new AsyncLazy<object>(c =>
-                    {
-                        Interlocked.Increment(ref computations);
-
-                        // We do not want to ever use the cancellation token that we are passed to this
-                        // computation. Rather, we will ignore it but cancel any request that is
-                        // outstanding.
-                        requestCancellationTokenSource.Cancel();
-
-                        return Task.FromResult(new object());
-                    }, cacheResult: true);
-
-                // Do a first request. Even though we will get a cancellation during the evaluation,
-                // since we handed a result back, that result must be cached.
-                var firstRequestResult = lazy.GetValueAsync(requestCancellationTokenSource.Token).Result;
-
-                // And a second request. We'll let this one complete normally.
-                var secondRequestResult = lazy.GetValueAsync(CancellationToken.None).Result;
-
-                // We should have gotten the same cached result, and we should have only computed once.
-                Assert.Same(secondRequestResult, firstRequestResult);
-                Assert.Equal(1, computations);
-            }
+            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValueAsync(ct).Result, includeSynchronousComputation: true);
+            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValueAsync(ct).Result, includeSynchronousComputation: false);
         }
 
-        [Fact(Skip = "GitHub Issue 204")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
-        public void CancellationDuringInlinedComputationFromGetValueWithoutSynchronousComputationStillCachesResult()
+        public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
         {
-            using (new StopTheThreadPoolContext())
-            {
-                int computations = 0;
-                var requestCancellationTokenSource = new CancellationTokenSource();
+            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
+            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
+        }
 
-                var lazy = new AsyncLazy<object>(c =>
+        private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore(Func<AsyncLazy<object>, CancellationToken, object> doGetValue, bool includeSynchronousComputation)
+        {
+            int computations = 0;
+            var requestCancellationTokenSource = new CancellationTokenSource();
+            object createdObject = null;
+
+            Func<CancellationToken, object> synchronousComputation = c =>
                 {
                     Interlocked.Increment(ref computations);
 
@@ -178,20 +157,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     // outstanding.
                     requestCancellationTokenSource.Cancel();
 
-                    return Task.FromResult(new object());
-                }, cacheResult: true);
+                    createdObject = new object();
+                    return createdObject;
+                };
 
-                // Do a first request. Even though we will get a cancellation during the evaluation,
-                // since we handed a result back, that result must be cached.
-                var firstRequestResult = lazy.GetValue(requestCancellationTokenSource.Token);
+            var lazy = new AsyncLazy<object>(
+                c => Task.FromResult(synchronousComputation(c)),
+                includeSynchronousComputation ? synchronousComputation : null,
+                cacheResult: true);
 
-                // And a second request. We'll let this one complete normally.
-                var secondRequestResult = lazy.GetValue(CancellationToken.None);
+            var thrownException = AssertEx.Throws<Exception>(() =>
+                {
+                    // Do a first request. Even though we will get a cancellation during the evaluation,
+                    // since we handed a result back, that result must be cached.
+                    doGetValue(lazy, requestCancellationTokenSource.Token);
+                }, allowDerived: true);
 
-                // We should have gotten the same cached result, and we should have only computed once.
-                Assert.Same(secondRequestResult, firstRequestResult);
-                Assert.Equal(1, computations);
-            }
+            // Assert it's either cancellation or aggregate exception
+            Assert.True(thrownException is OperationCanceledException || ((AggregateException)thrownException).Flatten().InnerException is OperationCanceledException);
+
+            // And a second request. We'll let this one complete normally.
+            var secondRequestResult = doGetValue(lazy, CancellationToken.None);
+
+            // We should have gotten the same cached result, and we should have only computed once.
+            Assert.Same(createdObject, secondRequestResult);
+            Assert.Equal(1, computations);
         }
 
         [Fact]

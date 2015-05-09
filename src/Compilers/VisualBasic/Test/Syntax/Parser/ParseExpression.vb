@@ -2670,7 +2670,7 @@ End Module
             </errors>)
     End Sub
 
-    <Fact>
+    <ClrOnlyFact>
     <WorkItem(1085618, "DevDiv")>
     Public Sub TooDeepLambdaDeclarations()
         Dim depth = 5000
@@ -2700,7 +2700,7 @@ End Module]]>.Value)
         Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
-    <Fact>
+    <ClrOnlyFact>
     Public Sub TooDeepObjectInitializers()
         Dim depth = 5000
         Dim builder As New StringBuilder()
@@ -2731,6 +2731,48 @@ End Module]]>.Value)
 
         Dim tree = Parse(builder.ToString())
         Dim diagnostic = tree.GetDiagnostics().Single()
+        Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
+    End Sub
+
+    <ClrOnlyFact>
+    Public Sub TooDeepLambdaDeclarationsAsExpression()
+        Dim depth = 5000
+        Dim builder As New StringBuilder()
+        builder.AppendLine("Sub()")
+        For i = 0 To depth
+            Dim line = String.Format("Dim x{0} = Sub()", i)
+            builder.AppendLine(line)
+        Next
+
+        For i = 0 To depth
+            builder.AppendLine("End Sub")
+        Next
+
+        builder.AppendLine("End Sub")
+
+        Dim expr = SyntaxFactory.ParseExpression(builder.ToString())
+        Dim diagnostic = expr.GetDiagnostics().Single()
+        Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
+    End Sub
+
+    <ClrOnlyFact>
+    Public Sub TooDeepLambdaDeclarationsAsStatement()
+        Dim depth = 5000
+        Dim builder As New StringBuilder()
+        builder.AppendLine("Dim c = Sub()")
+        For i = 0 To depth
+            Dim line = String.Format("Dim x{0} = Sub()", i)
+            builder.AppendLine(line)
+        Next
+
+        For i = 0 To depth
+            builder.AppendLine("End Sub")
+        Next
+
+        builder.AppendLine("End Sub")
+
+        Dim stmt = SyntaxFactory.ParseExecutableStatement(builder.ToString())
+        Dim diagnostic = stmt.GetDiagnostics().Single()
         Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 

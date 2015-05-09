@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 
         Friend Sub CollectCommentsRegions(node As SyntaxNode, spans As List(Of OutliningSpan))
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim triviaList = node.GetLeadingTrivia()

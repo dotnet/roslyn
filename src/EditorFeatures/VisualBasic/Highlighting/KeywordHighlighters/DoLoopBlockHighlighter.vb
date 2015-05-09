@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
             With doLoop.DoStatement
                 If .WhileOrUntilClause IsNot Nothing Then
-                    highlights.Add(TextSpan.FromBounds( .DoKeyword.SpanStart, .WhileOrUntilClause.WhileOrUntilKeyword.Span.End))
+                    highlights.Add(TextSpan.FromBounds(.DoKeyword.SpanStart, .WhileOrUntilClause.WhileOrUntilKeyword.Span.End))
                 Else
-                    highlights.Add( .DoKeyword.Span)
+                    highlights.Add(.DoKeyword.Span)
                 End If
             End With
 
@@ -40,9 +40,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
             With doLoop.LoopStatement
                 If .WhileOrUntilClause IsNot Nothing Then
-                    highlights.Add(TextSpan.FromBounds( .LoopKeyword.SpanStart, .WhileOrUntilClause.WhileOrUntilKeyword.Span.End))
+                    highlights.Add(TextSpan.FromBounds(.LoopKeyword.SpanStart, .WhileOrUntilClause.WhileOrUntilKeyword.Span.End))
                 Else
-                    highlights.Add( .LoopKeyword.Span)
+                    highlights.Add(.LoopKeyword.Span)
                 End If
             End With
 

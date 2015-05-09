@@ -920,8 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static Func<Symbol, MethodSymbol> s_toMethodSymbolFunc = s => (MethodSymbol)s;
-        private static Func<Symbol, PropertySymbol> s_toPropertySymbolFunc = s => (PropertySymbol)s;
+        private static readonly Func<Symbol, MethodSymbol> s_toMethodSymbolFunc = s => (MethodSymbol)s;
+        private static readonly Func<Symbol, PropertySymbol> s_toPropertySymbolFunc = s => (PropertySymbol)s;
 
         private NamedTypeSymbol ConstructNamedType(
             NamedTypeSymbol type,
@@ -1007,22 +1007,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal Symbol GetSpecialTypeMember(SpecialMember member, DiagnosticBag diagnostics, CSharpSyntaxNode syntax)
         {
-            var memberSymbol = Compilation.GetSpecialTypeMember(member);
-            if ((object)memberSymbol != null)
+            Symbol memberSymbol;
+            return TryGetSpecialTypeMember(this.Compilation, member, syntax, diagnostics, out memberSymbol)
+                ? memberSymbol
+                : null;
+        }
+
+        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol) 
+            where TSymbol : Symbol
+        {
+            symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);
+            if ((object)symbol == null)
             {
-                var useSiteDiagnostic = memberSymbol.GetUseSiteDiagnosticForSymbolOrContainingType();
-                if (useSiteDiagnostic != null)
-                {
-                    Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, syntax.Location);
-                }
-            }
-            else
-            {
-                MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(member);
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name), syntax.Location);
+                MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
+                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
+                return false;
             }
 
-            return memberSymbol;
+            var useSiteDiagnostic = symbol.GetUseSiteDiagnosticForSymbolOrContainingType();
+            if (useSiteDiagnostic != null)
+            {
+                Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, new SourceLocation(syntax));
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -1125,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class ConsistentSymbolOrder : IComparer<Symbol>
         {
-            public static ConsistentSymbolOrder Instance = new ConsistentSymbolOrder();
+            public static readonly ConsistentSymbolOrder Instance = new ConsistentSymbolOrder();
             public int Compare(Symbol fst, Symbol snd)
             {
                 if (snd == fst) return 0;
@@ -1850,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, out bool encounteredCycle)
         {
-            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity));
+            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity, StringComparison.Ordinal));
 
             encounteredCycle = false;
 

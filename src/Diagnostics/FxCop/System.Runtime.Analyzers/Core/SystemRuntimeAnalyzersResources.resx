@@ -183,4 +183,91 @@
   <data name="MakeSetterNonPublic" xml:space="preserve">
     <value>Make the setter of the property non-public</value>
   </data>
+  <data name="OverloadOperatorEqualsOnOverridingValueTypeEquals" xml:space="preserve">
+    <value>Overload operator equals on overriding ValueType.Equals</value>
+  </data>
+  <data name="OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription" xml:space="preserve">
+    <value>Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator.</value>
+  </data>
+  <data name="OverloadOperatorEqualsOnOverridingValueTypeEquals1" xml:space="preserve">
+    <value>Overload operator equals on overriding ValueType.Equals</value>
+  </data>
+  <data name="MarkAssembliesWithCLSCompliantAttribute" xml:space="preserve">
+    <value>Mark assemblies with CLSCompliantAttribute</value>
+  </data>
+  <data name="MarkAssembliesWithCLSCompliantDescription" xml:space="preserve">
+    <value>Assemblies should explicitly state their CLS compliance using the CLSCompliant attribute. An assembly without this attribute is not CLS-compliant. Assemblies, modules, and types can be CLS-compliant even if some parts of the assembly, module, or type are not CLS-compliant. The following rules apply: 1) If the element is marked CLSCompliant, any noncompliant members must have the CLSCompliant attribute present with its argument set to false. 2) A comparable CLS-compliant alternative member must be supplied for each member that is not CLS-compliant.</value>
+  </data>
+  <data name="AssembliesShouldBeMarkedWithAssemblyVersionAttribute" xml:space="preserve">
+    <value>Assemblies should be marked with AssemblyVersionAttribute</value>
+  </data>
+  <data name="MarkAllAssembliesWithComVisible" xml:space="preserve">
+    <value>Mark all assemblies with ComVisible</value>
+  </data>
+  <data name="MarkAllAssembliesWithComVisibleDescription" xml:space="preserve">
+    <value>The System.Runtime.InteropServices.ComVisible attribute indicates whether COM clients can use the library. Good design dictates that developers explicitly indicate COM visibility. The default value for this attribute is 'true'. However, the best design is to mark the assembly ComVisible false, and then mark types, interfaces, and individual members as ComVisible true, as appropriate.</value>
+  </data>
+  <data name="CA1017_AttributeTrue" xml:space="preserve">
+    <value>Consider changing the ComVisible attribute on {0} to false, and opting in at the type level.</value>
+  </data>
+  <data name="CA1017_NoAttribute" xml:space="preserve">
+    <value>Because {0} exposes externally visible types, mark it with ComVisible(false) at the assembly level and then mark all types within the assembly that should be exposed to COM clients with ComVisible(true).</value>
+  </data>
+  <data name="AvoidUnsealedAttributes" xml:space="preserve">
+    <value>Avoid unsealed attributes.</value>
+  </data>
+  <data name="SealAttributeTypesForImprovedPerf" xml:space="preserve">
+    <value>Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes.</value>
+  </data>
+  <data name="AvoidUnsealedAttributesCodeFix" xml:space="preserve">
+    <value>Seal attribute type.</value>
+  </data>
+  <data name="StringComparisonShouldBeOrdinalDescription" xml:space="preserve">
+    <value>For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture.</value>
+  </data>
+  <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
+    <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
+  </data>
+  <data name="TestForEmptyStringsUsingStringLengthDescription" xml:space="preserve">
+    <value>Comparing strings using the string.Length property or the string.IsNullOrEmpty method is significantly faster than using string.Equals. This is because Equals executes significantly more MSIL instructions than either IsNullOrEmpty or the number of instructions executed to retrieve the Length property value and compare it to zero.</value>
+  </data>
+  <data name="TestForEmptyStringsUsingStringLength" xml:space="preserve">
+    <value>Test for empty strings using 'string.Length' property or 'string.IsNullOrEmpty' method instead of an Equality check.</value>
+  </data>
+  <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
+    <value>Disposable fields should be disposed</value>
+  </data>
+  <data name="DoNotMarkEnumsWithFlags" xml:space="preserve">
+    <value>Do not mark Enum with FlagsAttribute</value>
+  </data>
+  <data name="DoNotMarkEnumsWithFlagsDescription" xml:space="preserve">
+    <value>The enumeration does not appear to contain a consistent set values that can be combined using  the OR (|) and AND (&amp;amp;amp;amp;) operators. Using the Flags attribute on an enumeration suggests that the enumeration values are meant to be combined using the AND and OR operators. Typically, a flags enumeration uses values that are either powers of two, or combine other values that are powers of two.</value>
+  </data>
+  <data name="DoNotMarkEnumsWithFlagsMessage" xml:space="preserve">
+    <value>'{0}' is marked with FlagsAttribute but a discrete member cannot be found for every settable bit that is used across the range of enum values. Remove FlagsAttribute from the type or define new members for the following (currently missing) values: '{1}'.</value>
+  </data>
+  <data name="MarkEnumsWithFlags" xml:space="preserve">
+    <value>Mark Enum with FlagsAttribute</value>
+  </data>
+  <data name="MarkEnumsWithFlagsDescription" xml:space="preserve">
+    <value>The enumeration appears to be made up of combinable flags. If this true, apply the Flags attribute to the enumeration.</value>
+  </data>
+  <data name="MarkEnumsWithFlagsMessage" xml:space="preserve">
+    <value>The constituent members of '{0}' appear to represent flags that can be combined rather than discrete values. If this is correct, mark the enumeration with FlagsAttribute.</value>
+  </data>
+  <data name="DoNotMarkEnumsWithFlagsCodeFix" xml:space="preserve">
+    <value>Remove FlagsAttribute from enum.</value>
+  </data>
+  <data name="MarkEnumsWithFlagsCodeFix" xml:space="preserve">
+    <value>Apply FlagsAttribute to enum.</value>
+  </data>
+  <data name="DoNotLockOnObjectsWithWeakIdentity" xml:space="preserve">
+    <value>Do not lock on objects with weak identity.</value>
+  </data>
+  <data name="DoNotLockOnWeakIdentity" xml:space="preserve">
+    <value>Do not lock on a reference of type '{0}' as it has weak identity. Replace that with a lock against an object with strong identity.</value>
+  </data>
+  <data name="UseGenericEventHandlerInstances" xml:space="preserve">
+    <value>Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler</value>
+  </data>
 </root>

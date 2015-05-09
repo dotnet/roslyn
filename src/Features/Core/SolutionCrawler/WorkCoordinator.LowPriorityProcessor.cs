@@ -57,14 +57,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         try
                         {
                             // we wait for global operation, higher and normal priority processor to finish its working
-                            await Task.WhenAll(this.Processor._highPriorityProcessor.Running,
-                                this.Processor._normalPriorityProcessor.Running,
-                                GlobalOperationWaitAsync()).ConfigureAwait(false);
+                            await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
-                            // process any available project work, preferring the active project.                            
-                            CancellationTokenSource projectCancellation;
+                            // process any available project work, preferring the active project.
                             WorkItem workItem;
-                            if (_workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), out workItem, out projectCancellation))
+                            CancellationTokenSource projectCancellation;
+                            if (_workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), this.Processor.DependencyGraph, out workItem, out projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
@@ -72,6 +70,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
+                        }
+                    }
+
+                    protected override Task HigherQueueOperationTask
+                    {
+                        get
+                        {
+                            return Task.WhenAll(this.Processor._highPriorityProcessor.Running, this.Processor._normalPriorityProcessor.Running);
+                        }
+                    }
+
+                    protected override bool HigherQueueHasWorkItem
+                    {
+                        get
+                        {
+                            return this.Processor._highPriorityProcessor.HasAnyWork || this.Processor._normalPriorityProcessor.HasAnyWork;
                         }
                     }
 
@@ -89,9 +103,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         var added = _workItemQueue.AddOrReplace(item);
 
+                        // lower priority queue gets lowest time slot possible. if there is any activity going on in higher queue, it drop whatever it has
+                        // and let higher work item run
+                        CancelRunningTaskIfHigherQueueHasWorkItem();
+
                         Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, item.ProjectId, !added);
 
                         SolutionCrawlerLogger.LogWorkItemEnqueue(this.Processor._logAggregator, item.ProjectId);
+                    }
+
+                    private void CancelRunningTaskIfHigherQueueHasWorkItem()
+                    {
+                        if (!HigherQueueHasWorkItem)
+                        {
+                            return;
+                        }
+
+                        _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
                     private async Task ProcessProjectAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             try
             {
-                var workerBackOffTimeSpanInMS = workspace.Options.GetOption(SolutionCrawlerOptions.PreviewBackOffTimeSpanInMS);
+                var workerBackOffTimeSpanInMS = workspace.Options.GetOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS);
 
                 var analyzer = _provider.CreateIncrementalAnalyzer(workspace);
                 var source = s_cancellationTokens.GetValue(workspace, _ => new CancellationTokenSource());

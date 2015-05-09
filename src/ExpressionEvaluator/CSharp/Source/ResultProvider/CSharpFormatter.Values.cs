@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
@@ -18,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (typeToDisplayOpt != null)
             {
-                AppendQualifiedTypeName(builder, typeToDisplayOpt, escapeKeywordIdentifiers: true);
+                // We're showing the type of a value, so "dynamic" does not apply.
+                int index = 0;
+                AppendQualifiedTypeName(builder, typeToDisplayOpt, default(DynamicFlagsCustomTypeInfo), ref index, escapeKeywordIdentifiers: true);
                 builder.Append('.');
                 AppendIdentifierEscapingPotentialKeywords(builder, name);
             }
@@ -44,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var builder = pooled.Builder;
             builder.Append('{');
 
-            builder.Append(GetTypeName(lmrType)); // NOTE: call our impl directly, since we're coupled anyway.
+            // We're showing the type of a value, so "dynamic" does not apply.
+            builder.Append(GetTypeName(new TypeAndCustomInfo(lmrType))); // NOTE: call our impl directly, since we're coupled anyway.
 
             var numSizes = sizes.Count;
 
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string FormatString(string str, ObjectDisplayOptions options)
         {
-            return ObjectDisplay.FormatString(str, quote: options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '"' : '\0', escapeNonPrintable: false);
+            return ObjectDisplay.FormatString(str, useQuotes: options.IncludesOption(ObjectDisplayOptions.UseQuotes));
         }
     }
 }

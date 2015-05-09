@@ -16,8 +16,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module CommonSemanticModelExtensions
 
-        Private Const DefaultParameterName = "p"
-        Private Const DefaultBuiltInParameterName = "v"
+        Private Const s_defaultParameterName = "p"
+        Private Const s_defaultBuiltInParameterName = "v"
 
         <Extension()>
         Public Function LookupTypeRegardlessOfArity(semanticModel As SemanticModel,
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GenerateNameForArgument(semanticModel As SemanticModel,
                                                 argument As ArgumentSyntax) As String
             Dim result = GenerateNameForArgumentWorker(semanticModel, argument)
-            Return If(String.IsNullOrWhiteSpace(result), DefaultParameterName, result)
+            Return If(String.IsNullOrWhiteSpace(result), s_defaultParameterName, result)
         End Function
 
         Private Function GenerateNameForArgumentWorker(semanticModel As SemanticModel,
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ElseIf Not argument.IsOmitted Then
                 Return semanticModel.GenerateNameForExpression(argument.GetExpression())
             Else
-                Return DefaultParameterName
+                Return s_defaultParameterName
             End If
         End Function
 
@@ -233,11 +233,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return containingType.DeclaredAccessibility
             End If
 
+            ' Determine accessibility of field or event
+            '  Public B as B
             If type.IsParentKind(SyntaxKind.SimpleAsClause) AndAlso
                 type.Parent.IsParentKind(SyntaxKind.VariableDeclarator) Then
                 If type.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration) OrElse
                    type.Parent.Parent.IsParentKind(SyntaxKind.EventStatement) Then
                     Dim variableDeclarator = DirectCast(type.Parent.Parent, VariableDeclaratorSyntax)
+                    If variableDeclarator.Names.Count > 0 Then
+                        Dim variableDeclaration = semanticModel.GetDeclaredSymbol(variableDeclarator.Names(0), cancellationToken)
+                        Return variableDeclaration.DeclaredAccessibility
+                    End If
+                End If
+            End If
+
+            ' Determine accessibility of field or event
+            '  Public B as New B()
+            If type.IsParentKind(SyntaxKind.ObjectCreationExpression) AndAlso
+                type.Parent.IsParentKind(SyntaxKind.AsNewClause) AndAlso
+                type.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) Then
+                If type.Parent.Parent.Parent.IsParentKind(SyntaxKind.FieldDeclaration) OrElse
+                   type.Parent.Parent.Parent.IsParentKind(SyntaxKind.EventStatement) Then
+                    Dim variableDeclarator = DirectCast(type.Parent.Parent.Parent, VariableDeclaratorSyntax)
                     If variableDeclarator.Names.Count > 0 Then
                         Dim variableDeclaration = semanticModel.GetDeclaredSymbol(variableDeclarator.Names(0), cancellationToken)
                         Return variableDeclaration.DeclaredAccessibility

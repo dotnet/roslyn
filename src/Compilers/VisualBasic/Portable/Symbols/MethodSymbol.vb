@@ -747,6 +747,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend MustOverride Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
 
+        ''' <summary>
+        ''' Specifies whether existing, "unused" locals (corresponding to proxies) are preserved during lambda rewriting.
+        ''' </summary>
+        ''' <remarks>
+        ''' This value will be checked by the <see cref="LambdaRewriter"/> and is needed so that existing locals aren't
+        ''' omitted in the EE (method symbols in the EE will override this property to return True).
+        ''' </remarks>
+        Friend Overridable ReadOnly Property PreserveOriginalLocals As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
 #Region "IMethodSymbol"
 
         Private ReadOnly Property IMethodSymbol_Arity As Integer Implements IMethodSymbol.Arity
@@ -798,7 +811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function IMethodSymbol_GetTypeInferredDuringReduction(reducedFromTypeParameter As ITypeParameterSymbol) As ITypeSymbol Implements IMethodSymbol.GetTypeInferredDuringReduction
-            Return Me.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureVbSymbolOrNothing(Of TypeParameterSymbol)("reducedFromTypeParameter"))
+            Return Me.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureVbSymbolOrNothing(Of TypeParameterSymbol)(NameOf(reducedFromTypeParameter)))
         End Function
 
         Private ReadOnly Property IMethodSymbol_ReducedFrom As IMethodSymbol Implements IMethodSymbol.ReducedFrom
@@ -809,15 +822,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IMethodSymbol_ReduceExtensionMethod(receiverType As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.ReduceExtensionMethod
             If receiverType Is Nothing Then
-                Throw New ArgumentNullException("receiverType")
+                Throw New ArgumentNullException(NameOf(receiverType))
             End If
 
-            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)("receiverType"))
+            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(receiverType)))
         End Function
 
         Private ReadOnly Property IMethodSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IMethodSymbol.Parameters
             Get
-                Return ImmutableArray.Create(Of IParameterSymbol, ParameterSymbol)(Me.Parameters)
+                Return ImmutableArray(Of IParameterSymbol).CastUp(Me.Parameters)
             End Get
         End Property
 

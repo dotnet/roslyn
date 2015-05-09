@@ -17,61 +17,70 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class AnalyzerExecutor
     {
         private const string AnalyzerExceptionDiagnosticId = "AD0001";
-        private const string DescriptorExceptionDiagnosticId = "AD0002";        
         private const string DiagnosticCategory = "Compiler";
 
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _analyzerOptions;
         private readonly Action<Diagnostic> _addDiagnostic;
-        private readonly Action<Diagnostic> _addExceptionDiagnostic;
-        private readonly Func<Exception, DiagnosticAnalyzer, bool> _continueOnAnalyzerException;
+        private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
+        private readonly AnalyzerManager _analyzerManager;
+        private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
+        private readonly ImmutableDictionary<DiagnosticAnalyzer, object> _singleThreadedAnalyzerToGateMap;
+
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Creates AnalyzerActionsExecutor to execute analyzer actions with given arguments
+        /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
         /// </summary>
         /// <param name="compilation">Compilation to be used in the analysis.</param>
         /// <param name="analyzerOptions">Analyzer options.</param>
         /// <param name="addDiagnostic">Delegate to add analyzer diagnostics.</param>
-        /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for handled exceptions from third party analyzers.</param>
-        /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
-        /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
-        /// Otherwise if it returns false, then the exception is not handled by the executor.
-        /// If null, then the executor always handles the exception.
+        /// <param name="onAnalyzerException">
+        /// Optional delegate which is invoked when an analyzer throws an exception.
+        /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
+        /// </param>
+        /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
+        /// We need to special case the compiler analyzer at few places for performance reasons.</param>
+        /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
+        /// <param name="singleThreadedAnalyzerToGateMap">Map from non-thread safe analyzers to unique gate objects. 
+        /// All analyzer callbacks for these analyzers will be guarded with a lock on the gate.
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor Create(
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            CancellationToken cancellationToken)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            AnalyzerManager analyzerManager,
+            ImmutableDictionary<DiagnosticAnalyzer, object> singleThreadedAnalyzerToGateMap = default(ImmutableDictionary<DiagnosticAnalyzer, object>),
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, addExceptionDiagnostic, continueOnAnalyzerException, cancellationToken);
+            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, isCompilerAnalyzer, analyzerManager, singleThreadedAnalyzerToGateMap, cancellationToken);
         }
 
         /// <summary>
-        /// Creates AnalyzerActionsExecutor to fetch <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>.
+        /// Creates <see cref="AnalyzerExecutor"/> to fetch <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/>.
         /// </summary>
-        /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for handled exceptions from third party analyzers.</param>
-        /// <param name="continueOnAnalyzerException">Delegate which is invoked when an analyzer throws an exception.
-        /// If a non-null delegate is provided and it returns true, then the exception is handled and converted into a diagnostic and driver continues with other analyzers.
-        /// Otherwise if it returns false, then the exception is not handled by the executor.
-        /// If null, then the executor always handles the exception.
+        /// <param name="onAnalyzerException">
+        /// Optional delegate which is invoked when an analyzer throws an exception.
+        /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
+        /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            AnalyzerManager analyzerManager,
             CancellationToken cancellationToken)
         {
             return new AnalyzerExecutor(
                 compilation: null,
-                analyzerOptions: null, 
-                addDiagnostic: null, 
-                addExceptionDiagnostic: addExceptionDiagnostic, 
-                continueOnAnalyzerException: continueOnAnalyzerException,
+                analyzerOptions: null,
+                addDiagnostic: null,
+                isCompilerAnalyzer: null,
+                singleThreadedAnalyzerToGateMap: ImmutableDictionary<DiagnosticAnalyzer, object>.Empty,
+                onAnalyzerException: onAnalyzerException,
+                analyzerManager: analyzerManager,
                 cancellationToken: cancellationToken);
         }
 
@@ -79,20 +88,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions analyzerOptions,
             Action<Diagnostic> addDiagnostic,
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            AnalyzerManager analyzerManager,
+            ImmutableDictionary<DiagnosticAnalyzer, object> singleThreadedAnalyzerToGateMap,
             CancellationToken cancellationToken)
         {
-            this._compilation = compilation;
-            this._analyzerOptions = analyzerOptions;
-            this._addDiagnostic = addDiagnostic;
-            this._addExceptionDiagnostic = addExceptionDiagnostic;
-            this._continueOnAnalyzerException = continueOnAnalyzerException;
-            this._cancellationToken = cancellationToken;
+            _compilation = compilation;
+            _analyzerOptions = analyzerOptions;
+            _addDiagnostic = addDiagnostic;
+            _onAnalyzerException = onAnalyzerException;
+            _isCompilerAnalyzer = isCompilerAnalyzer;
+            _analyzerManager = analyzerManager;
+            _singleThreadedAnalyzerToGateMap = singleThreadedAnalyzerToGateMap ?? ImmutableDictionary<DiagnosticAnalyzer, object>.Empty;
+            _cancellationToken = cancellationToken;
         }
 
-        internal Compilation Compilation { get { return _compilation; } }
-        internal CancellationToken CancellationToken { get { return _cancellationToken; } }
+        internal Compilation Compilation => _compilation;
+        internal AnalyzerOptions AnalyzerOptions => _analyzerOptions;
+        internal CancellationToken CancellationToken => _cancellationToken;
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
 
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
@@ -120,31 +135,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var startAction in actions)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                ExecuteAndCatchIfThrows(startAction.Analyzer, 
+                ExecuteAndCatchIfThrows(startAction.Analyzer,
                     () => startAction.Action(new AnalyzerCompilationStartAnalysisContext(startAction.Analyzer, compilationScope, _compilation, _analyzerOptions, _cancellationToken)));
             }
         }
 
         /// <summary>
-        /// Executes the compilation end actions.
+        /// Executes compilation actions or compilation end actions.
         /// </summary>
-        /// <param name="actions"><see cref="AnalyzerActions"/> whose compilation end actions are to be executed.</param>
-        public void ExecuteCompilationEndActions(AnalyzerActions actions)
+        /// <param name="compilationActions">Compilation actions to be executed.</param>
+        public void ExecuteCompilationActions(ImmutableArray<CompilationAnalyzerAction> compilationActions)
         {
-            ExecuteCompilationEndActions(actions.CompilationEndActions);
-        }
-
-        /// <summary>
-        /// Executes the compilation end actions.
-        /// </summary>
-        /// <param name="compilationEndActions">Compilation end actions to be executed.</param>
-        public void ExecuteCompilationEndActions(ImmutableArray<CompilationEndAnalyzerAction> compilationEndActions)
-        {
-            foreach (var endAction in compilationEndActions)
+            foreach (var endAction in compilationActions)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                ExecuteAndCatchIfThrows(endAction.Analyzer, 
-                    () => endAction.Action(new CompilationEndAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                ExecuteAndCatchIfThrows(endAction.Analyzer,
+                    () => endAction.Action(new CompilationAnalysisContext(_compilation, _analyzerOptions, _addDiagnostic,
+                        d => IsSupportedDiagnostic(endAction.Analyzer, d), _cancellationToken)));
             }
         }
 
@@ -185,11 +192,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var action = symbolAction.Action;
                 var kinds = symbolAction.Kinds;
+
                 if (kinds.Contains(symbol.Kind))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    ExecuteAndCatchIfThrows(symbolAction.Analyzer, 
-                        () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic, _cancellationToken)));
+                    ExecuteAndCatchIfThrows(symbolAction.Analyzer,
+                        () => action(new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic,
+                            d => IsSupportedDiagnostic(symbolAction.Analyzer, d), _cancellationToken)));
                 }
             }
         }
@@ -216,8 +225,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 // Catch Exception from action.
-                ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, 
-                    () => semanticModelAction.Action(new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                ExecuteAndCatchIfThrows(semanticModelAction.Analyzer,
+                    () => semanticModelAction.Action(new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, _addDiagnostic,
+                        d => IsSupportedDiagnostic(semanticModelAction.Analyzer, d), _cancellationToken)));
             }
         }
 
@@ -244,7 +254,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer,
-                    () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                    () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, _addDiagnostic,
+                        d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _cancellationToken)));
             }
         }
 
@@ -256,8 +267,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="semanticModel">SemanticModel to be used in the analysis.</param>
         /// <param name="getKind">Delegate to compute language specific syntax kind for a syntax node.</param>
         public void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
-            AnalyzerActions actions, 
-            IEnumerable<SyntaxNode> nodes, 
+            AnalyzerActions actions,
+            IEnumerable<SyntaxNode> nodes,
             SemanticModel semanticModel,
             Func<SyntaxNode, TLanguageKindEnum> getKind)
             where TLanguageKindEnum : struct
@@ -277,12 +288,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void ExecuteSyntaxNodeAction<TLanguageKindEnum>(
-            SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction, 
-            SyntaxNode node, 
+            SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction,
+            SyntaxNode node,
             SemanticModel semanticModel)
             where TLanguageKindEnum : struct
         {
-            var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken);
+            var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, semanticModel, _analyzerOptions, _addDiagnostic,
+                d => IsSupportedDiagnostic(syntaxNodeAction.Analyzer, d), _cancellationToken);
             ExecuteAndCatchIfThrows(syntaxNodeAction.Analyzer, () => syntaxNodeAction.Action(syntaxNodeContext));
         }
 
@@ -301,9 +313,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TLanguageKindEnum : struct
         {
             var codeBlockStartActions = actions.GetCodeBlockStartActions<TLanguageKindEnum>();
+            var codeBlockActions = actions.CodeBlockActions;
             var codeBlockEndActions = actions.CodeBlockEndActions;
 
-            if (!codeBlockStartActions.Any() && !codeBlockEndActions.Any())
+            if (!codeBlockStartActions.Any() && !codeBlockActions.Any() && !codeBlockEndActions.Any())
             {
                 return;
             }
@@ -316,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (declaredSymbol != null && declInfo.ExecutableCodeBlocks.Any())
                 {
-                    ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+                    ExecuteCodeBlockActions(codeBlockStartActions, codeBlockActions, codeBlockEndActions,
                         declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind);
                 }
             }
@@ -324,7 +337,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
-            IEnumerable<CodeBlockEndAnalyzerAction> codeBlockEndActions,
+            IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
+            IEnumerable<CodeBlockAnalyzerAction> codeBlockEndActions,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             ImmutableArray<SyntaxNode> executableCodeBlocks,
@@ -335,15 +349,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(declaredNode != null);
             Debug.Assert(declaredSymbol != null);
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
-            Debug.Assert(codeBlockStartActions.Any() || codeBlockEndActions.Any());
+            Debug.Assert(codeBlockStartActions.Any() || codeBlockEndActions.Any() || codeBlockActions.Any());
             Debug.Assert(executableCodeBlocks.Any());
 
-            // Compute the sets of code block end and stateful syntax node actions.
-            var endedActions = PooledHashSet<CodeBlockEndAnalyzerAction>.GetInstance();
+            // Compute the sets of code block end, code block, and stateful syntax node actions.
+            var blockEndActions = PooledHashSet<CodeBlockAnalyzerAction>.GetInstance();
+            var blockActions = PooledHashSet<CodeBlockAnalyzerAction>.GetInstance();
             var executableNodeActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
 
-            // Include the stateless code block actions.
-            endedActions.AddAll(codeBlockEndActions);
+            // Include the code block actions.
+            blockActions.AddAll(codeBlockActions);
+
+            // Include the initial code block end actions.
+            blockEndActions.AddAll(codeBlockEndActions);
 
             // Include the stateful actions.
             foreach (var da in codeBlockStartActions)
@@ -352,10 +370,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ExecuteAndCatchIfThrows(da.Analyzer, () =>
                 {
                     var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
-                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(da.Analyzer, 
+                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(da.Analyzer,
                         codeBlockScope, declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _cancellationToken);
                     da.Action(blockStartContext);
-                    endedActions.AddAll(codeBlockScope.CodeBlockEndActions);
+                    blockEndActions.AddAll(codeBlockScope.CodeBlockEndActions);
                     executableNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
                 });
             }
@@ -369,15 +387,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ExecuteSyntaxNodeActions(nodesToAnalyze, executableNodeActionsByKind, semanticModel, getKind);
             }
 
-            // Execute code block end actions.
-            foreach (var endedAction in endedActions)
+            executableNodeActions.Free();
+
+            ExecuteCodeBlockActions(blockActions, declaredNode, declaredSymbol, semanticModel);
+            ExecuteCodeBlockActions(blockEndActions, declaredNode, declaredSymbol, semanticModel);
+        }
+
+        private void ExecuteCodeBlockActions(PooledHashSet<CodeBlockAnalyzerAction> blockActions, SyntaxNode declaredNode, ISymbol declaredSymbol, SemanticModel semanticModel)
+        {
+            foreach (var blockAction in blockActions)
             {
-                ExecuteAndCatchIfThrows(endedAction.Analyzer, 
-                    () => endedAction.Action(new CodeBlockEndAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _addDiagnostic, _cancellationToken)));
+                ExecuteAndCatchIfThrows(blockAction.Analyzer,
+                    () => blockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _addDiagnostic,
+                        d => IsSupportedDiagnostic(blockAction.Analyzer, d), _cancellationToken)));
             }
 
-            endedActions.Free();
-            executableNodeActions.Free();
+            blockActions.Free();
         }
 
         internal static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
@@ -451,64 +476,65 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze)
         {
-            ExecuteAndCatchIfThrows(analyzer, analyze, _addExceptionDiagnostic, _continueOnAnalyzerException, _cancellationToken);
+            object gate;
+            if (_singleThreadedAnalyzerToGateMap.TryGetValue(analyzer, out gate))
+            {
+                lock(gate)
+                {
+                    ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+                }
+            }
+            else
+            {
+                ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+            }
         }
 
         private static void ExecuteAndCatchIfThrows(
             DiagnosticAnalyzer analyzer,
             Action analyze,
-            Action<Diagnostic> addExceptionDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             CancellationToken cancellationToken)
         {
             try
             {
                 analyze();
             }
-            catch (OperationCanceledException oce) when (continueOnAnalyzerException(oce, analyzer))
+            catch (Exception e) when (!IsCanceled(e, cancellationToken))
             {
-                if (oce.CancellationToken != cancellationToken)
-                {
-                    // Add diagnostic for analyzer exception.
-                    var diagnostic = GetAnalyzerDiagnostic(analyzer, oce);
-                    addExceptionDiagnostic(diagnostic);
-                }
-            }
-            catch (Exception e) when (continueOnAnalyzerException(e, analyzer))
-            {
-                // Add diagnostic for analyzer exception.
-                var diagnostic = GetAnalyzerDiagnostic(analyzer, e);
-                addExceptionDiagnostic(diagnostic);
+                // Diagnostic for analyzer exception.
+                var diagnostic = GetAnalyzerExceptionDiagnostic(analyzer, e);
+                onAnalyzerException(e, analyzer, diagnostic);
             }
         }
 
-        internal static Diagnostic GetAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        internal static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
         {
+            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
+        }
+
+        internal static Diagnostic GetAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e)
+        {
+            var analyzerName = analyzer.ToString();
+
+            // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
+            // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
+            // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
-                AnalyzerDriverResources.AnalyzerFailure,
-                AnalyzerDriverResources.AnalyzerThrows,
+                title: AnalyzerDriverResources.AnalyzerFailure,
+                messageFormat: AnalyzerDriverResources.AnalyzerThrows,
+                description: string.Format(AnalyzerDriverResources.AnalyzerThrowsDescription, analyzerName, e.ToString()),
                 category: DiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
-            return Diagnostic.Create(descriptor, Location.None, analyzer.GetType().ToString(), e.Message);
-        }
 
-        internal static Diagnostic GetDescriptorDiagnostic(string faultedDescriptorId, Exception e)
-        {
-            var descriptor = new DiagnosticDescriptor(DescriptorExceptionDiagnosticId,
-                AnalyzerDriverResources.AnalyzerFailure,
-                AnalyzerDriverResources.DiagnosticDescriptorThrows,
-                category: DiagnosticCategory,
-                defaultSeverity: DiagnosticSeverity.Info,
-                isEnabledByDefault: true,
-                customTags: WellKnownDiagnosticTags.AnalyzerException);
-            return Diagnostic.Create(descriptor, Location.None, faultedDescriptorId, e.Message);
+            return Diagnostic.Create(descriptor, Location.None, analyzerName, e.GetType(), e.Message);
         }
 
         internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == DescriptorExceptionDiagnosticId)
+            if (diagnostic.Id == AnalyzerExceptionDiagnosticId)
             {
 #pragma warning disable RS0013 // Its ok to realize the Descriptor for analyzer exception diagnostics, which are descriptor based and also rare.
                 foreach (var tag in diagnostic.Descriptor.CustomTags)
@@ -522,6 +548,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
+        }
+
+        internal static bool AreEquivalentAnalyzerExceptionDiagnostics(Diagnostic exceptionDiagnostic, Diagnostic other)
+        {
+            // We need to have custom de-duplication logic for diagnostics generated for analyzer exceptions.
+            // We create a new descriptor instance per each analyzer exception diagnostic instance (see comments in method "GetAnalyzerExceptionDiagnostic" above).
+            // This is primarily to allow us to embed exception stack trace in the diagnostic description.
+            // However, this might mean that two exception diagnostics which are equivalent in terms of ID and Message, might not have equal description strings.
+            // We want to classify such diagnostics as equal for de-duplication purpose to reduce the noise in output.
+
+            Debug.Assert(IsAnalyzerExceptionDiagnostic(exceptionDiagnostic));
+
+            if (!IsAnalyzerExceptionDiagnostic(other))
+            {
+                return false;
+            }
+
+            return exceptionDiagnostic.Id == other.Id &&
+                exceptionDiagnostic.Severity == other.Severity &&
+                exceptionDiagnostic.GetMessage() == other.GetMessage();
+        }
+
+        private bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
+        {
+            Debug.Assert(_isCompilerAnalyzer != null);
+
+            return _analyzerManager.IsSupportedDiagnostic(analyzer, diagnostic, _isCompilerAnalyzer, this);
         }
     }
 }

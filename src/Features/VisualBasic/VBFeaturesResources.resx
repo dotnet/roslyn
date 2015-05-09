@@ -309,9 +309,6 @@
   <data name="AwaitableExtension" xml:space="preserve">
     <value>Awaitable, Extension</value>
   </data>
-  <data name="Usage" xml:space="preserve">
-    <value>Usage:</value>
-  </data>
   <data name="Await" xml:space="preserve">
     <value>Await</value>
   </data>
@@ -332,40 +329,6 @@
   </data>
   <data name="RemoveUnnecessaryImportsWithAccelerator" xml:space="preserve">
     <value>&amp;Remove Unnecessary Imports</value>
-  </data>
-  <data name="DisposePattern" xml:space="preserve">
-    <value>
-#Region "IDisposable Support"
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected {0}Sub Dispose(disposing As Boolean)
-        If Not Me.disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        Me.disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements System.IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region</value>
   </data>
   <data name="AddressOfKeywordToolTip" xml:space="preserve">
     <value>Creates a delegate procedure instance that references the specified procedure.
@@ -1069,5 +1032,179 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="ImplicitConversionDisplayText" xml:space="preserve">
     <value>Generate widening conversion in '{0}'</value>
+  </data>
+  <data name="DoNotChangeThisCodeUseDispose" xml:space="preserve">
+    <value>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</value>
+  </data>
+  <data name="FreeUnmanagedResourcesTodo" xml:space="preserve">
+    <value>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</value>
+  </data>
+  <data name="OverrideFinalizerTodo" xml:space="preserve">
+    <value>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</value>
+  </data>
+  <data name="ThisCodeAddedToCorrectlyImplementDisposable" xml:space="preserve">
+    <value>This code added by Visual Basic to correctly implement the disposable pattern.</value>
+  </data>
+  <data name="UncommentTheFollowingLineIfFinalizeIsOverridden" xml:space="preserve">
+    <value>TODO: uncomment the following line if Finalize() is overridden above.</value>
+  </data>
+  <data name="RemoveUnnecessaryImportsDiagnosticTitle" xml:space="preserve">
+    <value>Imports statement is unnecessary.</value>
+  </data>
+  <data name="TryBlock" xml:space="preserve">
+    <value>Try block</value>
+    <comment>{Locked="Try"} "Try" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="CatchClause" xml:space="preserve">
+    <value>Catch clause</value>
+    <comment>{Locked="Catch"} "Catch" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="FinallyClause" xml:space="preserve">
+    <value>Finally clause</value>
+    <comment>{Locked="Finally"} "Finally" is a VB keyword and should not be localized.</comment>        
+  </data>
+  <data name="UsingStatement" xml:space="preserve">
+    <value>Using statement</value>
+    <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="UsingBlock" xml:space="preserve">
+    <value>Using block</value>
+    <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="WithStatement" xml:space="preserve">
+    <value>With statement</value>
+    <comment>{Locked="With"} "With" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="WithBlock" xml:space="preserve">
+    <value>With block</value>
+    <comment>{Locked="With"} "With" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="SyncLockStatement" xml:space="preserve">
+    <value>SyncLock statement</value>
+    <comment>{Locked="SyncLock"} "SyncLock" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="SyncLockBlock" xml:space="preserve">
+    <value>SyncLock block</value>
+    <comment>{Locked="SyncLock"} "SyncLock" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="ForEachStatement" xml:space="preserve">
+    <value>For Each statement</value>
+    <comment>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="ForEachBlock" xml:space="preserve">
+    <value>For Each block</value>
+    <comment>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="OnErrorStatement" xml:space="preserve">
+    <value>On Error statement</value>
+    <comment>{Locked="On Error"} "On Error" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="ResumeStatement" xml:space="preserve">
+    <value>Resume statement</value>
+    <comment>{Locked="Resume"} "Resume" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="YieldStatement" xml:space="preserve">
+    <value>Yield statement</value>
+    <comment>{Locked="Yield"} "Yield" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="AwaitExpression" xml:space="preserve">
+    <value>Await expression</value>
+    <comment>{Locked="Await"} "Await" is a VB keyword and should not be localized.</comment>        
+  </data>
+  <data name="LambdaExpression" xml:space="preserve">
+    <value>Lambda</value>
+  </data>
+  <data name="WhereClause" xml:space="preserve">
+    <value>Where clause</value>
+    <comment>{Locked="Where"} "Where" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="SelectClause" xml:space="preserve">
+    <value>Select clause</value>
+    <comment>{Locked="Select"} "Select" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="FromClause" xml:space="preserve">
+    <value>From clause</value>
+    <comment>{Locked="From"} "From" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="AggregateClause" xml:space="preserve">
+    <value>Aggregate clause</value>
+    <comment>{Locked="Aggregate"} "Aggregate" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="LetClause" xml:space="preserve">
+    <value>Let clause</value>
+    <comment>{Locked="Let"} "Let" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="SimpleJoinClause" xml:space="preserve">
+    <value>Join clause</value>
+    <comment>{Locked="Join"} "Join" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="GroupJoinClause" xml:space="preserve">
+    <value>Group Join clause</value>
+    <comment>{Locked="Group Join"} "Group Join" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="GroupByClause" xml:space="preserve">
+    <value>Group By clause</value>
+    <comment>{Locked="Group By"} "Group By" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="FunctionAggregation" xml:space="preserve">
+    <value>Function aggregation</value>
+  </data>
+  <data name="TakeWhileClause" xml:space="preserve">
+    <value>Take While clause</value>
+    <comment>{Locked="Take While"} "Take While" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="SkipWhileClause" xml:space="preserve">
+    <value>Skip While clause</value>
+    <comment>{Locked="Skip While"} "Skip While" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="OrderingClause" xml:space="preserve">
+    <value>Ordering clause</value>
+    <comment>{Locked="Ordering"} "Ordering" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="JoinCondition" xml:space="preserve">
+    <value>Join condition</value>
+    <comment>{Locked="Join"} "Join" is a VB keyword and should not be localized.</comment>       
+  </data>
+  <data name="OptionStatement" xml:space="preserve">
+    <value>option</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="ImportStatement" xml:space="preserve">
+    <value>import</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="StructureStatement" xml:space="preserve">
+    <value>structure</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="ModuleStatement" xml:space="preserve">
+    <value>module</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="WithEventsFieldStatement" xml:space="preserve">
+    <value>WithEvents field</value>
+    <comment>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</comment>      
+  </data>
+  <data name="PropertyAccessor" xml:space="preserve">
+    <value>property accessor</value>
+  </data>
+  <data name="AsClause" xml:space="preserve">
+    <value>as clause</value>
+    <comment>{Locked="as"} "as" is a VB keyword and should not be localized.</comment>    
+  </data>
+  <data name="TypeParameterList" xml:space="preserve">
+    <value>type parameters</value>
+  </data>
+  <data name="ParameterList" xml:space="preserve">
+    <value>parameters</value>
+  </data>
+  <data name="AttributeList" xml:space="preserve">
+    <value>attributes</value>
+  </data>
+  <data name="ERR_TooManyArgs1" xml:space="preserve">
+    <value>Too many arguments to '{0}'.</value>
+  </data>
+  <data name="ERR_UndefinedType1" xml:space="preserve">
+    <value>Type '{0}' is not defined.</value>
   </data>
 </root>

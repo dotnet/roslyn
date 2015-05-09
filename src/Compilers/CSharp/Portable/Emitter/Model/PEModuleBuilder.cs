@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, Symbol, SourceModuleSymbol, ModuleSymbol, AssemblySymbol, NamespaceSymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, CSharpSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
+    internal abstract class PEModuleBuilder : PEModuleBuilder<CSharpCompilation, SourceModuleSymbol, AssemblySymbol, TypeSymbol, NamedTypeSymbol, MethodSymbol, CSharpSyntaxNode, NoPia.EmbeddedTypesManager, ModuleCompilationState>
     {
         // TODO: Need to estimate amount of elements for this map and pass that value to the constructor. 
         protected readonly ConcurrentDictionary<Symbol, Cci.IModuleReference> AssemblyOrModuleSymbolToModuleRefMap = new ConcurrentDictionary<Symbol, Cci.IModuleReference>();
@@ -322,6 +322,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Ignore accessibility when resolving well-known type
+        /// members, in particular for generic type arguments
+        /// (e.g.: binding to internal types in the EE).
+        /// </summary>
+        internal virtual bool IgnoreAccessibility
+        {
+            get { return false; }
         }
 
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)

@@ -10,16 +10,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits Symbol
         Implements IPreprocessingSymbol
 
-        Private ReadOnly m_Name As String
+        Private ReadOnly _name As String
 
         Friend Sub New(name As String)
             MyBase.New()
-            m_Name = name
+            _name = name
         End Sub
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_Name
+                Return _name
             End Get
         End Property
 

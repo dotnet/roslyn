@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<MethodSymbol> _methods;
 
-        private Dictionary<string, PlaceholderMethodSymbol> _lazySynthesizedMethods;
-#if DEBUG
-        private bool _sealed;
-#endif
-
         internal EENamedTypeSymbol(
             NamespaceSymbol container,
             NamedTypeSymbol baseType,
@@ -112,20 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
-            foreach (var method in _methods)
-            {
-                yield return method;
-            }
-#if DEBUG
-            _sealed = true;
-#endif
-            if (_lazySynthesizedMethods != null)
-            {
-                foreach (var method in _lazySynthesizedMethods.Values)
-                {
-                    yield return method;
-                }
-            }
+            return _methods;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
@@ -341,29 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsInterface
         {
             get { return false; }
-        }
-
-        internal delegate PlaceholderMethodSymbol CreateSynthesizedMethod(EENamedTypeSymbol container, string methodName, CSharpSyntaxNode syntax);
-
-        // Not thread-safe.
-        internal PlaceholderMethodSymbol GetOrAddSynthesizedMethod(string methodName, CreateSynthesizedMethod factory)
-        {
-#if DEBUG
-            Debug.Assert(!_sealed);
-#endif
-            if (_lazySynthesizedMethods == null)
-            {
-                _lazySynthesizedMethods = new Dictionary<string, PlaceholderMethodSymbol>();
-            }
-            PlaceholderMethodSymbol method;
-            if (!_lazySynthesizedMethods.TryGetValue(methodName, out method))
-            {
-                method = factory(this, methodName, _syntax);
-                Debug.Assert((object)method != null);
-                Debug.Assert(method.Name == methodName);
-                _lazySynthesizedMethods.Add(methodName, method);
-            }
-            return method;
         }
 
         [Conditional("DEBUG")]

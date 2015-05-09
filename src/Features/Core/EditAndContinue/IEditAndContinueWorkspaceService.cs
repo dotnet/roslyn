@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
@@ -10,6 +11,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         EditSession EditSession { get; }
         DebuggingSession DebuggingSession { get; }
+
+        event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
+        void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after);
 
         void StartDebuggingSession(Solution currentSolution);
 
@@ -22,6 +26,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void EndEditSession();
         void EndDebuggingSession();
 
-        bool IsProjectReadOnly(string projectName, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason);
+        bool IsProjectReadOnly(ProjectId id, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason);
     }
 }

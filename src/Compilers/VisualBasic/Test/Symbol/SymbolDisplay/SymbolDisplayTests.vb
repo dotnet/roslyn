@@ -1208,7 +1208,7 @@ end namespace
 
             findSymbol = Function(globalns) globalns
 
-                             ' never escape "the" Global namespace, but escape other ns named "global" always
+            ' never escape "the" Global namespace, but escape other ns named "global" always
             TestSymbolDescription(
                 text,
                 findSymbol,
@@ -1221,7 +1221,7 @@ end namespace
 
             findSymbol = Function(globalns) globalns.LookupNestedNamespace({"Global"}).LookupNestedNamespace({"Integer"})
 
-                             ' never escape "the" Global namespace, but escape other ns named "global" always
+            ' never escape "the" Global namespace, but escape other ns named "global" always
             TestSymbolDescription(
                 text,
                 findSymbol,
@@ -3344,7 +3344,7 @@ End Class
                 findSymbol,
                 format,
                 "Foo.C1.C2",
-                code.IndexOf("Namespace"),
+                code.IndexOf("Namespace", StringComparison.Ordinal),
                 {
                 SymbolDisplayPartKind.AliasName,
                 SymbolDisplayPartKind.Operator,
@@ -3387,7 +3387,7 @@ End Class
                 findSymbol,
                 format,
                 "Foo.C2",
-                code.IndexOf("Namespace"),
+                code.IndexOf("Namespace", StringComparison.Ordinal),
                 {
                 SymbolDisplayPartKind.AliasName,
                 SymbolDisplayPartKind.Operator,
@@ -3420,7 +3420,7 @@ End Class
                 findSymbol,
                 format,
                 "C1",
-                code.IndexOf("Class Foo"),
+                code.IndexOf("Class Foo", StringComparison.Ordinal),
                 {
                 SymbolDisplayPartKind.ClassName}, True)
         End Sub
@@ -3476,7 +3476,7 @@ End Namespace
 
             TestSymbolDescription(text, findSymbol, format,
                 "N1.N2.N3",
-                code.IndexOf("N0"), {
+                code.IndexOf("N0", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.NamespaceName,
@@ -3485,7 +3485,7 @@ End Namespace
 
             TestSymbolDescription(text, findSymbol, format,
                 "N1.N2.N3",
-                text.Value.IndexOf("N1"), {
+                text.Value.IndexOf("N1", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.NamespaceName,
@@ -3494,19 +3494,19 @@ End Namespace
 
             TestSymbolDescription(text, findSymbol, format,
                 "N2.N3",
-                text.Value.IndexOf("N2"), {
+                text.Value.IndexOf("N2", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.NamespaceName}, True)
 
             TestSymbolDescription(text, findSymbol, format,
                 "N3",
-                text.Value.IndexOf("C1"),
+                text.Value.IndexOf("C1", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName}, True)
 
             TestSymbolDescription(text, findSymbol, format,
                 "N3",
-                text.Value.IndexOf("C2"),
+                text.Value.IndexOf("C2", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName}, True)
 
 
@@ -3517,7 +3517,7 @@ End Namespace
 
             TestSymbolDescription(text, findFOO, format,
                 "INNER.FOO",
-                text.Value.IndexOf("OUTER.INNER.FOO"),
+                text.Value.IndexOf("OUTER.INNER.FOO", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName}, True)
@@ -3529,7 +3529,7 @@ End Namespace
 
             TestSymbolDescription(text, findCollection, format,
                 "VisualBasic.Collection",
-                text.Value.IndexOf("Microsoft.VisualBasic.Collection"),
+                text.Value.IndexOf("Microsoft.VisualBasic.Collection", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName}, minimal:=True, references:={SystemRef, MsvbRef})
@@ -3555,7 +3555,7 @@ end class
 
             TestSymbolDescription(text, findSymbol, Nothing,
                 "C1.foo As IDictionary(Of IList(Of Integer), String)",
-                code.IndexOf("foo"), {
+                code.IndexOf("foo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.FieldName,
@@ -3599,7 +3599,7 @@ End Class
 
             TestSymbolDescription(text, findSymbol, New SymbolDisplayFormat(miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix),
                 "Class1",
-                code.IndexOf("Inherits System.Attribute"), {
+                code.IndexOf("Inherits System.Attribute", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.ClassName}, minimal:=True)
         End Sub
 
@@ -3838,7 +3838,7 @@ End Class
                 findSymbol,
                 format,
                 "Global.System.Action",
-                code.IndexOf("Global.System.Action"),
+                code.IndexOf("Global.System.Action", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.Keyword,
                  SymbolDisplayPartKind.Operator,
                  SymbolDisplayPartKind.NamespaceName,
@@ -3890,7 +3890,7 @@ End Class
                 findSymbol,
                 format,
                 "System.Action",
-                code.IndexOf("Global.System.Action"),
+                code.IndexOf("Global.System.Action", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.NamespaceName,
                  SymbolDisplayPartKind.Operator,
                  SymbolDisplayPartKind.DelegateName},
@@ -3940,7 +3940,7 @@ End Class
                 findSymbol,
                 format,
                 "System.Action",
-                code.IndexOf("System.Action"),
+                code.IndexOf("System.Action", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.ClassName,
                  SymbolDisplayPartKind.Operator,
                  SymbolDisplayPartKind.ClassName},
@@ -3982,7 +3982,7 @@ End Module
 
             TestSymbolDescription(text, findSymbol, Nothing,
                 "Sub [Take].X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo"), {
+                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -4029,7 +4029,7 @@ End Module
 
             TestSymbolDescription(text, findSymbol, Nothing,
                 "Sub Type.X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo"), {
+                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -4056,7 +4056,7 @@ End Class
 
             TestSymbolDescription(text, findSymbol, Nothing,
                 "Foo.Bar As Type",
-                code.IndexOf("Public Bar as Type"), {
+                code.IndexOf("Public Bar as Type", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.FieldName,
@@ -4104,7 +4104,7 @@ End Class
                 findSymbol,
                 format,
                 "Property CBase.Class As Integer",
-                code.IndexOf("Public Overridable Property [Class] As Integer"),
+                code.IndexOf("Public Overridable Property [Class] As Integer", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.Keyword,
                  SymbolDisplayPartKind.Space,
                  SymbolDisplayPartKind.ClassName,
@@ -4160,7 +4160,7 @@ End Class
                 findProperty,
                 format,
                 "Property CBase.Class As Integer",
-                code.IndexOf("Public Overridable Property [Class] As Integer"),
+                code.IndexOf("Public Overridable Property [Class] As Integer", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.Keyword,
                  SymbolDisplayPartKind.Space,
                  SymbolDisplayPartKind.ClassName,
@@ -4180,7 +4180,7 @@ End Class
                 findSub,
                 format,
                 "Sub CBase.Sub()",
-                code.IndexOf("Public Overridable Sub [Sub]()"),
+                code.IndexOf("Public Overridable Sub [Sub]()", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.Keyword,
                  SymbolDisplayPartKind.Space,
                  SymbolDisplayPartKind.ClassName,
@@ -4198,7 +4198,7 @@ End Class
                 findFunction,
                 format,
                 "Function CBase.Function() As Object",
-                code.IndexOf("Public Overridable Function [Function]()"),
+                code.IndexOf("Public Overridable Function [Function]()", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.Keyword,
                  SymbolDisplayPartKind.Space,
                  SymbolDisplayPartKind.ClassName,
@@ -4220,7 +4220,7 @@ End Class
                 findField,
                 format,
                 "CBase.Interface As Integer",
-                code.IndexOf("Public [Interface] As Integer"),
+                code.IndexOf("Public [Interface] As Integer", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.ClassName,
                  SymbolDisplayPartKind.Operator,
                  SymbolDisplayPartKind.FieldName,
@@ -4238,7 +4238,7 @@ End Class
                 findEvent,
                 format,
                 "Event CBase.Event()",
-                code.IndexOf("Event [Event]()"),
+                code.IndexOf("Event [Event]()", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.Keyword,
                  SymbolDisplayPartKind.Space,
                  SymbolDisplayPartKind.ClassName,
@@ -4256,7 +4256,7 @@ End Class
                 findClass,
                 New SymbolDisplayFormat(typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces),
                 "CBase.Dim",
-                code.IndexOf("Class [Dim]"),
+                code.IndexOf("Class [Dim]", StringComparison.Ordinal),
                 {SymbolDisplayPartKind.ClassName,
                  SymbolDisplayPartKind.Operator,
                  SymbolDisplayPartKind.ClassName},
@@ -4298,7 +4298,7 @@ End Module
 
             TestSymbolDescription(text, findSymbol, Nothing,
                 "Sub Explicit.X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo"), {
+                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -4483,7 +4483,7 @@ End Module
 
             TestSymbolDescription(text, findSymbol, Nothing,
                 "Sub Explicit.X.Foo()",
-                code.IndexOf("Z(Of Integer).X.Foo"), {
+                code.IndexOf("Z(Of Integer).X.Foo", StringComparison.Ordinal), {
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -4548,7 +4548,7 @@ class Outer
         End Sub
 
         <Fact>
-        Sub FormatPrimitive()
+        Public Sub FormatPrimitive()
             Assert.Equal("Nothing", SymbolDisplay.FormatPrimitive(Nothing, quoteStrings:=True, useHexadecimalNumbers:=True))
 
             Assert.Equal("3", SymbolDisplay.FormatPrimitive(OutputKind.NetModule, quoteStrings:=False, useHexadecimalNumbers:=False))

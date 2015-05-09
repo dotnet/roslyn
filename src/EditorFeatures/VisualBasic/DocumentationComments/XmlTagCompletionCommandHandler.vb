@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
         Inherits AbstractXmlTagCompletionCommandHandler
 
         <ImportingConstructor>
-        Sub New(undoHistory As ITextUndoHistoryRegistry, waitIndicator As IWaitIndicator)
+        Public Sub New(undoHistory As ITextUndoHistoryRegistry, waitIndicator As IWaitIndicator)
             MyBase.New(undoHistory, waitIndicator)
         End Sub
 

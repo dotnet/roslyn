@@ -11,15 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
     Public Class VisualBasicResultProviderTestBase : Inherits ResultProviderTestBase
 
-        Private Shared ReadOnly resultProvider As ResultProvider = New VisualBasicResultProvider()
-        Private Shared ReadOnly inspectionContext As DkmInspectionContext = CreateDkmInspectionContext(resultProvider.Formatter, DkmEvaluationFlags.None, radix:=10)
+        Private Shared ReadOnly s_resultProvider As ResultProvider = New VisualBasicResultProvider()
+        Private Shared ReadOnly s_inspectionContext As DkmInspectionContext = CreateDkmInspectionContext(s_resultProvider.Formatter, DkmEvaluationFlags.None, radix:=10)
 
         Public Sub New()
-            MyBase.New(resultProvider, inspectionContext)
+            MyBase.New(s_resultProvider, s_inspectionContext)
         End Sub
 
         Protected Shared Function GetAssembly(source As String) As Assembly
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
             Return ReflectionUtilities.Load(comp.EmitToArray())
         End Function
 

@@ -16,9 +16,10 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -75,21 +76,10 @@
   <ItemGroup>
     <Compile Include="Design\CodeFixes\CA1008CSharpCodeFixProvider.cs" />
     <Compile Include="Design\CodeFixes\CA1052CSharpCodeFixProvider.cs" />
-    <Compile Include="Design\CodeFixes\EnumWithFlagsCSharpCodeFixProvider.cs" />
-    <Compile Include="Design\CSharpCA1003DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1024DiagnosticAnalyzer.cs" />
-    <Compile Include="Design\CSharpEnumWithFlagsDiagnosticAnalyzer.cs" />
-    <Compile Include="Globalization\CodeFixes\CA1309CSharpCodeFixProvider.cs" />
-    <Compile Include="Globalization\CodeFixes\CA2101CSharpCodeFixProvider.cs" />
-    <Compile Include="Globalization\CSharpCA1309DiagnosticAnalyzer.cs" />
-    <Compile Include="Performance\CodeFixes\CA1813CSharpCodeFixProvider.cs" />
-    <Compile Include="Performance\CSharpCA1821DiagnosticAnalyzer.cs" />
-    <Compile Include="Reliability\CSharpCA2002DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CodeFixes\CA2213CSharpCodeFixProvider.cs" />
-    <Compile Include="Usage\CodeFixes\CA2231CSharpCodeFixProvider.cs" />
-    <Compile Include="Usage\CodeFixes\CA2235CSharpCodeFixProvider.cs" />
+    <Compile Include="Performance\RemoveEmptyFinalizers.cs" />
+    <Compile Include="Usage\MarkAllNonSerializableFields.Fixer.cs" />
     <Compile Include="Usage\CSharpCA2200DiagnosticAnalyzer.cs" />
-    <Compile Include="Usage\CSharpCA2213DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CSharpCA2214DiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -198,6 +198,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
+        protected void TestEquivalenceKey(
+            string initialMarkup,
+            string equivalenceKey,
+            int index = 0,
+            ParseOptions parseOptions = null,
+            CompilationOptions compilationOptions = null)
+        {
+            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            {
+                var diagnosticAndFix = GetDiagnosticAndFix(workspace);
+                Assert.Equal(equivalenceKey, diagnosticAndFix.Item2.Fixes.ElementAt(index).Action.EquivalenceKey);
+            }
+        }
+
         protected void TestExactActionSetOffered(
             string initialMarkup,
             IEnumerable<string> expectedActionSet,
@@ -272,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             Document document = null;
 
-            if (expectedText.TrimStart('\r', '\n', ' ').StartsWith(@"<Workspace>"))
+            if (expectedText.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal))
             {
                 using (var expectedWorkspace = TestWorkspaceFactory.CreateWorkspace(expectedText))
                 {
@@ -532,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (!hasProjectChange)
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
-                var content = editHandler.GetPreview(workspace, operations, CancellationToken.None);
+                var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().PumpingWaitResult();
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 diffView.Close();
@@ -543,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var contents = editHandler.GetPreviews(workspace, operations, CancellationToken.None);
                 bool hasPreview = false;
                 object preview;
-                while ((preview = contents.TakeNextPreview()) != null)
+                while ((preview = contents.TakeNextPreviewAsync().PumpingWaitResult()) != null)
                 {
                     var diffView = preview as IWpfDifferenceViewer;
                     if (diffView != null)

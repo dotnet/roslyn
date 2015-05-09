@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
         private readonly AwaitInFinallyAnalysis _analysis;
 
-        private AwaitCatchFrame _currentAwaitCatchFrame = null;
+        private AwaitCatchFrame _currentAwaitCatchFrame;
         private AwaitFinallyFrame _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
         private AsyncExceptionHandlerRewriter(
@@ -501,7 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_analysis.CatchContainsAwait(node))
             {
-                return base.VisitCatchBlock(node);
+                var origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
+                _currentAwaitCatchFrame = null;
+
+                var result = base.VisitCatchBlock(node);
+                _currentAwaitCatchFrame = origCurrentAwaitCatchFrame;
+                return result;
             }
 
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
@@ -840,12 +845,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // subsequent leaves to an already proxied label redirected to the proxy.
             // At the proxy lable we will execute finally and forward the control flow 
             // to the actual destination. (which could be proxied again in the parent)
-            public Dictionary<LabelSymbol, LabelSymbol> proxyLabels = null;
+            public Dictionary<LabelSymbol, LabelSymbol> proxyLabels;
 
-            public List<LabelSymbol> proxiedLabels = null;
+            public List<LabelSymbol> proxiedLabels;
 
-            public GeneratedLabelSymbol returnProxyLabel = null;
-            public SynthesizedLocal returnValue = null;
+            public GeneratedLabelSymbol returnProxyLabel;
+            public SynthesizedLocal returnValue;
 
             public AwaitFinallyFrame()
             {

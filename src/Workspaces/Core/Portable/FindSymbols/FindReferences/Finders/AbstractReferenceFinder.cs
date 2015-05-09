@@ -515,7 +515,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var alias = FindReferenceCache.GetAliasInfo(semanticFacts, semanticModel, token, cancellationToken);
 
                         var location = token.GetLocation();
-                        locations.Add(new ReferenceLocation(document, alias, location, isImplicit: false, candidateReason: match.Item2));
+                        var isWrittenTo = semanticFacts.IsWrittenTo(semanticModel, token.Parent, cancellationToken);
+                        locations.Add(new ReferenceLocation(document, alias, location, isImplicit: false, isWrittenTo: isWrittenTo, candidateReason: match.Item2));
                     }
                 }
             }
@@ -731,7 +732,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     {
                         var location = node.GetFirstToken().GetLocation();
                         locations.Add(new ReferenceLocation(
-                            document, alias: null, location: location, isImplicit: true, candidateReason: CandidateReason.None));
+                            document, alias: null, location: location, isImplicit: true, isWrittenTo: false, candidateReason: CandidateReason.None));
                     }
                 }
 

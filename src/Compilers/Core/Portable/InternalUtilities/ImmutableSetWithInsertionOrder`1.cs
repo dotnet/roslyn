@@ -13,7 +13,7 @@ namespace Roslyn.Utilities
         public static readonly ImmutableSetWithInsertionOrder<T> Empty = new ImmutableSetWithInsertionOrder<T>(ImmutableDictionary.Create<T, uint>(), 0u);
 
         private readonly ImmutableDictionary<T, uint> _map;
-        private uint _nextElementValue;
+        private readonly uint _nextElementValue;
 
         private ImmutableSetWithInsertionOrder(ImmutableDictionary<T, uint> map, uint nextElementValue)
         {

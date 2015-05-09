@@ -14,13 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
     Friend NotInheritable Class VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
         Inherits SimplifyTypeNamesDiagnosticAnalyzerBase(Of SyntaxKind)
 
-        Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.QualifiedName,
+        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.QualifiedName,
                                                                                                           SyntaxKind.SimpleMemberAccessExpression,
                                                                                                           SyntaxKind.IdentifierName,
                                                                                                           SyntaxKind.GenericName)
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, _kindsOfInterest.ToArray())
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, s_kindsOfInterest.ToArray())
         End Sub
 
         Protected Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
@@ -42,14 +42,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                     Return False
                 End Function
 
-                For Each candidate In context.Node.DescendantNodesAndSelf(descendIntoChildren, descendIntoTrivia:=True)
-                    context.CancellationToken.ThrowIfCancellationRequested()
-                Next
+            For Each candidate In context.Node.DescendantNodesAndSelf(descendIntoChildren, descendIntoTrivia:=True)
+                context.CancellationToken.ThrowIfCancellationRequested()
+            Next
         End Sub
 
         Private Shared Function IsNodeKindInteresting(node As SyntaxNode) As Boolean
             ' PERF: Use dedicated EqualityComparer to avoid boxing of enums.
-            Return _kindsOfInterest.IndexOf(node.Kind, startIndex:=0, equalityComparer:=SyntaxFacts.EqualityComparer) >= 0
+            Return s_kindsOfInterest.IndexOf(node.Kind, startIndex:=0, equalityComparer:=SyntaxFacts.EqualityComparer) >= 0
         End Function
 
         Friend Shared Function IsCandidate(node As SyntaxNode) As Boolean

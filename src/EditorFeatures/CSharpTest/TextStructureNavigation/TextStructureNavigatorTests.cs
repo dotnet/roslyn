@@ -222,14 +222,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         public void String()
         {
             const string TestString = "class Test { private string s1 = \" () test  \"; }";
-            int startOfString = TestString.IndexOf("\"");
-            int lengthOfStringIncludingQuotes = TestString.LastIndexOf("\"") - startOfString + 1;
+            int startOfString = TestString.IndexOf('"');
+            int lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
 
             AssertExtent(
                 TestString,
                 pos: startOfString,
                 isSignificant: true,
-                start: startOfString, length: lengthOfStringIncludingQuotes);
+                start: startOfString, length: 1);
 
             // Selects whitespace
             AssertExtent(
@@ -246,21 +246,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 
             AssertExtent(
                 TestString,
-                pos: TestString.IndexOf("  \""),
+                pos: TestString.IndexOf("  \"", StringComparison.Ordinal),
                 isSignificant: false,
-                start: TestString.IndexOf("  \""), length: 2);
+                start: TestString.IndexOf("  \"", StringComparison.Ordinal), length: 2);
 
             AssertExtent(
                 TestString,
-                pos: TestString.LastIndexOf("\""),
+                pos: TestString.LastIndexOf('"'),
                 isSignificant: true,
-                start: startOfString + lengthOfStringIncludingQuotes - 1, length: 2);
+                start: startOfString + lengthOfStringIncludingQuotes - 1, length: 1);
 
             AssertExtent(
                 TestString,
-                pos: TestString.LastIndexOf("\"") + 1,
+                pos: TestString.LastIndexOf('"') + 1,
                 isSignificant: true,
-                start: TestString.LastIndexOf("\"") + 1, length: 1);
+                start: TestString.LastIndexOf('"') + 1, length: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         {
             const string TestString = "class Test { string x = \"hello\"; string s = $\" { x } hello\"; }";
 
-            int startOfFirstString = TestString.IndexOf("\"");
-            int endOfFirstString = TestString.IndexOf("\"", startOfFirstString + 1);
-            int startOfString = TestString.IndexOf("$\"", endOfFirstString + 1);
-            int lengthOfStringIncludingQuotes = TestString.LastIndexOf("\"") - startOfString + 1;
+            int startOfFirstString = TestString.IndexOf('"');
+            int endOfFirstString = TestString.IndexOf('"', startOfFirstString + 1);
+            int startOfString = TestString.IndexOf("$\"", endOfFirstString + 1, StringComparison.Ordinal);
+            int lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
 
             // Selects interpolated string start token
             AssertExtent(

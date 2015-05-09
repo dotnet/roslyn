@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         private partial class Editor
         {
-            private TService _service;
+            private readonly TService _service;
             private TargetProjectChangeInLanguage _targetProjectChangeInLanguage = TargetProjectChangeInLanguage.NoChange;
             private IGenerateTypeService _targetLanguageService;
 

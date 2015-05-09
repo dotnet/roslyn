@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim newBuffer = If(newSnapshotPoint.HasValue, newSnapshotPoint.Value.Snapshot.TextBuffer, Nothing)
 
             _waitIndicator.Wait(
-                "Commit",
+                VBEditorResources.LineCommit,
                 VBEditorResources.CommittingLine,
                 allowCancel:=True,
                 action:=
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 action:=
                 Sub(waitContext)
                     For Each buffer In _view.BufferGraph.GetTextBuffers(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType))
-                        _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=True, cancellationToken:=waitContext.CancellationToken)
+                        _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=waitContext.CancellationToken)
                     Next
                 End Sub)
         End Sub

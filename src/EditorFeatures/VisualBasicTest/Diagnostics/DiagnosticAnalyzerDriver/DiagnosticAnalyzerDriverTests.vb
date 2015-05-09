@@ -65,7 +65,7 @@ End Class
         Using Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), donotCatchAnalyzerExceptions:=False))
+                Function(analyzer) DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))
         End Using
     End Sub
 
@@ -78,7 +78,7 @@ End Class
     End Sub
 
     Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
-        Dim diagnosticService = New DiagnosticAnalyzerService(LanguageNames.VisualBasic, analyzer)
+        Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, analyzer)
         diagnosticService.GetDiagnosticDescriptors(projectOpt:=Nothing)
     End Sub
 

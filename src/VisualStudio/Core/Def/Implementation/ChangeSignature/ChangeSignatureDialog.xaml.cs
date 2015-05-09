@@ -65,17 +65,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             DataContext = viewModel;
 
             Loaded += ChangeSignatureDialog_Loaded;
+            ContentRendered += ChangeSignatureDialog_ContentRendered;
         }
 
         private void ChangeSignatureDialog_Loaded(object sender, RoutedEventArgs e)
         {
             Members.Focus();
+        }
 
-            var handler = TEST_DialogLoaded;
-            if (handler != null)
-            {
-                handler();
-            }
+        private void ChangeSignatureDialog_ContentRendered(object sender, EventArgs e)
+        {
+            TEST_DialogLoaded?.Invoke();
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)

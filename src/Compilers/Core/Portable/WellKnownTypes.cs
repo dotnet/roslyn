@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     typeIdName = "System.Math";
                 }
-                else if (typeId == WellKnownType.Last) 
+                else if (typeId == WellKnownType.Last)
                 {
                     typeIdName = "System.IFormatProvider";
                 }

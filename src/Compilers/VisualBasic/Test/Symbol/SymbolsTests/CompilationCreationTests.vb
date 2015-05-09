@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
 
 Namespace CompilationCreationTestHelpers
-    Module Helpers
+    Friend Module Helpers
         <Extension()>
         Friend Function BoundReferences(this As AssemblySymbol) As AssemblySymbol()
             Return (From m In this.Modules, ref In m.GetReferencedAssemblySymbols() Select ref).ToArray()

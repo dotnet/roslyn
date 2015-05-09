@@ -2,12 +2,8 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1575,7 +1571,7 @@ class C
 {
     void M()
     {
-        [|M|](x: 42);
+        M([|x: 42|]);
     }
 
     void M(int y) { }
@@ -1609,7 +1605,7 @@ class C
 {
     void M()
     {
-        [|M|](Y: 42);
+        M([|Y: 42|]);
     }
 
     void M(int y) { }
@@ -2638,7 +2634,7 @@ namespace ConsoleApplication1
         {
             Test(
 @"class Program { public int MyProperty { get ; } = [|y|] ( ) ; } ",
-@"using System ; class Program { public int MyProperty { get ; } = y ( ) ; private int y ( ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ; class Program { public int MyProperty { get ; } = y ( ) ; private static int y ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -2687,6 +2683,33 @@ namespace ConsoleApplication1
             Test(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] ( ) } ; } } ",
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = i ( ) } ; } private static int i ( ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodWithConfigureAwaitFalse()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await [|Foo|] ( ) . ConfigureAwait ( false ) ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await Foo ( ) . ConfigureAwait ( false ) ; } private static Task < bool > Foo ( ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodWithMethodChaining()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await [|Foo|] ( ) . ConfigureAwait ( false ) ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await Foo ( ) . ConfigureAwait ( false ) ; } private static Task < bool > Foo ( ) { throw new NotImplementedException ( ) ; } } ");
+        }
+
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodWithMethodChaining2()
+        {
+            Test(
+@"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await [|M|] ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } } ",
+@"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await M ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } private static Task < bool > M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
@@ -2766,6 +2789,15 @@ namespace ConsoleApplication1
                 Test(
     @"class Digit { public Digit ( double d ) { val = d ; } public double val ; } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = [|( double ) dig|] ; } } ",
     @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static explicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = ( double ) dig ; } } ");
+            }
+
+            [WorkItem(774321)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            public void TestEquivalenceKey()
+            {
+                TestEquivalenceKey(
+    @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
+    string.Format(FeaturesResources.GenerateMethodIn, "C", "M1"));
             }
         }
     }

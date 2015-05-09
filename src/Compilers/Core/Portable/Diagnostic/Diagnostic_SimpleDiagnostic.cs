@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException(nameof(warningLevel));
                 }
 
-                if(descriptor == null)
+                if (descriptor == null)
                 {
                     throw new ArgumentNullException(nameof(descriptor));
                 }
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 _severity = severity;
                 _warningLevel = warningLevel;
                 _location = location ?? Location.None;
-                _additionalLocations = additionalLocations == null ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations.ToImmutableArray();
+                _additionalLocations = additionalLocations?.ToImmutableArray() ?? SpecializedCollections.EmptyReadOnlyList<Location>();
                 _messageArgs = messageArgs ?? SpecializedCollections.EmptyArray<object>();
                 _properties = properties ?? ImmutableDictionary<string, string>.Empty;
             }
@@ -130,8 +131,18 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(Diagnostic obj)
             {
                 var other = obj as SimpleDiagnostic;
-                return other != null
-                    && _descriptor.Equals(other._descriptor)
+                if (other == null)
+                {
+                    return false;
+                }
+
+                if (AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(this))
+                {
+                    // We have custom Equals logic for diagnostics generated for analyzer exceptions.
+                    return AnalyzerExecutor.AreEquivalentAnalyzerExceptionDiagnostics(this, other);
+                }
+
+                return _descriptor.Equals(other._descriptor)
                     && _messageArgs.SequenceEqual(other._messageArgs, (a, b) => a == b)
                     && _location == other._location
                     && _severity == other._severity
@@ -155,7 +166,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (location == null)
                 {
-                    throw new ArgumentNullException("location");
+                    throw new ArgumentNullException(nameof(location));
                 }
 
                 if (location != _location)

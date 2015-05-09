@@ -18,6 +18,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.Access
         End Function
 
+        Protected Overrides Function GetAttributes(codeElement As EnvDTE80.CodeFunction2) As EnvDTE.CodeElements
+            Return codeElement.Attributes
+        End Function
+
         Protected Overrides Function GetComment(codeElement As EnvDTE80.CodeFunction2) As String
             Return codeElement.Comment
         End Function
@@ -105,6 +109,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Protected Overrides Sub RemoveChild(codeElement As EnvDTE80.CodeFunction2, child As Object)
             codeElement.RemoveParameter(child)
         End Sub
+
+        Protected Overrides Function GetParameters(codeElement As EnvDTE80.CodeFunction2) As EnvDTE.CodeElements
+            Return codeElement.Parameters
+        End Function
 
         Protected Overridable Function ExtensionMethodExtender_GetIsExtension(codeElement As EnvDTE80.CodeFunction2) As Boolean
             Throw New NotSupportedException

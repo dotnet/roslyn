@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
@@ -115,7 +113,8 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private static void SerializeCustomDebugInformation(EditAndContinueMethodDebugInformation debugInfo, ArrayBuilder<MemoryStream> customDebugInfo)
+        // internal for testing
+        internal static void SerializeCustomDebugInformation(EditAndContinueMethodDebugInformation debugInfo, ArrayBuilder<MemoryStream> customDebugInfo)
         {
             if (!debugInfo.LocalSlots.IsDefaultOrEmpty)
             {
@@ -134,17 +133,30 @@ namespace Microsoft.Cci
             BinaryWriter cmw = new BinaryWriter(customMetadata);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(kind);
-            cmw.Align(4);
+            cmw.WriteByte(0);
+
+            // alignment size (will be patched)
+            uint alignmentSizeAndLengthPosition = cmw.BaseStream.Position;
+            cmw.WriteByte(0);
 
             // length (will be patched)
-            uint lengthPosition = cmw.BaseStream.Position;
             cmw.WriteUint(0);
 
             data(cmw);
 
             uint length = customMetadata.Position;
-            cmw.BaseStream.Position = lengthPosition;
-            cmw.WriteUint(length);
+            uint alignedLength = 4 * ((length + 3) / 4);
+            byte alignmentSize = (byte)(alignedLength - length);
+
+            for (int i = 0; i < alignmentSize; i++)
+            {
+                cmw.WriteByte(0);
+            }
+
+            cmw.BaseStream.Position = alignmentSizeAndLengthPosition;
+            cmw.WriteByte(alignmentSize);
+            cmw.WriteUint(alignedLength);
+
             cmw.BaseStream.Position = length;
             return customMetadata;
         }
@@ -158,14 +170,14 @@ namespace Microsoft.Cci
         {
             if (iteratorClassName == null) return;
             MemoryStream customMetadata = new MemoryStream();
-            BinaryWriter cmw = new BinaryWriter(customMetadata, true);
+            BinaryWriter cmw = new BinaryWriter(customMetadata, unicode: true);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardIterator);
             cmw.Align(4);
             uint length = 10 + (uint)iteratorClassName.Length * 2;
             if ((length & 3) != 0) length += 4 - (length & 3);
             cmw.WriteUint(length);
-            cmw.WriteString(iteratorClassName, true);
+            cmw.WriteString(iteratorClassName, emitNullTerminator: true);
             cmw.Align(4);
             Debug.Assert(customMetadata.Position == length);
             customDebugInfo.Add(customMetadata);
@@ -264,7 +276,7 @@ namespace Microsoft.Cci
                     {
                         if ((bool)dynamicTransformFlags[k].Value)
                         {
-                            flag[k] = (byte)1;
+                            flag[k] = 1;
                         }
                     }
                     cmw.WriteBytes(flag); //Written Flag
@@ -297,7 +309,8 @@ namespace Microsoft.Cci
             customDebugInfo.Add(customMetadata);
         }
 
-        private static byte[] SerializeCustomDebugMetadata(ArrayBuilder<MemoryStream> customDebugInfo)
+        // internal for testing
+        internal static byte[] SerializeCustomDebugMetadata(ArrayBuilder<MemoryStream> customDebugInfo)
         {
             if (customDebugInfo.Count == 0)
             {
@@ -345,7 +358,7 @@ namespace Microsoft.Cci
             // case where usingCounts was empty, but I'm not sure why.
             if (usingCounts.Count > 0)
             {
-                uint streamLength = 0;
+                uint streamLength;
                 cmw.WriteByte(CDI.CdiVersion);
                 cmw.WriteByte(CDI.CdiKindUsingInfo);
                 cmw.Align(4);

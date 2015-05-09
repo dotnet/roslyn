@@ -1388,7 +1388,7 @@ int z; z = x + y;
 System.Console.Write(new E());
 System.Console.Write(x + y);
 ");
-                Assert.True(output.ToString().Trim().EndsWith("+E2"), output.ToString());
+                Assert.True(output.ToString().Trim().EndsWith("+E2", StringComparison.Ordinal), output.ToString());
             }
         }
 
@@ -1526,7 +1526,8 @@ System.Console.Write(x + y);
         {
             var commandLineArguments = CSharpCommandLineParser.Interactive.Parse(
                 new[] { "/r:" + typeof(Script).Assembly.Location }, //get corlib by default
-                Directory.GetDirectoryRoot(".")); //NOTE: any absolute path will do - we're not going to use this.
+                Directory.GetDirectoryRoot("."), //NOTE: any absolute path will do - we're not going to use this.
+                RuntimeEnvironment.GetRuntimeDirectory());
             var references = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, metadataReferenceProvider));
             return references;
         }
@@ -1944,8 +1945,8 @@ class D
             CSharpCompilation s11 = CSharpCompilation.CreateSubmission("s11", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 1", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
             CSharpCompilation s12 = CSharpCompilation.CreateSubmission("s12", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 2", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
 
-            CompileAndVerify(s11, emitOptions: TestEmitters.CCI);
-            CompileAndVerify(s12, emitOptions: TestEmitters.CCI);
+            CompileAndVerify(s11, emitters: TestEmitters.CCI);
+            CompileAndVerify(s12, emitters: TestEmitters.CCI);
         }
 
         /// <summary>
@@ -2750,7 +2751,7 @@ new System.Data.DataSet()
 
         private class MetadataReferenceProvider : Microsoft.CodeAnalysis.MetadataFileReferenceProvider
         {
-            private Dictionary<string, PortableExecutableReference> _metadata;
+            private readonly Dictionary<string, PortableExecutableReference> _metadata;
 
             public MetadataReferenceProvider(Dictionary<string, PortableExecutableReference> metadata)
             {
@@ -2961,7 +2962,7 @@ System.Collections.IEnumerable w = new Window();
             // TODO: enable this with our AssemblyLoader:
             ResolveEventHandler handler = (_, args) =>
             {
-                if (args.Name.StartsWith("b,"))
+                if (args.Name.StartsWith("b,", StringComparison.Ordinal))
                 {
                     return Assembly.Load(badTypeBytes);
                 }

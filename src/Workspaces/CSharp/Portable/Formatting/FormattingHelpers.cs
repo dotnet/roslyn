@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // indent is the spaces/tabs between last new line (if there is one) and end of trivia
             var indent = precedingTrivia.AsString();
-            int lastNewLinePos = indent.LastIndexOf(NewLine);
+            int lastNewLinePos = indent.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos != -1)
             {
                 int start = lastNewLinePos + NewLine.Length;
@@ -33,15 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static string ContentBeforeLastNewLine(this IEnumerable<SyntaxTrivia> trivia)
         {
             var leading = trivia.AsString();
-            int lastNewLinePos = leading.LastIndexOf(NewLine);
+            int lastNewLinePos = leading.LastIndexOf(NewLine, StringComparison.Ordinal);
             if (lastNewLinePos == -1)
             {
                 return string.Empty;
             }
-            else
-            {
-                return leading.Substring(0, lastNewLinePos);
-            }
+
+            return leading.Substring(0, lastNewLinePos);
         }
 
         public static ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(this SyntaxNode node)
@@ -74,12 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsOpenParenInArgumentList(this SyntaxToken token)
         {
-            return token.Kind() == SyntaxKind.OpenParenToken && token.Parent.Kind() == SyntaxKind.ArgumentList;
+            return token.Kind() == SyntaxKind.OpenParenToken &&
+                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
         }
 
         public static bool IsCloseParenInArgumentList(this SyntaxToken token)
         {
-            return token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ArgumentList;
+            return token.Kind() == SyntaxKind.CloseParenToken &&
+                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
         }
 
         public static bool IsColonInTypeBaseList(this SyntaxToken token)
@@ -99,8 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return node.Parent.Kind() == SyntaxKind.SimpleLambdaExpression ||
-                   node.Parent.Kind() == SyntaxKind.ParenthesizedLambdaExpression;
+            return node.IsParentKind(SyntaxKind.SimpleLambdaExpression) || node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression);
         }
 
         public static bool IsAnonymousMethodBlock(this SyntaxNode node)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return node.Parent.Kind() == SyntaxKind.AnonymousMethodExpression;
+            return node.IsParentKind(SyntaxKind.AnonymousMethodExpression);
         }
 
         public static bool IsSemicolonInForStatement(this SyntaxToken token)
@@ -246,6 +246,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return false;
+        }
+
+        public static bool IsEqualsTokenInAutoPropertyInitializers(this SyntaxToken token)
+        {
+            return token.IsKind(SyntaxKind.EqualsToken) &&
+                token.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
+                token.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration);
         }
 
         public static bool IsCloseParenInStatement(this SyntaxToken token)
@@ -503,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             Contract.ThrowIfNull(node);
 
             var blockNode = node as BlockSyntax;
-            if (blockNode == null)
+            if (blockNode == null || blockNode.Parent == null)
             {
                 return false;
             }

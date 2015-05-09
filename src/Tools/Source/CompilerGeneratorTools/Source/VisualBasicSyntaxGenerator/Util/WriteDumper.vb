@@ -8,7 +8,7 @@
 Imports System.IO
 
 
-Class WriteDumper
+Friend Class WriteDumper
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.

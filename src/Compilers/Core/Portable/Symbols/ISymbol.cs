@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis
     /// Represents a symbol (namespace, class, method, parameter, etc.)
     /// exposed by the compiler.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     [InternalImplementationOnly]
     public interface ISymbol : IEquatable<ISymbol>
     {

@@ -169,11 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            CheckLiftedCompoundAssignment(node);
-            if (_inExpressionLambda)
-            {
-                Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
-            }
+            CheckCompoundAssignmentOperator(node);
 
             return base.VisitCompoundAssignmentOperator(node);
         }
@@ -289,6 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
+            if (_inExpressionLambda && node.AddMethod.IsStatic)
+            {
+                Error(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, node);
+            }
+
             VisitCall(node.AddMethod, null, node.Arguments, default(ImmutableArray<RefKind>), default(ImmutableArray<string>), node.Expanded, node);
             return base.VisitCollectionElementInitializer(node);
         }

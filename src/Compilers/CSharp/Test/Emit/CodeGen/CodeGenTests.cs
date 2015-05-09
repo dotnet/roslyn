@@ -448,7 +448,7 @@ class C
 }";
             var tree = Parse(source);
             var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
-            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, expectedOutput: "k");
+            CompileAndVerify(compilation, emitters: TestEmitters.CCI, expectedOutput: "k");
         }
 
         [WorkItem(546853, "DevDiv")]
@@ -505,7 +505,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
-            var result = CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug);
 
             result.VerifyIL("C.A", @"
 {
@@ -579,7 +579,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
-            var result = CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug);
 
             result.VerifyIL("C.A",
 @"{
@@ -824,7 +824,7 @@ class Clazz
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
-            var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ", emitOptions: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ", emitters: TestEmitters.RefEmitBug);
 
             result.VerifyIL("Clazz.Main", @"
 {
@@ -3231,7 +3231,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "222333");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("ＭＯＤＵＬＥ"), expectedOutput: "222333");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3241,7 +3241,7 @@ public class D
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.$$method0x6000001-42F1B77334EDFA917032CCF8353020C73F8C62E1""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.42F1B77334EDFA917032CCF8353020C73F8C62E1""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  stloc.0
   IL_0012:  ldloc.0
@@ -3594,7 +3594,7 @@ CCC
   IL_0028:  ldc.i4.3
   IL_0029:  newarr     ""byte""
   IL_002e:  dup
-  IL_002f:  ldtoken    ""<PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.__StaticArrayInitTypeSize=3  <PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.$$method0x6000001-0""
+  IL_002f:  ldtoken    ""<PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.__StaticArrayInitTypeSize=3  <PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.0""
   IL_0034:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0039:  ldc.i4.0
   IL_003a:  ldelem.u1
@@ -3620,7 +3620,7 @@ CCC
   IL_005f:  ldc.i4.3
   IL_0060:  newarr     ""short""
   IL_0065:  dup
-  IL_0066:  ldtoken    ""<PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.__StaticArrayInitTypeSize=6  <PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.$$method0x6000001-1""
+  IL_0066:  ldtoken    ""<PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.__StaticArrayInitTypeSize=6  <PrivateImplementationDetails>{a6c2d596-042b-4294-99ab-d34a2758ec15}.1""
   IL_006b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0070:  stelem.ref
   IL_0071:  ldc.i4.1
@@ -6080,7 +6080,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"BCDE2442");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"BCDE2442");
 
             compilation.VerifyIL("D.DD.Test",
 @"{
@@ -6383,7 +6383,7 @@ public class D
         System.Console.WriteLine(d[4]);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 3
 -5
 True
@@ -6406,7 +6406,7 @@ e
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-56C14CB445C628421AC674599E302B0879FB496F""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.56C14CB445C628421AC674599E302B0879FB496F""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  dup
   IL_0012:  ldc.i4.2
@@ -6418,7 +6418,7 @@ e
   IL_0020:  ldc.i4.5
   IL_0021:  newarr     ""bool""
   IL_0026:  dup
-  IL_0027:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.$$method0x6000001-4E724558F6B816715597A51663AD8F05247E2C4A""
+  IL_0027:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.4E724558F6B816715597A51663AD8F05247E2C4A""
   IL_002c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0031:  dup
   IL_0032:  ldc.i4.2
@@ -6430,7 +6430,7 @@ e
   IL_0040:  ldc.i4.5
   IL_0041:  newarr     ""byte""
   IL_0046:  dup
-  IL_0047:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.$$method0x6000001-9755240DD0C4C1AD226DEBD40C6D2EBD408250CB""
+  IL_0047:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.9755240DD0C4C1AD226DEBD40C6D2EBD408250CB""
   IL_004c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0051:  dup
   IL_0052:  ldc.i4.2
@@ -6442,7 +6442,7 @@ e
   IL_0060:  ldc.i4.5
   IL_0061:  newarr     ""char""
   IL_0066:  dup
-  IL_0067:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.$$method0x6000001-E313A2813013780396D58750DC5D62221C86F42F""
+  IL_0067:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.E313A2813013780396D58750DC5D62221C86F42F""
   IL_006c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0071:  dup
   IL_0072:  ldc.i4.2
@@ -6454,7 +6454,7 @@ e
   IL_0080:  ldc.i4.5
   IL_0081:  newarr     ""float""
   IL_0086:  dup
-  IL_0087:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-2F3DD953DBFB23217E7CE0E76630EBD31267E237""
+  IL_0087:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.2F3DD953DBFB23217E7CE0E76630EBD31267E237""
   IL_008c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0091:  dup
   IL_0092:  ldc.i4.2
@@ -6466,7 +6466,7 @@ e
   IL_00a0:  ldc.i4.5
   IL_00a1:  newarr     ""double""
   IL_00a6:  dup
-  IL_00a7:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.$$method0x6000001-11F3436B917FFBA0FAB0FAD5563AF18FA24AC16A""
+  IL_00a7:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.11F3436B917FFBA0FAB0FAD5563AF18FA24AC16A""
   IL_00ac:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00b1:  dup
   IL_00b2:  ldc.i4.2
@@ -6499,7 +6499,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3-5");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"3-5");
             //string pid = "<PrivateImplementationDetails>" + compilation.Compilation.SourceModule.Pers
             compilation.VerifyIL("D.Main",
 @"{
@@ -6509,7 +6509,7 @@ public class D
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-FF942E5F620FC460CF9424D564C73AD8A99C74EE""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.FF942E5F620FC460CF9424D564C73AD8A99C74EE""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  dup
   IL_0012:  ldc.i4.2
@@ -6524,7 +6524,7 @@ public class D
   IL_0027:  ldc.i4.5
   IL_0028:  newarr     ""int""
   IL_002d:  dup
-  IL_002e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-89E37886EEEDC70AEF61138E037CC60EFC35535F""
+  IL_002e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.89E37886EEEDC70AEF61138E037CC60EFC35535F""
   IL_0033:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0038:  dup
   IL_0039:  ldc.i4.4
@@ -6561,7 +6561,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"30");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"30");
             //string pid = "<PrivateImplementationDetails>" + compilation.Compilation.SourceModule.Pers
             compilation.VerifyIL("D.Main",
 @"{
@@ -6592,7 +6592,7 @@ public class D
   IL_002e:  ldc.i4.s   15
   IL_0030:  newarr     ""int""
   IL_0035:  dup
-  IL_0036:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=60 <PrivateImplementationDetails>.$$method0x6000001-49608711F905702F9F227AA782F8B408777D5DF9""
+  IL_0036:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=60 <PrivateImplementationDetails>.49608711F905702F9F227AA782F8B408777D5DF9""
   IL_003b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0040:  dup
   IL_0041:  ldc.i4.s   12
@@ -6716,7 +6716,7 @@ Char
 DBNull
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source: source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib45(source: source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             //NOTE: 
@@ -6728,7 +6728,7 @@ DBNull
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""System.TypeCode""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-3191FF614021ADF3122AC274EA5B6097C21BEB81""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.3191FF614021ADF3122AC274EA5B6097C21BEB81""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  dup
   IL_0012:  ldc.i4.1
@@ -7240,7 +7240,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 F1=3, F2=33
 444
 127
@@ -7301,7 +7301,7 @@ Abc123
   IL_0085:  ldc.i4.4
   IL_0086:  newarr     ""ushort""
   IL_008b:  dup
-  IL_008c:  ldtoken    ""long <PrivateImplementationDetails>.$$method0x6000001-E9E8A66A117598333ABACF5B65971C2366E19B6C""
+  IL_008c:  ldtoken    ""long <PrivateImplementationDetails>.E9E8A66A117598333ABACF5B65971C2366E19B6C""
   IL_0091:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0096:  callvirt   ""uint Program.C.Foo(out short, params ushort[])""
   IL_009b:  call       ""void System.Console.WriteLine(uint)""
@@ -7523,7 +7523,7 @@ class A
 }
 
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe);
+            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe.WithModuleName("MODULE"));
 
             compilation.VerifyIL("A.Main",
 @"{
@@ -7534,7 +7534,7 @@ class A
   IL_0001:  ldc.i4.5
   IL_0002:  newarr     ""int""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ret
@@ -11268,7 +11268,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitOptions: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
+            CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitters: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11298,7 +11298,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }, emitOptions: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
+            CompileAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }, emitters: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11459,7 +11459,7 @@ class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
         }
 
         [WorkItem(543090, "DevDiv")]
@@ -11491,7 +11491,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
         }
 
         [WorkItem(543530, "DevDiv")]
@@ -11532,7 +11532,7 @@ class C1
         B(""Main"");
     }
 }";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: "null;null;C1;");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: "null;null;C1;");
         }
         [WorkItem(543091, "DevDiv")]
         [Fact()]
@@ -11563,7 +11563,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
         }
 
         [WorkItem(543156, "DevDiv")]
@@ -11744,7 +11744,7 @@ struct MyManagedStruct
     }
 }";
             // TODO (tomat): Ref.Emit has problems with nested structs
-            var compilation = CompileAndVerify(source, expectedOutput: @"42", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            var compilation = CompileAndVerify(source, expectedOutput: @"42", emitters: TestEmitters.RefEmitUnsupported_646042);
 
             // Dev10
             compilation.VerifyIL("Program.Main",
@@ -13006,7 +13006,7 @@ class D : C, IFoo
         }
     }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"False
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"False
 
 True
 System.Exception: Exception of type 'System.Exception' was thrown.
@@ -13047,7 +13047,7 @@ True");
   IL_0040:  ldc.i4.4
   IL_0041:  newarr     ""bool""
   IL_0046:  dup
-  IL_0047:  ldtoken    ""int <PrivateImplementationDetails>.$$method0x6000001-35CCB1599F52363510686EF38B7DB5E7998DB108""
+  IL_0047:  ldtoken    ""int <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108""
   IL_004c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0051:  ldc.i4.2
   IL_0052:  ldelem.u1
@@ -13730,7 +13730,7 @@ using System;
 
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @""
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @""
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -13773,7 +13773,7 @@ using System;
 
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"hello"
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"hello"
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -13825,7 +13825,7 @@ class c1
 
 ";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"").
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"").
                 VerifyIL("Test..cctor()",
 @"
 {

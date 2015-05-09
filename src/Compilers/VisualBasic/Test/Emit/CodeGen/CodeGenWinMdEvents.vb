@@ -537,7 +537,7 @@ End Namespace
 
             Dim serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization
             Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
-            CompileAndVerify(comp2, emitOptions:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
+            CompileAndVerify(comp2, emitters:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
 A
 False
 

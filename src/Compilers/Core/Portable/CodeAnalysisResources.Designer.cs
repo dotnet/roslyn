@@ -260,11 +260,21 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Compiler Analyzer &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The Compiler Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
         /// </summary>
         internal static string CompilerAnalyzerThrows {
             get {
                 return ResourceManager.GetString("CompilerAnalyzerThrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw the following exception:
+        ///&apos;{1}&apos;..
+        /// </summary>
+        internal static string CompilerAnalyzerThrowsDescription {
+            get {
+                return ResourceManager.GetString("CompilerAnalyzerThrowsDescription", resourceCulture);
             }
         }
         
@@ -283,15 +293,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Delegate1 {
             get {
                 return ResourceManager.GetString("Delegate1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The DiagnosticDescriptor with ID &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
-        /// </summary>
-        internal static string DiagnosticDescriptorThrows {
-            get {
-                return ResourceManager.GetString("DiagnosticDescriptorThrows", resourceCulture);
             }
         }
         
@@ -584,11 +585,56 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument to &apos;/keepalive&apos; option is not a 32-bit integer..
+        /// </summary>
+        internal static string KeepAliveIsNotAnInteger {
+            get {
+                return ResourceManager.GetString("KeepAliveIsNotAnInteger", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Arguments to &apos;/keepalive&apos; option below -1 are invalid..
+        /// </summary>
+        internal static string KeepAliveIsTooSmall {
+            get {
+                return ResourceManager.GetString("KeepAliveIsTooSmall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;/keepalive&apos; option is only valid with &apos;/shared&apos; option..
+        /// </summary>
+        internal static string KeepAliveWithoutShared {
+            get {
+                return ResourceManager.GetString("KeepAliveWithoutShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string Method {
             get {
                 return ResourceManager.GetString("Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Roslyn compiler server reports different protocol version than build task..
+        /// </summary>
+        internal static string MismatchedVersion {
+            get {
+                return ResourceManager.GetString("MismatchedVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing argument for &apos;/keepalive&apos; option..
+        /// </summary>
+        internal static string MissingKeepAlive {
+            get {
+                return ResourceManager.GetString("MissingKeepAlive", resourceCulture);
             }
         }
         
@@ -809,6 +855,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The attribute {0} has an invalid value of {1}..
+        /// </summary>
+        internal static string RuleSetBadAttributeValue {
+            get {
+                return ResourceManager.GetString("RuleSetBadAttributeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The rule set file has duplicate rules for &apos;{0}&apos; with differing actions &apos;{1}&apos; and &apos;{2}&apos;..
         /// </summary>
         internal static string RuleSetHasDuplicateRules {
@@ -818,11 +873,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The file does not conform to the rule set schema - {0}.
+        ///   Looks up a localized string similar to The element {0} is missing an attribute named {1}..
         /// </summary>
-        internal static string RuleSetSchemaViolation {
+        internal static string RuleSetMissingAttribute {
             get {
-                return ResourceManager.GetString("RuleSetSchemaViolation", resourceCulture);
+                return ResourceManager.GetString("RuleSetMissingAttribute", resourceCulture);
             }
         }
         
@@ -926,6 +981,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SymWriter doesn&apos;t support deterministic compilation.
+        /// </summary>
+        internal static string SymWriterNotDeterministic {
+            get {
+                return ResourceManager.GetString("SymWriterNotDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to type must be a subclass of SyntaxAnnotation..
         /// </summary>
         internal static string TypeMustBeASubclassOfSyntaxAnnotation {
@@ -967,6 +1031,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unresolved {
             get {
                 return ResourceManager.GetString("Unresolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
+        /// </summary>
+        internal static string UnsupportedDiagnosticReported {
+            get {
+                return ResourceManager.GetString("UnsupportedDiagnosticReported", resourceCulture);
             }
         }
         

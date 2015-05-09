@@ -2622,7 +2622,7 @@ class Module1
 
         private sealed class Resolver : TestMetadataReferenceResolver
         {
-            private readonly string _data,_core,_system;
+            private readonly string _data, _core, _system;
 
             public Resolver(string data, string core, string system)
             {
@@ -2726,7 +2726,7 @@ System.Diagnostics.Process.GetCurrentProcess();
                 Diagnostic(ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts, @"#r ""System.Core"""));
         }
 
-        private static readonly string s_resolvedPath = Path.GetPathRoot(Environment.CurrentDirectory) + "RESOLVED";
+        private static readonly string s_resolvedPath = Path.GetPathRoot(Directory.GetCurrentDirectory()) + "RESOLVED";
 
         private class DummyFileProvider : MetadataFileReferenceProvider
         {
@@ -2748,7 +2748,7 @@ System.Diagnostics.Process.GetCurrentProcess();
         {
             public override string ResolveReference(string reference, string baseFilePath)
             {
-                return reference.EndsWith("-resolve") ? s_resolvedPath : reference;
+                return reference.EndsWith("-resolve", StringComparison.Ordinal) ? s_resolvedPath : reference;
             }
         }
 
@@ -2777,7 +2777,7 @@ class C : Metadata.ICSPropImpl { }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CompilationWithReferenceDirective_RelativeToBaseDirectory()
         {
             string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
@@ -2815,7 +2815,7 @@ class C : Metadata.ICSPropImpl { }";
                 Diagnostic(ErrorCode.ERR_MetadataReferencesNotSupported, @"#r ""bar"""));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CompilationWithReferenceDirective_RelativeToBaseParent()
         {
             string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
@@ -2838,7 +2838,7 @@ class C : Metadata.ICSPropImpl { }";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CompilationWithReferenceDirective_RelativeToBaseRoot()
         {
             string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;

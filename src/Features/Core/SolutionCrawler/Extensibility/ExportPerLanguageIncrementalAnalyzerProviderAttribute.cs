@@ -9,20 +9,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportPerLanguageIncrementalAnalyzerProviderAttribute : ExportAttribute
     {
-        public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string Name { get; }
+        public string Language { get; }
 
         public ExportPerLanguageIncrementalAnalyzerProviderAttribute(string name, string language)
             : base(typeof(IPerLanguageIncrementalAnalyzerProvider))
         {
             if (name == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.Name = name;

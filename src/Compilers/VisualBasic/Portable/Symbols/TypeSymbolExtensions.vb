@@ -706,10 +706,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Sub CollectReferencedTypeParameters(this As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol))
-            VisitType(this, AddIfTypeParameterFunc, typeParameters)
+            VisitType(this, s_addIfTypeParameterFunc, typeParameters)
         End Sub
 
-        Private ReadOnly AddIfTypeParameterFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf AddIfTypeParameter
+        Private ReadOnly s_addIfTypeParameterFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf AddIfTypeParameter
 
         Private Function AddIfTypeParameter(type As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
             If type.TypeKind = TypeKind.TypeParameter Then
@@ -720,11 +720,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Function ReferencesTypeParameterNotInTheSet(this As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
-            Dim typeParameter = VisitType(this, IsTypeParameterNotInSetFunc, typeParameters)
+            Dim typeParameter = VisitType(this, s_isTypeParameterNotInSetFunc, typeParameters)
             Return typeParameter IsNot Nothing
         End Function
 
-        Private ReadOnly IsTypeParameterNotInSetFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf IsTypeParameterNotInSet
+        Private ReadOnly s_isTypeParameterNotInSetFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf IsTypeParameterNotInSet
 
         Private Function IsTypeParameterNotInSet(type As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
             Return (type.TypeKind = TypeKind.TypeParameter) AndAlso
@@ -733,11 +733,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Function ReferencesMethodsTypeParameter(this As TypeSymbol, method As MethodSymbol) As Boolean
-            Dim typeParameter = VisitType(this, IsMethodTypeParameterFunc, method)
+            Dim typeParameter = VisitType(this, s_isMethodTypeParameterFunc, method)
             Return typeParameter IsNot Nothing
         End Function
 
-        Private ReadOnly IsMethodTypeParameterFunc As Func(Of TypeSymbol, MethodSymbol, Boolean) = AddressOf IsMethodTypeParameter
+        Private ReadOnly s_isMethodTypeParameterFunc As Func(Of TypeSymbol, MethodSymbol, Boolean) = AddressOf IsMethodTypeParameter
 
         Private Function IsMethodTypeParameter(type As TypeSymbol, method As MethodSymbol) As Boolean
             Return (type.TypeKind = TypeKind.TypeParameter) AndAlso
@@ -752,11 +752,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Function IsOrRefersToTypeParameter(this As TypeSymbol) As Boolean
-            Dim typeParameter = VisitType(this, IsTypeParameterFunc, Nothing)
+            Dim typeParameter = VisitType(this, s_isTypeParameterFunc, Nothing)
             Return typeParameter IsNot Nothing
         End Function
 
-        Private ReadOnly IsTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
+        Private ReadOnly s_isTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
 
         ''' <summary>
         ''' Visit the given type and, in the case of compound types, visit all "sub type"
@@ -869,17 +869,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Friend Sub CheckTypeArguments(typeArguments As ImmutableArray(Of TypeSymbol), expectedCount As Integer)
             If typeArguments.IsDefault Then
-                Throw New Global.System.ArgumentNullException("typeArguments")
+                Throw New Global.System.ArgumentNullException(NameOf(typeArguments))
             End If
 
             For Each typeArg In typeArguments
                 If typeArg Is Nothing Then
-                    Throw New ArgumentException(VBResources.TypeArgumentCannotBeNothing, "typeArguments")
+                    Throw New ArgumentException(VBResources.TypeArgumentCannotBeNothing, NameOf(typeArguments))
                 End If
             Next
 
             If typeArguments.Length = 0 OrElse typeArguments.Length <> expectedCount Then
-                Throw New ArgumentException(VBResources.WrongNumberOfTypeArguments, "typeArguments")
+                Throw New ArgumentException(VBResources.WrongNumberOfTypeArguments, NameOf(typeArguments))
             End If
         End Sub
 

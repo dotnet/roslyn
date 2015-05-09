@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if DEBUG
         public static async Task<bool> HasAnyErrors(this Document document, CancellationToken cancellationToken, List<string> ignoreErrorCode = null)
         {
+            if (!document.SupportsSemanticModel)
+            {
+                return false;
+            }
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).Any(diag => diag.Severity == DiagnosticSeverity.Error &&
                                                                           (ignoreErrorCode == null || ignoreErrorCode.Count == 0 ? true : !ignoreErrorCode.Contains(diag.Id)));

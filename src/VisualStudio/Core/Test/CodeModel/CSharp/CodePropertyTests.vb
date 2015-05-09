@@ -248,6 +248,69 @@ class C
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=31)))
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=9, lineOffset:=5, absoluteOffset:=76, lineLength:=22)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=8, lineOffset:=5, absoluteOffset:=67, lineLength:=16)))
+        End Sub
+
 #End Region
 
 #Region "GetEndPoint() tests"
@@ -489,6 +552,69 @@ class C
                      TextPoint(line:=13, lineOffset:=6, absoluteOffset:=182, lineLength:=5)))
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=18, lineOffset:=6, absoluteOffset:=178, lineLength:=5)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=19, lineOffset:=6, absoluteOffset:=193, lineLength:=5)))
+        End Sub
+
 #End Region
 
 #Region "FullName tests"
@@ -539,6 +665,65 @@ class C
 </Code>
 
             TestFullName(code, "C.this")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.Prop1")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.this")
         End Sub
 
 #End Region
@@ -648,6 +833,65 @@ class C
 </Code>
 
             TestName(code, "this")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestName(code, "I1.Prop1")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestName(code, "I1.this")
         End Sub
 
 #End Region
@@ -1032,7 +1276,7 @@ class C
 #Region "AutoImplementedPropertyExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AutoImplementedPropertyExtender_IsAutoImplemented1()
+        Public Sub AutoImplementedPropertyExtender_IsAutoImplemented1()
             Dim code =
 <Code>
 public class C
@@ -1045,7 +1289,7 @@ public class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AutoImplementedPropertyExtender_IsAutoImplemented2()
+        Public Sub AutoImplementedPropertyExtender_IsAutoImplemented2()
             Dim code =
 <Code>
 public class C
@@ -1062,7 +1306,7 @@ public class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub AutoImplementedPropertyExtender_IsAutoImplemented3()
+        Public Sub AutoImplementedPropertyExtender_IsAutoImplemented3()
             Dim code =
 <Code>
 public interface I
@@ -1072,6 +1316,28 @@ public interface I
 </Code>
 
             TestAutoImplementedPropertyExtender_IsAutoImplemented(code, False)
+        End Sub
+
+#End Region
+
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+class Program
+{
+    public int $$this[int @int]
+    {
+        get { return @int; }
+        set { }
+    }
+}
+</Code>
+
+            TestAllParameterNames(code, "@int")
         End Sub
 
 #End Region

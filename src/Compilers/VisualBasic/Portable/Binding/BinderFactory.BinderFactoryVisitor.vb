@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _position As Integer
             Private ReadOnly _factory As BinderFactory
 
-            Sub New(factory As BinderFactory)
+            Public Sub New(factory As BinderFactory)
                 Me._factory = factory
             End Sub
 

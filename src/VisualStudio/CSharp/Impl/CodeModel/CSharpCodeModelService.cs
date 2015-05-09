@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         private static readonly SymbolDisplayFormat s_fullNameFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
@@ -324,6 +324,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 return GetAttributeNodes(parent.Parent);
             }
+            else if (parent is AccessorDeclarationSyntax)
+            {
+                return GetAttributeNodes(((AccessorDeclarationSyntax)parent).AttributeLists);
+            }
 
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
@@ -578,6 +582,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
                     return (EnvDTE.CodeElement)CodeFunction.CreateUnknown(state, fileCodeModel, node.RawKind, GetName(node));
 
                 case SyntaxKind.PropertyDeclaration:
@@ -793,17 +798,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)node).Identifier.ToString();
+                    return ((MethodDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((MethodDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.ConstructorDeclaration:
                     return ((ConstructorDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.DestructorDeclaration:
                     return "~" + ((DestructorDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)node).Identifier.ToString();
+                    return ((PropertyDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((PropertyDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)node).ThisKeyword.ToString();
+                    return ((IndexerDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((IndexerDeclarationSyntax)node).ThisKeyword.ToString();
                 case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)node).Identifier.ToString();
+                    return ((EventDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((EventDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)node).Identifier.ToString();
                 case SyntaxKind.NamespaceDeclaration:
@@ -3663,7 +3672,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string[] GetTypeExtenderNames()
         {
-            return new string[0];
+            return Array.Empty<string>();
         }
 
         public override object GetTypeExtender(string name, AbstractCodeType symbol)

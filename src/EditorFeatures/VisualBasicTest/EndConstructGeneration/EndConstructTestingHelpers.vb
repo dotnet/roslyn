@@ -16,7 +16,7 @@ Imports Moq
 Imports Roslyn.Test.EditorUtilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
-    Module EndConstructTestingHelpers
+    Friend Module EndConstructTestingHelpers
 
         Private Function CreateMockIndentationService() As ISmartIndentationService
             Dim mock As New Mock(Of ISmartIndentationService)
@@ -25,15 +25,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Function
 
         <ThreadStatic>
-        Private _disabledLineCommitExportProvider As ExportProvider
+        Private t_disabledLineCommitExportProvider As ExportProvider
 
         Private ReadOnly Property DisabledLineCommitExportProvider As ExportProvider
             Get
-                If _disabledLineCommitExportProvider Is Nothing Then
-                    _disabledLineCommitExportProvider = TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic()
+                If t_disabledLineCommitExportProvider Is Nothing Then
+                    t_disabledLineCommitExportProvider = TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic()
                 End If
 
-                Return _disabledLineCommitExportProvider
+                Return t_disabledLineCommitExportProvider
             End Get
         End Property
 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                                            after As String,
                                            typedChar As Char,
                                            endCaretPos As Integer())
-            Dim caretPos = before.IndexOf("$$")
+            Dim caretPos = before.IndexOf("$$", StringComparison.Ordinal)
             Dim beforeText = before.Replace("$$", "")
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(beforeText, exportProvider:=DisabledLineCommitExportProvider)
                 DisableLineCommit(workspace)

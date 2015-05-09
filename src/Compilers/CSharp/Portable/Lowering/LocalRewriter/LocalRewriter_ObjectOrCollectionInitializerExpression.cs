@@ -163,10 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
                 Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
                 Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);
-                var newArgs = ArrayBuilder<BoundExpression>.GetInstance();
-                newArgs.AddRange(rewrittenArguments);
-                newArgs[0] = rewrittenReceiver;
-                rewrittenArguments = newArgs.ToImmutableAndFree();
+                Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
+                rewrittenArguments = rewrittenArguments.SetItem(0, rewrittenReceiver);
                 rewrittenReceiver = null;
             }
 
@@ -335,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pointerAccess = (BoundPointerElementAccess)assignment.Left;
                         var rewrittenIndex = VisitExpression(pointerAccess.Index);
 
-                        if (IntroducingReadCanBeObservable(rewrittenIndex))
+                        if (CanChangeValueBetweenReads(rewrittenIndex))
                         {
                             BoundAssignmentOperator store;
                             var temp = _factory.StoreToTemp(rewrittenIndex, out store);
@@ -380,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var arg = args[i];
 
-                if (IntroducingReadCanBeObservable(arg))
+                if (CanChangeValueBetweenReads(arg))
                 {
                     if (newArgs == null)
                     {

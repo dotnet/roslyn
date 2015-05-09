@@ -322,15 +322,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class LambdaRelaxationVisitor
             Inherits BoundTreeWalker
 
-            Private ReadOnly m_LambdaSymbol As LambdaSymbol
-            Private ReadOnly m_isIterator As Boolean
-            Private m_DelegatRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
-            Private m_SeenReturnWithAValue As Boolean
-            Private m_useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            Private ReadOnly _lambdaSymbol As LambdaSymbol
+            Private ReadOnly _isIterator As Boolean
+            Private _delegatRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
+            Private _seenReturnWithAValue As Boolean
+            Private _useSiteDiagnostics As HashSet(Of DiagnosticInfo)
 
             Private Sub New(lambdaSymbol As LambdaSymbol, isIterator As Boolean)
-                m_LambdaSymbol = lambdaSymbol
-                m_isIterator = isIterator
+                _lambdaSymbol = lambdaSymbol
+                _isIterator = isIterator
             End Sub
 
             Public Shared Function DetermineDelegateRelaxationLevel(
@@ -341,11 +341,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             ) As ConversionKind
                 Dim visitor As New LambdaRelaxationVisitor(lambdaSymbol, isIterator)
-                visitor.m_useSiteDiagnostics = useSiteDiagnostics
+                visitor._useSiteDiagnostics = useSiteDiagnostics
                 visitor.VisitBlock(lambdaBlock)
-                seenReturnWithAValue = visitor.m_SeenReturnWithAValue
-                useSiteDiagnostics = visitor.m_useSiteDiagnostics
-                Return visitor.m_DelegatRelaxationLevel
+                seenReturnWithAValue = visitor._seenReturnWithAValue
+                useSiteDiagnostics = visitor._useSiteDiagnostics
+                Return visitor._delegatRelaxationLevel
             End Function
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function VisitReturnStatement(node As BoundReturnStatement) As BoundNode
                 ' not interested in Returns in an iterator.
-                If m_isIterator Then
+                If _isIterator Then
                     Return Nothing
                 End If
 
@@ -374,29 +374,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If node.ExpressionOpt.Kind = BoundKind.Local Then
                         Dim local As LocalSymbol = DirectCast(node.ExpressionOpt, BoundLocal).LocalSymbol
 
-                        If local.IsFunctionValue AndAlso local.ContainingSymbol Is m_LambdaSymbol Then
+                        If local.IsFunctionValue AndAlso local.ContainingSymbol Is _lambdaSymbol Then
                             Return Nothing
                         End If
                     End If
 
-                    m_SeenReturnWithAValue = True
+                    _seenReturnWithAValue = True
                 End If
 
-                Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.ExpressionOpt, m_useSiteDiagnostics)
+                Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.ExpressionOpt, _useSiteDiagnostics)
 
-                If returnRelaxation > m_DelegatRelaxationLevel Then
-                    m_DelegatRelaxationLevel = returnRelaxation
+                If returnRelaxation > _delegatRelaxationLevel Then
+                    _delegatRelaxationLevel = returnRelaxation
                 End If
 
                 Return Nothing
             End Function
 
             Public Overrides Function VisitYieldStatement(node As BoundYieldStatement) As BoundNode
-                If m_isIterator Then
-                    Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.Expression, m_useSiteDiagnostics)
+                If _isIterator Then
+                    Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.Expression, _useSiteDiagnostics)
 
-                    If returnRelaxation > m_DelegatRelaxationLevel Then
-                        m_DelegatRelaxationLevel = returnRelaxation
+                    If returnRelaxation > _delegatRelaxationLevel Then
+                        _delegatRelaxationLevel = returnRelaxation
                     End If
                 End If
 
@@ -587,17 +587,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class CheckAwaitWalker
             Inherits BoundTreeWalker
 
-            Private ReadOnly m_Binder As Binder
-            Private ReadOnly m_Diagnostics As DiagnosticBag
-            Private m_isInCatchFinallyOrSyncLock As Boolean
-            Private m_ContainsAwait As Boolean
+            Private ReadOnly _binder As Binder
+            Private ReadOnly _diagnostics As DiagnosticBag
+            Private _isInCatchFinallyOrSyncLock As Boolean
+            Private _containsAwait As Boolean
 
             Private Sub New(binder As Binder, diagnostics As DiagnosticBag)
-                m_Diagnostics = diagnostics
-                m_Binder = binder
+                _diagnostics = diagnostics
+                _binder = binder
             End Sub
 
-            Shared Shadows Function VisitBlock(
+            Public Shared Shadows Function VisitBlock(
                 binder As Binder,
                 block As BoundBlock,
                 diagnostics As DiagnosticBag
@@ -606,9 +606,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim walker As New CheckAwaitWalker(binder, diagnostics)
                 walker.Visit(block)
-                Debug.Assert(Not walker.m_isInCatchFinallyOrSyncLock)
+                Debug.Assert(Not walker._isInCatchFinallyOrSyncLock)
 
-                Return walker.m_ContainsAwait
+                Return walker._containsAwait
             End Function
 
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
@@ -616,34 +616,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Visit(node.TryBlock)
 
-                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = m_isInCatchFinallyOrSyncLock
-                m_isInCatchFinallyOrSyncLock = True
+                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = _isInCatchFinallyOrSyncLock
+                _isInCatchFinallyOrSyncLock = True
 
                 VisitList(node.CatchBlocks)
                 Visit(node.FinallyBlockOpt)
 
-                m_isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
+                _isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
                 Return Nothing
             End Function
 
             Public Overrides Function VisitSyncLockStatement(node As BoundSyncLockStatement) As BoundNode
                 Debug.Assert(Not node.WasCompilerGenerated)
-                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = m_isInCatchFinallyOrSyncLock
-                m_isInCatchFinallyOrSyncLock = True
+                Dim save_m_isInCatchFinallyOrSyncLock As Boolean = _isInCatchFinallyOrSyncLock
+                _isInCatchFinallyOrSyncLock = True
 
                 MyBase.VisitSyncLockStatement(node)
 
-                m_isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
+                _isInCatchFinallyOrSyncLock = save_m_isInCatchFinallyOrSyncLock
                 Return Nothing
             End Function
 
             Public Overrides Function VisitAwaitOperator(node As BoundAwaitOperator) As BoundNode
-                Debug.Assert(m_Binder.IsInAsyncContext())
+                Debug.Assert(_binder.IsInAsyncContext())
 
-                m_ContainsAwait = True
+                _containsAwait = True
 
-                If m_isInCatchFinallyOrSyncLock Then
-                    ReportDiagnostic(m_Diagnostics, node.Syntax, ERRID.ERR_BadAwaitInTryHandler)
+                If _isInCatchFinallyOrSyncLock Then
+                    ReportDiagnostic(_diagnostics, node.Syntax, ERRID.ERR_BadAwaitInTryHandler)
                 End If
 
                 Return MyBase.VisitAwaitOperator(node)
@@ -851,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     BindLambdaForErrorRecoveryInferCommonType(commonReturnType, target.ReturnType)
                 Next
 
-                Dim isByRef = BitArray.Empty
+                Dim isByRef = BitVector.Empty
 
                 For i As Integer = 0 To commonParameterTypes.Length - 1
                     If source.Parameters(i).Type IsNot Nothing Then
@@ -1029,12 +1029,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class LambdaReturnStatementsVisitor
             Inherits BoundTreeWalker
 
-            Private ReadOnly m_Builder As ArrayBuilder(Of BoundExpression)
-            Private ReadOnly m_isIterator As Boolean
+            Private ReadOnly _builder As ArrayBuilder(Of BoundExpression)
+            Private ReadOnly _isIterator As Boolean
 
             Private Sub New(builder As ArrayBuilder(Of BoundExpression), isIterator As Boolean)
-                Me.m_Builder = builder
-                Me.m_isIterator = isIterator
+                Me._builder = builder
+                Me._isIterator = isIterator
             End Sub
 
             ''' <summary>
@@ -1065,7 +1065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function VisitReturnStatement(node As BoundReturnStatement) As BoundNode
                 ' not interested in Returns in an iterator.
-                If m_isIterator Then
+                If _isIterator Then
                     Return Nothing
                 End If
 
@@ -1076,14 +1076,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing
                 End If
 
-                m_Builder.Add(expr)
+                _builder.Add(expr)
 
                 Return Nothing
             End Function
 
             Public Overrides Function VisitYieldStatement(node As BoundYieldStatement) As BoundNode
-                If m_isIterator Then
-                    m_Builder.Add(node.Expression)
+                If _isIterator Then
+                    _builder.Add(node.Expression)
                 End If
 
                 Return Nothing

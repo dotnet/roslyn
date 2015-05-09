@@ -1794,7 +1794,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
@@ -1824,7 +1824,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
 
@@ -1927,7 +1927,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
                 Sub(assembly, _omitted)
                     Dim peFileReader = assembly.GetMetadataReader()
                     For Each typeDef In peFileReader.TypeDefinitions
@@ -2617,7 +2617,7 @@ End Class
 
         <WorkItem(545199, "DevDiv")>
         <Fact>
-        Sub Serializable_NonSerialized_CustomEvents()
+        Public Sub Serializable_NonSerialized_CustomEvents()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -2909,7 +2909,7 @@ end structure
                     typeAttribute.VerifyNamedArgumentValue(0, "MayLeakOnAbort", TypedConstantKind.Primitive, True)
                 End Sub
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, sourceSymbolValidator:=attributeValidator)
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, sourceSymbolValidator:=attributeValidator)
         End Sub
 
         <Fact()>
@@ -4308,7 +4308,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, emitOptions:=TestEmitters.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
+            Dim validator = CompileAndVerify(source, emitters:=TestEmitters.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 
@@ -4675,6 +4675,118 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
         End Sub
 
 #End Region
+
+        <Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")>
+        Public Sub TestAttributePropagationForAsyncAndIterators()
+            Dim source =
+            <compilation>
+                <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+
+Class Program
+
+    Shared Sub Main()
+    End Sub
+
+    <MyAttribute>
+    <System.Diagnostics.DebuggerNonUserCodeAttribute>
+    <System.Diagnostics.DebuggerHiddenAttribute>
+    <System.Diagnostics.DebuggerStepperBoundaryAttribute>
+    <System.Diagnostics.DebuggerStepThroughAttribute>
+    Public Async Function test1() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Public Async Function test2() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    <MyAttribute>
+    <System.Diagnostics.DebuggerNonUserCodeAttribute>
+    <System.Diagnostics.DebuggerHiddenAttribute>
+    <System.Diagnostics.DebuggerStepperBoundaryAttribute>
+    <System.Diagnostics.DebuggerStepThroughAttribute>
+    Public Iterator Function Test3() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+
+    Public Iterator Function Test4() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class MyAttribute
+    Inherits System.Attribute
+End Class
+            ]]>
+                </file>
+            </compilation>
+
+            Dim attributeValidator As Action(Of ModuleSymbol) =
+            Sub(m As ModuleSymbol)
+                Dim program = m.GlobalNamespace.GetTypeMember("Program")
+
+                Assert.Equal("", CheckAttributePropagation(DirectCast(program.GetMember(Of MethodSymbol)("test1").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                                           GetMember(Of MethodSymbol)("MoveNext")))
+
+                Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", DirectCast(program.GetMember(Of MethodSymbol)("test2").
+                                GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                GetMember(Of MethodSymbol)("MoveNext").GetAttributes().Single().AttributeClass.ToTestDisplayString())
+
+                Assert.Equal("", CheckAttributePropagation(DirectCast(program.GetMember(Of MethodSymbol)("Test3").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                                           GetMember(Of MethodSymbol)("MoveNext")))
+
+                Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", DirectCast(program.GetMember(Of MethodSymbol)("Test4").
+                                GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                GetMember(Of MethodSymbol)("MoveNext").GetAttributes().Single().AttributeClass.ToTestDisplayString())
+            End Sub
+
+            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
+        End Sub
+
+        Private Shared Function CheckAttributePropagation(moveNext As MethodSymbol) As String
+            Dim result = ""
+
+            If moveNext.GetAttributes("", "MyAttribute").Any() Then
+                result += "MyAttribute is present" & vbCr
+            End If
+
+            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any() Then
+                result += "DebuggerNonUserCodeAttribute is missing" & vbCr
+            End If
+
+            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any() Then
+                result += "DebuggerHiddenAttribute is missing" & vbCr
+            End If
+
+            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any() Then
+                result += "DebuggerStepperBoundaryAttribute is missing" & vbCr
+            End If
+
+            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any() Then
+                result += "DebuggerStepThroughAttribute is missing" & vbCr
+            End If
+
+            If Not moveNext.GetAttributes("System.Runtime.CompilerServices", "CompilerGeneratedAttribute").Any() Then
+                result += "CompilerGeneratedAttribute is missing" & vbCr
+            End If
+
+            Return result
+        End Function
 
     End Class
 End Namespace

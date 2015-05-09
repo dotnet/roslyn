@@ -3,29 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CompilerServer;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Win32;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.IO.Pipes;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
         private sealed class TestableClientConnection : IClientConnection
         {
-            internal string LoggingIdentifier = string.Empty;
+            internal readonly string LoggingIdentifier = string.Empty;
             internal Task<BuildRequest> ReadBuildRequestTask = TaskFromException<BuildRequest>(new Exception());
             internal Task WriteBuildResponseTask = TaskFromException(new Exception());
             internal Task MonitorTask = TaskFromException(new Exception());
@@ -59,7 +50,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         private sealed class TestableDiagnosticListener : IDiagnosticListener
         {
-            public int ProcessedCount = 0;
+            public int ProcessedCount;
             public DateTime? LastProcessedTime;
             public TimeSpan? KeepAlive;
 
@@ -262,7 +253,7 @@ class Hello
             var requestHandler = new Mock<IRequestHandler>(MockBehavior.Strict);
             var dispatcher = new ServerDispatcher(requestHandler.Object, new EmptyDiagnosticListener());
             var startTime = DateTime.Now;
-            dispatcher.ListenAndDispatchConnections(pipeName, keepAlive, watchAnalyzerFiles: false);
+            dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
 
             Assert.True((DateTime.Now - startTime) > keepAlive);
         }
@@ -279,7 +270,7 @@ class Hello
             var dispatcherTask = Task.Run(() =>
             {
                 var dispatcher = new ServerDispatcher(CreateNopRequestHandler().Object, listener);
-                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive, watchAnalyzerFiles: false);
+                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
             });
 
             await RunCSharpCompile(pipeName, HelloWorldSourceText).ConfigureAwait(false);
@@ -302,7 +293,7 @@ class Hello
             var dispatcherTask = Task.Run(() =>
             {
                 var dispatcher = new ServerDispatcher(new CompilerRequestHandler(Temp.CreateDirectory().Path), listener);
-                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive, watchAnalyzerFiles: false);
+                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
             });
 
             for (int i = 0; i < 5; i++)
@@ -328,7 +319,7 @@ class Hello
             var dispatcherTask = Task.Run(() =>
             {
                 var dispatcher = new ServerDispatcher(new CompilerRequestHandler(Temp.CreateDirectory().Path), listener);
-                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive, watchAnalyzerFiles: false);
+                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
             });
 
             var list = new List<Task>();
@@ -368,7 +359,7 @@ class Hello
             var dispatcherTask = Task.Run(() =>
             {
                 var dispatcher = new ServerDispatcher(CreateNopRequestHandler().Object, diagnosticListener.Object);
-                dispatcher.ListenAndDispatchConnections(pipeName, TimeSpan.FromSeconds(1), watchAnalyzerFiles: false, cancellationToken: cts.Token);
+                dispatcher.ListenAndDispatchConnections(pipeName, TimeSpan.FromSeconds(1), cancellationToken: cts.Token);
             });
 
             var seconds = 10;

@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundArrayAccess
+    Friend Partial Class BoundArrayAccess
         Inherits BoundExpression
 
         Public Sub New(syntax As VisualBasicSyntaxNode, expression As BoundExpression, indices As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)

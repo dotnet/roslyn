@@ -917,7 +917,7 @@ class Derived : Base
 }
 ";
 
-            CompileAndVerify(csharp, new[] { CompileIL(il) }, emitOptions: TestEmitters.CCI, expectedOutput: @"
+            CompileAndVerify(csharp, new[] { CompileIL(il) }, emitters: TestEmitters.CCI, expectedOutput: @"
 1
 1
 1
@@ -1002,7 +1002,7 @@ using System;
                 Assert.Equal(Accessibility.Public, methodDispose.DeclaredAccessibility);
                 Assert.False(methodDispose.IsExplicitInterfaceImplementation);
 
-                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Where(d => d.ExplicitInterfaceSpecifier != null).Single();
+                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
                 var interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
                 var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is NamedTypeSymbol;
                 Assert.Equal(expectedResult.isInterfaceNameBound, isInterfaceNameBound);

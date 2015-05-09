@@ -1,6 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -919,9 +921,58 @@ class $$C
                         Dim count = codeClass.Members.OfType(Of EnvDTE80.CodeFunction2)().Count()
                     End Sub)
             End Using
-
         End Sub
 
+        <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub CreateUnknownElementForConversionOperator()
+            Dim oldCode =
+<Code>
+class D
+{
+    public static implicit operator D(double d)
+    {
+        return new D();
+    }
+}
+</Code>
+            Dim changedCode =
+<Code>
+class D
+{
+}
+</Code>
+
+            Dim changedDefinition =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <Document><%= changedCode.Value %></Document>
+    </Project>
+</Workspace>
+
+            Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
+                Using changedworkspace = TestWorkspaceFactory.CreateWorkspace(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+
+                    Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
+                    Dim originalTree = originalDocument.GetSyntaxTreeAsync().Result
+
+                    Dim changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents(0).Id)
+                    Dim changeTree = changeDocument.GetSyntaxTreeAsync().Result
+
+                    Dim codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
+                    Dim fileCodeModel = originalWorkspaceAndFileCodeModel.FileCodeModelObject
+
+                    Dim element As EnvDTE.CodeElement = Nothing
+                    Dim parentElement As Object = Nothing
+                    fileCodeModel.GetElementsForCodeModelEvent(codeModelEvent.First(), element, parentElement)
+                    Assert.NotNull(element)
+                    Assert.NotNull(parentElement)
+
+                    Dim unknownCodeFunction = TryCast(element, EnvDTE.CodeFunction)
+                    Assert.Equal(unknownCodeFunction.Name, "operator implicit D")
+                End Using
+            End Using
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

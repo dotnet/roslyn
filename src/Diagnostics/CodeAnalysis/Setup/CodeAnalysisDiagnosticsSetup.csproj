@@ -23,6 +23,7 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -59,14 +60,20 @@
     <ProjectReference Include="..\Core\CodeAnalysisDiagnosticAnalyzers.csproj">
       <Project>{d8762a0a-3832-47be-bcf6-8b1060be6b28}</Project>
       <Name>CodeAnalysisDiagnosticAnalyzers</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpCodeAnalysisDiagnosticAnalyzers.csproj">
       <Project>{921b412a-5551-4853-82b4-46ad5a05a03e}</Project>
       <Name>CSharpCodeAnalysisDiagnosticAnalyzers</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\BasicCodeAnalysisDiagnosticAnalyzers.vbproj">
       <Project>{b1a6a74b-e484-48fb-8745-7a30a06db631}</Project>
       <Name>BasicCodeAnalysisDiagnosticAnalyzers</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">

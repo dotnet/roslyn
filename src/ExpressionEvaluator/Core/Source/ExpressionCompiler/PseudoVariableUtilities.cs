@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
@@ -7,92 +9,49 @@ using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal enum PseudoVariableKind
+    internal struct Alias
     {
-        None,
-        Exception,
-        StowedException,
-        ReturnValue,
-        ObjectId,
-        DeclaredLocal,
+        internal Alias(DkmClrAliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(fullName));
+            Debug.Assert(!string.IsNullOrEmpty(type));
+
+            this.Kind = kind;
+            this.Name = name;
+            this.FullName = fullName;
+            this.Type = type;
+            this.CustomTypeInfo = customTypeInfo;
+        }
+
+        internal readonly DkmClrAliasKind Kind;
+        internal readonly string Name;
+        internal readonly string FullName;
+        internal readonly string Type;
+        internal readonly CustomTypeInfo CustomTypeInfo;
     }
 
     internal static class PseudoVariableUtilities
     {
-        internal static bool TryParseVariableName(string name, bool caseSensitive, out PseudoVariableKind kind, out string id, out int index)
+        internal static bool TryParseReturnValueIndex(string name, out int index)
         {
-            if (!name.StartsWith("$", StringComparison.Ordinal))
-            {
-                kind = PseudoVariableKind.DeclaredLocal;
-                id = name;
-                index = -1;
-                return true;
-            }
-
-            var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            if (string.Equals(name, "$exception", comparison))
-            {
-                kind = PseudoVariableKind.Exception;
-                id = name;
-                index = 0;
-                return true;
-            }
-            else if (string.Equals(name, "$stowedexception", comparison))
-            {
-                kind = PseudoVariableKind.StowedException;
-                id = name;
-                index = 0;
-                return true;
-            }
-            // Allow lowercase version of $ReturnValue, even with case-sensitive match.
-            else if (name.StartsWith("$ReturnValue", comparison) ||
-                (caseSensitive && name.StartsWith("$returnvalue", comparison)))
-            {
-                var suffix = name.Substring(12);
-                index = 0;
-                if ((suffix.Length == 0) || int.TryParse(suffix, NumberStyles.None, CultureInfo.InvariantCulture, out index))
-                {
-                    Debug.Assert(index >= 0);
-                    kind = PseudoVariableKind.ReturnValue;
-                    id = name;
-                    return true;
-                }
-            }
-            else
-            {
-                // Check for object id: "[$][1-9][0-9]*"
-                var suffix = name.Substring(1);
-                // Leading zeros are not supported.
-                if (!suffix.StartsWith("0", comparison) && int.TryParse(suffix, NumberStyles.None, CultureInfo.InvariantCulture, out index))
-                {
-                    Debug.Assert(index >= 0);
-                    kind = PseudoVariableKind.ObjectId;
-                    id = suffix;
-                    return true;
-                }
-            }
-
-            kind = PseudoVariableKind.None;
-            index = -1;
-            id = null;
-            return false;
+            Debug.Assert(name.StartsWith("$ReturnValue", StringComparison.OrdinalIgnoreCase));
+            const int prefixLength = 12; // "$ReturnValue"
+            int n = name.Length;
+            index = 0;
+            return (n == prefixLength) ||
+                ((n > prefixLength) && int.TryParse(name.Substring(prefixLength), NumberStyles.None, CultureInfo.InvariantCulture, out index));
         }
 
-        internal static string GetTypeName(InspectionContext context, PseudoVariableKind kind, string id, int index)
+        internal static DkmClrCompilationResultFlags GetLocalResultFlags(this Alias alias)
         {
-            switch (kind)
+            switch (alias.Kind)
             {
-                case PseudoVariableKind.Exception:
-                    return context.GetExceptionTypeName();
-                case PseudoVariableKind.StowedException:
-                    return context.GetStowedExceptionTypeName();
-                case PseudoVariableKind.ReturnValue:
-                    return context.GetReturnValueTypeName(index);
-                case PseudoVariableKind.ObjectId:
-                case PseudoVariableKind.DeclaredLocal:
-                    return context.GetObjectTypeNameById(id);
+                case DkmClrAliasKind.Exception:
+                case DkmClrAliasKind.StowedException:
+                case DkmClrAliasKind.ReturnValue:
+                    return DkmClrCompilationResultFlags.ReadOnlyResult;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                    return DkmClrCompilationResultFlags.None;
             }
         }
     }

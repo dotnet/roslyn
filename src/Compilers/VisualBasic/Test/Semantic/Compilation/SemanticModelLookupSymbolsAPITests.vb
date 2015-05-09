@@ -891,7 +891,7 @@ End Class
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim position = tree.ToString().IndexOf("MyBase")
+            Dim position = tree.ToString().IndexOf("MyBase", StringComparison.Ordinal)
             Dim binder = DirectCast(model, VBSemanticModel).GetEnclosingBinder(position)
 
             Dim baseType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("B1")
@@ -1110,7 +1110,7 @@ End Class
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
-            Dim position = tree.ToString().IndexOf("Dim")
+            Dim position = tree.ToString().IndexOf("Dim", StringComparison.Ordinal)
             Dim binder = DirectCast(model, VBSemanticModel).GetEnclosingBinder(position)
 
             Dim result = LookupResult.GetInstance()

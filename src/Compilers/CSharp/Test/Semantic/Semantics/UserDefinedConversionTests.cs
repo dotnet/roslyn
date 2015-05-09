@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SyntaxBinderTests : CompilingTestBase
     {
         #region "Source"
-        private string _userDefinedConversionTestTemplate = @"
+        private readonly string _userDefinedConversionTestTemplate = @"
 class C1 { }
 class C2 { }
 class D 
@@ -1337,7 +1337,7 @@ struct C
         System.Console.WriteLine(c.str);
     }
 }";
-            var verifier = CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "b");
+            var verifier = CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: "b");
         }
 
         [Fact, WorkItem(543440, "DevDiv")]

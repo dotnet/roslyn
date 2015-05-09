@@ -106,7 +106,7 @@ End Module
 Friend Class ObjectInfo
     Private ReadOnly _typeName As String
     Private ReadOnly _propertyInfos As IEnumerable(Of PropertyInfo)
-    Private Shared ReadOnly _emptyPropertyInfos As IEnumerable(Of PropertyInfo) = {}
+    Private Shared ReadOnly s_emptyPropertyInfos As IEnumerable(Of PropertyInfo) = {}
 
     Friend ReadOnly Property TypeName As String
         Get
@@ -117,7 +117,7 @@ Friend Class ObjectInfo
     Friend ReadOnly Property PropertyInfos As IEnumerable(Of PropertyInfo)
         Get
             If _propertyInfos Is Nothing Then
-                Return _emptyPropertyInfos
+                Return s_emptyPropertyInfos
             Else
                 Return _propertyInfos
             End If

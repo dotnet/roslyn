@@ -90,8 +90,8 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.Foo()", new[] { "Calls To 'Foo'" });
-            testState.VerifyResult(root, "Calls To 'Foo'", new[] { "N.G.Main()", "N.G.Main2()" });
+            testState.VerifyRoot(root, "N.C.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { "N.G.Main()", "N.G.Main2()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -129,9 +129,9 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.Foo()", new[] { "Calls To 'Foo'", "Calls To Interface Implementation 'N.I.Foo()'" });
-            testState.VerifyResult(root, "Calls To 'Foo'", new[] { "N.G.Main2()" });
-            testState.VerifyResult(root, "Calls To Interface Implementation 'N.I.Foo()'", new[] { "N.G.Main()" });
+            testState.VerifyRoot(root, "N.C.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), string.Format(EditorFeaturesResources.CallsToInterfaceImplementation, "N.I.Foo()") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { "N.G.Main2()" });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsToInterfaceImplementation, "N.I.Foo()"), new[] { "N.G.Main()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -164,9 +164,9 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.Foo()", new[] { "Calls To 'Foo'", "Calls To Overrides" });
-            testState.VerifyResult(root, "Calls To 'Foo'", new[] { "N.D.Bar()" });
-            testState.VerifyResult(root, "Calls To Overrides", new[] { "N.D.Baz()" });
+            testState.VerifyRoot(root, "N.C.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), EditorFeaturesResources.CallsToOverrides });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { "N.D.Bar()" });
+            testState.VerifyResult(root, EditorFeaturesResources.CallsToOverrides, new[] { "N.D.Baz()" });
         }
 
         [Fact, WorkItem(829705), Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -199,9 +199,9 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.D.Foo()", new[] { "Calls To 'Foo'", "Calls To Base Member 'N.C.Foo()'" });
-            testState.VerifyResult(root, "Calls To 'Foo'", new[] { "N.D.Baz()" });
-            testState.VerifyResult(root, "Calls To Base Member 'N.C.Foo()'", new[] { "N.D.Bar()" });
+            testState.VerifyRoot(root, "N.D.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), string.Format(EditorFeaturesResources.CallsToBaseMember, "N.C.Foo()") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { "N.D.Baz()" });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsToBaseMember, "N.C.Foo()"), new[] { "N.D.Bar()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -219,8 +219,8 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.Foo()", new[] { "Calls To 'Foo'" });
-            testState.VerifyResultName(root, "Calls To 'Foo'", new[] { "Initializers" });
+            testState.VerifyRoot(root, "N.C.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo") });
+            testState.VerifyResultName(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { EditorFeaturesResources.Initializers });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -238,8 +238,8 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.foo", new[] { "References To Field 'foo'" });
-            testState.VerifyResult(root, "References To Field 'foo'", new[] { "N.C.Foo()" });
+            testState.VerifyRoot(root, "N.C.foo", new[] { string.Format(EditorFeaturesResources.ReferencesToField, "foo") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.ReferencesToField, "foo"), new[] { "N.C.Foo()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -266,8 +266,8 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.val.get", new[] { "Calls To 'get_val'" });
-            testState.VerifyResult(root, "Calls To 'get_val'", new[] { "N.C.foo()" });
+            testState.VerifyRoot(root, "N.C.val.get", new[] { string.Format(EditorFeaturesResources.CallsTo, "get_val") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "get_val"), new[] { "N.C.foo()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -292,8 +292,8 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.generic<T>(this string, ref T)", new[] { "Calls To 'generic'" });
-            testState.VerifyResult(root, "Calls To 'generic'", new[] { "N.C.foo()" });
+            testState.VerifyRoot(root, "N.C.generic<T>(this string, ref T)", new[] { string.Format(EditorFeaturesResources.CallsTo, "generic") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "generic"), new[] { "N.C.foo()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -321,8 +321,8 @@ namespace ConsoleApplication10
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "ConsoleApplication10.Extensions.BarString(this string)", new[] { "Calls To 'BarString'" });
-            testState.VerifyResult(root, "Calls To 'BarString'", new[] { "ConsoleApplication10.Program.Main(string[])" });
+            testState.VerifyRoot(root, "ConsoleApplication10.Extensions.BarString(this string)", new[] { string.Format(EditorFeaturesResources.CallsTo, "BarString") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "BarString"), new[] { "ConsoleApplication10.Program.Main(string[])" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -344,8 +344,8 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "System.Linq.Enumerable.Single<TSource>(this System.Collections.Generic.IEnumerable<TSource>)", new[] { "Calls To 'Single'" });
-            testState.VerifyResult(root, "Calls To 'Single'", new[] { "N.Program.Main(string[])" });
+            testState.VerifyRoot(root, "System.Linq.Enumerable.Single<TSource>(this System.Collections.Generic.IEnumerable<TSource>)", new[] { string.Format(EditorFeaturesResources.CallsTo, "Single") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Single"), new[] { "N.Program.Main(string[])" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -383,9 +383,9 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.I.Foo()", new[] { "Calls To 'Foo'", "Implements 'Foo'" });
-            testState.VerifyResult(root, "Calls To 'Foo'", new[] { "N.G.Main()" });
-            testState.VerifyResult(root, "Implements 'Foo'", new[] { "N.C.Foo()" });
+            testState.VerifyRoot(root, "N.I.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), string.Format(EditorFeaturesResources.ImplementsArg, "Foo") });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { "N.G.Main()" });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.ImplementsArg, "Foo"), new[] { "N.C.Foo()" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
@@ -428,8 +428,8 @@ namespace N
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "N.C.Foo()", new[] { "Calls To 'Foo'", "Overrides" });
-            testState.VerifyResult(root, "Overrides", new[] { "N.G.Foo()" });
+            testState.VerifyRoot(root, "N.C.Foo()", new[] { string.Format(EditorFeaturesResources.CallsTo, "Foo"), EditorFeaturesResources.Overrides });
+            testState.VerifyResult(root, EditorFeaturesResources.Overrides, new[] { "N.G.Foo()" });
         }
 
         [WorkItem(844613)]
@@ -453,8 +453,8 @@ class Derived : Base
 }";
             var testState = new CallHierarchyTestState(text);
             var root = testState.GetRoot();
-            testState.VerifyRoot(root, "Base.M()", new[] { "Calls To 'M'", "Overrides", "Calls To Overrides" });
-            testState.VerifyResult(root, "Overrides", new[] { "Derived.M()" });
+            testState.VerifyRoot(root, "Base.M()", new[] { string.Format(EditorFeaturesResources.CallsTo, "M"), EditorFeaturesResources.Overrides, EditorFeaturesResources.CallsToOverrides });
+            testState.VerifyResult(root, EditorFeaturesResources.Overrides, new[] { "Derived.M()" });
         }
     }
 }

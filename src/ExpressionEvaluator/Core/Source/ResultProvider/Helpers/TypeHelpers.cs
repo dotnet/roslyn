@@ -3,16 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
-using BindingFlags = System.Reflection.BindingFlags;
-using MemberTypes = System.Reflection.MemberTypes;
 using MethodAttributes = System.Reflection.MethodAttributes;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -257,6 +255,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsMscorlibType("System", "Void") && !type.IsGenericType;
         }
 
+        internal static bool IsIEnumerable(this Type type)
+        {
+            return type.IsMscorlibType("System.Collections", "IEnumerable");
+        }
+
+        internal static bool IsIEnumerableOfT(this Type type)
+        {
+            return type.IsMscorlibType("System.Collections.Generic", "IEnumerable`1");
+        }
+
         internal static bool IsTypeVariables(this Type type)
         {
             return type.IsType(null, "<>c__TypeVariables");
@@ -284,22 +292,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.GetNullableTypeArgument() != null;
         }
 
-        internal static DkmClrValue GetFieldValue(this DkmClrValue value, string name)
+        internal static DkmClrValue GetFieldValue(this DkmClrValue value, string name, DkmInspectionContext inspectionContext)
         {
-            return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null);
+            return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null, InspectionContext: inspectionContext);
         }
 
-        internal static DkmClrValue GetNullableValue(this DkmClrValue value)
+        internal static DkmClrValue GetNullableValue(this DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             Debug.Assert(value.Type.GetLmrType().IsNullable());
 
-            var hasValue = value.GetFieldValue(InternalWellKnownMemberNames.NullableHasValue);
+            var hasValue = value.GetFieldValue(InternalWellKnownMemberNames.NullableHasValue, inspectionContext);
             if (object.Equals(hasValue.HostObjectValue, false))
             {
                 return null;
             }
 
-            return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue);
+            return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue, inspectionContext);
         }
 
         internal static Type GetBaseTypeOrNull(this Type underlyingType, DkmClrAppDomain appDomain, out DkmClrType type)
@@ -434,20 +442,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return result;
         }
 
-        internal static void EvaluateDebuggerDisplayStringAndContinue(this DkmClrValue value, DkmWorkList workList, DkmInspectionContext inspectionContext, DkmClrType targetType, string str, DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine)
-        {
-            if (str == null)
-            {
-                completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
-            }
-            else
-            {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
-            }
-        }
-
         internal static DkmClrType GetProxyType(this DkmClrType type)
         {
+            // CONSIDER: If needed, we could probably compute a new DynamicAttribute for
+            // the proxy type based on the DynamicAttribute of the argument.
             DkmClrType attributeTarget;
             DkmClrDebuggerTypeProxyAttribute attribute;
             if (type.TryGetEvalAttribute(out attributeTarget, out attribute))
@@ -533,7 +531,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 foreach (var @interface in t.GetInterfacesOnType())
                 {
-                    if (@interface.IsMscorlibType("System.Collections.Generic", "IEnumerable`1"))
+                    if (@interface.IsIEnumerableOfT())
                     {
                         // Return the first implementation of IEnumerable<T>.
                         return @interface;
@@ -544,7 +542,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             foreach (var @interface in type.GetInterfaces())
             {
-                if (@interface.IsMscorlibType("System.Collections", "IEnumerable"))
+                if (@interface.IsIEnumerable())
                 {
                     return @interface;
                 }
@@ -595,11 +593,81 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsType(@namespace, name) /*&& type.Assembly.IsMscorlib()*/;
         }
 
-        private static bool IsType(this Type type, string @namespace, string name)
+        internal static bool IsOrInheritsFrom(this Type type, string @namespace, string name)
+        {
+            do
+            {
+                if (type.IsType(@namespace, name))
+                {
+                    return true;
+                }
+                type = type.BaseType;
+            }
+            while (type != null);
+            return false;
+        }
+
+        internal static bool IsType(this Type type, string @namespace, string name)
         {
             Debug.Assert((@namespace == null) || (@namespace.Length > 0)); // Type.Namespace is null not empty.
             Debug.Assert(!string.IsNullOrEmpty(name));
-            return (type.Namespace == @namespace) && (type.Name == name);
+            return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal) &&
+                string.Equals(type.Name, name, StringComparison.Ordinal);
+        }
+
+        internal static MemberInfo GetOriginalDefinition(this MemberInfo member)
+        {
+            var declaringType = member.DeclaringType;
+            if (!declaringType.IsGenericType)
+            {
+                return member;
+            }
+
+            var declaringTypeOriginalDefinition = declaringType.GetGenericTypeDefinition();
+            if (declaringType.Equals(declaringTypeOriginalDefinition))
+            {
+                return member;
+            }
+
+            foreach (var candidate in declaringTypeOriginalDefinition.GetMember(member.Name, MemberBindingFlags))
+            {
+                var memberType = candidate.MemberType;
+                if (memberType != member.MemberType) continue;
+
+                switch(memberType)
+                {
+                    case MemberTypes.Field:
+                        return candidate;
+                    case MemberTypes.Property:
+                        Debug.Assert(((PropertyInfo)member).GetIndexParameters().Length == 0);
+                        if (((PropertyInfo)candidate).GetIndexParameters().Length == 0)
+                        {
+                            return candidate;
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(memberType);
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal static Type GetInterfaceListEntry(this Type interfaceType, Type declaration)
+        {
+            Debug.Assert(interfaceType.IsInterface);
+
+            if (!interfaceType.IsGenericType || !declaration.IsGenericType)
+            {
+                return interfaceType;
+            }
+
+            var index = Array.IndexOf(declaration.GetInterfacesOnType(), interfaceType);
+            Debug.Assert(index >= 0);
+
+            var result = declaration.GetGenericTypeDefinition().GetInterfacesOnType()[index];
+            Debug.Assert(interfaceType.GetGenericTypeDefinition().Equals(result.GetGenericTypeDefinition()));
+            return result;
         }
     }
 }

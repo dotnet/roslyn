@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             const int CSharp = 1;
             const int VisualBasic = 2;
-            var language = actual.Any() && actual.First().Id.StartsWith("CS") ? CSharp : VisualBasic;
+            var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
 
             if (language == CSharp)
             {

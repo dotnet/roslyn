@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Private Class SimplifyTypeNamesFixAllProvider
             Inherits BatchSimplificationFixAllProvider
 
-            Friend Shared Shadows Instance As SimplifyTypeNamesFixAllProvider = New SimplifyTypeNamesFixAllProvider
+            Friend Shared Shadows ReadOnly Instance As SimplifyTypeNamesFixAllProvider = New SimplifyTypeNamesFixAllProvider
 
             Protected Overrides Function GetNodeToSimplify(root As SyntaxNode, model As SemanticModel, diagnostic As Diagnostic, workspace As Workspace, ByRef codeActionId As String, cancellationToken As CancellationToken) As SyntaxNode
                 codeActionId = Nothing

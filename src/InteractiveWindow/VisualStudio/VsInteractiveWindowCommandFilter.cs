@@ -4,13 +4,13 @@
 // #define DUMP_COMMANDS
 
 using System;
-using Microsoft.VisualStudio;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
@@ -30,10 +30,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         private readonly IInteractiveWindow _window;
         internal readonly IVsTextView textViewAdapter;
         private readonly IWpfTextViewHost _textViewHost;
+        internal readonly IEnumerable<Lazy<IVsInteractiveWindowOleCommandTargetProvider, ContentTypeMetadata>> _oleCommandTargetProviders;
+        internal readonly IContentTypeRegistryService _contentTypeRegistry;
 
-        public VsInteractiveWindowCommandFilter(IVsEditorAdaptersFactoryService adapterFactory, IInteractiveWindow window, IVsTextView textViewAdapter, IVsTextBuffer bufferAdapter)
+        public VsInteractiveWindowCommandFilter(IVsEditorAdaptersFactoryService adapterFactory, IInteractiveWindow window, IVsTextView textViewAdapter, IVsTextBuffer bufferAdapter, IEnumerable<Lazy<IVsInteractiveWindowOleCommandTargetProvider, ContentTypeMetadata>> oleCommandTargetProviders, IContentTypeRegistryService contentTypeRegistry)
         {
             _window = window;
+            _oleCommandTargetProviders = oleCommandTargetProviders;
+            _contentTypeRegistry = contentTypeRegistry;
+            
             this.textViewAdapter = textViewAdapter;
 
             // make us a code window so we'll have the same colors as a normal code window.
@@ -261,7 +266,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 
         private int PreLanguageCommandFilterQueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
-            var nextTarget = firstLanguageServiceCommandFilter;
+            var nextTarget = firstLanguageServiceCommandFilter ?? _editorServicesCommandFilter;
 
             if (pguidCmdGroup == Guids.InteractiveCommandSetId)
             {
@@ -320,7 +325,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((CommandIds)nCmdID)
                 {
-                    case CommandIds.AbortExecution: _window.AbortCommand(); return VSConstants.S_OK;
+                    case CommandIds.AbortExecution: _window.Evaluator.AbortExecution(); return VSConstants.S_OK;
                     case CommandIds.Reset: _window.Operations.ResetAsync(); return VSConstants.S_OK;
                     case CommandIds.SmartExecute: _window.Operations.ExecuteInput(); return VSConstants.S_OK;
                     case CommandIds.HistoryNext: _window.Operations.HistoryNext(); return VSConstants.S_OK;

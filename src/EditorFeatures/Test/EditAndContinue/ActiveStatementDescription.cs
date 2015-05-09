@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -20,10 +21,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private ActiveStatementsDescription()
         {
-            OldSpans = new ActiveStatementSpan[0];
-            NewSpans = new TextSpan[0];
-            OldRegions = new ImmutableArray<TextSpan>[0];
-            NewRegions = new ImmutableArray<TextSpan>[0];
+            OldSpans = Array.Empty<ActiveStatementSpan>();
+            NewSpans = Array.Empty<TextSpan>();
+            OldRegions = Array.Empty<ImmutableArray<TextSpan>>();
+            NewRegions = Array.Empty<ImmutableArray<TextSpan>>();
             TrackingSpans = null;
         }
 
@@ -91,6 +92,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
         }
 
+        internal static int[] GetIds(string ids)
+        {
+            return ids.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
+        }
+
         internal static IEnumerable<ValueTuple<int, int>> GetDottedIds(Match match)
         {
             return from ids in match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
@@ -98,18 +104,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                    select ValueTuple.Create(int.Parse(parts[0]), int.Parse(parts[1]));
         }
 
+        private static IEnumerable<ValueTuple<TextSpan, int[]>> GetSpansRecursive(Regex regex, string contentGroupName, string markedSource, int offset)
+        {
+            foreach (var match in regex.Matches(markedSource).ToEnumerable())
+            {
+                var markedSyntax = match.Groups[contentGroupName];
+                var ids = GetIds(match.Groups["Id"].Value);
+                int absoluteOffset = offset + markedSyntax.Index;
+
+                yield return ValueTuple.Create(new TextSpan(absoluteOffset, markedSyntax.Length), ids);
+
+                foreach (var nestedSpan in GetSpansRecursive(regex, contentGroupName, markedSyntax.Value, absoluteOffset))
+                {
+                    yield return nestedSpan;
+                }
+            }
+        }
+
         internal static TextSpan[] GetActiveSpans(string src)
         {
-            var matches = s_activeStatementPattern.Matches(src);
-            var result = new List<TextSpan>();
+            List<TextSpan> result = new List<TextSpan>();
 
-            for (int i = 0; i < matches.Count; i++)
+            foreach (var spanAndIds in GetSpansRecursive(s_activeStatementPattern, "ActiveStatement", src, 0))
             {
-                var stmt = matches[i].Groups["ActiveStatement"];
-                foreach (int id in GetIds(matches[i]))
+                foreach (int id in spanAndIds.Item2)
                 {
                     EnsureSlot(result, id);
-                    result[id] = new TextSpan(stmt.Index, stmt.Length);
+                    result[id] = spanAndIds.Item1;
                 }
             }
 

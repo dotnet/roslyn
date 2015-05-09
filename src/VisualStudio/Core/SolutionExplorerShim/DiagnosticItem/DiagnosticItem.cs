@@ -2,18 +2,14 @@
 
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Windows.Media;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -23,20 +19,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly DiagnosticDescriptor _descriptor;
         private ReportDiagnostic _effectiveSeverity;
         private readonly AnalyzerItem _analyzerItem;
-
-        private static readonly ContextMenuController s_diagnosticContextMenuController =
-            new ContextMenuController(
-                ID.RoslynCommands.DiagnosticContextMenu,
-                items => items.All(item => item is DiagnosticItem));
+        private readonly IContextMenuController _contextMenuController;
 
         public override event PropertyChangedEventHandler PropertyChanged;
 
-        public DiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity)
+        public DiagnosticItem(AnalyzerItem analyzerItem, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, IContextMenuController contextMenuController)
             : base(string.Format("{0}: {1}", descriptor.Id, descriptor.Title))
         {
             _analyzerItem = analyzerItem;
             _descriptor = descriptor;
             _effectiveSeverity = effectiveSeverity;
+            _contextMenuController = contextMenuController;
         }
 
         public override ImageMoniker IconMoniker
@@ -80,8 +73,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                return s_diagnosticContextMenuController;
+                return _contextMenuController;
             }
+        }
+
+        public Uri GetHelpLink()
+        {
+            Uri link;
+            if (BrowserHelper.TryGetUri(Descriptor.HelpLinkUri, out link))
+            {
+                return link;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Descriptor.Id))
+            {
+                // we use message format here since we don't have actual instance of diagnostic here. 
+                // (which means we do not have a message)
+                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo));
+            }
+
+            return null;
         }
 
         internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
@@ -137,15 +148,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var analyzerID = _analyzerItem.AnalyzerReference.Display;
             var rules = FindOrCreateRulesElement(ruleSetDocument, analyzerID);
             var rule = FindOrCreateRuleElement(rules, _descriptor.Id);
-            rule.Attribute("Action").Value = newAction;
+
+            if (value == ReportDiagnostic.Default)
+            {
+                // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
+                // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
+                // severity (so far as the 'current' ruleset file is concerened - the rule's effective severity
+                // could still be decided by other factors such as project settings or a base ruleset file).
+                rule.Remove();
+            }
+            else
+            {
+                rule.Attribute("Action").Value = newAction;
+            }
 
             var allMatchingRules = ruleSetDocument.Root
-                                   .Descendants("Rule")
-                                   .Where(r => r.Attribute("Id").Value.Equals(_descriptor.Id));
+                                       .Descendants("Rule")
+                                       .Where(r => r.Attribute("Id").Value.Equals(_descriptor.Id));
 
             foreach (var matchingRule in allMatchingRules)
             {
-                matchingRule.Attribute("Action").Value = newAction;
+                if (value == ReportDiagnostic.Default)
+                {
+                    // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
+                    // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
+                    // severity (so far as the 'current' ruleset file is concerened - the rule's effective severity
+                    // could still be decided by other factors such as project settings or a base ruleset file).
+                    matchingRule.Remove();
+                }
+                else
+                {
+                    matchingRule.Attribute("Action").Value = newAction;
+                }
             }
 
             ruleSetDocument.Save(pathToRuleSet);

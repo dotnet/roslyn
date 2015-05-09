@@ -140,9 +140,9 @@ End Module
 
             Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(0))
             Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.Length - 2))
-            Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.IndexOf("a()")))
-            Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.IndexOf("b()")))
-            Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.IndexOf("c()")))
+            Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.IndexOf("a()", StringComparison.Ordinal)))
+            Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.IndexOf("b()", StringComparison.Ordinal)))
+            Assert.Equal(LineVisibility.Visible, tree.GetLineVisibility(source.IndexOf("c()", StringComparison.Ordinal)))
         End Sub
 
         <WorkItem(546586, "DevDiv")>
@@ -211,7 +211,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(701158, "DevDiv")>
-        Sub FindTokenOnStartOfContinuedLine()
+        Public Sub FindTokenOnStartOfContinuedLine()
             Dim code =
                 <code>
                 Namespace a

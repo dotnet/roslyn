@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal class PerLanguageIncrementalAnalyzerProviderMetadata : LanguageMetadata
     {
-        public string Name { get; private set; }
+        public string Name { get; }
 
         public PerLanguageIncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
             : base(data)

@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundLValuePlaceholderBase
+    Friend Partial Class BoundLValuePlaceholderBase
         Inherits BoundValuePlaceholderBase
 
         Public NotOverridable Overrides ReadOnly Property IsLValue As Boolean

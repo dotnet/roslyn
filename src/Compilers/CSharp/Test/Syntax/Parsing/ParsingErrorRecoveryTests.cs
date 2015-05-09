@@ -6338,7 +6338,7 @@ public class Test
         }
 
         [WorkItem(542236, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void InsertOpenBraceBeforeCodes()
         {
             var text = @"{
@@ -6844,7 +6844,7 @@ static
 
 
         [WorkItem(947819, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MissingOpenBraceForClass()
         {
             var source = @"namespace n
@@ -6861,7 +6861,7 @@ static
         }
 
         [WorkItem(947819, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MissingOpenBraceForStruct()
         {
             var source = @"namespace n
@@ -6878,7 +6878,7 @@ static
         }
 
         [WorkItem(947819, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MissingNameForStruct()
         {
             var source = @"namespace n
@@ -6897,7 +6897,7 @@ static
         }
 
         [WorkItem(947819, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MissingNameForClass()
         {
             var source = @"namespace n

@@ -11,22 +11,30 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    internal enum HighlightSpanKind
+    {
+        None,
+        Definition,
+        Reference,
+        WrittenReference,
+    }
+
     internal struct HighlightSpan
     {
-        public TextSpan TextSpan { get; private set; }
-        public bool IsDefinition { get; private set; }
+        public TextSpan TextSpan { get; }
+        public HighlightSpanKind Kind { get; }
 
-        public HighlightSpan(TextSpan textSpan, bool isDefinition) : this()
+        public HighlightSpan(TextSpan textSpan, HighlightSpanKind kind) : this()
         {
             this.TextSpan = textSpan;
-            this.IsDefinition = isDefinition;
+            this.Kind = kind;
         }
     }
 
     internal struct DocumentHighlights
     {
-        public Document Document { get; private set; }
-        public IList<HighlightSpan> HighlightSpans { get; private set; }
+        public Document Document { get; }
+        public IList<HighlightSpan> HighlightSpans { get; }
 
         public DocumentHighlights(Document document, IList<HighlightSpan> highlightSpans) : this()
         {

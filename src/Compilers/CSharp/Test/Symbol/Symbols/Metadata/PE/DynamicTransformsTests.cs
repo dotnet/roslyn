@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     public class DynamicTransformsTests : CSharpTestBase
     {
         private AssemblySymbol _assembly;
-        private NamedTypeSymbol _base0Class,_base1Class,_base2Class,_derivedClass;
-        private NamedTypeSymbol _outerClass,_innerClass,_innerInnerClass;
-        private NamedTypeSymbol _outer2Class,_inner2Class,_innerInner2Class;
-        private NamedTypeSymbol _outer3Class,_inner3Class;
-        private NamedTypeSymbol _objectType,_intType;
-        private static DynamicTypeSymbol s_dynamicType = DynamicTypeSymbol.Instance;
+        private NamedTypeSymbol _base0Class, _base1Class, _base2Class, _derivedClass;
+        private NamedTypeSymbol _outerClass, _innerClass, _innerInnerClass;
+        private NamedTypeSymbol _outer2Class, _inner2Class, _innerInner2Class;
+        private NamedTypeSymbol _outer3Class, _inner3Class;
+        private NamedTypeSymbol _objectType, _intType;
+        private static readonly DynamicTypeSymbol s_dynamicType = DynamicTypeSymbol.Instance;
 
         private void CommonTestInitialization()
         {
@@ -546,7 +546,7 @@ str
 str";
 
             var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { MscorlibRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, emitters: TestEmitters.RefEmitBug);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
             var field1 = classDerived.BaseType.GetMember<FieldSymbol>("field1");

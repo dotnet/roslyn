@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -131,9 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SpecialMembers = specialMembers.AsImmutable();
             }
 
-            internal ImmutableArray<string> GetPropertyNames()
+            internal AnonymousTypeKey GetAnonymousTypeKey()
             {
-                return this.Properties.SelectAsArray(p => p.Name);
+                var properties = this.Properties.SelectAsArray(p => AnonymousTypeKeyField.CreateField(p.Name));
+                return new AnonymousTypeKey(properties);
             }
 
             /// <summary>

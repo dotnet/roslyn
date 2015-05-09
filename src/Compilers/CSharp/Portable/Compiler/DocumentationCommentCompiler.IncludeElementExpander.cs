@@ -275,8 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _diagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new LocalizableErrorArgument(MessageID.IDS_OperationCausedStackOverflow));
                     }
 
-                    // TODO: use culture from compilation instead of invariant culture?
-                    commentMessage = ErrorFacts.GetMessage(MessageID.IDS_XMLNOINCLUDE, CultureInfo.InvariantCulture);
+                    commentMessage = ErrorFacts.GetMessage(MessageID.IDS_XMLNOINCLUDE, CultureInfo.CurrentUICulture);
 
                     // Don't inspect the children - we're already in a cycle.
                     return new XNode[] { new XComment(commentMessage), includeElement.Copy(copyAttributeAnnotations: false) };
@@ -399,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (location.IsInSource)
                         {
-                            commentMessage = string.Format(ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED2, CultureInfo.InvariantCulture), resolvedFilePath);
+                            commentMessage = string.Format(ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED2, CultureInfo.CurrentUICulture), resolvedFilePath);
 
                             // As in Dev11, return only the comment - drop the include element.
                             return new XNode[] { new XComment(commentMessage) };
@@ -428,8 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (location.IsInSource)
                 {
-                    // TODO: use culture from compilation instead of invariant culture?
-                    return ErrorFacts.GetMessage(messageId, CultureInfo.InvariantCulture);
+                    return ErrorFacts.GetMessage(messageId, CultureInfo.CurrentUICulture);
                 }
                 else
                 {

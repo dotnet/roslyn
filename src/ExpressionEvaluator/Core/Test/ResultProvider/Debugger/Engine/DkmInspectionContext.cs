@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
@@ -18,16 +19,18 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
     [Guid("0807c826-3338-dd99-2f3a-202ba8fb9da7")]
     public class DkmInspectionContext
     {
-        internal DkmInspectionContext(IDkmClrFormatter formatter, DkmEvaluationFlags evaluationFlags, uint radix)
+        internal DkmInspectionContext(IDkmClrFormatter formatter, DkmEvaluationFlags evaluationFlags, uint radix, DkmRuntimeInstance runtimeInstance = null)
         {
             _formatter = formatter;
             this.EvaluationFlags = evaluationFlags;
             this.Radix = radix;
+            this.RuntimeInstance = runtimeInstance ?? DkmClrRuntimeInstance.DefaultRuntime;
         }
 
         private readonly IDkmClrFormatter _formatter;
 
         public readonly DkmEvaluationFlags EvaluationFlags;
+        public readonly DkmRuntimeInstance RuntimeInstance;
 
         //
         // Summary:
@@ -35,10 +38,10 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         //     '16' and '10'.
         public readonly uint Radix;
 
-        public string GetTypeName(DkmClrType clrType, ReadOnlyCollection<string> formatSpecifiers)
+        public string GetTypeName(DkmClrType ClrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> FormatSpecifiers)
         {
             // The real version does some sort of dynamic dispatch that ultimately calls this method.
-            return _formatter.GetTypeName(this, clrType, formatSpecifiers);
+            return _formatter.GetTypeName(this, ClrType, CustomTypeInfo, FormatSpecifiers);
         }
     }
 }

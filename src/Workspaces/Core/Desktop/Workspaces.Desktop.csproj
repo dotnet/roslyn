@@ -15,6 +15,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
@@ -38,8 +39,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
-    <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
@@ -58,23 +59,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\AssemblyReferenceResolver.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\AssemblyReferenceResolver.cs">
       <Link>InternalUtilities\AssemblyReferenceResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\MetadataFileReferenceResolver.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\MetadataFileReferenceResolver.cs">
       <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\EncodedStringText.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
       <Link>InternalUtilities\EncodedStringText.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\FileKey.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
       <Link>InternalUtilities\FileKey.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\FileUtilities.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\ReflectionUtil.cs">
+      <Link>InternalUtilities\ReflectionUtil.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\PortableShim.cs">
+      <Link>InternalUtilities\PortableShim.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
       <Link>InternalUtilities\FileUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\PathUtilities.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs">
       <Link>InternalUtilities\PathUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
@@ -85,10 +95,16 @@
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>InternalUtilities\GacFileResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
+      <Link>InternalUtilities\AssemblyIdentityExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
-    <Compile Include="Options\ExportOptionsAttribute.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities.cs" />
@@ -103,6 +119,7 @@
     <Compile Include="Workspace\Host\Documentation\DocumentationProviderServiceFactory.cs" />
     <Compile Include="Workspace\Host\Mef\DesktopMefHostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
+    <Compile Include="Workspace\Host\SimpleAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
     <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
@@ -121,10 +138,6 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
-    <Compile Include="Workspace\Solution\SerializableDocumentId.cs" />
-    <Compile Include="Workspace\Solution\SerializableProjectId.cs" />
-    <Compile Include="Workspace\Solution\SerializableProjectReference.cs" />
-    <Compile Include="Workspace\Solution\SerializableVersionStamp.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />
@@ -135,6 +148,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />

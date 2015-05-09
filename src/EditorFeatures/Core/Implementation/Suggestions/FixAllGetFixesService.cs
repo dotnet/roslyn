@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     allowCancel: true,
                     action: waitContext =>
                     {
+                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
                         using (var linkedCts =
                             CancellationTokenSource.CreateLinkedTokenSource(waitContext.CancellationToken, fixAllContext.CancellationToken))
                         {
@@ -85,14 +86,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var cancellationToken = fixAllContext.CancellationToken;
             var workspace = fixAllContext.Project.Solution.Workspace;
 
+            cancellationToken.ThrowIfCancellationRequested();
             var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             if (operations == null)
             {
                 return null;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken).ConfigureAwait(false);
 
+            cancellationToken.ThrowIfCancellationRequested();
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, cancellationToken))
             {
                 var previewService = workspace.Services.GetService<IPreviewDialogService>();
@@ -121,14 +125,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             // Get a code action, with apply changes operation replaced with the newSolution.
-            return GetNewFixAllOperations(operations, newSolution);
+            return GetNewFixAllOperations(operations, newSolution, cancellationToken);
         }
 
-        private IEnumerable<CodeActionOperation> GetNewFixAllOperations(IEnumerable<CodeActionOperation> operations, Solution newSolution)
+        private IEnumerable<CodeActionOperation> GetNewFixAllOperations(IEnumerable<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
         {
             bool foundApplyChanges = false;
             foreach (var operation in operations)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!foundApplyChanges)
                 {
                     var applyChangesOperation = operation as ApplyChangesOperation;

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         // Environment variable, if set, to enable logging and set the file to log to.
         private const string environmentVariable = "RoslynCommandLineLogFile";
 
-        private static Stream s_loggingStream;
+        private static readonly Stream s_loggingStream;
         private static string s_prefix = "---";
 
         /// <summary>

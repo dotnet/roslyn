@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -143,20 +142,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' types, or C binds to a static class, then type(s) are returned.
         ''' </summary>
         Public Shadows Function GetSymbolInfo(expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSymbolInfo, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(expression)
+            CheckSyntaxNode(expression)
 
-                If CanGetSemanticInfo(expression, allowNamedArgumentName:=True) Then
-                    If SyntaxFacts.IsNamedArgumentName(expression) Then
-                        ' Named arguments are handled in a special way.
-                        Return GetNamedArgumentSymbolInfo(DirectCast(expression, IdentifierNameSyntax), cancellationToken)
-                    Else
-                        Return GetExpressionSymbolInfo(expression, SymbolInfoOptions.DefaultOptions, cancellationToken)
-                    End If
+            If CanGetSemanticInfo(expression, allowNamedArgumentName:=True) Then
+                If SyntaxFacts.IsNamedArgumentName(expression) Then
+                    ' Named arguments are handled in a special way.
+                    Return GetNamedArgumentSymbolInfo(DirectCast(expression, IdentifierNameSyntax), cancellationToken)
                 Else
-                    Return SymbolInfo.None
+                    Return GetExpressionSymbolInfo(expression, SymbolInfoOptions.DefaultOptions, cancellationToken)
                 End If
-            End Using
+            Else
+                Return SymbolInfo.None
+            End If
         End Function
 
         ''' <summary>
@@ -164,23 +161,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' within <see cref="ObjectCollectionInitializerSyntax.Initializer"/>.
         ''' </summary>
         Public Shadows Function GetCollectionInitializerSymbolInfo(expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSymbolInfo, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(expression)
+            CheckSyntaxNode(expression)
 
-                If expression.Parent IsNot Nothing AndAlso expression.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+            If expression.Parent IsNot Nothing AndAlso expression.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
                    expression.Parent.Parent IsNot Nothing AndAlso expression.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer AndAlso
                    DirectCast(expression.Parent.Parent, ObjectCollectionInitializerSyntax).Initializer Is expression.Parent AndAlso
                    expression.Parent.Parent.Parent IsNot Nothing AndAlso expression.Parent.Parent.Parent.Kind = SyntaxKind.ObjectCreationExpression AndAlso
                    CanGetSemanticInfo(expression.Parent.Parent.Parent, allowNamedArgumentName:=False) Then
 
-                    Dim collectionInitializer = DirectCast(expression.Parent.Parent.Parent, ObjectCreationExpressionSyntax)
-                    If collectionInitializer.Initializer Is expression.Parent.Parent Then
-                        Return GetCollectionInitializerAddSymbolInfo(collectionInitializer, expression, cancellationToken)
-                    End If
+                Dim collectionInitializer = DirectCast(expression.Parent.Parent.Parent, ObjectCreationExpressionSyntax)
+                If collectionInitializer.Initializer Is expression.Parent.Parent Then
+                    Return GetCollectionInitializerAddSymbolInfo(collectionInitializer, expression, cancellationToken)
                 End If
+            End If
 
-                Return SymbolInfo.None
-            End Using
+            Return SymbolInfo.None
         End Function
 
         ''' <summary>
@@ -190,10 +185,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' returned instead.
         ''' </summary>
         Public Shadows Function GetSymbolInfo(crefReference As CrefReferenceSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSymbolInfo, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(crefReference)
-                Return GetCrefReferenceSymbolInfo(crefReference, SymbolInfoOptions.DefaultOptions, cancellationToken)
-            End Using
+            CheckSyntaxNode(crefReference)
+            Return GetCrefReferenceSymbolInfo(crefReference, SymbolInfoOptions.DefaultOptions, cancellationToken)
         End Function
 
         ''' <summary>
@@ -215,16 +208,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The passed in expression is interpreted as a stand-alone expression, as if it
         ''' appeared by itself somewhere within the scope that encloses "position".</remarks>
         Public Shadows Function GetSpeculativeSymbolInfo(position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As SymbolInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSpeculativeSymbolInfo, message:=Me.SyntaxTree.FilePath)
-                Dim binder As binder = Nothing ' Passed ByRef to GetSpeculativelyBoundNodeSummary.
-                Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, bindingOption, binder)
+            Dim binder As Binder = Nothing ' Passed ByRef to GetSpeculativelyBoundNodeSummary.
+            Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, bindingOption, binder)
 
-                If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                    Return Me.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
-                Else
-                    Return SymbolInfo.None
-                End If
-            End Using
+            If bnodeSummary.LowestBoundNode IsNot Nothing Then
+                Return Me.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
+            Else
+                Return SymbolInfo.None
+            End If
         End Function
 
         ''' <summary>
@@ -241,28 +232,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' need not and typically does not appear in the source code referred to SemanticModel instance.</param>
         ''' <returns>The semantic information for the topmost node of the attribute.</returns>
         Public Shadows Function GetSpeculativeSymbolInfo(position As Integer, attribute As AttributeSyntax) As SymbolInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSpeculativeSymbolInfo, message:=Me.SyntaxTree.FilePath)
-                Dim binder As binder = Nothing ' Passed ByRef to GetSpeculativelyBoundNodeSummary.
-                Dim bnodeSummary = GetSpeculativelyBoundAttributeSummary(position, attribute, binder)
+            Dim binder As Binder = Nothing ' Passed ByRef to GetSpeculativelyBoundNodeSummary.
+            Dim bnodeSummary = GetSpeculativelyBoundAttributeSummary(position, attribute, binder)
 
-                If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                    Return Me.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
-                Else
-                    Return SymbolInfo.None
-                End If
-            End Using
+            If bnodeSummary.LowestBoundNode IsNot Nothing Then
+                Return Me.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
+            Else
+                Return SymbolInfo.None
+            End If
         End Function
 
         Public Shadows Function GetSymbolInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSymbolInfo, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(attribute)
+            CheckSyntaxNode(attribute)
 
-                If CanGetSemanticInfo(attribute) Then
-                    Return GetAttributeSymbolInfo(attribute, cancellationToken)
-                Else
-                    Return SymbolInfo.None
-                End If
-            End Using
+            If CanGetSemanticInfo(attribute) Then
+                Return GetAttributeSymbolInfo(attribute, cancellationToken)
+            Else
+                Return SymbolInfo.None
+            End If
         End Function
 
         ' Gets the symbol info from a specific bound node
@@ -284,19 +271,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overloads Function GetTypeInfoWorker(expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetTypeInfo, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(expression)
+            CheckSyntaxNode(expression)
 
-                If CanGetSemanticInfo(expression) Then
-                    If SyntaxFacts.IsNamedArgumentName(expression) Then
-                        Return VisualBasicTypeInfo.None
-                    Else
-                        Return GetExpressionTypeInfo(expression, cancellationToken)
-                    End If
-                Else
+            If CanGetSemanticInfo(expression) Then
+                If SyntaxFacts.IsNamedArgumentName(expression) Then
                     Return VisualBasicTypeInfo.None
+                Else
+                    Return GetExpressionTypeInfo(expression, cancellationToken)
                 End If
-            End Using
+            Else
+                Return VisualBasicTypeInfo.None
+            End If
         End Function
 
         ''' <summary>
@@ -322,16 +307,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetSpeculativeTypeInfoWorker(position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As VisualBasicTypeInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSpeculativeTypeInfo, message:=Me.SyntaxTree.FilePath)
-                Dim binder As binder = Nothing ' passed ByRef to GetSpeculativelyBoundNodeSummary
-                Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, bindingOption, binder)
+            Dim binder As Binder = Nothing ' passed ByRef to GetSpeculativelyBoundNodeSummary
+            Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, bindingOption, binder)
 
-                If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                    Return Me.GetTypeInfoForNode(bnodeSummary)
-                Else
-                    Return VisualBasicTypeInfo.None
-                End If
-            End Using
+            If bnodeSummary.LowestBoundNode IsNot Nothing Then
+                Return Me.GetTypeInfoForNode(bnodeSummary)
+            Else
+                Return VisualBasicTypeInfo.None
+            End If
         End Function
 
         Public Shadows Function GetTypeInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As TypeInfo
@@ -339,15 +322,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Overloads Function GetTypeInfoWorker(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetTypeInfo, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(attribute)
+            CheckSyntaxNode(attribute)
 
-                If CanGetSemanticInfo(attribute) Then
-                    Return GetAttributeTypeInfo(attribute, cancellationToken)
-                Else
-                    Return VisualBasicTypeInfo.None
-                End If
-            End Using
+            If CanGetSemanticInfo(attribute) Then
+                Return GetAttributeTypeInfo(attribute, cancellationToken)
+            Else
+                Return VisualBasicTypeInfo.None
+            End If
         End Function
 
         ' Gets the type info from a specific bound node
@@ -386,19 +367,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function GetConstantValue(expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As [Optional](Of Object)
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetConstantValue, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(expression)
+            CheckSyntaxNode(expression)
 
-                If CanGetSemanticInfo(expression) Then
-                    Dim val As ConstantValue = GetExpressionConstantValue(expression, cancellationToken)
+            If CanGetSemanticInfo(expression) Then
+                Dim val As ConstantValue = GetExpressionConstantValue(expression, cancellationToken)
 
-                    If val IsNot Nothing AndAlso Not val.IsBad Then
-                        Return New [Optional](Of Object)(val.Value)
-                    End If
+                If val IsNot Nothing AndAlso Not val.IsBad Then
+                    Return New [Optional](Of Object)(val.Value)
                 End If
+            End If
 
-                Return Nothing
-            End Using
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -415,20 +394,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The passed in expression is interpreted as a stand-alone expression, as if it
         ''' appeared by itself somewhere within the scope that encloses "position".</remarks>
         Public Shadows Function GetSpeculativeConstantValue(position As Integer, expression As ExpressionSyntax) As [Optional](Of Object)
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSpeculativeConstantValue, message:=Me.SyntaxTree.FilePath)
-                Dim binder As binder = Nothing ' passed ByRef to GetSpeculativelyBoundNodeSummary
-                Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, SpeculativeBindingOption.BindAsExpression, binder)
+            Dim binder As Binder = Nothing ' passed ByRef to GetSpeculativelyBoundNodeSummary
+            Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, SpeculativeBindingOption.BindAsExpression, binder)
 
-                If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                    Dim val As ConstantValue = Me.GetConstantValueForNode(bnodeSummary)
+            If bnodeSummary.LowestBoundNode IsNot Nothing Then
+                Dim val As ConstantValue = Me.GetConstantValueForNode(bnodeSummary)
 
-                    If val IsNot Nothing AndAlso Not val.IsBad Then
-                        Return New [Optional](Of Object)(val.Value)
-                    End If
+                If val IsNot Nothing AndAlso Not val.IsBad Then
+                    Return New [Optional](Of Object)(val.Value)
                 End If
+            End If
 
-                Return Nothing
-            End Using
+            Return Nothing
         End Function
 
         Friend Function GetConstantValueForNode(boundNodes As BoundNodeSummary) As ConstantValue
@@ -442,58 +419,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function GetMemberGroup(expression As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetMemberGroup, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(expression)
+            CheckSyntaxNode(expression)
 
-                If CanGetSemanticInfo(expression) Then
-                    Dim result = GetExpressionMemberGroup(expression, cancellationToken)
+            If CanGetSemanticInfo(expression) Then
+                Dim result = GetExpressionMemberGroup(expression, cancellationToken)
 #If DEBUG Then
-                    For Each item In result
-                        Debug.Assert(item.Kind <> SymbolKind.Namespace)
-                    Next
+                For Each item In result
+                    Debug.Assert(item.Kind <> SymbolKind.Namespace)
+                Next
 #End If
-                    Return StaticCast(Of ISymbol).From(result)
-                Else
-                    Return ImmutableArray(Of ISymbol).Empty
-                End If
-            End Using
+                Return StaticCast(Of ISymbol).From(result)
+            Else
+                Return ImmutableArray(Of ISymbol).Empty
+            End If
         End Function
 
         Public Shadows Function GetSpeculativeMemberGroup(position As Integer, expression As ExpressionSyntax) As ImmutableArray(Of ISymbol)
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSpeculativeMemberGroup, message:=Me.SyntaxTree.FilePath)
-                Dim binder As binder = Nothing ' passed ByRef to GetSpeculativelyBoundNodeSummary
-                Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, SpeculativeBindingOption.BindAsExpression, binder)
+            Dim binder As Binder = Nothing ' passed ByRef to GetSpeculativelyBoundNodeSummary
+            Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, SpeculativeBindingOption.BindAsExpression, binder)
 
-                If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                    Dim result = Me.GetMemberGroupForNode(bnodeSummary, binderOpt:=Nothing)
+            If bnodeSummary.LowestBoundNode IsNot Nothing Then
+                Dim result = Me.GetMemberGroupForNode(bnodeSummary, binderOpt:=Nothing)
 #If DEBUG Then
-                    For Each item In result
-                        Debug.Assert(item.Kind <> SymbolKind.Namespace)
-                    Next
+                For Each item In result
+                    Debug.Assert(item.Kind <> SymbolKind.Namespace)
+                Next
 #End If
-                    Return StaticCast(Of ISymbol).From(result)
-                Else
-                    Return ImmutableArray(Of ISymbol).Empty
-                End If
-            End Using
+                Return StaticCast(Of ISymbol).From(result)
+            Else
+                Return ImmutableArray(Of ISymbol).Empty
+            End If
         End Function
 
         Public Shadows Function GetMemberGroup(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetMemberGroup, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(attribute)
+            CheckSyntaxNode(attribute)
 
-                If CanGetSemanticInfo(attribute) Then
-                    Dim result = GetAttributeMemberGroup(attribute, cancellationToken)
+            If CanGetSemanticInfo(attribute) Then
+                Dim result = GetAttributeMemberGroup(attribute, cancellationToken)
 #If DEBUG Then
-                    For Each item In result
-                        Debug.Assert(item.Kind <> SymbolKind.Namespace)
-                    Next
+                For Each item In result
+                    Debug.Assert(item.Kind <> SymbolKind.Namespace)
+                Next
 #End If
-                    Return StaticCast(Of ISymbol).From(result)
-                Else
-                    Return ImmutableArray(Of ISymbol).Empty
-                End If
-            End Using
+                Return StaticCast(Of ISymbol).From(result)
+            Else
+                Return ImmutableArray(Of ISymbol).Empty
+            End If
         End Function
 
         Friend Function GetMemberGroupForNode(boundNodes As BoundNodeSummary, binderOpt As Binder) As ImmutableArray(Of Symbol)
@@ -510,16 +481,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' to A. Otherwise return null.
         ''' </summary>
         Public Shadows Function GetAliasInfo(nameSyntax As IdentifierNameSyntax, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetAliasInfo, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckSyntaxNode(nameSyntax)
+            CheckSyntaxNode(nameSyntax)
 
-                If CanGetSemanticInfo(nameSyntax) Then
-                    Dim info = GetExpressionSymbolInfo(nameSyntax, SymbolInfoOptions.PreferTypeToConstructors Or SymbolInfoOptions.PreserveAliases, cancellationToken)
-                    Return TryCast(info.Symbol, IAliasSymbol)
-                Else
-                    Return Nothing
-                End If
-            End Using
+            If CanGetSemanticInfo(nameSyntax) Then
+                Dim info = GetExpressionSymbolInfo(nameSyntax, SymbolInfoOptions.PreferTypeToConstructors Or SymbolInfoOptions.PreserveAliases, cancellationToken)
+                Return TryCast(info.Symbol, IAliasSymbol)
+            Else
+                Return Nothing
+            End If
         End Function
 
         ''' <summary>
@@ -539,17 +508,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The passed in name is interpreted as a stand-alone name, as if it
         ''' appeared by itself somewhere within the scope that encloses "position".</remarks>
         Public Shadows Function GetSpeculativeAliasInfo(position As Integer, nameSyntax As IdentifierNameSyntax, bindingOption As SpeculativeBindingOption) As IAliasSymbol
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetSpeculativeAliasInfo, message:=Me.SyntaxTree.FilePath)
-                Dim binder As binder = Nothing
-                Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, nameSyntax, bindingOption, binder)
+            Dim binder As Binder = Nothing
+            Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, nameSyntax, bindingOption, binder)
 
-                If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                    Dim info As SymbolInfo = Me.GetSymbolInfoForNode(SymbolInfoOptions.PreferTypeToConstructors Or SymbolInfoOptions.PreserveAliases, bnodeSummary, binderOpt:=binder)
-                    Return TryCast(info.Symbol, IAliasSymbol)
-                Else
-                    Return Nothing
-                End If
-            End Using
+            If bnodeSummary.LowestBoundNode IsNot Nothing Then
+                Dim info As SymbolInfo = Me.GetSymbolInfoForNode(SymbolInfoOptions.PreferTypeToConstructors Or SymbolInfoOptions.PreserveAliases, bnodeSummary, binderOpt:=binder)
+                Return TryCast(info.Symbol, IAliasSymbol)
+            Else
+                Return Nothing
+            End If
         End Function
 
         ''' <summary>
@@ -595,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub CheckSyntaxNode(node As VisualBasicSyntaxNode)
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If Not IsInTree(node) Then
@@ -605,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckModelAndSyntaxNodeToSpeculate(node As VisualBasicSyntaxNode)
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If Me.IsSpeculativeSemanticModel Then
@@ -686,7 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CrefOperatorReference,
                      SyntaxKind.CrefReference,
                      SyntaxKind.XmlString
-                ' fall through
+                    ' fall through
 
                 Case Else
                     Return False
@@ -783,7 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    bindingOption As SpeculativeBindingOption,
                                                    <Out> ByRef binder As Binder) As BoundNodeSummary
             If expression Is Nothing Then
-                Throw New ArgumentNullException("expression")
+                Throw New ArgumentNullException(NameOf(expression))
             End If
 
             Dim standalone = SyntaxFactory.GetStandaloneExpression(expression)
@@ -866,7 +833,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function GetSpeculativelyBoundAttributeSummary(position As Integer, attribute As AttributeSyntax, <Out> ByRef binder As Binder) As BoundNodeSummary
             If attribute Is Nothing Then
-                Throw New ArgumentNullException("attribute")
+                Throw New ArgumentNullException(NameOf(attribute))
             End If
 
             Dim bnode = GetSpeculativelyBoundAttribute(position, attribute, binder)
@@ -1842,80 +1809,78 @@ _Default:
                  options As LookupOptions,
                  useBaseReferenceAccessibility As Boolean) As ImmutableArray(Of Symbol)
 
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_LookupSymbols, message:=Me.SyntaxTree.FilePath)
-                Debug.Assert((options And LookupOptions.UseBaseReferenceAccessibility) = 0, "Use the useBaseReferenceAccessibility parameter.")
-                If useBaseReferenceAccessibility Then
-                    options = options Or LookupOptions.UseBaseReferenceAccessibility
-                End If
-                Debug.Assert(options.IsValid())
+            Debug.Assert((options And LookupOptions.UseBaseReferenceAccessibility) = 0, "Use the useBaseReferenceAccessibility parameter.")
+            If useBaseReferenceAccessibility Then
+                options = options Or LookupOptions.UseBaseReferenceAccessibility
+            End If
+            Debug.Assert(options.IsValid())
 
-                CheckPosition(position)
+            CheckPosition(position)
 
-                Dim binder = Me.GetEnclosingBinder(position)
-                If binder Is Nothing Then
-                    Return ImmutableArray(Of Symbol).Empty
-                End If
+            Dim binder = Me.GetEnclosingBinder(position)
+            If binder Is Nothing Then
+                Return ImmutableArray(Of Symbol).Empty
+            End If
 
-                If useBaseReferenceAccessibility Then
-                    Debug.Assert(container Is Nothing)
-                    Dim containingType = binder.ContainingType
-                    Dim baseType = If(containingType Is Nothing, Nothing, containingType.BaseTypeNoUseSiteDiagnostics)
-                    If baseType Is Nothing Then
-                        Throw New ArgumentException("position",
+            If useBaseReferenceAccessibility Then
+                Debug.Assert(container Is Nothing)
+                Dim containingType = binder.ContainingType
+                Dim baseType = If(containingType Is Nothing, Nothing, containingType.BaseTypeNoUseSiteDiagnostics)
+                If baseType Is Nothing Then
+                    Throw New ArgumentException(NameOf(position),
                             "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)")
-                    End If
-                    container = baseType
                 End If
+                container = baseType
+            End If
 
-                If name Is Nothing Then
-                    ' If they didn't provide a name, then look up all names and associated arities 
-                    ' and find all the corresponding symbols.
-                    Dim info = LookupSymbolsInfo.GetInstance()
-                    Me.AddLookupSymbolsInfo(position, info, container, options)
+            If name Is Nothing Then
+                ' If they didn't provide a name, then look up all names and associated arities 
+                ' and find all the corresponding symbols.
+                Dim info = LookupSymbolsInfo.GetInstance()
+                Me.AddLookupSymbolsInfo(position, info, container, options)
 
-                    Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Names.Count)
+                Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
 
-                    For Each foundName In info.Names
-                        AppendSymbolsWithName(results, foundName, binder, container, options, info)
-                    Next
+                For Each foundName In info.Names
+                    AppendSymbolsWithName(results, foundName, binder, container, options, info)
+                Next
 
-                    info.Free()
+                info.Free()
 
-                    Dim sealedResults = results.ToImmutableAndFree()
+                Dim sealedResults = results.ToImmutableAndFree()
 
-                    Dim builder As ArrayBuilder(Of Symbol) = Nothing
-                    Dim pos = 0
-                    For Each result In sealedResults
-                        ' Special case: we want to see constructors, even though they can't be referenced by name.
-                        If result.CanBeReferencedByName OrElse
+                Dim builder As ArrayBuilder(Of Symbol) = Nothing
+                Dim pos = 0
+                For Each result In sealedResults
+                    ' Special case: we want to see constructors, even though they can't be referenced by name.
+                    If result.CanBeReferencedByName OrElse
                             (result.Kind = SymbolKind.Method AndAlso DirectCast(result, MethodSymbol).MethodKind = MethodKind.Constructor) Then
-                            If builder IsNot Nothing Then
-                                builder.Add(result)
-                            End If
-                        ElseIf builder Is Nothing Then
-                            builder = ArrayBuilder(Of Symbol).GetInstance()
-                            builder.AddRange(sealedResults, pos)
+                        If builder IsNot Nothing Then
+                            builder.Add(result)
                         End If
+                    ElseIf builder Is Nothing Then
+                        builder = ArrayBuilder(Of Symbol).GetInstance()
+                        builder.AddRange(sealedResults, pos)
+                    End If
 
-                        pos = pos + 1
-                    Next
+                    pos = pos + 1
+                Next
 
-                    Return If(builder Is Nothing, sealedResults, builder.ToImmutableAndFree())
-                Else
-                    ' They provided a name.  Find all the arities for that name, and then look all of those up.
-                    Dim info = LookupSymbolsInfo.GetInstance()
-                    Me.AddLookupSymbolsInfo(position, info, container, options)
+                Return If(builder Is Nothing, sealedResults, builder.ToImmutableAndFree())
+            Else
+                ' They provided a name.  Find all the arities for that name, and then look all of those up.
+                Dim info = LookupSymbolsInfo.GetInstance()
+                Me.AddLookupSymbolsInfo(position, info, container, options)
 
-                    Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Names.Count)
+                Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
 
-                    AppendSymbolsWithName(results, name, binder, container, options, info)
+                AppendSymbolsWithName(results, name, binder, container, options, info)
 
-                    info.Free()
+                info.Free()
 
-                    ' If the name was specified, we don't have to do additional filtering - this is what they asked for.
-                    Return results.ToImmutableAndFree()
-                End If
-            End Using
+                ' If the name was specified, we don't have to do additional filtering - this is what they asked for.
+                Return results.ToImmutableAndFree()
+            End If
         End Function
 
         Private Sub AppendSymbolsWithName(results As ArrayBuilder(Of Symbol), name As String, binder As Binder, container As NamespaceOrTypeSymbol, options As LookupOptions, info As LookupSymbolsInfo)
@@ -2090,22 +2055,20 @@ _Default:
         ''' may not be able to be referenced for other reasons, such as name hiding.
         ''' </remarks>
         Public Shadows Function IsAccessible(position As Integer, symbol As ISymbol) As Boolean
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_IsAccessible, message:=Me.SyntaxTree.FilePath)
-                CheckPosition(position)
+            CheckPosition(position)
 
-                If symbol Is Nothing Then
-                    Throw New ArgumentNullException("symbol")
-                End If
+            If symbol Is Nothing Then
+                Throw New ArgumentNullException(NameOf(symbol))
+            End If
 
-                Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)("symbol")
+            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol))
 
-                Dim binder = Me.GetEnclosingBinder(position)
-                If binder IsNot Nothing Then
-                    Return binder.IsAccessible(vbsymbol, Nothing)
-                End If
+            Dim binder = Me.GetEnclosingBinder(position)
+            If binder IsNot Nothing Then
+                Return binder.IsAccessible(vbsymbol, Nothing)
+            End If
 
-                Return False
-            End Using
+            Return False
         End Function
 
         ''' <summary>
@@ -2347,31 +2310,29 @@ _Default:
         ''' <remarks>To determine the conversion between two types (instead of an expression and a
         ''' type), use Compilation.ClassifyConversion.</remarks>
         Public Shadows Function ClassifyConversion(position As Integer, expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_ClassifyConversion, message:=Me.SyntaxTree.FilePath)
-                If destination Is Nothing Then
-                    Throw New ArgumentNullException("destination")
+            If destination Is Nothing Then
+                Throw New ArgumentNullException(NameOf(destination))
+            End If
+
+            Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
+
+            CheckPosition(position)
+            Dim binder = Me.GetEnclosingBinder(position)
+
+            If binder IsNot Nothing Then
+                ' Add speculative binder to bind speculatively.
+                binder = SpeculativeBinder.Create(binder)
+
+                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim bnode = binder.BindValue(expression, diagnostics)
+                diagnostics.Free()
+
+                If bnode IsNot Nothing AndAlso Not vbdestination.IsErrorType() Then
+                    Return New Conversion(Conversions.ClassifyConversion(bnode, vbdestination, binder, Nothing))
                 End If
+            End If
 
-                Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)("destination")
-
-                CheckPosition(position)
-                Dim binder = Me.GetEnclosingBinder(position)
-
-                If binder IsNot Nothing Then
-                    ' Add speculative binder to bind speculatively.
-                    binder = SpeculativeBinder.Create(binder)
-
-                    Dim diagnostics = DiagnosticBag.GetInstance()
-                    Dim bnode = binder.BindValue(expression, diagnostics)
-                    diagnostics.Free()
-
-                    If bnode IsNot Nothing AndAlso Not vbdestination.IsErrorType() Then
-                        Return New Conversion(Conversions.ClassifyConversion(bnode, vbdestination, binder, Nothing))
-                    End If
-                End If
-
-                Return New Conversion(Nothing) ' NoConversion
-            End Using
+            Return New Conversion(Nothing) ' NoConversion
         End Function
 
         ''' <summary>
@@ -2381,43 +2342,41 @@ _Default:
         ''' <param name="identifierSyntax">The modified identifier that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetDeclaredSymbol, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                If identifierSyntax Is Nothing Then
-                    Throw New ArgumentNullException("identifierSyntax")
-                End If
-                If Not IsInTree(identifierSyntax) Then
-                    Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
-                End If
+            If identifierSyntax Is Nothing Then
+                Throw New ArgumentNullException(NameOf(identifierSyntax))
+            End If
+            If Not IsInTree(identifierSyntax) Then
+                Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
+            End If
 
-                Dim binder As binder = Me.GetEnclosingBinder(identifierSyntax.SpanStart)
-                Dim blockBinder = TryCast(StripSemanticModelBinder(binder), BlockBaseBinder)
-                If blockBinder IsNot Nothing Then
-                    ' Most of the time, we should be able to find the identifier by name.
-                    Dim lookupResult As lookupResult = lookupResult.GetInstance()
-                    Try
-                        ' NB: "binder", not "blockBinder", so that we don't incorrectly mark imports as used.
-                        binder.Lookup(lookupResult, identifierSyntax.Identifier.ValueText, 0, Nothing, useSiteDiagnostics:=Nothing)
-                        If lookupResult.IsGood Then
-                            Dim sym As LocalSymbol = TryCast(lookupResult.Symbols(0), LocalSymbol)
-                            If sym IsNot Nothing AndAlso sym.IdentifierToken = identifierSyntax.Identifier Then
-                                Return sym
-                            End If
+            Dim binder As binder = Me.GetEnclosingBinder(identifierSyntax.SpanStart)
+            Dim blockBinder = TryCast(StripSemanticModelBinder(binder), BlockBaseBinder)
+            If blockBinder IsNot Nothing Then
+                ' Most of the time, we should be able to find the identifier by name.
+                Dim lookupResult As lookupResult = lookupResult.GetInstance()
+                Try
+                    ' NB: "binder", not "blockBinder", so that we don't incorrectly mark imports as used.
+                    binder.Lookup(lookupResult, identifierSyntax.Identifier.ValueText, 0, Nothing, useSiteDiagnostics:=Nothing)
+                    If lookupResult.IsGood Then
+                        Dim sym As LocalSymbol = TryCast(lookupResult.Symbols(0), LocalSymbol)
+                        If sym IsNot Nothing AndAlso sym.IdentifierToken = identifierSyntax.Identifier Then
+                            Return sym
                         End If
-                    Finally
-                        lookupResult.Free()
-                    End Try
+                    End If
+                Finally
+                    lookupResult.Free()
+                End Try
 
-                    ' In some error cases, like multiple symbols of the same name in the same scope, we
-                    ' need to do a linear search instead.
-                    For Each local In blockBinder.Locals
-                        If local.IdentifierToken = identifierSyntax.Identifier Then
-                            Return local
-                        End If
-                    Next
-                End If
+                ' In some error cases, like multiple symbols of the same name in the same scope, we
+                ' need to do a linear search instead.
+                For Each local In blockBinder.Locals
+                    If local.IdentifierToken = identifierSyntax.Identifier Then
+                        Return local
+                    End If
+                Next
+            End If
 
-                Return Nothing
-            End Using
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -2428,7 +2387,7 @@ _Default:
         ''' if the field initializer was not part of an anonymous type creation.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As CancellationToken = Nothing) As IPropertySymbol
             If fieldInitializerSyntax Is Nothing Then
-                Throw New ArgumentNullException("fieldInitializerSyntax")
+                Throw New ArgumentNullException(NameOf(fieldInitializerSyntax))
             End If
             If Not IsInTree(fieldInitializerSyntax) Then
                 Throw New ArgumentException(VBResources.FieldInitializerSyntaxNotWithinSyntaxTree)
@@ -2444,7 +2403,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
             If anonymousObjectCreationExpressionSyntax Is Nothing Then
-                Throw New ArgumentNullException("anonymousObjectCreationExpressionSyntax")
+                Throw New ArgumentNullException(NameOf(anonymousObjectCreationExpressionSyntax))
             End If
             If Not IsInTree(anonymousObjectCreationExpressionSyntax) Then
                 Throw New ArgumentException(VBResources.AnonymousObjectCreationExpressionSyntaxNotWithinTree)
@@ -2460,7 +2419,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.RangeVariableSyntaxNotWithinSyntaxTree)
@@ -2476,7 +2435,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.RangeVariableSyntaxNotWithinSyntaxTree)
@@ -2492,7 +2451,7 @@ _Default:
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.RangeVariableSyntaxNotWithinSyntaxTree)
@@ -2507,24 +2466,22 @@ _Default:
         ''' <param name="declarationSyntax">The label statement.</param>
         ''' <returns>The label symbol, or Nothing if no such symbol exists.</returns>
         Public Overridable Overloads Function GetDeclaredSymbol(declarationSyntax As LabelStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ILabelSymbol
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetDeclaredSymbol, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                If declarationSyntax Is Nothing Then
-                    Throw New ArgumentNullException("declarationSyntax")
-                End If
-                If Not IsInTree(declarationSyntax) Then
-                    Throw New ArgumentException(VBResources.DeclarationSyntaxNotWithinSyntaxTree)
-                End If
+            If declarationSyntax Is Nothing Then
+                Throw New ArgumentNullException(NameOf(declarationSyntax))
+            End If
+            If Not IsInTree(declarationSyntax) Then
+                Throw New ArgumentException(VBResources.DeclarationSyntaxNotWithinSyntaxTree)
+            End If
 
-                Dim binder = TryCast(StripSemanticModelBinder(Me.GetEnclosingBinder(declarationSyntax.SpanStart)), BlockBaseBinder)
-                If binder IsNot Nothing Then
-                    Dim label As LabelSymbol = binder.LookupLabelByNameToken(declarationSyntax.LabelToken)
-                    If label IsNot Nothing Then
-                        Return label
-                    End If
+            Dim binder = TryCast(StripSemanticModelBinder(Me.GetEnclosingBinder(declarationSyntax.SpanStart)), BlockBaseBinder)
+            If binder IsNot Nothing Then
+                Dim label As LabelSymbol = binder.LookupLabelByNameToken(declarationSyntax.LabelToken)
+                If label IsNot Nothing Then
+                    Return label
                 End If
+            End If
 
-                Return Nothing
-            End Using
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -2700,16 +2657,14 @@ _Default:
         ''' <param name="declarationSyntax">The catch statement syntax node.</param>
         ''' <returns>The local symbol that was declared by the Catch statement or Nothing if statement does not declare a local variable.</returns>
         Public Overloads Function GetDeclaredSymbol(declarationSyntax As CatchStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ILocalSymbol
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetDeclaredSymbol, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                Dim enclosingBinder = StripSemanticModelBinder(Me.GetEnclosingBinder(declarationSyntax.SpanStart))
-                Dim catchBinder = TryCast(enclosingBinder, CatchBlockBinder)
+            Dim enclosingBinder = StripSemanticModelBinder(Me.GetEnclosingBinder(declarationSyntax.SpanStart))
+            Dim catchBinder = TryCast(enclosingBinder, CatchBlockBinder)
 
-                If catchBinder IsNot Nothing Then
-                    Return catchBinder.Locals.FirstOrDefault
-                End If
+            If catchBinder IsNot Nothing Then
+                Return catchBinder.Locals.FirstOrDefault
+            End If
 
-                Return Nothing
-            End Using
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -2870,13 +2825,11 @@ _Default:
         ''' </summary>
         ''' <param name="node">The for each syntax node.</param>
         Public Shadows Function GetForEachStatementInfo(node As ForEachStatementSyntax) As ForEachStatementInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetForEachStatementInfo, message:=Me.SyntaxTree.FilePath)
-                If node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.ForEachBlock Then
-                    Return GetForEachStatementInfoWorker(DirectCast(node.Parent, ForEachBlockSyntax))
-                End If
+            If node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.ForEachBlock Then
+                Return GetForEachStatementInfoWorker(DirectCast(node.Parent, ForEachBlockSyntax))
+            End If
 
-                Return Nothing
-            End Using
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -2884,13 +2837,11 @@ _Default:
         ''' </summary>
         ''' <param name="node">The for block syntax node.</param>
         Public Shadows Function GetForEachStatementInfo(node As ForEachBlockSyntax) As ForEachStatementInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetForEachStatementInfo, message:=Me.SyntaxTree.FilePath)
-                If node.Kind = SyntaxKind.ForEachBlock Then
-                    Return GetForEachStatementInfoWorker(node)
-                End If
+            If node.Kind = SyntaxKind.ForEachBlock Then
+                Return GetForEachStatementInfoWorker(node)
+            End If
 
-                Return Nothing
-            End Using
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -2920,22 +2871,20 @@ _Default:
         ''' </summary>
         ''' <param name="node">Preprocessing symbol identifier node.</param>
         Public Shadows Function GetPreprocessingSymbolInfo(node As IdentifierNameSyntax) As VisualBasicPreprocessingSymbolInfo
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetPreprocessorSymbolInfo, message:=Me.SyntaxTree.FilePath)
-                CheckSyntaxNode(node)
+            CheckSyntaxNode(node)
 
-                If SyntaxFacts.IsWithinPreprocessorConditionalExpression(node) Then
-                    Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node)
+            If SyntaxFacts.IsWithinPreprocessorConditionalExpression(node) Then
+                Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node)
 
-                    If symbolInfo.Symbol IsNot Nothing Then
-                        Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, node.Identifier.ValueText))
-                        Return symbolInfo
-                    End If
-
-                    Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(node.Identifier.ValueText), constantValueOpt:=Nothing, isDefined:=False)
+                If symbolInfo.Symbol IsNot Nothing Then
+                    Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, node.Identifier.ValueText))
+                    Return symbolInfo
                 End If
 
-                Return VisualBasicPreprocessingSymbolInfo.None
-            End Using
+                Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(node.Identifier.ValueText), constantValueOpt:=Nothing, isDefined:=False)
+            End If
+
+            Return VisualBasicPreprocessingSymbolInfo.None
         End Function
 
         ''' <summary>
@@ -2980,11 +2929,9 @@ _Default:
         ''' that the position is considered inside of. 
         ''' </summary>
         Public Shadows Function GetEnclosingSymbol(position As Integer, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
-            Using Logger.LogBlock(FunctionId.VisualBasic_SemanticModel_GetEnclosingSymbol, message:=Me.SyntaxTree.FilePath, cancellationToken:=cancellationToken)
-                CheckPosition(position)
-                Dim binder = Me.GetEnclosingBinder(position)
-                Return If(binder Is Nothing, Nothing, binder.ContainingMember)
-            End Using
+            CheckPosition(position)
+            Dim binder = Me.GetEnclosingBinder(position)
+            Return If(binder Is Nothing, Nothing, binder.ContainingMember)
         End Function
 
         ''' <summary>
@@ -3078,7 +3025,7 @@ _Default:
 
         Private Function GetSymbolInfoForNode(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim expressionSyntax = TryCast(node, expressionSyntax)
@@ -3121,7 +3068,7 @@ _Default:
 
         Private Function GetTypeInfoForNode(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim expressionSyntax = TryCast(node, expressionSyntax)
@@ -3139,7 +3086,7 @@ _Default:
 
         Private Function GetMemberGroupForNode(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of ISymbol)
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim expressionSyntax = TryCast(node, expressionSyntax)
@@ -3183,7 +3130,7 @@ _Default:
 
         Protected NotOverridable Overrides Function GetAliasInfoCore(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As IAliasSymbol
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim nameSyntax = TryCast(node, IdentifierNameSyntax)
@@ -3234,7 +3181,7 @@ _Default:
 
             Dim result = TryCast(container, NamespaceOrTypeSymbol)
             If result Is Nothing Then
-                Throw New ArgumentException(VBResources.NotAVbSymbol, "container")
+                Throw New ArgumentException(VBResources.NotAVbSymbol, NameOf(container))
             End If
             Return result
         End Function
@@ -3364,14 +3311,14 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeDataFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As DataFlowAnalysis
-            Return Me.AnalyzeDataFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, "firstStatement"),
-                                                SafeCastArgument(Of StatementSyntax)(lastStatement, "lastStatement"))
+            Return Me.AnalyzeDataFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
+                                                SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(lastStatement)))
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeDataFlowCore(statementOrExpression As SyntaxNode) As DataFlowAnalysis
 
             If statementOrExpression Is Nothing Then
-                Throw New ArgumentNullException("statementOrExpression")
+                Throw New ArgumentNullException(NameOf(statementOrExpression))
             End If
 
             If TypeOf statementOrExpression Is ExecutableStatementSyntax Then
@@ -3390,12 +3337,12 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As ControlFlowAnalysis
-            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, "firstStatement"),
-                                                   SafeCastArgument(Of StatementSyntax)(lastStatement, "lastStatement"))
+            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
+                                                   SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(lastStatement)))
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(statement As SyntaxNode) As ControlFlowAnalysis
-            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(statement, "statement"))
+            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(statement, NameOf(statement)))
         End Function
 
         Private Shared Function SafeCastArgument(Of T As Class)(node As SyntaxNode, argName As String) As T
@@ -3412,7 +3359,7 @@ _Default:
         Protected NotOverridable Overrides Function GetConstantValueCore(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As [Optional](Of Object)
 
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If TypeOf node Is ExpressionSyntax Then
@@ -3427,7 +3374,7 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
-            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of symbol)("symbol"))
+            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol)))
         End Function
 
         Protected NotOverridable Overrides Function IsEventUsableAsFieldCore(position As Integer, symbol As IEventSymbol) As Boolean

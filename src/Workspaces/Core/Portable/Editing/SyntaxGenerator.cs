@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var decl = MethodDeclaration(
                 method.Name,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-                returnType: TypeExpression(method.ReturnType),
+                returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(method),
                 statements: statements);
@@ -397,14 +398,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 case SymbolKind.Event:
                     var ev = (IEventSymbol)symbol;
-                    if (ev.IsAbstract || ev.IsVirtual || ev.AddMethod != null || ev.RemoveMethod != null)
-                    {
-                        return CustomEventDeclaration(ev);
-                    }
-                    else
-                    {
-                        return EventDeclaration(ev);
-                    }
+                    return EventDeclaration(ev);
 
                 case SymbolKind.Method:
                     var method = (IMethodSymbol)symbol;
@@ -417,7 +411,6 @@ namespace Microsoft.CodeAnalysis.Editing
                         case MethodKind.Ordinary:
                             return MethodDeclaration(method);
                     }
-
                     break;
 
                 case SymbolKind.Parameter:
@@ -436,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editing
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: TypeExpression(type.BaseType),
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Struct:
                             declaration = StructDeclaration(
@@ -444,20 +437,20 @@ namespace Microsoft.CodeAnalysis.Editing
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
                                 interfaceTypes: type.Interfaces != null ? type.Interfaces.Select(i => TypeExpression(i)) : null,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Delegate:
                             var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
@@ -480,6 +473,44 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             throw new ArgumentException("Symbol cannot be converted to a declaration");
+        }
+
+        private static bool CanBeDeclared(ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                case SymbolKind.Parameter:
+                    return true;
+
+                case SymbolKind.Method:
+                    var method = (IMethodSymbol)symbol;
+                    switch (method.MethodKind)
+                    {
+                        case MethodKind.Constructor:
+                        case MethodKind.SharedConstructor:
+                        case MethodKind.Ordinary:
+                            return true;
+                    }
+                    break;
+
+                case SymbolKind.NamedType:
+                    var type = (INamedTypeSymbol)symbol;
+                    switch (type.TypeKind)
+                    {
+                        case TypeKind.Class:
+                        case TypeKind.Struct:
+                        case TypeKind.Interface:
+                        case TypeKind.Enum:
+                        case TypeKind.Delegate:
+                            return true;
+                    }
+                    break;
+            }
+
+            return false;
         }
 
         private SyntaxNode WithTypeParametersAndConstraints(SyntaxNode declaration, ImmutableArray<ITypeParameterSymbol> typeParameters)
@@ -631,11 +662,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode Attribute(AttributeData attribute)
         {
+            var args = attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.TypedConstantExpression(a)))
+                    .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.TypedConstantExpression(n.Value))))
+                    .ToImmutableReadOnlyListOrEmpty();
+
             return Attribute(
-                name: TypeExpression(attribute.AttributeClass),
-                attributeArguments:
-                    attribute.ConstructorArguments.Select(a => this.AttributeArgument(this.LiteralExpression(a.Value)))
-                    .Concat(attribute.NamedArguments.Select(n => this.AttributeArgument(n.Key, this.LiteralExpression(n.Value.Value)))));
+                name: this.TypeExpression(attribute.AttributeClass),
+                attributeArguments: args.Count > 0 ? args : null);
         }
 
         private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)
@@ -902,6 +935,32 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
 
         /// <summary>
+        /// Gets the accessors for the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the accessor of the specified kind for the declaration.
+        /// </summary>
+        public SyntaxNode GetAccessor(SyntaxNode declaration, DeclarationKind kind)
+        {
+            return this.GetAccessors(declaration).FirstOrDefault(a => GetDeclarationKind(a) == kind);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the accessors inserted.
+        /// </summary>
+        public abstract SyntaxNode InsertAccessors(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> accessors);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the accessors added.
+        /// </summary>
+        public SyntaxNode AddAccessors(SyntaxNode declaration, IEnumerable<SyntaxNode> accessors)
+        {
+            return this.InsertAccessors(declaration, this.GetAccessors(declaration).Count, accessors);
+        }
+
+        /// <summary>
         /// Gets the statements for the body of the get-accessor of the declaration.
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetGetAccessorStatements(SyntaxNode declaration);
@@ -1038,12 +1097,10 @@ namespace Microsoft.CodeAnalysis.Editing
             return root.ReplaceToken(original, combinedTriviaReplacement);
         }
 
-        protected IEnumerable<TNode> ClearTrivia<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
-        {
-            return nodes != null ? nodes.Select(n => ClearTrivia(n)) : null;
-        }
-
-        protected abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
+        /// <summary>
+        /// Creates a new instance of the node with the leading and trailing trivia removed and replaced with elastic markers.
+        /// </summary>
+        public abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
         protected int IndexOf<T>(IReadOnlyList<T> list, T element)
         {
@@ -1270,6 +1327,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode LiteralExpression(object value);
 
         /// <summary>
+        /// Creates an expression for a typed constant.
+        /// </summary>
+        public abstract SyntaxNode TypedConstantExpression(TypedConstant value);
+
+        /// <summary>
         /// Creates an expression that denotes the boolean false literal.
         /// </summary>
         public SyntaxNode FalseLiteralExpression()
@@ -1358,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             if (dottedName == null)
             {
-                throw new ArgumentNullException("dottedName");
+                throw new ArgumentNullException(nameof(dottedName));
             }
 
             var parts = dottedName.Split(s_dotSeparator);
@@ -1606,6 +1668,11 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates an expression that evaluates to the type at runtime.
+        /// </summary>
+        public abstract SyntaxNode TypeOfExpression(SyntaxNode type);
+
+        /// <summary>
         /// Creates an expression that denotes an is-type-check operation.
         /// </summary>
         public abstract SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type);
@@ -1753,6 +1820,12 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return LambdaParameter(identifier, TypeExpression(type));
         }
+
+        /// <summary>
+        /// Creates an await expression.
+        /// </summary>
+        public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
+
         #endregion
     }
 }

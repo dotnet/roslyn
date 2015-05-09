@@ -589,7 +589,7 @@ End Class
 
             Dim tree1 = ParseAndVerify(text1)
             Dim tree2 = ParseAndVerify(text2)
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim pTypeSym = comp.SourceModule.GlobalNamespace.GetTypeMembers("C1").Single()
             Assert.Equal("C1", pTypeSym.ToDisplayString())
@@ -918,7 +918,7 @@ End Class
 
             Dim tree1 = ParseAndVerify(text1)
             Dim tree2 = ParseAndVerify(text2)
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim pTypeSym = comp.SourceModule.GlobalNamespace.GetTypeMembers("C1").Single()
             Assert.Equal("C1", pTypeSym.ToDisplayString())
@@ -953,7 +953,7 @@ End Module
 </text>.Value.Trim()
 
             Dim tree1 = ParseAndVerify(text1)
-            Dim comp = CreateCompilationWithMscorlib({tree1}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithMscorlib({tree1}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim pTypeSym = comp.SourceModule.GlobalNamespace.GetTypeMembers("Module1").Single()
             Assert.Equal("Module1", pTypeSym.ToDisplayString())
@@ -988,7 +988,7 @@ End Module
 </text>.Value.Trim()
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(text1)
-            Dim comp = CreateCompilationWithMscorlib({tree1}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithMscorlib({tree1}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim pTypeSym = comp.SourceModule.GlobalNamespace.GetTypeMembers("Module1").Single()
             Assert.Equal("Module1", pTypeSym.ToDisplayString())
@@ -1032,7 +1032,7 @@ End Class
 
             Dim tree1 = ParseAndVerify(text1)
             Dim tree2 = ParseAndVerify(text2)
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim model1 = comp.GetSemanticModel(tree1)
             Dim model2 = comp.GetSemanticModel(tree2)
@@ -1088,7 +1088,7 @@ End Class
 
             Dim tree1 = ParseAndVerify(text1)
             Dim tree2 = ParseAndVerify(text2)
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim model1 = comp.GetSemanticModel(tree1)
             Dim model2 = comp.GetSemanticModel(tree2)
@@ -1129,7 +1129,7 @@ Partial Class C1
 End Class
 </text>.Value.Trim()
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
-            Dim comp = CreateCompilationWithMscorlib({tree}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim comp = CreateCompilationWithMscorlib({tree}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim typeSym = comp.GetTypeByMetadataName("C1")
             Assert.NotNull(typeSym)
 

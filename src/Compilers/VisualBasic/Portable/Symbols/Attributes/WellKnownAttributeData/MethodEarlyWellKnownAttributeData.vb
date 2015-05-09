@@ -11,15 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits CommonMethodEarlyWellKnownAttributeData
 
 #Region "ExtensionAttribute"
-        Private m_isExtensionMethod As Boolean = False
+        Private _isExtensionMethod As Boolean = False
         Friend Property IsExtensionMethod As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me.m_isExtensionMethod
+                Return Me._isExtensionMethod
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me.m_isExtensionMethod = value
+                Me._isExtensionMethod = value
                 SetDataStored()
             End Set
         End Property

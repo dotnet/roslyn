@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             base(optionService, workingFolderPath, solutionFilePath, disposer)
         {
             // solution must exist in disk. otherwise, we shouldn't be here at all.
-            Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(solutionFilePath));
 
             var databaseFile = GetDatabaseFile(workingFolderPath);
@@ -45,6 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
 
             var enablePerformanceMonitor = optionService.GetOption(InternalFeatureOnOffOptions.EsentPerformanceMonitor);
             _esentStorage = new EsentStorage(databaseFile, enablePerformanceMonitor);
+        }
+
+        public static string GetDatabaseFile(string workingFolderPath)
+        {
+            Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
+
+            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
         public void Initialize()
@@ -63,32 +69,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            int projectId;
-            int documentId;
             int nameId;
-            if (!TryGetProjectAndDocumentId(document, out projectId, out documentId) ||
+            EsentStorage.Key key;
+            if (!TryGetProjectAndDocumentKey(document, out key) ||
                 !TryGetUniqueNameId(name, out nameId))
             {
                 return SpecializedTasks.Default<Stream>();
             }
 
-            var stream = EsentExceptionWrapper(projectId, documentId, nameId, ReadStream, cancellationToken);
+            var stream = EsentExceptionWrapper(key, nameId, ReadStream, cancellationToken);
             return Task.FromResult(stream);
-        }
-
-        private Stream ReadStream(int projectId, int documentId, int nameId, object unused1, object unused2, CancellationToken cancellationToken)
-        {
-            using (var accessor = _esentStorage.GetDocumentTableAccessor())
-            using (var esentStream = accessor.GetReadStream(projectId, documentId, nameId))
-            {
-                if (esentStream == null)
-                {
-                    return null;
-                }
-
-                // this will copy over esent stream and let it go.
-                return SerializableBytes.CreateReadableStream(esentStream, cancellationToken);
-            }
         }
 
         public override Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken))
@@ -100,31 +90,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            int projectId;
             int nameId;
-            if (!TryGetUniqueFileId(project.FilePath, out projectId) ||
+            EsentStorage.Key key;
+            if (!TryGetProjectKey(project, out key) ||
                 !TryGetUniqueNameId(name, out nameId))
             {
                 return SpecializedTasks.Default<Stream>();
             }
 
-            var stream = EsentExceptionWrapper(projectId, nameId, ReadStream, cancellationToken);
+            var stream = EsentExceptionWrapper(key, nameId, ReadStream, cancellationToken);
             return Task.FromResult(stream);
-        }
-
-        private Stream ReadStream(int projectId, int nameId, object unused1, object unused2, object unused3, CancellationToken cancellationToken)
-        {
-            using (var accessor = _esentStorage.GetProjectTableAccessor())
-            using (var esentStream = accessor.GetReadStream(projectId, nameId))
-            {
-                if (esentStream == null)
-                {
-                    return null;
-                }
-
-                // this will copy over esent stream and let it go.
-                return SerializableBytes.CreateReadableStream(esentStream, cancellationToken);
-            }
         }
 
         public override Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
@@ -146,7 +121,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             return Task.FromResult(stream);
         }
 
-        private Stream ReadStream(int nameId, object unused1, object unused2, object unused3, object unused4, CancellationToken cancellationToken)
+        private Stream ReadStream(EsentStorage.Key key, int nameId, object unused1, object unused2, CancellationToken cancellationToken)
+        {
+            using (var accessor = GetAccessor(key))
+            using (var esentStream = accessor.GetReadStream(key, nameId))
+            {
+                if (esentStream == null)
+                {
+                    return null;
+                }
+
+                // this will copy over esent stream and let it go.
+                return SerializableBytes.CreateReadableStream(esentStream, cancellationToken);
+            }
+        }
+
+        private Stream ReadStream(int nameId, object unused1, object unused2, object unused3, CancellationToken cancellationToken)
         {
             using (var accessor = _esentStorage.GetSolutionTableAccessor())
             using (var esentStream = accessor.GetReadStream(nameId))
@@ -171,27 +161,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.False;
             }
 
-            int projectId;
-            int documentId;
             int nameId;
-            if (!TryGetProjectAndDocumentId(document, out projectId, out documentId) ||
+            EsentStorage.Key key;
+            if (!TryGetProjectAndDocumentKey(document, out key) ||
                 !TryGetUniqueNameId(name, out nameId))
             {
                 return SpecializedTasks.False;
             }
 
-            var success = EsentExceptionWrapper(projectId, documentId, nameId, stream, WriteStream, cancellationToken);
+            var success = EsentExceptionWrapper(key, nameId, stream, WriteStream, cancellationToken);
             return success ? SpecializedTasks.True : SpecializedTasks.False;
-        }
-
-        private bool WriteStream(int projectId, int documentId, int nameId, Stream stream, object unused1, CancellationToken cancellationToken)
-        {
-            using (var accessor = _esentStorage.GetDocumentTableAccessor())
-            using (var esentStream = accessor.GetWriteStream(projectId, documentId, nameId))
-            {
-                WriteToStream(stream, esentStream, cancellationToken);
-                return accessor.ApplyChanges();
-            }
         }
 
         public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
@@ -204,26 +183,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 return SpecializedTasks.False;
             }
 
-            int projectId;
             int nameId;
-            if (!TryGetUniqueFileId(project.FilePath, out projectId) ||
+            EsentStorage.Key key;
+            if (!TryGetProjectKey(project, out key) ||
                 !TryGetUniqueNameId(name, out nameId))
             {
                 return SpecializedTasks.False;
             }
 
-            var success = EsentExceptionWrapper(projectId, nameId, stream, WriteStream, cancellationToken);
+            var success = EsentExceptionWrapper(key, nameId, stream, WriteStream, cancellationToken);
             return success ? SpecializedTasks.True : SpecializedTasks.False;
-        }
-
-        private bool WriteStream(int projectId, int nameId, Stream stream, object unused1, object unused2, CancellationToken cancellationToken)
-        {
-            using (var accessor = _esentStorage.GetProjectTableAccessor())
-            using (var esentStream = accessor.GetWriteStream(projectId, nameId))
-            {
-                WriteToStream(stream, esentStream, cancellationToken);
-                return accessor.ApplyChanges();
-            }
         }
 
         public override Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
@@ -247,7 +216,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             return success ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        private bool WriteStream(int nameId, Stream stream, object unused1, object unused2, object unused3, CancellationToken cancellationToken)
+        private bool WriteStream(EsentStorage.Key key, int nameId, Stream stream, object unused1, CancellationToken cancellationToken)
+        {
+            using (var accessor = GetAccessor(key))
+            using (var esentStream = accessor.GetWriteStream(key, nameId))
+            {
+                WriteToStream(stream, esentStream, cancellationToken);
+                return accessor.ApplyChanges();
+            }
+        }
+
+        private bool WriteStream(int nameId, Stream stream, object unused1, object unused2, CancellationToken cancellationToken)
         {
             using (var accessor = _esentStorage.GetSolutionTableAccessor())
             using (var esentStream = accessor.GetWriteStream(nameId))
@@ -260,11 +239,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         public override void Close()
         {
             _esentStorage.Close();
-        }
-
-        private string GetDatabaseFile(string workingFolderPath)
-        {
-            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
         }
 
         private bool TryGetUniqueNameId(string name, out int id)
@@ -303,8 +277,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 id = _nameTableCache.GetOrAdd(value, v =>
                 {
                     // okay, get one from esent
-                    var relativePathFromSolution = FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), v);
-                    return _esentStorage.GetUniqueId(relativePathFromSolution);
+                    var uniqueIdValue = fileCheck ? FilePathUtilities.GetRelativePath(Path.GetDirectoryName(SolutionFilePath), v) : v;
+                    return _esentStorage.GetUniqueId(uniqueIdValue);
                 });
             }
             catch (Exception ex)
@@ -346,43 +320,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             }
         }
 
-        private bool TryGetProjectAndDocumentId(Document document, out int projectId, out int documentId)
+        private EsentStorage.ProjectDocumentTableAccessor GetAccessor(EsentStorage.Key key)
         {
-            projectId = default(int);
-            documentId = default(int);
-
-            return TryGetUniqueFileId(document.Project.FilePath, out projectId) && TryGetUniqueFileId(document.FilePath, out documentId);
+            return key.DocumentIdOpt.HasValue ?
+                (EsentStorage.ProjectDocumentTableAccessor)_esentStorage.GetDocumentTableAccessor() :
+                (EsentStorage.ProjectDocumentTableAccessor)_esentStorage.GetProjectTableAccessor();
         }
 
-        private TResult EsentExceptionWrapper<TArg1, TResult>(TArg1 arg1, Func<TArg1, object, object, object, object, CancellationToken, TResult> func, CancellationToken cancellationToken)
+        private bool TryGetProjectAndDocumentKey(Document document, out EsentStorage.Key key)
+        {
+            key = default(EsentStorage.Key);
+
+            int projectId;
+            int projectNameId;
+            int documentId;
+            if (!TryGetProjectId(document.Project, out projectId, out projectNameId) ||
+                !TryGetUniqueFileId(document.FilePath, out documentId))
+            {
+                return false;
+            }
+
+            key = new EsentStorage.Key(projectId, projectNameId, documentId);
+            return true;
+        }
+
+        private bool TryGetProjectKey(Project project, out EsentStorage.Key key)
+        {
+            key = default(EsentStorage.Key);
+
+            int projectId;
+            int projectNameId;
+            if (!TryGetProjectId(project, out projectId, out projectNameId))
+            {
+                return false;
+            }
+
+            key = new EsentStorage.Key(projectId, projectNameId);
+            return true;
+        }
+
+        private bool TryGetProjectId(Project project, out int projectId, out int projectNameId)
+        {
+            projectId = default(int);
+            projectNameId = default(int);
+
+            return TryGetUniqueFileId(project.FilePath, out projectId) && TryGetUniqueNameId(project.Name, out projectNameId);
+        }
+
+        private TResult EsentExceptionWrapper<TArg1, TResult>(TArg1 arg1, Func<TArg1, object, object, object, CancellationToken, TResult> func, CancellationToken cancellationToken)
         {
             return EsentExceptionWrapper(arg1, (object)null, func, cancellationToken);
         }
 
         private TResult EsentExceptionWrapper<TArg1, TArg2, TResult>(
-            TArg1 arg1, TArg2 arg2, Func<TArg1, TArg2, object, object, object, CancellationToken, TResult> func, CancellationToken cancellationToken)
+            TArg1 arg1, TArg2 arg2, Func<TArg1, TArg2, object, object, CancellationToken, TResult> func, CancellationToken cancellationToken)
         {
             return EsentExceptionWrapper(arg1, arg2, (object)null, func, cancellationToken);
         }
 
         private TResult EsentExceptionWrapper<TArg1, TArg2, TArg3, TResult>(
-            TArg1 arg1, TArg2 arg2, TArg3 arg3, Func<TArg1, TArg2, TArg3, object, object, CancellationToken, TResult> func, CancellationToken cancellationToken)
+            TArg1 arg1, TArg2 arg2, TArg3 arg3, Func<TArg1, TArg2, TArg3, object, CancellationToken, TResult> func, CancellationToken cancellationToken)
         {
             return EsentExceptionWrapper(arg1, arg2, arg3, (object)null, func, cancellationToken);
         }
 
         private TResult EsentExceptionWrapper<TArg1, TArg2, TArg3, TArg4, TResult>(
-            TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, Func<TArg1, TArg2, TArg3, TArg4, object, CancellationToken, TResult> func, CancellationToken cancellationToken)
-        {
-            return EsentExceptionWrapper(arg1, arg2, arg3, arg4, (object)null, func, cancellationToken);
-        }
-
-        private TResult EsentExceptionWrapper<TArg1, TArg2, TArg3, TArg4, TArg5, TResult>(
-            TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, Func<TArg1, TArg2, TArg3, TArg4, TArg5, CancellationToken, TResult> func, CancellationToken cancellationToken)
+            TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, Func<TArg1, TArg2, TArg3, TArg4, CancellationToken, TResult> func, CancellationToken cancellationToken)
         {
             try
             {
-                return func(arg1, arg2, arg3, arg4, arg5, cancellationToken);
+                return func(arg1, arg2, arg3, arg4, cancellationToken);
             }
             catch (EsentInvalidSesidException)
             {

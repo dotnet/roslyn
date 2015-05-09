@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -47,11 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _cacheKey = original._cacheKey;
                 }
 
-                internal static SyntaxTree CreateRecoverableTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, CompilationUnitSyntax root)
+                internal static SyntaxTree CreateRecoverableTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, CompilationUnitSyntax root)
                 {
-                    return root.AttributeLists.Any() || root.FullSpan.Length < service.MinimumLengthForRecoverableTree
-                        ? Create(root, (CSharpParseOptions)options, filePath, root.SyntaxTree.GetText().Encoding)
-                        : new RecoverableSyntaxTree(service, cacheKey, root, new SyntaxTreeInfo(filePath, options, text, root.FullSpan.Length));
+                    return new RecoverableSyntaxTree(service, cacheKey, root, new SyntaxTreeInfo(filePath, options, text, encoding, root.FullSpan.Length));
                 }
 
                 public override string FilePath
@@ -82,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
                 {
                     return _info.GetTextAsync(cancellationToken);
+                }
+
+                public override Encoding Encoding
+                {
+                    get { return _info.Encoding; }
                 }
 
                 private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)

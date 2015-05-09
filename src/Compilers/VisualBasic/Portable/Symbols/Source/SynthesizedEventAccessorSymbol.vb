@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SynthesizedEventAccessorSymbol
         Inherits SynthesizedAccessor(Of SourceEventSymbol)
 
-        Private m_lazyReturnType As TypeSymbol
-        Private m_lazyParameters As ImmutableArray(Of ParameterSymbol)
-        Private m_lazyExplicitImplementations As ImmutableArray(Of MethodSymbol) ' lazily populated with explicit implementations
+        Private _lazyReturnType As TypeSymbol
+        Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
+        Private _lazyExplicitImplementations As ImmutableArray(Of MethodSymbol) ' lazily populated with explicit implementations
 
         Protected Sub New(container As SourceMemberContainerTypeSymbol,
                           [event] As SourceEventSymbol)
@@ -31,19 +31,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                If m_lazyExplicitImplementations.IsDefault Then
+                If _lazyExplicitImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedInitialize(
-                        m_lazyExplicitImplementations,
+                        _lazyExplicitImplementations,
                         SourceEvent.GetAccessorImplementations(Me.MethodKind))
                 End If
 
-                Return m_lazyExplicitImplementations
+                Return _lazyExplicitImplementations
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                If m_lazyParameters.IsDefault Then
+                If _lazyParameters.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
 
                     Dim parameterType As TypeSymbol
@@ -60,18 +60,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim parameter = New SynthesizedParameterSymbol(Me, parameterType, 0, False, "obj")
                     Dim parameterList = ImmutableArray.Create(Of ParameterSymbol)(parameter)
 
-                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreArrayAndDiagnostics(m_lazyParameters, parameterList, diagnostics, CompilationStage.Declare)
+                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreArrayAndDiagnostics(_lazyParameters, parameterList, diagnostics, CompilationStage.Declare)
 
                     diagnostics.Free()
                 End If
 
-                Return m_lazyParameters
+                Return _lazyParameters
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                If m_lazyReturnType Is Nothing Then
+                If _lazyReturnType Is Nothing Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
 
                     Dim compilation = Me.DeclaringCompilation
@@ -89,13 +89,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(useSite, Me.Locations(0))
                     End If
 
-                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(m_lazyReturnType, type, diagnostics, CompilationStage.Declare)
+                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyReturnType, type, diagnostics, CompilationStage.Declare)
 
                     diagnostics.Free()
                 End If
 
-                Debug.Assert(m_lazyReturnType IsNot Nothing)
-                Return m_lazyReturnType
+                Debug.Assert(_lazyReturnType IsNot Nothing)
+                Return _lazyReturnType
             End Get
         End Property
 

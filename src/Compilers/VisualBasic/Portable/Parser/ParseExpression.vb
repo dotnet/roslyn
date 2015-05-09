@@ -8,7 +8,19 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
+
+        Friend Function ParseExpression(
+            Optional pendingPrecedence As OperatorPrecedence = OperatorPrecedence.PrecedenceNone,
+            Optional bailIfFirstTokenRejected As Boolean = False
+        ) As ExpressionSyntax
+
+            Return ParseWithStackGuard(Of ExpressionSyntax)(
+                Function() ParseExpressionCore(pendingPrecedence, bailIfFirstTokenRejected),
+                Function() InternalSyntaxFactory.MissingExpression())
+
+        End Function
+
         ' /*********************************************************************
         ' *
         ' * Function:
@@ -29,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '        //dig through a leading EOL token when it tries
         '        //to parse the expression.
         '
-        '    bool EatLeadingNewLine,         - we no longer support it in ParseExpression, please eat the new line yourself before calling
+        '    bool EatLeadingNewLine,         - we no longer support it in ParseExpressionCore, please eat the new line yourself before calling
         '    bool BailIfFirstTokenRejected                 // bail (return NULL) if the first token isn't a valid expression-starter, rather than reporting an error or setting ErrorInConstruct
-        Friend Function ParseExpression(
+        Private Function ParseExpressionCore(
             Optional pendingPrecedence As OperatorPrecedence = OperatorPrecedence.PrecedenceNone,
             Optional bailIfFirstTokenRejected As Boolean = False
         ) As ExpressionSyntax
@@ -49,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim expression As ExpressionSyntax = Nothing
                 Dim startToken As SyntaxToken = CurrentToken
 
-                If m_EvaluatingConditionCompilationExpression AndAlso
+                If _evaluatingConditionCompilationExpression AndAlso
                Not StartsValidConditionalCompilationExpr(startToken) Then
 
                     If bailIfFirstTokenRejected Then
@@ -71,13 +83,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' "-" unary minus
                         GetNextToken()
 
-                        Dim Operand As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceNegate)
+                        Dim Operand As ExpressionSyntax = ParseExpressionCore(OperatorPrecedence.PrecedenceNegate)
                         expression = SyntaxFactory.UnaryMinusExpression(startToken, Operand)
 
                     Case SyntaxKind.NotKeyword
                         ' NOT expr
                         GetNextToken()
-                        Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNot)
+                        Dim Operand = ParseExpressionCore(OperatorPrecedence.PrecedenceNot)
                         expression = SyntaxFactory.NotExpression(startToken, Operand)
 
                     Case SyntaxKind.PlusToken
@@ -86,13 +98,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         ' unary "+" has the same precedence as unary "-"
 
-                        Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNegate)
+                        Dim Operand = ParseExpressionCore(OperatorPrecedence.PrecedenceNegate)
                         expression = SyntaxFactory.UnaryPlusExpression(startToken, Operand)
 
                     Case SyntaxKind.AddressOfKeyword
                         GetNextToken()
 
-                        Dim Operand = ParseExpression(OperatorPrecedence.PrecedenceNegate)
+                        Dim Operand = ParseExpressionCore(OperatorPrecedence.PrecedenceNegate)
                         expression = SyntaxFactory.AddressOfExpression(startToken, Operand)
 
                     Case Else
@@ -122,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Exit Do
                         End If
 
-                        If m_EvaluatingConditionCompilationExpression AndAlso
+                        If _evaluatingConditionCompilationExpression AndAlso
                        Not IsValidOperatorForConditionalCompilationExpr(CurrentToken) Then
 
                             ' Should current token be consumed here?
@@ -146,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         'Binary.Opcode = Opcode
 
                         'Binary.Left = Expr
-                        Dim rightOperand As ExpressionSyntax = ParseExpression(precedence)
+                        Dim rightOperand As ExpressionSyntax = ParseExpressionCore(precedence)
 
                         expression = SyntaxFactory.BinaryExpression(GetBinaryOperatorHelper([operator]), expression, [operator], rightOperand)
 
@@ -170,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             '// Note: this function will only ever return NULL if the flag "BailIfFirstTokenIsRejected" is set,
             '// and if the first token isn't a valid way to start an expression. In all other error scenarios
             '// it returns a "bad expression".
-            Debug.Assert(Not m_EvaluatingConditionCompilationExpression OrElse
+            Debug.Assert(Not _evaluatingConditionCompilationExpression OrElse
                 StartsValidConditionalCompilationExpr(CurrentToken), "Conditional compilation expression parsing confused!!!")
 
             Dim term As ExpressionSyntax = Nothing
@@ -424,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Complex expressions such as "." or "!" qualified, etc are not allowed cond comp expressions.
             '
-            If Not m_EvaluatingConditionCompilationExpression Then
+            If Not _evaluatingConditionCompilationExpression Then
                 ' Valid suffixes are ".", "!", and "(". Everything else is considered
                 ' to end the term.
 
@@ -667,7 +679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen, createIfMissing:=True)
 
-            Dim nameOfName = ValidateNameOfArgument(ParseExpression(), isTopLevel:=True)
+            Dim nameOfName = ValidateNameOfArgument(ParseExpressionCore(), isTopLevel:=True)
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
@@ -765,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen, createIfMissing:=True)
 
-            Dim Operand = ParseExpression()
+            Dim Operand = ParseExpressionCore()
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
@@ -917,7 +929,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Consume 'TypeOf'.
             GetNextToken()
 
-            Dim exp As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceRelational) 'Dev10 uses ParseVariable
+            Dim exp As ExpressionSyntax = ParseExpressionCore(OperatorPrecedence.PrecedenceRelational) 'Dev10 uses ParseVariable
 
             If exp.ContainsDiagnostics Then
                 exp = ResyncAt(exp, SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword)
@@ -961,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16191 - 16191
         ' Expression* .Parser::ParseVariable( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseVariable() As ExpressionSyntax
-            Return ParseExpression(OperatorPrecedence.PrecedenceRelational)
+            Return ParseExpressionCore(OperatorPrecedence.PrecedenceRelational)
         End Function
 
         ' /*********************************************************************
@@ -1215,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' "(" expr ")"
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
-            Dim Operand = ParseExpression()
+            Dim Operand = ParseExpressionCore()
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
@@ -1407,7 +1419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     argumentName = ReportSyntaxError(argumentName, ERRID.ERR_ExpectedNamedArgument)
                 End If
 
-                Dim namedArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpression())
+                Dim namedArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpressionCore())
 
                 If CurrentToken.Kind <> SyntaxKind.CommaToken Then
                     If CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
@@ -1443,7 +1455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseArgument(Optional RedimOrNewParent As Boolean = False) As ArgumentSyntax
             Dim argument As ArgumentSyntax
 
-            Dim value As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceNone)
+            Dim value As ExpressionSyntax = ParseExpressionCore(OperatorPrecedence.PrecedenceNone)
 
             If value.ContainsDiagnostics Then
                 value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
@@ -1454,7 +1466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim lowerBound As ExpressionSyntax = value
 
                 GetNextToken() ' consume tkTO
-                value = ParseExpression(OperatorPrecedence.PrecedenceNone)
+                value = ParseExpressionCore(OperatorPrecedence.PrecedenceNone)
 
                 ' Check that lower bound is equal to 0 moved to binder.
 
@@ -1492,7 +1504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen, createIfMissing:=True)
 
-            Dim exp As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceNone)
+            Dim exp As ExpressionSyntax = ParseExpressionCore(OperatorPrecedence.PrecedenceNone)
 
             If exp.ContainsDiagnostics Then
                 exp = ResyncAt(exp, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
@@ -1654,7 +1666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 value = SyntaxFactory.SingleLineLambdaExpression(SyntaxKind.SingleLineFunctionLambdaExpression,
                                                           header,
-                                                          ParseExpression())
+                                                          ParseExpressionCore())
                 value = AdjustTriviaForMissingTokens(value)
                 If header.Modifiers.Any(SyntaxKind.IteratorKeyword) Then
                     value = Parser.ReportSyntaxError(value, ERRID.ERR_BadIteratorExpressionLambda)

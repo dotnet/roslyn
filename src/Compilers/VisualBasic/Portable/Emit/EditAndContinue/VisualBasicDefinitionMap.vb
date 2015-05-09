@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class VisualBasicDefinitionMap
         Inherits DefinitionMap(Of VisualBasicSymbolMatcher)
 
-        Private ReadOnly metadataDecoder As MetadataDecoder
+        Private ReadOnly _metadataDecoder As MetadataDecoder
 
         Public Sub New([module] As PEModule,
                        edits As IEnumerable(Of SemanticEdit),
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New([module], edits, mapToMetadata, mapToPrevious)
 
             Debug.Assert(metadataDecoder IsNot Nothing)
-            Me.metadataDecoder = metadataDecoder
+            Me._metadataDecoder = metadataDecoder
         End Sub
 
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
@@ -94,10 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Protected Overrides Function TryGetStateMachineType(methodHandle As Handle) As ITypeSymbol
             Dim typeName As String = Nothing
-            If metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
-               metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
+            If _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
+               _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
 
-                Return metadataDecoder.GetTypeSymbolForSerializedType(typeName)
+                Return _metadataDecoder.GetTypeSymbolForSerializedType(typeName)
             End If
 
             Return Nothing
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Protected Overrides Function TryGetLocalSlotMapFromMetadata(handle As MethodDefinitionHandle, debugInfo As EditAndContinueMethodDebugInformation) As ImmutableArray(Of EncLocalInfo)
             Dim slotMetadata As ImmutableArray(Of LocalInfo(Of TypeSymbol)) = Nothing
-            If Not metadataDecoder.TryGetLocals(handle, slotMetadata) Then
+            If Not _metadataDecoder.TryGetLocals(handle, slotMetadata) Then
                 Return Nothing
             End If
 

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,19 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
 {
     public class SyntaxEditorTests
     {
-        private readonly Workspace EmptyWorkspace = new AdhocWorkspace();
+        private readonly Workspace _emptyWorkspace = new AdhocWorkspace();
 
         private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom(typeof(TSyntax), node);
-            var formatted = Formatter.Format(node, EmptyWorkspace);
+            var formatted = Formatter.Format(node, _emptyWorkspace);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
         }
 
         private SyntaxEditor GetEditor(SyntaxNode root)
         {
-            return new SyntaxEditor(root, this.EmptyWorkspace);
+            return new SyntaxEditor(root, _emptyWorkspace);
         }
 
         [Fact]

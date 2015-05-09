@@ -166,23 +166,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (e != null)
             {
-                if (string.Compare(e.Key, RenameShortcutKey.RenameOverloads, StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Equals(e.Key, RenameShortcutKey.RenameOverloads, StringComparison.OrdinalIgnoreCase))
                 {
                     this.OverloadsCheckbox.IsChecked = !this.OverloadsCheckbox.IsChecked;
                 }
-                else if (string.Compare(e.Key, RenameShortcutKey.SearchInComments, StringComparison.OrdinalIgnoreCase) == 0)
+                else if (string.Equals(e.Key, RenameShortcutKey.SearchInComments, StringComparison.OrdinalIgnoreCase))
                 {
                     this.CommentsCheckbox.IsChecked = !this.CommentsCheckbox.IsChecked;
                 }
-                else if (string.Compare(e.Key, RenameShortcutKey.SearchInStrings, StringComparison.OrdinalIgnoreCase) == 0)
+                else if (string.Equals(e.Key, RenameShortcutKey.SearchInStrings, StringComparison.OrdinalIgnoreCase))
                 {
                     this.StringsCheckbox.IsChecked = !this.StringsCheckbox.IsChecked;
                 }
-                else if (string.Compare(e.Key, RenameShortcutKey.PreviewChanges) == 0)
+                else if (string.Equals(e.Key, RenameShortcutKey.PreviewChanges, StringComparison.OrdinalIgnoreCase))
                 {
                     this.PreviewChangesCheckbox.IsChecked = !this.PreviewChangesCheckbox.IsChecked;
                 }
-                else if (string.Compare(e.Key, RenameShortcutKey.Apply) == 0)
+                else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
                     this.Commit();
                 }
@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public string RenameOverloads { get { return EditorFeaturesResources.RenameOverloads; } }
         public Visibility RenameOverloadsVisibility { get { return _model.RenameOverloadsVisibility; } }
+        public bool IsRenameOverloadsEditable { get { return _model.IsRenameOverloadsEditable; } }
         public string SearchInComments { get { return EditorFeaturesResources.SearchInComments; } }
         public string SearchInStrings { get { return EditorFeaturesResources.SearchInStrings; } }
         public string ApplyRename { get { return EditorFeaturesResources.ApplyRename; } }

@@ -968,11 +968,41 @@
     <Field Name="AccessExpression" Type="BoundExpression"/> 
   </Node>
 
+  <Node Name="BoundLoweredConditionalAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="HasValueMethodOpt" Type="MethodSymbol" Null="allow"/>
+    <Field Name="WhenNotNull" Type="BoundExpression"/>
+    <Field Name="WhenNullOpt" Type="BoundExpression" Null="allow"/>
+    <!-- 
+    Async rewriter needs to replace receivers with their spilled values
+    and for that it needs to match receivers and the containing conditional 
+    expressions.
+    To be able to do that, during lowering, we will assign 
+    BoundLoweredConditionalAccess and corresponding BoundConditionalReceiver 
+    matching Id that are integers unique for the containing method body.
+    -->
+    <Field Name="Id" Type="int"/>
+  </Node>
+  
   <!-- represents the receiver of a conditional access expression -->
   <Node Name="BoundConditionalReceiver" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- See the comment in BoundLoweredConditionalAccess -->
+    <Field Name="Id" Type="int"/>
   </Node>
-    
+
+  <!--  This node represents a complex receiver for a conditional access.  
+        At runtime, when its type is a value type, ValueTypeReceiver should be used as a receiver. 
+        Otherwise, ReferenceTypeReceiver should be used.  
+        This kind of receiver is created only by Async rewriter. 
+  -->
+  <Node Name="BoundComplexConditionalReceiver" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
+    <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundMethodGroup" Base="BoundMethodOrPropertyGroup">
     <!-- SPEC: A method group is a set of overloaded methods resulting from a member lookup. 
          SPEC: A method group may have an associated instance expression and 

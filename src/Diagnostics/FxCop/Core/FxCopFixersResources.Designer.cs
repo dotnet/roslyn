@@ -97,38 +97,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unsealed attributes..
-        /// </summary>
-        internal static string AvoidUnsealedAttributes {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Seal attribute type..
-        /// </summary>
-        internal static string AvoidUnsealedAttributesCodeFix {
-            get {
-                return ResourceManager.GetString("AvoidUnsealedAttributesCodeFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Disposable fields should be disposed.
         /// </summary>
         internal static string DisposableFieldsShouldBeDisposed {
             get {
                 return ResourceManager.GetString("DisposableFieldsShouldBeDisposed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove FlagsAttribute from enum..
-        /// </summary>
-        internal static string DoNotMarkEnumsWithFlagsCodeFix {
-            get {
-                return ResourceManager.GetString("DoNotMarkEnumsWithFlagsCodeFix", resourceCulture);
             }
         }
         
@@ -169,24 +142,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply FlagsAttribute to enum..
-        /// </summary>
-        internal static string MarkEnumsWithFlagsCodeFix {
-            get {
-                return ResourceManager.GetString("MarkEnumsWithFlagsCodeFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
-        /// </summary>
-        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals {
-            get {
-                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove empty finalizers.
         /// </summary>
         internal static string RemoveEmptyFinalizers {
@@ -201,15 +156,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string SpecifyMarshalingForPInvokeStringArguments {
             get {
                 return ResourceManager.GetString("SpecifyMarshalingForPInvokeStringArguments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase.
-        /// </summary>
-        internal static string StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase {
-            get {
-                return ResourceManager.GetString("StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase", resourceCulture);
             }
         }
     }

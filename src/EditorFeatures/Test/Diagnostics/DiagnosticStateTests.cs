@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         workspace, document.Project.Id),
                     new DiagnosticData(
                         "test3", "Test", "test3 message", "test3 message format",
-                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2, 
+                        DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2,
                         ImmutableArray.Create<string>("Test3", "Test3_2"), ImmutableDictionary<string, string>.Empty.Add("p2Key", "p2Value").Add("p1Key", "p1Value"),
                         workspace, document.Project.Id, description: "test3 description", helpLink: "http://test3link"),
                 };
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.Equal(items1[i].Id, items2[i].Id);
                 Assert.Equal(items1[i].Category, items2[i].Category);
                 Assert.Equal(items1[i].Message, items2[i].Message);
-                Assert.Equal(items1[i].MessageFormat, items2[i].MessageFormat);
+                Assert.Equal(items1[i].ENUMessageForBingSearch, items2[i].ENUMessageForBingSearch);
                 Assert.Equal(items1[i].Severity, items2[i].Severity);
                 Assert.Equal(items1[i].IsEnabledByDefault, items2[i].IsEnabledByDefault);
                 Assert.Equal(items1[i].WarningLevel, items2[i].WarningLevel);

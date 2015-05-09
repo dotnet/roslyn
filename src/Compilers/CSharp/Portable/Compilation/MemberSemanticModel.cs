@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var binder = this.GetEnclosingBinder(expression, GetAdjustedNodePosition(expression));
@@ -1179,11 +1179,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode outerLambda = GetOutermostLambdaOrQuery(innerLambda);
                 Debug.Assert(outerLambda != null);
                 Debug.Assert(outerLambda != this.Root);
-                CSharpSyntaxNode outerExpression = GetBindingRoot(outerLambda);
+                CSharpSyntaxNode nodeToBind = GetBindingRoot(outerLambda);
+
+                var statementBinder = GetEnclosingBinder(nodeToBind, position);
+                Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
                 using (_nodeMapLock.DisposableWrite())
                 {
-                    BoundNode boundOuterExpression = this.Bind(GetEnclosingBinder(outerExpression, position), outerExpression, _ignoredDiagnostics);
+                    BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
                     GuardedAddBoundTreeAndGetBoundNodeFromMap(innerLambda, boundOuterExpression);
                 }
             }

@@ -7,7 +7,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
         ' File: Parser.cpp
         ' Lines: 14199 - 14199
         ' Initializer* .Parser::ParseSelectListInitializer( [ _Inout_ bool& ErrorInConstruct ] )
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 nameEqualsOpt = SyntaxFactory.VariableNameEquals(varName, Nothing, Equals)
             End If
 
-            Dim expr As ExpressionSyntax = ParseExpression()
+            Dim expr As ExpressionSyntax = ParseExpressionCore()
 
             Return SyntaxFactory.ExpressionRangeVariable(
                 nameEqualsOpt,
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim arg As ExpressionSyntax = Nothing
                 If CurrentToken.Kind <> SyntaxKind.CloseParenToken Then
-                    arg = ParseExpression()
+                    arg = ParseExpressionCore()
                 End If
 
                 Dim rParen As PunctuationSyntax = Nothing
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             'TODO: this is very different from original implementation.
             ' originally we would try to parse the whole thing as an expression and see if we
             ' will not consume more than "syntax". It seems that "syntax" is always a term
-            ' so the only way ParseExpression could consume more is if there is a binary operator.
+            ' so the only way ParseExpressionCore could consume more is if there is a binary operator.
             ' Hopefully checking for binary operator is enough...
             If Not CurrentToken.IsBinaryOperator AndAlso
                 CurrentToken.Kind <> SyntaxKind.DotToken Then
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If Not TokenFollowingAsWasIn Then
                         TryEatNewLine() ' // enable implicit LC after 'In' or '=' But not if somebody did from x as IN 
                     End If
-                    source = ParseExpression()
+                    source = ParseExpressionCore()
                 End If
 
                 ' // try to recover
@@ -482,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If Not TokenFollowingAsWasIn Then
                         TryEatNewLine() ' // enable implicit LC after 'In' or '=' But not if somebody did from x as IN 
                     End If
-                    source = ParseExpression()
+                    source = ParseExpressionCore()
                 End If
 
                 ' // try to recover
@@ -828,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim source As ExpressionSyntax = Nothing
             If TryEatNewLineAndGetToken(SyntaxKind.InKeyword, [In], createIfMissing:=True) Then
                 TryEatNewLine() ' // dev10_500708 allow line continuation after 'IN' 
-                source = ParseExpression()
+                source = ParseExpressionCore()
             End If
 
             ' // try to recover
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim element As JoinConditionSyntax = Nothing
 
                 If CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken Then
-                    Dim Left = ParseExpression(OperatorPrecedence.PrecedenceRelational)
+                    Dim Left = ParseExpressionCore(OperatorPrecedence.PrecedenceRelational)
 
                     ' // try to recover
                     If Left.ContainsDiagnostics Then
@@ -879,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Dim eqKw As KeywordSyntax = Nothing
                     Dim Right As ExpressionSyntax = Nothing
                     If TryGetContextualKeywordAndEatNewLine(SyntaxKind.EqualsKeyword, eqKw, createIfMissing:=True) Then
-                        Right = ParseExpression(OperatorPrecedence.PrecedenceRelational)
+                        Right = ParseExpressionCore(OperatorPrecedence.PrecedenceRelational)
                     Else
                         Right = InternalSyntaxFactory.MissingExpression
                     End If
@@ -970,7 +970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim exprs = Me._pool.AllocateSeparated(Of OrderingSyntax)()
 
             Do
-                Dim OrderExpression = ParseExpression()
+                Dim OrderExpression = ParseExpressionCore()
 
                 ' // try to recover
                 If OrderExpression.ContainsDiagnostics Then
@@ -1082,7 +1082,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Case SyntaxKind.WhereKeyword
                             GetNextToken() ' get off where
                             TryEatNewLine()
-                            Return InternalSyntaxFactory.WhereClause(kw, ParseExpression())
+                            Return InternalSyntaxFactory.WhereClause(kw, ParseExpressionCore())
 
                         Case SyntaxKind.SkipKeyword
                             GetNextToken() ' get off Skip
@@ -1092,10 +1092,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 Dim whileKw = DirectCast(CurrentToken, KeywordSyntax)
                                 GetNextToken() ' get off While
                                 TryEatNewLine()
-                                Return InternalSyntaxFactory.SkipWhileClause(kw, whileKw, ParseExpression())
+                                Return InternalSyntaxFactory.SkipWhileClause(kw, whileKw, ParseExpressionCore())
                             Else
                                 TryEatNewLineIfNotFollowedBy(SyntaxKind.WhileKeyword) ' // when Skip ends the line, allow a implicit line continuation
-                                Return InternalSyntaxFactory.SkipClause(kw, ParseExpression())
+                                Return InternalSyntaxFactory.SkipClause(kw, ParseExpressionCore())
                             End If
 
                         Case SyntaxKind.TakeKeyword
@@ -1106,10 +1106,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 Dim whileKw = DirectCast(CurrentToken, KeywordSyntax)
                                 GetNextToken() ' get off While
                                 TryEatNewLine()
-                                Return InternalSyntaxFactory.TakeWhileClause(kw, whileKw, ParseExpression())
+                                Return InternalSyntaxFactory.TakeWhileClause(kw, whileKw, ParseExpressionCore())
                             Else
                                 TryEatNewLineIfNotFollowedBy(SyntaxKind.WhileKeyword) ' // when Skip ends the line, allow a implicit line continuation
-                                Return InternalSyntaxFactory.TakeClause(kw, ParseExpression())
+                                Return InternalSyntaxFactory.TakeClause(kw, ParseExpressionCore())
                             End If
 
                         Case SyntaxKind.GroupKeyword

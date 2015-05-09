@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2166,7 +2167,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitOptions: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitters: TestEmitters.RefEmitBug, verify: false);
         }
 
         [Fact]
@@ -2580,7 +2581,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, verify: false);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }
@@ -2633,6 +2634,62 @@ class Viewable
             Assert.Equal(P2RVA, P1RVA);
         }
 
+        private static bool SequenceMatches(byte[] buffer, int startIndex, byte[] pattern)
+        {
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (buffer[startIndex + i] != pattern[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static int IndexOfPattern(byte[] buffer, int startIndex, byte[] pattern)
+        {
+            // Naive linear search for target within buffer
+            int end = buffer.Length - pattern.Length;
+            for (int i = startIndex; i < end; i++)
+            {
+                if (SequenceMatches(buffer, i, pattern))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        [Fact, WorkItem(1669, "https://github.com/dotnet/roslyn/issues/1669")]
+        public void FoldMethods2()
+        {
+            // Verifies that IL folding eliminates duplicate copies of small method bodies by
+            // examining the emitted binary.
+            string source = @"
+class C
+{
+    ulong M() => 0x8675309ABCDE4225UL; 
+    long P => -8758040459200282075L;
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, null, TestOptions.ReleaseDll);
+            using (var stream = compilation.EmitToStream())
+            {
+                var bytes = new byte[stream.Length];
+                Assert.Equal(bytes.Length, stream.Read(bytes, 0, bytes.Length));
+
+                // The constant should appear exactly once
+                byte[] pattern = new byte[] { 0x25, 0x42, 0xDE, 0xBC, 0x9A, 0x30, 0x75, 0x86 };
+                int firstMatch = IndexOfPattern(bytes, 0, pattern);
+                Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.");
+                int secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern);
+                Assert.True(secondMatch < 0, "Expected to find just one occurrence of the pattern in the output.");
+            }
+        }
+
         [Fact]
         public void BrokenOutStream()
         {
@@ -2669,7 +2726,8 @@ class Viewable
 
             Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
             Assert.Equal(1, err.Arguments.Count);
-            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004"));
+            var ioExceptionMessage = new IOException().Message;
+            Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
 
             pdb.Dispose();
             result = compilation.Emit(output, pdb);
@@ -2679,7 +2737,217 @@ class Viewable
 
             Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
             Assert.Equal(1, err.Arguments.Count);
-            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004"));
+            Assert.Equal(ioExceptionMessage, (string)err.Arguments[0]);
+        }
+
+        [Fact]
+        public void MultipleNetmodulesWithPrivateImplementationDetails()
+        {
+            var s1 = @"
+public class A
+{
+    private static char[] contents = { 'H', 'e', 'l', 'l', 'o', ',', ' ' };
+    public static string M1()
+    {
+        return new string(contents);
+    }
+}";
+            var s2 = @"
+public class B : A
+{
+    private static char[] contents = { 'w', 'o', 'r', 'l', 'd', '!' };
+    public static string M2()
+    {
+        return new string(contents);
+    }
+}";
+            var s3 = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.Write(A.M1());
+        System.Console.WriteLine(B.M2());
+    }
+}";
+            var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule);
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+
+            var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule, references: new[] { ref1 });
+            comp2.VerifyDiagnostics();
+            var ref2 = comp2.EmitToImageReference();
+
+            var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe, references: new[] { ref1, ref2 });
+            // Before the bug was fixed, the PrivateImplementationDetails classes clashed, resulting in the commented-out error below.
+            comp3.VerifyDiagnostics(
+                ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
+                ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
+                );
+            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+        }
+
+        [Fact]
+        public void MultipleNetmodulesWithAnonymousTypes()
+        {
+            var s1 = @"
+public class A
+{
+    internal object o1 = new { hello = 1, world = 2 };
+    public static string M1()
+    {
+        return ""Hello, "";
+    }
+}";
+            var s2 = @"
+public class B : A
+{
+    internal object o2 = new { hello = 1, world = 2 };
+    public static string M2()
+    {
+        return ""world!"";
+    }
+}";
+            var s3 = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.Write(A.M1());
+        System.Console.WriteLine(B.M2());
+    }
+}";
+            var comp1 = CreateCompilationWithMscorlib(s1, options: TestOptions.ReleaseModule.WithModuleName("A"));
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+
+            var comp2 = CreateCompilationWithMscorlib(s2, options: TestOptions.ReleaseModule.WithModuleName("B"), references: new[] { ref1 });
+            comp2.VerifyDiagnostics();
+            var ref2 = comp2.EmitToImageReference();
+
+            var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
+            comp3.VerifyDiagnostics();
+            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+        }
+
+        /// <summary>
+        /// Ordering of anonymous type definitions
+        /// in metadata should be deterministic.
+        /// </summary>
+        [Fact]
+        public void AnonymousTypeMetadataOrder()
+        {
+            var source =
+@"class C1
+{
+    object F = new { A = 1, B = 2 };
+}
+class C2
+{
+    object F = new { a = 3, b = 4 };
+}
+class C3
+{
+    object F = new { AB = 3 };
+}
+class C4
+{
+    object F = new { a = 1, B = 2 };
+}
+class C5
+{
+    object F = new { a = 1, B = 2 };
+}
+class C6
+{
+    object F = new { Ab = 5 };
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseDll);
+            var bytes = compilation.EmitToArray();
+            using (var metadata = ModuleMetadata.CreateFromImage(bytes))
+            {
+                var reader = metadata.MetadataReader;
+                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var expectedNames = new[]
+                    {
+                        "<Module>",
+                        "<>f__AnonymousType0`2",
+                        "<>f__AnonymousType1`2",
+                        "<>f__AnonymousType2`1",
+                        "<>f__AnonymousType3`2",
+                        "<>f__AnonymousType4`1",
+                        "C1",
+                        "C2",
+                        "C3",
+                        "C4",
+                        "C5",
+                        "C6",
+                    };
+                AssertEx.Equal(expectedNames, actualNames);
+            }
+        }
+
+        /// <summary>
+        /// Ordering of synthesized delegates in
+        /// metadata should be deterministic.
+        /// </summary>
+        [WorkItem(1440, "https://github.com/dotnet/roslyn/issues/1440")]
+        [Fact]
+        public void SynthesizedDelegateMetadataOrder()
+        {
+            var source =
+@"class C1
+{
+    static void M(dynamic d, object x, int y)
+    {
+        d(1, ref x, out y);
+    }
+}
+class C2
+{
+    static object M(dynamic d, object o)
+    {
+        return d(o, ref o);
+    }
+}
+class C3
+{
+    static void M(dynamic d, object o)
+    {
+        d(ref o);
+    }
+}
+class C4
+{
+    static int M(dynamic d, object o)
+    {
+        return d(ref o, 2);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
+            var bytes = compilation.EmitToArray();
+            using (var metadata = ModuleMetadata.CreateFromImage(bytes))
+            {
+                var reader = metadata.MetadataReader;
+                var actualNames = reader.GetTypeDefNames().Select(h => reader.GetString(h));
+                var expectedNames = new[]
+                    {
+                        "<Module>",
+                        "<>A{00000004}`3",
+                        "<>A{00000018}`5",
+                        "<>F{00000004}`5",
+                        "<>F{00000008}`5",
+                        "C1",
+                        "C2",
+                        "C3",
+                        "C4",
+                        "<>o__0",
+                        "<>o__0",
+                        "<>o__0",
+                        "<>o__0",
+                    };
+                AssertEx.Equal(expectedNames, actualNames);
+            }
         }
     }
 }

@@ -12,10 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
     Friend Class SmartTokenFormatter
         Implements ISmartTokenFormatter
 
-        Private ReadOnly optionSet As OptionSet
-        Private ReadOnly formattingRules As IEnumerable(Of IFormattingRule)
+        Private ReadOnly _optionSet As OptionSet
+        Private ReadOnly _formattingRules As IEnumerable(Of IFormattingRule)
 
-        Private ReadOnly root As CompilationUnitSyntax
+        Private ReadOnly _root As CompilationUnitSyntax
 
         Public Sub New(optionSet As OptionSet,
                        formattingRules As IEnumerable(Of IFormattingRule),
@@ -24,10 +24,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Contract.ThrowIfNull(formattingRules)
             Contract.ThrowIfNull(root)
 
-            Me.optionSet = optionSet
-            Me.formattingRules = formattingRules
+            Me._optionSet = optionSet
+            Me._formattingRules = formattingRules
 
-            Me.root = root
+            Me._root = root
         End Sub
 
         Public Function FormatToken(workspace As Workspace, token As SyntaxToken, cancellationToken As CancellationToken) As IList(Of TextChange) Implements ISmartTokenFormatter.FormatToken
@@ -36,7 +36,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             ' get previous token
             Dim previousToken = token.GetPreviousToken()
 
-            Return Formatter.GetFormattedTextChanges(Me.root, TextSpan.FromBounds(previousToken.SpanStart, token.Span.End), workspace, Me.optionSet, Me.formattingRules, cancellationToken)
+            Dim spans = SpecializedCollections.SingletonEnumerable(TextSpan.FromBounds(previousToken.SpanStart, token.Span.End))
+            Return Formatter.GetFormattedTextChanges(_root, spans, workspace, _optionSet, _formattingRules, cancellationToken)
         End Function
     End Class
 End Namespace

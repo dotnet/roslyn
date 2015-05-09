@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Friend Structure SyntaxListBuilder(Of TNode As SyntaxNode)
-        Private builder As SyntaxListBuilder
+        Private ReadOnly _builder As SyntaxListBuilder
 
         Public Shared Function Create() As SyntaxListBuilder(Of TNode)
             Return New SyntaxListBuilder(Of TNode)(8)
@@ -24,55 +24,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Friend Sub New(builder As SyntaxListBuilder)
-            Me.builder = builder
+            Me._builder = builder
         End Sub
 
         Public ReadOnly Property IsNull As Boolean
             Get
-                Return (Me.builder Is Nothing)
+                Return (Me._builder Is Nothing)
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return Me.builder.Count
+                Return Me._builder.Count
             End Get
         End Property
 
         Public Sub Clear()
-            Me.builder.Clear()
+            Me._builder.Clear()
         End Sub
 
         Public Function Add(node As TNode) As SyntaxListBuilder(Of TNode)
-            Me.builder.Add(node)
+            Me._builder.Add(node)
             Return Me
         End Function
 
         Public Function AddRange(items As TNode(), offset As Integer, length As Integer) As SyntaxListBuilder(Of TNode)
-            Me.builder.AddRange(DirectCast(items, SyntaxNode()), offset, length)
+            Me._builder.AddRange(DirectCast(items, SyntaxNode()), offset, length)
             Return Me
         End Function
 
         Public Function AddRange(nodes As SyntaxList(Of TNode)) As SyntaxListBuilder(Of TNode)
-            Me.builder.AddRange(Of TNode)(nodes)
+            Me._builder.AddRange(Of TNode)(nodes)
             Return Me
         End Function
 
         Public Function AddRange(nodes As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder(Of TNode)
-            Me.builder.AddRange(Of TNode)(nodes, offset, length)
+            Me._builder.AddRange(Of TNode)(nodes, offset, length)
             Return Me
         End Function
 
         Public Function Any(kind As SyntaxKind) As Boolean
-            Return Me.builder.Any(kind)
+            Return Me._builder.Any(kind)
         End Function
 
         Public Function ToList() As SyntaxList(Of TNode)
-            Return Me.builder.ToList(Of TNode)()
+            Return Me._builder.ToList(Of TNode)()
         End Function
 
         Public Shared Widening Operator CType(builder As SyntaxListBuilder(Of TNode)) As SyntaxList(Of TNode)
-            If (Not builder.builder Is Nothing) Then
+            If (Not builder._builder Is Nothing) Then
                 Return builder.ToList
             End If
             Return New SyntaxList(Of TNode)

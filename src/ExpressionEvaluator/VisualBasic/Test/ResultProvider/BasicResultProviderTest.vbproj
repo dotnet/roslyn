@@ -18,12 +18,13 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
@@ -54,12 +55,6 @@
       <Name>ResultProviderTestUtilities</Name>
     </ProjectReference>
     <!-- This reference is only needed to ensure correct build ordering (we link in all the necessary files as source). -->
-    <ProjectReference Include="..\..\Source\ResultProvider\BasicResultProvider.vbproj">
-      <Project>{76242a2d-2600-49dd-8c15-fea07ecb1842}</Project>
-      <Name>BasicResultProvider</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -83,27 +78,6 @@
     <Compile Include="..\..\..\..\Compilers\VisualBasic\Portable\SymbolDisplay\ObjectDisplay.vb">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.vb</Link>
     </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Helpers\TypeExtensions.vb">
-      <Link>ResultProvider\Helpers\TypeExtensions.vb</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\Resources.Designer.vb">
-      <Link>Resources.Designer.vb</Link>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\VisualBasicFormatter.TypeNames.vb">
-      <Link>ResultProvider\VisualBasicFormatter.TypeNames.vb</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\VisualBasicFormatter.Values.vb">
-      <Link>ResultProvider\VisualBasicFormatter.Values.vb</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\VisualBasicFormatter.vb">
-      <Link>ResultProvider\VisualBasicFormatter.vb</Link>
-    </Compile>
-    <Compile Include="..\..\Source\ResultProvider\VisualBasicResultProvider.vb">
-      <Link>ResultProvider\VisualBasicResultProvider.vb</Link>
-    </Compile>
     <Compile Include="ArrayExpansionTests.vb" />
     <Compile Include="DebuggerTypeProxyAttributeTests.vb" />
     <Compile Include="ExpansionTests.vb" />
@@ -118,16 +92,9 @@
     <Compile Include="VisualBasicResultProviderTestBase.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\Source\ResultProvider\Resources.resx">
-      <Link>Resources.resx</Link>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator</CustomToolNamespace>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <Import Project="..\..\Source\ResultProvider\BasicResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />

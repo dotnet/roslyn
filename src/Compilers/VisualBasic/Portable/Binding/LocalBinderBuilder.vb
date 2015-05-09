@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _nodeMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
         Private _listMap As ImmutableDictionary(Of SyntaxList(Of StatementSyntax), BlockBaseBinder)
-        Private _enclosingMethod As MethodSymbol
-        Private containingBinder As Binder
+        Private ReadOnly _enclosingMethod As MethodSymbol
+        Private _containingBinder As Binder
 
         Public Sub New(enclosingMethod As MethodSymbol)
             _enclosingMethod = enclosingMethod
@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub MakeBinder(node As VisualBasicSyntaxNode, containingBinder As Binder)
-            Dim oldContainingBinder As Binder = Me.containingBinder
-            Me.containingBinder = containingBinder
+            Dim oldContainingBinder As Binder = Me._containingBinder
+            Me._containingBinder = containingBinder
             MyBase.Visit(node)
-            Me.containingBinder = oldContainingBinder
+            Me._containingBinder = oldContainingBinder
         End Sub
 
         Public ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub VisitCompilationUnit(node As CompilationUnitSyntax)
             For Each member In node.Members
                 ' Visit methods for non-executable statements are no-ops:
-                MakeBinder(member, containingBinder)
+                MakeBinder(member, _containingBinder)
             Next
         End Sub
 
@@ -134,11 +134,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(methodBlock.BlockStatement.Kind)
             End Select
 
-            containingBinder = New ExitableStatementBinder(containingBinder,
+            _containingBinder = New ExitableStatementBinder(_containingBinder,
                                                            continueKind:=SyntaxKind.None, exitKind:=exitKind)
-            RememberBinder(methodBlock, containingBinder)
+            RememberBinder(methodBlock, _containingBinder)
 
-            CreateBinderFromStatementList(methodBlock.Statements, containingBinder)
+            CreateBinderFromStatementList(methodBlock.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitSingleLineLambdaExpression(node As SingleLineLambdaExpressionSyntax)
@@ -154,18 +154,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
 
-                containingBinder = New ExitableStatementBinder(containingBinder,
+                _containingBinder = New ExitableStatementBinder(_containingBinder,
                                                                continueKind:=SyntaxKind.None, exitKind:=exitKind)
-                RememberBinder(node, containingBinder)
+                RememberBinder(node, _containingBinder)
 
                 If node.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
                     ' Even though single line sub lambdas only have a single statement.  Create a binder for
                     ' a statement list so that locals can be bound. Note, while locals are not allowed at the top
                     ' level it is useful in the semantic model to bind them.
-                    CreateBinderFromStatementList(node.Statements, containingBinder)
+                    CreateBinderFromStatementList(node.Statements, _containingBinder)
                 End If
 
-                MakeBinder(node.Body, containingBinder)
+                MakeBinder(node.Body, _containingBinder)
 
                 Return
             Else
@@ -186,11 +186,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
 
-                containingBinder = New ExitableStatementBinder(containingBinder,
+                _containingBinder = New ExitableStatementBinder(_containingBinder,
                                                                continueKind:=SyntaxKind.None, exitKind:=exitKind)
-                RememberBinder(node, containingBinder)
+                RememberBinder(node, _containingBinder)
 
-                CreateBinderFromStatementList(node.Statements, containingBinder)
+                CreateBinderFromStatementList(node.Statements, _containingBinder)
 
                 Return
             Else
@@ -199,124 +199,124 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitWhileBlock(node As WhileBlockSyntax)
-            containingBinder = New ExitableStatementBinder(containingBinder,
+            _containingBinder = New ExitableStatementBinder(_containingBinder,
                                                            continueKind:=SyntaxKind.ContinueWhileStatement, exitKind:=SyntaxKind.ExitWhileStatement)
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitUsingBlock(node As UsingBlockSyntax)
-            containingBinder = New UsingBlockBinder(containingBinder, node)
+            _containingBinder = New UsingBlockBinder(_containingBinder, node)
 
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitSyncLockBlock(node As SyncLockBlockSyntax)
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitWithBlock(node As WithBlockSyntax)
-            containingBinder = New WithBlockBinder(containingBinder, node)
+            _containingBinder = New WithBlockBinder(_containingBinder, node)
 
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitSingleLineIfStatement(node As SingleLineIfStatementSyntax)
-            CreateBinderFromStatementList(node.Statements, containingBinder)
-            MakeBinder(node.ElseClause, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
+            MakeBinder(node.ElseClause, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitSingleLineElseClause(node As SingleLineElseClauseSyntax)
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitMultiLineIfBlock(node As MultiLineIfBlockSyntax)
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
 
             For Each elseifBlock In node.ElseIfBlocks
-                MakeBinder(elseifBlock, containingBinder)
+                MakeBinder(elseifBlock, _containingBinder)
             Next
 
-            MakeBinder(node.ElseBlock, containingBinder)
+            MakeBinder(node.ElseBlock, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitElseBlock(node As ElseBlockSyntax)
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitElseIfBlock(node As ElseIfBlockSyntax)
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitTryBlock(node As TryBlockSyntax)
-            containingBinder = New ExitableStatementBinder(containingBinder,
+            _containingBinder = New ExitableStatementBinder(_containingBinder,
                                                            continueKind:=SyntaxKind.None, exitKind:=SyntaxKind.ExitTryStatement)
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
             For Each catchBlock In node.CatchBlocks
-                MakeBinder(catchBlock, containingBinder)
+                MakeBinder(catchBlock, _containingBinder)
             Next
-            MakeBinder(node.FinallyBlock, containingBinder)
+            MakeBinder(node.FinallyBlock, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitCatchBlock(node As CatchBlockSyntax)
-            containingBinder = New CatchBlockBinder(containingBinder, node)
+            _containingBinder = New CatchBlockBinder(_containingBinder, node)
 
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitFinallyBlock(node As FinallyBlockSyntax)
-            containingBinder = New FinallyBlockBinder(containingBinder)
+            _containingBinder = New FinallyBlockBinder(_containingBinder)
 
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitSelectBlock(node As SelectBlockSyntax)
-            containingBinder = New ExitableStatementBinder(containingBinder,
+            _containingBinder = New ExitableStatementBinder(_containingBinder,
                                                            continueKind:=SyntaxKind.None, exitKind:=SyntaxKind.ExitSelectStatement)
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
             For Each caseBlock In node.CaseBlocks
-                MakeBinder(caseBlock, containingBinder)
+                MakeBinder(caseBlock, _containingBinder)
             Next
         End Sub
 
         Public Overrides Sub VisitCaseBlock(node As CaseBlockSyntax)
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitDoLoopBlock(node As DoLoopBlockSyntax)
-            containingBinder = New ExitableStatementBinder(containingBinder,
+            _containingBinder = New ExitableStatementBinder(_containingBinder,
                                                            continueKind:=SyntaxKind.ContinueDoStatement, exitKind:=SyntaxKind.ExitDoStatement)
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitForBlock(node As ForBlockSyntax)
-            containingBinder = New ForOrForEachBlockBinder(containingBinder, node)
+            _containingBinder = New ForOrForEachBlockBinder(_containingBinder, node)
 
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
         Public Overrides Sub VisitForEachBlock(node As ForEachBlockSyntax)
-            containingBinder = New ForOrForEachBlockBinder(containingBinder, node)
+            _containingBinder = New ForOrForEachBlockBinder(_containingBinder, node)
 
-            RememberBinder(node, containingBinder)
+            RememberBinder(node, _containingBinder)
 
-            CreateBinderFromStatementList(node.Statements, containingBinder)
+            CreateBinderFromStatementList(node.Statements, _containingBinder)
         End Sub
 
     End Class

@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,19 +11,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal sealed class InteractiveWindowWriter : TextWriter
     {
-        private readonly IInteractiveWindow window;
-        private readonly SortedSpans spans;
+        private readonly IInteractiveWindow _window;
+        private readonly SortedSpans _spans;
 
         internal InteractiveWindowWriter(IInteractiveWindow window, SortedSpans spans)
         {
             Debug.Assert(window != null);
-            this.window = window;
-            this.spans = spans;
+            _window = window;
+            _spans = spans;
         }
 
         public IInteractiveWindow Window
         {
-            get { return window; }
+            get { return _window; }
         }
 
         public override object InitializeLifetimeService()
@@ -46,10 +48,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return;
             }
 
-            int offset = window.Write(value);
-            if (spans != null)
+            int offset = _window.Write(value).Start;
+            if (_spans != null)
             {
-                spans.Add(new Span(offset, value.Length));
+                _spans.Add(new Span(offset, value.Length));
             }
         }
 
@@ -60,19 +62,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public override void WriteLine()
         {
-            Span span = window.WriteLine(text: null);
-            if (spans != null)
+            Span span = _window.WriteLine(text: null);
+            if (_spans != null)
             {
-                spans.Add(span);
+                _spans.Add(span);
             }
         }
 
         public override void WriteLine(string str)
         {
-            Span span = window.WriteLine(str);
-            if (spans != null)
+            Span span = _window.WriteLine(str);
+            if (_spans != null)
             {
-                spans.Add(span);
+                _spans.Add(span);
             }
         }
     }

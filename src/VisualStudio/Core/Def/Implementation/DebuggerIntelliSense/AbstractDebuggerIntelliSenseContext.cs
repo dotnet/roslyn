@@ -172,15 +172,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _projectionBuffer = this.ProjectionBufferFactoryService.CreateProjectionBuffer(null,
                 new object[] { previousStatementSpan, debuggerMappedSpan, this.StatementTerminator, restOfFileSpan }, ProjectionBufferOptions.None, _contentType);
 
-            // fork the solution using this new primary buffer
+            // Fork the solution using this new primary buffer for the document and all of its linked documents.
             var forkedSolution = solution.WithDocumentText(document.Id, _projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
+            foreach (var link in document.GetLinkedDocumentIds())
+            {
+                forkedSolution = forkedSolution.WithDocumentText(link, _projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
+            }
 
-            // put it into a new workspace 
+            // Put it into a new workspace, and open it and its related documents
+            // with the projection buffer as the text.
             _workspace = new DebuggerIntelliSenseWorkspace(forkedSolution);
             _workspace.OpenDocument(document.Id, _projectionBuffer.AsTextContainer());
+            foreach (var link in document.GetLinkedDocumentIds())
+            {
+                _workspace.OpenDocument(link, _projectionBuffer.AsTextContainer());
+            }
 
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
-            _workspace.CurrentSolution.GetCompilationAsync(document.Project.Id, System.Threading.CancellationToken.None);
+            _workspace.CurrentSolution.GetCompilationAsync(document.Project, System.Threading.CancellationToken.None);
 
             _textView.TextBuffer.ChangeContentType(_contentType, null);
 

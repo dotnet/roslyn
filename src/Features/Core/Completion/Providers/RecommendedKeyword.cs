@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal sealed class RecommendedKeyword
     {
-        public Glyph Glyph { get; private set; }
-        public string Keyword { get; private set; }
-        public Func<CancellationToken, ImmutableArray<SymbolDisplayPart>> DescriptionFactory { get; private set; }
-        public bool IsIntrinsic { get; private set; }
-        public bool ShouldFormatOnCommit { get; private set; }
+        public Glyph Glyph { get; }
+        public string Keyword { get; }
+        public Func<CancellationToken, ImmutableArray<SymbolDisplayPart>> DescriptionFactory { get; }
+        public bool IsIntrinsic { get; }
+        public bool ShouldFormatOnCommit { get; }
 
         public RecommendedKeyword(string keyword, string toolTip = "", Glyph glyph = Glyph.Keyword, bool isIntrinsic = false, bool shouldFormatOnCommit = false)
             : this(keyword, glyph, _ => CreateDisplayParts(keyword, toolTip), isIntrinsic, shouldFormatOnCommit)

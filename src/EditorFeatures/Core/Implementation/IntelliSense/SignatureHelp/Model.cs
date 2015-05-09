@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
 
-        public TextSpan TextSpan { get; private set; }
-        public IList<SignatureHelpItem> Items { get; private set; }
-        public SignatureHelpItem SelectedItem { get; private set; }
-        public int ArgumentIndex { get; private set; }
-        public int ArgumentCount { get; private set; }
-        public string ArgumentName { get; private set; }
-        public int? SelectedParameter { get; private set; }
-        public ISignatureHelpProvider Provider { get; private set; }
+        public TextSpan TextSpan { get; }
+        public IList<SignatureHelpItem> Items { get; }
+        public SignatureHelpItem SelectedItem { get; }
+        public int ArgumentIndex { get; }
+        public int ArgumentCount { get; }
+        public string ArgumentName { get; }
+        public int? SelectedParameter { get; }
+        public ISignatureHelpProvider Provider { get; }
 
         public Model(
             DisconnectedBufferGraph disconnectedBufferGraph,
@@ -62,14 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return selectedParameter == this.SelectedParameter
                 ? this
                 : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, SelectedItem, ArgumentIndex, ArgumentCount, ArgumentName, selectedParameter);
-        }
-
-        public SnapshotPoint GetCaretPositionInSubjectBuffer(SnapshotPoint viewCaretPosition, ITextSnapshot bufferSnapshot)
-        {
-            var currentModelSpanInView = GetCurrentSpanInView(viewCaretPosition.Snapshot);
-            SnapshotSpan currentModelSpanInSubjectBuffer = GetCurrentSpanInSubjectBuffer(bufferSnapshot);
-
-            return currentModelSpanInSubjectBuffer.Start + (viewCaretPosition - currentModelSpanInView.Start);
         }
 
         public SnapshotSpan GetCurrentSpanInSubjectBuffer(ITextSnapshot bufferSnapshot)

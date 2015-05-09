@@ -3,6 +3,7 @@
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
+Imports TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 

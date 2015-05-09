@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (index < 0 || index > list.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             if (items == null)

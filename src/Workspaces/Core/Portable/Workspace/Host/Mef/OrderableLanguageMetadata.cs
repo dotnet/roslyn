@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     internal class OrderableLanguageMetadata : OrderableMetadata, ILanguageMetadata
     {
-        public string Language { get; private set; }
+        public string Language { get; }
 
         public OrderableLanguageMetadata(IDictionary<string, object> data)
             : base(data)

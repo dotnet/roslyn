@@ -18,15 +18,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export]
     internal class AnalyzerReferenceManager : IVsReferenceManagerUser
     {
+        private readonly IServiceProvider _serviceProvider;
         private IVsReferenceManager _referenceManager;
 
         [Import]
         private AnalyzerItemsTracker _tracker = null;
 
         [ImportingConstructor]
-        internal AnalyzerReferenceManager(SVsServiceProvider serviceProvider)
+        internal AnalyzerReferenceManager(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            _referenceManager = serviceProvider.GetService(typeof(SVsReferenceManager)) as IVsReferenceManager;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -34,10 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         public void ShowDialog()
         {
-            if (_referenceManager != null &&
+            IVsReferenceManager referenceManager = GetReferenceManager();
+            if (referenceManager != null &&
                 _tracker.SelectedHierarchy != null)
             {
-                _referenceManager.ShowReferenceManager(this,
+                referenceManager.ShowReferenceManager(this,
                                                       SolutionExplorerShim.AddAnalyzer,
                                                       null,
                                                       VSConstants.FileReferenceProvider_Guid,
@@ -89,9 +92,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public Array GetProviderContexts()
         {
             // Return just the File provider context so that just the browse tab shows up.
-            var context = _referenceManager.CreateProviderContext(VSConstants.FileReferenceProvider_Guid) as IVsFileReferenceProviderContext;
+            var context = GetReferenceManager().CreateProviderContext(VSConstants.FileReferenceProvider_Guid) as IVsFileReferenceProviderContext;
             context.BrowseFilter = string.Format("{0} (*.dll)\0*.dll\0", SolutionExplorerShim.AnalyzerFiles);
             return new[] { context };
+        }
+
+        private IVsReferenceManager GetReferenceManager()
+        {
+            if (_referenceManager == null)
+            {
+                _referenceManager = _serviceProvider.GetService(typeof(SVsReferenceManager)) as IVsReferenceManager;
+            }
+
+            return _referenceManager;
         }
     }
 }

@@ -4,16 +4,17 @@ Imports System.Globalization
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class GlobalImport
+    Public Partial Class GlobalImport
 
         ' A special Diagnostic info that wraps a particular diagnostic but customized the message with 
         ' the text of the import.
         Private Class ImportDiagnosticInfo
             Inherits DiagnosticInfo
 
-            Private _importText As String
-            Private _startIndex, _length As Integer
-            Private _wrappedDiagnostic As DiagnosticInfo
+            Private ReadOnly _importText As String
+            Private ReadOnly _startIndex As Integer
+            Private ReadOnly _length As Integer
+            Private ReadOnly _wrappedDiagnostic As DiagnosticInfo
 
             Private Sub New(reader As ObjectReader)
                 MyBase.New(reader)

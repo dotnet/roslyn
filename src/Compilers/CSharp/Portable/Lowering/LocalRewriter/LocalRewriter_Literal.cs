@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constantValue.IsDecimal);
 
             var value = constantValue.DecimalValue;
-            var parts = new ConstantValueUtils.DecimalValue(value);
-            var scale = parts.Scale;
+            bool isNegative;
+            byte scale;
+            uint low, mid, high;
+            value.GetBits(out isNegative, out scale, out low, out mid, out high);
 
             var arguments = new ArrayBuilder<BoundExpression>();
             SpecialMember member;
@@ -119,11 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 //new decimal(int low, int mid, int high, bool isNegative, byte scale);
                 member = SpecialMember.System_Decimal__CtorInt32Int32Int32BooleanByte;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.Low), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.Mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.High), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.IsNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.Scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(low), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(high), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(isNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
             }
 
             var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);

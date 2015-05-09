@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// The assembly qualified name of the service's type.
         /// </summary>
-        public string ServiceType { get; private set; }
+        public string ServiceType { get; }
 
         /// <summary>
         /// The layer that the service is specified for; ServiceLayer.Default, etc.
         /// </summary>
-        public string Layer { get; private set; }
+        public string Layer { get; }
 
         /// <summary>
         /// Declares a <see cref="IWorkspaceServiceFactory"/> implementation for inclusion in a MEF-based workspace.
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (serviceType == null)
             {
-                throw new ArgumentNullException("serviceType");
+                throw new ArgumentNullException(nameof(serviceType));
             }
 
             if (layer == null)
             {
-                throw new ArgumentNullException("layer");
+                throw new ArgumentNullException(nameof(layer));
             }
 
             this.ServiceType = serviceType.AssemblyQualifiedName;

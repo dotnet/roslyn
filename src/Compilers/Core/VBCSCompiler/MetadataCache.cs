@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal class CachingMetadataReference : PortableExecutableReference
     {
-        private static MetadataAndSymbolCache s_mdCache = new MetadataAndSymbolCache();
+        private static readonly MetadataAndSymbolCache s_mdCache = new MetadataAndSymbolCache();
 
         internal CachingMetadataReference(string fullPath, MetadataReferenceProperties properties)
             : base(properties, fullPath)

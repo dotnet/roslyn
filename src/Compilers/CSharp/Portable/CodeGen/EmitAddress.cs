@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -44,7 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ConditionalReceiver:
                     // do nothing receiver ref must be already pushed
                     Debug.Assert(!expression.Type.IsReferenceType);
-                    Debug.Assert(!expression.Type.IsValueType);
+                    Debug.Assert(!expression.Type.IsValueType || expression.Type.IsNullableType());
+                    break;
+
+                case BoundKind.ComplexConditionalReceiver:
+                    EmitComplexConditionalReceiverAddress((BoundComplexConditionalReceiver)expression);
                     break;
 
                 case BoundKind.Parameter:
@@ -93,6 +98,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return null;
+        }
+
+        private void EmitComplexConditionalReceiverAddress(BoundComplexConditionalReceiver expression)
+        {
+            Debug.Assert(!expression.Type.IsReferenceType);
+            Debug.Assert(!expression.Type.IsValueType);
+
+            var receiverType = expression.Type;
+
+            var whenValueTypeLabel = new Object();
+            var doneLabel = new Object();
+
+            EmitInitObj(receiverType, true, expression.Syntax);
+            EmitBox(receiverType, expression.Syntax);
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
+
+            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, addressKind: AddressKind.ReadOnly);
+            Debug.Assert(receiverTemp == null);
+            _builder.EmitBranch(ILOpCode.Br, doneLabel);
+            _builder.AdjustStack(-1);
+
+            _builder.MarkLabel(whenValueTypeLabel);
+            EmitReceiverRef(expression.ValueTypeReceiver, isAccessConstrained: true);
+
+            _builder.MarkLabel(doneLabel);
         }
 
         private void EmitLocalAddress(BoundLocal localAccess)
@@ -259,6 +289,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Sequence:
                     return HasHome(((BoundSequence)expression).Value);
+
+                case BoundKind.ComplexConditionalReceiver:
+                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ValueTypeReceiver));
+                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver));
+                    goto case BoundKind.ConditionalReceiver;
+
+                case BoundKind.ConditionalReceiver:
+                    return true;
 
                 default:
                     return false;

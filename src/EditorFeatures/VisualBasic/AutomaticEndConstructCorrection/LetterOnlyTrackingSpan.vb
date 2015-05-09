@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Private _trackingSpan As ITrackingSpan
         Private _version As ITextVersion
 
-        Sub New(span As SnapshotSpan)
+        Public Sub New(span As SnapshotSpan)
             Contract.ThrowIfNull(span.Snapshot)
 
             Me._trackingSpan = span.Snapshot.CreateTrackingSpan(span.Span, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Else
                 ' something like punctuation is there
                 ' make tracking span to stick after the punctuation
-                Dim position = span.Start.Position + text.IndexOf(trimedText) + trimedText.Length
+                Dim position = span.Start.Position + text.IndexOf(trimedText, StringComparison.Ordinal) + trimedText.Length
                 Me._trackingSpan = snapshot.CreateTrackingSpan(position, 0, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
             End If
         End Sub

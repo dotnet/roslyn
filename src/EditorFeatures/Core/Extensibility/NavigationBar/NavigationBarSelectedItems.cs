@@ -4,10 +4,10 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class NavigationBarSelectedTypeAndMember
     {
-        public NavigationBarItem TypeItem { get; private set; }
-        public bool ShowTypeItemGrayed { get; private set; }
-        public NavigationBarItem MemberItem { get; private set; }
-        public bool ShowMemberItemGrayed { get; private set; }
+        public NavigationBarItem TypeItem { get; }
+        public bool ShowTypeItemGrayed { get; }
+        public NavigationBarItem MemberItem { get; }
+        public bool ShowMemberItemGrayed { get; }
 
         public NavigationBarSelectedTypeAndMember(NavigationBarItem typeItem, NavigationBarItem memberItem)
         {

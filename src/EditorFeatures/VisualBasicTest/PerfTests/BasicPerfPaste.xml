@@ -32,8 +32,8 @@
       <ExecuteCommand Command="Edit.Paste" />
       <MeasureTimeStop />
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />-->
     </Scenario>
   </ScenarioList>
   

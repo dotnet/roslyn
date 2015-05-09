@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Win32;
 using Roslyn.Utilities;
@@ -18,11 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         PerformanceFunctionIdOptionsProvider.Name,
         LoggerOptions.FeatureName,
         CacheOptions.FeatureName,
-        InternalDiagnosticsOptions.OptionName), Shared]
+        InternalDiagnosticsOptions.OptionName,
+        InternalSolutionCrawlerOptions.OptionName), Shared]
     internal class InternalOptionSerializer : AbstractSettingStoreOptionSerializer
     {
-        private const string CachePath = @"Roslyn\Internal\Performance\Cache";
-
         [ImportingConstructor]
         public InternalOptionSerializer(SVsServiceProvider serviceProvider)
             : base(serviceProvider)
@@ -51,28 +51,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return Tuple.Create(@"Roslyn\Internal\Diagnostics", key.Name);
             }
+            else if (key.Feature == InternalSolutionCrawlerOptions.OptionName)
+            {
+                return Tuple.Create(@"Roslyn\Internal\SolutionCrawler", key.Name);
+            }
+            else if (key.Feature == CacheOptions.FeatureName)
+            {
+                return Tuple.Create(@"Roslyn\Internal\Performance\Cache", key.Name);
+            }
 
             throw ExceptionUtilities.Unreachable;
         }
 
         public override bool TryFetch(OptionKey optionKey, out object value)
         {
-            if (optionKey.Option.Feature == CacheOptions.FeatureName)
+            switch (optionKey.Option.Feature)
             {
-                lock (Gate)
-                {
-                    using (var openSubKey = this.RegistryKey.OpenSubKey(CachePath))
-                    {
-                        if (openSubKey == null)
-                        {
-                            value = null;
-                            return false;
-                        }
-
-                        value = openSubKey.GetValue(optionKey.Option.Name, defaultValue: optionKey.Option.DefaultValue);
-                        return true;
-                    }
-                }
+                case CacheOptions.FeatureName:
+                case InternalSolutionCrawlerOptions.OptionName:
+                    return TryFetch(optionKey, (r, k, o) => r.GetValue(k, defaultValue: o.DefaultValue), out value);
             }
 
             return base.TryFetch(optionKey, out value);
@@ -80,16 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public override bool TryPersist(OptionKey optionKey, object value)
         {
-            if (optionKey.Option.Feature == CacheOptions.FeatureName)
+            switch (optionKey.Option.Feature)
             {
-                lock (Gate)
-                {
-                    using (var subKey = this.RegistryKey.CreateSubKey(CachePath))
-                    {
-                        subKey.SetValue(optionKey.Option.Name, value, optionKey.Option.Type == typeof(int) ? RegistryValueKind.DWord : RegistryValueKind.QWord);
-                        return true;
-                    }
-                }
+                case CacheOptions.FeatureName:
+                case InternalSolutionCrawlerOptions.OptionName:
+                    return TryPersist(optionKey, value, (r, k, o, v) => r.SetValue(k, v, o.Type == typeof(int) ? RegistryValueKind.DWord : RegistryValueKind.QWord));
             }
 
             return base.TryPersist(optionKey, value);

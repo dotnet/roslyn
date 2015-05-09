@@ -435,8 +435,8 @@ namespace Microsoft.Cci
         /// </remarks>
         IImportScope ImportScope { get; }
 
-        int MethodOrdinal { get; }
-       
+        DebugId MethodId { get; }
+
         /// <summary>
         /// Returns debug information for local variables hoisted to state machine fields, 
         /// or null if this method isn't MoveNext method of a state machine.

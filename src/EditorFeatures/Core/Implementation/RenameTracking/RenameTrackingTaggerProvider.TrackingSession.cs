@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -36,14 +38,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly CancellationToken _cancellationToken;
             private readonly IAsynchronousOperationListener _asyncListener;
 
-            private Task<bool> _newIdentifierBindsTask = Task.FromResult(false);
+            private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
 
             private readonly string _originalName;
             public string OriginalName { get { return _originalName; } }
 
             private readonly ITrackingSpan _trackingSpan;
-
             public ITrackingSpan TrackingSpan { get { return _trackingSpan; } }
+
+            private bool _forceRenameOverloads;
+            public bool ForceRenameOverloads { get { return _forceRenameOverloads; } }
 
             public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
             {
@@ -67,6 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         _cancellationToken,
                         TaskScheduler.Default);
 
+                    var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask");
+
+                    _isRenamableIdentifierTask.SafeContinueWith(
+                        t => stateMachine.UpdateTrackingSessionIfRenamable(),
+                        _cancellationToken,
+                       TaskContinuationOptions.OnlyOnRanToCompletion,
+                       ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+
                     QueueUpdateToStateMachine(stateMachine, _isRenamableIdentifierTask);
                 }
                 else
@@ -82,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private void QueueUpdateToStateMachine(StateMachine stateMachine, Task task)
             {
-                var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".Start");
+                var asyncToken = _asyncListener.BeginAsyncOperation($"{GetType().Name}.{nameof(QueueUpdateToStateMachine)}");
 
                 task.SafeContinueWith(t =>
                    {
@@ -152,24 +164,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
                         var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-                        var symbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, _cancellationToken);
-                        symbol = symbol ?? semanticModel.GetSymbolInfo(token, _cancellationToken).Symbol;
-
-                        if (symbol != null)
+                        var renameSymbolInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, _cancellationToken);
+                        if (!renameSymbolInfo.HasSymbols)
                         {
-                            // Get the source symbol if possible
-                            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
+                            return TriggerIdentifierKind.NotRenamable;
+                        }
 
-                            return symbol.Locations.All(loc => loc.IsInSource)
-                                ? symbol.Locations.Any(loc => loc == token.GetLocation())
-                                    ? TriggerIdentifierKind.RenamableDeclaration
-                                    : TriggerIdentifierKind.RenamableReference
-                                : TriggerIdentifierKind.NotRenamable;
+                        if (renameSymbolInfo.IsMemberGroup)
+                        {
+                            // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
+                            _forceRenameOverloads = true;
+
+                            return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document, token).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            return await DetermineIfRenamableSymbolAsync(renameSymbolInfo.Symbols.Single(), document, token).ConfigureAwait(false);
                         }
                     }
                 }
 
                 return TriggerIdentifierKind.NotRenamable;
+            }
+
+            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document, SyntaxToken token)
+            {
+                foreach (var symbol in symbols)
+                {
+                    // Get the source symbol if possible
+                    var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
+
+                    if (!sourceSymbol.Locations.All(loc => loc.IsInSource))
+                    {
+                        return TriggerIdentifierKind.NotRenamable;
+                    }
+                }
+
+                return TriggerIdentifierKind.RenamableReference;
+            }
+
+            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolAsync(ISymbol symbol, Document document, SyntaxToken token)
+            {
+                // Get the source symbol if possible
+                var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
+
+                if (!sourceSymbol.Locations.All(loc => loc.IsInSource))
+                {
+                    return TriggerIdentifierKind.NotRenamable;
+                }
+
+                return sourceSymbol.Locations.Any(loc => loc == token.GetLocation())
+                        ? TriggerIdentifierKind.RenamableDeclaration
+                        : TriggerIdentifierKind.RenamableReference;
             }
 
             internal bool CanInvokeRename(ISyntaxFactsService syntaxFactsService, bool isSmartTagCheck, bool waitForResult, CancellationToken cancellationToken)

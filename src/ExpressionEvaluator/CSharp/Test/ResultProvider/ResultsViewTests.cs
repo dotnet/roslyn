@@ -5,9 +5,11 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
+using BindingFlags = System.Reflection.BindingFlags;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1405,7 +1407,7 @@ class C : IEnumerable
             }
         }
 
-        [Fact]
+        [Fact, WorkItem(1145125, "DevDiv")]
         public void GetEnumerableException()
         {
             var source =
@@ -1452,14 +1454,13 @@ class C
                         "o.Q",
                         DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown));
                 children = GetChildren(children[1]);
-                Verify(children.Last(),
+                Verify(children[6],
                     EvalResult(
-                        "Results View",
-                        "Expanding the Results View will enumerate the IEnumerable",
-                        "",
+                        "Message",
+                        "\"Exception of type 'E' was thrown.\"",
+                        "string",
                         null,
-                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
-                        DkmEvaluationResultCategory.Method));
+                        DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
             }
         }
 
@@ -1483,7 +1484,7 @@ class C
             {
                 var type = runtime.GetType("C");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
-                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C");
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", memberValue);
                 Verify(evalResult,
                     EvalFailedResult("o.P", "Function evaluation timed out", "System.Collections.ArrayList", "o.P"));
@@ -1535,6 +1536,126 @@ class C : IEnumerable
                 Verify(children,
                     EvalFailedResult("Error", "Unable to evaluate 'Items'", flags: DkmEvaluationResultFlags.None));
             }
+        }
+
+        /// <summary>
+        /// Root-level synthetic values declared as IEnumerable or
+        /// IEnumerable&lt;T&gt; should be expanded directly
+        /// without intermediate "Results View" row.
+        /// </summary>
+        [WorkItem(1114276)]
+        [Fact]
+        public void SyntheticIEnumerable()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C
+{
+    IEnumerable P { get { yield return 1; yield return 2; } }
+    IEnumerable<int> Q { get { yield return 3; } }
+    IEnumerable R { get { return null; } }
+    IEnumerable S { get { return string.Empty; } }
+    IEnumerable<int> T { get { return new int[] { 4, 5 }; } }
+    IList<int> U { get { return new List<int>(new int[] { 6 }); } }
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("C");
+                var value = type.Instantiate();
+
+                // IEnumerable
+                var evalResult = FormatPropertyValue(runtime, value, "P");
+                Verify(evalResult,
+                    EvalResult(
+                        "P",
+                        "{C.<get_P>d__1}",
+                        "System.Collections.IEnumerable {C.<get_P>d__1}",
+                        "P",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultCategory.Method));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("[0]", "1", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView(P).Items[0]"),
+                    EvalResult("[1]", "2", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView(P).Items[1]"));
+
+                // IEnumerable<int>
+                evalResult = FormatPropertyValue(runtime, value, "Q");
+                Verify(evalResult,
+                    EvalResult(
+                        "Q",
+                        "{C.<get_Q>d__3}",
+                        "System.Collections.Generic.IEnumerable<int> {C.<get_Q>d__3}",
+                        "Q",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultCategory.Method));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("[0]", "3", "int", "new System.Linq.SystemCore_EnumerableDebugView<int>(Q).Items[0]"));
+
+                // null (unchanged)
+                evalResult = FormatPropertyValue(runtime, value, "R");
+                Verify(evalResult,
+                    EvalResult(
+                        "R",
+                        "null",
+                        "System.Collections.IEnumerable",
+                        "R",
+                        DkmEvaluationResultFlags.None));
+
+                // string (unchanged)
+                evalResult = FormatPropertyValue(runtime, value, "S");
+                Verify(evalResult,
+                    EvalResult(
+                        "S",
+                        "\"\"",
+                        "System.Collections.IEnumerable {string}",
+                        "S",
+                        DkmEvaluationResultFlags.RawString,
+                        DkmEvaluationResultCategory.Other,
+                       editableValue: "\"\""));
+
+                // array (unchanged)
+                evalResult = FormatPropertyValue(runtime, value, "T");
+                Verify(evalResult,
+                    EvalResult(
+                        "T",
+                        "{int[2]}",
+                        "System.Collections.Generic.IEnumerable<int> {int[]}",
+                        "T",
+                        DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("[0]", "4", "int", "((int[])T)[0]"),
+                    EvalResult("[1]", "5", "int", "((int[])T)[1]"));
+
+                // IList<int> declared type (unchanged)
+                evalResult = FormatPropertyValue(runtime, value, "U");
+                Verify(evalResult,
+                    EvalResult(
+                        "U",
+                        "Count = 1",
+                        "System.Collections.Generic.IList<int> {System.Collections.Generic.List<int>}",
+                        "U",
+                        DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("[0]", "6", "int", "new System.Collections.Generic.Mscorlib_CollectionDebugView<int>(U).Items[0]"),
+                    EvalResult("Raw View", null, "", "U, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+            }
+        }
+
+        private DkmEvaluationResult FormatPropertyValue(DkmClrRuntimeInstance runtime, object value, string propertyName)
+        {
+            var propertyInfo = value.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var propertyValue = propertyInfo.GetValue(value);
+            var propertyType = runtime.GetType(propertyInfo.PropertyType);
+            var valueType = (propertyValue == null) ? propertyType : runtime.GetType(propertyValue.GetType());
+            return FormatResult(
+                propertyName,
+                CreateDkmClrValue(propertyValue, type: valueType, valueFlags: DkmClrValueFlags.Synthetic),
+                declaredType: propertyType);
         }
     }
 }

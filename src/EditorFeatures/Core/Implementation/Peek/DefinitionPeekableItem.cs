@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 var project = solution.GetProject(_peekableItem._projectId);
                 var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-                var symbol = _peekableItem._symbolKey.Resolve(compilation, ignoreAssemblyKey:true, cancellationToken: cancellationToken).Symbol;
+                var symbol = _peekableItem._symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
                 if (symbol == null)
                 {
                     callback.ReportFailure(new Exception(EditorFeaturesResources.NoInformationFound));

@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
         Private Sub EmitExpression(expression As BoundExpression, used As Boolean)
             If expression Is Nothing Then
                 Return
@@ -132,6 +132,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.ConditionalAccessReceiverPlaceholder
                     EmitConditionalAccessReceiverPlaceholder(DirectCast(expression, BoundConditionalAccessReceiverPlaceholder), used)
 
+                Case BoundKind.ComplexConditionalAccessReceiver
+                    EmitComplexConditionalAccessReceiver(DirectCast(expression, BoundComplexConditionalAccessReceiver), used)
+
                 Case BoundKind.PseudoVariable
                     EmitPseudoVariableValue(DirectCast(expression, BoundPseudoVariable), used)
 
@@ -151,6 +154,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             EmitPopIfUnused(used)
+        End Sub
+
+        Private Sub EmitComplexConditionalAccessReceiver(expression As BoundComplexConditionalAccessReceiver, used As Boolean)
+            Debug.Assert(Not expression.Type.IsReferenceType)
+            Debug.Assert(Not expression.Type.IsValueType)
+
+            Dim receiverType = expression.Type
+
+            Dim whenValueTypeLabel As New Object()
+            Dim doneLabel As New Object()
+
+            EmitInitObj(receiverType, True, expression.Syntax)
+            EmitBox(receiverType, expression.Syntax)
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel)
+
+            EmitExpression(expression.ReferenceTypeReceiver, used)
+            _builder.EmitBranch(ILOpCode.Br, doneLabel)
+            _builder.AdjustStack(-1)
+
+            _builder.MarkLabel(whenValueTypeLabel)
+            EmitExpression(expression.ValueTypeReceiver, used)
+
+            _builder.MarkLabel(doneLabel)
         End Sub
 
         Private Sub EmitConditionalAccess(conditinal As BoundLoweredConditionalAccess, used As Boolean)
@@ -288,6 +314,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     FreeTemp(receiverTemp)
                 End If
             End If
+        End Sub
+
+        Private Sub EmitComplexConditionalAccessReceiverAddress(expression As BoundComplexConditionalAccessReceiver)
+            Debug.Assert(Not expression.Type.IsReferenceType)
+            Debug.Assert(Not expression.Type.IsValueType)
+
+            Dim receiverType = expression.Type
+
+            Dim whenValueTypeLabel As New Object()
+            Dim doneLabel As New Object()
+
+            EmitInitObj(receiverType, True, expression.Syntax)
+            EmitBox(receiverType, expression.Syntax)
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel)
+
+            Dim receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, addressKind:=AddressKind.ReadOnly)
+            Debug.Assert(receiverTemp Is Nothing)
+            _builder.EmitBranch(ILOpCode.Br, doneLabel)
+            _builder.AdjustStack(-1)
+
+            _builder.MarkLabel(whenValueTypeLabel)
+            EmitReceiverRef(expression.ValueTypeReceiver, isAccessConstrained:=True, addressKind:=AddressKind.ReadOnly)
+
+            _builder.MarkLabel(doneLabel)
         End Sub
 
         Private Sub EmitDelegateCreationExpression(expression As BoundDelegateCreationExpression, used As Boolean)
@@ -797,7 +847,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.FieldAccess
                     Return DirectCast(receiver, BoundFieldAccess).FieldSymbol.IsCapturedFrame
 
-                Case BoundKind.ConditionalAccessReceiverPlaceholder
+                Case BoundKind.ConditionalAccessReceiverPlaceholder,
+                     BoundKind.ComplexConditionalAccessReceiver
                     Return True
 
                     'TODO: there must be more non-null cases.
@@ -971,7 +1022,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
                 EmitPopIfUnused(used)
-            ElseIf _optimizations = OptimizationLevel.Debug AndAlso Not [call].WasCompilerGenerated Then
+            ElseIf _optimizations = OptimizationLevel.Debug Then
+                Debug.Assert(Not used, "Using the return value of a void method.")
+                Debug.Assert(_method.GenerateDebugInfo, "Implied by emitSequencePoints")
+
                 ' DevDiv #15135.  When a method like System.Diagnostics.Debugger.Break() is called, the
                 ' debugger sees an event indicating that a user break (vs a breakpoint) has occurred.
                 ' When this happens, it uses ICorDebugILFrame.GetIP(out uint, out CorDebugMappingResult)
@@ -990,6 +1044,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 '   window and take him to the calling line.
 
                 ' CONSIDER: The native compiler does not appear to consider whether we are optimizing or emitting debug info.
+
+                ' CONSIDER: The native compiler also checks !(tree->flags & EXF_NODEBUGINFO).  We don't have
+                ' this mutable bit on our bound nodes, so we can't exactly match the behavior.  We might be
+                ' able to approximate the native behavior by inspecting call.WasCompilerGenerated, but it is
+                ' Not in a reliable state after lowering.
 
                 _builder.EmitOpCode(ILOpCode.Nop)
             End If
@@ -1256,12 +1315,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         Return StackMergeType(conversion.Operand)
                     End If
 
-                    'Case BoundKind.Conversion
-                    '    Dim conversion = DirectCast(expr, BoundConversion)
-                    '    Dim conversionKind = conversion.ConversionKind
-                    '    If (Conversions.IsWideningConversion(conversionKind)) Then
-                    '        Return StackMergeType(conversion.Operand)
-                    '    End If
+                'Case BoundKind.Conversion
+                '    Dim conversion = DirectCast(expr, BoundConversion)
+                '    Dim conversionKind = conversion.ConversionKind
+                '    If (Conversions.IsWideningConversion(conversionKind)) Then
+                '        Return StackMergeType(conversion.Operand)
+                '    End If
 
                 Case BoundKind.AssignmentOperator
                     Dim assignment = DirectCast(expr, BoundAssignmentOperator)

@@ -4,9 +4,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CSharp.CodeRefactorings.IntroduceVariable
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
@@ -313,7 +313,7 @@ public partial class C { }
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsCSharp()
             Dim workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -330,6 +330,7 @@ class Program
         [|foo|]();
 
         var a = "foo";
+        var b = $"{1}foo{2}";
     }
 
     public void foo(int i)
@@ -358,6 +359,7 @@ class Program
         [|foo|]();
 
         var a = "foo";
+        var b = $"{1}foo{2}";
     }
 
     public void [|foo|](int i)
@@ -386,6 +388,7 @@ class Program
         [|foo|]();
 
         var a = "[|foo|]";
+        var b = $"{1}[|foo|]{2}";
     }
 
     public void foo(int i)
@@ -402,7 +405,7 @@ class Program
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsVisualBasic()
             Dim workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -417,6 +420,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "foo"
+		Dim b = $"{1}foo{2}"
 	End Sub
 
 	Public Sub foo(i As Integer)
@@ -443,6 +447,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "foo"
+		Dim b = $"{1}foo{2}"
 	End Sub
 
 	Public Sub [|foo|](i As Integer)
@@ -469,6 +474,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "[|foo|]"
+		Dim b = $"{1}[|foo|]{2}"
 	End Sub
 
 	Public Sub foo(i As Integer)
@@ -848,8 +854,8 @@ End Class
 
                 VerifyTagsAreCorrect(workspace, "BarFoo")
                 Assert.True(previewService.Called)
-                Assert.Equal("Preview Changes - Rename", previewService.Title)
-                Assert.Equal("Rename 'Foo' to 'BarFoo':", previewService.Description)
+                Assert.Equal(String.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), previewService.Title)
+                Assert.Equal(String.Format(EditorFeaturesResources.RenameToTitle, "Foo", "BarFoo"), previewService.Description)
                 Assert.Equal("Foo", previewService.TopLevelName)
                 Assert.Equal(Glyph.ClassInternal, previewService.TopLevelGlyph)
             End Using
@@ -1067,6 +1073,244 @@ class C
                 textBuffer.Insert(caretPosition + 2, "q")
                 WaitForRename(workspace)
                 VerifyTagsAreCorrect(workspace, "xyzq")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromDefinition_NoOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M$$|]()
+    {
+        nameof([|M|]).ToString();
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromReference_NoOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M|]()
+    {
+        nameof([|M$$|]).ToString();
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromDefinition_WithOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M$$|]()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x) { }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromReference_WithOverloads()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|M|]()
+    {
+        nameof([|M$$|]).ToString();
+    }
+
+    void [|M|](int x) { }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.First().TextBuffer
+
+                textBuffer.Insert(caretPosition, "a")
+                WaitForRename(workspace)
+                VerifyTagsAreCorrect(workspace, "Ma")
+
+                session.Commit()
+                VerifyTagsAreCorrect(workspace, "Ma")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_FromDefinition_WithOverloads_WithRenameOverloadsOption()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class C
+{
+    void [|$$M|]()
+    {
+        nameof([|M|]).ToString();
+    }
+
+    void [|M|](int x) { }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(1142095)>
+        Public Sub RenameCommitsWhenDebuggingStarts()
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class [|$$Foo|]
+                            {
+                                void Blah()
+                                {
+                                    [|Foo|] f = new [|Foo|]();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                ' Make sure the RenameService's ActiveSession is still there
+                Dim renameService = workspace.GetService(Of IInlineRenameService)()
+                Assert.NotNull(renameService.ActiveSession)
+
+                ' Simulate starting a debugging session
+                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
+                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
+
+                ' Ensure the rename was committed
+                Assert.Null(renameService.ActiveSession)
+                VerifyTagsAreCorrect(workspace, "BarFoo")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(1142095)>
+        Public Sub RenameCommitsWhenExitingDebuggingBreakMode()
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class [|$$Foo|]
+                            {
+                                void Blah()
+                                {
+                                    [|Foo|] f = new [|Foo|]();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                ' Make sure the RenameService's ActiveSession is still there
+                Dim renameService = workspace.GetService(Of IInlineRenameService)()
+                Assert.NotNull(renameService.ActiveSession)
+
+                ' Simulate ending break mode in the debugger (by stepping or continuing)
+                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
+                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
+
+                ' Ensure the rename was committed
+                Assert.Null(renameService.ActiveSession)
+                VerifyTagsAreCorrect(workspace, "BarFoo")
             End Using
         End Sub
     End Class

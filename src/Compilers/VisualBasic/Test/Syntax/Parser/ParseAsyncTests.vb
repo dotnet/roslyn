@@ -49,7 +49,7 @@ End Class]]>)
     End Sub
 
     <Fact>
-    Sub ParseAwaitExpressions()
+    Public Sub ParseAwaitExpressions()
         Dim tree = ParseAndVerify(<![CDATA[
 Imports System.Console
 

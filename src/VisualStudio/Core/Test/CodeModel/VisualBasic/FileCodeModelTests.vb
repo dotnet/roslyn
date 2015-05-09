@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
@@ -895,9 +896,81 @@ End Class
 
                 fileCodeModel.EndBatch()
 
-                Assert.Contains("Class C", buffer.CurrentSnapshot.GetText())
+                Assert.Contains("Class C", buffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
 
+        End Sub
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub CreateUnknownElementForDeclarationFunctionAndSub()
+            Dim oldCode =
+<Code>
+Public Class Class1 
+Public Declare Sub f1 Lib "MyLib.dll" () 
+Public Declare Function f2 Lib "MyLib.dll" () As Integer 
+End Class
+</Code>
+            Dim changedCodeRemoveFunction =
+<Code>
+Public Class Class1 
+Public Declare Sub f1 Lib "MyLib.dll" () 
+End Class
+</Code>
+            Dim changedCodeSubFunction =
+<Code>
+Public Class Class1 
+Public Declare Function f2 Lib "MyLib.dll" () As Integer 
+End Class
+</Code>
+
+            Dim changedDefinition =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <Document FilePath="File1.vb"><%= changedCodeRemoveFunction.Value %></Document>
+        <Document FilePath="File2.vb"><%= changedCodeSubFunction.Value %></Document>
+    </Project>
+</Workspace>
+
+            Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
+                Using changedworkspace = TestWorkspaceFactory.CreateWorkspace(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+
+                    Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
+                    Dim originalTree = originalDocument.GetSyntaxTreeAsync().Result
+
+                    ' Assert Declaration Function Removal
+                    Dim changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents.First(Function(d) d.Name.Equals("File1.vb")).Id)
+                    Dim changeTree = changeDocument.GetSyntaxTreeAsync().Result
+
+                    Dim codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
+                    Dim fileCodeModel = originalWorkspaceAndFileCodeModel.FileCodeModelObject
+
+                    Dim element As EnvDTE.CodeElement = Nothing
+                    Dim parentElement As Object = Nothing
+                    fileCodeModel.GetElementsForCodeModelEvent(codeModelEvent.First(), element, parentElement)
+                    Assert.NotNull(element)
+                    Assert.NotNull(parentElement)
+
+                    Dim unknownCodeFunction = TryCast(element, EnvDTE.CodeFunction)
+                    Assert.Equal(unknownCodeFunction.Name, "f2")
+
+                    ' Assert Declaration Sub Removal
+                    changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents.First(Function(d) d.Name.Equals("File2.vb")).Id)
+                    changeTree = changeDocument.GetSyntaxTreeAsync().Result
+
+                    codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
+
+                    element = Nothing
+                    parentElement = Nothing
+                    fileCodeModel.GetElementsForCodeModelEvent(codeModelEvent.First(), element, parentElement)
+                    Assert.NotNull(element)
+                    Assert.NotNull(parentElement)
+
+                    unknownCodeFunction = TryCast(element, EnvDTE.CodeFunction)
+                    Assert.Equal(unknownCodeFunction.Name, "f1")
+
+                End Using
+            End Using
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

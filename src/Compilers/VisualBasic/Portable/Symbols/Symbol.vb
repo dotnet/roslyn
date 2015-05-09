@@ -241,15 +241,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Get a source location key for sorting. For performance, it's important that this be 
+        ''' <para>
+        ''' Get a source location key for sorting. For performance, it's important that this
         ''' be able to be returned from a symbol without doing any additional allocations (even
-        ''' if nothing is cached yet.) 
-        ''' 
-        ''' Only members of source namespaces, original source types, and namespaces that can be merged
-        ''' need implement this function.
+        ''' if nothing is cached yet.)
+        ''' </para>
+        ''' <para>
+        ''' Only (original) source symbols and namespaces that can be merged
+        ''' need override this function if they want to do so for efficiency.
+        ''' </para>
         ''' </summary>
         Friend Overridable Function GetLexicalSortKey() As LexicalSortKey
-            Throw ExceptionUtilities.Unreachable
+            Dim locations = Me.Locations
+            Dim declaringCompilation = Me.DeclaringCompilation
+            Debug.Assert(declaringCompilation IsNot Nothing) ' require that it is a source symbol
+            Return If(locations.Length > 0, New LexicalSortKey(locations(0), declaringCompilation), LexicalSortKey.NotInSource)
         End Function
 
         ''' <summary>

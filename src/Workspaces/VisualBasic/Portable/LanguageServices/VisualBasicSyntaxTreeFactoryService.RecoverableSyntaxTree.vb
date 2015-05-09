@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Host
@@ -43,10 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _cacheKey = original._cacheKey
                 End Sub
 
-                Friend Shared Function CreateRecoverableTree(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As CompilationUnitSyntax) As SyntaxTree
-                    Return If(root.Attributes.Any() OrElse root.FullSpan.Length < service.MinimumLengthForRecoverableTree,
-                        Create(root, DirectCast(options, VisualBasicParseOptions), filePath, root.SyntaxTree.GetText().Encoding),
-                        New RecoverableSyntaxTree(service, cacheKey, root, New SyntaxTreeInfo(filePath, options, text, root.FullSpan.Length)))
+                Friend Shared Function CreateRecoverableTree(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), encoding As Encoding, root As CompilationUnitSyntax) As SyntaxTree
+                    Return New RecoverableSyntaxTree(service, cacheKey, root, New SyntaxTreeInfo(filePath, options, text, encoding, root.FullSpan.Length))
                 End Function
 
                 Public Overrides ReadOnly Property FilePath As String
@@ -78,6 +77,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Overrides Function GetTextAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of SourceText)
                     Return _info.GetTextAsync(cancellationToken)
                 End Function
+
+                Public Overrides ReadOnly Property Encoding As Encoding
+                    Get
+                        Return _info.Encoding
+                    End Get
+                End Property
 
                 Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
                     Dim compilationRoot As CompilationUnitSyntax = Nothing

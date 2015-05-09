@@ -2863,7 +2863,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("return");
+            var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
 
             SemanticModel speculativeModel;
@@ -2898,7 +2898,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("return");
+            var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
 
             SemanticModel speculativeModel;
@@ -2928,7 +2928,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("int");
+            var position = source.IndexOf("int", StringComparison.Ordinal);
             var typeSyntax = SyntaxFactory.ParseTypeName("System.Collections.Generic.IEnumerable<C[]>");
 
             SemanticModel speculativeModel;
@@ -2967,7 +2967,7 @@ struct S
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("struct");
+            var position = source.IndexOf("struct", StringComparison.Ordinal);
             var attributeSyntax = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Category"));
 
             SemanticModel speculativeModel;
@@ -3325,6 +3325,112 @@ namespace Microsoft.Conformance.Expressions
     } 
 }"
                 );
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null;
+        try
+        {
+            G(() => x1);
+        }
+        catch (Exception x2) when (G(() => x2))
+        {
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            {
+                var discarded = model.GetEnclosingSymbol(match.Index);
+            }
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null, x2 = null;
+        do
+        {
+            G(() => x1);
+        }
+        while (G(() => x2));
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            {
+                var x = tree.GetRoot().FindToken(match.Index + 4).Parent;
+                var discarded = model.GetEnclosingSymbol(match.Index);
+                var disc = model.GetSymbolInfo(x);
+            }
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol04()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null, x2 = null;
+        if (G(() => x1));
+        {
+            G(() => x2);
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            var discarded1 = model.GetEnclosingSymbol(source.LastIndexOf(" => x"));
+            var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfInterpolatedString()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""Hello, world!"");
+        Console.WriteLine($""{DateTime.Now.ToString()}.{args[0]}"");
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
+            {
+                Assert.False(model.GetConstantValue(interp).HasValue);
+            }
         }
 
         #region "regression helper"

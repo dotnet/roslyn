@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
     [Guid("B69910A9-4AD6-475F-859A-5DC0B1072A5D")]
     internal interface IENCSymbolReaderProvider
     {
-        void GetSymbolReader([MarshalAs(UnmanagedType.IUnknown)]out object ppSymbolReader);
+        void GetSymbolReader([MarshalAs(UnmanagedType.IUnknown)] out object ppSymbolReader);
     }
 }

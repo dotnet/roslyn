@@ -61,7 +61,7 @@ struct S
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
@@ -348,7 +348,7 @@ class C : I1, I2
             Assert.True(interface2Getter == interface1GetterImpl ^ interface2Getter == interface2GetterImpl);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ImplicitlyImplementingIndexersWithDifferentNames_DifferentInterfaces_Metadata()
         {
             var il = @"
@@ -436,7 +436,7 @@ class C : I1, I2
         /// Metadata type has two indexers with the same signature but different names.
         /// Both are implicitly implemented by a single source indexer.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ImplicitlyImplementingIndexersWithDifferentNames_SameInterface()
         {
             var il = @"
@@ -498,7 +498,7 @@ class C : I1
         /// Both are explicitly implemented by a single source indexer, resulting in an
         /// ambiguity error.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void AmbiguousExplicitIndexerImplementation()
         {
             // NOTE: could be done in C# using IndexerNameAttribute
@@ -553,7 +553,7 @@ class C : I1
             Assert.True(indexer0Impl == null ^ indexer1Impl == null);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void HidingIndexerWithDifferentName()
         {
             // NOTE: could be done in C# using IndexerNameAttribute
@@ -614,7 +614,7 @@ class Derived : Base
             Assert.Equal(baseIndexer, derivedIndexer.OverriddenOrHiddenMembers.HiddenMembers.Single());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverridingIndexerWithDifferentName()
         {
             // NOTE: could be done in C# using IndexerNameAttribute
@@ -673,7 +673,7 @@ class Derived : Base
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void HidingMultipleIndexers()
         {
             // NOTE: could be done in C# using IndexerNameAttribute
@@ -747,7 +747,7 @@ class Derived : Base
             Assert.Contains(baseIndexers[1], hiddenMembers);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverridingMultipleIndexers()
         {
             // NOTE: could be done in C# using IndexerNameAttribute
@@ -1166,7 +1166,7 @@ class C : I
                 Assert.False(classIndexer.CanBeReferencedByName);
             };
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1228,7 +1228,7 @@ public class C : I
                 Assert.False(classCIndexer.IsIndexer()); //not the default member of C
             };
 
-            CompileAndVerify(text, emitOptions: TestEmitters.RefEmitBug, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(text, emitters: TestEmitters.RefEmitBug, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -2411,7 +2411,7 @@ public class Derived : Base
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void SameSignaturesDifferentNames()
         {
             var ilSource = @"
@@ -2716,7 +2716,7 @@ class Derived2 : Base
         }
 
         [WorkItem(545851, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void DistinctOptionalParameterValues()
         {
             var source1 =

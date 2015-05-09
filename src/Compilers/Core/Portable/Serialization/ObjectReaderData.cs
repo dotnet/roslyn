@@ -33,9 +33,9 @@ namespace Roslyn.Utilities
 
         internal ObjectReaderData(ObjectReaderData baseData)
         {
-            Debug.Assert(baseData == null || baseData._baseData == null, "Should be <= 1 level deep");
+            Debug.Assert(baseData?._baseData == null, "Should be <= 1 level deep");
             _baseData = baseData;
-            _baseDataCount = (baseData != null) ? baseData._values.Count : 0;
+            _baseDataCount = baseData?._values.Count ?? 0;
         }
 
         public void Dispose()

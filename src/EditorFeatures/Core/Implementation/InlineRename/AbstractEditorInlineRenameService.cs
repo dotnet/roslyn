@@ -65,12 +65,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var triggerSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, triggerToken, cancellationToken);
-            triggerSymbol = triggerSymbol ?? semanticModel.GetSymbolInfo(triggerToken, cancellationToken).Symbol;
+            var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, triggerToken, cancellationToken);
+
+            // Rename was invoked on a member group reference in a nameof expression.
+            // Trigger the rename on any of the candidate symbols but force the 
+            // RenameOverloads option to be on.
+            var triggerSymbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             if (triggerSymbol == null)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
             }
+
+            // If rename is invoked on a member group reference in a nameof expression, then the
+            // RenameOverloads option should be forced on.
+            var forceRenameOverloads = tokenRenameInfo.IsMemberGroup;
 
             if (syntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration(triggerToken, triggerToken.Parent))
             {
@@ -198,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            return new SymbolInlineRenameInfo(refactorNotifyServices, document, triggerToken.Span, symbol, cancellationToken);
+            return new SymbolInlineRenameInfo(refactorNotifyServices, document, triggerToken.Span, symbol, forceRenameOverloads, cancellationToken);
         }
 
         private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)

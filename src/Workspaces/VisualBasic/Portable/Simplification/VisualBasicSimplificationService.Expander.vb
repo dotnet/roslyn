@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Rename
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend Class VisualBasicSimplificationService
@@ -480,10 +481,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' 2. If it's an attribute, make sure the identifier matches the attribute's class name without the attribute suffix.
                 '
                 If originalSimpleName.GetAncestor(Of AttributeSyntax)() IsNot Nothing Then
-                    If symbol.IsConstructor() AndAlso symbol.ContainingType.IsAttribute() Then
+                    If symbol.IsConstructor() AndAlso symbol.ContainingType?.IsAttribute() Then
                         symbol = symbol.ContainingType
                         Dim name = symbol.Name
-                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText))
+                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText, StringComparison.Ordinal))
 
                         ' Note, VB can't escape attribute names like C#, so we actually need to expand to the symbol name
                         ' without a suffix, see http://msdn.microsoft.com/en-us/library/aa711866(v=vs.71).aspx
@@ -554,7 +555,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                    symbol.Kind = SymbolKind.Field OrElse
                    symbol.Kind = SymbolKind.Property Then
 
-                    If symbol.IsStatic OrElse (TypeOf (parent) Is CrefReferenceSyntax) Then
+                    If symbol.IsStatic OrElse
+                       (TypeOf (parent) Is CrefReferenceSyntax) OrElse
+                       _semanticModel.SyntaxTree.IsNameOfContext(originalSimpleName.SpanStart, _cancellationToken) Then
+
                         newNode = FullyQualifyIdentifierName(
                             symbol,
                             newNode,

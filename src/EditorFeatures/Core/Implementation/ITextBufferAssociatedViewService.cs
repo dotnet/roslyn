@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal class SubjectBuffersConnectedEventArgs
     {
-        public ReadOnlyCollection<ITextBuffer> SubjectBuffers { get; private set; }
-        public IWpfTextView TextView { get; private set; }
+        public ReadOnlyCollection<ITextBuffer> SubjectBuffers { get; }
+        public IWpfTextView TextView { get; }
 
         public SubjectBuffersConnectedEventArgs(IWpfTextView textView, ReadOnlyCollection<ITextBuffer> subjectBuffers)
         {

@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
     {
         private class State
         {
-            public SyntaxNode Location { get; private set; }
-            public INamedTypeSymbol ClassType { get; private set; }
-            public INamedTypeSymbol AbstractClassType { get; private set; }
+            public SyntaxNode Location { get; }
+            public INamedTypeSymbol ClassType { get; }
+            public INamedTypeSymbol AbstractClassType { get; }
 
             // The members that are not implemented at all.
-            public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedMembers { get; private set; }
+            public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedMembers { get; }
 
             private State(SyntaxNode node, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType, IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers)
             {

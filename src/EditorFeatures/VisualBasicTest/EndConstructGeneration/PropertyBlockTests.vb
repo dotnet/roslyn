@@ -275,5 +275,41 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "End Interface"},
                 caret:={1, -1})
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
+        Public Sub DontGenerateSetForReadonlyProperty()
+            VerifyStatementEndConstructApplied(
+                before:={"Class c1",
+                         "    Readonly Property foo(arg as Integer) As Integer",
+                         "End Class"},
+                beforeCaret:={1, -1},
+                after:={"Class c1",
+                        "    Readonly Property foo(arg as Integer) As Integer",
+                        "        Get",
+                        "",
+                        "        End Get",
+                        "    End Property",
+                        "End Class"},
+                afterCaret:={3, -1})
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
+        Public Sub DontGenerateGetForWriteonlyProperty()
+            VerifyStatementEndConstructApplied(
+                before:={"Class c1",
+                         "    Writeonly Property foo(arg as Integer) As Integer",
+                         "End Class"},
+                beforeCaret:={1, -1},
+                after:={"Class c1",
+                        "    Writeonly Property foo(arg as Integer) As Integer",
+                        "        Set(value As Integer)",
+                        "",
+                        "        End Set",
+                        "    End Property",
+                        "End Class"},
+                afterCaret:={3, -1})
+        End Sub
     End Class
 End Namespace

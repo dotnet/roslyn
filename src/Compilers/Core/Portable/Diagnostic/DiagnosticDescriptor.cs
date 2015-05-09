@@ -1,64 +1,63 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Provides a description about a <see cref="Diagnostic"/>
     /// </summary>
-    public class DiagnosticDescriptor : IEquatable<DiagnosticDescriptor>
+    public sealed class DiagnosticDescriptor : IEquatable<DiagnosticDescriptor>
     {
         /// <summary>
         /// An unique identifier for the diagnostic.
         /// </summary>
-        public string Id { get; private set; }
+        public string Id { get; }
 
         /// <summary>
         /// A short localizable title describing the diagnostic.
         /// </summary>
-        public LocalizableString Title { get; private set; }
+        public LocalizableString Title { get; }
 
         /// <summary>
         /// An optional longer localizable description for the diagnostic.
         /// </summary>
-        public LocalizableString Description { get; private set; }
+        public LocalizableString Description { get; }
 
         /// <summary>
         /// An optional hyperlink that provides more detailed information regarding the diagnostic.
         /// </summary>
-        public string HelpLinkUri { get; private set; }
+        public string HelpLinkUri { get; }
 
         /// <summary>
         /// A localizable format message string, which can be passed as the first argument to <see cref="String.Format(string, object[])"/> when creating the diagnostic message with this descriptor.
         /// </summary>
         /// <returns></returns>
-        public LocalizableString MessageFormat { get; private set; }
+        public LocalizableString MessageFormat { get; }
 
         /// <summary>
         /// The category of the diagnostic (like Design, Naming etc.)
         /// </summary>
-        public string Category { get; private set; }
+        public string Category { get; }
 
         /// <summary>
         /// The default severity of the diagnostic.
         /// </summary>
-        public DiagnosticSeverity DefaultSeverity { get; private set; }
+        public DiagnosticSeverity DefaultSeverity { get; }
 
         /// <summary>
         /// Returns true if the diagnostic is enabled by default.
         /// </summary>
-        public bool IsEnabledByDefault { get; private set; }
+        public bool IsEnabledByDefault { get; }
 
         /// <summary>
         /// Custom tags for the diagnostic.
         /// </summary>
-        public IEnumerable<string> CustomTags { get; private set; }
+        public IEnumerable<string> CustomTags { get; }
 
         /// <summary>
         /// Create a DiagnosticDescriptor, which provides description about a <see cref="Diagnostic"/>.

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class VisualBasicEditAndContinueAnalyzerTests
 
 #Region "Helpers"
-        Private Shared Sub TestSpans(source As String, hasLabel As Func(Of SyntaxKind, Boolean))
+        Private Shared Sub TestSpans(source As String, hasLabel As Func(Of SyntaxNode, Boolean))
             Dim tree = SyntaxFactory.ParseSyntaxTree(ClearSource(source))
 
             For Each expected In GetExpectedPositionsAndSpans(source)
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 Dim expectedText As String = source.Substring(expectedSpan.Start, expectedSpan.Length)
                 Dim node = tree.GetRoot().FindToken(expected.Key).Parent
 
-                While Not hasLabel(node.Kind)
+                While Not hasLabel(node)
                     node = node.Parent
                 End While
 
@@ -32,35 +32,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Next
         End Sub
 
-        Const StartTag As String = "<span>"
-        Const EndTag As String = "</span>"
-        Const StartSpanMark As String = "[|"
-        Const EndSpanMark As String = "|]"
-        Const PositionMark As Char = "$"c
+        Private Const s_startTag As String = "<span>"
+        Private Const s_endTag As String = "</span>"
+        Private Const s_startSpanMark As String = "[|"
+        Private Const s_endSpanMark As String = "|]"
+        Private Const s_positionMark As Char = "$"c
 
         Private Shared Function ClearSource(source As String) As String
             Return source.
-                Replace(StartTag, New String(" "c, StartTag.Length)).
-                Replace(EndTag, New String(" "c, EndTag.Length)).
-                Replace(StartSpanMark, New String(" "c, StartSpanMark.Length)).
-                Replace(EndSpanMark, New String(" "c, StartSpanMark.Length)).
-                Replace(PositionMark, " "c)
+                Replace(s_startTag, New String(" "c, s_startTag.Length)).
+                Replace(s_endTag, New String(" "c, s_endTag.Length)).
+                Replace(s_startSpanMark, New String(" "c, s_startSpanMark.Length)).
+                Replace(s_endSpanMark, New String(" "c, s_startSpanMark.Length)).
+                Replace(s_positionMark, " "c)
         End Function
 
         Private Shared Iterator Function GetExpectedPositionsAndSpans(source As String) As IEnumerable(Of KeyValuePair(Of Integer, TextSpan))
             Dim i As Integer = 0
 
             While True
-                Dim start As Integer = source.IndexOf(StartTag, i)
+                Dim start As Integer = source.IndexOf(s_startTag, i, StringComparison.Ordinal)
                 If start = -1 Then
                     Exit While
                 End If
 
-                start += StartTag.Length
-                Dim [end] As Integer = source.IndexOf(EndTag, start + 1)
+                start += s_startTag.Length
+                Dim [end] As Integer = source.IndexOf(s_endTag, start + 1, StringComparison.Ordinal)
 
                 Dim length = [end] - start
-                Dim position = source.IndexOf(PositionMark, start, length)
+                Dim position = source.IndexOf(s_positionMark, start, length)
 
                 Dim span As TextSpan
                 If position < 0 Then
@@ -68,8 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                     span = New TextSpan(start, length)
                 Else
                     position += 1
-                    span = TextSpan.FromBounds(source.IndexOf(StartSpanMark, start, length) + StartSpanMark.Length,
-                                               source.IndexOf(EndSpanMark, start, length))
+                    span = TextSpan.FromBounds(source.IndexOf(s_startSpanMark, start, length, StringComparison.Ordinal) + s_startSpanMark.Length,
+                                               source.IndexOf(s_endSpanMark, start, length, StringComparison.Ordinal))
                 End If
 
                 Yield KeyValuePair.Create(position, span)
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 End Try
             Next
 
-            AssertEx.Equal(New SyntaxKind() {}, unhandledKinds)
+            AssertEx.Equal(Array.Empty(Of SyntaxKind)(), unhandledKinds)
         End Sub
 #End Region
 
@@ -201,7 +201,7 @@ End Enum
     End Operator
 End Class
 ]]>.Value
-            TestSpans(source, Function(kind) TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations:=False))
+            TestSpans(source, Function(node) TopSyntaxComparer.HasLabel(node.Kind(), ignoreVariableDeclarations:=False))
         End Sub
 
         <Fact>
@@ -409,7 +409,7 @@ End Class
         ''' </summary>
         <Fact>
         Public Sub ErrorSpansAllKinds()
-            TestErrorSpansAllKinds(AddressOf StatementSyntaxComparer.HasLabel)
+            TestErrorSpansAllKinds(AddressOf StatementSyntaxComparer.IgnoreLabeledChild)
             TestErrorSpansAllKinds(Function(kind) TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations:=False))
         End Sub
 
@@ -445,7 +445,7 @@ End Class
                 Dim newSyntaxRoot = newDocument.GetSyntaxRootAsync().Result
 
                 Dim oldStatementSource = "System.Console.WriteLine(1)"
-                Dim oldStatementPosition = source1.IndexOf(oldStatementSource)
+                Dim oldStatementPosition = source1.IndexOf(oldStatementSource, StringComparison.Ordinal)
                 Dim oldStatementTextSpan = New TextSpan(oldStatementPosition, oldStatementSource.Length)
                 Dim oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan)
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)
@@ -640,7 +640,7 @@ End Class
 
                 Assert.True(result.IsSingle())
                 Assert.Equal(1, result.Single().RudeEditErrors.Count())
-                Assert.Equal(RudeEditKind.RUDE_EDIT_ADD_NEW_FILE, result.Single().RudeEditErrors.Single().Kind)
+                Assert.Equal(RudeEditKind.InsertFile, result.Single().RudeEditErrors.Single().Kind)
             End Using
         End Sub
     End Class

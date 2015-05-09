@@ -23,14 +23,14 @@ Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     Public Class SmartIndenterTests
-        Shared HtmlMarkup As String = <text>
+        Private Shared s_htmlMarkup As String = <text>
 &lt;html&gt;
     &lt;body&gt;
         &lt;%{|S1:|}%&gt;
     &lt;/body&gt;
 &lt;/html&gt;
 </text>.NormalizedValue
-        Shared BaseIndentationOfNugget As Integer = 8
+        Private Shared s_baseIndentationOfNugget As Integer = 8
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -58,7 +58,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 4)
+                expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
         <Fact>
@@ -77,7 +77,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 4)
+                expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
         <Fact>
@@ -96,7 +96,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 4)
+                expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
         <Fact>
@@ -119,7 +119,7 @@ End Module
             ' a continuation
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 8)
+                expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Sub
 
         <Fact>
@@ -141,7 +141,7 @@ End Module
             Dim extra = 8
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + extra)
+                expectedIndentation:=s_baseIndentationOfNugget + extra)
         End Sub
 
 #Region "Non-line-continued constructs"
@@ -2212,7 +2212,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 4)
+                expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
         <Fact>
@@ -2241,7 +2241,7 @@ End Module
             ' each statement independently, so let's not change that just for Venus
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 4)
+                expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
         <Fact>
@@ -2281,7 +2281,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 2 + "Dim query = ".Length)
+                expectedIndentation:=s_baseIndentationOfNugget + 2 + "Dim query = ".Length)
         End Sub
 
         <Fact>
@@ -2301,7 +2301,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 8)
+                expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Sub
 
         <Fact>
@@ -2320,7 +2320,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 8)
+                expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Sub
 
         <Fact, WorkItem(646663)>
@@ -2338,7 +2338,7 @@ End Module
 
             AssertSmartIndentIndentationInProjection(
                 markup,
-                expectedIndentation:=BaseIndentationOfNugget + 4)
+                expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
         <Fact>
@@ -2521,16 +2521,118 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_0()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"
+            "
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_1()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"
+     {0} what"
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_2()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"what
+            "
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_3()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"what
+            {0}"
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideInterpolatedMultiLineString_4()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"what{0}
+            "
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
+        <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub SmartIndentInsideMultiLineString()
+            Dim code = <code>Module Module1
+    Sub Main()
+        Dim c2() = $"1
+            2"
+    End Sub
+End Module
+</code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=0)
+        End Sub
+
         Private Shared Sub AssertSmartIndentIndentationInProjection(markup As String,
                                                                     expectedIndentation As Integer)
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines({markup})
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
 
                 Dim factory = TryCast(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
                                     TestFormattingRuleFactoryServiceFactory.Factory)
                 If factory IsNot Nothing Then
-                    factory.BaseIndentation = BaseIndentationOfNugget
+                    factory.BaseIndentation = s_baseIndentationOfNugget
                     factory.TextSpan = subjectDocument.SelectedSpans.Single()
                 End If
 

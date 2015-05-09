@@ -15,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotInheritable Class AnonymousTypePublicSymbol
             Inherits AnonymousTypeOrDelegatePublicSymbol
 
-            Private ReadOnly m_properties As ImmutableArray(Of AnonymousTypePropertyPublicSymbol)
-            Private ReadOnly m_members As ImmutableArray(Of Symbol)
-            Private ReadOnly m_interfaces As ImmutableArray(Of NamedTypeSymbol)
+            Private ReadOnly _properties As ImmutableArray(Of AnonymousTypePropertyPublicSymbol)
+            Private ReadOnly _members As ImmutableArray(Of Symbol)
+            Private ReadOnly _interfaces As ImmutableArray(Of NamedTypeSymbol)
 
             Public Sub New(manager As AnonymousTypeManager, typeDescr As AnonymousTypeDescriptor)
                 MyBase.New(manager, typeDescr)
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 Next
 
-                m_properties = propertiesArray.AsImmutableOrNull()
+                _properties = propertiesArray.AsImmutableOrNull()
 
                 ' Add a constructor
                 methodMembersBuilder.Add(CreateConstructorSymbol())
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' Add optional 'Inherits IEquatable'
                     Dim equatableInterface As NamedTypeSymbol = Me.Manager.System_IEquatable_T.Construct(ImmutableArray.Create(Of TypeSymbol)(Me))
-                    Me.m_interfaces = ImmutableArray.Create(Of NamedTypeSymbol)(equatableInterface)
+                    Me._interfaces = ImmutableArray.Create(Of NamedTypeSymbol)(equatableInterface)
 
                     ' Add 'IEquatable.Equals'
                     Dim method As Symbol = DirectCast(equatableInterface, SubstitutedNamedType).GetMemberForDefinition(Me.Manager.System_IEquatable_T_Equals)
@@ -79,21 +79,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     methodMembersBuilder.Add(CreateEqualsMethod())
 
                 Else
-                    m_interfaces = ImmutableArray(Of NamedTypeSymbol).Empty
+                    _interfaces = ImmutableArray(Of NamedTypeSymbol).Empty
                 End If
 
                 methodMembersBuilder.AddRange(otherMembersBuilder)
                 otherMembersBuilder.Free()
-                m_members = methodMembersBuilder.ToImmutableAndFree()
+                _members = methodMembersBuilder.ToImmutableAndFree()
             End Sub
 
             Private Function CreateConstructorSymbol() As MethodSymbol
                 Dim constructor As New SynthesizedSimpleConstructorSymbol(Me)
 
-                Dim fieldsCount As Integer = Me.m_properties.Length
+                Dim fieldsCount As Integer = Me._properties.Length
                 Dim paramsArr = New ParameterSymbol(fieldsCount - 1) {}
                 For index = 0 To fieldsCount - 1
-                    Dim [property] As PropertySymbol = Me.m_properties(index)
+                    Dim [property] As PropertySymbol = Me._properties(index)
                     paramsArr(index) = New SynthesizedParameterSimpleSymbol(constructor, [property].Type, index, [property].Name)
                 Next
                 constructor.SetParameters(paramsArr.AsImmutableOrNull())
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public ReadOnly Property Properties As ImmutableArray(Of AnonymousTypePropertyPublicSymbol)
                 Get
-                    Return Me.m_properties
+                    Return Me._properties
                 End Get
             End Property
 
@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-                Return m_members
+                Return _members
             End Function
 
             Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
-                Return m_interfaces
+                Return _interfaces
             End Function
 
             Public Overrides Function MapToImplementationSymbol() As NamedTypeSymbol

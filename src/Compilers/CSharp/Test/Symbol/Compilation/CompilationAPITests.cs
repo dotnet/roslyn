@@ -95,7 +95,7 @@ namespace A.B {
             var comp1 = CSharpCompilation.Create(asmname, listSyntaxTree, listRef, null);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToMemoryStreams()
         {
             var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
@@ -143,7 +143,7 @@ namespace A.B {
             }
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToBoundedStreams()
         {
             var pdbArray = new byte[100000];
@@ -160,7 +160,7 @@ namespace A.B {
             r.Diagnostics.Verify();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToStreamWithNonZeroPosition()
         {
             var pdbStream = new MemoryStream();
@@ -179,7 +179,7 @@ namespace A.B {
             AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'Z' }, peStream.GetBuffer().Take(3).ToArray());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToNonSeekableStreams()
         {
             var peStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
@@ -234,7 +234,7 @@ namespace A.B {
             Assert.False(result.Success);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void NegEmit()
         {
             var ops = TestOptions.ReleaseDll;
@@ -656,7 +656,7 @@ var a = new C2();
 }"
             });
             assembly.VerifyEmitDiagnostics();
-            CompileAndVerify(assembly, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(assembly, emitters: TestEmitters.RefEmitBug);
         }
 
         [WorkItem(713356, "DevDiv")]
@@ -1352,7 +1352,7 @@ class A
             Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void GetEntryPoint_Submission()
         {
             var source = @"
@@ -1877,7 +1877,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.False(result.Success);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitDebugInfoForSourceTextWithoutEncoding2()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class A { public void F() { } }", encoding: Encoding.Unicode, path: "Foo.cs");
@@ -1908,7 +1908,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
     <file id=""3"" name=""Baz.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum4 + @""" />
 </files>";
 
-            AssertXmlEqual(expected, actual);
+            AssertXml.Equal(expected, actual);
         }
 
         [Fact]

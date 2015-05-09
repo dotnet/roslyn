@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         [Call] = &H4 ' Result is not needed and we are not going to assign to the member. Cannot be combined with [Get] or [Set]
     End Enum
 
-    Partial Class BoundLateMemberAccess
+    Friend Partial Class BoundLateMemberAccess
         ''' <summary>
         ''' Updates property access kind. To clear the access kind,
         ''' 'newAccessKind' should be Unknown. Otherwise, the current

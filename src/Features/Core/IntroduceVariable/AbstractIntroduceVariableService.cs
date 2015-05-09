@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool IsInParameterInitializer(TExpressionSyntax expression);
         protected abstract bool IsInConstructorInitializer(TExpressionSyntax expression);
         protected abstract bool IsInAttributeArgumentInitializer(TExpressionSyntax expression);
+        protected abstract bool IsInExpressionBodiedMember(TExpressionSyntax expression);
 
         protected abstract IEnumerable<SyntaxNode> GetContainingExecutableBlocks(TExpressionSyntax expression);
         protected abstract IList<bool> GetInsertionIndices(TTypeDeclarationSyntax destination, CancellationToken cancellationToken);
@@ -101,25 +102,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             else if (state.InBlockContext)
             {
-                if (state.IsConstant &&
-                    !state.GetSemanticMap(cancellationToken).AllReferencedSymbols.OfType<ILocalSymbol>().Any() &&
-                    !state.GetSemanticMap(cancellationToken).AllReferencedSymbols.OfType<IParameterSymbol>().Any())
-                {
-                    // If something is a constant, and it doesn't access any other locals constants,
-                    // then we prefer to offer to generate a constant field instead of a constant
-                    // local.
-                    var action1 = CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false);
-                    if (await CanGenerateIntoContainerAsync(state, action1, cancellationToken).ConfigureAwait(false))
-                    {
-                        actions.Add(action1);
-                    }
-
-                    var action2 = CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false);
-                    if (await CanGenerateIntoContainerAsync(state, action2, cancellationToken).ConfigureAwait(false))
-                    {
-                        actions.Add(action2);
-                    }
-                }
+                await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
 
                 var blocks = this.GetContainingExecutableBlocks(state.Expression);
                 var block = blocks.FirstOrDefault();
@@ -134,8 +117,37 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
             }
+            else if (state.InExpressionBodiedMemberContext)
+            {
+                await CreateConstantFieldActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+                actions.Add(CreateAction(state, allOccurrences: false, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+                actions.Add(CreateAction(state, allOccurrences: true, isConstant: state.IsConstant, isLocal: true, isQueryLocal: false));
+            }
 
             return actions;
+        }
+
+        private async Task CreateConstantFieldActionsAsync(State state, List<CodeAction> actions, CancellationToken cancellationToken)
+        {
+            if (state.IsConstant &&
+                !state.GetSemanticMap(cancellationToken).AllReferencedSymbols.OfType<ILocalSymbol>().Any() &&
+                !state.GetSemanticMap(cancellationToken).AllReferencedSymbols.OfType<IParameterSymbol>().Any())
+            {
+                // If something is a constant, and it doesn't access any other locals constants,
+                // then we prefer to offer to generate a constant field instead of a constant
+                // local.
+                var action1 = CreateAction(state, allOccurrences: false, isConstant: true, isLocal: false, isQueryLocal: false);
+                if (await CanGenerateIntoContainerAsync(state, action1, cancellationToken).ConfigureAwait(false))
+                {
+                    actions.Add(action1);
+                }
+
+                var action2 = CreateAction(state, allOccurrences: true, isConstant: true, isLocal: false, isQueryLocal: false);
+                if (await CanGenerateIntoContainerAsync(state, action2, cancellationToken).ConfigureAwait(false))
+                {
+                    actions.Add(action2);
+                }
+            }
         }
 
         private async Task<bool> CanGenerateIntoContainerAsync(State state, CodeAction action, CancellationToken cancellationToken)

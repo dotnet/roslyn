@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     ' TODO: Make this class static when we add that functionality to VB.
     Namespace DataTipInfoGetter
-        Module DataTipInfoGetterModule
+        Friend Module DataTipInfoGetterModule
             Friend Async Function GetInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of DebugDataTipInfo)
                 Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim token = root.FindToken(position)

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IEquatable(Of VisualBasicParseOptions)
 
         Public Shared ReadOnly [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
-        Private Shared _defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
+        Private Shared s_defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
 
         Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
         Private _languageVersion As LanguageVersion
@@ -38,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)))
 
             If Not languageVersion.IsValid Then
-                Throw New ArgumentOutOfRangeException("languageVersion")
+                Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
             End If
 
             If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException("kind")
+                Throw New ArgumentOutOfRangeException(NameOf(kind))
             End If
 
-            ValidatePreprocessorSymbols(preprocessorSymbols, "preprocessorSymbols")
+            ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
         End Sub
 
         Private Shared Sub ValidatePreprocessorSymbols(preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
@@ -94,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
-                If _defaultPreprocessorSymbols.IsDefaultOrEmpty Then
-                    _defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
+                If s_defaultPreprocessorSymbols.IsDefaultOrEmpty Then
+                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
                 End If
 
-                Return _defaultPreprocessorSymbols
+                Return s_defaultPreprocessorSymbols
             End Get
         End Property
 
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not version.IsValid Then
-                Throw New ArgumentOutOfRangeException("version")
+                Throw New ArgumentOutOfRangeException(NameOf(version))
             End If
 
             Return New VisualBasicParseOptions(Me) With {._languageVersion = version}
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not kind.IsValid Then
-                Throw New ArgumentOutOfRangeException("kind")
+                Throw New ArgumentOutOfRangeException(NameOf(kind))
             End If
 
             Return New VisualBasicParseOptions(Me) With {.Kind = kind}
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not documentationMode.IsValid() Then
-                Throw New ArgumentOutOfRangeException("documentationMode")
+                Throw New ArgumentOutOfRangeException(NameOf(documentationMode))
             End If
 
             Return New VisualBasicParseOptions(Me) With {.DocumentationMode = documentationMode}
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            ValidatePreprocessorSymbols(symbols, "symbols")
+            ValidatePreprocessorSymbols(symbols, NameOf(symbols))
 
             Return New VisualBasicParseOptions(Me) With {._preprocessorSymbols = symbols}
         End Function
@@ -248,11 +248,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function WithFeatures(features As IEnumerable(Of KeyValuePair(Of String, String))) As VisualBasicParseOptions
             ' there are currently no parse options for experimental features
             If features Is Nothing Then
-                Throw New ArgumentException(NameOf (features))
+                Throw New ArgumentException(NameOf(features))
             End If
 
             If features.Any() Then
-                Throw New ArgumentException("Experimental features are not supported", NameOf (features))
+                Throw New ArgumentException("Experimental features are not supported", NameOf(features))
             End If
 
             Return Me

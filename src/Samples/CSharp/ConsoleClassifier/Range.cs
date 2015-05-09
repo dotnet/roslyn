@@ -13,7 +13,7 @@ public class Range
     {
     }
 
-    public Range(string classification, TextSpan span, string text) : 
+    public Range(string classification, TextSpan span, string text) :
         this(new ClassifiedSpan(classification, span), text)
     {
     }

@@ -29,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByRef allFailedInferenceIsDueToObject As Boolean,
             ByRef someInferenceFailed As Boolean,
             ByRef inferenceErrorReasons As InferenceErrorReasons,
-            <Out> ByRef inferredTypeByAssumption As BitArray,
+            <Out> ByRef inferredTypeByAssumption As BitVector,
             <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
             ByRef diagnostic As DiagnosticBag,
-            Optional inferTheseTypeParameters As BitArray = Nothing
+            Optional inferTheseTypeParameters As BitVector = Nothing
         ) As Boolean
             Debug.Assert(candidate Is candidate.ConstructedFrom)
 
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' In contravariant contexts e.g. IEnumerable(Of _), the two match if Parm <= Arg (i.e. Parm inherits/implements Arg).
         ' In invariant contexts e.g. List(Of _), the two match only if Arg and Parm are identical.
         ' Note: remember that rank-1 arrays T() implement IEnumerable(Of T), IList(Of T) and ICollection(Of T).
-        Enum MatchGenericArgumentToParameter
+        Public Enum MatchGenericArgumentToParameter
             MatchBaseOfGenericArgumentToParameter
             MatchArgumentToBaseOfGenericParameter
             MatchGenericArgumentToParameterExactly
@@ -131,16 +131,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly DeclaredTypeParam As TypeParameterSymbol
             Public ReadOnly InferenceTypeCollection As TypeInferenceCollection(Of DominantTypeDataTypeInference)
 
-            Private m_InferredType As TypeSymbol
-            Private m_InferredFromLocation As SyntaxNodeOrToken
-            Private m_InferredTypeByAssumption As Boolean
+            Private _inferredType As TypeSymbol
+            Private _inferredFromLocation As SyntaxNodeOrToken
+            Private _inferredTypeByAssumption As Boolean
 
             ' TODO: Dev10 has two locations to track type inferred so far. 
             '       One that can be changed with time and the other one that cannot be changed.
             '       This one, cannot be changed once set. We need to clean this up later.
-            Private m_CandidateInferredType As TypeSymbol
+            Private _candidateInferredType As TypeSymbol
 
-            Private m_Parameter As ParameterSymbol
+            Private _parameter As ParameterSymbol
 
             Public Sub New(graph As InferenceGraph, typeParameter As TypeParameterSymbol)
                 MyBase.New(graph, InferenceNodeType.TypeParameterNode)
@@ -152,25 +152,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property InferredType As TypeSymbol
                 Get
-                    Return m_InferredType
+                    Return _inferredType
                 End Get
             End Property
 
             Public ReadOnly Property CandidateInferredType As TypeSymbol
                 Get
-                    Return m_CandidateInferredType
+                    Return _candidateInferredType
                 End Get
             End Property
 
             Public ReadOnly Property InferredFromLocation As SyntaxNodeOrToken
                 Get
-                    Return m_InferredFromLocation
+                    Return _inferredFromLocation
                 End Get
             End Property
 
             Public ReadOnly Property InferredTypeByAssumption As Boolean
                 Get
-                    Return m_InferredTypeByAssumption
+                    Return _inferredTypeByAssumption
                 End Get
             End Property
 
@@ -201,27 +201,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(Not (TypeOf inferredType Is ArrayLiteralTypeSymbol))
 
-                m_InferredType = inferredType
-                m_InferredFromLocation = inferredFromLocation
-                m_InferredTypeByAssumption = inferredTypeByAssumption
+                _inferredType = inferredType
+                _inferredFromLocation = inferredFromLocation
+                _inferredTypeByAssumption = inferredTypeByAssumption
 
                 ' TODO: Dev10 has two locations to track type inferred so far. 
                 '       One that can be changed with time and the other one that cannot be changed.
                 '       We need to clean this up.
-                If m_CandidateInferredType Is Nothing Then
-                    m_CandidateInferredType = inferredType
+                If _candidateInferredType Is Nothing Then
+                    _candidateInferredType = inferredType
                 End If
             End Sub
 
             Public ReadOnly Property Parameter As ParameterSymbol
                 Get
-                    Return m_Parameter
+                    Return _parameter
                 End Get
             End Property
 
             Public Sub SetParameter(parameter As ParameterSymbol)
-                Debug.Assert(m_Parameter Is Nothing)
-                m_Parameter = parameter
+                Debug.Assert(_parameter Is Nothing)
+                _parameter = parameter
             End Sub
 
 
@@ -616,14 +616,14 @@ HandleAsAGeneralExpression:
             Public ReadOnly DelegateReturnTypeReferenceBoundNode As BoundNode
             Public UseSiteDiagnostics As HashSet(Of DiagnosticInfo)
 
-            Private m_SomeInferenceFailed As Boolean
-            Private m_InferenceErrorReasons As InferenceErrorReasons
-            Private m_AllFailedInferenceIsDueToObject As Boolean = True ' remains true until proven otherwise.
-            Private m_TypeInferenceLevel As InferenceLevel = InferenceLevel.None
-            Private m_AsyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression)
+            Private _someInferenceFailed As Boolean
+            Private _inferenceErrorReasons As InferenceErrorReasons
+            Private _allFailedInferenceIsDueToObject As Boolean = True ' remains true until proven otherwise.
+            Private _typeInferenceLevel As InferenceLevel = InferenceLevel.None
+            Private _asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression)
 
-            Private ReadOnly m_TypeParameterNodes As ImmutableArray(Of TypeParameterNode)
-            Private m_VerifyingAssertions As Boolean
+            Private ReadOnly _typeParameterNodes As ImmutableArray(Of TypeParameterNode)
+            Private _verifyingAssertions As Boolean
 
             Private Sub New(
                 diagnostic As DiagnosticBag,
@@ -645,7 +645,7 @@ HandleAsAGeneralExpression:
                 Me.ParamArrayItems = paramArrayItems
                 Me.DelegateReturnType = delegateReturnType
                 Me.DelegateReturnTypeReferenceBoundNode = delegateReturnTypeReferenceBoundNode
-                Me.m_AsyncLambdaSubToFunctionMismatch = asyncLambdaSubToFunctionMismatch
+                Me._asyncLambdaSubToFunctionMismatch = asyncLambdaSubToFunctionMismatch
                 Me.UseSiteDiagnostics = useSiteDiagnostics
 
                 ' Allocate the array of TypeParameter nodes.
@@ -657,44 +657,44 @@ HandleAsAGeneralExpression:
                     typeParameterNodes(i) = New TypeParameterNode(Me, candidate.TypeParameters(i))
                 Next
 
-                m_TypeParameterNodes = typeParameterNodes.AsImmutableOrNull()
+                _typeParameterNodes = typeParameterNodes.AsImmutableOrNull()
             End Sub
 
             Public ReadOnly Property SomeInferenceHasFailed As Boolean
                 Get
-                    Return m_SomeInferenceFailed
+                    Return _someInferenceFailed
                 End Get
             End Property
 
             Public Sub MarkInferenceFailure()
-                m_SomeInferenceFailed = True
+                _someInferenceFailed = True
             End Sub
 
             Public ReadOnly Property AllFailedInferenceIsDueToObject As Boolean
                 Get
-                    Return m_AllFailedInferenceIsDueToObject
+                    Return _allFailedInferenceIsDueToObject
                 End Get
             End Property
 
             Public ReadOnly Property InferenceErrorReasons As InferenceErrorReasons
                 Get
-                    Return m_InferenceErrorReasons
+                    Return _inferenceErrorReasons
                 End Get
             End Property
 
             Public Sub ReportNotFailedInferenceDueToObject()
-                m_AllFailedInferenceIsDueToObject = False
+                _allFailedInferenceIsDueToObject = False
             End Sub
 
             Public ReadOnly Property TypeInferenceLevel As InferenceLevel
                 Get
-                    Return m_TypeInferenceLevel
+                    Return _typeInferenceLevel
                 End Get
             End Property
 
             Public Sub MarkInferenceLevel(typeInferenceLevel As InferenceLevel)
-                If m_TypeInferenceLevel < typeInferenceLevel Then
-                    m_TypeInferenceLevel = typeInferenceLevel
+                If _typeInferenceLevel < typeInferenceLevel Then
+                    _typeInferenceLevel = typeInferenceLevel
                 End If
             End Sub
 
@@ -711,12 +711,12 @@ HandleAsAGeneralExpression:
                 ByRef allFailedInferenceIsDueToObject As Boolean,
                 ByRef someInferenceFailed As Boolean,
                 ByRef inferenceErrorReasons As InferenceErrorReasons,
-                <Out> ByRef inferredTypeByAssumption As BitArray,
+                <Out> ByRef inferredTypeByAssumption As BitVector,
                 <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
                 <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                 ByRef diagnostic As DiagnosticBag,
-                inferTheseTypeParameters As BitArray
+                inferTheseTypeParameters As BitVector
             ) As Boolean
                 Dim graph As New InferenceGraph(diagnostic, candidate, arguments, parameterToArgumentMap, paramArrayItems,
                                                 delegateReturnType, delegateReturnTypeReferenceBoundNode, asyncLambdaSubToFunctionMismatch,
@@ -885,7 +885,7 @@ HandleAsAGeneralExpression:
 
                     ' TODO: Should we use InferredType or CandidateInferredType here? It looks like Dev10 is using the latter,
                     '       it might not be cleaned in case of a failure. Will use the former for now.
-                    Dim typeParameterNode = graph.m_TypeParameterNodes(i)
+                    Dim typeParameterNode = graph._typeParameterNodes(i)
 
                     Dim inferredType As TypeSymbol = typeParameterNode.InferredType
 
@@ -896,7 +896,7 @@ HandleAsAGeneralExpression:
 
                     If typeParameterNode.InferredTypeByAssumption Then
                         If inferredTypeByAssumption.IsNull Then
-                            inferredTypeByAssumption = BitArray.Create(arity)
+                            inferredTypeByAssumption = BitVector.Create(arity)
                         End If
                         inferredTypeByAssumption(i) = True
                     End If
@@ -907,12 +907,12 @@ HandleAsAGeneralExpression:
 
                 typeArguments = inferredTypes.AsImmutableOrNull()
                 typeArgumentsLocation = inferredFromLocation.AsImmutableOrNull()
-                inferenceLevel = graph.m_TypeInferenceLevel
+                inferenceLevel = graph._typeInferenceLevel
 
                 Debug.Assert(diagnostic Is Nothing OrElse diagnostic Is graph.Diagnostic)
                 diagnostic = graph.Diagnostic
 
-                asyncLambdaSubToFunctionMismatch = graph.m_AsyncLambdaSubToFunctionMismatch
+                asyncLambdaSubToFunctionMismatch = graph._asyncLambdaSubToFunctionMismatch
                 useSiteDiagnostics = graph.UseSiteDiagnostics
 
                 Return succeeded
@@ -1051,16 +1051,16 @@ HandleAsAGeneralExpression:
                 node As ArgumentNode,
                 isOutgoingEdge As Boolean
             )
-                AddTypeToGraph(node.ParameterType, node, isOutgoingEdge, BitArray.Create(m_TypeParameterNodes.Length))
+                AddTypeToGraph(node.ParameterType, node, isOutgoingEdge, BitVector.Create(_typeParameterNodes.Length))
             End Sub
 
             Private Function FindTypeParameterNode(typeParameter As TypeParameterSymbol) As TypeParameterNode
                 Dim ordinal As Integer = typeParameter.Ordinal
 
-                If ordinal < m_TypeParameterNodes.Length AndAlso
-                   m_TypeParameterNodes(ordinal) IsNot Nothing AndAlso
-                   typeParameter.Equals(m_TypeParameterNodes(ordinal).DeclaredTypeParam) Then
-                    Return m_TypeParameterNodes(ordinal)
+                If ordinal < _typeParameterNodes.Length AndAlso
+                   _typeParameterNodes(ordinal) IsNot Nothing AndAlso
+                   typeParameter.Equals(_typeParameterNodes(ordinal).DeclaredTypeParam) Then
+                    Return _typeParameterNodes(ordinal)
                 End If
 
                 Return Nothing
@@ -1070,7 +1070,7 @@ HandleAsAGeneralExpression:
                 parameterType As TypeSymbol,
                 argNode As ArgumentNode,
                 isOutgoingEdge As Boolean,
-                ByRef haveSeenTypeParameters As BitArray
+                ByRef haveSeenTypeParameters As BitVector
             )
                 Select Case parameterType.Kind
                     Case SymbolKind.TypeParameter
@@ -1124,7 +1124,7 @@ HandleAsAGeneralExpression:
                 Debug.Assert(argNode.Expression.Kind = BoundKind.AddressOfOperator)
 
                 If parameterType.IsTypeParameter() Then
-                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitArray.Create(m_TypeParameterNodes.Length))
+                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitVector.Create(_typeParameterNodes.Length))
 
                 ElseIf parameterType.IsDelegateType() Then
                     Dim delegateType As NamedTypeSymbol = DirectCast(parameterType, NamedTypeSymbol)
@@ -1132,7 +1132,7 @@ HandleAsAGeneralExpression:
 
                     If invoke IsNot Nothing AndAlso invoke.GetUseSiteErrorInfo() Is Nothing AndAlso delegateType.IsGenericType Then
 
-                        Dim haveSeenTypeParameters = BitArray.Create(m_TypeParameterNodes.Length)
+                        Dim haveSeenTypeParameters = BitVector.Create(_typeParameterNodes.Length)
                         AddTypeToGraph(invoke.ReturnType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=haveSeenTypeParameters) ' outgoing (name->type) edge
 
                         haveSeenTypeParameters.Clear()
@@ -1158,7 +1158,7 @@ HandleAsAGeneralExpression:
             )
                 If parameterType.IsTypeParameter() Then
                     ' Lambda is bound to a generic typeParam, just infer anonymous delegate
-                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitArray.Create(m_TypeParameterNodes.Length))
+                    AddTypeToGraph(parameterType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=BitVector.Create(_typeParameterNodes.Length))
 
                 ElseIf parameterType.IsDelegateType() Then
                     Dim delegateType As NamedTypeSymbol = DirectCast(parameterType, NamedTypeSymbol)
@@ -1180,7 +1180,7 @@ HandleAsAGeneralExpression:
                                 Throw ExceptionUtilities.UnexpectedValue(argNode.Expression.Kind)
                         End Select
 
-                        Dim haveSeenTypeParameters = BitArray.Create(m_TypeParameterNodes.Length)
+                        Dim haveSeenTypeParameters = BitVector.Create(_typeParameterNodes.Length)
 
                         For i As Integer = 0 To Math.Min(delegateParemeters.Length, lambdaParameters.Length) - 1 Step 1
                             If lambdaParameters(i).Type IsNot Nothing Then
@@ -2144,11 +2144,11 @@ HandleAsAGeneralExpression:
                                                                             unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void)))
 
                                     If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.HasAnyErrors() Then
-                                        If m_AsyncLambdaSubToFunctionMismatch Is Nothing Then
-                                            m_AsyncLambdaSubToFunctionMismatch = New HashSet(Of BoundExpression)(ReferenceEqualityComparer.Instance)
+                                        If _asyncLambdaSubToFunctionMismatch Is Nothing Then
+                                            _asyncLambdaSubToFunctionMismatch = New HashSet(Of BoundExpression)(ReferenceEqualityComparer.Instance)
                                         End If
 
-                                        m_AsyncLambdaSubToFunctionMismatch.Add(unboundLambda)
+                                        _asyncLambdaSubToFunctionMismatch.Add(unboundLambda)
                                     End If
                                 End If
                             End If
@@ -2188,10 +2188,10 @@ HandleAsAGeneralExpression:
                 ' arguments as they stand right now, with some of them still being uninferred.
 
                 Dim methodSymbol As MethodSymbol = Candidate
-                Dim typeArguments(m_TypeParameterNodes.Length - 1) As TypeSymbol
+                Dim typeArguments(_typeParameterNodes.Length - 1) As TypeSymbol
 
-                For i As Integer = 0 To m_TypeParameterNodes.Length - 1 Step 1
-                    Dim typeNode As TypeParameterNode = m_TypeParameterNodes(i)
+                For i As Integer = 0 To _typeParameterNodes.Length - 1 Step 1
+                    Dim typeNode As TypeParameterNode = _typeParameterNodes(i)
 
                     If typeNode Is Nothing OrElse typeNode.CandidateInferredType Is Nothing Then
                         'No substitution
@@ -2239,7 +2239,7 @@ HandleAsAGeneralExpression:
             End Sub
 
             Public Sub RegisterErrorReasons(inferenceErrorReasons As InferenceErrorReasons)
-                m_InferenceErrorReasons = m_InferenceErrorReasons Or inferenceErrorReasons
+                _inferenceErrorReasons = _inferenceErrorReasons Or inferenceErrorReasons
             End Sub
 
         End Class

@@ -126,7 +126,7 @@ jumped to l3 in if
         End Sub
 
         <Fact()>
-        Sub NumericLabel()
+        Public Sub NumericLabel()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -151,7 +151,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoIf()
+        Public Sub GotoIf()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -190,7 +190,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoThen()
+        Public Sub GotoThen()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -230,7 +230,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoElse()
+        Public Sub GotoElse()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -268,7 +268,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoElse_1()
+        Public Sub GotoElse_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -303,7 +303,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoElseIf()
+        Public Sub GotoElseIf()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -344,7 +344,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoElseIf_1()
+        Public Sub GotoElseIf_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -382,7 +382,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoInCase()
+        Public Sub GotoInCase()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -430,7 +430,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub LabelOnCase()
+        Public Sub LabelOnCase()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -468,7 +468,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub ComplexNestedIf()
+        Public Sub ComplexNestedIf()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -507,7 +507,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub InfiniteLoop()
+        Public Sub InfiniteLoop()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -533,7 +533,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub InfiniteLoop_1()
+        Public Sub InfiniteLoop_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -559,7 +559,7 @@ End Module
 
         ' Finally is executed while use 'goto' to exit try block
         <Fact()>
-        Sub BranchOutFromTry()
+        Public Sub BranchOutFromTry()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -620,7 +620,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub GotoInFinally()
+        Public Sub GotoInFinally()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -680,7 +680,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub BranchOutFromInnerTryToOut()
+        Public Sub BranchOutFromInnerTryToOut()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -759,7 +759,7 @@ outer Try]]>).VerifyIL("c1.Main", <![CDATA[
         End Sub
 
         <Fact()>
-        Sub GotoInLambda()
+        Public Sub GotoInLambda()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -789,7 +789,7 @@ End Class
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  dup
-  IL_0009:  ldftn      "Function c1._Closure$__1-0._Lambda$__1(Integer) As Integer"
+  IL_0009:  ldftn      "Function c1._Closure$__1-0._Lambda$__0(Integer) As Integer"
   IL_000f:  newobj     "Sub del..ctor(Object, System.IntPtr)"
   IL_0014:  stfld      "c1._Closure$__1-0.$VB$Local_q As del"
   IL_0019:  ret

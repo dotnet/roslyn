@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     {
         private readonly bool _isValidInPreprocessorContext;
 
-        protected internal SyntaxKind KeywordKind { get; private set; }
+        protected internal SyntaxKind KeywordKind { get; }
 
-        internal bool ShouldFormatOnCommit { get; private set; }
+        internal bool ShouldFormatOnCommit { get; }
 
         protected AbstractSyntacticSingleKeywordRecommender(
             SyntaxKind keywordKind,

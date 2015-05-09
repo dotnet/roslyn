@@ -306,12 +306,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeChecks(type, fieldSyntax, declarator, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
-                compilation.SemanticDiagnostics.AddRange(diagnostics);
+                compilation.DeclarationDiagnostics.AddRange(diagnostics);
 
                 bool isFirstDeclarator = fieldSyntax.Declaration.Variables[0] == declarator;
                 if (isFirstDeclarator)
                 {
-                    compilation.SemanticDiagnostics.AddRange(diagnosticsForFirstDeclarator);
+                    compilation.DeclarationDiagnostics.AddRange(diagnosticsForFirstDeclarator);
                 }
 
                 state.NotePartComplete(CompletionPart.Type);

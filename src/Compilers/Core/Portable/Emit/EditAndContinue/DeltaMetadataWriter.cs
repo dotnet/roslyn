@@ -166,35 +166,35 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.String] + _previousGeneration.StringStreamLengthAdded,
                 // UserString stream is concatenated aligned.
                 userStringStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.UserString) + _previousGeneration.UserStringStreamLengthAdded,
-                // Guid stream is always aligned (the size if a multiple of 16 = sizeof(Guid))
-                guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid] + _previousGeneration.GuidStreamLengthAdded,
+                // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
+                guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
-                addedOrChangedMethods: AddRange(addedOrChangedMethodsByIndex, _previousGeneration.AddedOrChangedMethods, replace: true),
+                addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex, replace: true),
                 debugInformationProvider: baseline.DebugInformationProvider);
         }
 
-        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> a, IReadOnlyDictionary<K, V> b, bool replace = false)
+        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false)
         {
-            if (a.Count == 0)
+            if (previous.Count == 0)
             {
-                return b;
+                return current;
             }
 
-            if (b.Count == 0)
+            if (current.Count == 0)
             {
-                return a;
+                return previous;
             }
 
             var result = new Dictionary<K, V>();
-            foreach (var pair in a)
+            foreach (var pair in previous)
             {
                 result.Add(pair.Key, pair.Value);
             }
 
-            foreach (var pair in b)
+            foreach (var pair in current)
             {
-                Debug.Assert(replace || !a.ContainsKey(pair.Key));
+                Debug.Assert(replace || !previous.ContainsKey(pair.Key));
                 result[pair.Key] = pair.Value;
             }
 
@@ -598,8 +598,8 @@ namespace Microsoft.CodeAnalysis.Emit
             if (symbolOpt != null && _changes.IsAdded(symbolOpt))
             {
                 this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(
-                    this.messageProvider.ERR_EncReferenceToAddedMember, 
-                    GetSymbolLocation(symbolOpt), 
+                    this.messageProvider.ERR_EncReferenceToAddedMember,
+                    GetSymbolLocation(symbolOpt),
                     symbolOpt.Name,
                     symbolOpt.ContainingAssembly.Name));
             }
@@ -651,8 +651,8 @@ namespace Microsoft.CodeAnalysis.Emit
             if (!method.IsImplicitlyDeclared)
             {
                 var info = new AddedOrChangedMethodInfo(
-                    new MethodDebugId(body.MethodOrdinal, this.Generation),
-                    encInfos.ToImmutable(), 
+                    body.MethodId,
+                    encInfos.ToImmutable(),
                     body.LambdaDebugInfo,
                     body.ClosureDebugInfo,
                     body.StateMachineTypeName,
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return new EncLocalInfo(localDef.SlotInfo, localDef.Type, localDef.Constraints, signature);
         }
-        
+
         protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
         {
             // The EncLog table is a log of all the operations needed

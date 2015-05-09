@@ -105,14 +105,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             Dim classBlock = GetClassBlockAt(root, position)
             Debug.Assert(CanImplementDisposePattern(symbol, classBlock), "ImplementDisposePattern called with bad inputs")
 
-            ' Generate:
-            '
-            '   #Region "IDisposable Support"
-            '   Private disposedValue As Boolean ' To detect redundant calls
-            '   Protected Overridable Sub Dispose(disposing As Boolean)
-            '   Public Sub Dispose() Implements IDisposable.Dispose
-            '   #End Region
-            Dim code = String.Format(VBFeaturesResources.DisposePattern, If(symbol.IsSealed, "", "Overridable "))
+            ' Generate the IDisposable boilerplate code.  The generated code cannot be one giant resource string
+            ' because of the need to parse, format, and simplify the result; during pseudo-localized builds, resource
+            ' strings are given a special prefix and suffix that will break the parser, hence the requirement to
+            ' localize the comments individually.
+            Dim code = $"
+#Region ""IDisposable Support""
+    Private disposedValue As Boolean ' {FeaturesResources.ToDetectRedundantCalls}
+
+    ' IDisposable
+    Protected {If(symbol.IsSealed, "", "Overridable ")}Sub Dispose(disposing As Boolean)
+        If Not Me.disposedValue Then
+            If disposing Then
+                ' {FeaturesResources.DisposeManagedStateTodo}
+            End If
+
+            ' {VBFeaturesResources.FreeUnmanagedResourcesTodo}
+            ' {FeaturesResources.SetLargeFieldsToNullTodo}
+        End If
+        Me.disposedValue = True
+    End Sub
+
+    ' {VBFeaturesResources.OverrideFinalizerTodo}
+    'Protected Overrides Sub Finalize()
+    '    ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+    '    Dispose(False)
+    '    MyBase.Finalize()
+    'End Sub
+
+    ' {VBFeaturesResources.ThisCodeAddedToCorrectlyImplementDisposable}
+    Public Sub Dispose() Implements System.IDisposable.Dispose
+        ' {VBFeaturesResources.DoNotChangeThisCodeUseDispose}
+        Dispose(True)
+        ' {VBFeaturesResources.UncommentTheFollowingLineIfFinalizeIsOverridden}
+        ' GC.SuppressFinalize(Me)
+    End Sub
+#End Region
+"
 
             Dim decls = SyntaxFactory.ParseSyntaxTree(code).
                 GetRoot().DescendantNodes().

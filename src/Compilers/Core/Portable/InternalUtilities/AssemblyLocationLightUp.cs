@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 {
     internal static class AssemblyLocationLightUp
     {
-        private static Lazy<Func<Assembly, string>> s_lazyLocationGetter = new Lazy<Func<Assembly, string>>(() =>
+        private static readonly Lazy<Func<Assembly, string>> s_lazyLocationGetter = new Lazy<Func<Assembly, string>>(() =>
         {
             try
             {

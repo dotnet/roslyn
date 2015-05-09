@@ -18,22 +18,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         // This is a value used for logging only, do not depend on this value
         private readonly string _loggingIdentifier;
+        private static int _lastLoggingIdentifier;
 
         internal NamedPipeClientConnection(NamedPipeServerStream pipeStream)
         {
             _pipeStream = pipeStream;
-
-            try
-            {
-                _loggingIdentifier = _pipeStream.SafePipeHandle.DangerousGetHandle().ToInt32().ToString();
-            }
-            catch (Exception e)
-            {
-                // We shouldn't fail just because we don't have a good logging identifier
-                _loggingIdentifier = new Random().Next().ToString();
-                var msg = string.Format("Pipe {0}: Exception setting logging identifier.", _loggingIdentifier);
-                CompilerServerLogger.LogException(e, msg);
-            }
+            _loggingIdentifier = Interlocked.Increment(ref _lastLoggingIdentifier).ToString();
         }
 
         public string LoggingIdentifier

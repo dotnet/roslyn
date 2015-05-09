@@ -103,21 +103,21 @@ End Module
             Dim model = compilation.GetSemanticModel(tree)
 
             ' check 'q'
-            Dim posQ As Integer = text.IndexOf("q")
+            Dim posQ As Integer = text.IndexOf("q"c)
             Dim declaratorQ = tree.GetRoot().FindToken(posQ).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeExplicit(model,
                                        DirectCast(model.GetDeclaredSymbol(declaratorQ.Names(0)), LocalSymbol),
                                        DirectCast(declaratorQ.Initializer.Value, AnonymousObjectCreationExpressionSyntax))
 
             ' check 'x'
-            Dim posX = text.IndexOf("x")
+            Dim posX = text.IndexOf("x"c)
             Dim declaratorX = tree.GetRoot().FindToken(posX).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeExplicit(model,
                                        DirectCast(model.GetDeclaredSymbol(declaratorX.Names(0)), LocalSymbol),
                                        DirectCast(declaratorX.Initializer.Value, AnonymousObjectCreationExpressionSyntax))
 
             ' check 'z' --> 'x'
-            Dim posZ = text.IndexOf("z")
+            Dim posZ = text.IndexOf("z"c)
             Dim declaratorZ = tree.GetRoot().FindToken(posZ).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeExplicit(model,
                                        DirectCast(model.GetDeclaredSymbol(declaratorZ.Names(0)), LocalSymbol),
@@ -225,26 +225,26 @@ End Module
             Dim model = compilation.GetSemanticModel(tree)
 
             ' calculate offsets
-            Dim x1 = text.IndexOf("x")
-            Dim x2 = text.IndexOf("x", x1 + 1)
-            Dim x3 = text.IndexOf("x", x2 + 1)
-            Dim x4 = text.IndexOf("x", x3 + 1)
-            Dim x5 = text.IndexOf("x", x4 + 1)
-            Dim y1 = text.IndexOf("y")
-            Dim y2 = text.IndexOf("y", y1 + 1)
-            Dim y3 = text.IndexOf("y", y2 + 1)
-            Dim y4 = text.IndexOf("y", y3 + 1)
-            Dim y5 = text.IndexOf("y", y4 + 1)
-            Dim select1 = text.IndexOf("Select")
-            Dim select2 = text.IndexOf("Select", select1 + 1)
+            Dim x1 = text.IndexOf("x"c)
+            Dim x2 = text.IndexOf("x"c, x1 + 1)
+            Dim x3 = text.IndexOf("x"c, x2 + 1)
+            Dim x4 = text.IndexOf("x"c, x3 + 1)
+            Dim x5 = text.IndexOf("x"c, x4 + 1)
+            Dim y1 = text.IndexOf("y"c)
+            Dim y2 = text.IndexOf("y"c, y1 + 1)
+            Dim y3 = text.IndexOf("y"c, y2 + 1)
+            Dim y4 = text.IndexOf("y"c, y3 + 1)
+            Dim y5 = text.IndexOf("y"c, y4 + 1)
+            Dim select1 = text.IndexOf("Select", StringComparison.Ordinal)
+            Dim select2 = text.IndexOf("Select", select1 + 1, StringComparison.Ordinal)
 
             ' get 'other' type
-            Dim posW As Integer = text.IndexOf("w")
+            Dim posW As Integer = text.IndexOf("w"c)
             Dim declaratorW = tree.GetRoot().FindToken(posW).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             Dim typeW = DirectCast(model.GetDeclaredSymbol(declaratorW.Names(0)), LocalSymbol).Type
 
             ' check 'zf'
-            Dim posZF As Integer = text.IndexOf("zf")
+            Dim posZF As Integer = text.IndexOf("zf", StringComparison.Ordinal)
             Dim declaratorZF = tree.GetRoot().FindToken(posZF).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeImplicit(DirectCast(model.GetDeclaredSymbol(declaratorZF.Names(0)), LocalSymbol),
                                        tree.GetRoot().FindToken(select1).GetLocation,
@@ -254,7 +254,7 @@ End Module
                                        tree.GetRoot().FindToken(y4 - 2).GetLocation())
 
             ' check 'zk'
-            Dim posZL As Integer = text.IndexOf("zl")
+            Dim posZL As Integer = text.IndexOf("zl", StringComparison.Ordinal)
             Dim declaratorZL = tree.GetRoot().FindToken(posZL).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeImplicit(DirectCast(model.GetDeclaredSymbol(declaratorZL.Names(0)), LocalSymbol),
                                        tree.GetRoot().FindToken(select2).GetLocation,
@@ -298,24 +298,24 @@ End Module
             Dim model = compilation.GetSemanticModel(tree)
 
             ' calculate offsets
-            Dim x1 = text.IndexOf("x")
-            Dim x2 = text.IndexOf("x", x1 + 1)
-            Dim x3 = text.IndexOf("x", x2 + 1)
-            Dim y1 = text.IndexOf("yy")
-            Dim y2 = text.IndexOf("yy", y1 + 1)
-            Dim y3 = text.IndexOf("yy", y2 + 1)
-            Dim sub1 = text.IndexOf("Sub")
-            Dim sub2 = text.IndexOf("Sub", sub1 + 1)
-            Dim sub3 = text.IndexOf("Sub", sub2 + 1)
-            Dim sub4 = text.IndexOf("Sub", sub3 + 1)
+            Dim x1 = text.IndexOf("x"c)
+            Dim x2 = text.IndexOf("x"c, x1 + 1)
+            Dim x3 = text.IndexOf("x"c, x2 + 1)
+            Dim y1 = text.IndexOf("yy", StringComparison.Ordinal)
+            Dim y2 = text.IndexOf("yy", y1 + 1, StringComparison.Ordinal)
+            Dim y3 = text.IndexOf("yy", y2 + 1, StringComparison.Ordinal)
+            Dim sub1 = text.IndexOf("Sub", StringComparison.Ordinal)
+            Dim sub2 = text.IndexOf("Sub", sub1 + 1, StringComparison.Ordinal)
+            Dim sub3 = text.IndexOf("Sub", sub2 + 1, StringComparison.Ordinal)
+            Dim sub4 = text.IndexOf("Sub", sub3 + 1, StringComparison.Ordinal)
 
             ' get 'model' type
-            Dim posT As Integer = text.IndexOf("del_t")
+            Dim posT As Integer = text.IndexOf("del_t", StringComparison.Ordinal)
             Dim declaratorT = tree.GetRoot().FindToken(posT).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             Dim typeT = DirectCast(model.GetDeclaredSymbol(declaratorT.Names(0)), LocalSymbol).Type
 
             ' check 'a'
-            Dim posA As Integer = text.IndexOf("del_a")
+            Dim posA As Integer = text.IndexOf("del_a", StringComparison.Ordinal)
             Dim declaratorA = tree.GetRoot().FindToken(posA).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeImplicit(DirectCast(model.GetDeclaredSymbol(declaratorA.Names(0)), LocalSymbol),
                                        tree.GetRoot().FindToken(sub2).Parent.Parent.GetLocation,
@@ -325,7 +325,7 @@ End Module
                                        tree.GetRoot().FindToken(y1 - 2).GetLocation())
 
             ' check 'b'
-            Dim posB As Integer = text.IndexOf("del_b")
+            Dim posB As Integer = text.IndexOf("del_b", StringComparison.Ordinal)
             Dim declaratorB = tree.GetRoot().FindToken(posB).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeImplicit(DirectCast(model.GetDeclaredSymbol(declaratorB.Names(0)), LocalSymbol),
                                        tree.GetRoot().FindToken(sub4).Parent.Parent.GetLocation,
@@ -367,22 +367,22 @@ End Module
             Dim model = compilation.GetSemanticModel(tree)
 
             ' calculate offsets
-            Dim x1 = text.IndexOf("x")
-            Dim x2 = text.IndexOf("x", x1 + 1)
-            Dim x3 = text.IndexOf("x", x2 + 1)
-            Dim y1 = text.IndexOf("yy")
-            Dim y2 = text.IndexOf("yy", y1 + 1)
-            Dim y3 = text.IndexOf("yy", y2 + 1)
-            Dim sub1 = text.IndexOf("Sub")
-            Dim sub2 = text.IndexOf("Sub", sub1 + 1)
+            Dim x1 = text.IndexOf("x"c)
+            Dim x2 = text.IndexOf("x"c, x1 + 1)
+            Dim x3 = text.IndexOf("x"c, x2 + 1)
+            Dim y1 = text.IndexOf("yy", StringComparison.Ordinal)
+            Dim y2 = text.IndexOf("yy", y1 + 1, StringComparison.Ordinal)
+            Dim y3 = text.IndexOf("yy", y2 + 1, StringComparison.Ordinal)
+            Dim sub1 = text.IndexOf("Sub", StringComparison.Ordinal)
+            Dim sub2 = text.IndexOf("Sub", sub1 + 1, StringComparison.Ordinal)
 
             ' get 'model' type
-            Dim posT As Integer = text.IndexOf("del_t")
+            Dim posT As Integer = text.IndexOf("del_t", StringComparison.Ordinal)
             Dim declaratorT = tree.GetRoot().FindToken(posT).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             Dim typeT = DirectCast(model.GetDeclaredSymbol(declaratorT.Names(0)), LocalSymbol).Type
 
             ' check 'a'
-            Dim posA As Integer = text.IndexOf("del_a")
+            Dim posA As Integer = text.IndexOf("del_a", StringComparison.Ordinal)
             Dim declaratorA = tree.GetRoot().FindToken(posA).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeImplicit(DirectCast(model.GetDeclaredSymbol(declaratorA.Names(0)), LocalSymbol),
                                        tree.GetRoot().FindToken(sub1).Parent.Parent.GetLocation,
@@ -392,7 +392,7 @@ End Module
                                        tree.GetRoot().FindToken(y1 - 2).GetLocation())
 
             ' check 'b'
-            Dim posB As Integer = text.IndexOf("del_b")
+            Dim posB As Integer = text.IndexOf("del_b", StringComparison.Ordinal)
             Dim declaratorB = tree.GetRoot().FindToken(posB).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
             CheckAnonymousTypeImplicit(DirectCast(model.GetDeclaredSymbol(declaratorB.Names(0)), LocalSymbol),
                                        tree.GetRoot().FindToken(sub2).Parent.Parent.GetLocation,
@@ -2002,13 +2002,13 @@ End Module
                 Dim endMarker = index & "#]"
 
                 ' opening '[#{0-9}'
-                Dim start = text.<file>.Value.IndexOf(startMarker)
+                Dim start = text.<file>.Value.IndexOf(startMarker, StringComparison.Ordinal)
                 If start < 0 Then
                     Exit Do
                 End If
 
                 ' closing '{0-9}#]'
-                Dim [end] = text.<file>.Value.IndexOf(endMarker)
+                Dim [end] = text.<file>.Value.IndexOf(endMarker, StringComparison.Ordinal)
                 Assert.InRange([end], 0, Int32.MaxValue)
 
                 nodes.Add(New TextSpan(start, [end] - start + 3))
@@ -2037,7 +2037,7 @@ End Module
 
 #Region "Extensions"
 
-    Module TestExtensions
+    Friend Module TestExtensions
 
         <Extension()>
         Public Function TheOnlyConstructor(type As ITypeSymbol) As MethodSymbol

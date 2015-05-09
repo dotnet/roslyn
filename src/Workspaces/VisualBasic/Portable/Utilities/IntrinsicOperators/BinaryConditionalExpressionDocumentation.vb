@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-    NotInheritable Class BinaryConditionalExpressionDocumentation
+    Friend NotInheritable Class BinaryConditionalExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
         Public Overrides ReadOnly Property DocumentationText As String
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 1
                     Return VBWorkspaceResources.ReturnedIfNothing
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 1
                     Return VBWorkspaceResources.ExpressionIfNothing
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 

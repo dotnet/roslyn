@@ -23,17 +23,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         // Note: Dev11 uses the source method token as the prefix, rather than a fixed token
         // value, and data field offsets are unique within the method, not across all methods.
-        private const string MemberNamePrefix = "$$method0x6000001-";
-        internal const string SynthesizedStringHashFunctionName = MemberNamePrefix + "ComputeStringHash";
+        internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
 
-        private readonly Cci.IModule _module;                     //parent unit
-        private readonly Cci.ITypeReference _systemObject;        //base type
-        private readonly Cci.ITypeReference _systemValueType;     //base for nested structs
+        private readonly Cci.IModule _moduleBuilder;                 //the module builder
+        private readonly Cci.ITypeReference _systemObject;           //base type
+        private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
 
-        private readonly Cci.ITypeReference _systemInt8Type;         //for metadata init of short arrays
+        private readonly Cci.ITypeReference _systemInt8Type;         //for metadata init of byte arrays
         private readonly Cci.ITypeReference _systemInt16Type;        //for metadata init of short arrays
-        private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of short arrays
-        private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of short arrays
+        private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
+        private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
         private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
 
@@ -57,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<uint, Cci.ITypeReference> _proxyTypes = new ConcurrentDictionary<uint, Cci.ITypeReference>();
 
         internal PrivateImplementationDetails(
-            Cci.IModule module,
+            Cci.IModule moduleBuilder,
+            string moduleName,
             int submissionSlotIndex,
             Cci.ITypeReference systemObject,
             Cci.ITypeReference systemValueType,
@@ -67,11 +67,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt64Type,
             Cci.ICustomAttribute compilerGeneratedAttribute)
         {
-            Debug.Assert(module != null);
             Debug.Assert(systemObject != null);
             Debug.Assert(systemValueType != null);
 
-            _module = module;
+            _moduleBuilder = moduleBuilder;
             _systemObject = systemObject;
             _systemValueType = systemValueType;
 
@@ -81,12 +80,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _systemInt64Type = systemInt64Type;
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
-            _name = GetClassName(submissionSlotIndex);
+
+            var isNetModule = moduleBuilder.AsAssembly == null;
+            _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
         }
 
-        internal static string GetClassName(int submissionSlotIndex)
+        private static string GetClassName(string moduleName, int submissionSlotIndex, bool isNetModule)
         {
-            return "<PrivateImplementationDetails>" + (submissionSlotIndex >= 0 ? submissionSlotIndex.ToString() : "");
+            // we include the module name in the name of the PrivateImplementationDetails class so that more than
+            // one of them can be included in an assembly as part of netmodules.    
+            var name = isNetModule ?
+                        $"<PrivateImplementationDetails><{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" :
+                        $"<PrivateImplementationDetails>";
+
+            if (submissionSlotIndex >= 0)
+            {
+                name += submissionSlotIndex.ToString();
+            }
+
+            return name;
         }
 
         internal void Freeze()
@@ -108,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
         {
             Debug.Assert(!IsFrozen);
-            Cci.ITypeReference type = _proxyTypes.GetOrAdd((uint)data.Length, size => GetStorageStruct(size));
+            Cci.ITypeReference type = _proxyTypes.GetOrAdd((uint)data.Length, GetStorageStruct);
             return _mappedFields.GetOrAdd(data, data0 =>
             {
                 var name = GenerateDataFieldName(data0);
@@ -165,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(EmitContext context)
         {
             Debug.Assert(IsFrozen);
-            return System.Linq.Enumerable.OfType<ExplicitSizeStruct>(_orderedProxyTypes);
+            return _orderedProxyTypes.OfType<ExplicitSizeStruct>();
         }
 
         public override string ToString() => this.Name;
@@ -184,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Cci.INamespaceTypeDefinition)this);
+            visitor.Visit(this);
         }
 
         public override Cci.INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context) => this;
@@ -197,8 +209,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.IUnitReference GetUnit(EmitContext context)
         {
-            Debug.Assert(context.Module == _module);
-            return _module;
+            Debug.Assert(context.Module == _moduleBuilder);
+            return _moduleBuilder;
         }
 
         public string NamespaceName => string.Empty;
@@ -214,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 c[i++] = Hexchar(b & 0xF);
             }
 
-            return MemberNamePrefix + new string(c);
+            return new string(c);
         }
 
         private static char Hexchar(int x)
@@ -250,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         override public void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Cci.INestedTypeDefinition)this);
+            visitor.Visit(this);
         }
 
         public string Name => "__StaticArrayInitTypeSize=" + _size;
@@ -290,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _block = block;
             _name = name;
         }
-        
+
         public override string ToString() => $"{_type} {_containingType}.{this.Name}";
 
         public Cci.IMetadataConstant GetCompileTimeValue(EmitContext context) => null;
@@ -331,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public void Dispatch(Cci.MetadataVisitor visitor)
         {
-            visitor.Visit((Cci.IFieldDefinition)this);
+            visitor.Visit(this);
         }
 
         public Cci.IDefinition AsDefinition(EmitContext context)

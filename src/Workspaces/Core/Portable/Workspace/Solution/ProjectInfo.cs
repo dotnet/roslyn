@@ -6,93 +6,95 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// A class that represents all the arguments necessary to create a new project instance.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public sealed class ProjectInfo
     {
         /// <summary>
         /// The unique Id of the project.
         /// </summary>
-        public ProjectId Id { get; private set; }
+        public ProjectId Id { get; }
 
         /// <summary>
         /// The version of the project.
         /// </summary>
-        public VersionStamp Version { get; private set; }
+        public VersionStamp Version { get; }
 
         /// <summary>
         /// The name of the project. This may differ from the project's filename.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// The name of the assembly that this project will create, without file extension.
         /// </summary>,
-        public string AssemblyName { get; private set; }
+        public string AssemblyName { get; }
 
         /// <summary>
         /// The language of the project.
         /// </summary>
-        public string Language { get; private set; }
+        public string Language { get; }
 
         /// <summary>
         /// The path to the project file or null if there is no project file.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         /// <summary>
         /// The path to the output file (module or assembly).
         /// </summary>
-        public string OutputFilePath { get; private set; }
+        public string OutputFilePath { get; }
 
         /// <summary>
         /// The initial compilation options for the project, or null if the default options should be used.
         /// </summary>
-        public CompilationOptions CompilationOptions { get; private set; }
+        public CompilationOptions CompilationOptions { get; }
 
         /// <summary>
         /// The initial parse options for the source code documents in this project, or null if the default options should be used.
         /// </summary>
-        public ParseOptions ParseOptions { get; private set; }
+        public ParseOptions ParseOptions { get; }
 
         /// <summary>
         /// The list of source documents initially associated with the project.
         /// </summary>
-        public IReadOnlyList<DocumentInfo> Documents { get; private set; }
+        public IReadOnlyList<DocumentInfo> Documents { get; }
 
         /// <summary>
         /// The project references initially defined for the project.
         /// </summary>
-        public IReadOnlyList<ProjectReference> ProjectReferences { get; private set; }
+        public IReadOnlyList<ProjectReference> ProjectReferences { get; }
 
         /// <summary>
         /// The metadata references initially defined for the project.
         /// </summary>
-        public IReadOnlyList<MetadataReference> MetadataReferences { get; private set; }
+        public IReadOnlyList<MetadataReference> MetadataReferences { get; }
 
         /// <summary>
         /// The analyzers initially associated with this project.
         /// </summary>
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; private set; }
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
         /// <summary>
         /// The list of non-source documents associated with this project.
         /// </summary>
-        public IReadOnlyList<DocumentInfo> AdditionalDocuments { get; private set; }
+        public IReadOnlyList<DocumentInfo> AdditionalDocuments { get; }
 
         /// <summary>
         /// True if this is a submission project for interactive sessions.
         /// </summary>
-        public bool IsSubmission { get; private set; }
+        public bool IsSubmission { get; }
 
         /// <summary>
         /// Type of the host object.
         /// </summary>
-        public Type HostObjectType { get; private set; }
+        public Type HostObjectType { get; }
 
         private ProjectInfo(
             ProjectId id,
@@ -114,22 +116,22 @@ namespace Microsoft.CodeAnalysis
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (name == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (assemblyName == null)
             {
-                throw new ArgumentNullException("assemblyName");
+                throw new ArgumentNullException(nameof(assemblyName));
             }
 
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.Id = id;
@@ -322,6 +324,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
             return this.With(analyzerReferences: analyzerReferences.ToImmutableReadOnlyListOrEmpty());
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
         }
     }
 }

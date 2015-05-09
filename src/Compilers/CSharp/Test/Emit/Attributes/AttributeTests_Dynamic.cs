@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_Dynamic : WellKnownAttributesTestBase
     {
-        private static string s_dynamicTestSource = @"
+        private static readonly string s_dynamicTestSource = @"
 public class Base0 { }
 public class Base1<T> { }
 public class Base2<T, U> { }
@@ -112,11 +112,11 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         {
             private readonly SourceAssemblySymbol _srcAssembly;
             private readonly CSharpCompilation _comp;
-            private readonly MethodSymbol _dynamicAttributeCtorNoArgs,_dynamicAttributeCtorTransformFlags;
-            private readonly NamedTypeSymbol _base0Class,_base1Class,_base2Class,_derivedClass;
-            private readonly NamedTypeSymbol _outerClass,_innerClass,_innerInnerClass;
-            private readonly NamedTypeSymbol _outer2Class,_inner2Class,_innerInner2Class;
-            private readonly NamedTypeSymbol _outer3Class,_inner3Class;
+            private readonly MethodSymbol _dynamicAttributeCtorNoArgs, _dynamicAttributeCtorTransformFlags;
+            private readonly NamedTypeSymbol _base0Class, _base1Class, _base2Class, _derivedClass;
+            private readonly NamedTypeSymbol _outerClass, _innerClass, _innerInnerClass;
+            private readonly NamedTypeSymbol _outer2Class, _inner2Class, _innerInner2Class;
+            private readonly NamedTypeSymbol _outer3Class, _inner3Class;
             private readonly NamedTypeSymbol _unsafeClass;
             private readonly NamedTypeSymbol _structType;
             private readonly NamedTypeSymbol _synthesizedMyDelegateType;
@@ -815,7 +815,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute"));
         }
 
-        private static string s_noCS1980String = @"
+        private static readonly string s_noCS1980String = @"
 [Attr(typeof(%TYPENAME%))]            // No CS1980
 public class Gen<T>
 {

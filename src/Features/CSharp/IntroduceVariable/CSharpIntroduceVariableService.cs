@@ -51,6 +51,26 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
         }
 
+        protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
+        {
+            // walk up until we find a nearest enclosing block or arrow expression.
+            for (SyntaxNode node = expression; node != null; node = node.GetParent())
+            {
+                // If we are in an expression bodied member and if the expression has a block body, then,
+                // act as if we're in a block context and not in an expression body context at all.
+                if (node.IsKind(SyntaxKind.Block))
+                {
+                    return false;
+                }
+                else if (node.IsKind(SyntaxKind.ArrowExpressionClause))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         protected override bool IsInAttributeArgumentInitializer(ExpressionSyntax expression)
         {
             // Don't call the base here.  We want to let the user extract a constant if they've
@@ -76,9 +96,20 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return false;
         }
 
+        /// <summary>
+        /// Checks for conditions where we should not generate a variable for an expression
+        /// </summary>
         protected override bool CanIntroduceVariableFor(ExpressionSyntax expression)
         {
+            // (a) If that's the only expression in a statement.
+            // Otherwise we'll end up with something like "v;" which is not legal in C#.
             if (expression.WalkUpParentheses().IsParentKind(SyntaxKind.ExpressionStatement))
+            {
+                return false;
+            }
+
+            // (b) For Null Literals, as AllOccurences could introduce semantic errors.
+            if (expression.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 return false;
             }

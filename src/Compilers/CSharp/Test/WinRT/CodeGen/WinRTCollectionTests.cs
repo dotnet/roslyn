@@ -13,12 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class WinRTCollectionTests : CSharpTestBase
     {
-        public static MetadataReference[] LegacyRefs { get; } =
+        public static MetadataReference[] LegacyRefs
+        { get; }
+        =
         {
             AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display: "WinRTTest"),
             AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display: "SystemCore")
         };
-        
+
 
         [Fact, WorkItem(762316, "DevDiv")]
         public void InheritFromTypeWithProjections()
@@ -429,7 +431,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -1827,7 +1829,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 //FIXME: Can't verify because the metadata adapter isn't implemented yet
                 verify: false);
             verifier.VerifyDiagnostics(
@@ -3188,7 +3190,7 @@ class AllMembers
     }
 }";
             var verifier = CompileAndVerifyWinRt(source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
                 verify: false);
             verifier.VerifyDiagnostics(
@@ -4433,7 +4435,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -4800,7 +4802,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -4987,7 +4989,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
 
             verifier.VerifyDiagnostics(
@@ -5185,8 +5187,9 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
-                verify: false);
+                emitters: TestEmitters.RefEmitBug,
+                verify: false,
+                options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -5239,7 +5242,7 @@ class AllMembers
   IL_005b:  ldc.i4.5
   IL_005c:  newarr     ""int""
   IL_0061:  dup
-  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-864782BF337E3DBC1A27023D5C0C065C80F17087""
+  IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.864782BF337E3DBC1A27023D5C0C065C80F17087""
   IL_0067:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_006c:  ldloc.0
   IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass3_0.<TestLINQ>b__0(int)""
@@ -5406,7 +5409,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -5544,7 +5547,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -5815,7 +5818,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -6043,7 +6046,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -6243,7 +6246,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
@@ -6603,7 +6606,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -6765,7 +6768,7 @@ class AllMembers
             var verifier = CompileAndVerifyWinRt(
                 source,
                 additionalRefs: LegacyRefs,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
             verifier.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -7037,7 +7040,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(
                 source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
                 verify: false);
             verifier.VerifyDiagnostics(
@@ -7165,7 +7168,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(
                 source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
                 verify: false);
             verifier.VerifyDiagnostics(
@@ -7287,7 +7290,7 @@ class AllMembers
 }";
             var verifier = CompileAndVerifyWinRt(
                 source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: LegacyRefs,
                 verify: false);
             verifier.VerifyDiagnostics(
@@ -7367,7 +7370,7 @@ namespace Test
 }";
             var verifier = CompileAndVerifyWinRt(source,
                 options: TestOptions.ReleaseWinMD,
-                emitOptions: TestEmitters.RefEmitBug);
+                emitters: TestEmitters.RefEmitBug);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.C.GetEnumerator()",
@@ -7395,7 +7398,7 @@ namespace Test2
     }
 }";
             verifier = CompileAndVerifyWinRt(source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: new[] { compRef });
             verifier.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
+
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,8 +15,8 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.DiaSymReader;
 using PDB::Roslyn.Test.PdbUtilities;
-using PDB::Microsoft.VisualStudio.SymReaderInterop;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -225,29 +227,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return this;
             }
 
-            public sealed class DebugInfoProvider : IDisposable
+            public ISymUnmanagedReader CreateSymReader()
             {
-                public readonly TempPdbReader PdbReader;
-
-                public DebugInfoProvider(TempPdbReader pdbReader)
-                {
-                    PdbReader = pdbReader;
-                }
-
-                public void Dispose()
-                {
-                    PdbReader.Dispose();
-                }
-
-                public EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(MethodDefinitionHandle handle)
-                {
-                    return PdbReader.SymbolReader.GetEncMethodDebugInfo(handle);
-                }
-            }
-
-            public DebugInfoProvider CreatePdbInfoProvider()
-            {
-                return new DebugInfoProvider(TempPdbReader.Create(new MemoryStream(EmittedAssemblyPdb.ToArray())));
+                return new SymReader(new MemoryStream(EmittedAssemblyPdb.ToArray()));
             }
 
             public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)

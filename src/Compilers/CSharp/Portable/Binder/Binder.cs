@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        internal CSharpCompilation Compilation { get; private set; }
+        internal CSharpCompilation Compilation { get; }
         private readonly Binder _next;
 
         internal readonly BinderFlags Flags;
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)member == null
                     ? null
                     : member.Kind == SymbolKind.NamedType
-                        ? (NamedTypeSymbol)member 
+                        ? (NamedTypeSymbol)member
                         : member.ContainingType;
             }
         }

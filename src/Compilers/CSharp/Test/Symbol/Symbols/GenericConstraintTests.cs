@@ -49,7 +49,7 @@ class D<T> where T : A<int>, new() { }";
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -88,7 +88,7 @@ class B1 : A<int>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -115,7 +115,7 @@ class C : I<C, object>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -172,7 +172,7 @@ partial class B<T> : A<T>
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -2561,7 +2561,7 @@ class C<T> where T : IA, IB
         /// Handle constraints from metadata that
         /// would be invalid from source.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void InvalidConstraintsFromMetadata()
         {
             var ilSource =
@@ -3201,7 +3201,7 @@ class D
         }
 
         [WorkItem(528855, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModReqsInConstraintsAreNotSupported()
         {
             var ilSource =
@@ -3253,7 +3253,7 @@ class C<T> : IT<T>
         /// generic methods with such constraints.)
         /// </summary>
         [WorkItem(528856, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModOptsInConstraintsAreIgnored()
         {
             var ilSource =
@@ -4342,7 +4342,7 @@ class Program
         }
 
         [WorkItem(542380, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void StructProperties()
         {
             var source =
@@ -4703,7 +4703,7 @@ abstract class E : D, IB
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -4991,7 +4991,7 @@ interface I6<U> : I3<I<U>, I<U>> { }";
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -5064,7 +5064,7 @@ class C
         /// constraint is specified.
         /// </summary>
         [WorkItem(543335, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectAndValueTypeMetadataConstraints()
         {
             var ilSource =
@@ -5093,7 +5093,7 @@ class C
         }
 
         [WorkItem(543335, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectAndValueTypeMethodMetadataConstraints()
         {
             var ilSource =
@@ -5139,7 +5139,7 @@ class C
         /// Overriding methods with implicit and explicit
         /// System.Object and System.ValueType constraints.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverridingObjectAndValueTypeMethodMetadataConstraints()
         {
             var ilSource =
@@ -5242,7 +5242,7 @@ class C1 : C0
         /// on import and type substitution.
         /// </summary>
         [WorkItem(543831, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectConstraintTypes()
         {
             var ilSource =
@@ -5367,7 +5367,7 @@ class A1 : A<C>
             };
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -6605,7 +6605,7 @@ class P
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) },
                 options: TestOptions.ReleaseExe);
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, emitOptions: TestEmitters.RefEmitBug, expectedOutput:
+            CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug, expectedOutput:
 @"C0
 C1
 C2

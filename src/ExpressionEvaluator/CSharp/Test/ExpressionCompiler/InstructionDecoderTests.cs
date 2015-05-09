@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     public class InstructionDecoderTests : ExpressionCompilerTestBase
     {
         [Fact]
-        void GetNameGenerics()
+        public void GetNameGenerics()
         {
             var source = @"
 using System;
@@ -61,7 +61,7 @@ class Class1<T>
         }
 
         [Fact]
-        void GetNameNullTypeArguments()
+        public void GetNameNullTypeArguments()
         {
             var source = @"
 using System;
@@ -86,7 +86,7 @@ class Class1<T>
         }
 
         [Fact]
-        void GetNameGenericArgumentTypeNotInReferences()
+        public void GetNameGenericArgumentTypeNotInReferences()
         {
             var source = @"
 class Class1
@@ -100,7 +100,7 @@ class Class1
         }
 
         [Fact, WorkItem(1107977)]
-        void GetNameGenericAsync()
+        public void GetNameGenericAsync()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -119,7 +119,7 @@ class C
         }
 
         [Fact]
-        void GetNameLambda()
+        public void GetNameLambda()
         {
             var source = @"
 using System;
@@ -137,7 +137,7 @@ class C
         }
 
         [Fact]
-        void GetNameGenericLambda()
+        public void GetNameGenericLambda()
         {
             var source = @"
 using System;
@@ -155,7 +155,7 @@ class C<T>
         }
 
         [Fact]
-        void GetNameProperties()
+        public void GetNameProperties()
         {
             var source = @"
 class C
@@ -186,7 +186,7 @@ class C
         }
 
         [Fact]
-        void GetNameExplicitInterfaceImplementation()
+        public void GetNameExplicitInterfaceImplementation()
         {
             var source = @"
 using System;
@@ -201,7 +201,7 @@ class C : IDisposable
         }
 
         [Fact]
-        void GetNameExtensionMethod()
+        public void GetNameExtensionMethod()
         {
             var source = @"
 static class Extensions
@@ -215,7 +215,7 @@ static class Extensions
         }
 
         [Fact]
-        void GetNameArgumentFlagsNone()
+        public void GetNameArgumentFlagsNone()
         {
             var source = @"
 static class C
@@ -234,7 +234,7 @@ static class C
         }
 
         [Fact, WorkItem(1107978)]
-        void GetNameRefAndOutParameters()
+        public void GetNameRefAndOutParameters()
         {
             var source = @"
 class C
@@ -267,7 +267,7 @@ class C
         }
 
         [Fact]
-        void GetNameParamsParameters()
+        public void GetNameParamsParameters()
         {
             var source = @"
 class C
@@ -282,8 +282,27 @@ class C
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
 
+        [Fact, WorkItem(1134081, "DevDiv")]
+        public void GetFileNameWithoutExtension()
+        {
+            Assert.Equal(".", MetadataUtilities.GetFileNameWithoutExtension("."));
+            Assert.Equal(".a", MetadataUtilities.GetFileNameWithoutExtension(".a"));
+            Assert.Equal("a.", MetadataUtilities.GetFileNameWithoutExtension("a."));
+            Assert.Equal(".dll.", MetadataUtilities.GetFileNameWithoutExtension(".dll."));
+            Assert.Equal("a.b", MetadataUtilities.GetFileNameWithoutExtension("a.b"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.dll"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.exe"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.netmodule"));
+            Assert.Equal("a", MetadataUtilities.GetFileNameWithoutExtension("a.winmd"));
+            Assert.Equal("a.b.c", MetadataUtilities.GetFileNameWithoutExtension("a.b.c"));
+            Assert.Equal("a.b.c", MetadataUtilities.GetFileNameWithoutExtension("a.b.c.dll"));
+            Assert.Equal("mscorlib.nlp", MetadataUtilities.GetFileNameWithoutExtension("mscorlib.nlp"));
+            Assert.Equal("Microsoft.CodeAnalysis", MetadataUtilities.GetFileNameWithoutExtension("Microsoft.CodeAnalysis"));
+            Assert.Equal("Microsoft.CodeAnalysis", MetadataUtilities.GetFileNameWithoutExtension("Microsoft.CodeAnalysis.dll"));
+        }
+
         [Fact]
-        void GetReturnTypeNamePrimitive()
+        public void GetReturnTypeNamePrimitive()
         {
             var source = @"
 static class C
@@ -295,7 +314,7 @@ static class C
         }
 
         [Fact]
-        void GetReturnTypeNameNested()
+        public void GetReturnTypeNameNested()
         {
             var source = @"
 static class C
@@ -316,7 +335,7 @@ namespace N
         }
 
         [Fact]
-        void GetReturnTypeNameGenericOfPrimitive()
+        public void GetReturnTypeNameGenericOfPrimitive()
         {
             var source = @"
 using System;
@@ -329,7 +348,7 @@ class C
         }
 
         [Fact]
-        void GetReturnTypeNameGenericOfNested()
+        public void GetReturnTypeNameGenericOfNested()
         {
             var source = @"
 using System;
@@ -345,7 +364,7 @@ class C
         }
 
         [Fact]
-        void GetReturnTypeNameGenericOfGeneric()
+        public void GetReturnTypeNameGenericOfGeneric()
         {
             var source = @"
 using System;

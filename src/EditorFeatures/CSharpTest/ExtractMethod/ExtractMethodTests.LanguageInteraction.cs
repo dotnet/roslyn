@@ -431,6 +431,390 @@ class Test11<T>
 
             #endregion
 
+            #region ExpressionBodiedMembers
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethod()
+            {
+                var code = @"using System;
+class T
+{
+    int m;
+    int M1() => [|1|] + 2 + 3 + m;
+}";
+                var expected = @"using System;
+class T
+{
+    int m;
+    int M1() => NewMethod() + 2 + 3 + m;
+
+    private static int NewMethod()
+    {
+        return 1;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedOperator()
+            {
+                var code = @"using System;
+class Complex
+{
+    int real; int imaginary;
+    public static Complex operator +(Complex a, Complex b) => a.Add([|b.real + 1|]);
+
+    private Complex Add(int b)
+    {
+        throw new NotImplementedException();
+    }
+}";
+                var expected = @"using System;
+class Complex
+{
+    int real; int imaginary;
+    public static Complex operator +(Complex a, Complex b) => a.Add(NewMethod(b));
+
+    private static int NewMethod(Complex b)
+    {
+        return b.real + 1;
+    }
+
+    private Complex Add(int b)
+    {
+        throw new NotImplementedException();
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedConversionOperator()
+            {
+                var code = @"using System;
+public struct DBBool
+{
+    public static readonly DBBool dbFalse = new DBBool(-1);
+    int value;
+
+    DBBool(int value)
+    {
+        this.value = value;
+    }
+
+    public static implicit operator DBBool(bool x) => x ? new DBBool([|1|]) : dbFalse;
+}";
+                var expected = @"using System;
+public struct DBBool
+{
+    public static readonly DBBool dbFalse = new DBBool(-1);
+    int value;
+
+    DBBool(int value)
+    {
+        this.value = value;
+    }
+
+    public static implicit operator DBBool(bool x) => x ? new DBBool(NewMethod()) : dbFalse;
+
+    private static int NewMethod()
+    {
+        return 1;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedProperty()
+            {
+                var code = @"using System;
+class T
+{
+    int M1 => [|1|] + 2;
+}";
+                var expected = @"using System;
+class T
+{
+    int M1 => NewMethod() + 2;
+
+    private static int NewMethod()
+    {
+        return 1;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedIndexer()
+            {
+                var code = @"using System;
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i] => i > 0 ? arr[[|i + 1|]] : arr[i + 2];
+}";
+                var expected = @"using System;
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i] => i > 0 ? arr[NewMethod(i)] : arr[i + 2];
+
+    private static int NewMethod(int i)
+    {
+        return i + 1;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedIndexer2()
+            {
+                var code = @"using System;
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i] => [|i > 0 ? arr[i + 1]|] : arr[i + 2];
+}";
+                var expected = @"using System;
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i] => NewMethod(i);
+
+    private T NewMethod(int i)
+    {
+        return i > 0 ? arr[i + 1] : arr[i + 2];
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
+            {
+                var code = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x)
+    {
+        return [|9|];
+    };
+}";
+                var expected = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x)
+    {
+        return NewMethod();
+    };
+
+    private static int NewMethod()
+    {
+        return 9;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
+            {
+                var code = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x) { return [|9|]; };
+}";
+                var expected = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => delegate (int x) { return NewMethod(); };
+
+    private static int NewMethod()
+    {
+        return 9;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
+            {
+                var code = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f =>
+    {
+        return f * [|9|];
+    };
+}";
+                var expected = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f =>
+    {
+        return f * NewMethod();
+    };
+
+    private static int NewMethod()
+    {
+        return 9;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
+            {
+                var code = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f => f * [|9|];
+}";
+                var expected = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => f => f * NewMethod();
+
+    private static int NewMethod()
+    {
+        return 9;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
+            {
+                var code = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => (f) =>
+    {
+        return f * [|9|];
+    };
+}";
+                var expected = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => (f) =>
+    {
+        return f * NewMethod();
+    };
+
+    private static int NewMethod()
+    {
+        return 9;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
+            {
+                var code = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => (f) => f * [|9|];
+}";
+                var expected = @"using System;
+class TestClass
+{
+    Func<int, int> Y() => (f) => f * NewMethod();
+
+    private static int NewMethod()
+    {
+        return 9;
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
+            {
+                var code = @"using System;
+class TestClass
+{
+    public int Prop => Method1(delegate()
+    {
+        return [|8|];
+    });
+
+    private int Method1(Func<int> p)
+    {
+        throw new NotImplementedException();
+    }
+}";
+                var expected = @"using System;
+class TestClass
+{
+    public int Prop => Method1(delegate()
+    {
+        return NewMethod();
+    });
+
+    private static int NewMethod()
+    {
+        return 8;
+    }
+
+    private int Method1(Func<int> p)
+    {
+        throw new NotImplementedException();
+    }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void LeadingAndTrailingTriviaOnExpressionBodiedMethod()
+            {
+                var code = @"using System;
+class TestClass
+{
+    int M1() => 1 + 2 + /*not moved*/ [|3|] /*not moved*/;
+
+    void Cat() { }
+}";
+                var expected = @"using System;
+class TestClass
+{
+    int M1() => 1 + 2 + /*not moved*/ NewMethod() /*not moved*/;
+
+    private static int NewMethod()
+    {
+        return 3;
+    }
+
+    void Cat() { }
+}";
+                TestExtractMethod(code, expected);
+            }
+
+            #endregion
+
             [WorkItem(11155, "DevDiv_Projects/Roslyn")]
             [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
             public void AnonymousTypeMember1()
@@ -1422,11 +1806,11 @@ class X
                 TestExtractMethod(code, expected);
             }
 
-			[WorkItem(859493)]
-			[Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-			public void ExpressionInYieldReturnStatement()
-			{
-				var code = @"using System;
+            [WorkItem(859493)]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            public void ExpressionInYieldReturnStatement()
+            {
+                var code = @"using System;
 using System.Collections.Generic;
 
 public class Test<T> 
@@ -1448,7 +1832,7 @@ public class Test<T>
         }
     }
 }";
-				var expected = @"using System;
+                var expected = @"using System;
 using System.Collections.Generic;
 
 public class Test<T> 
@@ -1475,9 +1859,8 @@ public class Test<T>
         return _localCurrent._item;
     }
 }";
-				TestExtractMethod(code, expected);
-			}
-
-		}
-	}
+                TestExtractMethod(code, expected);
+            }
+        }
+    }
 }

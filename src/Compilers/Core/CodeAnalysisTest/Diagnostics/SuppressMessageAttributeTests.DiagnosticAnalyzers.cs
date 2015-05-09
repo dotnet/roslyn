@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnCompilationEndedAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "CompilationEnded";
-            private static DiagnosticDescriptor s_rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             public override void Initialize(AnalysisContext analysisContext)
             {
-                analysisContext.RegisterCompilationEndAction(
+                analysisContext.RegisterCompilationAction(
                     (context) =>
                         {
                             context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, Location.None, messageArgs: Id));
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnNamePrefixDeclarationAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Declaration";
-            private static DiagnosticDescriptor s_rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
-            private string _errorSymbolPrefix;
+            private readonly string _errorSymbolPrefix;
 
             public WarningOnNamePrefixDeclarationAnalyzer(string errorSymbolPrefix)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnTypeDeclarationAnalyzer : DiagnosticAnalyzer
         {
             public const string TypeId = "TypeDeclaration";
-            private static DiagnosticDescriptor s_rule = GetRule(TypeId);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(TypeId);
 
             public override void Initialize(AnalysisContext analysisContext)
             {
@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnCodeBodyAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "CodeBody";
-            private static DiagnosticDescriptor s_rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
-            private string _language;
+            private readonly string _language;
 
             public WarningOnCodeBodyAnalyzer(string language)
             {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnCommentAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Comment";
-            private static DiagnosticDescriptor s_rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnTokenAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Token";
-            private static DiagnosticDescriptor s_rule = GetRule(Id);
-            private IList<TextSpan> _spans;
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
+            private readonly IList<TextSpan> _spans;
 
             public WarningOnTokenAnalyzer(IList<TextSpan> spans)
             {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class ThrowExceptionForEachNamedTypeAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "ThrowException";
-            private static DiagnosticDescriptor s_rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
             public ThrowExceptionForEachNamedTypeAnalyzer()
             {

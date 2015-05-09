@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Roslyn.Editor.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -75,6 +75,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string DuplicateCommand {
             get {
                 return ResourceManager.GetString("DuplicateCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string MissingCommandName {
+            get {
+                return ResourceManager.GetString("MissingCommandName", resourceCulture);
             }
         }
     }

@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                         // We don't support configuring WRN_ALinkWarn. See comments in method "CSharpDiagnosticFilter.Filter" for more details.
                         continue;
 
+                    case (int)ErrorCode.WRN_UnreferencedField:
+                    case (int)ErrorCode.WRN_UnassignedInternalField:
+                        // unused field. current live error doesn't support this.
+                        continue;
+
                     default:
                         builder.Add(errorCode);
                         break;

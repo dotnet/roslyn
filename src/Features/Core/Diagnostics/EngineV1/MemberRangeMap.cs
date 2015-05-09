@@ -13,8 +13,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
-    using ProviderId = Int32;
-
     internal class MemberRangeMap
     {
         private static readonly Func<DocumentId, DictionaryData> s_createMap = _ => new DictionaryData();
@@ -33,19 +31,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _map.TryRemove(documentId, out unused);
         }
 
-        public void Touch(ProviderId providerId, Document document, VersionStamp version)
+        public void Touch(DiagnosticAnalyzer analyzer, Document document, VersionStamp version)
         {
             // only touch and updateMemberRange methods are allowed to update the dictionaries
             var data = _map.GetOrAdd(document.Id, s_createMap);
 
             lock (data)
             {
-                Touch_NoLock(data, providerId, document, version);
+                Touch_NoLock(data, analyzer, document, version);
             }
         }
 
         public void UpdateMemberRange(
-            ProviderId providerId, Document document, VersionStamp newVersion, int memberId, TextSpan span, MemberRanges oldRanges)
+            DiagnosticAnalyzer analyzer, Document document, VersionStamp newVersion, int memberId, TextSpan span, MemberRanges oldRanges)
         {
             // only touch and updateMemberRange methods are allowed to update the dictionaries
             var data = _map.GetOrAdd(document.Id, s_createMap);
@@ -55,32 +53,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // now update member range map
                 UpdateMemberRange_NoLock(data, document, newVersion, memberId, span, oldRanges.TextVersion);
 
-                // save provider version information
-                Touch_NoLock(data, providerId, document, newVersion);
+                // save analyzer version information
+                Touch_NoLock(data, analyzer, document, newVersion);
 
                 ValidateMemberRangeMap(document, newVersion);
             }
         }
 
-        public MemberRanges GetSavedMemberRange(ProviderId providerId, Document document)
+        public MemberRanges GetSavedMemberRange(DiagnosticAnalyzer analyzer, Document document)
         {
             var data = _map.GetOrAdd(document.Id, s_createMap);
             lock (data)
             {
-                return GetSavedMemberRange_NoLock(data, providerId, document);
+                return GetSavedMemberRange_NoLock(data, analyzer, document);
             }
         }
 
-        private void Touch_NoLock(DictionaryData data, int providerId, Document document, VersionStamp version)
+        private void Touch_NoLock(DictionaryData data, DiagnosticAnalyzer analyzer, Document document, VersionStamp version)
         {
             VersionStamp oldVersion;
-            if (data.VersionMap.TryGetValue(providerId, out oldVersion))
+            if (data.VersionMap.TryGetValue(analyzer, out oldVersion))
             {
                 DecreaseVersion_NoLock(data, document.Id, oldVersion);
             }
 
             IncreaseVersion_NoLock(data, document.Id, version);
-            data.VersionMap[providerId] = version;
+            data.VersionMap[analyzer] = version;
 
             ImmutableArray<TextSpan> range;
             if (this.TryCreateOrGetMemberRange_NoLock(data, document, version, out range))
@@ -104,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return;
             }
 
+            // if range is invalid, create new member map
             if (memberId < 0 ||
                 !data.MemberRangeMap.TryGetValue(oldVersion, out range) ||
                 range.Length <= memberId)
@@ -183,14 +182,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private MemberRanges GetSavedMemberRange_NoLock(DictionaryData data, int providerId, Document document)
+        private MemberRanges GetSavedMemberRange_NoLock(DictionaryData data, DiagnosticAnalyzer analyzer, Document document)
         {
             VersionStamp version;
             SyntaxNode root;
             ImmutableArray<TextSpan> range;
-            if (!data.VersionMap.TryGetValue(providerId, out version))
+            if (!data.VersionMap.TryGetValue(analyzer, out version))
             {
-                // it is first time for this provider
+                // it is first time for this analyzer
                 Contract.ThrowIfFalse(document.TryGetSyntaxRoot(out root));
                 Contract.ThrowIfFalse(document.TryGetTextVersion(out version));
 
@@ -276,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private class DictionaryData
         {
-            public readonly Dictionary<ProviderId, VersionStamp> VersionMap = new Dictionary<ProviderId, VersionStamp>();
+            public readonly Dictionary<DiagnosticAnalyzer, VersionStamp> VersionMap = new Dictionary<DiagnosticAnalyzer, VersionStamp>();
             public readonly Dictionary<VersionStamp, StrongBox<int>> VersionTrackingMap = new Dictionary<VersionStamp, StrongBox<int>>();
             public readonly Dictionary<VersionStamp, ImmutableArray<TextSpan>> MemberRangeMap = new Dictionary<VersionStamp, ImmutableArray<TextSpan>>();
         }

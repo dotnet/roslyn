@@ -639,10 +639,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     }
                     else if (_kind == ObjectListKind.Projects)
                     {
-                        var lowerMatchName = matchName.ToLower();
-                        var lowerName = name.ToLower();
-
-                        if (lowerMatchName.IndexOf(lowerName) >= 0)
+                        if (matchName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             if (longestMatchedName.Length < name.Length)
                             {
@@ -654,9 +651,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
             }
 
-            return index != 0xffffffffu
-                ? true
-                : false;
+            return index != 0xffffffffu;
         }
 
         protected override bool SupportsDescription

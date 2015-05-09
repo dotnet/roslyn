@@ -45,16 +45,16 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Gets the text before the change.
         /// </summary>
-        public SourceText OldText { get; private set; }
+        public SourceText OldText { get; }
 
         /// <summary>
         /// Gets the text after the change.
         /// </summary>
-        public SourceText NewText { get; private set; }
+        public SourceText NewText { get; }
 
         /// <summary>
         /// Gets the set of ranges for the change.
         /// </summary>
-        public IReadOnlyList<TextChangeRange> Changes { get; private set; }
+        public IReadOnlyList<TextChangeRange> Changes { get; }
     }
 }

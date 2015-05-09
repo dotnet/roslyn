@@ -3761,7 +3761,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var position = text.IndexOf("here");
+            var position = text.IndexOf("here", StringComparison.Ordinal);
             var syntax = SyntaxFactory.ParseExpression("       C.M"); //Leading trivia was significant for triggering an assert before the fix.
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
@@ -3794,7 +3794,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var position = text.IndexOf("here");
+            var position = text.IndexOf("here", StringComparison.Ordinal);
             var syntax = SyntaxFactory.ParseExpression("       C.M"); //Leading trivia was significant for triggering an assert before the fix.
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
@@ -3888,7 +3888,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var position = source2.IndexOf("here");
+            var position = source2.IndexOf("here", StringComparison.Ordinal);
             var syntax = SyntaxFactory.ParseExpression("       a.P"); //Leading trivia was significant for triggering an assert before the fix.
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
@@ -3928,7 +3928,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var position = source2.IndexOf("here");
+            var position = source2.IndexOf("here", StringComparison.Ordinal);
             var syntax = SyntaxFactory.ParseExpression("       a.P"); //Leading trivia was significant for triggering an assert before the fix.
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
@@ -4187,7 +4187,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var position = text.IndexOf("< >");
+            var position = text.IndexOf("< >", StringComparison.Ordinal);
             var syntax = tree.GetCompilationUnitRoot().FindToken(position).Parent.DescendantNodesAndSelf().OfType<OmittedTypeArgumentSyntax>().Single();
 
             var info = model.GetSpeculativeSymbolInfo(syntax.SpanStart, syntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
@@ -4217,7 +4217,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var position = text.IndexOf("< >");
+            var position = text.IndexOf("< >", StringComparison.Ordinal);
             var syntax = tree.GetCompilationUnitRoot().FindToken(position).Parent.DescendantNodesAndSelf().OfType<OmittedTypeArgumentSyntax>().Single();
 
             var info = model.GetSpeculativeTypeInfo(syntax.SpanStart, syntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
@@ -4247,7 +4247,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var position = text.IndexOf("S<,,,>");
+            var position = text.IndexOf("S<,,,>", StringComparison.Ordinal);
             var syntax = tree.GetCompilationUnitRoot().FindToken(position).Parent.DescendantNodesAndSelf().OfType<GenericNameSyntax>().Single();
 
             var info = model.GetSpeculativeTypeInfo(syntax.SpanStart, syntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
@@ -4850,7 +4850,7 @@ public class D : C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("this");
+            var position = source.IndexOf("this", StringComparison.Ordinal);
             var statement = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var newSyntax = SyntaxFactory.ParseExpression("Instance.GetList().OfType<D>().Any()");
             var newStatement = statement.ReplaceNode(statement.Declaration.Variables[0].Initializer.Value, newSyntax);
@@ -4885,7 +4885,7 @@ void M()
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var position = source.IndexOf("Equals");
+            var position = source.IndexOf("Equals", StringComparison.Ordinal);
             var equalsToken = tree.GetRoot().FindToken(position);
             var equalsNode = equalsToken.Parent;
             var symbolInfo = model.GetSymbolInfo(equalsNode);

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
         Public Overrides Function VisitBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundNode
-            If Me.inExpressionLambda Then
+            If Me._inExpressionLambda Then
                 ' If we are inside expression lambda we want to keep binary conditional expression
                 Return RewriteBinaryConditionalExpressionInExpressionLambda(node)
             End If
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case Else
                     '  create a temp variable
-                    tempVariableSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenTestExpressionType, SynthesizedLocalKind.LoweringTemp)
+                    tempVariableSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, rewrittenTestExpressionType, SynthesizedLocalKind.LoweringTemp)
                     '  temp variable reference
                     placeholderSubstitute = New BoundLocal(rewrittenTestExpression.Syntax,
                                                       tempVariableSymbol,

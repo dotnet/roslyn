@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is enough information to restore Try/Finally tree structure in Dispose and dispatch any valid state
             // into a corresponding try.
             // NOTE: union of all values in this map gives all nested frames.
-            public Dictionary<int, IteratorFinallyFrame> knownStates = null;
+            public Dictionary<int, IteratorFinallyFrame> knownStates;
 
             // labels within this frame (branching to these labels does not go through finally).
             public readonly HashSet<LabelSymbol> labels;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // subsequent leaves to an already proxied label redirected to the proxy.
             // At the proxy lable we will execute finally and forward the control flow 
             // to the actual destination. (which could be proxied again in the parent)
-            public Dictionary<LabelSymbol, LabelSymbol> proxyLabels = null;
+            public Dictionary<LabelSymbol, LabelSymbol> proxyLabels;
 
             public IteratorFinallyFrame(
                 IteratorFinallyFrame parent,

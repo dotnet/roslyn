@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -31,7 +33,7 @@ namespace Microsoft.OpenSourceDebug
         private const string VisualStudioHive = "VisualStudio";
         private const string MSBuildDirectory = @"Microsoft\MSBuild\14.0";
 
-        private string _CSharpTargetsTemplate =
+        private readonly string _CSharpTargetsTemplate =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup Condition=""'$(RoslynHive)'=='{0}'"">

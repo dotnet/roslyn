@@ -18,7 +18,7 @@ namespace Microsoft.Cci
         public readonly string TargetXmlNamespaceOpt;
 
         private UsedNamespaceOrType(
-            string alias = null, 
+            string alias = null,
             IAssemblyReference targetAssembly = null,
             INamespace targetNamespace = null,
             ITypeReference targetType = null,
@@ -65,8 +65,8 @@ namespace Microsoft.Cci
         {
             return AliasOpt == other.AliasOpt
                 && TargetAssemblyOpt == other.TargetAssemblyOpt
-                && TargetNamespaceOpt == other.TargetNamespaceOpt 
-                && TargetTypeOpt == other.TargetTypeOpt 
+                && TargetNamespaceOpt == other.TargetNamespaceOpt
+                && TargetTypeOpt == other.TargetTypeOpt
                 && TargetXmlNamespaceOpt == other.TargetXmlNamespaceOpt;
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.Cci
         {
             return Hash.Combine(AliasOpt,
                    Hash.Combine((object)TargetAssemblyOpt,
-                   Hash.Combine((object)TargetNamespaceOpt, 
+                   Hash.Combine((object)TargetNamespaceOpt,
                    Hash.Combine((object)TargetTypeOpt,
                    Hash.Combine(TargetXmlNamespaceOpt, 0)))));
         }

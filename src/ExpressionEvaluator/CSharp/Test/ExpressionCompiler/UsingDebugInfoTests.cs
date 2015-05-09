@@ -11,7 +11,7 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -252,10 +252,14 @@ namespace D
                         MethodDefinitionHandle methodHandle = metadataReader.MethodDefinitions.Single(mh => metadataReader.GetString(metadataReader.GetMethodDefinition(mh).Name) == methodName);
                         int methodToken = metadataReader.GetToken(methodHandle);
 
+                        // Create a SymReader, rather than a raw COM object, because
+                        // SymReader implements ISymUnmanagedReader3 and the COM object
+                        // might not.
                         pdbbits.Position = 0;
-                        ISymUnmanagedReader reader = (ISymUnmanagedReader)TempPdbReader.CreateUnmanagedReader(pdbbits);
-
-                        return reader.GetCSharpGroupedImportStrings(methodToken, methodVersion: 1, externAliasStrings: out externAliasStrings);
+                        using (var reader = new SymReader(pdbbits.ToArray()))
+                        {
+                            return reader.GetCSharpGroupedImportStrings(methodToken, methodVersion: 1, externAliasStrings: out externAliasStrings);
+                        }
                     }
                 }
             }

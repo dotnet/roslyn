@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     [ExportOptionProvider, Shared]
     internal class SimplificationOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> _options = new List<IOption>
+        private readonly IEnumerable<IOption> _options = new List<IOption>
             {
                 SimplificationOptions.PreferAliasToQualification,
                 SimplificationOptions.PreferOmittingModuleNamesInQualification,

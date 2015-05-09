@@ -5,24 +5,29 @@ Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-    Friend NotInheritable Class VisualBasicMetadataContext : Inherits MetadataContext
+    Friend Structure VisualBasicMetadataContext
 
+        Friend ReadOnly MetadataBlocks As ImmutableArray(Of MetadataBlock)
         Friend ReadOnly Compilation As VisualBasicCompilation
         Friend ReadOnly EvaluationContext As EvaluationContext
 
-        Friend Sub New(metadataBlocks As ImmutableArray(Of MetadataBlock))
-            MyBase.New(metadataBlocks)
-
-            Me.Compilation = metadataBlocks.ToCompilation()
+        Friend Sub New(metadataBlocks As ImmutableArray(Of MetadataBlock), compilation As VisualBasicCompilation)
+            Me.MetadataBlocks = metadataBlocks
+            Me.Compilation = compilation
+            Me.EvaluationContext = Nothing
         End Sub
 
-        Friend Sub New(evaluationContext As EvaluationContext)
-            MyBase.New(evaluationContext.MetadataBlocks)
-
+        Friend Sub New(metadataBlocks As ImmutableArray(Of MetadataBlock), evaluationContext As EvaluationContext)
+            Me.MetadataBlocks = metadataBlocks
             Me.Compilation = evaluationContext.Compilation
             Me.EvaluationContext = evaluationContext
         End Sub
 
-    End Class
+        Friend Function Matches(metadataBlocks As ImmutableArray(Of MetadataBlock)) As Boolean
+            Return Not Me.MetadataBlocks.IsDefault AndAlso
+                Me.MetadataBlocks.SequenceEqual(metadataBlocks)
+        End Function
+
+    End Structure
 
 End Namespace

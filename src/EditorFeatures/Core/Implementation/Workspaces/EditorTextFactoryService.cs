@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             _unknownContentType = contentTypeRegistryService.UnknownContentType;
         }
 
-        private static readonly Encoding ThrowingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 // Try UTF-8
                 try
                 {
-                    return CreateTextInternal(stream, ThrowingUtf8Encoding, cancellationToken);
+                    return CreateTextInternal(stream, s_throwingUtf8Encoding, cancellationToken);
                 }
                 catch (DecoderFallbackException)
                 {

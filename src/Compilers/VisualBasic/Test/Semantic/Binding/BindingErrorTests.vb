@@ -1225,15 +1225,23 @@ BC30049: 'Redim' statement requires an array.
             Diagnostic(ERRID.ERR_ArrayRankLimit, "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33)"))
         End Sub
 
-        <Fact()>
-        Public Sub BC30053ERR_AsNewArray()
+        <Fact, WorkItem(2424, "https://github.com/dotnet/roslyn/issues/2424")>
+        Public Sub BC30053ERR_AsNewArray_01()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="AsNewArray">
         <file name="a.vb">
         Module M1
             Sub Foo()
                 Dim c() As New System.Exception
+                Dim d(), e() As New System.Exception
+                Dim f(), g As New System.Exception
+                Dim h, i() As New System.Exception
             End Sub
+
+            Dim x() As New System.Exception
+            Dim y(), z() As New System.Exception
+            Dim u(), v As New System.Exception
+            Dim w, q() As New System.Exception
         End Module
         </file>
     </compilation>)
@@ -1242,6 +1250,89 @@ BC30049: 'Redim' statement requires an array.
 BC30053: Arrays cannot be declared with 'New'.
                 Dim c() As New System.Exception
                            ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(), e() As New System.Exception
+                                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(), e() As New System.Exception
+                                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim f(), g As New System.Exception
+                              ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim h, i() As New System.Exception
+                              ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim x() As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(), z() As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(), z() As New System.Exception
+                     ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim u(), v As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim w, q() As New System.Exception
+                   ~~~
+</errors>
+            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact, WorkItem(2424, "https://github.com/dotnet/roslyn/issues/2424")>
+        Public Sub BC30053ERR_AsNewArray_02()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="AsNewArray">
+        <file name="a.vb">
+        Module M1
+            Sub Foo()
+                Dim c(1) As New System.Exception
+                Dim d(1), e(1) As New System.Exception
+                Dim f(1), g As New System.Exception
+                Dim h, i(1) As New System.Exception
+            End Sub
+
+            Dim x(1) As New System.Exception
+            Dim y(1), z(1) As New System.Exception
+            Dim u(1), v As New System.Exception
+            Dim w, q(1) As New System.Exception
+        End Module
+        </file>
+    </compilation>)
+
+            Dim expectedErrors1 = <errors>
+BC30053: Arrays cannot be declared with 'New'.
+                Dim c(1) As New System.Exception
+                            ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(1), e(1) As New System.Exception
+                                  ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(1), e(1) As New System.Exception
+                                  ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim f(1), g As New System.Exception
+                               ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim h, i(1) As New System.Exception
+                               ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim x(1) As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(1), z(1) As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(1), z(1) As New System.Exception
+                      ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim u(1), v As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim w, q(1) As New System.Exception
+                   ~~~~
 </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -14035,7 +14126,7 @@ End Class
 
         End Sub
 
-        Private Shared ReadOnly BadAttributeIl As String = <![CDATA[
+        Private Shared ReadOnly s_badAttributeIl As String = <![CDATA[
 .class public auto ansi beforefieldinit BaseAttribute
        extends [mscorlib]System.Attribute
 {
@@ -14114,7 +14205,7 @@ Class Test
 
 End Class
     ]]></file>
-    </compilation>, BadAttributeIl).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeReadOnlyProperty1, "PROP").WithArguments("PROP"))
+    </compilation>, s_badAttributeIl).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeReadOnlyProperty1, "PROP").WithArguments("PROP"))
 
         End Sub
 
@@ -24308,7 +24399,7 @@ BC30002: Type 'Settings' is not defined.
                        ~~~~~~~~
 ]]></expected>)
 
-            Dim tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("a.vb")).Single
+            Dim tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("a.vb", StringComparison.Ordinal)).Single
             Dim model = comp.GetSemanticModel(tree)
 
             AssertTheseDiagnostics(model.GetDiagnostics(),
@@ -24318,7 +24409,7 @@ BC30002: Type 'Settings' is not defined.
                      ~~~~~~~~
 ]]></expected>)
 
-            tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("b.vb")).Single
+            tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("b.vb", StringComparison.Ordinal)).Single
             model = comp.GetSemanticModel(tree)
             AssertTheseDiagnostics(model.GetDiagnostics(),
 <expected><![CDATA[

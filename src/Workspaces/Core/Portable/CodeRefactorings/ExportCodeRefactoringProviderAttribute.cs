@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// <summary>
         /// The source languages for which this provider can provide refactorings. See <see cref="LanguageNames"/>.
         /// </summary>
-        public string[] Languages { get; private set; }
+        public string[] Languages { get; }
 
         /// <summary>
         /// Attribute constructor used to specify availability of a code refactoring provider.
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             if (firstLanguage == null)
             {
-                throw new ArgumentNullException("firstLanguage");
+                throw new ArgumentNullException(nameof(firstLanguage));
             }
 
             if (additionalLanguages == null)
             {
-                throw new ArgumentNullException("additionalLanguages");
+                throw new ArgumentNullException(nameof(additionalLanguages));
             }
 
             this.Name = null;

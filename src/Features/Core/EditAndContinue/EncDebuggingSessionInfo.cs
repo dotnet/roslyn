@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal class EncDebuggingSessionInfo
     {
         public readonly List<EncEditSessionInfo> EditSessions = new List<EncEditSessionInfo>();
-        public int EmptyEditSessions = 0;
+        public int EmptyEditSessions;
 
         internal void EndEditSession(EncEditSessionInfo encEditSessionInfo)
         {

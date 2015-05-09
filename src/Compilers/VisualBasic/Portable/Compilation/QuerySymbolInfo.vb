@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
     End Structure
 
-    Partial Class VBSemanticModel
+    Friend Partial Class VBSemanticModel
 
         ''' <summary>
         ''' Returns information about methods associated with CollectionRangeVariableSyntax.
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional cancellationToken As CancellationToken = Nothing
         ) As CollectionRangeVariableSymbolInfo
             If variableSyntax Is Nothing Then
-                Throw New ArgumentNullException("variableSyntax")
+                Throw New ArgumentNullException(NameOf(variableSyntax))
             End If
             If Not IsInTree(variableSyntax) Then
                 Throw New ArgumentException(VBResources.VariableSyntaxNotWithinSyntaxTree)
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional cancellationToken As CancellationToken = Nothing
         ) As AggregateClauseSymbolInfo
             If aggregateSyntax Is Nothing Then
-                Throw New ArgumentNullException("aggregateSyntax")
+                Throw New ArgumentNullException(NameOf(aggregateSyntax))
             End If
             If Not IsInTree(aggregateSyntax) Then
                 Throw New ArgumentException(VBResources.AggregateSyntaxNotWithinSyntaxTree)

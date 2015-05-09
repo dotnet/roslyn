@@ -29,15 +29,15 @@ namespace Roslyn.Utilities
                 {
                     action();
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                };
+            };
 
-                // The one and only place we can call StartNew().
-                return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
-            }
+            // The one and only place we can call StartNew().
+            return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
+        }
 
         public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
@@ -57,15 +57,15 @@ namespace Roslyn.Utilities
                 {
                     return func();
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                };
+            };
 
-                // The one and only place we can call StartNew<>().
-                return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
-            }
+            // The one and only place we can call StartNew<>().
+            return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
+        }
 
         public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
         {

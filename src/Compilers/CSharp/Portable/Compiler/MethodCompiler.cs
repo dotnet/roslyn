@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -108,82 +107,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilation != null);
             Debug.Assert(diagnostics != null);
 
-            using (Logger.LogBlock(FunctionId.CSharp_Compiler_CompileMethodBodies, message: compilation.AssemblyName, cancellationToken: cancellationToken))
+            if (compilation.PreviousSubmission != null)
             {
-                if (compilation.PreviousSubmission != null)
+                // In case there is a previous submission, we should ensure 
+                // it has already created anonymous type/delegates templates
+
+                // NOTE: if there are any errors, we will pick up what was created anyway
+                compilation.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken);
+
+                // TODO: revise to use a loop instead of a recursion
+            }
+
+            MethodCompiler methodCompiler = new MethodCompiler(
+                compilation,
+                moduleBeingBuiltOpt,
+                generateDebugInfo,
+                hasDeclarationErrors,
+                diagnostics,
+                filterOpt,
+                cancellationToken);
+
+            if (compilation.Options.ConcurrentBuild)
+            {
+                methodCompiler._compilerTasks = new ConcurrentStack<Task>();
+            }
+
+            // directly traverse global namespace (no point to defer this to async)
+            methodCompiler.CompileNamespace(compilation.SourceModule.GlobalNamespace);
+            methodCompiler.WaitForWorkers();
+
+            // compile additional and anonymous types if any
+            if (moduleBeingBuiltOpt != null)
+            {
+                var additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes();
+                if (!additionalTypes.IsEmpty)
                 {
-                    // In case there is a previous submission, we should ensure 
-                    // it has already created anonymous type/delegates templates
-
-                    // NOTE: if there are any errors, we will pick up what was created anyway
-                    compilation.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken);
-
-                    // TODO: revise to use a loop instead of a recursion
+                    methodCompiler.CompileSynthesizedMethods(additionalTypes, diagnostics);
                 }
 
-                MethodCompiler methodCompiler = new MethodCompiler(
-                    compilation,
-                    moduleBeingBuiltOpt,
-                    generateDebugInfo,
-                    hasDeclarationErrors,
-                    diagnostics,
-                    filterOpt,
-                    cancellationToken);
-
-                if (compilation.Options.ConcurrentBuild)
-                {
-                    methodCompiler._compilerTasks = new ConcurrentStack<Task>();
-                }
-
-                // directly traverse global namespace (no point to defer this to async)
-                methodCompiler.CompileNamespace(compilation.SourceModule.GlobalNamespace);
+                // By this time we have processed all types reachable from module's global namespace
+                compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(methodCompiler, moduleBeingBuiltOpt, diagnostics);
                 methodCompiler.WaitForWorkers();
 
-                // compile additional and anonymous types if any
-                if (moduleBeingBuiltOpt != null)
+                var privateImplClass = moduleBeingBuiltOpt.PrivateImplClass;
+                if (privateImplClass != null)
                 {
-                    var additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes();
-                    if (!additionalTypes.IsEmpty)
-                    {
-                        methodCompiler.CompileSynthesizedMethods(additionalTypes, diagnostics);
-                    }
+                    // all threads that were adding methods must be finished now, we can freeze the class:
+                    privateImplClass.Freeze();
 
-                    // By this time we have processed all types reachable from module's global namespace
-                    compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(methodCompiler, moduleBeingBuiltOpt, diagnostics);
-                    methodCompiler.WaitForWorkers();
-
-                    var privateImplClass = moduleBeingBuiltOpt.PrivateImplClass;
-                    if (privateImplClass != null)
-                    {
-                        // all threads that were adding methods must be finished now, we can freeze the class:
-                        privateImplClass.Freeze();
-
-                        methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
-                    }
+                    methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
+            }
 
-                // If we are trying to emit and there's an error without a corresponding diagnostic (e.g. because
-                // we depend on an invalid type or constant from another module), then explicitly add a diagnostic.
-                // This diagnostic is not very helpful to the user, but it will prevent us from emitting an invalid
-                // module or crashing.
-                if (moduleBeingBuiltOpt != null && methodCompiler._globalHasErrors && !diagnostics.HasAnyErrors() && !hasDeclarationErrors)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name);
-                }
+            // If we are trying to emit and there's an error without a corresponding diagnostic (e.g. because
+            // we depend on an invalid type or constant from another module), then explicitly add a diagnostic.
+            // This diagnostic is not very helpful to the user, but it will prevent us from emitting an invalid
+            // module or crashing.
+            if (moduleBeingBuiltOpt != null && (methodCompiler._globalHasErrors || moduleBeingBuiltOpt.SourceModule.HasBadAttributes) && !diagnostics.HasAnyErrors() && !hasDeclarationErrors)
+            {
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuiltOpt).Name);
+            }
 
-                diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
+            diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
 
-                // we can get unused field warnings only if compiling whole compilation.
-                if (filterOpt == null)
-                {
-                    WarnUnusedFields(compilation, diagnostics, cancellationToken);
-                }
+            // we can get unused field warnings only if compiling whole compilation.
+            if (filterOpt == null)
+            {
+                WarnUnusedFields(compilation, diagnostics, cancellationToken);
+            }
 
-                MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
-                if (moduleBeingBuiltOpt != null)
-                {
-                    moduleBeingBuiltOpt.SetEntryPoint(entryPoint);
-                }
+            MethodSymbol entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, hasDeclarationErrors, diagnostics, cancellationToken);
+            if (moduleBeingBuiltOpt != null)
+            {
+                moduleBeingBuiltOpt.SetEntryPoint(entryPoint);
             }
         }
 
@@ -236,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     variableSlotAllocatorOpt: null,
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
-                    importChainOpt: null, 
+                    importChainOpt: null,
                     generateDebugInfo: false);
 
                 moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody);
@@ -298,11 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamespace(symbol);
                     }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-            }), _cancellationToken);
+                }), _cancellationToken);
         }
 
         private void CompileNamespace(NamespaceSymbol symbol)
@@ -344,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamedType(symbol);
                     }
-            catch (Exception e) when(FatalError.Report(e))
+                    catch (Exception e) when (FatalError.Report(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-            }), _cancellationToken);
+                }), _cancellationToken);
         }
 
         private void CompileNamedType(NamedTypeSymbol symbol)
@@ -421,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 submissionCtorOrdinal = memberOrdinal;
                                 continue;
                             }
-                                
+
                             if (IsFieldLikeEventAccessor(method))
                             {
                                 continue;
@@ -585,6 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CompileSynthesizedMethods(TypeCompilationState compilationState)
         {
             Debug.Assert(_moduleBeingBuiltOpt != null);
+            Debug.Assert(compilationState.ModuleBuilderOpt == _moduleBeingBuiltOpt);
 
             if (!compilationState.HasSynthesizedMethods)
             {
@@ -837,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Do not emit initializers if we are invoking another constructor of this class.
 
                     SourceMemberContainerTypeSymbol container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
-                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty && 
+                    includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol);
 
                     body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, _generateDebugInfo, out importChain);
@@ -874,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // from the first field initializer.
                 if (_generateDebugInfo)
                 {
-                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) && 
+                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) &&
                         methodSymbol.IsImplicitlyDeclared && body == null)
                     {
                         // There was no body to bind, so we didn't get anything from BindMethodBody.
@@ -1233,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
             int methodOrdinal,
-            BoundStatement block, 
+            BoundStatement block,
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             StateMachineTypeSymbol stateMachineTypeOpt,
@@ -1321,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.RealizedIL,
                     builder.MaxStack,
                     method.PartialDefinitionPart ?? method,
-                    methodOrdinal,
+                    variableSlotAllocatorOpt?.MethodId ?? new DebugId(methodOrdinal, moduleBuilder.CurrentGenerationOrdinal),
                     localVariables,
                     builder.RealizedSequencePoints,
                     debugDocumentProvider,
@@ -1350,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void GetStateMachineSlotDebugInfo(
-            IEnumerable<Cci.IFieldDefinition> fieldDefs, 
+            IEnumerable<Cci.IFieldDefinition> fieldDefs,
             out ImmutableArray<EncHoistedLocalInfo> hoistedVariableSlots,
             out ImmutableArray<Cci.ITypeReference> awaiterSlots)
         {
@@ -1379,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     while (index >= hoistedVariables.Count)
                     {
                         // Empty slots may be present if variables were deleted during EnC.
-                        hoistedVariables.Add(new EncHoistedLocalInfo());
+                        hoistedVariables.Add(new EncHoistedLocalInfo(true));
                     }
 
                     hoistedVariables[index] = new EncHoistedLocalInfo(field.SlotDebugInfo, (Cci.ITypeReference)field.Type);
@@ -1412,6 +1409,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerInvocation != null)
                 {
+                    var ctorCall = initializerInvocation as BoundCall;
+                    if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
+                    {
+                        // Detect and report indirect cycles in the ctor-initializer call graph.
+                        compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
+                    }
+
                     constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
                 }

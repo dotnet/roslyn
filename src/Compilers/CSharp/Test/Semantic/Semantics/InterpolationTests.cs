@@ -1006,7 +1006,7 @@ class Program {
     }
 }";
             var comp = CreateCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            var compilation = CompileAndVerify(comp, emitOptions: CodeAnalysis.Test.Utilities.TestEmitters.RefEmitUnsupported, verify: false);
+            var compilation = CompileAndVerify(comp, emitters: CodeAnalysis.Test.Utilities.TestEmitters.RefEmitUnsupported, verify: false);
             compilation.VerifyIL("System.Program.Main",
 @"{
   // Code size       35 (0x23)

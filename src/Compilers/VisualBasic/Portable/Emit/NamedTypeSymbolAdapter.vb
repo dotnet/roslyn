@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Class NamedTypeSymbol
+    Friend Partial Class NamedTypeSymbol
         Implements ITypeReference
         Implements ITypeDefinition
         Implements INamedTypeReference

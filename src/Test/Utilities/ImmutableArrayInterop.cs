@@ -19,7 +19,7 @@ namespace Roslyn.Test.Utilities
         private struct ByteArrayUnion
         {
             [FieldOffset(0)]
-            internal byte[] MutableArray;
+            internal readonly byte[] MutableArray;
 
             [FieldOffset(0)]
             internal ImmutableArray<byte> ImmutableArray;

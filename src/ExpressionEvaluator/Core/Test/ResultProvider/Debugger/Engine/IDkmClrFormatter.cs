@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces
 {
     public interface IDkmClrFormatter
     {
-        string GetTypeName(DkmInspectionContext inspectionContext, DkmClrType clrType, ReadOnlyCollection<string> formatSpecifiers);
+        string GetTypeName(DkmInspectionContext inspectionContext, DkmClrType clrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> formatSpecifiers);
         string GetUnderlyingString(DkmClrValue clrValue, DkmInspectionContext inspectionContext);
         string GetValueString(DkmClrValue clrValue, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers);
         bool HasUnderlyingString(DkmClrValue clrValue, DkmInspectionContext inspectionContext);

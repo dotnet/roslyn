@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class DiagnosticProviderMetadata : ILanguageMetadata
     {
-        public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string Name { get; }
+        public string Language { get; }
 
         public DiagnosticProviderMetadata(IDictionary<string, object> data)
         {

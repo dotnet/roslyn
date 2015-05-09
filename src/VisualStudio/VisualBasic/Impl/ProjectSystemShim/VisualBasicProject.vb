@@ -16,7 +16,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend MustInherit Class VisualBasicProject
-        Inherits AbstractProject
+        Inherits AbstractEncProject
         Implements IVbCompilerProject
         Implements IVisualStudioHostProject
 
@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         ''' caching these rather than parsing them anew for each project. It is expected that the total
         ''' number of imports will be rather small, which is why we never evict anything from this cache.
         ''' </summary>
-        Private Shared _importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
+        Private Shared s_importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
 
         Friend Sub New(projectTracker As VisualStudioProjectTracker,
                        ProjectSystemName As String,
@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 If project Is Nothing Then
                     ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
                     ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
                 End If
 
                 MyBase.AddProjectReference(New ProjectReference(project.Id, embedInteropTypes:=True))
@@ -117,9 +117,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
                 Try
                     Dim import As GlobalImport = Nothing
-                    If Not _importsCache.TryGetValue(wszImport, import) Then
+                    If Not s_importsCache.TryGetValue(wszImport, import) Then
                         import = GlobalImport.Parse(wszImport)
-                        _importsCache(wszImport) = import
+                        s_importsCache(wszImport) = import
                     End If
 
                     _imports.Add(import)
@@ -140,7 +140,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 If project Is Nothing Then
                     ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
                     ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
                 End If
 
                 MyBase.AddProjectReference(New ProjectReference(project.Id))
@@ -328,11 +328,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 If project Is Nothing Then
                     ' Hmm, we got a project which isn't from ourselves. That's somewhat odd, and we really can't do anything
                     ' with it.
-                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Unknown type of IVbCompilerProject.", NameOf(pReferencedCompilerProject))
                 End If
 
                 If Not Me.CurrentProjectReferencesContains(project.Id) Then
-                    Throw New ArgumentException("Project reference to remove is not referenced by this project.", "pReferencedCompilerProject")
+                    Throw New ArgumentException("Project reference to remove is not referenced by this project.", NameOf(pReferencedCompilerProject))
                 End If
 
                 Dim projectReference = GetCurrentProjectReferences().Single(Function(r) r.ProjectId Is project.Id)

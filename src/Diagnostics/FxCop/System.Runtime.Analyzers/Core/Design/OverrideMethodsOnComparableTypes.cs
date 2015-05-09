@@ -17,9 +17,9 @@ namespace System.Runtime.Analyzers
     public sealed class OverrideMethodsOnComparableTypesAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1036";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterface), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterface), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterfaceDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterface), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterface), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.OverloadOperatorEqualsOnIComparableInterfaceDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                                   s_localizableTitle,
@@ -49,68 +49,36 @@ namespace System.Runtime.Analyzers
                 compilationContext.RegisterSymbolAction(context =>
                 {
                     AnalyzeSymbol((INamedTypeSymbol)context.Symbol, comparableType, genericComparableType, context.ReportDiagnostic);
-                }, 
+                },
                 SymbolKind.NamedType);
             });
         }
 
         private static void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, INamedTypeSymbol comparableType, INamedTypeSymbol genericComparableType, Action<Diagnostic> addDiagnostic)
         {
-            if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Private || namedTypeSymbol.TypeKind == TypeKind.Interface)
+            if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Private || namedTypeSymbol.TypeKind == TypeKind.Interface || namedTypeSymbol.TypeKind == TypeKind.Enum)
             {
                 return;
             }
 
-            if (namedTypeSymbol.AllInterfaces.Any(t => t.Equals(comparableType) || 
+            if (namedTypeSymbol.AllInterfaces.Any(t => t.Equals(comparableType) ||
                                                       (t.ConstructedFrom?.Equals(genericComparableType) ?? false)))
             {
-                if (!(DoesOverrideEquals(namedTypeSymbol) && IsEqualityOperatorImplemented(namedTypeSymbol)))
+                if (!(namedTypeSymbol.DoesOverrideEquals() && IsEqualityOperatorImplemented(namedTypeSymbol)))
                 {
                     addDiagnostic(namedTypeSymbol.CreateDiagnostic(Rule));
                 }
             }
         }
 
-        internal static bool DoesOverrideEquals(INamedTypeSymbol symbol)
-        {
-            // Does the symbol override Object.Equals?
-            return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Where(m => IsEqualsOverride(m)).Any();
-        }
-
-        private static bool IsEqualsOverride(IMethodSymbol method)
-        {
-            return method.IsOverride &&
-                   method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                   method.Parameters.Length == 1 &&
-                   method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
-        }
-
-        internal static bool DoesOverrideGetHashCode(INamedTypeSymbol symbol)
-        {
-            // Does the symbol override Object.GetHashCode?
-            return symbol.GetMembers(WellKnownMemberNames.ObjectGetHashCode).OfType<IMethodSymbol>().Where(m => IsGetHashCodeOverride(m)).Any();
-        }
-
-        private static bool IsGetHashCodeOverride(IMethodSymbol method)
-        {
-            return method.IsOverride &&
-                   method.ReturnType.SpecialType == SpecialType.System_Int32 &&
-                   method.Parameters.Length == 0;
-        }
-
         private static bool IsEqualityOperatorImplemented(INamedTypeSymbol symbol)
         {
             // Does the symbol overload all of the equality operators?  (All are required per http://msdn.microsoft.com/en-us/library/ms182163.aspx example.)
-            return IsOperatorImplemented(symbol, WellKnownMemberNames.EqualityOperatorName) &&
-                    IsOperatorImplemented(symbol, WellKnownMemberNames.InequalityOperatorName) &&
-                    IsOperatorImplemented(symbol, WellKnownMemberNames.LessThanOperatorName) &&
-                    IsOperatorImplemented(symbol, WellKnownMemberNames.GreaterThanOperatorName);
+            return symbol.IsOperatorImplemented(WellKnownMemberNames.EqualityOperatorName) &&
+                   symbol.IsOperatorImplemented(WellKnownMemberNames.InequalityOperatorName) &&
+                   symbol.IsOperatorImplemented(WellKnownMemberNames.LessThanOperatorName) &&
+                   symbol.IsOperatorImplemented(WellKnownMemberNames.GreaterThanOperatorName);
         }
 
-        internal static bool IsOperatorImplemented(INamedTypeSymbol symbol, string op)
-        {
-            // TODO: should this filter on the right-hand-side operator type?
-            return symbol.GetMembers(op).OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.UserDefinedOperator).Any();
-        }
     }
 }

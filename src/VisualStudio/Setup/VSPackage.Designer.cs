@@ -61,7 +61,7 @@ namespace Roslyn.VisualStudio.Setup {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Workspace.
+        ///   Looks up a localized string similar to IntelliSense.
         /// </summary>
         internal static string WorkspaceOutputPaneTitle {
             get {

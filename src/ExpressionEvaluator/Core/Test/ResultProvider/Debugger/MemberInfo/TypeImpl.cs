@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
+using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -65,11 +66,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             get { throw new NotImplementedException(); }
         }
 
-        public override System.Reflection.MemberTypes MemberType
+        public override MemberTypes MemberType
         {
             get
             {
-                return this.Type.MemberType;
+                return (MemberTypes)this.Type.MemberType;
             }
         }
 
@@ -123,9 +124,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return Type.GetArrayRank();
         }
 
-        public override ConstructorInfo[] GetConstructors(System.Reflection.BindingFlags bindingAttr)
+        public override ConstructorInfo[] GetConstructors(BindingFlags bindingAttr)
         {
-            return Type.GetConstructors(bindingAttr).Select(c => new ConstructorInfoImpl(c)).ToArray();
+            return Type.GetConstructors((System.Reflection.BindingFlags)bindingAttr).Select(c => new ConstructorInfoImpl(c)).ToArray();
         }
 
         public override object[] GetCustomAttributes(bool inherit)
@@ -148,24 +149,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return (TypeImpl)(Type.GetElementType());
         }
 
-        public override EventInfo GetEvent(string name, System.Reflection.BindingFlags flags)
+        public override EventInfo GetEvent(string name, BindingFlags flags)
         {
             throw new NotImplementedException();
         }
 
-        public override EventInfo[] GetEvents(System.Reflection.BindingFlags flags)
+        public override EventInfo[] GetEvents(BindingFlags flags)
         {
             throw new NotImplementedException();
         }
 
-        public override FieldInfo GetField(string name, System.Reflection.BindingFlags bindingAttr)
+        public override FieldInfo GetField(string name, BindingFlags bindingAttr)
         {
-            return new FieldInfoImpl(Type.GetField(name, bindingAttr));
+            return new FieldInfoImpl(Type.GetField(name, (System.Reflection.BindingFlags)bindingAttr));
         }
 
-        public override FieldInfo[] GetFields(System.Reflection.BindingFlags flags)
+        public override FieldInfo[] GetFields(BindingFlags flags)
         {
-            return Type.GetFields(flags).Select(f => new FieldInfoImpl(f)).ToArray();
+            return Type.GetFields((System.Reflection.BindingFlags)flags).Select(f => new FieldInfoImpl(f)).ToArray();
         }
 
         public override Type GetGenericTypeDefinition()
@@ -193,14 +194,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw new NotImplementedException();
         }
 
-        public override MemberInfo[] GetMember(string name, System.Reflection.BindingFlags bindingAttr)
+        public override MemberInfo[] GetMember(string name, BindingFlags bindingAttr)
         {
-            return Type.GetMember(name, bindingAttr).Select(GetMember).ToArray();
+            return Type.GetMember(name, (System.Reflection.BindingFlags)bindingAttr).Select(GetMember).ToArray();
         }
 
-        public override MemberInfo[] GetMembers(System.Reflection.BindingFlags bindingAttr)
+        public override MemberInfo[] GetMembers(BindingFlags bindingAttr)
         {
-            return Type.GetMembers(bindingAttr).Select(GetMember).ToArray();
+            return Type.GetMembers((System.Reflection.BindingFlags)bindingAttr).Select(GetMember).ToArray();
         }
 
         private static MemberInfo GetMember(System.Reflection.MemberInfo member)
@@ -224,27 +225,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        public override MethodInfo[] GetMethods(System.Reflection.BindingFlags flags)
+        public override MethodInfo[] GetMethods(BindingFlags flags)
         {
-            return this.Type.GetMethods(flags).Select(m => new MethodInfoImpl(m)).ToArray();
+            return this.Type.GetMethods((System.Reflection.BindingFlags)flags).Select(m => new MethodInfoImpl(m)).ToArray();
         }
 
-        public override Type GetNestedType(string name, System.Reflection.BindingFlags bindingAttr)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Type[] GetNestedTypes(System.Reflection.BindingFlags bindingAttr)
+        public override Type GetNestedType(string name, BindingFlags bindingAttr)
         {
             throw new NotImplementedException();
         }
 
-        public override PropertyInfo[] GetProperties(System.Reflection.BindingFlags flags)
+        public override Type[] GetNestedTypes(BindingFlags bindingAttr)
         {
             throw new NotImplementedException();
         }
 
-        public override object InvokeMember(string name, System.Reflection.BindingFlags invokeAttr, Binder binder, object target, object[] args, System.Reflection.ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters)
+        public override PropertyInfo[] GetProperties(BindingFlags flags)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters)
         {
             throw new NotImplementedException();
         }
@@ -369,32 +370,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return this.Type.IsValueType;
         }
 
-        protected override ConstructorInfo GetConstructorImpl(System.Reflection.BindingFlags bindingAttr, Binder binder, System.Reflection.CallingConventions callConvention, Type[] types, System.Reflection.ParameterModifier[] modifiers)
+        protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder, System.Reflection.CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
         {
             throw new NotImplementedException();
         }
 
-        protected override MethodInfo GetMethodImpl(string name, System.Reflection.BindingFlags bindingAttr, Binder binder, System.Reflection.CallingConventions callConvention, Type[] types, System.Reflection.ParameterModifier[] modifiers)
+        protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder, System.Reflection.CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
         {
             throw new NotImplementedException();
         }
 
-        protected override PropertyInfo GetPropertyImpl(string name, System.Reflection.BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types, System.Reflection.ParameterModifier[] modifiers)
+        protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types, ParameterModifier[] modifiers)
         {
             Debug.Assert(binder == null, "NYI");
             Debug.Assert(returnType == null, "NYI");
             Debug.Assert(types == null, "NYI");
-            return new PropertyInfoImpl(Type.GetProperty(name, bindingAttr, binder: null, returnType: null, types: new System.Type[0], modifiers: modifiers));
+            Debug.Assert(modifiers == null, "NYI");
+            return new PropertyInfoImpl(Type.GetProperty(name, (System.Reflection.BindingFlags)bindingAttr, binder: null, returnType: null, types: new System.Type[0], modifiers: new System.Reflection.ParameterModifier[0]));
         }
 
         protected override TypeCode GetTypeCodeImpl()
         {
-            return System.Type.GetTypeCode(this.Type);
+            return (TypeCode)System.Type.GetTypeCode(this.Type);
         }
 
         protected override bool HasElementTypeImpl()
         {
-            throw new NotImplementedException();
+            return this.Type.HasElementType;
         }
 
         protected override bool IsArrayImpl()

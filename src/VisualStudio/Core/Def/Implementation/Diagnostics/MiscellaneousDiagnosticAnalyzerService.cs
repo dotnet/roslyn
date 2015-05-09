@@ -21,6 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Shared]
     internal partial class MiscellaneousDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
+        private readonly IDiagnosticAnalyzerService analyzerService;
+
+        [ImportingConstructor]
+        public MiscellaneousDiagnosticAnalyzerService(IDiagnosticAnalyzerService analyzerService)
+        {
+            this.analyzerService = analyzerService;
+        }
+
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
@@ -82,7 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 Contract.Requires(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
-                _service.RaiseDiagnosticsUpdated(new DiagnosticsUpdatedArgs(ValueTuple.Create(this, document.Id), _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+                _service.RaiseDiagnosticsUpdated(
+                    new DiagnosticsUpdatedArgs(new MiscUpdateArgsId(document.Id),
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -100,6 +110,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 }
 
                 return SpecializedTasks.EmptyTask;
+            }
+
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                return DocumentResetAsync(document, cancellationToken);
             }
 
             private void RaiseEmptyDiagnosticUpdated(DocumentId documentId)
@@ -135,6 +150,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public void RemoveProject(ProjectId projectId)
             {
+            }
+
+            private class MiscUpdateArgsId : ErrorSourceId.Base<DocumentId>, ISupportLiveUpdate
+            {
+                public MiscUpdateArgsId(DocumentId documentId) : base(documentId)
+                {
+                }
+
+                public override string ErrorSource
+                {
+                    get
+                    {
+                        return PredefinedErrorSources.Compiler;
+                    }
+                }
+
+                public override bool Equals(object obj)
+                {
+                    var other = obj as MiscUpdateArgsId;
+                    if (other == null)
+                    {
+                        return false;
+                    }
+
+                    return base.Equals(obj);
+                }
+
+                public override int GetHashCode()
+                {
+                    return base.GetHashCode();
+                }
             }
         }
     }

@@ -25,12 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         <Extension()>
         Public Function NormalizeWhitespace(Of TNode As SyntaxNode)(node As TNode, useDefaultCasing As Boolean, Optional indentation As String = DefaultIndentation, Optional elasticTrivia As Boolean = False) As TNode
-            Return CType(SyntaxFormatter.Format(node, indentation, elasticTrivia, useDefaultCasing), TNode)
+            Return CType(SyntaxNormalizer.Normalize(node, indentation, elasticTrivia, useDefaultCasing), TNode)
         End Function
 
         <Extension()>
         Public Function NormalizeWhitespace(token As SyntaxToken, Optional indentation As String = DefaultIndentation, Optional elasticTrivia As Boolean = False) As SyntaxToken
-            Return SyntaxFormatter.Format(token, indentation, elasticTrivia)
+            Return SyntaxNormalizer.Normalize(token, indentation, elasticTrivia)
         End Function
 
         ''' <summary>

@@ -14,6 +14,7 @@
     <AssemblyName>Roslyn.Compilers.VisualBasic.Emit.UnitTests</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
@@ -58,8 +59,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -155,15 +157,17 @@
     <Compile Include="CodeGen\WinRTCollectionTests.vb" />
     <Compile Include="Emit\CompilationEmitTests.vb" />
     <Compile Include="Emit\DeterministicTests.vb" />
-    <Compile Include="Emit\EditAndContinueStateMachineTests.vb" />
-    <Compile Include="Emit\EditAndContinueTestBase.vb" />
-    <Compile Include="Emit\EditAndContinueTests.vb" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.vb" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinueTests.vb" />
+    <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.vb" />
     <Compile Include="Emit\EmitCustomModifiers.vb" />
     <Compile Include="Emit\EmitErrorTests.vb" />
     <Compile Include="Emit\EmitMetadata.vb" />
     <Compile Include="Emit\EntryPointTests.vb" />
     <Compile Include="Emit\FieldInitializerTests.vb" />
-    <Compile Include="Emit\LocalSlotMappingTests.vb" />
+    <Compile Include="Emit\EditAndContinue\LocalSlotMappingTests.vb" />
     <Compile Include="Emit\NoPiaEmbedTypes.vb" />
     <Compile Include="Emit\OptionalArgumentsTests.vb" />
     <Compile Include="Emit\ResourceTests.vb" />
@@ -173,9 +177,11 @@
     <Compile Include="ExpressionTrees\Sources\ExprLambdaUtils.vb" />
     <Compile Include="ExpressionTrees\Sources\QueryHelper.vb" />
     <Compile Include="PDB\ChecksumTests.vb" />
+    <Compile Include="PDB\PDBAsyncTests.vb" />
     <Compile Include="PDB\PDBCollectionInitializerTests.vb" />
     <Compile Include="PDB\PDBConstLocalTests.vb" />
     <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
+    <Compile Include="PDB\PDBLambdaTests.vb" />
     <Compile Include="PDB\PDBVariableInitializerTests.vb" />
     <Compile Include="PDB\PDBIteratorTests.vb" />
     <Compile Include="PDB\PDBForEachTests.vb" />

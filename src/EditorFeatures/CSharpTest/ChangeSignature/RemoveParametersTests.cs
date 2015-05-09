@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -132,7 +136,7 @@ public class DP20<T>
         E2 -= new D(M3);
     }
 }";
-            var updatedSignature = new int[] { };
+            var updatedSignature = Array.Empty<int>();
             var updatedCode = @"
 class DA
 {
@@ -166,6 +170,92 @@ public class DP20<T>
 }";
 
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(1102830)]
+        [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
+        public void RemoveParameters_ExtensionMethodInAnotherFile()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">";
+            
+            for (int i = 0; i <= 4; i++)
+            {
+                workspaceXml += $@"
+<Document FilePath = ""C{i}.cs"">
+class C{i}
+{{
+    void M()
+    {{
+        C5 c = new C5();
+        c.Ext(1, ""two"");
+    }}
+}}
+</Document>";
+            }
+
+            workspaceXml += @"
+<Document FilePath = ""C5.cs"">
+public class C5
+{
+}
+
+public static class C5Ext
+{
+    public void $$Ext(this C5 c, int i, string s)
+    {
+    }
+}
+</Document>";
+
+            for (int i = 6; i <= 9; i++)
+            {
+                workspaceXml += $@"
+<Document FilePath = ""C{i}.cs"">
+class C{i}
+{{
+    void M()
+    {{
+        C5 c = new C5();
+        c.Ext(1, ""two"");
+    }}
+}}
+</Document>";
+            }
+
+            workspaceXml += @"
+    </Project>
+</Workspace>";
+
+            // Ext(this F f, int i, string s) --> Ext(this F f, string s)
+            // If a reference does not bind correctly, it will believe Ext is not an extension
+            // method and remove the string argument instead of the int argument.
+
+            var updatedSignature = new[] { 0, 2 };
+
+            using (var testState = new ChangeSignatureTestState(XElement.Parse(workspaceXml)))
+            {
+                testState.TestChangeSignatureOptionsService.IsCancelled = false;
+                testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
+                var result = testState.ChangeSignature();
+
+                Assert.True(result.Succeeded);
+                Assert.Null(testState.ErrorMessage);
+
+                foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
+                {
+                    if (updatedDocument.Name == "C5.cs")
+                    {
+                        Assert.Contains("void Ext(this C5 c, string s)", updatedDocument.GetTextAsync(CancellationToken.None).Result.ToString());
+                    }
+                    else
+                    {
+                        Assert.Contains(@"c.Ext(""two"");", updatedDocument.GetTextAsync(CancellationToken.None).Result.ToString());
+                    }
+                }
+            }
         }
     }
 }

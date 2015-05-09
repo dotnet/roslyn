@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     public abstract class CA2200DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA2200";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.RethrowToPreserveStackDetails), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.RethrowException), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.RethrowToPreserveStackDetails), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.RethrowException), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitle,

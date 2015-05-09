@@ -15,24 +15,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions compOptions = null)
+        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
-            compOptions = compOptions ?? TestOptions.ReleaseExe;
+            options = options ?? TestOptions.ReleaseExe;
 
             IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
-            return CreateCompilationWithMscorlib45(source, options: compOptions, references: references);
+            return CreateCompilationWithMscorlib45(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, TestEmitters emitOptions = TestEmitters.All, CSharpCompilationOptions compOptions = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, TestEmitters emitters = TestEmitters.All, CSharpCompilationOptions options = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
-            var compilation = this.CreateCompilation(source, references: references, compOptions: compOptions);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: emitOptions);
+            var compilation = this.CreateCompilation(source, references: references, options: options);
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitters: emitters);
         }
 
         [Fact]
@@ -862,7 +862,7 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeReleaseExe);
         }
 
         [Fact]
@@ -934,7 +934,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -995,7 +995,7 @@ class Driver
         Console.Write(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -1036,7 +1036,7 @@ class Driver
 
     public static int Result = -1;
 }";
-            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -1095,7 +1095,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -1179,7 +1179,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -1241,7 +1241,7 @@ class Driver
         return ret;
     }
 }";
-            CompileAndVerify(source, "0", compOptions: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
         }
 
         [Fact]
@@ -1980,8 +1980,8 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, allowUnsafe: true);
-            CompileAndVerify(source, "0", compOptions: compOptions);
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication, allowUnsafe: true);
+            CompileAndVerify(source, "0", options: options);
         }
 
         [Fact]
@@ -2198,7 +2198,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, expectedOutput: expected, compOptions: TestOptions.DebugExe);
+            var c = CompileAndVerify(source, expectedOutput: expected, options: TestOptions.DebugExe);
 
             c.VerifyIL("Test.F", @"
 {
@@ -2260,7 +2260,7 @@ class Test
     IL_0033:  callvirt   ""System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)""
     IL_0038:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_003d:  stloc.2
-    IL_003e:  ldloca.s   V_2
+   ~IL_003e:  ldloca.s   V_2
     IL_0040:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0045:  brtrue.s   IL_0088
     IL_0047:  ldarg.0
@@ -3175,7 +3175,7 @@ class Test
         return array[1].Mutate(await G());
     }
 }";
-            var v = CompileAndVerify(source, null, compOptions: TestOptions.DebugDll);
+            var v = CompileAndVerify(source, null, options: TestOptions.DebugDll);
 
             v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -3214,7 +3214,7 @@ class Test
     IL_0035:  call       ""System.Threading.Tasks.Task<int> Test.G()""
     IL_003a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_003f:  stloc.3
-    IL_0040:  ldloca.s   V_3
+   ~IL_0040:  ldloca.s   V_3
     IL_0042:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0047:  brtrue.s   IL_008a
     IL_0049:  ldarg.0
@@ -3287,6 +3287,46 @@ class Test
   IL_00ec:  ret
 }",
             sequencePoints: "Test+<F>d__2.MoveNext");
+        }
+
+        [Fact, WorkItem(1942, "https://github.com/dotnet/roslyn/issues/1942")]
+        public void HoistStructure()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+namespace ConsoleApp
+{
+    struct TestStruct
+    {
+        public long i;
+        public long j;
+    }
+    class Program
+    {
+        static async Task TestAsync()
+        {
+            TestStruct t;
+            t.i = 12;
+            Console.WriteLine(""Before {0}"", t.i); // emits ""Before 12"" 
+            await Task.Delay(100);
+            Console.WriteLine(""After {0}"", t.i); // emits ""After 0"" expecting ""After 12"" 
+        }
+        static void Main(string[] args)
+        {
+            TestAsync().Wait();
+        }
+    }
+}";
+
+            var expectedOutput = @"Before 12
+After 12";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
     }
 }

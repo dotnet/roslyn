@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
     {
         public static readonly ExtractInterfaceOptionsResult Cancelled = new ExtractInterfaceOptionsResult(isCancelled: true);
 
-        public bool IsCancelled { get; private set; }
-        public IEnumerable<ISymbol> IncludedMembers { get; private set; }
-        public string InterfaceName { get; private set; }
-        public string FileName { get; private set; }
+        public bool IsCancelled { get; }
+        public IEnumerable<ISymbol> IncludedMembers { get; }
+        public string InterfaceName { get; }
+        public string FileName { get; }
 
         public ExtractInterfaceOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName, string fileName)
         {

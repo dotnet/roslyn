@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     Partial Friend Class VisualBasicCompletionService
         Inherits AbstractCompletionService
 
-        Private ReadOnly completionProviders As IEnumerable(Of ICompletionProvider) = New ICompletionProvider() {
+        Private ReadOnly _completionProviders As IEnumerable(Of ICompletionProvider) = New ICompletionProvider() {
             New KeywordCompletionProvider(),
             New SymbolCompletionProvider(),
             New ObjectInitializerCompletionProvider(),
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         }.ToImmutableArray()
 
         Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of ICompletionProvider)
-            Return completionProviders
+            Return _completionProviders
         End Function
 
         Public Overrides Function GetDefaultCompletionRules() As ICompletionRules

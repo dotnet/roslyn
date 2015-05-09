@@ -125,6 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     V v = (V)(T)e.Current;
             //     /* node.Body */
             // }
+
+            var rewrittenBodyBlock = CreateBlockDeclaringIterationVariable(iterationVar, iterationVarDecl, rewrittenBody, forEachSyntax);
+
             BoundStatement whileLoop = RewriteWhileStatement(
                 syntax: forEachSyntax,
                 rewrittenCondition: BoundCall.Synthesized(
@@ -132,9 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverOpt: boundEnumeratorVar,
                     method: enumeratorInfo.MoveNextMethod),
                 conditionSequencePointSpan: forEachSyntax.InKeyword.Span,
-                rewrittenBody: new BoundBlock(rewrittenBody.Syntax,
-                                              statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody),
-                                              locals: ImmutableArray.Create<LocalSymbol>(iterationVar)),
+                rewrittenBody: rewrittenBodyBlock,
                 breakLabel: node.BreakLabel,
                 continueLabel: node.ContinueLabel,
                 hasErrors: false);
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement result;
 
             MethodSymbol disposeMethod;
-            if (enumeratorInfo.NeedsDisposeMethod && TryGetSpecialTypeMember(forEachSyntax, SpecialMember.System_IDisposable__Dispose, out disposeMethod))
+            if (enumeratorInfo.NeedsDisposeMethod && Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod))
             {
                 Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
                                                    hasBaseReceiver: false,
@@ -318,9 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A BoundExpression representing the call.</returns>
         private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
         {
-            if (receiver.Type.TypeKind == TypeKind.Struct && method.ContainingType.IsInterface)
+            if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
             {
-                Debug.Assert(receiverConversion.IsBoxing);
+                Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
 
                 // NOTE: The spec says that disposing of a struct enumerator won't cause any 
                 // unnecessary boxing to occur.  However, Dev10 extends this improvement to the
@@ -458,9 +459,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddForEachIterationVariableSequencePoint(forEachSyntax, ref iterationVarDecl);
 
             // { V v = (V)s.Chars[p]; /*node.Body*/ }
-            BoundStatement loopBody = new BoundBlock(forEachSyntax,
-                locals: ImmutableArray.Create<LocalSymbol>(iterationVar),
-                statements: ImmutableArray.Create<BoundStatement>(iterationVarDecl, rewrittenBody));
+
+            BoundStatement loopBody = CreateBlockDeclaringIterationVariable(iterationVar, iterationVarDecl, rewrittenBody, forEachSyntax);
 
             // for (string s = /*node.Expression*/, int p = 0; p < s.Length; p = p + 1) {
             //     V v = (V)s.Chars[p];
@@ -482,6 +482,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddForEachKeywordSequencePoint(forEachSyntax, ref result);
 
             return result;
+        }
+
+        private static BoundBlock CreateBlockDeclaringIterationVariable(
+            LocalSymbol iterationVariable, 
+            BoundStatement iteratorVariableInitialization,
+            BoundStatement rewrittenBody,
+            ForEachStatementSyntax forEachSyntax)
+        {
+            // The scope of the iteration variable is the embedded statement syntax.
+            // However consider the following foreach statement:
+            //
+            //   foreach (int x in ...) { int y = ...; F(() => x); F(() => y));
+            //
+            // We currently generate 2 closures. One containing variable x, the other variable y.
+            // The EnC source mapping infrastructure requires each closure within a method body
+            // to have a unique syntax offset. Hence we associate the bound block declaring the 
+            // iteration variable with the foreach statement, not the embedded statement.
+            return new BoundBlock(
+                forEachSyntax,
+                locals: ImmutableArray.Create(iterationVariable),
+                statements: ImmutableArray.Create(iteratorVariableInitialization, rewrittenBody));
         }
 
         /// <summary>
@@ -583,10 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar, intType);
 
             // { V v = (V)a[p]; /* node.Body */ }
-            BoundStatement loopBody = new BoundBlock(forEachSyntax,
-                locals: ImmutableArray.Create<LocalSymbol>(iterationVar),
-                statements: ImmutableArray.Create<BoundStatement>(iterationVariableDecl, rewrittenBody));
 
+            BoundStatement loopBody = CreateBlockDeclaringIterationVariable(iterationVar, iterationVariableDecl, rewrittenBody, forEachSyntax); 
+           
             // for (A[] a = /*node.Expression*/, int p = 0; p < a.Length; p = p + 1) {
             //     V v = (V)a[p];
             //     /*node.Body*/
@@ -714,9 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddForEachIterationVariableSequencePoint(forEachSyntax, ref iterationVarDecl);
 
             // { V v = (V)a[p_0, p_1, ...]; /* node.Body */ }
-            BoundStatement innermostLoopBody = new BoundBlock(forEachSyntax,
-                locals: ImmutableArray.Create(iterationVar),
-                statements: ImmutableArray.Create(iterationVarDecl, rewrittenBody));
+
+            BoundStatement innermostLoopBody = CreateBlockDeclaringIterationVariable(iterationVar, iterationVarDecl, rewrittenBody, forEachSyntax);
 
             // work from most-nested to least-nested
             // for (int p_0 = a.GetLowerBound(0); p_0 <= q_0; p_0 = p_0 + 1)

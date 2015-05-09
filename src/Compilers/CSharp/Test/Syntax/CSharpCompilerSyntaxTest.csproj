@@ -17,12 +17,13 @@
     <CSharpSyntaxGeneratorToolPath>$(OutDir)\CSharpSyntaxGenerator.exe</CSharpSyntaxGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -138,6 +139,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Syntax\ChildSyntaxListTests.cs" />
+    <Compile Include="Syntax\LambdaUtilitiesTests.cs" />
     <Compile Include="Syntax\SyntaxTreeTests.cs" />
     <Compile Include="Syntax\GreenNodeTests.cs" />
     <Compile Include="Syntax\RedNodeTests.cs" />
@@ -148,7 +150,7 @@
     <Compile Include="Syntax\SyntaxDiffingTests.cs" />
     <Compile Include="Syntax\SyntaxEquivalenceTests.cs" />
     <Compile Include="Syntax\SyntaxFactoryTests.cs" />
-    <Compile Include="Syntax\SyntaxFormatterTests.cs" />
+    <Compile Include="Syntax\SyntaxNormalizerTests.cs" />
     <Compile Include="Syntax\SyntaxListTests.cs" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListTests.cs" />
     <Compile Include="Syntax\SyntaxNodeTests.cs" />

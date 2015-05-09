@@ -21,33 +21,38 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal unsafe delegate IntPtr GetMetadataBytesPtrFunction(AssemblyIdentity assemblyIdentity, out uint uSize);
 
-        private static IEnumerable<DkmClrModuleInstance> GetModulesInAppDomain(this DkmProcess process, DkmClrAppDomain appDomain)
+        private static IEnumerable<DkmClrModuleInstance> GetModulesInAppDomain(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
         {
             var appDomainId = appDomain.Id;
-            return process.GetRuntimeInstances().
-                OfType<DkmClrRuntimeInstance>().
-                SelectMany(runtime => runtime.GetModuleInstances()).
+            return runtime.GetModuleInstances().
                 Cast<DkmClrModuleInstance>().
                 Where(module => module.AppDomain.Id == appDomainId);
         }
 
-        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmProcess process, DkmClrAppDomain appDomain)
+        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
         {
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
-            foreach (DkmClrModuleInstance module in process.GetModulesInAppDomain(appDomain))
+            IntPtr ptr;
+            uint size;
+            foreach (DkmClrModuleInstance module in runtime.GetModulesInAppDomain(appDomain))
             {
-                int size;
-                IntPtr ptr;
-                MetadataReader reader;
-                if (module.TryGetMetadataReader(out ptr, out size, out reader))
+                MetadataBlock block;
+                try
                 {
-                    var moduleDef = reader.GetModuleDefinition();
-                    var moduleVersionId = reader.GetGuid(moduleDef.Mvid);
-                    var generationId = reader.GetGuid(moduleDef.GenerationId);
-                    Debug.Assert(moduleVersionId == module.Mvid);
-                    builder.Add(new MetadataBlock(moduleVersionId, generationId, ptr, size));
+                    ptr = module.GetMetaDataBytesPtr(out size);
+                    Debug.Assert(size > 0);
+                    block = GetMetadataBlock(ptr, size);
                 }
+                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                {
+                    continue;
+                }
+                Debug.Assert(block.ModuleVersionId == module.Mvid);
+                builder.Add(block);
             }
+            // Include "intrinsic method" assembly.
+            ptr = runtime.GetIntrinsicAssemblyMetaDataBytesPtr(out size);
+            builder.Add(GetMetadataBlock(ptr, size));
             return builder.ToImmutableAndFree();
         }
 
@@ -56,22 +61,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ArrayBuilder<MetadataBlock> builder = null;
             foreach (AssemblyIdentity missingAssemblyIdentity in missingAssemblyIdentities)
             {
-                int size;
-                IntPtr ptr;
-                MetadataReader reader;
-                if (TryGetMetadataReader(getMetaDataBytesPtrFunction, missingAssemblyIdentity, out ptr, out size, out reader))
+                MetadataBlock block;
+                try
                 {
-                    var moduleDef = reader.GetModuleDefinition();
-                    var moduleVersionId = reader.GetGuid(moduleDef.Mvid);
-                    var generationId = reader.GetGuid(moduleDef.GenerationId);
-
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<MetadataBlock>.GetInstance();
-                    }
-
-                    builder.Add(new MetadataBlock(moduleVersionId, generationId, ptr, size));
+                    uint size;
+                    IntPtr ptr;
+                    ptr = getMetaDataBytesPtrFunction(missingAssemblyIdentity, out size);
+                    Debug.Assert(size > 0);
+                    block = GetMetadataBlock(ptr, size);
                 }
+                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, missingAssemblyIdentity.GetDisplayName()))
+                {
+                    continue;
+                }
+                if (builder == null)
+                {
+                    builder = ArrayBuilder<MetadataBlock>.GetInstance();
+                }
+                builder.Add(block);
             }
             return builder == null ? ImmutableArray<MetadataBlock>.Empty : builder.ToImmutableAndFree();
         }
@@ -79,77 +86,41 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static ImmutableArray<AssemblyReaders> MakeAssemblyReaders(this DkmClrInstructionAddress instructionAddress)
         {
             var builder = ArrayBuilder<AssemblyReaders>.GetInstance();
-            foreach (DkmClrModuleInstance module in instructionAddress.Process.GetModulesInAppDomain(instructionAddress.ModuleInstance.AppDomain))
+            foreach (DkmClrModuleInstance module in instructionAddress.RuntimeInstance.GetModulesInAppDomain(instructionAddress.ModuleInstance.AppDomain))
             {
-                MetadataReader metadataReader;
-                if (module.TryGetMetadataReader(out metadataReader))
+                var symReader = module.GetSymReader();
+                if (symReader == null)
                 {
-                    var symReader = module.GetSymReader();
-                    if (symReader != null)
+                    continue;
+                }
+                MetadataReader reader;
+                unsafe
+                {
+                    try
                     {
-                        builder.Add(new AssemblyReaders(metadataReader, symReader));
+                        uint size;
+                        IntPtr ptr;
+                        ptr = module.GetMetaDataBytesPtr(out size);
+                        Debug.Assert(size > 0);
+                        reader = new MetadataReader((byte*)ptr, (int)size);
+                    }
+                    catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                    {
+                        continue;
                     }
                 }
+                builder.Add(new AssemblyReaders(reader, symReader));
             }
             return builder.ToImmutableAndFree();
         }
 
-        /// <summary>
-        /// Attempt to construct a <see cref="MetadataReader"/> instance for this module.
-        /// </summary>
-        /// <returns>Returns 'false' for modules with "bad" or missing metadata.</returns>
-        private static bool TryGetMetadataReader(this DkmClrModuleInstance module, out MetadataReader reader)
+        private unsafe static MetadataBlock GetMetadataBlock(IntPtr ptr, uint size)
         {
-            int size;
-            IntPtr ptr;
-            return module.TryGetMetadataReader(out ptr, out size, out reader);
-        }
-
-        /// <summary>
-        /// Attempt to construct a <see cref="MetadataReader"/> instance for this module.
-        /// </summary>
-        /// <returns>Returns 'false' for modules with "bad" or missing metadata.</returns>
-        private unsafe static bool TryGetMetadataReader(this DkmClrModuleInstance module, out IntPtr ptr, out int size, out MetadataReader reader)
-        {
-            try
-            {
-                uint uSize;
-                ptr = module.GetMetaDataBytesPtr(out uSize);
-                size = (int)uSize;
-                reader = new MetadataReader((byte*)ptr, size);
-                return true;
-            }
-            catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
-            {
-                ptr = IntPtr.Zero;
-                size = 0;
-                reader = null;
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Attempt to construct a <see cref="MetadataReader"/> instance for this module.
-        /// </summary>
-        /// <returns>Returns 'false' for modules with "bad" or missing metadata.</returns>
-        private unsafe static bool TryGetMetadataReader(GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, AssemblyIdentity assemblyIdentity, out IntPtr ptr, out int size, out MetadataReader reader)
-        {
-            var assemblyName = assemblyIdentity.GetDisplayName();
-            try
-            {
-                uint uSize;
-                ptr = getMetaDataBytesPtrFunction(assemblyIdentity, out uSize);
-                size = (int)uSize;
-                reader = new MetadataReader((byte*)ptr, size);
-                return true;
-            }
-            catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, assemblyName))
-            {
-                ptr = IntPtr.Zero;
-                size = 0;
-                reader = null;
-                return false;
-            }
+            var reader = new MetadataReader((byte*)ptr, (int)size);
+            var moduleDef = reader.GetModuleDefinition();
+            var moduleVersionId = reader.GetGuid(moduleDef.Mvid);
+            var generationId = reader.GetGuid(moduleDef.GenerationId);
+            return new MetadataBlock(moduleVersionId, generationId, ptr, (int)size);
         }
 
         internal static object GetSymReader(this DkmClrModuleInstance clrModule)
@@ -164,13 +135,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ResultProperties resultProperties,
             DkmClrRuntimeInstance runtimeInstance)
         {
-            if (compResult.Assembly == null)
+            if (compResult == null)
             {
-                Debug.Assert(compResult.TypeName == null);
-                Debug.Assert(compResult.MethodName == null);
                 return null;
             }
 
+            Debug.Assert(compResult.Assembly != null);
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
 
@@ -186,7 +156,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ResultCategory: resultProperties.Category,
                 Access: resultProperties.AccessType,
                 StorageType: resultProperties.StorageType,
-                TypeModifierFlags: resultProperties.ModifierFlags);
+                TypeModifierFlags: resultProperties.ModifierFlags,
+                CustomTypeInfo: compResult.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 
         internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)
@@ -268,6 +239,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static bool Includes(this DkmVariableInfoFlags flags, DkmVariableInfoFlags desired)
         {
             return (flags & desired) == desired;
+        }
+
+        internal static TMetadataContext GetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
+            where TMetadataContext : struct
+        {
+            var dataItem = appDomain.GetDataItem<MetadataContextItem<TMetadataContext>>();
+            return (dataItem == null) ? default(TMetadataContext) : dataItem.MetadataContext;
+        }
+
+        internal static void SetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain, TMetadataContext context)
+            where TMetadataContext : struct
+        {
+            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<TMetadataContext>(context));
+        }
+
+        internal static void RemoveMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
+            where TMetadataContext : struct
+        {
+            appDomain.RemoveDataItem<MetadataContextItem<TMetadataContext>>();
+        }
+
+        private sealed class MetadataContextItem<TMetadataContext> : DkmDataItem
+            where TMetadataContext : struct
+        {
+            internal readonly TMetadataContext MetadataContext;
+
+            internal MetadataContextItem(TMetadataContext metadataContext)
+            {
+                this.MetadataContext = metadataContext;
+            }
         }
     }
 }

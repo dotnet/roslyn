@@ -61,15 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     hostObjectType: null);
             }
 
-            public Microsoft.VisualStudio.Shell.Interop.IVsHierarchy Hierarchy
-            {
-                get { return null; }
-            }
+            public Microsoft.VisualStudio.Shell.Interop.IVsHierarchy Hierarchy => null;
 
-            public Workspace Workspace
-            {
-                get { return _workspace; }
-            }
+            public Guid Guid => Guid.Empty;
+
+            public Workspace Workspace => _workspace;
+
+            public string ProjectSystemName => "MiscellaneousFiles";
 
             public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
             {

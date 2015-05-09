@@ -3,7 +3,7 @@
 Imports System.IO
 
 ' Class to write out the code for the code tree.
-Class RedNodeFactoryWriter
+Friend Class RedNodeFactoryWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.
@@ -438,7 +438,7 @@ Class RedNodeFactoryWriter
 
     Private Sub CheckParam(name As String)
         _writer.WriteLine("            if {0} Is Nothing Then", name)
-        _writer.WriteLine("                Throw New ArgumentNullException(""{0}"")", name)
+        _writer.WriteLine("                Throw New ArgumentNullException(NameOf({0}))", name)
         _writer.WriteLine("            End If")
     End Sub
 

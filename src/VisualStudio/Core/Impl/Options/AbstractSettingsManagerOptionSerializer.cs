@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
-        private class SVsSettingsPersistenceManager {};
+        private class SVsSettingsPersistenceManager { };
 
         protected readonly ISettingsManager Manager;
         private readonly IOptionService _optionService;
@@ -33,10 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Contract.ThrowIfNull(serviceProvider);
             Contract.ThrowIfNull(optionService);
 
-            this.storageKeyToOptionMap = new Lazy<ImmutableDictionary<string, IOption>>(CreateStorageKeyToOptionMap, isThreadSafe: true);
+            _storageKeyToOptionMap = new Lazy<ImmutableDictionary<string, IOption>>(CreateStorageKeyToOptionMap, isThreadSafe: true);
 
             this.Manager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-            this._optionService = optionService;
+            _optionService = optionService;
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
             // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             IOption option;
             if (this.StorageKeyToOptionMap.TryGetValue(args.PropertyName, out option))
             {
-                this.SetChangedOption(this._optionService, option, LanguageName);
+                this.SetChangedOption(_optionService, option, LanguageName);
             }
 
             return SpecializedTasks.Default<object>();
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        private Lazy<ImmutableDictionary<string, IOption>> storageKeyToOptionMap;
+        private Lazy<ImmutableDictionary<string, IOption>> _storageKeyToOptionMap;
 
         protected abstract ImmutableDictionary<string, IOption> CreateStorageKeyToOptionMap();
 
@@ -97,10 +97,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             get
             {
-                return this.storageKeyToOptionMap.Value;
+                return _storageKeyToOptionMap.Value;
             }
         }
-       
+
         protected KeyValuePair<string, IOption> GetOptionInfo(FieldInfo fieldInfo)
         {
             var value = (IOption)fieldInfo.GetValue(null);
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var values = new List<KeyValuePair<string, IOption>>();
             foreach (Type type in types)
             {
-                FieldInfo[] fields = type.GetFields(flags) ?? new FieldInfo[0];
+                FieldInfo[] fields = type.GetFields(flags) ?? Array.Empty<FieldInfo>();
                 Func<FieldInfo, bool> localFilter = (fi) =>
                     {
                         if (!(fi.GetValue(null) is IOption))
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             return values;
-        }        
+        }
 
         public virtual bool TryFetch(OptionKey optionKey, out object value)
         {

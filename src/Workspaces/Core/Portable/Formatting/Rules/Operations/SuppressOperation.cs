@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             this.EndToken = endToken;
         }
 
-        public TextSpan TextSpan { get; private set; }
-        public SuppressOption Option { get; private set; }
+        public TextSpan TextSpan { get; }
+        public SuppressOption Option { get; }
 
-        public SyntaxToken StartToken { get; private set; }
-        public SyntaxToken EndToken { get; private set; }
+        public SyntaxToken StartToken { get; }
+        public SyntaxToken EndToken { get; }
     }
 }

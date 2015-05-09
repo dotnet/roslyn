@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundCall
+    Friend Partial Class BoundCall
 
         Public Sub New(
             syntax As VisualBasicSyntaxNode,

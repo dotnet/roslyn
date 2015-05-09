@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' The contents are provided by ReferenceManager and may not be modified.
         ''' </remarks>
-        Private m_ModuleReferences As ModuleReferences(Of AssemblySymbol)
+        Private _moduleReferences As ModuleReferences(Of AssemblySymbol)
 
         ''' <summary>
         ''' Does this symbol represent a missing Module.
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides Function GetReferencedAssemblies() As ImmutableArray(Of AssemblyIdentity)
             AssertReferencesInitialized()
-            Return m_ModuleReferences.Names
+            Return _moduleReferences.Names
         End Function
 
         ''' <summary>
@@ -58,12 +58,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides Function GetReferencedAssemblySymbols() As ImmutableArray(Of AssemblySymbol)
             AssertReferencesInitialized()
-            Return m_ModuleReferences.Symbols
+            Return _moduleReferences.Symbols
         End Function
 
         Friend Function GetUnifiedAssemblies() As ImmutableArray(Of UnifiedAssembly(Of AssemblySymbol))
             AssertReferencesInitialized()
-            Return m_ModuleReferences.UnifiedAssemblies
+            Return _moduleReferences.UnifiedAssemblies
         End Function
 
         Friend Overrides ReadOnly Property HasUnifiedReferences As Boolean
@@ -121,17 +121,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             AssertReferencesUninitialized()
 
-            m_ModuleReferences = moduleReferences
+            _moduleReferences = moduleReferences
         End Sub
 
         <Conditional("DEBUG")>
         Friend Sub AssertReferencesUninitialized()
-            Debug.Assert(m_ModuleReferences Is Nothing)
+            Debug.Assert(_moduleReferences Is Nothing)
         End Sub
 
         <Conditional("DEBUG")>
         Friend Sub AssertReferencesInitialized()
-            Debug.Assert(m_ModuleReferences IsNot Nothing)
+            Debug.Assert(_moduleReferences IsNot Nothing)
         End Sub
 
         ''' <summary>

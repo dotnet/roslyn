@@ -1315,7 +1315,7 @@ struct Program
     S1 x2 { get; }
 
 
-    public Program()
+    public Program(int dummy)
     {
         x.i = 1;
         System.Console.WriteLine(x2.ii);
@@ -1364,7 +1364,7 @@ struct Program
     S1 x2 { get; set;}
 
 
-    public Program()
+    public Program(int dummy)
     {
         x.i = 1;
         System.Console.WriteLine(x2.ii);
@@ -1413,7 +1413,7 @@ struct Program
     S1 x2 { get;}
 
 
-    public Program()
+    public Program(int dummy)
     {
         x = new S1();
         x.i += 1;
@@ -1459,7 +1459,7 @@ struct Program
     S1 x2 { get;}
 
 
-    public Program()
+    public Program(int dummy)
     {
         this = default(Program);
 
@@ -2369,6 +2369,34 @@ class Derived2 : Base
                 // (8,17): warning CS0169: The field 'Derived.x' is never used
                 //     private int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("Derived.x").WithLocation(8, 17)
+                );
+        }
+
+        [WorkItem(612, "https://github.com/dotnet/roslyn/issues/612")]
+        [Fact]
+        public void CascadedUnreachableCode()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        string k;
+        switch (1)
+        {
+        case 1:
+        }
+        string s = k;
+    }
+}";
+            CSharpCompilation comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8070: Control cannot fall out of switch from final case label ('case 1:')
+                //         case 1:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 1:").WithArguments("case 1:").WithLocation(8, 9),
+                // (10,20): error CS0165: Use of unassigned local variable 'k'
+                //         string s = k;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "k").WithArguments("k").WithLocation(10, 20)
                 );
         }
     }

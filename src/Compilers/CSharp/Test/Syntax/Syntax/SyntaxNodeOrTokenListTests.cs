@@ -155,10 +155,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(list.Count + 1, new[] { tokenD }));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(list.Count));
-            Assert.Throws<ArgumentException>(() => list.Replace(tokenD, nameE));
-            Assert.Throws<ArgumentException>(() => list.ReplaceRange(tokenD, new[] { nameE }));
-            Assert.Throws<ArgumentException>(() => list.Add(default(SyntaxNodeOrToken)));
-            Assert.Throws<ArgumentException>(() => list.Insert(0, default(SyntaxNodeOrToken)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Replace(tokenD, nameE));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.ReplaceRange(tokenD, new[] { nameE }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Add(default(SyntaxNodeOrToken)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(0, default(SyntaxNodeOrToken)));
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxNodeOrToken>)null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxNodeOrToken>)null));
             Assert.Throws<ArgumentNullException>(() => list.ReplaceRange(elementA, (IEnumerable<SyntaxNodeOrToken>)null));
@@ -203,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(-1, tokenD));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(1, new[] { tokenD }));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(-1, new[] { tokenD }));
-            Assert.Throws<ArgumentException>(() => list.Add(default(SyntaxNodeOrToken)));
-            Assert.Throws<ArgumentException>(() => list.Insert(0, default(SyntaxNodeOrToken)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Add(default(SyntaxNodeOrToken)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(0, default(SyntaxNodeOrToken)));
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxNodeOrToken>)null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxNodeOrToken>)null));
         }

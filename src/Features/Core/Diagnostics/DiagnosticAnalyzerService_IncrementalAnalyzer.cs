@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-            return new IncrementalAnalyzerDelegatee(this, workspace, _workspaceAnalyzerManager, _hostDiagnosticUpdateSource);
+            return new IncrementalAnalyzerDelegatee(this, workspace, _hostAnalyzerManager, _hostDiagnosticUpdateSource);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
@@ -60,26 +59,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing
         internal class IncrementalAnalyzerDelegatee : BaseDiagnosticIncrementalAnalyzer
         {
-            private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
-            private readonly DiagnosticAnalyzerService _owner;
-
             // v1 diagnostic engine
             private readonly EngineV1.DiagnosticIncrementalAnalyzer _engineV1;
 
             // v2 diagnostic engine - for now v1
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
-            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-                : base(workspace, hostDiagnosticUpdateSource)
+            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+                : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
             {
-                _workspaceAnalyzerManager = workspaceAnalyzerManager;
-                _owner = owner;
-
                 var v1CorrelationId = LogAggregator.GetNextId();
-                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, workspace, _workspaceAnalyzerManager, hostDiagnosticUpdateSource);
+                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(owner, v1CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
 
                 var v2CorrelationId = LogAggregator.GetNextId();
-                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, workspace, _workspaceAnalyzerManager, hostDiagnosticUpdateSource);
+                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(owner, v2CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
             }
 
             #region IIncrementalAnalyzer
@@ -101,6 +94,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
                 return Analyzer.DocumentOpenAsync(document, cancellationToken);
+            }
+
+            public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                return Analyzer.DocumentCloseAsync(document, cancellationToken);
             }
 
             public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
@@ -172,6 +170,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public override Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken)
             {
                 return Analyzer.GetDiagnosticsForSpanAsync(document, range, cancellationToken);
+            }
+            #endregion
+
+            #region build synchronization
+            public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+            {
+                return Analyzer.SynchronizeWithBuildAsync(project, diagnostics);
+            }
+
+            public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+            {
+                return Analyzer.SynchronizeWithBuildAsync(document, diagnostics);
             }
             #endregion
 

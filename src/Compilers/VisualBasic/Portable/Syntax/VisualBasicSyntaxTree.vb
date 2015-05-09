@@ -3,7 +3,6 @@
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -97,16 +96,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' source text.
         ''' </remarks>
         Public Overrides Function WithChangedText(newText As SourceText) As SyntaxTree
-            Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxTree_IncrementalParse, message:=Me.FilePath)
-                ' try to find the changes between the old text and the new text.
-                Dim oldText As SourceText = Nothing
-                If Me.TryGetText(oldText) Then
-                    Return Me.WithChanges(newText, newText.GetChangeRanges(oldText).ToArray())
-                End If
+            ' try to find the changes between the old text and the new text.
+            Dim oldText As SourceText = Nothing
+            If Me.TryGetText(oldText) Then
+                Return Me.WithChanges(newText, newText.GetChangeRanges(oldText).ToArray())
+            End If
 
-                ' if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
-                Return Me.WithChanges(newText, {New TextChangeRange(New TextSpan(0, Me.Length), newText.Length)})
-            End Using
+            ' if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
+            Return Me.WithChanges(newText, {New TextChangeRange(New TextSpan(0, Me.Length), newText.Length)})
         End Function
 
         ''' <summary>
@@ -114,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function WithChanges(newText As SourceText, changes As TextChangeRange()) As SyntaxTree
             If changes Is Nothing Then
-                Throw New ArgumentNullException("changes")
+                Throw New ArgumentNullException(NameOf(changes))
             End If
 
             Dim scanner As scanner
@@ -151,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       Optional path As String = "",
                                       Optional encoding As Encoding = Nothing) As SyntaxTree
             If root Is Nothing Then
-                Throw New ArgumentNullException("root")
+                Throw New ArgumentNullException(NameOf(root))
             End If
 
             Return New ParsedSyntaxTree(
@@ -220,27 +217,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
 
             If text Is Nothing Then
-                Throw New ArgumentNullException("text")
+                Throw New ArgumentNullException(NameOf(text))
             End If
 
             If path Is Nothing Then
-                Throw New ArgumentNullException("path")
+                Throw New ArgumentNullException(NameOf(path))
             End If
 
-            Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxTree_FullParse, path, text.Length, cancellationToken)
-                options = If(options, VisualBasicParseOptions.Default)
+            options = If(options, VisualBasicParseOptions.Default)
 
-                Dim node As InternalSyntax.CompilationUnitSyntax
-                Using parser As New parser(text, options, cancellationToken)
-                    node = parser.ParseCompilationUnit()
-                End Using
-
-                Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-                Dim tree = New ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, root, isMyTemplate)
-
-                tree.VerifySource()
-                Return tree
+            Dim node As InternalSyntax.CompilationUnitSyntax
+            Using parser As New parser(text, options, cancellationToken)
+                node = parser.ParseCompilationUnit()
             End Using
+
+            Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
+            Dim tree = New ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, root, isMyTemplate)
+
+            tree.VerifySource()
+            Return tree
         End Function
 
         ''' <summary>
@@ -250,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(node As SyntaxNode) As IEnumerable(Of Diagnostic)
-            If node Is Nothing Then Throw New ArgumentNullException("node")
+            If node Is Nothing Then Throw New ArgumentNullException(NameOf(node))
 
             Return Me.GetDiagnostics(DirectCast(node.Green, InternalSyntax.VisualBasicSyntaxNode), DirectCast(node, VisualBasicSyntaxNode).Position, InDocumentationComment(node))
         End Function
@@ -409,15 +404,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Gets the reporting state for a warning (diagnostic) at a given source location based on warning directives.
         Friend Function GetWarningState(id As String, position As Integer) As ReportDiagnostic
-            If lazyWarningStateMap Is Nothing Then
+            If _lazyWarningStateMap Is Nothing Then
                 ' Create the warning state map on demand.
-                Interlocked.CompareExchange(lazyWarningStateMap, New VisualBasicWarningStateMap(Me), Nothing)
+                Interlocked.CompareExchange(_lazyWarningStateMap, New VisualBasicWarningStateMap(Me), Nothing)
             End If
 
-            Return lazyWarningStateMap.GetWarningState(id, position)
+            Return _lazyWarningStateMap.GetWarningState(id, position)
         End Function
 
-        Private lazyWarningStateMap As VisualBasicWarningStateMap
+        Private _lazyWarningStateMap As VisualBasicWarningStateMap
 
         Private Function GetLinePosition(position As Integer) As LinePosition
             Return Me.GetText().Lines.GetLinePosition(position)
@@ -456,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The list is pessimistic because it may claim more or larger regions than actually changed.</remarks>
         Public Overrides Function GetChangedSpans(oldTree As SyntaxTree) As IList(Of TextSpan)
             If oldTree Is Nothing Then
-                Throw New ArgumentNullException("oldTree")
+                Throw New ArgumentNullException(NameOf(oldTree))
             End If
 
             Return SyntaxDiffer.GetPossiblyDifferentTextSpans(oldTree.GetRoot(), Me.GetRoot())
@@ -469,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>The list of changes may be different than the original changes that produced this tree.</remarks>
         Public Overrides Function GetChanges(oldTree As SyntaxTree) As IList(Of TextChange)
             If oldTree Is Nothing Then
-                Throw New ArgumentNullException("oldTree")
+                Throw New ArgumentNullException(NameOf(oldTree))
             End If
 
             Return SyntaxDiffer.GetTextChanges(oldTree, Me)

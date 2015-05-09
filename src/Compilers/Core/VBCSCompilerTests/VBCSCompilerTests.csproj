@@ -16,18 +16,23 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.vcxproj">
-      <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
-      <Name>vbc2</Name>
+    <ProjectReference Include="..\..\CSharp\csc2\csc2.csproj">
+      <Project>{c545216d-8cba-4460-810d-d3dc7eff8373}</Project>
+      <Name>csc2</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
       <Name>csc</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.vbproj">
-      <Project>{2ac2755d-9437-4271-bbde-1a3795a0c320}</Project>
+    <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.csproj">
+      <Project>{21446697-e359-41d9-b39d-40ada2b20823}</Project>
+      <Name>vbc2</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
+      <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
     </ProjectReference>
     <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">
@@ -50,9 +55,9 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>CompilerTestUtilities2</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\CSharp\csc2\csc2.vcxproj">
-      <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
-      <Name>csc2</Name>
+    <ProjectReference Include="..\MSBuildTask\MSBuildTask.csproj">
+      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
+      <Name>MSBuildTask</Name>
     </ProjectReference>
     <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
@@ -64,9 +69,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="..\..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
+    <Reference Include="Microsoft.Build.Framework">
+      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build.Utilities.Core, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Utilities.Core.dll</HintPath>
+    </Reference>
     <Reference Include="xunit">
       <HintPath>..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -112,9 +125,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnalyzerConsistencyCheckerTests.cs" />
     <Compile Include="BuildProtocolTest.cs" />
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
+    <Compile Include="MockEngine.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
   </ItemGroup>
   <ItemGroup>

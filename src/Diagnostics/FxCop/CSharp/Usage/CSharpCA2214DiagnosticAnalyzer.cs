@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
 
         private sealed class SyntaxNodeAnalyzer
         {
-            private INamedTypeSymbol _containingType;
+            private readonly INamedTypeSymbol _containingType;
 
             public SyntaxNodeAnalyzer(IMethodSymbol constructorSymbol)
             {

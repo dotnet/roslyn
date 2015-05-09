@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -264,9 +265,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
 
             var memberOfText = ServicesVSResources.Library_MemberOf;
-            var specifier = "{0}";
+            const string specifier = "{0}";
 
-            var index = memberOfText.IndexOf(specifier);
+            var index = memberOfText.IndexOf(specifier, StringComparison.Ordinal);
             if (index < 0)
             {
                 Debug.Fail("MemberOf string resource is incorrect.");

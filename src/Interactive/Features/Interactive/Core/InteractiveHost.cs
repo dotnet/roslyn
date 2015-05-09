@@ -193,30 +193,30 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     newService.Initialize(_replType);
                 }
-                catch (RemotingException) when(!CheckAlive(newProcess))
+                catch (RemotingException) when (!CheckAlive(newProcess))
                 {
                     return null;
                 }
 
                 return new RemoteService(this, newProcess, newProcessId, newService);
-                }
-                catch (OperationCanceledException)
+            }
+            catch (OperationCanceledException)
+            {
+                if (newProcess != null)
                 {
-                    if (newProcess != null)
-                    {
-                        RemoteService.InitiateTermination(newProcess, newProcessId);
-                    }
+                    RemoteService.InitiateTermination(newProcess, newProcessId);
+                }
 
-                    return null;
-                }
-                finally
+                return null;
+            }
+            finally
+            {
+                if (semaphore != null)
                 {
-                    if (semaphore != null)
-                    {
-                        semaphore.Close();
-                    }
+                    semaphore.Close();
                 }
             }
+        }
         private bool CheckAlive(Process process)
         {
             bool alive = process.IsAlive();
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 var oldOutput = Interlocked.Exchange(ref _output, value);
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 }
 
                 var oldOutput = Interlocked.Exchange(ref _errorOutput, value);
@@ -384,13 +384,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // The user reset the process during initialization. 
                 // The reset operation will recreate the process.
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
             return default(InitializedRemoteService);
-            }
+        }
 
         private async Task<TResult> Async<TResult>(Action<Service, RemoteAsyncOperation<TResult>> action)
         {
@@ -404,11 +404,11 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return await new RemoteAsyncOperation<TResult>(initializedService.ServiceOpt).AsyncExecute(action).ConfigureAwait(false);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private static async Task<TResult> Async<TResult>(RemoteService remoteService, Action<Service, RemoteAsyncOperation<TResult>> action)
         {
@@ -416,18 +416,18 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return await new RemoteAsyncOperation<TResult>(remoteService).AsyncExecute(action).ConfigureAwait(false);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         #region Operations
 
-            /// <summary>
-            /// Restarts and reinitializes the host process (or starts a new one if it is not running yet).
-            /// </summary>
-            /// <param name="optionsOpt">The options to initialize the new process with, or null to use the current options (or default options if the process isn't running yet).</param>
+        /// <summary>
+        /// Restarts and reinitializes the host process (or starts a new one if it is not running yet).
+        /// </summary>
+        /// <param name="optionsOpt">The options to initialize the new process with, or null to use the current options (or default options if the process isn't running yet).</param>
         public async Task<RemoteExecutionResult> ResetAsync(InteractiveHostOptions optionsOpt)
         {
             try
@@ -449,11 +449,11 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return initializedService.InitializationResult;
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         /// <summary>
         /// Asynchronously executes given code in the remote interactive session.
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFileAsync(operation, path));

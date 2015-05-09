@@ -21,12 +21,14 @@
     <Scenario Name="RenameRoslyn" Description="Rename Local Roslyn">
       <WaitForSolutionCrawler/>
       <WaitForIdleCPU />
+      <CollectPerfViewTrace Action="Start" Collection="Full" UploadSharePath="\\mlangfs1\RoslynPerf\Traces" BufferSize="5000" />
       <ListenForCodeMarkers ScenarioGroup="Rename Roslyn" Step="Rename Local Roslyn" TimeGoal="0.1" MemoryGoal="0.9" BeginMarker="StartNow" EndMarker="VB_RenameEnd" IsVB="true" />
       <PerfRename NewName="qualifiedStatement" Language="VB" />
       <WaitForCodeMarkers />
-
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <CollectPerfViewTrace Action="Stop"/>
+      
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />-->
     </Scenario>
   </ScenarioList>
 

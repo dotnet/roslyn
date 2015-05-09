@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -414,6 +415,50 @@ class Program
             AssertTagsOnBracesOrSemicolons(file, 2, 4);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
+        [WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
+        public void ExpressionBodiedProperty()
+        {
+            AssertTagsOnBracesOrSemicolons(@"class C
+{
+    int Prop => 3;
+
+    void M()
+    {
+    }
+}", 0, 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
+        [WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
+        public void ExpressionBodiedIndexer()
+        {
+            AssertTagsOnBracesOrSemicolons(@"class C
+{
+    int this[int i] => 3;
+
+    void M()
+    {
+    }
+}", 0, 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
+        [WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
+        public void ExpressionBodiedEvent()
+        {
+            // This is not valid code, and parses all wrong, but just in case a user writes it.  Note
+            // the 3 is because there is a skipped } in the event declaration.
+            AssertTagsOnBracesOrSemicolons(@"class C
+{
+    event EventHandler MyEvent => 3;
+
+    void M()
+    {
+    }
+}", 3);
+        }
+
         #region Negative (incomplete) tests
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
@@ -460,7 +505,7 @@ class Program
         public void IncompleteOperator()
         {
             // top level operators not supported in script code
-            AssertTagsOnBracesOrSemicolonsTokens(@"C operator +(C lhs, C rhs) {", new int[0], Options.Regular);
+            AssertTagsOnBracesOrSemicolonsTokens(@"C operator +(C lhs, C rhs) {", Array.Empty<int>(), Options.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]

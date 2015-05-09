@@ -119,6 +119,14 @@
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
 <!--
+copy NUL Empty.txt
+resgen.exe Empty.txt
+al.exe /embed:Empty.resources /t:lib /out:Empty.dll
+-->
+  <data name="Empty" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\Empty.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <!--
 echo namespace Windows.Data.Text { public sealed class TextSegment { } } > Windows.Data.cs
 csc /t:winmdobj Windows.Data.cs
 winmdexp.exe /r:"%ProgramFiles(x86)%\Reference Assemblies\Microsoft\Framework\.NETCore\v4.5\mscorlib.dll" /r:"%ProgramFiles(x86)%\Reference Assemblies\Microsoft\Framework\.NETCore\v4.5\System.Runtime.dll" /r:"%ProgramFiles(x86)%\Microsoft SDKs\Portable\v14.0\110C4FEFF2BA61C0746933A9ED6E248D\Windows.winmd" /out:Windows.Data.winmd Windows.Data.winmdobj

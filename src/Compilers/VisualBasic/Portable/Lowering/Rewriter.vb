@@ -15,15 +15,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
             diagnostics As DiagnosticBag,
-            ByRef lambdaOrdinalDispenser As Integer,
-            ByRef scopeOrdinalDispenser As Integer,
+            ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
+            lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
+            closureDebugInfoBuilder As ArrayBuilder(Of ClosureDebugInfo),
             ByRef delegateRelaxationIdDispenser As Integer,
             <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol,
-            <Out> ByRef variableSlotAllocatorOpt As VariableSlotAllocator,
             allowOmissionOfConditionalCalls As Boolean,
             isBodySynthesized As Boolean) As BoundBlock
 
             Debug.Assert(Not body.HasErrors)
+            Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
 
             ' performs node-specific lowering.
             Dim sawLambdas As Boolean
@@ -54,16 +55,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 #End If
 
+            If lazyVariableSlotAllocator Is Nothing Then
+                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
+            End If
+
             ' Lowers lambda expressions into expressions that construct delegates.    
             Dim bodyWithoutLambdas = loweredBody
             If sawLambdas Then
                 bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody,
                                                             method,
                                                             methodOrdinal,
-                                                            lambdaOrdinalDispenser,
-                                                            scopeOrdinalDispenser,
+                                                            lambdaDebugInfoBuilder,
+                                                            closureDebugInfoBuilder,
                                                             delegateRelaxationIdDispenser,
-                                                            variableSlotAllocatorOpt,
+                                                            lazyVariableSlotAllocator,
                                                             compilationState,
                                                             If(symbolsCapturedWithoutCopyCtor, SpecializedCollections.EmptySet(Of Symbol)),
                                                             diagnostics,
@@ -74,11 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return bodyWithoutLambdas
             End If
 
-            If compilationState.ModuleBuilderOpt IsNot Nothing Then
-                variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
-            End If
-
-            Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, variableSlotAllocatorOpt, stateMachineTypeOpt)
+            Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, lazyVariableSlotAllocator, stateMachineTypeOpt)
         End Function
 
         Friend Shared Function RewriteIteratorAndAsync(bodyWithoutLambdas As BoundBlock,
@@ -88,6 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        diagnostics As DiagnosticBag,
                                                        slotAllocatorOpt As VariableSlotAllocator,
                                                        <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol) As BoundBlock
+
+            Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
 
             Dim iteratorStateMachine As IteratorStateMachine = Nothing
             Dim bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas,

@@ -108,8 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void UpdatePreview(string text)
         {
-            string start = "//[";
-            string end = "//]";
+            const string start = "//[";
+            const string end = "//]";
 
             var service = MefV1HostServices.Create(_componentModel.DefaultExportProvider);
             var workspace = new PreviewWorkspace(service);
@@ -139,8 +139,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var documentBackedByTextBuffer = document.WithText(container.CurrentText);
 
             var bufferText = textBuffer.CurrentSnapshot.GetText().ToString();
-            var startIndex = bufferText.IndexOf(start);
-            var endIndex = bufferText.IndexOf(end);
+            var startIndex = bufferText.IndexOf(start, StringComparison.Ordinal);
+            var endIndex = bufferText.IndexOf(end, StringComparison.Ordinal);
             var startLine = textBuffer.CurrentSnapshot.GetLineNumberFromPosition(startIndex) + 1;
             var endLine = textBuffer.CurrentSnapshot.GetLineNumberFromPosition(endIndex);
 

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constantValue != null)
             {
                 TypeSymbol type = node.Type;
-                if (((object)type == null || !type.IsNullableType()))
+                if (type?.IsNullableType() != true)
                 {
                     return MakeLiteral(node.Syntax, constantValue, type);
                 }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol GetSpecialTypeMethod(CSharpSyntaxNode syntax, SpecialMember specialMember)
         {
             MethodSymbol method;
-            if (TryGetSpecialTypeMember<MethodSymbol>(syntax, specialMember, out method))
+            if (Binder.TryGetSpecialTypeMember(_compilation, specialMember, syntax, _diagnostics, out method))
             {
                 return method;
             }
@@ -249,27 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: _compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
                 return new ErrorMethodSymbol(container, returnType, "Missing");
             }
-        }
-
-        private bool TryGetSpecialTypeMember<TSymbol>(CSharpSyntaxNode syntax, SpecialMember specialMember, out TSymbol symbol) where TSymbol : Symbol
-        {
-            symbol = (TSymbol)_compilation.Assembly.GetSpecialTypeMember(specialMember);
-            if ((object)symbol == null)
-            {
-                MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
-                _diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
-                return false;
-            }
-            else
-            {
-                var useSiteDiagnostic = symbol.GetUseSiteDiagnosticForSymbolOrContainingType();
-                if (useSiteDiagnostic != null)
-                {
-                    Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, _diagnostics, new SourceLocation(syntax));
-                }
-            }
-
-            return true;
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)

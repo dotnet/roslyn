@@ -80,6 +80,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Aggregate clause.
+        '''</summary>
+        Friend ReadOnly Property AggregateClause() As String
+            Get
+                Return ResourceManager.GetString("AggregateClause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Applies an aggregation function, such as Sum, Average, or Count to a sequence..
         '''</summary>
         Friend ReadOnly Property AggregateQueryKeywordToolTip() As String
@@ -154,6 +163,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to as clause.
+        '''</summary>
+        Friend ReadOnly Property AsClause() As String
+            Get
+                Return ResourceManager.GetString("AsClause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies a data type in a declaration statement..
         '''</summary>
         Friend ReadOnly Property AsKeywordToolTip() As String
@@ -191,6 +209,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to attributes.
+        '''</summary>
+        Friend ReadOnly Property AttributeList() As String
+            Get
+                Return ResourceManager.GetString("AttributeList", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails..
         '''</summary>
         Friend ReadOnly Property AutoKeywordToolTip() As String
@@ -223,6 +250,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property AwaitableExtension() As String
             Get
                 Return ResourceManager.GetString("AwaitableExtension", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Await expression.
+        '''</summary>
+        Friend ReadOnly Property AwaitExpression() As String
+            Get
+                Return ResourceManager.GetString("AwaitExpression", resourceCulture)
             End Get
         End Property
         
@@ -324,6 +360,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property CastIsRedundant() As String
             Get
                 Return ResourceManager.GetString("CastIsRedundant", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Catch clause.
+        '''</summary>
+        Friend ReadOnly Property CatchClause() As String
+            Get
+                Return ResourceManager.GetString("CatchClause", resourceCulture)
             End Get
         End Property
         
@@ -582,29 +627,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to 
-        '''#Region &quot;IDisposable Support&quot;
-        '''    Private disposedValue As Boolean &apos; To detect redundant calls
-        '''
-        '''    &apos; IDisposable
-        '''    Protected {0}Sub Dispose(disposing As Boolean)
-        '''        If Not Me.disposedValue Then
-        '''            If disposing Then
-        '''                &apos; TODO: dispose managed state (managed objects).
-        '''            End If
-        '''
-        '''            &apos; TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-        '''            &apos; TODO: set large fields to null.
-        '''        End If
-        '''        Me.disposedValu [rest of string was truncated]&quot;;.
-        '''</summary>
-        Friend ReadOnly Property DisposePattern() As String
-            Get
-                Return ResourceManager.GetString("DisposePattern", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Restricts the values of a query result to eliminate duplicate values..
         '''</summary>
         Friend ReadOnly Property DistinctQueryKeywordToolTip() As String
@@ -629,6 +651,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property DoKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("DoKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above..
+        '''</summary>
+        Friend ReadOnly Property DoNotChangeThisCodeUseDispose() As String
+            Get
+                Return ResourceManager.GetString("DoNotChangeThisCodeUseDispose", resourceCulture)
             End Get
         End Property
         
@@ -806,6 +837,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Too many arguments to &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_TooManyArgs1() As String
+            Get
+                Return ResourceManager.GetString("ERR_TooManyArgs1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; is not defined..
+        '''</summary>
+        Friend ReadOnly Property ERR_UndefinedType1() As String
+            Get
+                Return ResourceManager.GetString("ERR_UndefinedType1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Simulates the occurrence of an error..
         '''</summary>
         Friend ReadOnly Property ErrorKeywordToolTip() As String
@@ -952,6 +1001,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Finally clause.
+        '''</summary>
+        Friend ReadOnly Property FinallyClause() As String
+            Get
+                Return ResourceManager.GetString("FinallyClause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Introduces a statement block to be run before exiting a Try structure..
         '''</summary>
         Friend ReadOnly Property FinallyKeywordToolTip() As String
@@ -970,11 +1028,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to For Each block.
+        '''</summary>
+        Friend ReadOnly Property ForEachBlock() As String
+            Get
+                Return ResourceManager.GetString("ForEachBlock", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Introduces a loop that is repeated for each element in a collection..
         '''</summary>
         Friend ReadOnly Property ForEachKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("ForEachKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to For Each statement.
+        '''</summary>
+        Friend ReadOnly Property ForEachStatement() As String
+            Get
+                Return ResourceManager.GetString("ForEachStatement", resourceCulture)
             End Get
         End Property
         
@@ -988,11 +1064,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to TODO: free unmanaged resources (unmanaged objects) and override Finalize() below..
+        '''</summary>
+        Friend ReadOnly Property FreeUnmanagedResourcesTodo() As String
+            Get
+                Return ResourceManager.GetString("FreeUnmanagedResourcesTodo", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies that one or more declared programming elements are accessible only from within the assembly that contains their declaration..
         '''</summary>
         Friend ReadOnly Property FriendKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("FriendKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to From clause.
+        '''</summary>
+        Friend ReadOnly Property FromClause() As String
+            Get
+                Return ResourceManager.GetString("FromClause", resourceCulture)
             End Get
         End Property
         
@@ -1020,6 +1114,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Function1() As String
             Get
                 Return ResourceManager.GetString("Function1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Function aggregation.
+        '''</summary>
+        Friend ReadOnly Property FunctionAggregation() As String
+            Get
+                Return ResourceManager.GetString("FunctionAggregation", resourceCulture)
             End Get
         End Property
         
@@ -1133,11 +1236,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Group By clause.
+        '''</summary>
+        Friend ReadOnly Property GroupByClause() As String
+            Get
+                Return ResourceManager.GetString("GroupByClause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Groups elements that have a common key..
         '''</summary>
         Friend ReadOnly Property GroupByQueryKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("GroupByQueryKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Group Join clause.
+        '''</summary>
+        Friend ReadOnly Property GroupJoinClause() As String
+            Get
+                Return ResourceManager.GetString("GroupJoinClause", resourceCulture)
             End Get
         End Property
         
@@ -1255,6 +1376,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ImportsKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("ImportsKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to import.
+        '''</summary>
+        Friend ReadOnly Property ImportStatement() As String
+            Get
+                Return ResourceManager.GetString("ImportStatement", resourceCulture)
             End Get
         End Property
         
@@ -1461,6 +1591,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Join condition.
+        '''</summary>
+        Friend ReadOnly Property JoinCondition() As String
+            Get
+                Return ResourceManager.GetString("JoinCondition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Combines the elements of two sequences. The join operation is based on matching keys..
         '''</summary>
         Friend ReadOnly Property JoinQueryKeywordToolTip() As String
@@ -1497,6 +1636,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Lambda.
+        '''</summary>
+        Friend ReadOnly Property LambdaExpression() As String
+            Get
+                Return ResourceManager.GetString("LambdaExpression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Performs an arithmetic left shift on a bit pattern..
         '''</summary>
         Friend ReadOnly Property LeftShiftKeywordToolTip() As String
@@ -1520,6 +1668,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property LessThanOrEqualsKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("LessThanOrEqualsKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Let clause.
+        '''</summary>
+        Friend ReadOnly Property LetClause() As String
+            Get
+                Return ResourceManager.GetString("LetClause", resourceCulture)
             End Get
         End Property
         
@@ -1641,6 +1798,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ModuleKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("ModuleKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to module.
+        '''</summary>
+        Friend ReadOnly Property ModuleStatement() As String
+            Get
+                Return ResourceManager.GetString("ModuleStatement", resourceCulture)
             End Get
         End Property
         
@@ -1927,6 +2093,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to On Error statement.
+        '''</summary>
+        Friend ReadOnly Property OnErrorStatement() As String
+            Get
+                Return ResourceManager.GetString("OnErrorStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Turns a compiler option on..
         '''</summary>
         Friend ReadOnly Property OnOptionKeywordToolTip() As String
@@ -1982,11 +2157,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to option.
+        '''</summary>
+        Friend ReadOnly Property OptionStatement() As String
+            Get
+                Return ResourceManager.GetString("OptionStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies the sort order for columns in a query. Can be followed by either the Ascending or the Descending keyword. If neither is specified, Ascending is used..
         '''</summary>
         Friend ReadOnly Property OrderByQueryKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("OrderByQueryKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Ordering clause.
+        '''</summary>
+        Friend ReadOnly Property OrderingClause() As String
+            Get
+                Return ResourceManager.GetString("OrderingClause", resourceCulture)
             End Get
         End Property
         
@@ -2047,6 +2240,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources..
+        '''</summary>
+        Friend ReadOnly Property OverrideFinalizerTodo() As String
+            Get
+                Return ResourceManager.GetString("OverrideFinalizerTodo", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies that a property or procedure overrides an identically named property or procedure inherited from a base class..
         '''</summary>
         Friend ReadOnly Property OverridesKeywordToolTip() As String
@@ -2061,6 +2263,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ParamArrayKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("ParamArrayKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to parameters.
+        '''</summary>
+        Friend ReadOnly Property ParameterList() As String
+            Get
+                Return ResourceManager.GetString("ParameterList", resourceCulture)
             End Get
         End Property
         
@@ -2106,6 +2317,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property PrivateKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("PrivateKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to property accessor.
+        '''</summary>
+        Friend ReadOnly Property PropertyAccessor() As String
+            Get
+                Return ResourceManager.GetString("PropertyAccessor", resourceCulture)
             End Get
         End Property
         
@@ -2229,6 +2449,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Imports statement is unnecessary..
+        '''</summary>
+        Friend ReadOnly Property RemoveUnnecessaryImportsDiagnosticTitle() As String
+            Get
+                Return ResourceManager.GetString("RemoveUnnecessaryImportsDiagnosticTitle", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &amp;Remove Unnecessary Imports.
         '''</summary>
         Friend ReadOnly Property RemoveUnnecessaryImportsWithAccelerator() As String
@@ -2256,6 +2485,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Resume statement.
+        '''</summary>
+        Friend ReadOnly Property ResumeStatement() As String
+            Get
+                Return ResourceManager.GetString("ResumeStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Returns execution to the code that called the Function, Sub, Get, Set, or Operator procedure.
         '''Return -or- Return &lt;expression&gt;.
         '''</summary>
@@ -2271,6 +2509,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property RightShiftKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("RightShiftKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Select clause.
+        '''</summary>
+        Friend ReadOnly Property SelectClause() As String
+            Get
+                Return ResourceManager.GetString("SelectClause", resourceCulture)
             End Get
         End Property
         
@@ -2374,6 +2621,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Join clause.
+        '''</summary>
+        Friend ReadOnly Property SimpleJoinClause() As String
+            Get
+                Return ResourceManager.GetString("SimpleJoinClause", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Simplify member access &apos;{0}&apos;.
         '''</summary>
         Friend ReadOnly Property SimplifyMemberAccess() As String
@@ -2406,6 +2662,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property SkipQueryKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("SkipQueryKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Skip While clause.
+        '''</summary>
+        Friend ReadOnly Property SkipWhileClause() As String
+            Get
+                Return ResourceManager.GetString("SkipWhileClause", resourceCulture)
             End Get
         End Property
         
@@ -2465,6 +2730,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to structure.
+        '''</summary>
+        Friend ReadOnly Property StructureStatement() As String
+            Get
+                Return ResourceManager.GetString("StructureStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Declares the name, parameters, and code that define a Sub procedure, that is, a procedure that does not return a value to the calling code..
         '''</summary>
         Friend ReadOnly Property SubKeywordToolTip() As String
@@ -2493,6 +2767,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to SyncLock block.
+        '''</summary>
+        Friend ReadOnly Property SyncLockBlock() As String
+            Get
+                Return ResourceManager.GetString("SyncLockBlock", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Ensures that multiple threads do not execute the statement block at the same time.
         '''SyncLock &lt;object&gt;...End Synclock.
         '''</summary>
@@ -2503,11 +2786,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to SyncLock statement.
+        '''</summary>
+        Friend ReadOnly Property SyncLockStatement() As String
+            Get
+                Return ResourceManager.GetString("SyncLockStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Includes elements up to a specified position in the collection..
         '''</summary>
         Friend ReadOnly Property TakeQueryKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("TakeQueryKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Take While clause.
+        '''</summary>
+        Friend ReadOnly Property TakeWhileClause() As String
+            Get
+                Return ResourceManager.GetString("TakeWhileClause", resourceCulture)
             End Get
         End Property
         
@@ -2539,6 +2840,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to This code added by Visual Basic to correctly implement the disposable pattern..
+        '''</summary>
+        Friend ReadOnly Property ThisCodeAddedToCorrectlyImplementDisposable() As String
+            Get
+                Return ResourceManager.GetString("ThisCodeAddedToCorrectlyImplementDisposable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Throws an exception within a procedure so that you can handle it with structured or unstructured exception-handling code..
         '''</summary>
         Friend ReadOnly Property ThrowKeywordToolTip() As String
@@ -2562,6 +2872,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property TrueKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("TrueKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Try block.
+        '''</summary>
+        Friend ReadOnly Property TryBlock() As String
+            Get
+                Return ResourceManager.GetString("TryBlock", resourceCulture)
             End Get
         End Property
         
@@ -2631,6 +2950,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to type parameters.
+        '''</summary>
+        Friend ReadOnly Property TypeParameterList() As String
+            Get
+                Return ResourceManager.GetString("TypeParameterList", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TODO: uncomment the following line if Finalize() is overridden above..
+        '''</summary>
+        Friend ReadOnly Property UncommentTheFollowingLineIfFinalizeIsOverridden() As String
+            Get
+                Return ResourceManager.GetString("UncommentTheFollowingLineIfFinalizeIsOverridden", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Used in a Declare statement. Specifies that Visual Basic should marshal all strings to Unicode values in a call into an external procedure, and should look up the procedure without modifying its name..
         '''</summary>
         Friend ReadOnly Property UnicodeKeywordToolTip() As String
@@ -2640,11 +2977,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Usage:.
+        '''  Looks up a localized string similar to Using block.
         '''</summary>
-        Friend ReadOnly Property Usage() As String
+        Friend ReadOnly Property UsingBlock() As String
             Get
-                Return ResourceManager.GetString("Usage", resourceCulture)
+                Return ResourceManager.GetString("UsingBlock", resourceCulture)
             End Get
         End Property
         
@@ -2659,11 +2996,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Using statement.
+        '''</summary>
+        Friend ReadOnly Property UsingStatement() As String
+            Get
+                Return ResourceManager.GetString("UsingStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Adds a conditional test to a Catch statement. Exceptions are caught by that Catch statement only when the conditional test that follows the When keyword evaluates to True..
         '''</summary>
         Friend ReadOnly Property WhenKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("WhenKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Where clause.
+        '''</summary>
+        Friend ReadOnly Property WhereClause() As String
+            Get
+                Return ResourceManager.GetString("WhereClause", resourceCulture)
             End Get
         End Property
         
@@ -2704,6 +3059,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to With block.
+        '''</summary>
+        Friend ReadOnly Property WithBlock() As String
+            Get
+                Return ResourceManager.GetString("WithBlock", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to WithEvents field.
+        '''</summary>
+        Friend ReadOnly Property WithEventsFieldStatement() As String
+            Get
+                Return ResourceManager.GetString("WithEventsFieldStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies that one or more declared member variables refer to an instance of a class that can raise events.
         '''</summary>
         Friend ReadOnly Property WithEventsKeywordToolTip() As String
@@ -2733,6 +3106,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to With statement.
+        '''</summary>
+        Friend ReadOnly Property WithStatement() As String
+            Get
+                Return ResourceManager.GetString("WithStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Specifies that a property can be written to but not read..
         '''</summary>
         Friend ReadOnly Property WriteOnlyKeywordToolTip() As String
@@ -2757,6 +3139,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property YieldKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("YieldKeywordToolTip", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Yield statement.
+        '''</summary>
+        Friend ReadOnly Property YieldStatement() As String
+            Get
+                Return ResourceManager.GetString("YieldStatement", resourceCulture)
             End Get
         End Property
     End Module

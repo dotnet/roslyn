@@ -27,17 +27,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The symbol that is calling the symbol being called.
         /// </summary>
-        public ISymbol CallingSymbol { get; private set; }
+        public ISymbol CallingSymbol { get; }
 
         /// <summary>
         /// The locations inside the calling symbol where the called symbol is referenced.
         /// </summary>
-        public IEnumerable<Location> Locations { get; private set; }
+        public IEnumerable<Location> Locations { get; }
 
         /// <summary>
         /// The symbol being called.
         /// </summary>
-        public ISymbol CalledSymbol { get; private set; }
+        public ISymbol CalledSymbol { get; }
 
         /// <summary>
         /// True if the CallingSymbol is directly calling CalledSymbol.  False if it is calling a
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// symbol is a class method, then an indirect call might be through an interface method that
         /// the class method implements.
         /// </summary>
-        public bool IsDirect { get; private set; }
+        public bool IsDirect { get; }
 
         internal SymbolCallerInfo(ISymbol callingSymbol, ISymbol calledSymbol, IEnumerable<Location> locations, bool isDirect)
             : this()

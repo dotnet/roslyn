@@ -113,16 +113,16 @@ namespace AsyncPackage
 
         private class RenameAsyncCodeAction : CodeAction
         {
-            private Func<CancellationToken, Task<Solution>> generateSolution;
-            private string title;
+            private Func<CancellationToken, Task<Solution>> _generateSolution;
+            private string _title;
 
             public RenameAsyncCodeAction(string title, Func<CancellationToken, Task<Solution>> generateSolution)
             {
-                this.title = title;
-                this.generateSolution = generateSolution;
+                _title = title;
+                _generateSolution = generateSolution;
             }
 
-            public override string Title { get { return title; } }
+            public override string Title { get { return _title; } }
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

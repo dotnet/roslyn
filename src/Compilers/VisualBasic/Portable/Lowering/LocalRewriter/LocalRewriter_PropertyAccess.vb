@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim [property] = node.PropertySymbol
             Dim isMyClassOrMyBase As Boolean = receiverOpt IsNot Nothing AndAlso (receiverOpt.IsMyClassReference OrElse receiverOpt.IsMyBaseReference)
-            If inExpressionLambda AndAlso
+            If _inExpressionLambda AndAlso
                 [property].ParameterCount = 0 AndAlso
                 [property].ReducedFrom Is Nothing AndAlso
                 Not isMyClassOrMyBase Then

@@ -15,10 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
         /// Builds the RQName for a given symbol.
         /// </summary>
         /// <returns>The node if it could be created, otherwise null</returns>
-        public static UnresolvedRQNode Build(ISymbol symbol, bool buildForPublicAPIs = false)
+        public static UnresolvedRQNode Build(ISymbol symbol)
         {
-            // TODO(davip): Is buildForPublicAPIs necessary now?
-
             switch (symbol.Kind)
             {
                 case SymbolKind.Namespace:
@@ -26,13 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
                 case SymbolKind.NamedType:
                     return BuildNamedType(symbol as INamedTypeSymbol);
                 case SymbolKind.Method:
-                    return BuildMethod(symbol as IMethodSymbol, buildForPublicAPIs);
+                    return BuildMethod(symbol as IMethodSymbol);
                 case SymbolKind.Field:
                     return BuildField(symbol as IFieldSymbol);
                 case SymbolKind.Event:
-                    return BuildEvent(symbol as IEventSymbol, buildForPublicAPIs);
+                    return BuildEvent(symbol as IEventSymbol);
                 case SymbolKind.Property:
-                    return BuildProperty(symbol as IPropertySymbol, buildForPublicAPIs);
+                    return BuildProperty(symbol as IPropertySymbol);
                 default:
                     return null;
             }
@@ -108,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
             return new RQMemberVariable(containingType, symbol.Name);
         }
 
-        private static RQProperty BuildProperty(IPropertySymbol symbol, bool buildForPublicAPIs)
+        private static RQProperty BuildProperty(IPropertySymbol symbol)
         {
             RQMethodPropertyOrEventName name = symbol.IsIndexer ?
                 RQOrdinaryMethodPropertyOrEventName.CreateOrdinaryIndexerName() :
@@ -122,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
                 }
 
                 name = new RQExplicitInterfaceMemberName(
-                    BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol, buildForPublicAPIs),
+                    BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol),
                     (RQOrdinaryMethodPropertyOrEventName)name);
             }
 
@@ -133,18 +131,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
                 return null;
             }
 
-            var parameterList = BuildParameterList(symbol.Parameters, buildForPublicAPIs);
+            var parameterList = BuildParameterList(symbol.Parameters);
 
             return new RQProperty(containingType, name, typeParameterCount: 0, parameters: parameterList);
         }
 
-        private static IList<RQParameter> BuildParameterList(ImmutableArray<IParameterSymbol> parameters, bool buildForPublicAPIs)
+        private static IList<RQParameter> BuildParameterList(ImmutableArray<IParameterSymbol> parameters)
         {
             var parameterList = new List<RQParameter>();
 
             foreach (var parameter in parameters)
             {
-                var parameterType = BuildType(parameter.Type, buildForPublicAPIs);
+                var parameterType = BuildType(parameter.Type);
 
                 if (parameter.RefKind == RefKind.Out)
                 {
@@ -163,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
             return parameterList;
         }
 
-        private static RQEvent BuildEvent(IEventSymbol symbol, bool buildForPublicAPIs)
+        private static RQEvent BuildEvent(IEventSymbol symbol)
         {
             var containingType = BuildNamedType(symbol.ContainingType);
 
@@ -181,13 +179,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
                     return null;
                 }
 
-                name = new RQExplicitInterfaceMemberName(BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol, buildForPublicAPIs), (RQOrdinaryMethodPropertyOrEventName)name);
+                name = new RQExplicitInterfaceMemberName(BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol), (RQOrdinaryMethodPropertyOrEventName)name);
             }
 
             return new RQEvent(containingType, name);
         }
 
-        private static RQMethod BuildMethod(IMethodSymbol symbol, bool buildForPublicAPIs)
+        private static RQMethod BuildMethod(IMethodSymbol symbol)
         {
             if (symbol.MethodKind == MethodKind.UserDefinedOperator ||
                 symbol.MethodKind == MethodKind.BuiltinOperator ||
@@ -221,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
                     return null;
                 }
 
-                name = new RQExplicitInterfaceMemberName(BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol, buildForPublicAPIs), (RQOrdinaryMethodPropertyOrEventName)name);
+                name = new RQExplicitInterfaceMemberName(BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol), (RQOrdinaryMethodPropertyOrEventName)name);
             }
 
             var containingType = BuildNamedType(symbol.ContainingType);
@@ -232,12 +230,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
             }
 
             var typeParamCount = symbol.TypeParameters.Length;
-            var parameterList = BuildParameterList(symbol.Parameters, buildForPublicAPIs);
+            var parameterList = BuildParameterList(symbol.Parameters);
 
             return new RQMethod(containingType, name, typeParamCount, parameterList);
         }
 
-        private static RQType BuildType(ITypeSymbol symbol, bool buildForPublicAPIs)
+        private static RQType BuildType(ITypeSymbol symbol)
         {
             if (symbol.IsAnonymousType)
             {
@@ -250,11 +248,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
             }
             else if (symbol.TypeKind == TypeKind.Pointer)
             {
-                return new RQPointerType(BuildType((symbol as IPointerTypeSymbol).PointedAtType, buildForPublicAPIs));
+                return new RQPointerType(BuildType((symbol as IPointerTypeSymbol).PointedAtType));
             }
             else if (symbol.TypeKind == TypeKind.Array)
             {
-                return new RQArrayType((symbol as IArrayTypeSymbol).Rank, BuildType((symbol as IArrayTypeSymbol).ElementType, buildForPublicAPIs));
+                return new RQArrayType((symbol as IArrayTypeSymbol).Rank, BuildType((symbol as IArrayTypeSymbol).ElementType));
             }
             else if (symbol.TypeKind == TypeKind.TypeParameter)
             {
@@ -266,15 +264,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
             }
             else if (symbol.TypeKind == TypeKind.Dynamic)
             {
-                if (buildForPublicAPIs)
-                {
-                    var objectType = new RQUnconstructedType(new[] { "System" }, new[] { new RQUnconstructedTypeInfo("Object", 0) });
-                    return new RQConstructedType(objectType, new RQType[] { });
-                }
-                else
-                {
-                    return RQDynamicType.Singleton;
-                }
+                // NOTE: Because RQNames were defined as an interchange format before C# had "dynamic", and we didn't want 
+                // all consumers to have to update their logic to crack the attributes about whether something is object or
+                // not, we just erase dynamic to object here.
+                return RQType.ObjectType;
             }
             else if (symbol.Kind == SymbolKind.NamedType || symbol.Kind == SymbolKind.ErrorType)
             {
@@ -300,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.RQName
                 {
                     foreach (var typeArgument in entry.TypeArguments)
                     {
-                        typeArgumentList.Add(BuildType(typeArgument, buildForPublicAPIs));
+                        typeArgumentList.Add(BuildType(typeArgument));
                     }
                 }
 

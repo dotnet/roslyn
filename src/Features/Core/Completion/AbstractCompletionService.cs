@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private const int MruSize = 10;
 
         private readonly List<string> _committedItems = new List<string>(MruSize);
-        private object _mruGate = new object();
+        private readonly object _mruGate = new object();
 
         private void CompletionItemComitted(CompletionItem item)
         {
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return Task.FromResult(string.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, insertionText));
             }
 
-            return Task.FromResult((string)null);
+            return SpecializedTasks.Default<string>();
         }
 
         public virtual bool SupportSnippetCompletionListOnTab

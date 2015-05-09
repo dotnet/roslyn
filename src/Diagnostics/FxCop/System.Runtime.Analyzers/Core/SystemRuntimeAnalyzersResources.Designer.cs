@@ -62,6 +62,51 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assemblies should be marked with AssemblyVersionAttribute.
+        /// </summary>
+        internal static string AssembliesShouldBeMarkedWithAssemblyVersionAttribute {
+            get {
+                return ResourceManager.GetString("AssembliesShouldBeMarkedWithAssemblyVersionAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unsealed attributes..
+        /// </summary>
+        internal static string AvoidUnsealedAttributes {
+            get {
+                return ResourceManager.GetString("AvoidUnsealedAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Seal attribute type..
+        /// </summary>
+        internal static string AvoidUnsealedAttributesCodeFix {
+            get {
+                return ResourceManager.GetString("AvoidUnsealedAttributesCodeFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider changing the ComVisible attribute on {0} to false, and opting in at the type level..
+        /// </summary>
+        internal static string CA1017_AttributeTrue {
+            get {
+                return ResourceManager.GetString("CA1017_AttributeTrue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Because {0} exposes externally visible types, mark it with ComVisible(false) at the assembly level and then mark all types within the assembly that should be exposed to COM clients with ComVisible(true)..
+        /// </summary>
+        internal static string CA1017_NoAttribute {
+            get {
+                return ResourceManager.GetString("CA1017_NoAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Design.
         /// </summary>
         internal static string CategoryDesign {
@@ -179,6 +224,69 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disposable fields should be disposed.
+        /// </summary>
+        internal static string DisposableFieldsShouldBeDisposed {
+            get {
+                return ResourceManager.GetString("DisposableFieldsShouldBeDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not lock on objects with weak identity..
+        /// </summary>
+        internal static string DoNotLockOnObjectsWithWeakIdentity {
+            get {
+                return ResourceManager.GetString("DoNotLockOnObjectsWithWeakIdentity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not lock on a reference of type &apos;{0}&apos; as it has weak identity. Replace that with a lock against an object with strong identity..
+        /// </summary>
+        internal static string DoNotLockOnWeakIdentity {
+            get {
+                return ResourceManager.GetString("DoNotLockOnWeakIdentity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not mark Enum with FlagsAttribute.
+        /// </summary>
+        internal static string DoNotMarkEnumsWithFlags {
+            get {
+                return ResourceManager.GetString("DoNotMarkEnumsWithFlags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove FlagsAttribute from enum..
+        /// </summary>
+        internal static string DoNotMarkEnumsWithFlagsCodeFix {
+            get {
+                return ResourceManager.GetString("DoNotMarkEnumsWithFlagsCodeFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The enumeration does not appear to contain a consistent set values that can be combined using  the OR (|) and AND (&amp;amp;amp;amp;) operators. Using the Flags attribute on an enumeration suggests that the enumeration values are meant to be combined using the AND and OR operators. Typically, a flags enumeration uses values that are either powers of two, or combine other values that are powers of two..
+        /// </summary>
+        internal static string DoNotMarkEnumsWithFlagsDescription {
+            get {
+                return ResourceManager.GetString("DoNotMarkEnumsWithFlagsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is marked with FlagsAttribute but a discrete member cannot be found for every settable bit that is used across the range of enum values. Remove FlagsAttribute from the type or define new members for the following (currently missing) values: &apos;{1}&apos;..
+        /// </summary>
+        internal static string DoNotMarkEnumsWithFlagsMessage {
+            get {
+                return ResourceManager.GetString("DoNotMarkEnumsWithFlagsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Equality and Comparison methods and operators.
         /// </summary>
         internal static string ImplementComparable {
@@ -215,11 +323,83 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Mark all assemblies with ComVisible.
+        /// </summary>
+        internal static string MarkAllAssembliesWithComVisible {
+            get {
+                return ResourceManager.GetString("MarkAllAssembliesWithComVisible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The System.Runtime.InteropServices.ComVisible attribute indicates whether COM clients can use the library. Good design dictates that developers explicitly indicate COM visibility. The default value for this attribute is &apos;true&apos;. However, the best design is to mark the assembly ComVisible false, and then mark types, interfaces, and individual members as ComVisible true, as appropriate..
+        /// </summary>
+        internal static string MarkAllAssembliesWithComVisibleDescription {
+            get {
+                return ResourceManager.GetString("MarkAllAssembliesWithComVisibleDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mark assemblies with CLSCompliantAttribute.
+        /// </summary>
+        internal static string MarkAssembliesWithCLSCompliantAttribute {
+            get {
+                return ResourceManager.GetString("MarkAssembliesWithCLSCompliantAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assemblies should explicitly state their CLS compliance using the CLSCompliant attribute. An assembly without this attribute is not CLS-compliant. Assemblies, modules, and types can be CLS-compliant even if some parts of the assembly, module, or type are not CLS-compliant. The following rules apply: 1) If the element is marked CLSCompliant, any noncompliant members must have the CLSCompliant attribute present with its argument set to false. 2) A comparable CLS-compliant alternative member must be supplied f [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string MarkAssembliesWithCLSCompliantDescription {
+            get {
+                return ResourceManager.GetString("MarkAssembliesWithCLSCompliantDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specify AttributeUsage attribute on &apos;{0}&apos; attribute class..
         /// </summary>
         internal static string MarkAttributesWithAttributeUsage {
             get {
                 return ResourceManager.GetString("MarkAttributesWithAttributeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mark Enum with FlagsAttribute.
+        /// </summary>
+        internal static string MarkEnumsWithFlags {
+            get {
+                return ResourceManager.GetString("MarkEnumsWithFlags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply FlagsAttribute to enum..
+        /// </summary>
+        internal static string MarkEnumsWithFlagsCodeFix {
+            get {
+                return ResourceManager.GetString("MarkEnumsWithFlagsCodeFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The enumeration appears to be made up of combinable flags. If this true, apply the Flags attribute to the enumeration..
+        /// </summary>
+        internal static string MarkEnumsWithFlagsDescription {
+            get {
+                return ResourceManager.GetString("MarkEnumsWithFlagsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The constituent members of &apos;{0}&apos; appear to represent flags that can be combined rather than discrete values. If this is correct, mark the enumeration with FlagsAttribute..
+        /// </summary>
+        internal static string MarkEnumsWithFlagsMessage {
+            get {
+                return ResourceManager.GetString("MarkEnumsWithFlagsMessage", resourceCulture);
             }
         }
         
@@ -242,6 +422,78 @@ namespace System.Runtime.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Overload operator equals on overriding ValueType.Equals.
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnOverridingValueTypeEquals1 {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEquals1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator..
+        /// </summary>
+        internal static string OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription {
+            get {
+                return ResourceManager.GetString("OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes..
+        /// </summary>
+        internal static string SealAttributeTypesForImprovedPerf {
+            get {
+                return ResourceManager.GetString("SealAttributeTypesForImprovedPerf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture..
+        /// </summary>
+        internal static string StringComparisonShouldBeOrdinalDescription {
+            get {
+                return ResourceManager.GetString("StringComparisonShouldBeOrdinalDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase.
+        /// </summary>
+        internal static string StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase {
+            get {
+                return ResourceManager.GetString("StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test for empty strings using &apos;string.Length&apos; property or &apos;string.IsNullOrEmpty&apos; method instead of an Equality check..
+        /// </summary>
+        internal static string TestForEmptyStringsUsingStringLength {
+            get {
+                return ResourceManager.GetString("TestForEmptyStringsUsingStringLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comparing strings using the string.Length property or the string.IsNullOrEmpty method is significantly faster than using string.Equals. This is because Equals executes significantly more MSIL instructions than either IsNullOrEmpty or the number of instructions executed to retrieve the Length property value and compare it to zero..
+        /// </summary>
+        internal static string TestForEmptyStringsUsingStringLengthDescription {
+            get {
+                return ResourceManager.GetString("TestForEmptyStringsUsingStringLengthDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; owns disposable fields but is not disposable.
         /// </summary>
         internal static string TypeOwnsDisposableFieldButIsNotDisposable {
@@ -256,6 +508,15 @@ namespace System.Runtime.Analyzers {
         internal static string TypesThatOwnDisposableFieldsShouldBeDisposable {
             get {
                 return ResourceManager.GetString("TypesThatOwnDisposableFieldsShouldBeDisposable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler.
+        /// </summary>
+        internal static string UseGenericEventHandlerInstances {
+            get {
+                return ResourceManager.GetString("UseGenericEventHandlerInstances", resourceCulture);
             }
         }
     }

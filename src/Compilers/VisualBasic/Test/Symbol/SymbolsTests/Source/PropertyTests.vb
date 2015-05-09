@@ -391,7 +391,7 @@ End Class
                     </file>
                 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <Fact>
@@ -3733,7 +3733,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim position = (source...<file>.Single().Value.IndexOf("' bind-position"))
+            Dim position = (source...<file>.Single().Value.IndexOf("' bind-position", StringComparison.Ordinal))
 
             Dim bindings = compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb"))
             Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Foo().Items(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
@@ -4294,7 +4294,7 @@ End Class
         End Sub
 #End Region
 #Region "Properties calls"
-        Dim propertiesCallBaseSource As XElement =
+        Private ReadOnly _propertiesCallBaseSource As XElement =
             <compilation>
                 <file name="a.vb">
 Module Program
@@ -4329,30 +4329,30 @@ End Class
 
         <Fact>
         Public Sub PassPropertyByValue()
-            propertiesCallBaseSource.Element("file").SetElementValue("more_code",
+            _propertiesCallBaseSource.Element("file").SetElementValue("more_code",
             <![CDATA[
 ByValSwap(obj.P1, obj.P2)    'now o.P1.id = 1 and o.P2.id = 2
 System.Console.WriteLine(String.Join(",", obj.P1.id, obj.P2.id))]]>.Value)
 
-            CompileAndVerify(propertiesCallBaseSource, expectedOutput:="1,2")
+            CompileAndVerify(_propertiesCallBaseSource, expectedOutput:="1,2")
         End Sub
 
         <Fact>
         Public Sub PassPropertyByRef()
-            propertiesCallBaseSource.Element("file").SetElementValue("more_code",
+            _propertiesCallBaseSource.Element("file").SetElementValue("more_code",
             <![CDATA[
 ByRefSwap(obj.P1, obj.P2)    'now o.P1.id = 2 and o.P2.id = 1
 System.Console.WriteLine(String.Join(",", obj.P1.id, obj.P2.id))]]>.Value)
-            CompileAndVerify(propertiesCallBaseSource, expectedOutput:="2,1")
+            CompileAndVerify(_propertiesCallBaseSource, expectedOutput:="2,1")
         End Sub
 
         <Fact>
         Public Sub PassPropertyByRefWithByValueOverride()
-            propertiesCallBaseSource.Element("file").SetElementValue("more_code",
+            _propertiesCallBaseSource.Element("file").SetElementValue("more_code",
             <![CDATA[
 ByRefSwap((obj.P1), obj.P2)    'now o.P1.id = 1 and o.P2.id = 2
 System.Console.WriteLine(String.Join(",", obj.P1.id, obj.P2.id))]]>.Value)
-            CompileAndVerify(propertiesCallBaseSource, expectedOutput:="1,1")
+            CompileAndVerify(_propertiesCallBaseSource, expectedOutput:="1,1")
         End Sub
 #End Region
 #Region "Properties member access"
@@ -4787,7 +4787,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(528038, "DevDiv")>
@@ -4927,7 +4927,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(527660, "DevDiv")>
@@ -4966,7 +4966,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <Fact>
@@ -4984,7 +4984,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <WorkItem(527656, "DevDiv")>
@@ -5021,7 +5021,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         <Fact>
@@ -5039,7 +5039,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
         End Sub
 
         ''' <summary>
@@ -5409,7 +5409,7 @@ Class Program
 End Class
 ]]></file></compilation>
 
-            Dim compilation = CompileAndVerify(source, additionalRefs:={PropertiesDll}, expectedOutput:="0")
+            Dim compilation = CompileAndVerify(source, additionalRefs:={s_propertiesDll}, expectedOutput:="0")
             Dim ilSource = <![CDATA[{
   // Code size       27 (0x1b)
   .maxstack  2
@@ -5445,7 +5445,7 @@ Class Program
 End Class
 ]]></file></code>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, {PropertiesDll}).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, {s_propertiesDll}).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_NameNotMember2, "i.Instance").WithArguments("Instance", "Mismatched"),
                 Diagnostic(ERRID.ERR_NameNotMember2, "i.Instance").WithArguments("Instance", "Mismatched"),
                 Diagnostic(ERRID.ERR_UnsupportedProperty1, "StaticAndInstance").WithArguments("Signatures.StaticAndInstance"),
@@ -5472,7 +5472,7 @@ Class Program
 End Class
 ]]></file></compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, {PropertiesDll})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, {s_propertiesDll})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -5505,7 +5505,7 @@ BC30456: 'StaticInt32Get' is not a member of 'Mismatched'.
             End Sub
         End Class
         ]]></file></compilation>
-            Dim result = CompileAndVerify(source, additionalRefs:={PropertiesDll}, expectedOutput:="0")
+            Dim result = CompileAndVerify(source, additionalRefs:={s_propertiesDll}, expectedOutput:="0")
             Dim ilSource = <![CDATA[{
 // Code size       27 (0x1b)
 .maxstack  2
@@ -8171,10 +8171,10 @@ End Class
         End Sub
 
         Private Function CompileWithCustomPropertiesAssembly(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
-            Return CreateCompilationWithMscorlibAndReferences(source, {PropertiesDll}, options)
+            Return CreateCompilationWithMscorlibAndReferences(source, {s_propertiesDll}, options)
         End Function
 
-        Private Shared ReadOnly PropertiesDll As MetadataReference = TestReferences.SymbolsTests.Properties
+        Private Shared ReadOnly s_propertiesDll As MetadataReference = TestReferences.SymbolsTests.Properties
 
         Private Shared Sub VerifyPropertiesParametersCount([property] As PropertySymbol, expectedCount As Integer)
             Assert.Equal([property].Parameters.Length, expectedCount)

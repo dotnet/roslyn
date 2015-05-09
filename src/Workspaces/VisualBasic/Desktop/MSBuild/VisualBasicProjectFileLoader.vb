@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicProjectFileLoader
         Inherits ProjectFileLoader
 
-        Private _workspaceServices As HostWorkspaceServices
+        Private ReadOnly _workspaceServices As HostWorkspaceServices
 
         Friend Sub New(workspaceServices As HostWorkspaceServices)
             Me._workspaceServices = workspaceServices
@@ -26,17 +27,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function CreateProjectFile(loadedProject As MSB.Evaluation.Project) As ProjectFile
-            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataService))
+            Return New VisualBasicProjectFile(Me, loadedProject, Me._workspaceServices.GetService(Of IMetadataService), Me._workspaceServices.GetService(Of IAnalyzerService))
         End Function
 
         Friend Class VisualBasicProjectFile
             Inherits ProjectFile
 
-            Private _metadataService As IMetadataService
+            Private ReadOnly _metadataService As IMetadataService
+            Private ReadOnly _analyzerService As IAnalyzerService
 
-            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService)
+            Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService, analyzerService As IAnalyzerService)
                 MyBase.New(loader, loadedProject)
                 Me._metadataService = metadataService
+                Me._analyzerService = analyzerService
             End Sub
 
             Public Overrides Function GetSourceCodeKind(documentFileName As String) As SourceCodeKind
@@ -58,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Async Function GetProjectFileInfoAsync(cancellationToken As CancellationToken) As Tasks.Task(Of ProjectFileInfo)
                 Dim compilerInputs As New VisualBasicCompilerInputs(Me)
 
-                Dim result = Await Me.BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(False)
-                Dim executedProject = result.Instance
+                Dim executedProject = Await Me.BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(False)
 
                 If Not compilerInputs.Initialized Then
                     Me.InitializeFromModel(compilerInputs, executedProject)
@@ -138,10 +140,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim commandLineParser = VisualBasicCommandLineParser.Default
-                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory)
+                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory())
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences()
+
+                Dim loader = _analyzerService.GetLoader()
+                For Each path In commandLineArgs.AnalyzerReferences.Select(Function(r) r.FilePath)
+                    loader.AddDependencyLocation(path)
+                Next
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(loader)
 
             End Sub
 
@@ -155,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     projectDirectory += Path.DirectorySeparatorChar
                 End If
 
-                Return sources.Where(Function(s) Not System.IO.Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_")) _
+                Return sources.Where(Function(s) Not System.IO.Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal)) _
                          .Select(Function(s) New DocumentFileInfo(GetDocumentFilePath(s), GetDocumentLogicalPath(s, projectDirectory), IsDocumentLinked(s), IsDocumentGenerated(s))).ToImmutableArray()
             End Function
 
@@ -236,6 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 compilerInputs.SetReferences(Me.GetMetadataReferencesFromModel(executedProject).ToArray())
                 compilerInputs.SetAnalyzers(Me.GetAnalyzerReferencesFromModel(executedProject).ToArray())
+                compilerInputs.SetAdditionalFiles(Me.GetAdditionalFilesFromModel(executedProject).ToArray())
                 compilerInputs.SetSources(Me.GetDocumentsFromModel(executedProject).ToArray())
 
                 compilerInputs.EndInitialization()
@@ -258,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If Not MSBUILD12 Then
                 Implements MSB.Tasks.Hosting.IAnalyzerHostObject
 #End If
-                Private _projectFile As VisualBasicProjectFile
+                Private ReadOnly _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
                 Private _parseOptions As VisualBasicParseOptions
                 Private _compilationOptions As VisualBasicCompilationOptions
@@ -268,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _references As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _analyzerReferences As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _noStandardLib As Boolean
-                Private _warnings As Dictionary(Of String, ReportDiagnostic)
+                Private ReadOnly _warnings As Dictionary(Of String, ReportDiagnostic)
                 Private _sdkPath As String
                 Private _targetCompactFramework As Boolean
                 Private _vbRuntime As String
@@ -686,11 +694,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
-                Private Shared ReadOnly warningSeparators As Char() = {";"c, ","c}
+                Private Shared ReadOnly s_warningSeparators As Char() = {";"c, ","c}
 
                 Private Sub SetWarnings(warnings As String, reportStyle As ReportDiagnostic)
                     If Not String.IsNullOrEmpty(warnings) Then
-                        For Each warning In warnings.Split(warningSeparators, StringSplitOptions.None)
+                        For Each warning In warnings.Split(s_warningSeparators, StringSplitOptions.None)
                             Dim warningId As Integer
                             If Int32.TryParse(warning, warningId) Then
                                 Me._warnings("BC" + warningId.ToString("0000")) = reportStyle

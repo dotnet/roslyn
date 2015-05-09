@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class TypeDeclarationOutliner
+    Friend Class TypeDeclarationOutliner
         Inherits AbstractSyntaxNodeOutliner(Of TypeStatementSyntax)
 
         Private Shared Function GetBannerText(typeDeclaration As TypeStatementSyntax) As String

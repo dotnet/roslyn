@@ -6551,7 +6551,7 @@ BC30628: Structures cannot have 'Inherits' statements.
         ]]></file>
     </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic12))
             Dim expectedErrors1 = <errors><![CDATA[
-BC30629: The feature 'Parameterless Instance Constructors in Structures' requires language version 14 or above.
+BC30629: Structures cannot declare a non-shared 'Sub New' with no parameters.
                     Public Sub New()
                                ~~~
                  ]]></errors>
@@ -6576,7 +6576,7 @@ BC30629: The feature 'Parameterless Instance Constructors in Structures' require
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC37242: Parameterless instance constructors in structures must be public.
+BC30629: Structures cannot declare a non-shared 'Sub New' with no parameters.
                     Private Sub New()
                                 ~~~
                  ]]></errors>
@@ -10404,7 +10404,7 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        Private Shared TypeWithMixedProperty As String = <![CDATA[
+        Private Shared ReadOnly s_typeWithMixedProperty As String = <![CDATA[
 .class public auto ansi beforefieldinit Base_VirtGet_Set
        extends [mscorlib]System.Object
 {
@@ -10498,7 +10498,7 @@ Class VBDerived
 
 End Class
         ]]></file>
-    </compilation>, TypeWithMixedProperty)
+    </compilation>, s_typeWithMixedProperty)
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC31086: 'Public Overrides Property Prop As Integer' cannot override 'Public Overloads Property Prop As Integer' because it is not declared 'Overridable'.
@@ -10528,7 +10528,7 @@ Class VBDerived
 
 End Class
         ]]></file>
-    </compilation>, TypeWithMixedProperty)
+    </compilation>, s_typeWithMixedProperty)
 
             ' WARNING: There are no Errors, but setter is actually not overriden!!!
 
@@ -13240,7 +13240,7 @@ BC31527: 'Microsoft.VisualBasic.ComClassAttribute' cannot be applied to a class 
         ' BC31531ERR_DllImportNotLegalOnEventMethod
         ' see AttributeTests
 
-        <Fact>
+        <Fact, WorkItem(1116455, "DevDiv")>
         Public Sub BC31534ERR_FriendAssemblyBadArguments()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
     <compilation name="FriendAssemblyBadArguments">
@@ -13261,6 +13261,7 @@ Imports System.Runtime.CompilerServices
 <Assembly: InternalsVisibleTo("Test, Version=1.1.1.*")>              ' error
 <Assembly: InternalsVisibleTo("Test, ProcessorArchitecture=MSIL")>   ' error
 <Assembly: InternalsVisibleTo("Test, CuLTure=EN")>                   ' error
+<Assembly: InternalsVisibleTo("Test, PublicKeyToken=null")>          ' ok
         ]]></file>
     </compilation>, {SystemCoreRef})
 
@@ -20748,7 +20749,7 @@ BC30461: Classes cannot be declared 'MustOverride'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        ' Checks for accessibilty across partial types
+        ' Checks for accessibility across partial types
         <Fact>
         Public Sub ModifierErrorsAcrossPartialTypes()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

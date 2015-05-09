@@ -66,6 +66,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     return ExecuteAppCommand(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
                 }
+                else if (pguidCmdGroup == VSConstants.VsStd12)
+                {
+                    return ExecuteVisualStudio2013(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                }
                 else
                 {
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
@@ -116,6 +120,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 case VSConstants.VSStd14CmdID.SmartBreakLine:
                     ExecuteAutomaticLineEnder(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
+                default:
+                    return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+            }
+
+            return result;
+        }
+
+        private int ExecuteVisualStudio2013(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
+        {
+            int result = VSConstants.S_OK;
+            var guidCmdGroup = pguidCmdGroup;
+            Action executeNextCommandTarget = () =>
+            {
+                result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+            };
+
+            switch ((VSConstants.VSStd12CmdID)commandId)
+            {
+                case VSConstants.VSStd12CmdID.MoveSelLinesDown:
+                    ExecuteMoveSelectedLinesDown(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
+                case VSConstants.VSStd12CmdID.MoveSelLinesUp:
+                    ExecuteMoveSelectedLinesUp(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 default:
@@ -522,6 +552,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return result;
         }
 #endif
+        private void ExecuteMoveSelectedLinesUp(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute<MoveSelectedLinesUpCommandArgs>(contentType,
+                args: new MoveSelectedLinesUpCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteMoveSelectedLinesDown(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute<MoveSelectedLinesDownCommandArgs>(contentType,
+                args: new MoveSelectedLinesDownCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
         private void ExecuteAutomaticLineEnder(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute<AutomaticLineEnderCommandArgs>(contentType,

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -81,16 +82,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public class ArgumentKey
+        public class HostAnalyzerKey : ArgumentKey
         {
-            public readonly int ProviderId;
-            public readonly StateType StateTypeId;
+            private readonly string _analyzerPackageName;
+
+            public HostAnalyzerKey(DiagnosticAnalyzer analyzer, StateType stateType, object key, string analyzerPackageName) :
+                base(analyzer, stateType, key)
+            {
+                _analyzerPackageName = analyzerPackageName;
+            }
+
+            public override string ErrorSource
+            {
+                get
+                {
+                    return _analyzerPackageName;
+                }
+            }
+        }
+
+        public class ArgumentKey : AnalyzerUpdateArgsId
+        {
+            public readonly StateType StateType;
             public readonly object Key;
 
-            public ArgumentKey(int providerId, StateType stateTypeId, object key)
+            public ArgumentKey(DiagnosticAnalyzer analyzer, StateType stateType, object key) : base(analyzer)
             {
-                this.ProviderId = providerId;
-                this.StateTypeId = stateTypeId;
+                this.StateType = stateType;
                 this.Key = key;
             }
 
@@ -102,12 +120,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return false;
                 }
 
-                return ProviderId == other.ProviderId && StateTypeId == other.StateTypeId && Key == other.Key;
+                return StateType == other.StateType && Key == other.Key && base.Equals(obj);
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(Key, Hash.Combine(ProviderId, (int)StateTypeId));
+                return Hash.Combine(Key, Hash.Combine((int)StateType, base.GetHashCode()));
             }
         }
     }

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         Private Class Indenter
             Inherits AbstractIndenter
 
-            Sub New(document As Document, rules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, line As ITextSnapshotLine, cancellationToken As CancellationToken)
+            Public Sub New(document As Document, rules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, line As ITextSnapshotLine, cancellationToken As CancellationToken)
                 MyBase.New(document, rules, optionSet, line, cancellationToken)
             End Sub
 
@@ -143,6 +143,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Private Function GetIndentationOfCurrentPosition(token As SyntaxToken, position As Integer, extraSpaces As Integer) As IndentationResult
                 ' special case for multi-line string
                 Dim containingToken = Tree.FindTokenOnLeftOfPosition(position, CancellationToken)
+                If containingToken.IsKind(SyntaxKind.InterpolatedStringTextToken) OrElse
+                   containingToken.IsKind(SyntaxKind.InterpolatedStringText) OrElse
+                    (containingToken.IsKind(SyntaxKind.CloseBraceToken) AndAlso token.Parent.IsKind(SyntaxKind.Interpolation)) Then
+                     Return IndentFromStartOfLine(0)
+                End If
                 If containingToken.Kind = SyntaxKind.StringLiteralToken AndAlso containingToken.FullSpan.Contains(position) Then
                     Return IndentFromStartOfLine(0)
                 End If

@@ -6,15 +6,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
     internal class BraceHighlightTag : TextMarkerTag
     {
-        internal const string TagId = "bracehighlight";
-
         public static readonly BraceHighlightTag StartTag = new BraceHighlightTag(navigateToStart: true);
         public static readonly BraceHighlightTag EndTag = new BraceHighlightTag(navigateToStart: false);
 
-        public bool NavigateToStart { get; private set; }
+        public bool NavigateToStart { get; }
 
         private BraceHighlightTag(bool navigateToStart)
-            : base(TagId)
+            : base(ClassificationTypeDefinitions.BraceMatchingName)
         {
             this.NavigateToStart = navigateToStart;
         }

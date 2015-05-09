@@ -388,7 +388,7 @@ End Class
 
             CompileAndVerify(verifiable, validator:=validator)
             CompileAndVerify(unverifiable, validator:=validator, verify:=False)
-            CompileAndVerify(unloadable, emitOptions:=TestEmitters.CCI, validator:=validator, verify:=False)
+            CompileAndVerify(unloadable, emitters:=TestEmitters.CCI, validator:=validator, verify:=False)
         End Sub
 
         <Fact>
@@ -564,7 +564,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, verify:=False)
+            CompileAndVerify(source, emitters:=TestEmitters.CCI, verify:=False)
         End Sub
 
         <Fact>
@@ -747,7 +747,7 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
         End Sub
 
         Private Sub VerifyStructLayout(source As System.Xml.Linq.XElement, hasInstanceFields As Boolean)
-            CompileAndVerify(source, validator :=
+            CompileAndVerify(source, validator:=
                 Sub(assembly, _omitted)
                     Dim reader = assembly.GetMetadataReader()
                     Dim type = reader.TypeDefinitions _
@@ -758,7 +758,7 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
                     Dim layout = type.GetLayout()
                     If Not hasInstanceFields Then
                         Const typeDefMask As TypeAttributes = TypeAttributes.StringFormatMask Or TypeAttributes.LayoutMask
-    
+
                         Assert.False(layout.IsDefault)
                         Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes And typeDefMask)
                         Assert.Equal(0, layout.PackingSize)
@@ -775,19 +775,19 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
 End Structure
-]]></file></compilation>, hasInstanceFields := False)
+]]></file></compilation>, hasInstanceFields:=False)
 
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
     Shared f As Integer
 End Structure
-]]></file></compilation>, hasInstanceFields := False)
+]]></file></compilation>, hasInstanceFields:=False)
 
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
     Shared Property P As Integer
 End Structure
-]]></file></compilation>, hasInstanceFields := False)
+]]></file></compilation>, hasInstanceFields:=False)
 
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
@@ -797,7 +797,7 @@ Structure S
         End Get
     End Property
 End Structure
-]]></file></compilation>, hasInstanceFields := False)
+]]></file></compilation>, hasInstanceFields:=False)
 
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
@@ -807,32 +807,32 @@ Structure S
         End Get
     End Property
 End Structure
-]]></file></compilation>, hasInstanceFields := False)
+]]></file></compilation>, hasInstanceFields:=False)
 
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
     Shared Event D()
 End Structure
-]]></file></compilation>, hasInstanceFields := False)
+]]></file></compilation>, hasInstanceFields:=False)
 
             ' instance fields
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
     Private f As Integer
 End Structure
-]]></file></compilation>, hasInstanceFields := True)
+]]></file></compilation>, hasInstanceFields:=True)
 
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
     Property P As Integer
 End Structure
-]]></file></compilation>, hasInstanceFields := True)
+]]></file></compilation>, hasInstanceFields:=True)
 
             VerifyStructLayout(<compilation><file><![CDATA[
 Structure S
     Event D()
 End Structure
-]]></file></compilation>, hasInstanceFields := True)
+]]></file></compilation>, hasInstanceFields:=True)
         End Sub
     End Class
 End Namespace

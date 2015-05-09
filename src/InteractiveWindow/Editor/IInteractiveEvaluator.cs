@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -12,11 +14,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     public interface IInteractiveEvaluator : IDisposable
     {
-        /// <summary>
-        /// Language content type this engine is used to execute.
-        /// </summary>
-        IContentType ContentType { get; }
-
         /// <summary>
         /// Gets or sets Interactive Window the engine is currently attached to.
         /// </summary>
@@ -41,14 +38,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Returns true if the text can be executed.  Used to determine if there is a whole statement entered
         /// in the REPL window.
         /// </summary>
-        bool CanExecuteText(string text);
+        bool CanExecuteCode(string text);
 
         /// <summary>
         /// Asynchronously executes the specified text.
         /// </summary>
         /// <param name="text">The code snippet to execute.</param>
         /// <returns>Task that completes the execution.</returns>
-        Task<ExecutionResult> ExecuteTextAsync(string text);
+        Task<ExecutionResult> ExecuteCodeAsync(string text);
 
         /// <summary>
         /// Formats the contents of the clipboard in a manner reasonable for the language.  Returns null if the
@@ -65,7 +62,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Aborts the current running command.
         /// </summary>
-        void AbortCommand();
+        void AbortExecution();
 
         /// <summary>
         /// Retrieves the prompt string.

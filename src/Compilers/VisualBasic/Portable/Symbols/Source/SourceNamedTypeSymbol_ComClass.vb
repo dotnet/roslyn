@@ -9,7 +9,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Class SourceNamedTypeSymbol
+    Friend Partial Class SourceNamedTypeSymbol
 
         ''' <summary>
         ''' Encapsulates ComClass specific data and analysis.
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '''     one interface - only class interface is synthesized.
             '''     two interfaces - both class interface and event interface are synthesized. Class interface is followed by the event interface.
             ''' </summary>
-            Private m_SyntheticInterfaces As ImmutableArray(Of NamedTypeSymbol)
+            Private _syntheticInterfaces As ImmutableArray(Of NamedTypeSymbol)
 
             Public Sub New(attrData As VisualBasicAttributeData)
 
@@ -63,41 +63,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Public Function GetSynthesizedInterfaces() As ImmutableArray(Of NamedTypeSymbol)
-                Debug.Assert(Not m_SyntheticInterfaces.IsDefault)
-                Return m_SyntheticInterfaces
+                Debug.Assert(Not _syntheticInterfaces.IsDefault)
+                Return _syntheticInterfaces
             End Function
 
             ''' <summary>
             ''' Returns symbol for the event interface or Nothing when event interface is not synthesized.
             ''' </summary>
             Public Function GetSynthesizedEventInterface() As NamedTypeSymbol
-                Debug.Assert(Not m_SyntheticInterfaces.IsDefault)
+                Debug.Assert(Not _syntheticInterfaces.IsDefault)
 
-                If m_SyntheticInterfaces.Length > 1 Then
-                    Return m_SyntheticInterfaces(1)
+                If _syntheticInterfaces.Length > 1 Then
+                    Return _syntheticInterfaces(1)
                 End If
 
                 Return Nothing
             End Function
 
             Public Function GetSynthesizedImplements() As IEnumerable(Of NamedTypeSymbol)
-                Debug.Assert(Not m_SyntheticInterfaces.IsDefault)
+                Debug.Assert(Not _syntheticInterfaces.IsDefault)
 
-                If m_SyntheticInterfaces.IsEmpty Then
+                If _syntheticInterfaces.IsEmpty Then
                     Return Nothing
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(Of NamedTypeSymbol)(m_SyntheticInterfaces(0))
+                Return SpecializedCollections.SingletonEnumerable(Of NamedTypeSymbol)(_syntheticInterfaces(0))
             End Function
 
             Public Function GetCorrespondingComClassInterfaceMethod(method As MethodSymbol) As MethodSymbol
-                Debug.Assert(Not m_SyntheticInterfaces.IsDefault)
+                Debug.Assert(Not _syntheticInterfaces.IsDefault)
 
-                If m_SyntheticInterfaces.IsEmpty Then
+                If _syntheticInterfaces.IsEmpty Then
                     Return Nothing
                 End If
 
-                For Each m In m_SyntheticInterfaces(0).GetMembers()
+                For Each m In _syntheticInterfaces(0).GetMembers()
                     If m.Kind = SymbolKind.Method Then
                         Dim comMethod = DirectCast(m, SynthesizedComMethod)
 
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ''' Perform ComClass specific validation and prepare for metadata generation.
             ''' </summary>
             Public Sub PerformComClassAnalysis(comClass As SourceNamedTypeSymbol)
-                If Not m_SyntheticInterfaces.IsDefault Then
+                If Not _syntheticInterfaces.IsDefault Then
                     Return
                 End If
 
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 interfaceMembers.Free()
                 eventMembers.Free()
-                comClass.ContainingSourceModule.AtomicStoreArrayAndDiagnostics(m_SyntheticInterfaces, interfaces, diagnostics, CompilationStage.Declare)
+                comClass.ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_syntheticInterfaces, interfaces, diagnostics, CompilationStage.Declare)
 
                 diagnostics.Free()
             End Sub
@@ -511,14 +511,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private Class SynthesizedComInterface
                 Inherits NamedTypeSymbol
 
-                Private ReadOnly m_ComClass As SourceNamedTypeSymbol
-                Private ReadOnly m_IsEventInterface As Boolean
-                Private ReadOnly m_Members As ImmutableArray(Of Symbol)
-                Private ReadOnly m_DefaultMemberName As String
+                Private ReadOnly _comClass As SourceNamedTypeSymbol
+                Private ReadOnly _isEventInterface As Boolean
+                Private ReadOnly _members As ImmutableArray(Of Symbol)
+                Private ReadOnly _defaultMemberName As String
 
                 Public Sub New(comClass As SourceNamedTypeSymbol, interfaceMembers As ArrayBuilder(Of KeyValuePair(Of Symbol, Integer)))
-                    m_ComClass = comClass
-                    m_IsEventInterface = False
+                    _comClass = comClass
+                    _isEventInterface = False
 
                     Dim usedDispIds As New HashSet(Of Integer)()
 
@@ -566,8 +566,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Dim getter As SynthesizedComMethod = Nothing
                                 Dim setter As SynthesizedComMethod = Nothing
 
-                                If m_DefaultMemberName Is Nothing AndAlso prop.IsDefault Then
-                                    m_DefaultMemberName = prop.Name
+                                If _defaultMemberName Is Nothing AndAlso prop.IsDefault Then
+                                    _defaultMemberName = prop.Name
                                 End If
 
                                 ' Accessors follow the property, first getter, then setter. 
@@ -632,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End Select
                     Next
 
-                    m_Members = members.ToImmutableAndFree()
+                    _members = members.ToImmutableAndFree()
                 End Sub
 
                 Private Shared Function GetNextAvailableDispId(
@@ -651,8 +651,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Function
 
                 Public Sub New(comClass As SourceNamedTypeSymbol, interfaceMembers As ArrayBuilder(Of KeyValuePair(Of EventSymbol, Integer)))
-                    m_ComClass = comClass
-                    m_IsEventInterface = True
+                    _comClass = comClass
+                    _isEventInterface = True
 
                     Dim usedDispIds As New HashSet(Of Integer)()
 
@@ -688,18 +688,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
                     Next
 
-                    m_Members = members.ToImmutableAndFree()
+                    _members = members.ToImmutableAndFree()
                 End Sub
 
                 Public ReadOnly Property IsEventInterface As Boolean
                     Get
-                        Return m_IsEventInterface
+                        Return _isEventInterface
                     End Get
                 End Property
 
                 Public ReadOnly Property ComClass As SourceNamedTypeSymbol
                     Get
-                        Return m_ComClass
+                        Return _comClass
                     End Get
                 End Property
 
@@ -727,7 +727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property ContainingSymbol As Symbol
                     Get
-                        Return m_ComClass
+                        Return _comClass
                     End Get
                 End Property
 
@@ -760,7 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Sub
 
                 Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-                    Return m_Members
+                    Return _members
                 End Function
 
                 Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
@@ -895,7 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property Name As String
                     Get
-                        Return If(m_IsEventInterface, "__", "_") & m_ComClass.Name
+                        Return If(_isEventInterface, "__", "_") & _comClass.Name
                     End Get
                 End Property
 
@@ -960,37 +960,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-                    Dim compilation As VisualBasicCompilation = m_ComClass.DeclaringCompilation
-                    Dim id As String = If(m_IsEventInterface, m_ComClass.m_comClassData.EventId, m_ComClass.m_comClassData.InterfaceId)
+                    Dim compilation As VisualBasicCompilation = _comClass.DeclaringCompilation
+                    Dim id As String = If(_isEventInterface, _comClass._comClassData.EventId, _comClass._comClassData.InterfaceId)
 
                     If id IsNot Nothing Then
                         AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor,
                             ImmutableArray.Create(
-                                New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, id))))
+                                New TypedConstant(_comClass.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, id))))
                     End If
 
-                    If m_IsEventInterface Then
+                    If _isEventInterface Then
                         AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16,
                             ImmutableArray.Create(
-                                New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_Int16),
+                                New TypedConstant(_comClass.GetSpecialType(SpecialType.System_Int16),
                                                         TypedConstantKind.Primitive,
                                                         CShort(ComInterfaceType.InterfaceIsIDispatch)))))
                     End If
 
                     AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
-                        ImmutableArray.Create(New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_Boolean),
+                        ImmutableArray.Create(New TypedConstant(_comClass.GetSpecialType(SpecialType.System_Boolean),
                                                                         TypedConstantKind.Primitive,
                                                                         value:=True))))
 
-                    If m_DefaultMemberName IsNot Nothing Then
+                    If _defaultMemberName IsNot Nothing Then
                         AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
-                            ImmutableArray.Create(New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_String),
+                            ImmutableArray.Create(New TypedConstant(_comClass.GetSpecialType(SpecialType.System_String),
                                                                             TypedConstantKind.Primitive,
-                                                                            m_DefaultMemberName))))
+                                                                            _defaultMemberName))))
                     End If
                 End Sub
 
@@ -1003,18 +1003,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Inherits MethodSymbol
 
                 Public ReadOnly ClonedFrom As MethodSymbol
-                Private ReadOnly m_SynthesizedDispId As Integer ' ReservedDispId.None if shouldn't be synthesized 
-                Private ReadOnly m_Interface As SynthesizedComInterface
-                Private ReadOnly m_Parameters As ImmutableArray(Of ParameterSymbol)
+                Private ReadOnly _synthesizedDispId As Integer ' ReservedDispId.None if shouldn't be synthesized 
+                Private ReadOnly _interface As SynthesizedComInterface
+                Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
                 Public Sub New(container As SynthesizedComInterface, clone As MethodSymbol, synthesizedDispId As Integer)
-                    m_Interface = container
-                    m_SynthesizedDispId = synthesizedDispId
+                    _interface = container
+                    _synthesizedDispId = synthesizedDispId
                     Debug.Assert(clone.DeclaredAccessibility = Accessibility.Public)
                     ClonedFrom = clone
 
                     If clone.ParameterCount = 0 Then
-                        m_Parameters = ImmutableArray(Of ParameterSymbol).Empty
+                        _parameters = ImmutableArray(Of ParameterSymbol).Empty
                     Else
                         Dim parameters(clone.ParameterCount - 1) As ParameterSymbol
 
@@ -1022,7 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             parameters(i) = New SynthesizedComParameter(Me, clone.Parameters(i))
                         Next
 
-                        m_Parameters = parameters.AsImmutableOrNull()
+                        _parameters = parameters.AsImmutableOrNull()
                     End If
                 End Sub
 
@@ -1069,13 +1069,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property ContainingSymbol As Symbol
                     Get
-                        Return m_Interface
+                        Return _interface
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
                     Get
-                        Return m_Interface
+                        Return _interface
                     End Get
                 End Property
 
@@ -1228,7 +1228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                     Get
-                        Return m_Parameters
+                        Return _parameters
                     End Get
                 End Property
 
@@ -1293,15 +1293,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-                    If m_SynthesizedDispId = ReservedDispId.None Then
+                    If _synthesizedDispId = ReservedDispId.None Then
                         Return
                     End If
 
-                    AddSynthesizedAttribute(attributes, m_Interface.ComClass.DeclaringCompilation.TrySynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, _interface.ComClass.DeclaringCompilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor,
-                        ImmutableArray.Create(New TypedConstant(m_Interface.ComClass.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32),
+                        ImmutableArray.Create(New TypedConstant(_interface.ComClass.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32),
                                                                         TypedConstantKind.Primitive,
-                                                                        m_SynthesizedDispId))))
+                                                                        _synthesizedDispId))))
                 End Sub
 
                 Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
@@ -1332,22 +1332,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private Class SynthesizedComEventMethod
                 Inherits SynthesizedComMethod
 
-                Private ReadOnly m_Event As EventSymbol
+                Private ReadOnly _event As EventSymbol
 
                 Public Sub New(container As SynthesizedComInterface, [event] As EventSymbol, clone As MethodSymbol, synthesizedDispId As Integer)
                     MyBase.New(container, clone, synthesizedDispId)
-                    m_Event = [event]
+                    _event = [event]
                 End Sub
 
                 Protected Overrides ReadOnly Property NameAndAttributesSource As Symbol
                     Get
-                        Return m_Event
+                        Return _event
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property HasSpecialName As Boolean
                     Get
-                        Return m_Event.HasSpecialName
+                        Return _event.HasSpecialName
                     End Get
                 End Property
             End Class
@@ -1355,34 +1355,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private NotInheritable Class SynthesizedComParameter
                 Inherits ParameterSymbol
 
-                Private ReadOnly m_Container As Symbol
-                Private ReadOnly m_ClonedFrom As ParameterSymbol
+                Private ReadOnly _container As Symbol
+                Private ReadOnly _clonedFrom As ParameterSymbol
 
                 Public Sub New(container As SynthesizedComMethod, clone As ParameterSymbol)
-                    m_Container = container
-                    m_ClonedFrom = clone
+                    _container = container
+                    _clonedFrom = clone
                 End Sub
 
                 Public Sub New(container As SynthesizedComProperty, clone As ParameterSymbol)
-                    m_Container = container
-                    m_ClonedFrom = clone
+                    _container = container
+                    _clonedFrom = clone
                 End Sub
 
                 Public Overrides ReadOnly Property Name As String
                     Get
-                        Return m_ClonedFrom.Name
+                        Return _clonedFrom.Name
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property ContainingSymbol As Symbol
                     Get
-                        Return m_Container
+                        Return _container
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
                     Get
-                        Return m_ClonedFrom.CustomModifiers
+                        Return _clonedFrom.CustomModifiers
                     End Get
                 End Property
 
@@ -1394,7 +1394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public ReadOnly Property IsComEventParameter As Boolean
                     Get
-                        Return DirectCast(m_Container.ContainingSymbol, SynthesizedComInterface).IsEventInterface
+                        Return DirectCast(_container.ContainingSymbol, SynthesizedComInterface).IsEventInterface
                     End Get
                 End Property
 
@@ -1404,7 +1404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return Nothing
                         End If
 
-                        Return m_ClonedFrom.ExplicitDefaultConstantValue(inProgress)
+                        Return _clonedFrom.ExplicitDefaultConstantValue(inProgress)
                     End Get
                 End Property
 
@@ -1414,19 +1414,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.HasExplicitDefaultValue
+                        Return _clonedFrom.HasExplicitDefaultValue
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property IsByRef As Boolean
                     Get
-                        Return m_ClonedFrom.IsByRef
+                        Return _clonedFrom.IsByRef
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
                     Get
-                        Return m_ClonedFrom.IsExplicitByRef
+                        Return _clonedFrom.IsExplicitByRef
                     End Get
                 End Property
 
@@ -1436,7 +1436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsOptional
+                        Return _clonedFrom.IsOptional
                     End Get
                 End Property
 
@@ -1446,7 +1446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsMetadataOut
+                        Return _clonedFrom.IsMetadataOut
                     End Get
                 End Property
 
@@ -1456,7 +1456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsMetadataIn
+                        Return _clonedFrom.IsMetadataIn
                     End Get
                 End Property
 
@@ -1466,7 +1466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.HasOptionCompare
+                        Return _clonedFrom.HasOptionCompare
                     End Get
                 End Property
 
@@ -1476,7 +1476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsIDispatchConstant
+                        Return _clonedFrom.IsIDispatchConstant
                     End Get
                 End Property
 
@@ -1486,7 +1486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsIUnknownConstant
+                        Return _clonedFrom.IsIUnknownConstant
                     End Get
                 End Property
 
@@ -1496,7 +1496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsCallerLineNumber
+                        Return _clonedFrom.IsCallerLineNumber
                     End Get
                 End Property
 
@@ -1506,7 +1506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsCallerMemberName
+                        Return _clonedFrom.IsCallerMemberName
                     End Get
                 End Property
 
@@ -1516,13 +1516,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsCallerFilePath
+                        Return _clonedFrom.IsCallerFilePath
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
                     Get
-                        Return m_ClonedFrom.HasByRefBeforeCustomModifiers
+                        Return _clonedFrom.HasByRefBeforeCustomModifiers
                     End Get
                 End Property
 
@@ -1532,7 +1532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return False
                         End If
 
-                        Return m_ClonedFrom.IsParamArray
+                        Return _clonedFrom.IsParamArray
                     End Get
                 End Property
 
@@ -1542,7 +1542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Return Nothing
                         End If
 
-                        Return m_ClonedFrom.MarshallingInformation
+                        Return _clonedFrom.MarshallingInformation
                     End Get
                 End Property
 
@@ -1554,13 +1554,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property Ordinal As Integer
                     Get
-                        Return m_ClonedFrom.Ordinal
+                        Return _clonedFrom.Ordinal
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property Type As TypeSymbol
                     Get
-                        Return m_ClonedFrom.Type
+                        Return _clonedFrom.Type
                     End Get
                 End Property
 
@@ -1569,7 +1569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return ImmutableArray(Of VisualBasicAttributeData).Empty
                     End If
 
-                    Return m_ClonedFrom.GetAttributes()
+                    Return _clonedFrom.GetAttributes()
                 End Function
 
                 Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
@@ -1580,7 +1580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     Dim toClone As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-                    m_ClonedFrom.AddSynthesizedAttributes(compilationState, toClone)
+                    _clonedFrom.AddSynthesizedAttributes(compilationState, toClone)
 
                     Dim compilation = Me.DeclaringCompilation
                     Dim paramArrayAttribute As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_ParamArrayAttribute)
@@ -1604,12 +1604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private Class SynthesizedComProperty
                 Inherits PropertySymbol
 
-                Private ReadOnly m_Interface As SynthesizedComInterface
-                Private ReadOnly m_ClonedFrom As PropertySymbol
-                Private ReadOnly m_SynthesizedDispId As Integer ' ReservedDispId.None if shouldn't be synthesized 
-                Private ReadOnly m_Getter As SynthesizedComMethod
-                Private ReadOnly m_Setter As SynthesizedComMethod
-                Private ReadOnly m_Parameters As ImmutableArray(Of ParameterSymbol)
+                Private ReadOnly _interface As SynthesizedComInterface
+                Private ReadOnly _clonedFrom As PropertySymbol
+                Private ReadOnly _synthesizedDispId As Integer ' ReservedDispId.None if shouldn't be synthesized 
+                Private ReadOnly _getter As SynthesizedComMethod
+                Private ReadOnly _setter As SynthesizedComMethod
+                Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
                 Public Sub New(
                     container As SynthesizedComInterface,
@@ -1618,15 +1618,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     setter As SynthesizedComMethod,
                     synthesizedDispId As Integer
                 )
-                    m_Interface = container
+                    _interface = container
                     Debug.Assert(clone.DeclaredAccessibility = Accessibility.Public)
-                    m_ClonedFrom = clone
-                    m_SynthesizedDispId = synthesizedDispId
-                    m_Getter = getter
-                    m_Setter = setter
+                    _clonedFrom = clone
+                    _synthesizedDispId = synthesizedDispId
+                    _getter = getter
+                    _setter = setter
 
                     If clone.ParameterCount = 0 Then
-                        m_Parameters = ImmutableArray(Of ParameterSymbol).Empty
+                        _parameters = ImmutableArray(Of ParameterSymbol).Empty
                     Else
                         Dim parameters(clone.ParameterCount - 1) As ParameterSymbol
 
@@ -1634,37 +1634,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             parameters(i) = New SynthesizedComParameter(Me, clone.Parameters(i))
                         Next
 
-                        m_Parameters = parameters.AsImmutableOrNull()
+                        _parameters = parameters.AsImmutableOrNull()
                     End If
                 End Sub
 
                 Public Overrides ReadOnly Property Name As String
                     Get
-                        Return m_ClonedFrom.Name
+                        Return _clonedFrom.Name
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property HasSpecialName As Boolean
                     Get
-                        Return m_ClonedFrom.HasSpecialName
+                        Return _clonedFrom.HasSpecialName
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
                     Get
-                        Return m_ClonedFrom.CallingConvention
+                        Return _clonedFrom.CallingConvention
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property ContainingSymbol As Symbol
                     Get
-                        Return m_Interface
+                        Return _interface
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
                     Get
-                        Return m_Interface
+                        Return _interface
                     End Get
                 End Property
 
@@ -1688,7 +1688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property GetMethod As MethodSymbol
                     Get
-                        Return m_Getter
+                        Return _getter
                     End Get
                 End Property
 
@@ -1748,19 +1748,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                     Get
-                        Return m_Parameters
+                        Return _parameters
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property SetMethod As MethodSymbol
                     Get
-                        Return m_Setter
+                        Return _setter
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property Type As TypeSymbol
                     Get
-                        Return m_ClonedFrom.Type
+                        Return _clonedFrom.Type
                     End Get
                 End Property
 
@@ -1772,26 +1772,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
                     Get
-                        Return m_ClonedFrom.TypeCustomModifiers
+                        Return _clonedFrom.TypeCustomModifiers
                     End Get
                 End Property
 
                 Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-                    Return m_ClonedFrom.GetAttributes()
+                    Return _clonedFrom.GetAttributes()
                 End Function
 
                 Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-                    If m_SynthesizedDispId = ReservedDispId.None Then
+                    If _synthesizedDispId = ReservedDispId.None Then
                         Return
                     End If
 
-                    AddSynthesizedAttribute(attributes, m_Interface.ComClass.DeclaringCompilation.TrySynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, _interface.ComClass.DeclaringCompilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor,
-                        ImmutableArray.Create(New TypedConstant(m_Interface.ComClass.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32),
+                        ImmutableArray.Create(New TypedConstant(_interface.ComClass.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32),
                                                                         TypedConstantKind.Primitive,
-                                                                        m_SynthesizedDispId))))
+                                                                        _synthesizedDispId))))
                 End Sub
 
                 Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
@@ -1806,41 +1806,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Perform ComClass specific validation and prepare for metadata generation.
         ''' </summary>
         Private Sub PerformComClassAnalysis()
-            If m_comClassData Is Nothing Then
+            If _comClassData Is Nothing Then
                 Return
             End If
 
-            m_comClassData.PerformComClassAnalysis(Me)
+            _comClassData.PerformComClassAnalysis(Me)
         End Sub
 
         Friend Overrides Function GetSynthesizedNestedTypes() As IEnumerable(Of Microsoft.Cci.INestedTypeDefinition)
-            If m_comClassData Is Nothing Then
+            If _comClassData Is Nothing Then
                 Return Nothing
             End If
 
-            Dim interfaces As ImmutableArray(Of NamedTypeSymbol) = m_comClassData.GetSynthesizedInterfaces()
+            Dim interfaces As ImmutableArray(Of NamedTypeSymbol) = _comClassData.GetSynthesizedInterfaces()
 
             Return If(interfaces.IsEmpty, Nothing, interfaces.AsEnumerable())
         End Function
 
         Friend Overrides Function GetSynthesizedImplements() As IEnumerable(Of NamedTypeSymbol)
-            If m_comClassData Is Nothing Then
+            If _comClassData Is Nothing Then
                 Return Nothing
             End If
 
-            Return m_comClassData.GetSynthesizedImplements()
+            Return _comClassData.GetSynthesizedImplements()
         End Function
 
         Friend Function GetCorrespondingComClassInterfaceMethod(method As MethodSymbol) As MethodSymbol
             GetAttributes()
 
-            If m_comClassData Is Nothing Then
+            If _comClassData Is Nothing Then
                 Return Nothing
             End If
 
-            m_comClassData.PerformComClassAnalysis(Me)
+            _comClassData.PerformComClassAnalysis(Me)
 
-            Return m_comClassData.GetCorrespondingComClassInterfaceMethod(method)
+            Return _comClassData.GetCorrespondingComClassInterfaceMethod(method)
         End Function
 
     End Class

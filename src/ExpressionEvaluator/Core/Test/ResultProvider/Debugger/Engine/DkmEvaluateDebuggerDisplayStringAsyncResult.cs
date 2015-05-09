@@ -11,12 +11,12 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
     public struct DkmEvaluateDebuggerDisplayStringAsyncResult
     {
         private readonly string _result;
-         
+
         public DkmEvaluateDebuggerDisplayStringAsyncResult(string result)
         {
             if (result == null)
             {
-                throw new ArgumentNullException("result");
+                throw new ArgumentNullException(nameof(result));
             }
 
             _result = result;

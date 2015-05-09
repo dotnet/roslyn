@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TodoComments
             {
                 var message = trivia.ToFullString();
 
-                var index = message.IndexOf(SingleLineCommentPrefix);
+                var index = message.IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal);
                 var start = trivia.FullSpan.Start + index;
 
                 AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, message.Substring(index), start, todoList);
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TodoComments
         protected override bool PreprocessorHasComment(SyntaxTrivia trivia)
         {
             return trivia.Kind() != SyntaxKind.RegionDirectiveTrivia &&
-                   SyntaxFacts.IsPreprocessorDirective(trivia.Kind()) && trivia.ToString().IndexOf(SingleLineCommentPrefix) > 0;
+                   SyntaxFacts.IsPreprocessorDirective(trivia.Kind()) && trivia.ToString().IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal) > 0;
         }
 
         protected override bool IsSingleLineComment(SyntaxTrivia trivia)

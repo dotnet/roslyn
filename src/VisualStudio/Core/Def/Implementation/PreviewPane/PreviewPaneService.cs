@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return this;
         }
 
-        private Image GetSeverityIconForDiagnostic(Diagnostic diagnostic)
+        private static Image GetSeverityIconForDiagnostic(Diagnostic diagnostic)
         {
             ImageMoniker? moniker = null;
             switch (diagnostic.Severity)
@@ -63,31 +64,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return null;
         }
 
+        private static Uri GetHelpLink(Diagnostic diagnostic, out string helpLinkToolTipText)
+        {
+            var isBing = false;
+            helpLinkToolTipText = string.Empty;
+
+            Uri helpLink;
+            if (!BrowserHelper.TryGetUri(diagnostic.Descriptor.HelpLinkUri, out helpLink))
+            {
+                // We use the ENU version of the message for bing search.
+                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.GetMessage(DiagnosticData.USCultureInfo));
+                isBing = true;
+            }
+
+            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url dislayed in the tooltip stays human readable.
+            if (helpLink != null)
+            {
+                helpLinkToolTipText =
+                    string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, diagnostic.Id,
+                        isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpLink);
+            }
+
+            return helpLink;
+        }
+
         object IPreviewPaneService.GetPreviewPane(Diagnostic diagnostic, object previewContent)
         {
-            var telemetry = diagnostic == null ? false : diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry);
+            var title = diagnostic?.GetMessage();
 
-            if ((diagnostic == null) && (previewContent == null))
+            if (string.IsNullOrWhiteSpace(title))
             {
-                // Bail out in cases where there is no diagnostic (which means there is nothing to put in
-                // the header section of the preview pane) as well as no preview content (i.e. no diff view).
-                return null;
+                if (previewContent == null)
+                {
+                    // Bail out in cases where there is nothing to put in the header section
+                    // of the preview pane and no preview content (i.e. no diff view) either.
+                    return null;
+                }
+
+                return new PreviewPane(
+                    severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false, serviceProvider: _serviceProvider);
             }
 
-            if ((diagnostic == null) || (diagnostic.Descriptor is TriggerDiagnosticDescriptor))
-            {
-                return new PreviewPane(
-                    null, null, null, null, null, null, telemetry, previewContent, _serviceProvider);
-            }
-            else
-            {
-                return new PreviewPane(
-                    GetSeverityIconForDiagnostic(diagnostic),
-                    diagnostic.Id, diagnostic.GetMessage(),
-                    diagnostic.Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo),
-                    diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                    diagnostic.Descriptor.HelpLinkUri, telemetry, previewContent, _serviceProvider);
-            }
+            var helpLinkToolTipText = string.Empty;
+            Uri helpLink = GetHelpLink(diagnostic, out helpLinkToolTipText);
+
+            return new PreviewPane(
+                severityIcon: GetSeverityIconForDiagnostic(diagnostic),
+                id: diagnostic.Id, title: title,
+                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
+                helpLink: helpLink,
+                helpLinkToolTipText: helpLinkToolTipText,
+                previewContent: previewContent,
+                logIdVerbatimInTelemetry: diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
+                serviceProvider: _serviceProvider);
         }
     }
 }

@@ -382,5 +382,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 
             AssertRegion(expectedRegion, actualRegion);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
+        public void CrefInSummary()
+        {
+            var tree = ParseLines("class C",
+                                  "{",
+                                  "    /// <summary>",
+                                  "    /// Summary with <see cref=\"SeeClass\" />, <seealso cref=\"SeeAlsoClass\" />, ",
+                                  "    /// <see langword=\"null\" />, <typeparamref name=\"T\" />, and <paramref name=\"t\" />.",
+                                  "    /// </summary>",
+                                  "    public void M<T>(T t) { }",
+                                  "}");
+
+            var method = tree.GetRoot().FindFirstNodeOfType<MethodDeclarationSyntax>();
+            var trivia = method.GetLeadingTrivia();
+
+            var docComment = (DocumentationCommentTriviaSyntax)trivia.Single(t => t.HasStructure).GetStructure();
+            var actualRegion = GetRegion(docComment);
+            var expectedRegion = new OutliningSpan(
+                         TextSpan.FromBounds(16, 218),
+                         "/// <summary> Summary with SeeClass , SeeAlsoClass , null , T , and t .",
+                         autoCollapse: true);
+
+            AssertRegion(expectedRegion, actualRegion);
+        }
     }
 }

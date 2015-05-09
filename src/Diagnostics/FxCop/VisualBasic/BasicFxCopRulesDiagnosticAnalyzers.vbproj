@@ -15,9 +15,10 @@
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.FxCopRules.DiagnosticAnalyzers.xml</DocumentationFile>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -95,24 +96,13 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Design\BasicCA1003DiagnosticAnalyzer.vb" />
     <Compile Include="Design\BasicCA1024DiagnosticAnalyzer.vb" />
-    <Compile Include="Design\BasicEnumWithFlagsDiagnosticAnalyzer.vb" />
     <Compile Include="Design\CodeFixes\CA1008BasicCodeFixProvider.vb" />
     <Compile Include="Design\CodeFixes\CA1052BasicCodeFixProvider.vb" />
-    <Compile Include="Design\CodeFixes\EnumWithFlagsBasicCodeFixProvider.vb" />
-    <Compile Include="Globalization\BasicCA1309DiagnosticAnalyzer.vb" />
-    <Compile Include="Globalization\CodeFixes\CA1309BasicCodeFixProvider.vb" />
-    <Compile Include="Globalization\CodeFixes\CA2101BasicCodeFixProvider.vb" />
-    <Compile Include="Performance\BasicCA1821DiagnosticAnalyzer.vb" />
-    <Compile Include="Performance\CodeFixes\CA1813BasicCodeFixProvider.vb" />
-    <Compile Include="Reliability\BasicCA2002DiagnosticAnalyzer.vb" />
+    <Compile Include="Performance\RemoveEmptyFinalizers.vb" />
     <Compile Include="Usage\BasicCA2200DiagnosticAnalyzer.vb" />
-    <Compile Include="Usage\BasicCA2213DiagnosticAnalyzer.vb" />
     <Compile Include="Usage\BasicCA2214DiagnosticAnalyzer.vb" />
-    <Compile Include="Usage\CodeFixes\CA2213BasicCodeFixProvider.vb" />
-    <Compile Include="Usage\CodeFixes\CA2231BasicCodeFixProvider.vb" />
-    <Compile Include="Usage\CodeFixes\CA2235BasicCodeFixProvider.vb" />
+    <Compile Include="Usage\MarkAllNonSerializableFields.Fixer.vb" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.props">

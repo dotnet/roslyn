@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ' Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass.
     ' Any fix to one should be applied to the other.
-    MustInherit Class AbstractRegionControlFlowPass
+    Friend MustInherit Class AbstractRegionControlFlowPass
         Inherits ControlFlowPass
 
         Friend Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo)

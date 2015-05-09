@@ -1004,7 +1004,7 @@ nextm:
             Return New BoundSequencePoint(syntax, Nothing).MakeCompilerGenerated
         End Function
 
-        Function SequencePointWithSpan(syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
+        Public Function SequencePointWithSpan(syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
             Return New BoundSequencePointWithSpan(syntax, boundStatement, textSpan)
         End Function
 

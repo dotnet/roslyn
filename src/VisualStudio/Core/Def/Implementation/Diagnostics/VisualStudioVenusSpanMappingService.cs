@@ -156,7 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             // we can't directly map span in subject buffer to surface buffer. see whether there is any visible span we can use from the subject buffer span
-            if (VSConstants.S_OK != containedLanguageHost.GetNearestVisibleToken(originalSpanOnSecondaryBuffer, spansOnPrimaryBuffer))
+            if (containedLanguageHost != null &&
+                VSConstants.S_OK != containedLanguageHost.GetNearestVisibleToken(originalSpanOnSecondaryBuffer, spansOnPrimaryBuffer))
             {
                 // no visible span we can use.
                 return false;

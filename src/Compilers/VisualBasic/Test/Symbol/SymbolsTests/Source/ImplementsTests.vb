@@ -3325,7 +3325,7 @@ BC42333: Interface 'IFoo(Of J, T)' is ambiguous with another implemented interfa
 
         <WorkItem(545863, "DevDiv")>
         <Fact>
-        Sub Bug14589()
+        Public Sub Bug14589()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation name="Bug14589">
        <file name="a.vb">
@@ -3352,7 +3352,7 @@ BC30149: Class 'B' must implement 'Sub Foo(x As A(Of A(Of A(Of T).B).B).B)' for 
 
         <WorkItem(578706, "DevDiv")>
         <Fact>
-        Sub ImplicitImplementationSourceVsMetadata()
+        Public Sub ImplicitImplementationSourceVsMetadata()
             Dim source1 = <![CDATA[
 public interface I
 {
@@ -3520,7 +3520,7 @@ D.Explicit
 
         <WorkItem(578746, "DevDiv")>
         <Fact>
-        Sub Bug578746a()
+        Public Sub Bug578746a()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -3541,7 +3541,7 @@ End Class
 
         <WorkItem(578746, "DevDiv")>
         <Fact>
-        Sub Bug578746b()
+        Public Sub Bug578746b()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -3562,7 +3562,7 @@ End Class
 
         <WorkItem(578746, "DevDiv")>
         <Fact>
-        Sub Bug578746c()
+        Public Sub Bug578746c()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -3591,7 +3591,7 @@ BC30401: 'Foo' cannot implement 'Foo' because there is no matching sub on interf
 
         <WorkItem(578746, "DevDiv")>
         <Fact>
-        Sub Bug578746d()
+        Public Sub Bug578746d()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -3612,7 +3612,7 @@ End Class
 
         <WorkItem(578074, "DevDiv")>
         <Fact>
-        Sub Bug578074()
+        Public Sub Bug578074()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -3632,7 +3632,7 @@ End Class
 
         <WorkItem(608228, "DevDiv")>
         <Fact>
-        Sub ImplementPropertyWithByRefParameter()
+        Public Sub ImplementPropertyWithByRefParameter()
             Dim il = <![CDATA[
 .class interface public abstract auto ansi IRef
 {
@@ -3698,7 +3698,7 @@ End Class
 
         <WorkItem(718115, "DevDiv")>
         <Fact>
-        Sub ExplicitlyImplementedAccessorsWithoutEvent()
+        Public Sub ExplicitlyImplementedAccessorsWithoutEvent()
             Dim il = <![CDATA[
 .class interface public abstract auto ansi I
 {

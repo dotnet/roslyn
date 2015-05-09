@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Protected ReadOnly NullTextPoint As PartAction =
             Sub(part, textPointGetter)
                 Dim tp As EnvDTE.TextPoint = Nothing
-                tp = textPointGetter(Part)
+                tp = textPointGetter(part)
                 Assert.Null(tp)
             End Sub
 
@@ -150,6 +150,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Protected MustOverride Function GetKind(codeElement As TCodeElement) As EnvDTE.vsCMElement
         Protected MustOverride Function GetName(codeElement As TCodeElement) As String
         Protected MustOverride Function GetNameSetter(codeElement As TCodeElement) As Action(Of String)
+
+        Protected Overridable Function GetNamespace(codeElement As TCodeElement) As EnvDTE.CodeNamespace
+            Throw New NotSupportedException
+        End Function
 
         Protected Overridable Function GetAccess(codeElement As TCodeElement) As EnvDTE.vsCMAccess
             Throw New NotSupportedException
@@ -348,6 +352,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Overridable Function AddImplementedInterface(codeElement As TCodeElement, base As Object, position As Object) As EnvDTE.CodeInterface
+            Throw New NotSupportedException
+        End Function
+
+        Protected Overridable Function GetParameters(codeElement As TCodeElement) As EnvDTE.CodeElements
             Throw New NotSupportedException
         End Function
 
@@ -1064,6 +1072,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Sub
 
+        Protected Sub TestNamespaceName(Code As XElement, name As String)
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(Code))
+                Dim codeElement = state.GetCodeElementAtCursor(Of TCodeElement)()
+                Assert.NotNull(codeElement)
+
+                Dim codeNamespaceElement = GetNamespace(codeElement)
+                Assert.NotNull(codeNamespaceElement)
+
+                Assert.Equal(name, codeNamespaceElement.Name)
+            End Using
+        End Sub
+
         Protected Sub TestSetTypeProp(code As XElement, expectedCode As XElement, codeTypeRef As EnvDTE.CodeTypeRef)
             TestSetTypeProp(code, expectedCode, codeTypeRef, NoThrow(Of EnvDTE.CodeTypeRef)())
         End Sub
@@ -1246,5 +1266,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Sub
 
+        Protected Sub TestAllParameterNames(code As XElement, ParamArray expectedParameterNames() As String)
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim codeElement = state.GetCodeElementAtCursor(Of TCodeElement)()
+                Assert.NotNull(codeElement)
+
+                Dim parameters = GetParameters(codeElement)
+                Assert.NotNull(parameters)
+
+                Assert.Equal(parameters.Count(), expectedParameterNames.Count())
+                If (expectedParameterNames.Any()) Then
+                    TestAllParameterNamesByIndex(parameters, expectedParameterNames)
+                    TestAllParameterNamesByName(parameters, expectedParameterNames)
+                End If
+            End Using
+        End Sub
+
+        Private Sub TestAllParameterNamesByName(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
+            For index = 0 To expectedParameterNames.Count() - 1
+                Assert.NotNull(parameters.Item(expectedParameterNames(index)))
+            Next
+        End Sub
+
+        Private Sub TestAllParameterNamesByIndex(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
+            For index = 0 To expectedParameterNames.Count() - 1
+                ' index + 1 for Item because Parameters are not zero indexed
+                Assert.Equal(expectedParameterNames(index), parameters.Item(index + 1).Name)
+            Next
+        End Sub
     End Class
 End Namespace

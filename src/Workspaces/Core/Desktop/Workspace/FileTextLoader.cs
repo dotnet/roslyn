@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis
             TextAndVersion textAndVersion;
             using (var stream = FileUtilities.OpenAsyncRead(_path))
             {
-                System.Diagnostics.Debug.Assert(stream.IsAsync);
                 var version = VersionStamp.Create(prevLastWriteTime);
 
                 Contract.Requires(stream.Position == 0);

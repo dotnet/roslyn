@@ -48,13 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             if (separator != null)
             {
                 var start = 0;
-                var separatorPos = name.IndexOf(separator, start);
+                var separatorPos = name.IndexOf(separator, start, StringComparison.Ordinal);
 
                 while (separatorPos >= 0)
                 {
                     AddNode(builder, name.Substring(start, separatorPos - start), type);
                     start = separatorPos + separator.Length;
-                    separatorPos = name.IndexOf(separator, start);
+                    separatorPos = name.IndexOf(separator, start, StringComparison.Ordinal);
                 }
 
                 if (start < name.Length)

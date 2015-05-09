@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal struct SignatureHelpTriggerInfo
     {
-        public SignatureHelpTriggerReason TriggerReason { get; private set; }
-        public char? TriggerCharacter { get; private set; }
+        public SignatureHelpTriggerReason TriggerReason { get; }
+        public char? TriggerCharacter { get; }
 
         internal SignatureHelpTriggerInfo(SignatureHelpTriggerReason triggerReason, char? triggerCharacter = null)
             : this()

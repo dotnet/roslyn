@@ -6,10 +6,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 _historyRegistry,
                 Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
+                Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
                 SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
                 Workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
@@ -146,7 +147,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             Assert.Equal(0, tags.Count());
         }
 
-        public void AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false, int actionIndex = 0)
+        public IList<Diagnostic> GetDocumentDiagnostics(Document document = null)
+        {
+            document = document ?? this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+            var analyzer = new RenameTrackingDiagnosticAnalyzer();
+            return DiagnosticProviderTestUtilities.GetDocumentDiagnostics(analyzer, document, document.GetSyntaxRootAsync(CancellationToken.None).Result.FullSpan).ToList();
+        }
+
+        public void AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
         {
             WaitForAsyncOperations();
 
@@ -158,9 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             var tag = tags.Single();
 
             var document = this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
-
-            var analyzer = new RenameTrackingDiagnosticAnalyzer();
-            var diagnostics = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(analyzer, document, tag.Span.Span.ToTextSpan()).ToList();
+            var diagnostics = GetDocumentDiagnostics(document);
 
             // There should be a single rename tracking diagnostic
             Assert.Equal(1, diagnostics.Count);
@@ -170,15 +176,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             var context = new CodeFixContext(document, diagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);
             _codeFixProvider.RegisterCodeFixesAsync(context).Wait();
 
-            // There should be two actions
-            Assert.Equal(2, actions.Count);
+            // There should only be one code action
+            Assert.Equal(1, actions.Count);
 
-            Assert.Equal(string.Format("Rename '{0}' to '{1}'", expectedFromName, expectedToName), actions[0].Title);
-            Assert.Equal(string.Format("Rename '{0}' to '{1}' with preview...", expectedFromName, expectedToName), actions[1].Title);
+            Assert.Equal(string.Format(EditorFeaturesResources.RenameTo, expectedFromName, expectedToName), actions[0].Title);
 
             if (invokeAction)
             {
-                var operations = actions[actionIndex]
+                var operations = actions[0]
                     .GetOperationsAsync(CancellationToken.None)
                     .WaitAndGetResult(CancellationToken.None)
                     .ToArray();

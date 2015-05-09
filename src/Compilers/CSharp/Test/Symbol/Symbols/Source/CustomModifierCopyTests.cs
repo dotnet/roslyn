@@ -733,13 +733,13 @@ class Test
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 references: new[] { CSharpRef, SystemCoreRef });
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Bug813305.M",
+            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedOutput: "Bug813305.M",
                 symbolValidator: m =>
-            {
-                var Bug813305 = m.GlobalNamespace.GetTypeMember("Bug813305");
-                var method = Bug813305.GetMethod("IBug813305.M");
-                Assert.Equal("Bug813305.IBug813305.M(dynamic)", method.ToDisplayString());
-            });
+                {
+                    var Bug813305 = m.GlobalNamespace.GetTypeMember("Bug813305");
+                    var method = Bug813305.GetMethod("IBug813305.M");
+                    Assert.Equal("Bug813305.IBug813305.M(dynamic)", method.ToDisplayString());
+                });
         }
 
         [Fact]
@@ -775,7 +775,7 @@ class C : I
             Assert.Equal("void C.I.M(dynamic modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void DynamicToObject_ImplementationParameter()
         {
@@ -819,7 +819,7 @@ class C : I
             Assert.Equal("void C.I.M(System.Object modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void DynamicToObject_ImplementationReturn()
         {
@@ -863,7 +863,7 @@ class C : I
             Assert.Equal("System.Object modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void ObjectToDynamic_ImplementationReturn()
         {
@@ -903,7 +903,7 @@ class C : I
             Assert.Equal("dynamic modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void DynamicVsObjectComplexParameter()
         {
@@ -947,7 +947,7 @@ public class C : I<byte, char>
             Assert.Equal("void C.I<System.Byte, System.Char>.M(ref I<dynamic modopt(System.Int16) [], System.Object modopt(System.Int32) []> modopt(System.Int64) c)", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void DynamicVsObjectComplexReturn()
         {
@@ -991,7 +991,7 @@ public class C : I<byte, char>
             Assert.Equal("I<dynamic modopt(System.Int16) [], System.Object modopt(System.Int32) []> modopt(System.Int64) C.I<System.Byte, System.Char>.M()", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void DynamicToObjectAndViceVersa_OverrideParameter()
         {
@@ -1045,7 +1045,7 @@ class Derived : Base
             Assert.Equal("void Derived.M(dynamic modopt(System.Int16) o, System.Object modopt(System.Int32) d)", derivedMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void DynamicToObject_OverrideReturn()
         {
@@ -1099,7 +1099,7 @@ class Derived : Base
             Assert.Equal("System.Object modopt(System.Int32) Derived.M()", derivedMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(819774, "DevDiv")]
         public void ObjectToDynamic_OverrideReturn()
         {
@@ -1149,7 +1149,7 @@ class Derived : Base
             Assert.Equal("dynamic modopt(System.Int32) Derived.M()", derivedMethod.ToTestDisplayString());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(830632, "DevDiv")]
         public void AccessorsAddCustomModifiers_Override()
         {
@@ -1266,7 +1266,7 @@ class Derived : Base
             Assert.Equal(int64Type, derivedIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(830632, "DevDiv")]
         public void AccessorsRemoveCustomModifiers_Override()
         {
@@ -1376,7 +1376,7 @@ class Derived : Base
             Assert.Equal(int16Type, derivedIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(830632, "DevDiv")]
         public void AccessorsAddCustomModifiers_ExplicitImplementation()
         {
@@ -1478,7 +1478,7 @@ class Implementation : I
             Assert.Equal(int64Type, implementationIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         [WorkItem(830632, "DevDiv")]
         public void AccessorsRemoveCustomModifiers_ExplicitImplementation()
         {

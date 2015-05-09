@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -68,7 +69,7 @@ End If
             Dim m2 = MakeMethodBody(src2)
 
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1, m2)}
-            Dim match = StatementSyntaxComparer.SingleBody.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -410,6 +411,354 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
         End Sub
 
         <Fact>
+        Public Sub MatchMethodBodiesWithLambdas1()
+            Dim src1 = "Dim a = Sub() Console.WriteLine(1)" & vbLf
+            Dim src2 = "Dim a = Sub() Console.WriteLine(2)" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note that the lambda bodies are not included
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim a = Sub() Console.WriteLine(1)", "Dim a = Sub() Console.WriteLine(2)"},
+                {"a = Sub() Console.WriteLine(1)", "a = Sub() Console.WriteLine(2)"},
+                {"a", "a"},
+                {"Sub() Console.WriteLine(1)", "Sub() Console.WriteLine(2)"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_From1()
+            Dim src1 = "Dim result = From a In F(Function() 0), b In Q(Function() 2) Select a + b" & vbLf
+            Dim src2 = "Dim result = From a In F(Function() 1), b In Q(Function() 3) Select a - b" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note missing {"Function() 2", "Function() 3"} -- it's in a lambda body (CRV.Expression)
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In F(Function() 0), b In Q(Function() 2) Select a + b", "Dim result = From a In F(Function() 1), b In Q(Function() 3) Select a - b"},
+                {"result = From a In F(Function() 0), b In Q(Function() 2) Select a + b", "result = From a In F(Function() 1), b In Q(Function() 3) Select a - b"},
+                {"result", "result"},
+                {"From a In F(Function() 0), b In Q(Function() 2) Select a + b", "From a In F(Function() 1), b In Q(Function() 3) Select a - b"},
+                {"From a In F(Function() 0), b In Q(Function() 2)", "From a In F(Function() 1), b In Q(Function() 3)"},
+                {"a In F(Function() 0)", "a In F(Function() 1)"},
+                {"a", "a"},
+                {"Function() 0", "Function() 1"},
+                {"b In Q(Function() 2)", "b In Q(Function() 3)"},
+                {"b", "b"},
+                {"Select a + b", "Select a - b"},
+                {"a + b", "a - b"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_From2()
+            Dim src1 = "Dim result = From a In F(Function() 0) From b In Q(Function() 2) Select a + b" & vbLf
+            Dim src2 = "Dim result = From a In F(Function() 1) From b In Q(Function() 3) Select a - b" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note missing {"Function() 2", "Function() 3"} -- it's in a lambda body (CRV.Expression)
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In F(Function() 0) From b In Q(Function() 2) Select a + b",
+                 "Dim result = From a In F(Function() 1) From b In Q(Function() 3) Select a - b"},
+                {"result = From a In F(Function() 0) From b In Q(Function() 2) Select a + b",
+                 "result = From a In F(Function() 1) From b In Q(Function() 3) Select a - b"},
+                {"result", "result"},
+                {"From a In F(Function() 0) From b In Q(Function() 2) Select a + b",
+                 "From a In F(Function() 1) From b In Q(Function() 3) Select a - b"},
+                {"From a In F(Function() 0)", "From a In F(Function() 1)"},
+                {"a In F(Function() 0)", "a In F(Function() 1)"},
+                {"a", "a"},
+                {"Function() 0", "Function() 1"},
+                {"From b In Q(Function() 2)", "From b In Q(Function() 3)"},
+                {"b In Q(Function() 2)", "b In Q(Function() 3)"},
+                {"b", "b"},
+                {"Select a + b", "Select a - b"},
+                {"a + b", "a - b"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_From3()
+            Dim src1 = "Dim result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b" & vbLf
+            Dim src2 = "Dim result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2, stateMachine:=StateMachineKind.Async)
+            Dim actual = ToMatchingPairs(match)
+
+            ' Note that 
+            ' - both {"a", "a"} And {"b", "b"} are included
+            ' - {"Await F(0)", "Await F(1)"} is included but not the other await, since the other is in a lambda
+            Dim expected = New MatchingPairs From
+            {
+                {"Async Function F() As Task(Of Integer)", "Async Function F() As Task(Of Integer)"},
+                {"Dim result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b", "Dim result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b"},
+                {"result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b", "result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b"},
+                {"result", "result"},
+                {"From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b", "From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b"},
+                {"From a In {Await F(0)}, b In {Q(Async Function() Await F(2))}", "From a In {Await F(1)}, b In {Q(Async Function() Await F(3))}"},
+                {"a In {Await F(0)}", "a In {Await F(1)}"},
+                {"a", "a"},
+                {"Await F(0)", "Await F(1)"},
+                {"b In {Q(Async Function() Await F(2))}", "b In {Q(Async Function() Await F(3))}"},
+                {"b", "b"},
+                {"Select a + b", "Select a - b"},
+                {"a + b", "a - b"},
+                {"End Function", "End Function"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Aggregate1()
+            Dim src1 = "Dim result = From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5" & vbLf
+            Dim src2 = "Dim result = From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' note missing {"Function() 2", "Function() 3"} -- it's in the aggregate lambda body
+            ' note missing {"Function() 4", "Function() 5"} -- it's in the aggregation lambda body
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5", "Dim result = From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50"},
+                {"result = From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5", "result = From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50"},
+                {"result", "result"},
+                {"From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5", "From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50"},
+                {"From a In {1}", "From a In {10}"},
+                {"a In {1}", "a In {10}"},
+                {"a", "a"},
+                {"Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4))", "Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5))"},
+                {"b In Q(Function() 2)", "b In Q(Function() 3)"},
+                {"b", "b"},
+                {"c", "c"},
+                {"Sum(Q(Function() 4))", "Sum(Q(Function() 5))"},
+                {"Select 5", "Select 50"},
+                {"5", "50"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Aggregate2()
+            Dim src1 = "Dim result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()" & vbLf
+            Dim src2 = "Dim result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()" & vbLf
+
+            ' TODO
+            Dim match = GetMethodMatches(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "Dim result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"result", "result"},
+                {"From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"From q in {0}", "From q in {0}"},
+                {"q in {0}", "q in {0}"},
+                {"q", "q"},
+                {"Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()", "Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()"},
+                {"b In Q(Function() 1)", "b In Q(Function() 2)"},
+                {"b", "b"},
+                {"Function() 1", "Function() 2"},
+                {"Function()", "Function()"},
+                {"Join c In Q(Function() 3) On c Equals b", "Join c In Q(Function() 4) On c Equals b"},
+                {"c In Q(Function() 3)", "c In Q(Function() 4)"},
+                {"c", "c"},
+                {"c Equals b", "c Equals b"},
+                {"Skip Q(Function() 5)", "Skip Q(Function() 6)"},
+                {"Select b", "Select b"},
+                {"b", "b"},
+                {"Count()", "Count()"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Select1()
+            Dim src1 = "Dim result = From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)" & vbLf
+            Dim src2 = "Dim result = From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)", "Dim result = From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"result = From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)", "result = From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"result", "result"},
+                {"From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)", "From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"From a As Integer In {0}", "From a As Integer In {0}"},
+                {"a As Integer In {0}", "a As Integer In {0}"},
+                {"a", "a"},
+                {"Select a, b = Q(Function() 1), c = Q(Function() 3)", "Select a, b = Q(Function() 2), c = Q(Function() 4)"},
+                {"a", "a"},
+                {"b = Q(Function() 1)", "b = Q(Function() 2)"},
+                {"b", "b"},
+                {"c = Q(Function() 3)", "c = Q(Function() 4)"},
+                {"c", "c"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Let1()
+            Dim src1 = "Dim result = From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a", "Dim result = From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a"},
+                {"result = From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a", "result = From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a"},
+                {"result", "result"},
+                {"From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a", "From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Let b = Q(Function() 1), c = Q(Function() 3)", "Let b = Q(Function() 2), c = Q(Function() 4)"},
+                {"b = Q(Function() 1)", "b = Q(Function() 2)"},
+                {"b", "b"},
+                {"c = Q(Function() 3)", "c = Q(Function() 4)"},
+                {"c", "c"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_GroupBy1()
+            Dim src1 = "Dim result = From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "Dim result = From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result = From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "result = From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result", "result"},
+                {"From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5))", "Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6))"},
+                {"a = Q(Function() 1)", "a = Q(Function() 2)"},
+                {"a", "a"},
+                {"b = Q(Function() 3)", "b = Q(Function() 4)"},
+                {"b", "b"},
+                {"Sum(Q(Function() 5))", "Sum(Q(Function() 6))"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_GroupBy2()
+            Dim src1 = "Dim result = From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            ' Note "z = Q(Function() 0)" doesn't match to "a = Q(Function() 4)" -- the are in different lambda bodies
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "Dim result = From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result = From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "result = From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"result", "result"},
+                {"From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a", "From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5))", "Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6))"},
+                {"a = Q(Function() 1)", "a = Q(Function() 2)"},
+                {"a", "a"},
+                {"b = Q(Function() 3)", "b = Q(Function() 4)"},
+                {"b", "b"},
+                {"Sum(Q(Function() 5))", "Sum(Q(Function() 6))"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchMethodBodiesWithQueries_Join1()
+            Dim src1 = "Dim result = From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a" & vbLf
+            Dim src2 = "Dim result = From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a" & vbLf
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a", "Dim result = From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a"},
+                {"result = From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a", "result = From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a"},
+                {"result", "result"},
+                {"From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a", "From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a"},
+                {"From a In {0}", "From a In {0}"},
+                {"a In {0}", "a In {0}"},
+                {"a", "a"},
+                {"Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7)", "Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8)"},
+                {"b In {1}", "b In {1}"},
+                {"b", "b"},
+                {"Q(Function() 1) Equals Q(Function() 3)", "Q(Function() 2) Equals Q(Function() 4)"},
+                {"Q(Function() 5) Equals Q(Function() 7)", "Q(Function() 6) Equals Q(Function() 8)"},
+                {"Select a", "Select a"},
+                {"a", "a"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        ' TODO: test GroupBy with known matches accross CRVs (coming from active statement tracking)
+
+        <Fact>
         Public Sub MatchLambdas1()
             Dim src1 = "Dim x As Action(Of Object) = Sub(a) Console.WriteLine(a)" & vbLf
             Dim src2 = "Dim x As Action(Of Object) = Sub(b)" & vbLf & "Console.WriteLine(b) : End Sub"
@@ -487,7 +836,12 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
                 {"Dim e = From q In a.Where(Function(l) l > 10) Select q + 1", "Dim e = From q In a.Where(Function(l) l < 0) Select q + 1"},
                 {"e = From q In a.Where(Function(l) l > 10) Select q + 1", "e = From q In a.Where(Function(l) l < 0) Select q + 1"},
                 {"e", "e"},
+                {"From q In a.Where(Function(l) l > 10) Select q + 1", "From q In a.Where(Function(l) l < 0) Select q + 1"},
+                {"From q In a.Where(Function(l) l > 10)", "From q In a.Where(Function(l) l < 0)"},
                 {"q In a.Where(Function(l) l > 10)", "q In a.Where(Function(l) l < 0)"},
+                {"q", "q"},
+                {"Function(l) l > 10", "Function(l) l < 0"},
+                {"Select q + 1", "Select q + 1"},
                 {"q + 1", "q + 1"},
                 {"Next", "Next"},
                 {"End Sub", "End Sub"}
@@ -626,16 +980,22 @@ Dim q = From c In cars
                 {"Dim q = From c In cars         From ud In users_details         From bd In bids         Select 1", "Dim q = From c In cars         From ud In users_details         From bd In bids         Select 2"},
                 {"q = From c In cars         From ud In users_details         From bd In bids         Select 1", "q = From c In cars         From ud In users_details         From bd In bids         Select 2"},
                 {"q", "q"},
+                {"From c In cars         From ud In users_details         From bd In bids         Select 1", "From c In cars         From ud In users_details         From bd In bids         Select 2"},
+                {"From c In cars", "From c In cars"},
                 {"c In cars", "c In cars"},
+                {"c", "c"},
+                {"From ud In users_details", "From ud In users_details"},
                 {"ud In users_details", "ud In users_details"},
+                {"ud", "ud"},
+                {"From bd In bids", "From bd In bids"},
                 {"bd In bids", "bd In bids"},
+                {"bd", "bd"},
+                {"Select 1", "Select 2"},
                 {"1", "2"},
                 {"End Sub", "End Sub"}
             }
 
             expected.AssertEqual(actual)
-        End Sub
-        Shared Sub Main(args As String())
         End Sub
 
         <Fact>
@@ -683,22 +1043,49 @@ Dim q = From c In cars
                 {"q = From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
                  "q = From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption Descending         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
                 {"q", "q"},
+                {"From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
+                 "From c In cars         From ud In users_details         From bd In bids         Order By c.listingOption Descending         Where a.userID = ud.userid         Let images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
+                {"From c In cars", "From c In cars"},
                 {"c In cars", "c In cars"},
+                {"c", "c"},
+                {"From ud In users_details", "From ud In users_details"},
                 {"ud In users_details", "ud In users_details"},
+                {"ud", "ud"},
+                {"From bd In bids", "From bd In bids"},
                 {"bd In bids", "bd In bids"},
+                {"bd", "bd"},
+                {"Order By c.listingOption", "Order By c.listingOption Descending"},
                 {"c.listingOption", "c.listingOption Descending"},
                 {"Where a.userID = ud.userid", "Where a.userID = ud.userid"},
+                {"Let images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
+                 "Let images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
                 {"images = From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
                  "images = From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
+                {"images", "images"},
+                {"From ai In auction_images                         Where ai.belongs_to = c.id                         Select ai         Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()         Select bid",
+                 "From ai In auction_images                         Where ai.belongs_to = c.id2                         Select ai + 1         Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()         Select bid"},
+                {"From ai In auction_images", "From ai In auction_images"},
                 {"ai In auction_images", "ai In auction_images"},
+                {"ai", "ai"},
                 {"Where ai.belongs_to = c.id", "Where ai.belongs_to = c.id2"},
+                {"Select ai", "Select ai + 1"},
                 {"ai", "ai + 1"},
+                {"Let bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()",
+                 "Let bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()"},
                 {"bid = (From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount).FirstOrDefault()",
                  "bid = (From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount).FirstOrDefault()"},
+                {"bid", "bid"},
+                {"From b In bids                     Order By b.id                     Where b.carID = c.id                     Select b.bidamount",
+                 "From b In bids                     Order By b.id Ascending                     Where b.carID = c.id2                     Select b.bidamount"},
+                {"From b In bids", "From b In bids"},
                 {"b In bids", "b In bids"},
+                {"b", "b"},
+                {"Order By b.id", "Order By b.id Ascending"},
                 {"b.id", "b.id Ascending"},
                 {"Where b.carID = c.id", "Where b.carID = c.id2"},
+                {"Select b.bidamount", "Select b.bidamount"},
                 {"b.bidamount", "b.bidamount"},
+                {"Select bid", "Select bid"},
                 {"bid", "bid"},
                 {"End Sub", "End Sub"}
             }
@@ -708,19 +1095,19 @@ Dim q = From c In cars
 
         <Fact>
         Public Sub MatchQueries3()
-            Dim src1 = <text>
+            Dim src1 = "
 Dim q = From a In seq1
         Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)
         Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)
         Select a
-</text>.Value
+"
 
-            Dim src2 = <text>
+            Dim src2 = "
 Dim q = From a In seq1
         Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)
         Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)
         Select a + 1
-</text>.Value
+"
 
             Dim match = GetMethodMatches(src1, src2)
             Dim actual = ToMatchingPairs(match)
@@ -733,19 +1120,28 @@ Dim q = From a In seq1
                 {"q = From a In seq1         Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)         Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)         Select a",
                  "q = From a In seq1         Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)         Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)         Select a + 1"},
                 {"q", "q"},
+                {"From a In seq1         Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)         Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)         Select a",
+                 "From a In seq1         Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)         Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)         Select a + 1"},
+                {"From a In seq1", "From a In seq1"},
                 {"a In seq1", "a In seq1"},
+                {"a", "a"},
+                {"Join c In seq2 On F(Function(u) u) Equals G(Function(s) s)", "Join c In seq2 On F(Function(u) u + 1) Equals G(Function(s) s + 3)"},
                 {"c In seq2", "c In seq2"},
+                {"c", "c"},
                 {"F(Function(u) u) Equals G(Function(s) s)", "F(Function(u) u + 1) Equals G(Function(s) s + 3)"},
                 {"Function(u) u", "Function(u) u + 1"},
                 {"Function(u)", "Function(u)"},
                 {"Function(s) s", "Function(s) s + 3"},
                 {"Function(s)", "Function(s)"},
+                {"Join l In seq3 On F(Function(v) v) Equals G(Function(t) t)", "Join l In seq3 On F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)"},
                 {"l In seq3", "l In seq3"},
+                {"l", "l"},
                 {"F(Function(v) v) Equals G(Function(t) t)", "F(Function(vv) vv + 2) Equals G(Function(tt) tt + 4)"},
                 {"Function(v) v", "Function(vv) vv + 2"},
                 {"Function(v)", "Function(vv)"},
                 {"Function(t) t", "Function(tt) tt + 4"},
                 {"Function(t)", "Function(tt)"},
+                {"Select a", "Select a + 1"},
                 {"a", "a + 1"},
                 {"End Sub", "End Sub"}
             }
@@ -764,8 +1160,13 @@ Dim q = From a In seq1
             {
                 {"Sub F()", "Sub F()"},
                 {"F(From a In b Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1) Select g)", "F(From a In b Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2) Select g)"},
+                {"From a In b Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1) Select g", "From a In b Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2) Select g"},
+                {"From a In b", "From a In b"},
                 {"a In b", "a In b"},
+                {"a", "a"},
+                {"Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1)", "Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2)"},
                 {"c In (Function() d)()", "c In (Function() d + 1)()"},
+                {"c", "c"},
                 {"Function() d", "Function() d + 1"},
                 {"Function()", "Function()"},
                 {"Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2)", "Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2)"},
@@ -782,7 +1183,56 @@ Dim q = From a In seq1
                 {"Sum(Function(f) f + 1)", "Sum(Function(f) f + 2)"},
                 {"Function(f) f + 1", "Function(f) f + 2"},
                 {"Function(f)", "Function(f)"},
+                {"Select g", "Select g"},
                 {"g", "g"},
+                {"End Sub", "End Sub"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub MatchQueries_Aggregate1()
+            Dim src1 = "
+Dim result = From a In {1}
+             Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))
+"
+
+            Dim src2 = "
+Dim result = From a In {10}
+             Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))
+"
+
+            Dim match = GetMethodMatch(src1, src2)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"Dim result = From a In {1}              Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "Dim result = From a In {10}              Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"result = From a In {1}              Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "result = From a In {10}              Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"result", "result"},
+                {"From a In {1}              Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "From a In {10}              Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"From a In {1}", "From a In {10}"},
+                {"a In {1}", "a In {10}"},
+                {"a", "a"},
+                {"Aggregate b In {2} Join c In {3} Join d In {4} On d Equals c On c Equals b Skip 1 Where b > 0 Select b + 1 Into Count(Q(1)), Sum(Q(2))", "Aggregate b In {20} Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10 Where b*10 > 0 Skip 10 Select b*10 + 1 Into Count(Q(10)), Sum(Q(20))"},
+                {"b In {2}", "b In {20}"},
+                {"b", "b"},
+                {"Join c In {3} Join d In {4} On d Equals c On c Equals b", "Join c In {30} Join d In {40} On d*10 Equals c*10 On c*10 Equals b*10"},
+                {"c In {3}", "c In {30}"},
+                {"c", "c"},
+                {"Join d In {4} On d Equals c", "Join d In {40} On d*10 Equals c*10"},
+                {"d In {4}", "d In {40}"},
+                {"d", "d"},
+                {"d Equals c", "d*10 Equals c*10"},
+                {"c Equals b", "c*10 Equals b*10"},
+                {"Skip 1", "Skip 10"},
+                {"Where b > 0", "Where b*10 > 0"},
+                {"Select b + 1", "Select b*10 + 1"},
+                {"b + 1", "b*10 + 1"},
+                {"Count(Q(1))", "Count(Q(10))"},
+                {"Sum(Q(2))", "Sum(Q(20))"},
                 {"End Sub", "End Sub"}
             }
 
@@ -834,7 +1284,7 @@ Next
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.Statements(1), m2.Statements(0))}
 
             ' pre-matched:
-            Dim match = StatementSyntaxComparer.SingleBody.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -848,7 +1298,7 @@ Next
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = StatementSyntaxComparer.SingleBody.Default.ComputeMatch(m1, m2)
+            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From
@@ -1751,7 +2201,7 @@ Next
 
 #Region "Lambdas"
         <Fact>
-        Public Sub Lambdas_InVariableDelcarator()
+        Public Sub Lambdas_InVariableDeclarator()
             Dim src1 = "Dim x = Function(a) a, y = Function(b) b"
             Dim src2 = "Dim x = Sub(a) a, y = Function(b) (b + 1)"
             Dim edits = GetMethodEdits(src1, src2)
@@ -1797,6 +2247,2603 @@ Next
         End Sub
 
         <Fact>
+        Public Sub Lambdas_Insert_Static_Top()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub F()
+        Dim f = new Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_Static_Nested1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) G(Function(b) b) + a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Top1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) x)
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO allow creating a new leaf closure
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Top2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Do
+            Dim x As Integer = 2
+            Dim f1 = New Func(Of Integer, Integer)(Function(a) y)
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Do
+            Dim x As Integer = 2
+            Dim f2 = From a In {1} Select a + y
+            Dim f3 = From a In {1} Where x > 0 Select a
+        Loop
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Nested1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Function G(f As Func(Of Integer, Integer)) As Integer
+        Return 0
+    End Function
+
+    Sub F()
+        G(Function(a) G(Function(b) x))
+    End Sub
+End Class
+
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Insert_ThisOnly_Nested2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 0
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a)
+                Dim f2 = New Func(Of Integer, Integer)(
+                    Function(b)
+                        Return b
+                    End Function)
+                Return a
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+
+    Dim x As Integer = 0
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a)
+                Dim f2 = New Func(Of Integer, Integer)(
+                    Function(b)
+                        Return b
+                    End Function)
+
+                Dim f3 = New Func(Of Integer, Integer)(
+                    Function(c)
+                        Return c + x
+                    End Function)
+                Return a
+            End Function)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_InsertAndDelete_Scopes1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0, y As Integer = 0                   ' Group #0
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0             ' Group #1
+        Do
+            Dim x1 As Integer = 0, y1 As Integer = 0         ' Group #2
+            Do
+                Dim x2 As Integer = 0, y2 As Integer = 0     ' Group #1
+                Do
+                    Dim x3 As Integer = 0, y3 As Integer = 0 ' Group #2
+
+                    G(Function(a) x3 + x1)
+                    G(Function(a) x0 + y0 + x2)
+                    G(Function(a) x)
+                Loop
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0, y As Integer = 0                   ' Group #0
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0             ' Group #1
+        Do
+            Dim x1 As Integer = 0, y1 As Integer = 0         ' Group #2
+            Do
+                Dim x2 As Integer = 0, y2 As Integer = 0     ' Group #1
+                Do
+                    Dim x3 As Integer = 0, y3 As Integer = 0 ' Group #2
+
+                    G(Function(a) x3 + x1)
+                    G(Function(a) x0 + y0 + x2)
+                    G(Function(a) x)
+
+                    G(Function(a) x)                         ' OK
+                    G(Function(a) x0 + y0)                   ' OK
+                    G(Function(a) x1 + y0)                   ' error - connecting Group #1 and Group #2
+                    G(Function(a) x3 + x1)                   ' error - multi-scope (conservative)
+                    G(Function(a) x + y0)                    ' error - connecting Group #0 and Group #1
+                    G(Function(a) x + x3)                    ' error - connecting Group #0 and Group #2
+                Loop
+            Loop
+        Loop
+    End Sub
+End Class"
+
+            Dim insert = GetTopEdits(src1, src2)
+            insert.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", VBFeaturesResources.LambdaExpression, "y0", "x1"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.LambdaExpression, "x1", "x3"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", VBFeaturesResources.LambdaExpression, "Me", "y0"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.LambdaExpression, "Me", "x3"))
+
+            Dim delete = GetTopEdits(src2, src1)
+            delete.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", VBFeaturesResources.LambdaExpression, "y0", "x1"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.LambdaExpression, "x1", "x3"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", VBFeaturesResources.LambdaExpression, "Me", "y0"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.LambdaExpression, "Me", "x3"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_This()
+            Dim src1 = "
+Imports System
+
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Dim x As Integer
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Long, Long))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Long, Long))
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a, b) a + b)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature3()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Long))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Long))
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function(a)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_EmptyBody1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Action(Of Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Long))
+    End Sub
+
+    Sub F()
+        G1(
+Sub(a)
+End Sub)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Action(Of Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Long))
+    End Sub
+
+    Sub F()
+        G2(
+Sub(a)
+End Sub)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Sub(a)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_EmptyBody2()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Action)
+    End Sub
+
+    Sub G2(f As Func(Of Object))
+    End Sub
+
+    Sub F()
+        G1(
+Sub()
+End Sub)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Action)
+    End Sub
+
+    Sub G2(f As Func(Of Object))
+    End Sub
+
+    Sub F()
+        G2(
+Function()
+End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function()", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Signature_SyntaxOnly1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_ReturnType1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a)
+            Return 1
+        End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Action(Of Integer))
+    End Sub
+
+    Sub F()
+        G2(Sub(a)
+           End Sub)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Sub(a)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Signature_BodySyntaxOnly()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a)
+               Return 1
+           End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Signature_ParameterName1()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub G1(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(b) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Signature_ParameterRefness1()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(ByRef a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(ByRef a As Integer) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(ByRef a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a As Integer) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a As Integer)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_DelegateType1()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(a As Integer) As Integer
+Delegate Function D2(a As Integer) As Integer
+
+Class C
+
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_SourceType1()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As C) As C
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As C) As C
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_SourceType2()
+            Dim src1 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As B) As B
+
+Class B
+End Class
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G1(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Delegate Function D1(a As C) As C
+Delegate Function D2(a As B) As B
+
+Class B
+End Class
+
+Class C
+    Sub G1(f As D1)
+    End Sub
+
+    Sub G2(f As D2)
+    End Sub
+
+    Sub F()
+        G2(Function(a) a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_SourceTypeAndMetadataType1()
+            Dim src1 = "
+Namespace [System]
+
+    Delegate Function D1(a As String) As String
+    Delegate Function D2(a As [String]) As [String]
+
+    Class [String]
+    End Class
+
+    Class C
+
+        Sub G1(f As D1)
+        End Sub
+
+        Sub G2(f As D2)
+        End Sub
+
+        Sub F()
+            G1(Function(a) a)
+        End Sub
+    End Class
+End Namespace
+"
+            Dim src2 = "
+Namespace [System]
+
+    Delegate Function D1(a As String) As String
+    Delegate Function D2(a As [String]) As [String]
+
+    Class [String]
+    End Class
+
+    Class C
+        Sub G1(f As D1)
+        End Sub
+
+        Sub G2(f As D2)
+        End Sub
+
+        Sub F()
+            G2(Function(a) a)
+        End Sub
+    End Class
+End Namespace
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Generic1()
+            Dim src1 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As T
+Delegate Function D2(Of S, T)(a As T, b As S) As T
+
+Class C
+
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G1(Function(a, b) a + b)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As T
+Delegate Function D2(Of S, T)(a As T, b As S) As T
+
+Class C
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        G2(Function(a, b) a + b)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_Generic2()
+            Dim src1 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As Integer
+Delegate Function D2(Of S, T)(a As T, b As S) As Integer
+
+Class C
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, String))
+    End Sub
+
+    Sub F()
+        G1(Function(a, b) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Delegate Function D1(Of S, T)(a As S, b As T) As Integer
+Delegate Function D2(Of S, T)(a As T, b As S) As Integer
+
+Class C
+    Sub G1(f As D1(Of Integer, Integer))
+    End Sub
+
+    Sub G2(f As D2(Of Integer, String))
+    End Sub
+
+    Sub F()
+        G2(Function(a, b) 1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CapturedParameters1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2 + 1)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")>
+        Public Sub Lambdas_Update_CapturedParameters2()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2)
+                Return a1
+            End Function)
+
+        Dim f3 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f4 = New Func(Of Integer, Integer)(Function(a3) x1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(x1 As Integer)
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) x1 + a2 + 1)
+                Return a1
+            End Function)
+
+        Dim f3 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f4 = New Func(Of Integer, Integer)(Function(a3) x1 + a2 + 1)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_Closure1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) y + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2)
+                Return a1 + y
+            End Function)
+    End Sub
+End Class
+
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: better location
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a2)", "y", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_IndexerParameter2()
+            Dim src1 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a2)
+        End Get
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_CeaseCapture_MethodParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"))
+        End Sub
+
+        <Fact, WorkItem(1290)>
+        Public Sub Lambdas_Update_CeaseCapture_LambdaParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a2) 
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_DeleteCapture1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) y + a2)
+                Return y
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.DeletingCapturedVariable, "Sub F()", "y"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_IndexerGetterParameter2()
+            Dim src1 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a2)
+        End Get
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Get
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_IndexerSetterParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return Nothing
+        End Get
+        Set
+            Dim f = New Func(Of Integer, Integer)(Function(a3) a2)
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Property Item(a1 As Integer, a2 As Integer) As Func(Of Integer, Integer)
+        Get
+            Return Nothing
+        End Get
+        Set
+            Dim f = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+        End Set
+    End Property
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_MethodParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F(a1 As Integer, a2 As Integer)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_LambdaParameter1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer, Integer)(
+            Function(a1, a2)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a3) a1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToThisOnly1()
+            Dim src1 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToThisOnly_Partial()
+            Dim src1 = "
+Imports System
+
+Partial Class C
+    Dim x As Integer = 1
+    Partial Sub F() ' def
+    End Sub
+End Class
+
+Partial Class C
+    Partial Sub F() ' impl
+        Dim f = New Func(Of Integer, Integer)(Function(a) a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Partial Class C
+    Dim x As Integer = 1
+    Partial Sub F() ' def
+    End Sub
+End Class
+
+Partial Class C
+    Partial Sub F() ' impl
+        Dim f = New Func(Of Integer, Integer)(Function(a) a + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "F", "Me").WithFirstLine("Partial Sub F() ' impl"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToThisOnly3()
+            Dim src1 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1 + x)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "Function(a1)", "Me", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_StaticToClosure1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim x As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim x As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Return a1 +
+                        x + ' 1
+                        x   ' 2
+            End Function)
+
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", VBFeaturesResources.LambdaExpression).WithFirstLine("x + ' 1"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", VBFeaturesResources.LambdaExpression).WithFirstLine("x   ' 2"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_ThisOnlyToClosure1()
+            Dim src1 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1 + x)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x + y)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Dim x As Integer = 1
+
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(Function(a1) a1 + x + y)
+        Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + x + y)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y", "y", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Nested1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + y)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2 + y)
+                Return a1 + y
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Nested2()
+            Dim src1 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub F()
+        Dim y As Integer = 1
+        Dim f1 = New Func(Of Integer, Integer)(
+            Function(a1)
+                Dim f2 = New Func(Of Integer, Integer)(Function(a2) a1 + a2)
+                Return a1
+            End Function)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1").WithFirstLine("Function(a1)"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure1()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0
+        G(Function(a) x0)
+        G(Function(a) y0)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Sub F()
+        Dim x0 As Integer = 0, y0 As Integer = 0
+        G(Function(a) x0)
+        G(Function(a) y0 + x0)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure2()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0
+            Do
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x + x0)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0
+            Do
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x)  ' error: disconnecting previously connected closures
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+            Loop
+        Loop
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "x0", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure3()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                        ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0            ' Group #0
+            Do                                                  
+                Dim x1 As Integer = 0, y1 As Integer = 0        ' Group #1
+                
+                G(Function(a) x)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+                G(Function(a) y1)
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                        ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0            ' Group #0
+            Do                                                  
+                Dim x1 As Integer = 0, y1 As Integer = 0        ' Group #1
+                
+                G(Function(a) x)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+                G(Function(a) y1 + x0) ' error: connecting previously disconnected closures
+            Loop
+        Loop
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Accessing_Closure4()
+            Dim src1 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+    
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0
+            Do                                              
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x + x0)
+                G(Function(a) x0)
+                G(Function(a) y0)
+                G(Function(a) x1)
+                G(Function(a) y1)
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C
+    Sub G(f As Func(Of Integer, Integer))
+    End Sub
+
+    Dim x As Integer = 0                                    ' Group #0
+
+    Sub F()
+        Do
+            Dim x0 As Integer = 0, y0 As Integer = 0        ' Group #0  
+            Do
+                Dim x1 As Integer = 0, y1 As Integer = 0    ' Group #1
+
+                G(Function(a) x)       ' error: disconnecting previously connected closures
+                G(Function(a) x0)      
+                G(Function(a) y0)      
+                G(Function(a) x1)      
+                G(Function(a) y1 + x0) ' error: connecting previously disconnected closures
+            Loop
+        Loop
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO "Function(a) x + x0" is matched with "Function(a) y1 + x0", hence we report more errors.
+            ' Including statement distance when matching would help.
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "Me", VBFeaturesResources.LambdaExpression).WithFirstLine("G(Function(a) y1 + x0) ' error: connecting previously disconnected closures"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y1", "y1", VBFeaturesResources.LambdaExpression).WithFirstLine("G(Function(a) y1 + x0) ' error: connecting previously disconnected closures"),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "Function(a)", "Me", VBFeaturesResources.LambdaExpression).WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"),
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "y1", VBFeaturesResources.LambdaExpression).WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"))
+        End Sub
+#End Region
+
+#Region "Queries"
+        <Fact>
+        Public Sub Queries_Update_Signature_Select1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.SelectClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Select2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select b = a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} Select b = a.ToString()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.SelectClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Select3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select b = a, c = a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} Select b = a, c = a.ToString()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.SelectClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_From1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1.0} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", VBFeaturesResources.FromClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_From2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a As Long In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a As System.Int64 In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_From3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} From b In {2} Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In New List(Of Integer)() From b In New List(Of Integer)() Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_FromInAggregate1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1.0} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_FromInAggregate2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2.0}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_FromInAggregate3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} From b in {2}, c in {3.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Let1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Let b = 1 Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Let b = 1.0 Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Let", VBFeaturesResources.LetClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_OrderBy1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1 Descending, a + 2 Ascending Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1.0 Descending, a + 2 Ascending Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 Descending", VBFeaturesResources.OrderingClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_OrderBy2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1 Descending, a + 2 Ascending Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Order By a + 1 Descending, a + 2.0 Ascending Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 Ascending", VBFeaturesResources.OrderingClause))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2.0} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a + 1.0 Equals b Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b In {2} On a Equals b + 1.0 Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join4()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2.0} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join5()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 + 1.0 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Join()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Join b1 In {2} Join b2 In {2} On b1 Equals b2 + 1.0 On b1 Equals a Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2.0} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2.0} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 + 1.0 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupJoin4()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a) Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Group Join b1 In {2} Join b2 In {2} On b1 Equals b2 On b1 Equals a Into Count(a + 1.0) Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no change in type
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_GroupBy1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+        Dim result2 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+        Dim result3 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+        Dim result4 = From a In {1} Group x = 1, y = 2 By z = a, u = a Into Group Select Group
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Group x = 1.0, y = 2 By z = a, u = a Into Group Select Group
+        Dim result2 = From a In {1} Group x = 1, y = 2.0 By z = a, u = a Into Group Select Group
+        Dim result3 = From a In {1} Group x = 1, y = 2 By z = a + 1.0, u = a Into Group Select Group
+        Dim result4 = From a In {1} Group x = 1, y = 2 By z = a, u = a + 1.0 Into Group Select Group
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"),
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_Update_Signature_Partition1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Take 1 Select a
+        Dim result2 = From a In {1} Skip 1 Select a
+        Dim result3 = From a In {1} Take While a Select a
+        Dim result4 = From a In {1} Skip While a Select a
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result1 = From a In {1} Take 1.0 Select a
+        Dim result2 = From a In {1} Skip 1.0 Select a
+        Dim result3 = From a In {1} Take While a + 1.0 Select a
+        Dim result4 = From a In {1} Skip While a + 1.0 Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no change in lambda types
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate a In {1.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' no lambdas created
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' change is in the aggregate lambda body, but not in its signature
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2}, c In {3} Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2}, c In {3.0} Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Aggregate", "Aggregate clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate4()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2} Join c In {3} On c Equals b Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Aggregate b In {2} Join c In {3.0} On c Equals b Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_Update_Signature_Aggregate5()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate b In {2} Select b Into Count()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+Imports System.Collections.Generic
+
+Class C
+    Sub F()
+        Dim result = Aggregate b In {2} Select b + 1.0 Into Count()
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", "Select clause"))
+        End Sub
+
+        <Fact>
         Public Sub Queries_FromSelect_Update()
             Dim src1 = "F(From a In b Select c)"
             Dim src2 = "F(From a In c Select c + 1)"
@@ -1814,9 +4861,10 @@ Next
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [F(From a In b From c In d Select a + c)]@8 -> [F(From a In b Select c + 1)]@8",
                 "Update [a + c]@41 -> [c + 1]@29",
-                "Delete [c In d]@27")
+                "Delete [From c In d]@22",
+                "Delete [c In d]@27",
+                "Delete [c]@27")
         End Sub
 
         <Fact>
@@ -1852,14 +4900,19 @@ Next
             Dim expected = New MatchingPairs From
             {
                 {"Sub F()", "Sub F()"},
-                {"F(From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1)",
-                 "F(From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2)"},
+                {"F(From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1)", "F(From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2)"},
+                {"From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1", "From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2"},
+                {"From a1 In b1", "From a2 In b2"},
                 {"a1 In b1", "a2 In b2"},
+                {"a1", "a2"},
+                {"Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1)", "Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2)"},
                 {"c1 In d1", "c2 In d2"},
+                {"c1", "c2"},
                 {"e1 Equals f1", "e2 Equals f2"},
                 {"g1", "g2"},
                 {"h1", "h2"},
                 {"Sum(f1)", "Sum(f2)"},
+                {"Select g1", "Select g2"},
                 {"g1", "g2"},
                 {"End Sub", "End Sub"}
             }
@@ -1870,8 +4923,451 @@ Next
                 "Update [a1 In b1]@15 -> [a2 In b2]@15",
                 "Update [c1 In d1]@35 -> [c2 In d2]@35",
                 "Update [e1 Equals f1]@47 -> [e2 Equals f2]@47",
+                "Update [g1]@65 -> [g2]@65",
+                "Update [h1]@77 -> [h2]@77",
                 "Update [Sum(f1)]@82 -> [Sum(f2)]@82",
-                "Update [g1]@97 -> [g2]@97")
+                "Update [g1]@97 -> [g2]@97",
+                "Update [a1]@15 -> [a2]@15",
+                "Update [c1]@35 -> [c2]@35")
+        End Sub
+
+        <Fact>
+        Public Sub Queries_CapturedTransparentIdentifiers_FromClause1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {2} 
+                     Where Z(Function() a) > 0 
+                     Where Z(Function() b) > 0 
+                     Where Z(Function() a) > 0 
+                     Where Z(Function() b) > 0 
+                     Select a
+    End Sub
+End Class
+"
+
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     From b In {2} 
+                     Where Z(Function() a) > 1  ' update
+                     Where Z(Function() b) > 2  ' update
+                     Where Z(Function() a) > 3  ' update
+                     Where Z(Function() b) > 4  ' update
+                     Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Queries_CapturedTransparentIdentifiers_LetClause1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Let b = Z(Function() a) 
+                     Select a + b
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Let b = Z(Function() a) 
+                     Select a - b
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        Public Sub Queries_CapturedTransparentIdentifiers_JoinClause1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Group Join b In {3} On Z(Function() a + 1) Equals Z(Function() b - 1) Into g = Group
+                     Select Z(Function() g.First())
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Group Join b In {3} On Z(Function() a + 1) Equals Z(Function() b - 1) Into g = Group
+                     Select Z(Function() g.Last())
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO (bug 1212) should report no error
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Group Join", "method"))
+        End Sub
+
+        <Fact, WorkItem(1312)>
+        Public Sub Queries_CeaseCapturingTransparentIdentifiers1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     From b In {2} 
+                     Where Z(Function() a + b) > 0 
+                     Select a
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     From b In {2} 
+                     Where Z(Function() a + 1) > 0 
+                     Select a
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "b In {2}", "b"))
+        End Sub
+
+        <Fact, WorkItem(1312)>
+        Public Sub Queries_CapturingTransparentIdentifiers1()
+            Dim src1 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {2} 
+                     Where Z(Function() a + 1) > 0 
+                     Select a
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Imports System
+Imports System.Linq
+
+Class C
+
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {2} 
+                     Where Z(Function() a + b) > 0 
+                     Select a
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "b", "b"))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_AccessingCapturedTransparentIdentifier1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0
+                     Select 1
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1}
+                     Where Z(Function() a) > 0 
+                     Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", VBFeaturesResources.SelectClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_AccessingCapturedTransparentIdentifier2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1}
+                     Where Z(Function() a) > 0
+                     Select b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1} 
+                     Where Z(Function() a) > 0 
+                     Select a + b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", VBFeaturesResources.SelectClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_AccessingCapturedTransparentIdentifier3()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() a)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", VBFeaturesResources.SelectClause),
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_NotAccessingCapturedTransparentIdentifier1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1}
+                     Where Z(Function() a) > 0
+                     Select a + b
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     From b In {1} 
+                     Where Z(Function() a) > 0 
+                     Select b
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Select", "a", VBFeaturesResources.SelectClause))
+        End Sub
+
+        <Fact>
+        Public Sub Queries_NotAccessingCapturedTransparentIdentifier2()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() a)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Function Z(f As Func(Of Integer)) As Integer
+        Return 1
+    End Function
+
+    Sub F()
+        Dim result = From a In {1} 
+                     Where Z(Function() a) > 0 
+                     Select Z(Function() 1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Select", "a", VBFeaturesResources.SelectClause),
+                Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function()", "a", VBFeaturesResources.LambdaExpression))
+        End Sub
+
+
+        <Fact>
+        Public Sub Queries_Insert1()
+            Dim src1 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F()
+        Dim result = From a In {1} Select a
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics()
         End Sub
 #End Region
 

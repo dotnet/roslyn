@@ -111,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
         End Sub
 
-        Function HandlesEvent(methodStatement As MethodStatementSyntax, objectName As String, eventName As String) As Boolean
+        Public Function HandlesEvent(methodStatement As MethodStatementSyntax, objectName As String, eventName As String) As Boolean
             If methodStatement.HandlesClause Is Nothing Then
                 Return False
             End If

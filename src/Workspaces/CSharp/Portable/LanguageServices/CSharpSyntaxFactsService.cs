@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
-                    (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax)) ||
-                (SyntaxFacts.IsBinaryExpression(kind) && token.Parent is BinaryExpressionSyntax) ||
+                    (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpTree.IsInNonUserCode(position, cancellationToken);
         }
 
-        public bool IsEntirelyWithinStringOrCharLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var csharpTree = syntaxTree as SyntaxTree;
             if (csharpTree == null)
@@ -450,6 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
+                case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedStringTextToken:
                     return true;
             }
 
@@ -458,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStringLiteral(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken);
+            return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
         }
 
         public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent)
@@ -629,12 +633,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (root == null)
             {
-                throw new ArgumentNullException("root");
+                throw new ArgumentNullException(nameof(root));
             }
 
             if (position < 0 || position > root.Span.End)
             {
-                throw new ArgumentOutOfRangeException("position");
+                throw new ArgumentOutOfRangeException(nameof(position));
             }
 
             return root
@@ -699,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind() == SyntaxKind.IndexerMemberCref;
         }
 
-        public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position)
+        public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
         {
             Contract.ThrowIfNull(root, "root");
             Contract.ThrowIfTrue(position < 0 || position > root.FullSpan.End, "position");
@@ -717,9 +721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                if (node is MemberDeclarationSyntax)
+                if (useFullSpan || node.Span.Contains(position))
                 {
-                    return node;
+                    if (node is MemberDeclarationSyntax)
+                    {
+                        return node;
+                    }
                 }
 
                 node = node.Parent;
@@ -747,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                     var classDecl = (ClassDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(classDecl.Identifier.ValueText,
-                        GetContainerDisplayName(node.Parent), 
+                        GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span);
                     return true;
@@ -779,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(enumMember.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent), 
+                        GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span);
                     return true;
                 case SyntaxKind.EventDeclaration:
@@ -793,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var indexerDecl = (IndexerDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(WellKnownMemberNames.Indexer,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent), 
+                        GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span);
                     return true;
                 case SyntaxKind.InterfaceDeclaration:
@@ -825,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(structDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent), 
+                        GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span);
                     return true;
                 case SyntaxKind.VariableDeclarator:
@@ -843,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         declaredSymbolInfo = new DeclaredSymbolInfo(variableDeclarator.Identifier.ValueText,
                         GetContainerDisplayName(fieldDeclaration.Parent),
-                        GetFullyQualifiedContainerName(fieldDeclaration.Parent), 
+                        GetFullyQualifiedContainerName(fieldDeclaration.Parent),
                         kind, variableDeclarator.Identifier.Span);
                         return true;
                     }
@@ -961,6 +968,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string GetContainer(SyntaxNode node, bool immediate)
         {
+            if (node == null)
+            {
+                return string.Empty;
+            }
+
             var name = GetNodeName(node, includeTypeParameters: immediate);
             var names = new List<string> { name };
 
@@ -994,45 +1006,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterListSyntax typeParameterList;
             switch (node.Kind())
             {
-            case SyntaxKind.ClassDeclaration:
-                var classDecl = (ClassDeclarationSyntax)node;
-                name = classDecl.Identifier.ValueText;
-                typeParameterList = classDecl.TypeParameterList;
-                break;
-            case SyntaxKind.CompilationUnit:
-                return string.Empty;
-            case SyntaxKind.DelegateDeclaration:
-                var delegateDecl = (DelegateDeclarationSyntax)node;
-                name = delegateDecl.Identifier.ValueText;
-                typeParameterList = delegateDecl.TypeParameterList;
-                break;
-            case SyntaxKind.EnumDeclaration:
-                return ((EnumDeclarationSyntax)node).Identifier.ValueText;
-            case SyntaxKind.IdentifierName:
-                return ((IdentifierNameSyntax)node).Identifier.ValueText;
-            case SyntaxKind.InterfaceDeclaration:
-                var interfaceDecl = (InterfaceDeclarationSyntax)node;
-                name = interfaceDecl.Identifier.ValueText;
-                typeParameterList = interfaceDecl.TypeParameterList;
-                break;
-            case SyntaxKind.MethodDeclaration:
-                var methodDecl = (MethodDeclarationSyntax)node;
-                name = methodDecl.Identifier.ValueText;
-                typeParameterList = methodDecl.TypeParameterList;
-                break;
-            case SyntaxKind.NamespaceDeclaration:
-                return GetNodeName(((NamespaceDeclarationSyntax)node).Name, includeTypeParameters: false);
-            case SyntaxKind.QualifiedName:
-                var qualified = (QualifiedNameSyntax)node;
-                return GetNodeName(qualified.Left, includeTypeParameters: false) + "." + GetNodeName(qualified.Right, includeTypeParameters: false);
-            case SyntaxKind.StructDeclaration:
-                var structDecl = (StructDeclarationSyntax)node;
-                name = structDecl.Identifier.ValueText;
-                typeParameterList = structDecl.TypeParameterList;
-                break;
-            default:
-                Debug.Assert(false, "Unexpected node type " + node.Kind());
-                return null;
+                case SyntaxKind.ClassDeclaration:
+                    var classDecl = (ClassDeclarationSyntax)node;
+                    name = classDecl.Identifier.ValueText;
+                    typeParameterList = classDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.CompilationUnit:
+                    return string.Empty;
+                case SyntaxKind.DelegateDeclaration:
+                    var delegateDecl = (DelegateDeclarationSyntax)node;
+                    name = delegateDecl.Identifier.ValueText;
+                    typeParameterList = delegateDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.EnumDeclaration:
+                    return ((EnumDeclarationSyntax)node).Identifier.ValueText;
+                case SyntaxKind.IdentifierName:
+                    return ((IdentifierNameSyntax)node).Identifier.ValueText;
+                case SyntaxKind.InterfaceDeclaration:
+                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
+                    name = interfaceDecl.Identifier.ValueText;
+                    typeParameterList = interfaceDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    var methodDecl = (MethodDeclarationSyntax)node;
+                    name = methodDecl.Identifier.ValueText;
+                    typeParameterList = methodDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.NamespaceDeclaration:
+                    return GetNodeName(((NamespaceDeclarationSyntax)node).Name, includeTypeParameters: false);
+                case SyntaxKind.QualifiedName:
+                    var qualified = (QualifiedNameSyntax)node;
+                    return GetNodeName(qualified.Left, includeTypeParameters: false) + "." + GetNodeName(qualified.Right, includeTypeParameters: false);
+                case SyntaxKind.StructDeclaration:
+                    var structDecl = (StructDeclarationSyntax)node;
+                    name = structDecl.Identifier.ValueText;
+                    typeParameterList = structDecl.TypeParameterList;
+                    break;
+                default:
+                    Debug.Assert(false, "Unexpected node type " + node.Kind());
+                    return null;
             }
 
             return name + (includeTypeParameters ? ExpandTypeParameterList(typeParameterList) : "");
@@ -1270,6 +1282,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node = parent;
                         break;
                     }
+                }
+
+                // The inside of an interpolated string is treated as its own token so we
+                // need to force navigation to the parent expression syntax.
+                if (node is InterpolatedStringTextSyntax && parent is InterpolatedStringExpressionSyntax)
+                {
+                    node = parent;
+                    break;
                 }
 
                 // If this node is not parented by a name, we're done.

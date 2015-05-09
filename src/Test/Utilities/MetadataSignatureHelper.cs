@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static private void RemoveTrailingComma(StringBuilder sb)
         {
-            if (sb.ToString().EndsWith(", "))
+            if (sb.ToString().EndsWith(", ", StringComparison.Ordinal))
             {
                 sb.Length -= 2;
             }

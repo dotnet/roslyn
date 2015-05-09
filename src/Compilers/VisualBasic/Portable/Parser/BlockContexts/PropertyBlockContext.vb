@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class PropertyBlockContext
         Inherits DeclarationContext
 
-        Private _isPropertyBlock As Boolean
+        Private ReadOnly _isPropertyBlock As Boolean
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext, isPropertyBlock As Boolean)
             MyBase.New(SyntaxKind.PropertyBlock, statement, prevContext)

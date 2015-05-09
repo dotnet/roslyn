@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
     Partial Friend Class VisualBasicGenerateTypeService
         Inherits AbstractGenerateTypeService(Of VisualBasicGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeBlockSyntax, ArgumentSyntax)
 
-        Private Shared ReadOnly annotation As SyntaxAnnotation = New SyntaxAnnotation
+        Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
         Protected Overrides ReadOnly Property DefaultFileExtension As String
             Get
@@ -89,10 +89,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         Protected Overrides Function TryInitializeState(
                 document As SemanticDocument, simpleName As SimpleNameSyntax, cancellationToken As CancellationToken, ByRef generateTypeServiceStateOptions As GenerateTypeServiceStateOptions) As Boolean
             generateTypeServiceStateOptions = New GenerateTypeServiceStateOptions()
-
-            If simpleName.GetAncestorOrThis(Of ImportsStatementSyntax)() IsNot Nothing Then
-                Return False
-            End If
 
             If simpleName.IsParentKind(SyntaxKind.DictionaryAccessExpression) Then
                 Return False
@@ -728,12 +724,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
             Dim typeNameToReplace = objectCreation.Type
             Dim newTypeName = namedType.GenerateTypeSyntax()
-            Dim newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(annotation)
+            Dim newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(s_annotation)
             Dim newNode = oldNode.ReplaceNode(objectCreation, newObjectCreation)
 
             Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, model)
             If speculativeModel IsNot Nothing Then
-                newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(annotation).Single(), ObjectCreationExpressionSyntax)
+                newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), ObjectCreationExpressionSyntax)
                 Dim symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken)
                 Return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType)
             End If

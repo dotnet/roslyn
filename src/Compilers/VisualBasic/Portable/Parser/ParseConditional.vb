@@ -10,7 +10,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         ' File: Parser.cpp
         ' Lines: 18978 - 18978
@@ -93,12 +93,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Expression* .Parser::ParseConditionalCompilationExpression( [ _Inout_ bool& ErrorInConstruct ] )
 
         Friend Function ParseConditionalCompilationExpression() As ExpressionSyntax
-            Dim PrevEvaluatingConditionCompilationExpressions As Boolean = m_EvaluatingConditionCompilationExpression
-            m_EvaluatingConditionCompilationExpression = True
+            Dim PrevEvaluatingConditionCompilationExpressions As Boolean = _evaluatingConditionCompilationExpression
+            _evaluatingConditionCompilationExpression = True
 
-            Dim Expr = ParseExpression()
+            Dim Expr = ParseExpressionCore()
 
-            m_EvaluatingConditionCompilationExpression = PrevEvaluatingConditionCompilationExpressions
+            _evaluatingConditionCompilationExpression = PrevEvaluatingConditionCompilationExpressions
 
             Return Expr
         End Function

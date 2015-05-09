@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -125,7 +126,7 @@ public sealed class CSharpArgumentInfo
             sb.AppendLine(excludeArgumentInfoFlags ? "public enum CSharpArgumentInfoFlags { A }" : CSharpArgumentInfoFlagsSource);
             sb.AppendLine(CSharpArgumentInfoSource);
 
-            foreach (var src in excludeBinder == null ? _binderFactoriesSource : _binderFactoriesSource.Where(src => src.IndexOf(excludeBinder) == -1))
+            foreach (var src in excludeBinder == null ? _binderFactoriesSource : _binderFactoriesSource.Where(src => src.IndexOf(excludeBinder, StringComparison.Ordinal) == -1))
             {
                 sb.AppendFormat("public partial class Binder {{ public static {0} {{ return null; }} }}", src);
                 sb.AppendLine();
@@ -698,7 +699,7 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, emitOptions: TestEmitters.CCI, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, emitters: TestEmitters.CCI, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
 
@@ -2039,7 +2040,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, emitOptions: TestEmitters.CCI, symbolValidator: module =>
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, emitters: TestEmitters.CCI, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -8444,7 +8445,7 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "", emitOptions: TestEmitters.CCI, additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source, expectedOutput: "", emitters: TestEmitters.CCI, additionalRefs: new[] { SystemCoreRef, CSharpRef });
         }
 
         /// <summary>

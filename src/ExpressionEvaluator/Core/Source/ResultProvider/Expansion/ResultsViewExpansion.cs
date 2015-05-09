@@ -1,15 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Microsoft.VisualStudio.Debugger.Metadata;
+using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class ResultsViewExpansion : Expansion
     {
+        private const string ResultsFormatSpecifier = "results";
+
         internal static ResultsViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, Formatter formatter)
         {
             var enumerableType = GetEnumerableType(value);
@@ -24,8 +28,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmInspectionContext inspectionContext,
             string name,
             DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
             DkmClrValue value,
-            EvalResultDataItem parent,
             Formatter formatter)
         {
             string errorMessage;
@@ -33,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 errorMessage = (string)value.HostObjectValue;
             }
-            else if (value.HasExceptionThrown(parent))
+            else if (value.HasExceptionThrown())
             {
                 errorMessage = value.GetExceptionMessage(name, formatter);
             }
@@ -45,7 +49,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var expansion = CreateExpansion(inspectionContext, value, enumerableType, formatter);
                     if (expansion != null)
                     {
-                        return expansion.CreateResultsViewRow(inspectionContext, name, parent, formatter);
+                        return expansion.CreateResultsViewRow(
+                            inspectionContext, 
+                            name, 
+                            new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
+                            value, 
+                            includeResultsFormatSpecifier: true, 
+                            formatter: formatter);
                     }
                     errorMessage = Resources.ResultsViewNoSystemCore;
                 }
@@ -59,30 +69,92 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new EvalResultDataItem(name, errorMessage);
         }
 
-        private static DkmClrType GetEnumerableType(DkmClrValue value)
+        /// <summary>
+        /// Generate a Results Only row if the value is a synthesized
+        /// value declared as IEnumerable or IEnumerable&lt;T&gt;.
+        /// </summary>
+        internal static EvalResultDataItem CreateResultsOnlyRowIfSynthesizedEnumerable(
+            DkmInspectionContext inspectionContext,
+            string name,
+            DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
+            DkmClrValue value,
+            Formatter formatter)
         {
-            Debug.Assert(!value.IsError());
-
-            if (value.IsNull)
+            if ((value.ValueFlags & DkmClrValueFlags.Synthetic) == 0)
             {
                 return null;
             }
 
-            var valueType = value.Type.GetLmrType();
-            // Do not support Results View for strings
-            // or arrays. (Matches legacy EE.)
-            if (valueType.IsString() || valueType.IsArray)
-            {
-                return null;
-            }
-
-            var enumerableType = valueType.GetIEnumerableImplementationIfAny();
+            // Must be declared as IEnumerable or IEnumerable<T>, not a derived type.
+            var enumerableType = GetEnumerableType(value, declaredType, requireExactInterface: true);
             if (enumerableType == null)
             {
                 return null;
             }
 
-            return DkmClrType.Create(value.Type.AppDomain, enumerableType);
+            var expansion = CreateExpansion(inspectionContext, value, enumerableType, formatter);
+            if (expansion == null)
+            {
+                return null;
+            }
+
+            return expansion.CreateResultsViewRow(
+                inspectionContext, 
+                name, 
+                new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
+                value, 
+                includeResultsFormatSpecifier: false, 
+                formatter: formatter);
+        }
+
+        private static DkmClrType GetEnumerableType(DkmClrValue value)
+        {
+            return GetEnumerableType(value, value.Type, requireExactInterface: false);
+        }
+
+        private static bool IsEnumerableCandidate(DkmClrValue value)
+        {
+            Debug.Assert(!value.IsError());
+
+            if (value.IsNull || value.HasExceptionThrown())
+            {
+                return false;
+            }
+
+            // Do not support Results View for strings
+            // or arrays. (Matches legacy EE.)
+            var type = value.Type.GetLmrType();
+            return !type.IsString() && !type.IsArray;
+        }
+
+        private static DkmClrType GetEnumerableType(DkmClrValue value, DkmClrType valueType, bool requireExactInterface)
+        {
+            if (!IsEnumerableCandidate(value))
+            {
+                return null;
+            }
+
+            var type = valueType.GetLmrType();
+            Type enumerableType;
+            if (requireExactInterface)
+            {
+                if (!type.IsIEnumerable() && !type.IsIEnumerableOfT())
+                {
+                    return null;
+                }
+                enumerableType = type;
+            }
+            else
+            {
+                enumerableType = type.GetIEnumerableImplementationIfAny();
+                if (enumerableType == null)
+                {
+                    return null;
+                }
+            }
+
+            return DkmClrType.Create(valueType.AppDomain, enumerableType);
         }
 
         private static ResultsViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType enumerableType, Formatter formatter)
@@ -97,11 +169,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var proxyMembers = MemberExpansion.CreateExpansion(
                 inspectionContext,
-                proxyValue.Type.GetLmrType(),
+                new TypeAndCustomInfo(proxyValue.Type),
                 proxyValue,
-                ExpansionFlags.None,
-                TypeHelpers.IsPublic,
-                formatter);
+                flags: ExpansionFlags.None,
+                predicate: TypeHelpers.IsPublic,
+                formatter: formatter);
             return new ResultsViewExpansion(proxyValue, proxyMembers);
         }
 
@@ -130,51 +202,107 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (InRange(startIndex, count, index))
             {
-                rows.Add(CreateResultsViewRow(inspectionContext, Resources.ResultsView, parent, resultProvider.Formatter));
+                rows.Add(CreateResultsViewRow(inspectionContext, parent, resultProvider.Formatter));
             }
 
             index++;
         }
 
-        private EvalResultDataItem CreateResultsViewRow(DkmInspectionContext inspectionContext, string name, EvalResultDataItem parent, Formatter formatter)
+        private EvalResultDataItem CreateResultsViewRow(DkmInspectionContext inspectionContext, EvalResultDataItem parent, Formatter formatter)
         {
-            var proxyType = _proxyValue.Type.GetLmrType();
-            string fullName;
-            ReadOnlyCollection<string> formatSpecifiers;
-            bool childShouldParenthesize;
-            if (parent == null)
-            {
-                Debug.Assert(name != null);
-                fullName = formatter.TrimAndGetFormatSpecifiers(name, out formatSpecifiers);
-                childShouldParenthesize = formatter.NeedsParentheses(fullName);
-            }
-            else
-            {
-                fullName = parent.ChildFullNamePrefix;
-                formatSpecifiers = parent.FormatSpecifiers;
-                childShouldParenthesize = false;
-            }
-
+            Debug.Assert(parent != null);
+            var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
+            var fullName = parent.ChildFullNamePrefix;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyType, escapeKeywordIdentifiers: true), fullName);
+                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), fullName);
             return new EvalResultDataItem(
                 ExpansionKind.ResultsView,
-                name,
-                typeDeclaringMember: null,
-                declaredType: proxyType,
+                Resources.ResultsView,
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: proxyTypeAndInfo,
                 parent: null,
                 value: _proxyValue,
                 displayValue: Resources.ResultsViewValueWarning,
                 expansion: _proxyMembers,
-                childShouldParenthesize: childShouldParenthesize,
+                childShouldParenthesize: false,
                 fullName: fullName,
                 childFullNamePrefixOpt: childFullNamePrefix,
-                formatSpecifiers: Formatter.AddFormatSpecifier(formatSpecifiers, "results"),
+                formatSpecifiers: Formatter.AddFormatSpecifier(parent.FormatSpecifiers, ResultsFormatSpecifier),
                 category: DkmEvaluationResultCategory.Method,
                 flags: DkmEvaluationResultFlags.ReadOnly,
                 editableValue: null,
                 inspectionContext: inspectionContext);
+        }
+
+        private EvalResultDataItem CreateResultsViewRow(
+            DkmInspectionContext inspectionContext,
+            string name,
+            TypeAndCustomInfo declaredTypeAndInfo,
+            DkmClrValue value,
+            bool includeResultsFormatSpecifier,
+            Formatter formatter)
+        {
+            var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
+            ReadOnlyCollection<string> formatSpecifiers;
+            var fullName = formatter.TrimAndGetFormatSpecifiers(name, out formatSpecifiers);
+            if (includeResultsFormatSpecifier)
+            {
+                formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, ResultsFormatSpecifier);
+            }
+            var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), fullName);
+            return new EvalResultDataItem(
+                ExpansionKind.Default,
+                name,
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: declaredTypeAndInfo,
+                parent: null,
+                value: value,
+                displayValue: name,
+                expansion: new IndirectExpansion(_proxyValue, _proxyMembers),
+                childShouldParenthesize: false,
+                fullName: fullName,
+                childFullNamePrefixOpt: childFullNamePrefix,
+                formatSpecifiers: formatSpecifiers,
+                category: DkmEvaluationResultCategory.Method,
+                flags: DkmEvaluationResultFlags.ReadOnly,
+                editableValue: null,
+                inspectionContext: inspectionContext);
+        }
+
+        private sealed class IndirectExpansion : Expansion
+        {
+            private readonly DkmClrValue _proxyValue;
+            private readonly Expansion _expansion;
+
+            internal IndirectExpansion(DkmClrValue proxyValue, Expansion expansion)
+            {
+                _proxyValue = proxyValue;
+                _expansion = expansion;
+            }
+
+            internal override void GetRows(
+                ResultProvider resultProvider,
+                ArrayBuilder<EvalResultDataItem> rows,
+                DkmInspectionContext inspectionContext,
+                EvalResultDataItem parent,
+                DkmClrValue value,
+                int startIndex,
+                int count,
+                bool visitAll,
+                ref int index)
+            {
+                _expansion.GetRows(
+                    resultProvider, 
+                    rows, 
+                    inspectionContext, 
+                    parent, 
+                    _proxyValue, 
+                    startIndex: startIndex, 
+                    count: count, 
+                    visitAll: visitAll, 
+                    index: ref index);
+            }
         }
     }
 }

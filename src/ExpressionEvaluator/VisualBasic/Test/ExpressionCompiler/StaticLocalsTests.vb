@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
-Imports Microsoft.VisualStudio.SymReaderInterop
+Imports Microsoft.DiaSymReader
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Static x = Nothing
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             ' Shared method.
             Dim context = CreateMethodContext(runtime, "C.F")
@@ -60,8 +60,7 @@ End Class"
 "{
   // Code size       12 (0xc)
   .maxstack  2
-  .locals init (Boolean V_0,
-                Boolean V_1)
+  .locals init (Boolean V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.$STATIC$M$2001$x As Object""
   IL_0006:  dup
@@ -84,7 +83,7 @@ End Class"
         Static z As New C()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             ' Shared method.
             Dim context = CreateMethodContext(runtime, "C.M")
@@ -96,8 +95,7 @@ End Class"
   // Code size       16 (0x10)
   .maxstack  1
   .locals init (Boolean V_0,
-                Boolean V_1,
-                Boolean V_2)
+                Boolean V_1)
   IL_0000:  ldsfld     ""C.$STATIC$M$001$y As Object""
   IL_0005:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_000a:  stsfld     ""C.$STATIC$M$001$x As Object""
@@ -111,8 +109,7 @@ End Class"
 "{
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (Boolean V_0,
-                Boolean V_1)
+  .locals init (Boolean V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""C.$STATIC$N$2001$z As C""
@@ -144,18 +141,16 @@ End Class"
         f()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             ' Instance method.
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__1")
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__0")
             Dim errorMessage As String = Nothing
-            Dim testData = New CompilationTestData()
-            context.CompileExpression("If(x, y)", errorMessage, testData)
+            context.CompileExpression("If(x, y)", errorMessage)
             Assert.Equal(errorMessage, "(1,8): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.")
             ' Shared method.
-            context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__1")
-            testData = New CompilationTestData()
-            context.CompileExpression("x + z", errorMessage, testData)
+            context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__0")
+            context.CompileExpression("x + z", errorMessage)
             Assert.Equal(errorMessage, "(1,6): error BC30451: 'z' is not declared. It may be inaccessible due to its protection level.")
         End Sub
 
@@ -177,7 +172,7 @@ End Class"
         Return x
     End Function
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -226,7 +221,7 @@ End Class"
 }")
             locals.Free()
 
-            GetContextState(runtime, "C.F(Integer)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "C.F(Int32)", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             context = EvaluationContext.CreateMethodContext(
                 Nothing,
                 blocks,
@@ -243,16 +238,16 @@ End Class"
             Assert.Equal(3, locals.Count)
             VerifyLocal(testData, typeName, locals(0), "<>m0", "i")
             VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
-            VerifyLocal(testData, typeName, locals(2), "<>m2", "x", expectedILOpt:=
-"{
+            VerifyLocal(testData, typeName, locals(2), "<>m2", "x", expectedILOpt:="
+{
   // Code size        6 (0x6)
   .maxstack  1
   .locals init (Object V_0, //F
-                Boolean V_1,
-                Boolean V_2)
+                Boolean V_1)
   IL_0000:  ldsfld     ""C.$STATIC$F$011C8$x As Object""
   IL_0005:  ret
-}")
+}
+")
             locals.Free()
         End Sub
 
@@ -273,9 +268,9 @@ End Class"
         f()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__1")
+            Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__0")
             Dim testData = New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing

@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-    Class XmlExpressionOutliner
+    Friend Class XmlExpressionOutliner
         Inherits AbstractSyntaxNodeOutliner(Of XmlNodeSyntax)
 
         Protected Overrides Sub CollectOutliningSpans(xmlExpression As XmlNodeSyntax, spans As List(Of OutliningSpan), cancellationToken As CancellationToken)

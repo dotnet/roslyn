@@ -8,7 +8,7 @@ Imports Xunit
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class InheritsGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub BaseTypesOfSimpleType()
+        Public Sub BaseTypesOfSimpleType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -41,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WorkItem(546199)>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TestErrorBaseType()
+        Public Sub TestErrorBaseType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TestSolutionWithMultipleProjects()
+        Public Sub TestSolutionWithMultipleProjects()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">

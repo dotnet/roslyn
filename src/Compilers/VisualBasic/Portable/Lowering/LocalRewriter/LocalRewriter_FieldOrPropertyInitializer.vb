@@ -39,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim meReferenceOpt As BoundExpression = Nothing
             If Not initializedSymbols.First.IsShared Then
                 ' create me reference if needed
-                Debug.Assert(currentMethodOrLambda IsNot Nothing)
-                meReferenceOpt = New BoundMeReference(syntax, currentMethodOrLambda.ContainingType)
+                Debug.Assert(_currentMethodOrLambda IsNot Nothing)
+                meReferenceOpt = New BoundMeReference(syntax, _currentMethodOrLambda.ContainingType)
                 meReferenceOpt.SetWasCompilerGenerated()
             End If
 

@@ -1455,7 +1455,8 @@ class A { }
             Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind());
         }
 
-        [Fact, WorkItem(536995, "DevDiv")]
+        [WorkItem(536995, "DevDiv")]
+        [ClrOnlyFact]
         public void TestTextAndSpanWithTrivia1()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -1472,7 +1473,8 @@ class A { }
             Assert.Equal(false, rootNode.ToString().Contains("/*START*/"));
         }
 
-        [Fact, WorkItem(536996, "DevDiv")]
+        [WorkItem(536996, "DevDiv")]
+        [ClrOnlyFact]
         public void TestTextAndSpanWithTrivia2()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -2303,7 +2305,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestRemove_KeepUnbalancedDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -2336,7 +2338,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestRemove_KeepDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -2479,9 +2481,9 @@ class Base<T>
         [Fact]
         public void GetDiagnosticsOnMissingToken3()
         {
-            string code = @"class c2 4";
+            const string code = @"class c2 4";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("4"));
+            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf('4'));
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
             Assert.True(token.IsMissing);
@@ -2503,7 +2505,7 @@ public class Test1
 }
 }";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
-            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("using Lib;"));
+            var token = syntaxTree.GetCompilationUnitRoot().FindToken(code.IndexOf("using Lib;", StringComparison.Ordinal));
             var diag = syntaxTree.GetDiagnostics(token).ToList();
 
             Assert.True(token.IsMissing);
@@ -2522,7 +2524,7 @@ public class Test1
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(code);
-            var trivia = tree.GetCompilationUnitRoot().FindTrivia(code.IndexOf("#r")); // ReferenceDirective.
+            var trivia = tree.GetCompilationUnitRoot().FindTrivia(code.IndexOf("#r", StringComparison.Ordinal)); // ReferenceDirective.
 
             foreach (var diag in tree.GetDiagnostics(trivia))
             {

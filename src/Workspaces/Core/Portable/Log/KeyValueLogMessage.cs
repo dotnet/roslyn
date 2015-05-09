@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return logMessage;
         }
 
-        private Dictionary<string, object> _map = null;
-        private Action<Dictionary<string, object>> _propertySetter = null;
+        private Dictionary<string, object> _map;
+        private Action<Dictionary<string, object>> _propertySetter;
 
         private KeyValueLogMessage()
         {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return string.Join("|", _map.Select(kv => string.Format("{0}={1}", kv.Key, kv.Value)));
         }
 
-        public override void Free()
+        protected override void FreeCore()
         {
             if (_map != null)
             {

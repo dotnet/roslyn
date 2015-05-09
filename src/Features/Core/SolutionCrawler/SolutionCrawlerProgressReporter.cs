@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
-            private IAsynchronousOperationListener _listener;
+            private readonly IAsynchronousOperationListener _listener;
 
             // use event map and event queue so that we can guarantee snapshot and sequencial ordering of events from
             // multiple consumer from possibly multiple threads
@@ -106,15 +106,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private Task RaiseEvent(string eventName)
             {
                 // this method name doesnt have Async since it should work as async void.
-                var handlers = _eventMap.GetEventHandlers<EventHandler>(eventName);
-                if (handlers.Length > 0)
+                var ev = _eventMap.GetEventHandlers<EventHandler>(eventName);
+                if (ev.HasHandlers)
                 {
                     return _eventQueue.ScheduleTask(() =>
                     {
-                        foreach (var handler in handlers)
-                        {
-                            handler(this, EventArgs.Empty);
-                        }
+                        ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
                     });
                 }
 

@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class NamespaceSymbol : Cci.INamespace
+    internal partial class NamespaceSymbol : Cci.INamespace
     {
         Cci.INamespace Cci.INamespace.ContainingNamespace => ContainingNamespace;
         string Cci.INamedEntity.Name => MetadataName;

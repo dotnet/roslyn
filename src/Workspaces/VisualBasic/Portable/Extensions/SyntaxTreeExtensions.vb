@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Module SyntaxTreeExtensions
+    Friend Module SyntaxTreeExtensions
         ''' <summary>
         ''' Finds the token being touched by this position. Unlike the normal FindTrivia helper, this helper will prefer
         ''' trivia to the left rather than the right if the position is on the border.
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Return _
                 syntaxTree.IsEntirelyWithinComment(position, cancellationToken) OrElse
-                syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) OrElse
+                syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken) OrElse
                 syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
                 syntaxTree.IsWithinPartialMethodDeclaration(position, cancellationToken)
         End Function
@@ -85,10 +85,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsEntirelyWithinStringOrCharLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+        Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
 
-            If Not token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
+            If Not token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken, SyntaxKind.DecimalLiteralToken, SyntaxKind.IntegerLiteralToken,
+                                SyntaxKind.DateLiteralToken, SyntaxKind.FloatingLiteralToken) Then
                 Return False
             End If
 
@@ -103,11 +104,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 startLength = 2
             End If
 
-            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'"c, """"c)
+            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
-                  (token.Span.Length > startLength AndAlso Not token.ToString().EndsWith(lastChar)))
+                  (token.Span.Length > startLength AndAlso Not token.ToString().EndsWith(lastChar, StringComparison.Ordinal)))
         End Function
 
         <Extension()>

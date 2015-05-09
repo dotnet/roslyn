@@ -17,10 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SourceMethodSymbol
 
         ' Parameters.
-        Private m_Parameters As ImmutableArray(Of ParameterSymbol)
+        Private _parameters As ImmutableArray(Of ParameterSymbol)
 
         ' Return type. Void for a Sub.
-        Private ReadOnly m_ReturnType As TypeSymbol
+        Private ReadOnly _returnType As TypeSymbol
 
         Protected Sub New(delegateType As NamedTypeSymbol,
                           syntax As VisualBasicSyntaxNode,
@@ -32,24 +32,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(TypeOf syntax Is DelegateStatementSyntax OrElse
                          TypeOf syntax Is EventStatementSyntax)
             Debug.Assert(returnType IsNot Nothing)
-            m_ReturnType = returnType
+            _returnType = returnType
         End Sub
 
         Protected Sub InitializeParameters(parameters As ImmutableArray(Of ParameterSymbol))
-            Debug.Assert(m_Parameters.IsDefault)
+            Debug.Assert(_parameters.IsDefault)
             Debug.Assert(Not parameters.IsDefault)
-            m_Parameters = parameters
+            _parameters = parameters
         End Sub
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return m_ReturnType
+                Return _returnType
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return m_Parameters
+                Return _parameters
             End Get
         End Property
 
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class Constructor
             Inherits SourceDelegateMethodSymbol
 
-            Sub New(delegateType As NamedTypeSymbol,
+            Public Sub New(delegateType As NamedTypeSymbol,
                     voidType As TypeSymbol,
                     objectType As TypeSymbol,
                     intPtrType As TypeSymbol,
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class InvokeMethod
             Inherits SourceDelegateMethodSymbol
 
-            Sub New(delegateType As NamedTypeSymbol,
+            Public Sub New(delegateType As NamedTypeSymbol,
                     returnType As TypeSymbol,
                     syntax As VisualBasicSyntaxNode,
                     binder As Binder,
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class BeginInvokeMethod
             Inherits SourceDelegateMethodSymbol
 
-            Sub New(invoke As InvokeMethod,
+            Public Sub New(invoke As InvokeMethod,
                     iAsyncResultType As TypeSymbol,
                     objectType As TypeSymbol,
                     asyncCallbackType As TypeSymbol,
@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class EndInvokeMethod
             Inherits SourceDelegateMethodSymbol
 
-            Sub New(invoke As InvokeMethod,
+            Public Sub New(invoke As InvokeMethod,
                     iAsyncResultType As TypeSymbol,
                     syntax As VisualBasicSyntaxNode,
                     binder As Binder)

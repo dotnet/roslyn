@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SourceWithEventsBackingFieldSymbol
         Inherits SourceMemberFieldSymbol
 
-        Private m_property As SourcePropertySymbol
+        Private ReadOnly _property As SourcePropertySymbol
 
         Public Sub New([property] As SourcePropertySymbol,
                        syntaxRef As SyntaxReference,
@@ -27,12 +27,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        name,
                        SourceMemberFlags.AccessibilityPrivate Or If([property].IsShared, SourceMemberFlags.Shared, SourceMemberFlags.None))
 
-            m_property = [property]
+            _property = [property]
         End Sub
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Return m_property
+                Return _property
             End Get
         End Property
 
@@ -50,14 +50,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ImplicitlyDefinedBy(Optional membersInProgress As Dictionary(Of String, ArrayBuilder(Of Symbol)) = Nothing) As Symbol
             Get
-                Return m_property
+                Return _property
             End Get
         End Property
 
         Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-            Dim compilation = m_property.DeclaringCompilation
+            Dim compilation = _property.DeclaringCompilation
 
             Debug.Assert(Not Me.ContainingType.IsImplicitlyDeclared)
 

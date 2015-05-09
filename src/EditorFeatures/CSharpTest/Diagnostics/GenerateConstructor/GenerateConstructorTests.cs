@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -616,6 +617,24 @@ class Program
             Test(
 @"class Foo { class Bar { } } class A { static void Main(string[] args) { var s = new [|Foo.Bar(5)|]; } }",
 @"class Foo { class Bar { private int v; public Bar(int v) { this.v = v; } } } class A { static void Main(string[] args) { var s = new Foo.Bar(5); } }");
+        }
+
+        public partial class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+        {
+            internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            {
+                return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+                new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateConstructorCodeFixProvider());
+            }
+
+            [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            public void TestGenerateConstructorInIncompleteLambda()
+            {
+                Test(
+    @"using System . Threading . Tasks ; class C { C ( ) { Task . Run ( ( ) => { new [|C|] ( 0 ) } ) ; } } ",
+    @"using System . Threading . Tasks ; class C { private int v ; public C ( int v ) { this . v = v ; } C ( ) { Task . Run ( ( ) => { new C ( 0 ) } ) ; } } ");
+            }
         }
     }
 }

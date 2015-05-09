@@ -5,7 +5,10 @@ using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.Utilities;
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 
@@ -200,7 +203,8 @@ class C
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
                 C.<M>d__0 V_2,
                 int V_3,
-                System.Exception V_4)
+                System.Runtime.CompilerServices.TaskAwaiter V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.{0}""
   IL_0006:  ret
@@ -1289,11 +1293,77 @@ class C
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables");
         }
 
+        [WorkItem(1134746, "DevDiv")]
+        [Fact]
+        public void CacheInvalidation()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> M()
+    {
+#line 100
+        int x = 1;
+        yield return x;
+
+        {
+#line 200
+            int y = x + 1;
+            yield return y;
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+
+            ImmutableArray<MetadataBlock> blocks;
+            Guid moduleVersionId;
+            ISymUnmanagedReader symReader;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+
+            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
+            var context = EvaluationContext.CreateMethodContext(
+                default(CSharpMetadataContext),
+                blocks,
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken);
+
+            string error;
+            context.CompileExpression("x", out error);
+            Assert.Null(error);
+            context.CompileExpression("y", out error);
+            Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
+
+            ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 200);
+            context = EvaluationContext.CreateMethodContext(
+                new CSharpMetadataContext(blocks, context),
+                blocks,
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken);
+
+            context.CompileExpression("x", out error);
+            Assert.Null(error);
+            context.CompileExpression("y", out error);
+            Assert.Null(error);
+        }
+
         private static string[] GetLocalNames(EvaluationContext context)
         {
             string unused;
             var locals = new ArrayBuilder<LocalAndMethod>();
-            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out unused);
+            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out unused, testData: null);
             return locals.Select(l => l.LocalName).ToArray();
         }
     }

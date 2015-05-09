@@ -3149,7 +3149,7 @@ End Enum
         End Sub
 
         <Fact, WorkItem(544367, "DevDiv")>
-        Sub AttributeOnPropertyParameter()
+        Public Sub AttributeOnPropertyParameter()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -3201,7 +3201,7 @@ param index in Void set_Item(Int32, System.String) has 1 attributes
         End Sub
 
         <Fact, WorkItem(544367, "DevDiv")>
-        Sub AttributeOnPropertyParameterWithError()
+        Public Sub AttributeOnPropertyParameterWithError()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -3236,7 +3236,7 @@ BC31504: 'MyAttr' cannot be used as an attribute because it does not inherit fro
         End Sub
 
         <Fact, WorkItem(543810, "DevDiv")>
-        Sub AttributeNamedArgumentWithEvent()
+        Public Sub AttributeNamedArgumentWithEvent()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -3281,7 +3281,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
         End Sub
 
         <Fact, WorkItem(543955, "DevDiv")>
-        Sub StringParametersInDeclareMethods_1()
+        Public Sub StringParametersInDeclareMethods_1()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -3481,7 +3481,7 @@ buffer As System.Int32
         End Sub
 
         <Fact, WorkItem(543955, "DevDiv")>
-        Sub StringParametersInDeclareMethods_3()
+        Public Sub StringParametersInDeclareMethods_3()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -3800,7 +3800,7 @@ End Class
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, symbolValidator:=
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, symbolValidator:=
                 Sub(m)
                     Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim attr = c.GetAttributes().Single()
@@ -3902,7 +3902,7 @@ End Class
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, symbolValidator:=
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, symbolValidator:=
                 Sub(m)
                     Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim attr = c.GetAttributes().Single()
@@ -3990,7 +3990,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
  - 5 -
  - 100 -
  - 100000 -
@@ -4271,6 +4271,70 @@ End Class
 
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(source3, {New VisualBasicCompilationReference(compilation1)})
             CompileAndVerify(compilation3, symbolValidator:=validator)
+        End Sub
+
+        <Fact, WorkItem(1144603, "DevDiv")>
+        Public Sub EmitMetadataOnlyInPresenceOfErrors()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DiagnosticAnalyzerAttribute
+    Inherits System.Attribute
+    Public Sub New(firstLanguage As String, ParamArray additionalLanguages As String())
+    End Sub
+End Class
+
+Public Class LanguageNames
+    Public Const CSharp As xyz = "C#"
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.DebugDll)
+
+            AssertTheseDiagnostics(compilation1, <![CDATA[
+BC30002: Type 'xyz' is not defined.
+    Public Const CSharp As xyz = "C#"
+                           ~~~
+]]>)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+<DiagnosticAnalyzer(LanguageNames.CSharp)>
+Class CSharpCompilerDiagnosticAnalyzer
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugDll.WithModuleName("Test.dll"))
+            Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols(1))
+            AssertTheseDiagnostics(compilation2)
+
+            Dim emitResult2 = compilation2.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
+            Assert.False(emitResult2.Success)
+            AssertTheseDiagnostics(emitResult2.Diagnostics, <![CDATA[
+BC36970: Failed to emit module 'Test.dll'.
+]]>)
+
+            ' Use different mscorlib to test retargeting scenario
+            Dim compilation3 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugDll)
+            Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols(1))
+            AssertTheseDiagnostics(compilation3, <![CDATA[
+BC30002: Type 'xyz' is not defined.
+<DiagnosticAnalyzer(LanguageNames.CSharp)>
+                    ~~~~~~~~~~~~~~~~~~~~
+]]>)
+
+            Dim emitResult3 = compilation3.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
+            Assert.False(emitResult3.Success)
+            AssertTheseDiagnostics(emitResult3.Diagnostics, <![CDATA[
+BC30002: Type 'xyz' is not defined.
+<DiagnosticAnalyzer(LanguageNames.CSharp)>
+                    ~~~~~~~~~~~~~~~~~~~~
+]]>)
         End Sub
 
     End Class

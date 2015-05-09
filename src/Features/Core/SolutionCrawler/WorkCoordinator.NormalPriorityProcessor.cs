@@ -124,6 +124,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
+                    public bool HasAnyWork
+                    {
+                        get
+                        {
+                            return _workItemQueue.HasAnyWork;
+                        }
+                    }
+
                     protected override async Task ExecuteAsync()
                     {
                         if (this.CancellationToken.IsCancellationRequested)
@@ -137,11 +145,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // mark it as running
                             _running = source.Task;
 
-                            // we wait for global operation if there is anything going on
-                            await GlobalOperationWaitAsync().ConfigureAwait(false);
-
-                            // we wait for higher processor to finish its working
-                            await this.Processor._highPriorityProcessor.Running.ConfigureAwait(false);
+                            await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
                             // okay, there must be at least one item in the map
                             await ResetStatesAsync().ConfigureAwait(false);
@@ -155,7 +159,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // process one of documents remaining
                             var documentCancellation = default(CancellationTokenSource);
                             WorkItem workItem;
-                            if (!_workItemQueue.TryTakeAnyWork(_currentProjectProcessing, out workItem, out documentCancellation))
+                            if (!_workItemQueue.TryTakeAnyWork(_currentProjectProcessing, this.Processor.DependencyGraph, out workItem, out documentCancellation))
                             {
                                 return;
                             }
@@ -180,6 +184,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // mark it as done running
                             source.SetResult(null);
+                        }
+                    }
+
+                    protected override Task HigherQueueOperationTask
+                    {
+                        get
+                        {
+                            return this.Processor._highPriorityProcessor.Running;
+                        }
+                    }
+
+                    protected override bool HigherQueueHasWorkItem
+                    {
+                        get
+                        {
+                            return this.Processor._highPriorityProcessor.HasAnyWork;
                         }
                     }
 
@@ -394,7 +414,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         SolutionCrawlerLogger.LogProcessCloseDocument(this.Processor._logAggregator, document.Id.Id);
 
-                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, document, (a, d, c) => a.DocumentCloseAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
                     private async Task ProcessReanalyzeDocumentAsync(WorkItem workItem, Document document, CancellationToken cancellationToken)

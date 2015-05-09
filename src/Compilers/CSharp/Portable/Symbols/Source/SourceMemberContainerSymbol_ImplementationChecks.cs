@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Do not cancel from this point on.  We've assigned the member, so we must add
                         // the diagnostics.
-                        AddSemanticDiagnostics(diagnostics);
+                        AddDeclarationDiagnostics(diagnostics);
 
                         state.NotePartComplete(CompletionPart.SynthesizedExplicitImplementations);
                     }

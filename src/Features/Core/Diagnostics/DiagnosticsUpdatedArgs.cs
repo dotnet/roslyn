@@ -7,12 +7,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class DiagnosticsUpdatedArgs : EventArgs
     {
-        public object Id { get; private set; }
-        public Workspace Workspace { get; private set; }
-        public Solution Solution { get; private set; }
-        public ProjectId ProjectId { get; private set; }
-        public DocumentId DocumentId { get; private set; }
-        public ImmutableArray<DiagnosticData> Diagnostics { get; private set; }
+        public object Id { get; }
+        public Workspace Workspace { get; }
+        public Solution Solution { get; }
+        public ProjectId ProjectId { get; }
+        public DocumentId DocumentId { get; }
+        public ImmutableArray<DiagnosticData> Diagnostics { get; }
 
         public DiagnosticsUpdatedArgs(
             object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)

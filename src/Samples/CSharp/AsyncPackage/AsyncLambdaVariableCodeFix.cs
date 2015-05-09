@@ -71,20 +71,20 @@ namespace AsyncPackage
 
         private class AsyncLambdaVariableCodeAction : CodeAction
         {
-            private Func<CancellationToken, Task<Document>> generateDocument;
-            private string title;
+            private Func<CancellationToken, Task<Document>> _generateDocument;
+            private string _title;
 
             public AsyncLambdaVariableCodeAction(string title, Func<CancellationToken, Task<Document>> generateDocument)
             {
-                this.title = title;
-                this.generateDocument = generateDocument;
+                _title = title;
+                _generateDocument = generateDocument;
             }
 
-            public override string Title { get { return title; } }
+            public override string Title { get { return _title; } }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                return this.generateDocument(cancellationToken);
+                return _generateDocument(cancellationToken);
             }
         }
     }

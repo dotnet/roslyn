@@ -18,9 +18,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static readonly LocalizableString s_messageFormat = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UnusedDeclarationsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
-        internal static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeRuleId, s_title, s_messageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        internal static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeRuleId, s_title, s_messageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: false);
 
-        internal static readonly DiagnosticDescriptor s_triggerRule = new TriggerDiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeTriggerRuleId, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry);
+        internal static readonly DiagnosticDescriptor s_triggerRule = new DiagnosticDescriptor(RoslynDiagnosticIds.DeadCodeTriggerRuleId, title: "", messageFormat: "", category: "", defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: false,
+                                                                                               customTags: new[] { WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry });
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -66,6 +67,11 @@ namespace Roslyn.Diagnostics.Analyzers
                 context.CancellationToken.ThrowIfCancellationRequested();
 
                 var info = context.SemanticModel.GetSymbolInfo(context.Node, context.CancellationToken);
+                if (info.Symbol?.Kind == SymbolKind.Namespace)
+                {
+                    // Avoid getting Locations for namespaces. That can be very expensive.
+                    return;
+                }
 
                 var hasLocations = info.Symbol?.OriginalDefinition?.Locations.Length > 0;
                 if (!hasLocations)
@@ -162,7 +168,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            public void OnCompilationEnd(CompilationEndAnalysisContext context)
+            public void OnCompilationEnd(CompilationAnalysisContext context)
             {
                 foreach (var kv in _used.Where(kv => !kv.Value && (kv.Key.Locations.FirstOrDefault()?.IsInSource == true)))
                 {

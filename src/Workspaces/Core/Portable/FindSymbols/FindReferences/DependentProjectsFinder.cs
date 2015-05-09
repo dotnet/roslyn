@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     var value = (string)typeNameConstant.Value;
-                    var commaIndex = value.IndexOf(",");
+                    var commaIndex = value.IndexOf(',');
                     var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
 
                     map.Add(assemblyName);
@@ -377,12 +377,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (containingAssembly == null)
             {
-                throw new ArgumentNullException("containingAssembly");
+                throw new ArgumentNullException(nameof(containingAssembly));
             }
 
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             if (sourceProject != null)

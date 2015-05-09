@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                                            Dim constructor = structType.InstanceConstructors.Single()
                                                            Assert.False(constructor.IsImplicitlyDeclared)
                                                        End Sub,
-                                                       emitOptions:=TestEmitters.RefEmitBug)
+                                                       emitters:=TestEmitters.RefEmitBug)
 
         End Sub
 
@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                                            Dim constructor = structType.InstanceConstructors.Single()
                                                            Assert.True(constructor.IsImplicitlyDeclared)
                                                        End Sub,
-                                                       emitOptions:=TestEmitters.RefEmitBug)
+                                                       emitters:=TestEmitters.RefEmitBug)
 
         End Sub
 
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                                            Assert.False(constructors(withParameterIndex).IsImplicitlyDeclared)
                                                            Assert.True(constructors(withoutParameterIndex).IsImplicitlyDeclared)
                                                        End Sub,
-                                                       emitOptions:=TestEmitters.RefEmitBug)
+                                                       emitters:=TestEmitters.RefEmitBug)
 
         End Sub
 

@@ -64,9 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             return typeSymbol.DelegateInvokeMethod;
         }
 
-        internal override ImmutableArray<IParameterSymbol> GetParameters()
+        internal override ImmutableArray<SyntaxNode> GetParameters()
         {
-            return LookupInvokeMethod().Parameters;
+            return ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
         }
 
         public override EnvDTE.vsCMElement Kind

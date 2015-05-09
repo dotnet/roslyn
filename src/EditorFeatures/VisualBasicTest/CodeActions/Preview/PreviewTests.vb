@@ -10,12 +10,12 @@ Imports Microsoft.VisualStudio.Text.Differencing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public Class PreviewTests : Inherits AbstractVisualBasicCodeActionTest
-        Private Const AddedDocumentName As String = "AddedDocument"
-        Private Const AddedDocumentText As String = "Class C1 : End Class"
-        Private Shared removedMetadataReferenceDisplayName As String = ""
-        Private Const AddedProjectName As String = "AddedProject"
-        Private Shared ReadOnly AddedProjectId As ProjectId = ProjectId.CreateNewId()
-        Private Const ChangedDocumentText As String = "Class C : End Class"
+        Private Const s_addedDocumentName As String = "AddedDocument"
+        Private Const s_addedDocumentText As String = "Class C1 : End Class"
+        Private Shared s_removedMetadataReferenceDisplayName As String = ""
+        Private Const s_addedProjectName As String = "AddedProject"
+        Private Shared ReadOnly s_addedProjectId As ProjectId = ProjectId.CreateNewId()
+        Private Const s_changedDocumentText As String = "Class C : End Class"
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As Object
             Return New MyCodeRefactoringProvider()
@@ -29,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             End Function
 
             Private Class MyCodeAction : Inherits CodeAction
-                Private oldDocument As Document
+                Private _oldDocument As Document
 
                 Public Sub New(oldDocument As Document)
-                    Me.oldDocument = oldDocument
+                    Me._oldDocument = oldDocument
                 End Sub
 
                 Public Overrides ReadOnly Property Title As String
@@ -42,21 +42,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 End Property
 
                 Protected Overrides Function GetChangedSolutionAsync(cancellationToken As CancellationToken) As Task(Of Solution)
-                    Dim solution = oldDocument.Project.Solution
+                    Dim solution = _oldDocument.Project.Solution
 
                     ' Add a document - This will result in IWpfTextView previews.
-                    solution = solution.AddDocument(DocumentId.CreateNewId(oldDocument.Project.Id, AddedDocumentName), AddedDocumentName, AddedDocumentText)
+                    solution = solution.AddDocument(DocumentId.CreateNewId(_oldDocument.Project.Id, s_addedDocumentName), s_addedDocumentName, s_addedDocumentText)
 
                     ' Remove a reference - This will result in a string preview.
-                    Dim removedReference = oldDocument.Project.MetadataReferences.Last()
-                    removedMetadataReferenceDisplayName = removedReference.Display
-                    solution = solution.RemoveMetadataReference(oldDocument.Project.Id, removedReference)
+                    Dim removedReference = _oldDocument.Project.MetadataReferences.Last()
+                    s_removedMetadataReferenceDisplayName = removedReference.Display
+                    solution = solution.RemoveMetadataReference(_oldDocument.Project.Id, removedReference)
 
                     ' Add a project - This will result in a string preview.
-                    solution = solution.AddProject(ProjectInfo.Create(AddedProjectId, VersionStamp.Create(), AddedProjectName, AddedProjectName, LanguageNames.CSharp))
+                    solution = solution.AddProject(ProjectInfo.Create(s_addedProjectId, VersionStamp.Create(), s_addedProjectName, s_addedProjectName, LanguageNames.CSharp))
 
                     ' Change a document - This will result in IWpfTextView previews.
-                    solution = solution.WithDocumentSyntaxRoot(oldDocument.Id, VisualBasicSyntaxTree.ParseText(ChangedDocumentText).GetRoot())
+                    solution = solution.WithDocumentSyntaxRoot(_oldDocument.Id, VisualBasicSyntaxTree.ParseText(s_changedDocumentText).GetRoot())
 
                     Return Task.FromResult(solution)
                 End Function
@@ -83,42 +83,42 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
                 ' The changed document comes first.
-                Dim preview = previews.TakeNextPreview()
+                Dim preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
                 Dim text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
-                Assert.Equal(ChangedDocumentText, text)
+                Assert.Equal(s_changedDocumentText, text)
                 diffView.Close()
 
                 ' The added document comes next.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 diffView = DirectCast(preview, IWpfDifferenceViewer)
                 text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
-                Assert.Contains(AddedDocumentName, text)
-                Assert.Contains(AddedDocumentText, text)
+                Assert.Contains(s_addedDocumentName, text, StringComparison.Ordinal)
+                Assert.Contains(s_addedDocumentText, text, StringComparison.Ordinal)
                 diffView.Close()
 
                 ' Then comes the removed metadata reference.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
-                Assert.Contains(removedMetadataReferenceDisplayName, text)
+                Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' And finally the added project.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
-                Assert.Contains(AddedProjectName, text)
+                Assert.Contains(s_addedProjectName, text, StringComparison.Ordinal)
 
                 ' There are no more previews.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
             End Using
         End Sub
@@ -131,42 +131,42 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
                 ' Should return preview that matches the preferred (added) project.
-                Dim preview = previews.TakeNextPreview(preferredProjectId:=AddedProjectId)
+                Dim preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 Dim text = DirectCast(preview, String)
-                Assert.Contains(AddedProjectName, text)
+                Assert.Contains(s_addedProjectName, text, StringComparison.Ordinal)
 
                 ' Should return preview that matches the preferred (changed) document.
-                preview = previews.TakeNextPreview(preferredDocumentId:=document.Id)
+                preview = previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
                 text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
-                Assert.Equal(ChangedDocumentText, text)
+                Assert.Equal(s_changedDocumentText, text)
                 diffView.Close()
 
                 ' There is no longer a preview for the preferred project. Should return the first remaining preview.
-                preview = previews.TakeNextPreview(preferredProjectId:=AddedProjectId)
+                preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 diffView = DirectCast(preview, IWpfDifferenceViewer)
                 text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString()
-                Assert.Contains(AddedDocumentName, text)
-                Assert.Contains(AddedDocumentText, text)
+                Assert.Contains(s_addedDocumentName, text, StringComparison.Ordinal)
+                Assert.Contains(s_addedDocumentText, text, StringComparison.Ordinal)
                 diffView.Close()
 
                 ' There is no longer a preview for the  preferred document. Should return the first remaining preview.
-                preview = previews.TakeNextPreview(preferredDocumentId:=document.Id)
+                preview = previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).PumpingWaitResult()
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
-                Assert.Contains(removedMetadataReferenceDisplayName, text)
+                Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' There are no more previews.
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
-                preview = previews.TakeNextPreview()
+                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
                 Assert.Null(preview)
             End Using
         End Sub

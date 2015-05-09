@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
@@ -24,11 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class CSharpProjectFile : ProjectFile
         {
             private readonly IMetadataService _metadataService;
+            private readonly IAnalyzerService _analyzerService;
 
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService, IAnalyzerService analyzerService)
                 : base(loader, project)
             {
                 _metadataService = metadataService;
+                _analyzerService = analyzerService;
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -53,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var compilerInputs = new CSharpCompilerInputs(this);
 
-                var result = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
-                var executedProject = result.Instance;
+                var executedProject = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
                 if (!compilerInputs.Initialized)
                 {
@@ -65,20 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateProjectFileInfo(compilerInputs, executedProject);
             }
 
-            protected override IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
+            protected override ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
             {
-                return this.GetProjectReferencesCore(executedProject);
-            }
+                var filePath = reference.EvaluatedInclude;
+                var aliases = GetAliases(reference);
 
-            private IEnumerable<ProjectFileReference> GetProjectReferencesCore(ProjectInstance executedProject)
-            {
-                foreach (var projectReference in GetProjectReferenceItems(executedProject))
-                {
-                    var filePath = projectReference.EvaluatedInclude;
-                    var aliases = GetAliases(projectReference);
-
-                    yield return new ProjectFileReference(filePath, aliases);
-                }
+                return new ProjectFileReference(filePath, aliases);
             }
 
             private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
@@ -185,11 +179,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var commandLineParser = CSharpCommandLineParser.Default;
-                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory);
+                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory());
 
                 var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences();
+
+                var analyzerLoader = _analyzerService.GetLoader();
+                foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
+                {
+                    analyzerLoader.AddDependencyLocation(path);
+                }
+                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 compilerInputs.SetReferences(this.GetMetadataReferencesFromModel(executedProject).ToArray());
                 compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
+                compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray());
                 compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
 
                 string errorMessage;
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles { get; private set; }
                 internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
-                internal Dictionary<string, ReportDiagnostic> Warnings { get; private set; }
+                internal Dictionary<string, ReportDiagnostic> Warnings { get; }
                 internal string OutputFileName { get; private set; }
 
                 private static readonly CSharpParseOptions s_defaultParseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);

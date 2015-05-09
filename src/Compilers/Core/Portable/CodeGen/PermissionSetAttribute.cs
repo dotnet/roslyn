@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal class PermissionSetAttributeWithFileReference : Cci.ICustomAttribute
     {
         private readonly Cci.ICustomAttribute _sourceAttribute;
-        private string _resolvedPermissionSetFilePath;
+        private readonly string _resolvedPermissionSetFilePath;
         internal static readonly string FilePropertyName = "File";
         internal static readonly string HexPropertyName = "Hex";
 

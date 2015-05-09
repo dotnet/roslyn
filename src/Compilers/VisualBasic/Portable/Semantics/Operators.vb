@@ -17,25 +17,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A map from Operator name to number of parameters and kind.
         ''' </summary>
-        Private Shared ReadOnly OperatorNames As Dictionary(Of String, OperatorInfo)
+        Private Shared ReadOnly s_operatorNames As Dictionary(Of String, OperatorInfo)
 
         ''' <summary>
         ''' Operator kind and expected number of parameters.
         ''' </summary>
         Friend Structure OperatorInfo
-            Private ReadOnly m_Id As Integer
+            Private ReadOnly _Id As Integer
 
             Public Sub New(op As UnaryOperatorKind)
-                m_Id = (1 Or (op << 2))
+                _Id = (1 Or (op << 2))
             End Sub
 
             Public Sub New(op As BinaryOperatorKind)
-                m_Id = (2 Or (op << 2))
+                _Id = (2 Or (op << 2))
             End Sub
 
             Public ReadOnly Property ParamCount As Integer
                 Get
-                    Return (m_Id And 3)
+                    Return (_Id And 3)
                 End Get
             End Property
 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return UnaryOperatorKind.Error
                     End If
 
-                    Return CType(m_Id >> 2, UnaryOperatorKind)
+                    Return CType(_Id >> 2, UnaryOperatorKind)
                 End Get
             End Property
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BinaryOperatorKind.Error
                     End If
 
-                    Return CType(m_Id >> 2, BinaryOperatorKind)
+                    Return CType(_Id >> 2, BinaryOperatorKind)
                 End Get
             End Property
         End Structure
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function GetOperatorInfo(name As String) As OperatorInfo
             Dim result As OperatorInfo = Nothing
 
-            If name.Length > 3 AndAlso IdentifierComparison.Equals("op_", name.Substring(0, 3)) AndAlso OperatorNames.TryGetValue(name, result) Then
+            If name.Length > 3 AndAlso IdentifierComparison.Equals("op_", name.Substring(0, 3)) AndAlso s_operatorNames.TryGetValue(name, result) Then
                 Return result
             End If
 
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             operators.Add(WellKnownMemberNames.UnsignedLeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
             operators.Add(WellKnownMemberNames.UnsignedRightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
 
-            OperatorNames = operators
+            s_operatorNames = operators
         End Sub
 
         Friend Shared Function GetOperatorTokenKind(name As String) As SyntaxKind
@@ -1954,7 +1954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conversionKinds = ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)).GetInstance()
             conversionKinds.ZeroInit(opSet.Count)
 
-            Dim applicable = BitArray.Create(opSet.Count)
+            Dim applicable = BitVector.Create(opSet.Count)
             Dim bestMatch As MethodSymbol = Nothing
 
             If DetermineMostSpecificWideningConversion(source, destination, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=False, useSiteDiagnostics:=useSiteDiagnostics) Then
@@ -2026,7 +2026,7 @@ Done:
             destination As TypeSymbol,
             opSet As ArrayBuilder(Of MethodSymbol),
             conversionKinds As ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)),
-            <[In]()> ByRef applicable As BitArray,
+            <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
@@ -2248,7 +2248,7 @@ Done:
 
         Private Shared Function ChooseMostSpecificConversionOperator(
             opSet As ArrayBuilder(Of MethodSymbol),
-            applicable As BitArray,
+            applicable As BitVector,
             mostSpecificSourceType As TypeSymbol,
             mostSpecificTargetType As TypeSymbol,
             <Out()> ByRef bestMatchIsAmbiguous As Boolean
@@ -2360,7 +2360,7 @@ Done:
             destination As TypeSymbol,
             opSet As ArrayBuilder(Of MethodSymbol),
             conversionKinds As ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)),
-            <[In]()> ByRef applicable As BitArray,
+            <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
@@ -2785,11 +2785,11 @@ Next_i:
             Dim result As Integer = 0
             Dim definition As MethodSymbol = method.OriginalDefinition
 
-            If DetectReferencesToGenericParameters(definition.Parameters(0).Type, TypeParameterKind.Type, BitArray.Null) <> TypeParameterKind.None Then
+            If DetectReferencesToGenericParameters(definition.Parameters(0).Type, TypeParameterKind.Type, BitVector.Null) <> TypeParameterKind.None Then
                 result += 1
             End If
 
-            If DetectReferencesToGenericParameters(definition.ReturnType, TypeParameterKind.Type, BitArray.Null) <> TypeParameterKind.None Then
+            If DetectReferencesToGenericParameters(definition.ReturnType, TypeParameterKind.Type, BitVector.Null) <> TypeParameterKind.None Then
                 result += 1
             End If
 
@@ -3269,35 +3269,35 @@ Next_i:
         Private NotInheritable Class LiftedParameterSymbol
             Inherits ParameterSymbol
 
-            Private ReadOnly m_ParameterToLift As ParameterSymbol
-            Private ReadOnly m_Type As TypeSymbol
+            Private ReadOnly _parameterToLift As ParameterSymbol
+            Private ReadOnly _type As TypeSymbol
 
             Public Sub New(parameter As ParameterSymbol, type As TypeSymbol)
                 Debug.Assert(parameter.IsDefinition)
                 Debug.Assert(type.IsNullableType())
-                m_ParameterToLift = parameter
-                m_Type = type
+                _parameterToLift = parameter
+                _type = type
             End Sub
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return m_ParameterToLift.Name
+                    Return _parameterToLift.Name
                 End Get
             End Property
 
             Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-                Return m_ParameterToLift.GetUseSiteErrorInfo()
+                Return _parameterToLift.GetUseSiteErrorInfo()
             End Function
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return m_ParameterToLift.ContainingSymbol
+                    Return _parameterToLift.ContainingSymbol
                 End Get
             End Property
 
             Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
-                    Return m_ParameterToLift.CustomModifiers
+                    Return _parameterToLift.CustomModifiers
                 End Get
             End Property
 
@@ -3309,98 +3309,98 @@ Next_i:
 
             Friend Overrides ReadOnly Property ExplicitDefaultConstantValue(inProgress As SymbolsInProgress(Of ParameterSymbol)) As ConstantValue
                 Get
-                    Return m_ParameterToLift.ExplicitDefaultConstantValue(inProgress)
+                    Return _parameterToLift.ExplicitDefaultConstantValue(inProgress)
                 End Get
             End Property
 
             Public Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
                 Get
-                    Return m_ParameterToLift.HasExplicitDefaultValue
+                    Return _parameterToLift.HasExplicitDefaultValue
                 End Get
             End Property
 
             Public Overrides ReadOnly Property IsByRef As Boolean
                 Get
-                    Return m_ParameterToLift.IsByRef
+                    Return _parameterToLift.IsByRef
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
                 Get
-                    Return m_ParameterToLift.IsExplicitByRef
+                    Return _parameterToLift.IsExplicitByRef
                 End Get
             End Property
 
             Public Overrides ReadOnly Property IsOptional As Boolean
                 Get
-                    Return m_ParameterToLift.IsOptional
+                    Return _parameterToLift.IsOptional
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsMetadataOut As Boolean
                 Get
-                    Return m_ParameterToLift.IsMetadataOut
+                    Return _parameterToLift.IsMetadataOut
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsMetadataIn As Boolean
                 Get
-                    Return m_ParameterToLift.IsMetadataIn
+                    Return _parameterToLift.IsMetadataIn
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
                 Get
-                    Return m_ParameterToLift.MarshallingInformation
+                    Return _parameterToLift.MarshallingInformation
                 End Get
             End Property
 
 
             Friend Overrides ReadOnly Property HasOptionCompare As Boolean
                 Get
-                    Return m_ParameterToLift.HasOptionCompare
+                    Return _parameterToLift.HasOptionCompare
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsIDispatchConstant As Boolean
                 Get
-                    Return m_ParameterToLift.IsIDispatchConstant
+                    Return _parameterToLift.IsIDispatchConstant
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsIUnknownConstant As Boolean
                 Get
-                    Return m_ParameterToLift.IsIUnknownConstant
+                    Return _parameterToLift.IsIUnknownConstant
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
                 Get
-                    Return m_ParameterToLift.IsCallerLineNumber
+                    Return _parameterToLift.IsCallerLineNumber
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
                 Get
-                    Return m_ParameterToLift.IsCallerMemberName
+                    Return _parameterToLift.IsCallerMemberName
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
                 Get
-                    Return m_ParameterToLift.IsCallerFilePath
+                    Return _parameterToLift.IsCallerFilePath
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
                 Get
-                    Return m_ParameterToLift.HasByRefBeforeCustomModifiers
+                    Return _parameterToLift.HasByRefBeforeCustomModifiers
                 End Get
             End Property
 
             Public Overrides ReadOnly Property IsParamArray As Boolean
                 Get
-                    Return m_ParameterToLift.IsParamArray
+                    Return _parameterToLift.IsParamArray
                 End Get
             End Property
 
@@ -3412,13 +3412,13 @@ Next_i:
 
             Public Overrides ReadOnly Property Ordinal As Integer
                 Get
-                    Return m_ParameterToLift.Ordinal
+                    Return _parameterToLift.Ordinal
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Type As TypeSymbol
                 Get
-                    Return m_Type
+                    Return _type
                 End Get
             End Property
         End Class

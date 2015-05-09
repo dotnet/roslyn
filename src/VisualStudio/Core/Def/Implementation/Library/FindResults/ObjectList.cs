@@ -4,14 +4,15 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using System.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
     internal class ObjectList : AbstractObjectList<LibraryManager>
     {
-        private readonly IList<AbstractListItem> _items;
+        private readonly IList<AbstractTreeItem> _items;
 
-        public ObjectList(IList<AbstractListItem> items, LibraryManager manager)
+        public ObjectList(IList<AbstractTreeItem> items, LibraryManager manager)
             : base(manager)
         {
             _items = items;
@@ -27,10 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                     return true;
 
                 case VSOBJGOTOSRCTYPE.GS_DEFINITION:
-                    return item.GlyphIndex != Glyph.Reference.GetGlyphIndex();
+                    return item.CanGoToDefinition();
 
                 case VSOBJGOTOSRCTYPE.GS_REFERENCE:
-                    return item.GlyphIndex == Glyph.Reference.GetGlyphIndex();
+                    return item.CanGoToReference();
             }
 
             return false;
@@ -56,13 +57,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             data.Image = item.GlyphIndex;
             data.SelectedImage = item.GlyphIndex;
             data.State |= (uint)_VSTREEDISPLAYSTATE.TDS_FORCESELECT;
+
+            if (item.UseGrayText)
+            {
+                data.State |= (uint)_VSTREEDISPLAYSTATE.TDS_GRAYTEXT;
+            }
+
             data.ForceSelectStart = item.DisplaySelectionStart;
             data.ForceSelectLength = item.DisplaySelectionLength;
         }
 
         protected override bool GetExpandable(uint index, uint listTypeExcluded)
         {
-            return false;
+            var item = _items[(int)index];
+            return (item?.Children?.Any() == true);
         }
 
         protected override uint GetItemCount()
@@ -72,7 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         protected override IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
         {
-            return null;
+            var item = _items[(int)index];
+            return (item?.Children?.Any() == true) ? new ObjectList(item.Children, LibraryManager) : null;
         }
 
         protected override string GetText(uint index, VSTREETEXTOPTIONS tto)

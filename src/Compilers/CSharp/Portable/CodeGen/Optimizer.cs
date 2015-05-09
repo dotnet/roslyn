@@ -292,8 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass1 : BoundTreeRewriter
     {
-        private int _counter = 0;
-        private int _evalStack = 0;
+        private int _counter;
+        private int _evalStack;
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
@@ -1210,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(left, right, node.LeftConversion, node.Type);
         }
 
-        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             var origStack = _evalStack;
             BoundExpression receiver = VisitCallReceiver(node.Receiver);
@@ -1220,11 +1220,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // right is evaluated with original stack 
             // (this is not entirely true, codegen will keep receiver on the stack, but that is irrelevant here)
             _evalStack = origStack;
-            BoundExpression access = (BoundExpression)this.Visit(node.AccessExpression);
+            BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(receiver, access, node.Type);
+            var whenNull = node.WhenNullOpt;
+            if (whenNull != null)
+            {
+                _evalStack = origStack;  // whennull is evaluated with original stack
+                whenNull = (BoundExpression)this.Visit(whenNull);
+                EnsureStackState(cookie);   // implicit label here
+            }
+            else
+            {
+                // compensate for the whenNull that we are not visiting.
+                _counter += 1;
+            }
+
+            return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.Type);
+        }
+
+        public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
+        {
+            EnsureOnlyEvalStack();
+
+            var origStack = this._evalStack;
+
+            this._evalStack += 1;
+
+            var cookie = GetStackStateCookie(); // implicit goto here 
+
+            this._evalStack = origStack; // consequence is evaluated with original stack 
+            var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
+
+            EnsureStackState(cookie); // implicit label here 
+
+            this._evalStack = origStack; // alternative is evaluated with original stack 
+            var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
+
+            EnsureStackState(cookie); // implicit label here 
+
+            return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
         }
 
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
@@ -1648,8 +1684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass2 : BoundTreeRewriter
     {
-        private int _nodeCounter = 0;
-        private Dictionary<LocalSymbol, LocalDefUseInfo> _info;
+        private int _nodeCounter;
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _info;
 
         private StackOptimizerPass2(Dictionary<LocalSymbol, LocalDefUseInfo> info)
         {

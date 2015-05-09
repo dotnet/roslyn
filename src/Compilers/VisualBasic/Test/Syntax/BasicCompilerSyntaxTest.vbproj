@@ -15,12 +15,13 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <VBSyntaxGeneratorToolPath>$(OutDir)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
@@ -147,6 +148,7 @@
     <Compile Include="Scanner\XmlScannerTests.vb" />
     <Compile Include="Syntax\ConstantExpressionEvaluatorTests.vb" />
     <Compile Include="Syntax\GeneratedTests.vb" />
+    <Compile Include="Syntax\LambdaUtilitiesTests.vb" />
     <Compile Include="Syntax\ManualTests.vb" />
     <Compile Include="Syntax\SeparatedSyntaxListTests.vb" />
     <Compile Include="Syntax\SerializationTests.vb" />
@@ -155,7 +157,7 @@
     <Compile Include="Syntax\SyntaxEquivalenceTests.vb" />
     <Compile Include="Syntax\SyntaxFactoryTests.vb" />
     <Compile Include="Syntax\SyntaxFactsTest.vb" />
-    <Compile Include="Syntax\SyntaxFormatterTests.vb" />
+    <Compile Include="Syntax\SyntaxNormalizerTests.vb" />
     <Compile Include="Syntax\SyntaxListTests.vb" />
     <Compile Include="Syntax\SyntaxRewriterTests.vb" />
     <Compile Include="Syntax\SyntaxTokenFactoryTests.vb" />

@@ -75,8 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // Script and interactive
                 return GetSymbolsForGlobalStatementContext(context, cancellationToken);
             }
-            else if (context.IsAnyExpressionContext || context.IsStatementContext)
+            else if (context.IsAnyExpressionContext ||
+                     context.IsStatementContext ||
+                     context.SyntaxTree.IsDefiniteCastTypeContext(context.Position, context.LeftToken, cancellationToken))
             {
+                // GitHub #717: With automatic brace completion active, typing '(i' produces "(i)", which gets parsed as
+                // as cast. The user might be trying to type a parenthesized expression, so even though a cast
+                // is a type-only context, we'll show all symbols anyway.
                 return GetSymbolsForExpressionOrStatementContext(context, filterOutOfScopeLocals, cancellationToken);
             }
             else if (context.IsTypeContext || context.IsNamespaceContext)
@@ -393,6 +398,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var expression = originalExpression.WalkDownParentheses();
             var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
             var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type.RemoveNullableIfPresent();
+
+            // If the thing on the left is a type, namespace, or alias, we shouldn't show anything in
+            // IntelliSense.
+            if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
         }
 
@@ -492,11 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // Show static and instance members.
             if (context.IsNameOfContext)
             {
-                if (symbol != null && !(symbol.MatchesKind(SymbolKind.NamedType) || symbol.MatchesKind(SymbolKind.Namespace)))
-                {
-                    return SpecializedCollections.EmptyEnumerable<ISymbol>();
-                }
-
                 excludeInstance = false;
                 excludeStatic = false;
             }

@@ -18,6 +18,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         Inherits BasicTestBase
 
         <Fact>
+        Public Sub TestDecodeCustomAttributeType()
+            Dim text = <compilation>
+                           <file name="a.vb">
+                               <![CDATA[
+Imports System.Runtime.InteropServices
+
+<CoClass(GetType(Integer))>
+Public Interface IT
+    Sub M()
+End Interface
+]]>
+                           </file>
+                       </compilation>
+            Dim comp1 = CreateCompilationWithReferences(text, references:={MscorlibRef_v20})
+            Dim ref1 = comp1.EmitToImageReference()
+            Dim text2 =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class C
+    Implements IT
+    Sub M() Implements IT.M
+    End Sub
+End Class]]>
+    </file>
+</compilation>
+
+            Dim comp2 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
+
+            Dim it = comp2.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
+            Assert.False(it.CoClassType.IsErrorType())
+
+            ' Test retargeting symbols by using the compilation itself as a reference
+            Dim comp3 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
+            Dim it2 = comp3.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
+            Assert.Same(comp3.SourceModule.GetReferencedAssemblySymbols()(0), it2.CoClassType.ContainingAssembly)
+            Assert.False(it2.CoClassType.IsErrorType())
+        End Sub
+
+        <Fact>
         Public Sub TestAssemblyAttributes()
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(

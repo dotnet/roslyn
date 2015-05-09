@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         private readonly IController<TModel> _controller;
         private readonly TaskScheduler __taskScheduler;
 
-		private TaskScheduler _taskScheduler
-		{
-			get
-			{
-				AssertIsForeground();
-				return __taskScheduler;
-			}
-		}
+        private TaskScheduler _taskScheduler
+        {
+            get
+            {
+                AssertIsForeground();
+                return __taskScheduler;
+            }
+        }
 
         private readonly CancellationTokenSource _stopTokenSource;
 
@@ -107,6 +107,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
             // cancel all outstanding tasks.
             _stopTokenSource.Cancel();
+
+            // reset task so that it doesn't hold onto things like WpfTextView
+            _notifyControllerTask = _lastTask = SpecializedTasks.Default<TModel>();
         }
 
         public void ChainTaskAndNotifyControllerWhenFinished(

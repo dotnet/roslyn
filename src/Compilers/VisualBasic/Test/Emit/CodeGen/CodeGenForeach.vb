@@ -82,7 +82,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe).VerifyIL("C.Main", <![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE")).VerifyIL("C.Main", <![CDATA[
 {
   // Code size       37 (0x25)
   .maxstack  3
@@ -91,7 +91,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.0
@@ -913,7 +913,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), additionalRefs:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
 1
 2
 3
@@ -927,17 +927,17 @@ End Class
     IL_0000:  ldc.i4.3
     IL_0001:  newarr     "Integer"
     IL_0006:  dup
-    IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
+    IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
     IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-    IL_0011:  ldsfld     "C._Closure$__.$I1-1 As System.Func(Of Integer, String)"
+    IL_0011:  ldsfld     "C._Closure$__.$I1-0 As System.Func(Of Integer, String)"
     IL_0016:  brfalse.s  IL_001f
-    IL_0018:  ldsfld     "C._Closure$__.$I1-1 As System.Func(Of Integer, String)"
+    IL_0018:  ldsfld     "C._Closure$__.$I1-0 As System.Func(Of Integer, String)"
     IL_001d:  br.s       IL_0035
     IL_001f:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-    IL_0024:  ldftn      "Function C._Closure$__._Lambda$__1-1(Integer) As String"
+    IL_0024:  ldftn      "Function C._Closure$__._Lambda$__1-0(Integer) As String"
     IL_002a:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
     IL_002f:  dup
-    IL_0030:  stsfld     "C._Closure$__.$I1-1 As System.Func(Of Integer, String)"
+    IL_0030:  stsfld     "C._Closure$__.$I1-0 As System.Func(Of Integer, String)"
     IL_0035:  call       "Function System.Linq.Enumerable.Select(Of Integer, String)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, String)) As System.Collections.Generic.IEnumerable(Of String)"
     IL_003a:  callvirt   "Function System.Collections.Generic.IEnumerable(Of String).GetEnumerator() As System.Collections.Generic.IEnumerator(Of String)"
     IL_003f:  stloc.0
@@ -2622,7 +2622,7 @@ End Module
     IL_0039:  stfld      "m1._Closure$__0-0.$VB$Local_i As Integer"
     IL_003e:  ldloc.0
     IL_003f:  ldloc.3
-    IL_0040:  ldftn      "Sub m1._Closure$__0-0._Lambda$__1()"
+    IL_0040:  ldftn      "Sub m1._Closure$__0-0._Lambda$__0()"
     IL_0046:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
     IL_004b:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
     IL_0050:  ldloca.s   V_2
@@ -2707,7 +2707,7 @@ End Module
   IL_0002:  newarr     "System.Action"
   IL_0007:  stloc.0
   IL_0008:  newobj     "Sub m1._Closure$__0-0..ctor()"
-  IL_000d:  callvirt   "Function m1._Closure$__0-0._Lambda$__1() As Integer()"
+  IL_000d:  callvirt   "Function m1._Closure$__0-0._Lambda$__0() As Integer()"
   IL_0012:  stloc.1
   IL_0013:  ldc.i4.0
   IL_0014:  stloc.2
@@ -2724,7 +2724,7 @@ End Module
   IL_0028:  ldloc.3
   IL_0029:  ldfld      "m1._Closure$__0-1.$VB$Local_i As Integer"
   IL_002e:  ldloc.3
-  IL_002f:  ldftn      "Sub m1._Closure$__0-1._Lambda$__2()"
+  IL_002f:  ldftn      "Sub m1._Closure$__0-1._Lambda$__1()"
   IL_0035:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_003a:  stelem.ref
   IL_003b:  ldloc.2
@@ -2812,15 +2812,15 @@ End Module
   IL_000a:  nop
   .try
   {
-    IL_000b:  ldsfld     "m1._Closure$__.$I0-1 As <generated method>"
+    IL_000b:  ldsfld     "m1._Closure$__.$I0-0 As <generated method>"
     IL_0010:  brfalse.s  IL_0019
-    IL_0012:  ldsfld     "m1._Closure$__.$I0-1 As <generated method>"
+    IL_0012:  ldsfld     "m1._Closure$__.$I0-0 As <generated method>"
     IL_0017:  br.s       IL_002f
     IL_0019:  ldsfld     "m1._Closure$__.$I As m1._Closure$__"
-    IL_001e:  ldftn      "Function m1._Closure$__._Lambda$__0-1(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_001e:  ldftn      "Function m1._Closure$__._Lambda$__0-0(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
     IL_0024:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
     IL_0029:  dup
-    IL_002a:  stsfld     "m1._Closure$__.$I0-1 As <generated method>"
+    IL_002a:  stsfld     "m1._Closure$__.$I0-0 As <generated method>"
     IL_002f:  ldloc.2
     IL_0030:  box        "Integer"
     IL_0035:  callvirt   "Function VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer)).Invoke(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
@@ -2838,7 +2838,7 @@ End Module
     IL_0059:  ldloc.s    V_4
     IL_005b:  ldfld      "m1._Closure$__0-0.$VB$Local_i As Integer"
     IL_0060:  ldloc.s    V_4
-    IL_0062:  ldftn      "Sub m1._Closure$__0-0._Lambda$__2()"
+    IL_0062:  ldftn      "Sub m1._Closure$__0-0._Lambda$__1()"
     IL_0068:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
     IL_006d:  stelem.ref
     IL_006e:  ldloc.3
@@ -2939,7 +2939,7 @@ End Module
   IL_0013:  dup
   IL_0014:  ldfld      "m1._Closure$__0-0.$VB$NonLocal_2 As Integer"
   IL_0019:  box        "Integer"
-  IL_001e:  callvirt   "Function m1._Closure$__0-0._Lambda$__1(Object) As Object()"
+  IL_001e:  callvirt   "Function m1._Closure$__0-0._Lambda$__0(Object) As Object()"
   IL_0023:  stloc.2
   IL_0024:  ldc.i4.0
   IL_0025:  stloc.3
@@ -2955,7 +2955,7 @@ End Module
   IL_003b:  stfld      "m1._Closure$__0-1.$VB$Local_x As Integer"
   IL_0040:  ldloc.0
   IL_0041:  ldloc.s    V_4
-  IL_0043:  ldftn      "Sub m1._Closure$__0-1._Lambda$__2()"
+  IL_0043:  ldftn      "Sub m1._Closure$__0-1._Lambda$__1()"
   IL_0049:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004e:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0053:  ldloc.3
@@ -2968,15 +2968,15 @@ End Module
   IL_005a:  conv.i4
   IL_005b:  blt.s      IL_0028
   IL_005d:  ldloc.0
-  IL_005e:  ldsfld     "m1._Closure$__.$I0-3 As System.Action"
+  IL_005e:  ldsfld     "m1._Closure$__.$I0-2 As System.Action"
   IL_0063:  brfalse.s  IL_006c
-  IL_0065:  ldsfld     "m1._Closure$__.$I0-3 As System.Action"
+  IL_0065:  ldsfld     "m1._Closure$__.$I0-2 As System.Action"
   IL_006a:  br.s       IL_0082
   IL_006c:  ldsfld     "m1._Closure$__.$I As m1._Closure$__"
-  IL_0071:  ldftn      "Sub m1._Closure$__._Lambda$__0-3()"
+  IL_0071:  ldftn      "Sub m1._Closure$__._Lambda$__0-2()"
   IL_0077:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_007c:  dup
-  IL_007d:  stsfld     "m1._Closure$__.$I0-3 As System.Action"
+  IL_007d:  stsfld     "m1._Closure$__.$I0-2 As System.Action"
   IL_0082:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0087:  ldloc.1
   IL_0088:  ldc.i4.1
@@ -3028,7 +3028,7 @@ Class C
     End Sub
 End Class        
     </file>
-</compilation>, expectedOutput:=<![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput:=<![CDATA[
 1
 2
 3
@@ -3041,7 +3041,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   .try

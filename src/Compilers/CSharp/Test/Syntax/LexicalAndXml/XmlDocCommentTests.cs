@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestEmptyElementNoAttributes()
         {
             var text = "/// <foo />";
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, leading[0].ToFullString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestEmptyElementNoAttributesPrecedingClass()
         {
             var text =
@@ -265,7 +265,7 @@ class C { }";
             Assert.Equal("x\"y\"z", attr.TextTokens[0].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestEmptyElementNoAttributesMultipleLines()
         {
             var text =
@@ -288,7 +288,7 @@ class C { }";
             Assert.Equal("<foo \r\n/// />", doc.Content[1].ToFullString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestEmptyElementNoAttributesMultipleLinesPrecedingClass()
         {
             var text =
@@ -313,7 +313,7 @@ class C { }";
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestEmptyElementNoAttributesMultipleLinesDelimited()
         {
             var text =
@@ -338,7 +338,7 @@ class C { }";
             Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestEmptyElementNoAttributesMultipleLinesDelimitedPrecedingClass()
         {
             var text =
@@ -701,7 +701,7 @@ class C { }";
             Assert.NotEqual(0, doc.ErrorsAndWarnings().Length);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestNonEmptyElementNoAttributes()
         {
             var text =
@@ -734,7 +734,7 @@ class C { }";
             Assert.Equal(" ", textsyntax.ChildNodesAndTokens()[3].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestNonEmptyElementNoAttributesDelimited()
         {
             var text =
@@ -768,7 +768,7 @@ class C { }";
             Assert.Equal(" ", textsyntax.ChildNodesAndTokens()[3].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestCDataSection()
         {
             var text =
@@ -798,7 +798,7 @@ class C { }";
             Assert.Equal(" \"']]<>/></text", cdata.TextTokens[4].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestCDataSectionDelimited()
         {
             var text =
@@ -854,7 +854,7 @@ class C { }";
             Assert.Equal(" incomplete", cdata.TextTokens[0].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestIncompleteEOLCDataSection()
         {
             var text = @"/// <![CDATA[ incomplete
@@ -930,7 +930,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" incomplete", cdata.TextTokens[0].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestComment()
         {
             var text =
@@ -960,7 +960,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" \"']]<>/></text", comment.TextTokens[4].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestCommentDelimited()
         {
             var text =
@@ -1016,7 +1016,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" incomplete", comment.TextTokens[0].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestIncompleteEOLComment()
         {
             var text = @"/// <!-- incomplete
@@ -1066,7 +1066,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" incomplete", comment.TextTokens[0].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestProcessingInstruction()
         {
             var text =
@@ -1098,7 +1098,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" \"']]>/>?</text", ProcessingInstruction.TextTokens[4].ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestProcessingInstructionDelimited()
         {
             var text =
@@ -1589,7 +1589,7 @@ class C { }";
         }
 
         [WorkItem(899559, "DevDiv/Personal")]
-        [Fact]
+        [ClrOnlyFact]
         public void TestNoZeroWidthTrivia()
         {
             var text =
@@ -2329,7 +2329,7 @@ class C{}";
         }
 
         [WorkItem(906704, "DevDiv/Personal")]
-        [Fact]
+        [ClrOnlyFact]
         public void TestSingleLineXmlCommentWithMissingStartTag()
         {
             var text = @"///</Foo>
@@ -2988,8 +2988,8 @@ public class Program
         /// </summary>
         private class TestError
         {
-            public bool IsWarning { get; set; }
-            public int ErrorCode { get; set; }
+            public bool IsWarning { get; }
+            public int ErrorCode { get; }
 
             public TestError(int code, bool warning)
             {

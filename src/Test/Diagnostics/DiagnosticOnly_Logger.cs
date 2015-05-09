@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -51,20 +53,6 @@ namespace Roslyn.Hosting.Diagnostics
         }
 
         /// <summary>
-        /// let ones such as Perf setup to share loggingChecker func
-        /// </summary>
-        internal static Func<FunctionId, bool> GetLoggingChecker(IOptionService optionsService)
-        {
-            var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
-            var functionIdOptions = functionIds.ToDictionary(
-                id => id, id => optionsService.GetOption(FunctionIdOptions.GetOption(id)));
-
-            Func<FunctionId, bool> loggingChecker = (functionId) => functionIdOptions[functionId];
-
-            return loggingChecker;
-        }
-
-        /// <summary>
         /// get string representation of functionId
         /// </summary>
         public static string GetFunctionId(int functionId)
@@ -107,9 +95,9 @@ namespace Roslyn.Hosting.Diagnostics
             switch (loggerName)
             {
                 case "EtwLogger":
-                    return new EtwLogger(GetLoggingChecker(optionsService));
+                    return new EtwLogger(Logger.GetLoggingChecker(optionsService));
                 case "TraceLogger":
-                    return new TraceLogger(GetLoggingChecker(optionsService));
+                    return new TraceLogger(Logger.GetLoggingChecker(optionsService));
                 default:
                     return EmptyLogger.Instance;
             }

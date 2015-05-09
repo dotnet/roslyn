@@ -16,7 +16,7 @@
     </InternalsVisibleToTest>
   </ItemDefinitionGroup>
 
-  <PropertyGroup Condition="'$(PublicKey)' != ''">
+  <PropertyGroup Condition="'$(PublicKey)' != '' and '$(SignAssembly)' == 'True'">
     <InternalsVisibleToSuffix>, PublicKey=$(PublicKey)</InternalsVisibleToSuffix>
     <InternalsVisibleToTestSuffix>, PublicKey=$(RoslynInternalKey)</InternalsVisibleToTestSuffix>
   </PropertyGroup>

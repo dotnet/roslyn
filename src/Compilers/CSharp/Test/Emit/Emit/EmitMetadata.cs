@@ -161,7 +161,7 @@ public class Test : C107
                 Assert.Equal(2, refs.Length);
                 Assert.Equal(refs[0].Name, "MDTestLib1", StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(refs[1].Name, "mscorlib", StringComparer.OrdinalIgnoreCase);
-            }, emitOptions: TestEmitters.CCI); // TODO(tomat): Ref.Emit infrastructure can't locate the dependent assemblies
+            }, emitters: TestEmitters.CCI); // TODO(tomat): Ref.Emit infrastructure can't locate the dependent assemblies
         }
 
         [Fact]
@@ -233,8 +233,9 @@ public class Test : Class2
                 Cci.PeWriter.WritePeToStream(
                     context,
                     compilation.MessageProvider,
-                    stream,
+                    () => stream,
                     nativePdbWriterOpt: null,
+                    pdbPathOpt: null,
                     allowMissingMethodBodies: false,
                     deterministic: false,
                     cancellationToken: CancellationToken.None);
@@ -262,7 +263,7 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, emitOptions: TestEmitters.RefEmitBug, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, emitters: TestEmitters.RefEmitBug, assemblyValidator: (assembly, _) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 
@@ -426,7 +427,7 @@ abstract public class A
     public abstract void M5<T, S>(T p17, S p18);
 }";
 
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: TestEmitters.CCI, symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitters: TestEmitters.CCI, symbolValidator: module =>
             {
                 var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
 
@@ -534,7 +535,7 @@ static class C
                     Assert.Equal(5, peModuleSymbol.Module.GetMetadataReader().TypeReferences.Count);
                 }
             };
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: TestEmitters.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitters: TestEmitters.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1733,7 +1734,7 @@ public class E
   }
   N2 n2; 
 }
-", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+", emitters: TestEmitters.RefEmitUnsupported_646042);
         }
 
         // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
@@ -1758,7 +1759,7 @@ public class E
   }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"1234", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: @"1234", emitters: TestEmitters.RefEmitUnsupported_646042);
         }
 
         [Fact]
@@ -1767,7 +1768,7 @@ public class E
             CompileAndVerify(@"
 class B<T> where T : A {}
 class A : B<A> {}
-", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+", emitters: TestEmitters.RefEmitUnsupported_646042);
         }
 
         [Fact]
@@ -1840,7 +1841,7 @@ public class B : I<C> { }
 public class C : I<B> { }
 public interface I<T> { }
 ";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, emitters: TestEmitters.RefEmitUnsupported_646042);
         }
 
         [Fact]

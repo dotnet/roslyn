@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SynthesizedMethodBase
 
         Protected ReadOnly m_propertyOrEvent As T
-        Private m_lazyMetadataName As String
+        Private _lazyMetadataName As String
 
         Protected Sub New(container As NamedTypeSymbol, propertyOrEvent As T)
             MyBase.New(container)
@@ -27,10 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                If m_lazyMetadataName Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyMetadataName, GenerateMetadataName(), Nothing)
+                If _lazyMetadataName Is Nothing Then
+                    Interlocked.CompareExchange(_lazyMetadataName, GenerateMetadataName(), Nothing)
                 End If
-                Return m_lazyMetadataName
+                Return _lazyMetadataName
             End Get
         End Property
 

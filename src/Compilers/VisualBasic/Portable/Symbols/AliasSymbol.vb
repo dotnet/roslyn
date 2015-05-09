@@ -51,10 +51,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits Symbol
         Implements IAliasSymbol
 
-        Private ReadOnly aliasTarget As NamespaceOrTypeSymbol
-        Private ReadOnly aliasName As String
-        Private ReadOnly aliasLocations As ImmutableArray(Of Location)
-        Private ReadOnly aliasContainer As Symbol
+        Private ReadOnly _aliasTarget As NamespaceOrTypeSymbol
+        Private ReadOnly _aliasName As String
+        Private ReadOnly _aliasLocations As ImmutableArray(Of Location)
+        Private ReadOnly _aliasContainer As Symbol
 
         Friend Sub New(compilation As VisualBasicCompilation,
                        aliasContainer As Symbol,
@@ -68,11 +68,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 sourceNs = merged.GetConstituentForCompilation(compilation)
             End If
 
-            Me.aliasContainer = If(sourceNs, aliasContainer)
+            Me._aliasContainer = If(sourceNs, aliasContainer)
 
-            Me.aliasTarget = aliasTarget
-            Me.aliasName = aliasName
-            Me.aliasLocations = ImmutableArray.Create(aliasLocation)
+            Me._aliasTarget = aliasTarget
+            Me._aliasName = aliasName
+            Me._aliasLocations = ImmutableArray.Create(aliasLocation)
         End Sub
 
         ''' <summary>
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overrides ReadOnly Property Name As String
             Get
-                Return aliasName
+                Return _aliasName
             End Get
         End Property
 
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property Target As NamespaceOrTypeSymbol
             Get
-                Return Me.aliasTarget
+                Return Me._aliasTarget
             End Get
         End Property
 
@@ -110,17 +110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
-            ' WARNING: This property must not cause allocation!
-            Return New LexicalSortKey(aliasLocations(0), Me.DeclaringCompilation)
-        End Function
-
         ''' <summary>
         ''' Gets the locations where this symbol was originally defined.
         ''' </summary>
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return aliasLocations
+                Return _aliasLocations
             End Get
         End Property
 
@@ -225,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </returns>
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return aliasContainer
+                Return _aliasContainer
             End Get
         End Property
 

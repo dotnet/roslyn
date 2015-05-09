@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
 
                 Dim keywordList = GetIntrinsicTypeKeywords(context)
 
-                Return keywordList.Where(Function(k) k.Keyword.EndsWith("Byte") OrElse
-                                                     k.Keyword.EndsWith("Short") OrElse
-                                                     k.Keyword.EndsWith("Integer") OrElse
-                                                     k.Keyword.EndsWith("Long"))
+                Return keywordList.Where(Function(k) k.Keyword.EndsWith("Byte", StringComparison.Ordinal) OrElse
+                                                     k.Keyword.EndsWith("Short", StringComparison.Ordinal) OrElse
+                                                     k.Keyword.EndsWith("Integer", StringComparison.Ordinal) OrElse
+                                                     k.Keyword.EndsWith("Long", StringComparison.Ordinal))
             End If
 
             ' Are we inside a type constraint? Because these are never allowed there
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Shared ReadOnly intrinsicKeywordNames As String() = {
+        Private Shared ReadOnly s_intrinsicKeywordNames As String() = {
             "Boolean",
             "Byte",
             "Char",
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
             "ULong",
             "UShort"}
 
-        Private Shared ReadOnly intrinsicSpecialTypes As SByte() = {
+        Private Shared ReadOnly s_intrinsicSpecialTypes As SByte() = {
             SpecialType.System_Boolean,
             SpecialType.System_Byte,
             SpecialType.System_Char,
@@ -89,14 +89,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
             SpecialType.System_UInt16}
 
         Private Function GetIntrinsicTypeKeywords(context As VisualBasicSyntaxContext) As IEnumerable(Of RecommendedKeyword)
-            Debug.Assert(intrinsicKeywordNames.Length = intrinsicSpecialTypes.Length)
+            Debug.Assert(s_intrinsicKeywordNames.Length = s_intrinsicSpecialTypes.Length)
 
-            Dim recommendedKeywords(intrinsicKeywordNames.Length - 1) As RecommendedKeyword
-            For i = 0 To intrinsicKeywordNames.Length - 1
-                Dim keyword As String = intrinsicKeywordNames(i)
-                Dim specialType As SpecialType = DirectCast(intrinsicSpecialTypes(i), SpecialType)
+            Dim recommendedKeywords(s_intrinsicKeywordNames.Length - 1) As RecommendedKeyword
+            For i = 0 To s_intrinsicKeywordNames.Length - 1
+                Dim keyword As String = s_intrinsicKeywordNames(i)
+                Dim specialType As SpecialType = DirectCast(s_intrinsicSpecialTypes(i), SpecialType)
 
-                recommendedKeywords(i) = New RecommendedKeyword(intrinsicKeywordNames(i), Glyph.Keyword,
+                recommendedKeywords(i) = New RecommendedKeyword(s_intrinsicKeywordNames(i), Glyph.Keyword,
                                                                 Function(cancellationToken)
                                                                     Dim tooltip = GetDocumentationCommentText(context, specialType, cancellationToken)
                                                                     Return RecommendedKeyword.CreateDisplayParts(keyword, tooltip)

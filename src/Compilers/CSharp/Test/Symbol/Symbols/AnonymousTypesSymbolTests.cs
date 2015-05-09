@@ -746,7 +746,7 @@ class Query
                 expectedOutput: "{ ToString = Field }-Field");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AnonymousTypeSymbol_StandardNames3()
         {
             var source = @"
@@ -1291,7 +1291,7 @@ class Query
             CompileAndVerify(
                 source,
                 additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
-                emitOptions: TestEmitters.RefEmitUnsupported_646023);
+                emitters: TestEmitters.RefEmitUnsupported_646023);
         }
 
         [Fact]
@@ -1494,7 +1494,7 @@ class Class3
                     symbolValidator: module =>
                     {
                         var types = module.GlobalNamespace.GetTypeMembers()
-                                        .Where(t => t.Name.StartsWith("<>"))
+                                        .Where(t => t.Name.StartsWith("<>", StringComparison.Ordinal))
                                         .Select(t => t.ToDisplayString())
                                         .OrderBy(t => t)
                                         .ToArray();
@@ -1510,7 +1510,7 @@ class Class3
 
                 // do some speculative semantic query
                 var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
-                var position = source1.IndexOf("var d") - 1;
+                var position = source1.IndexOf("var d", StringComparison.Ordinal) - 1;
                 var expr1 = SyntaxFactory.ParseExpression("new { x = 1, y" + i.ToString() + " = \"---\" }");
                 var info1 = model.GetSpeculativeTypeInfo(position, expr1, SpeculativeBindingOption.BindAsExpression);
                 Assert.NotNull(info1.Type);
@@ -1739,7 +1739,7 @@ class Program
             Assert.True(statement2.Span.Contains(typeA4.Locations[0].SourceSpan));
         }
 
-        private static SyntaxTree s_equalityComparerSourceTree = Parse(@"
+        private static readonly SyntaxTree s_equalityComparerSourceTree = Parse(@"
 namespace System.Collections
 {
   public interface IEqualityComparer

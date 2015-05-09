@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
                 var str = CSharpObjectFormatter.Instance.FormatObject(obj, options);
 
                 var expected = output.Substring(0, i - " ...".Length);
-                if (!expected.EndsWith(" "))
+                if (!expected.EndsWith(" ", StringComparison.Ordinal))
                 {
                     expected += " ";
                 }

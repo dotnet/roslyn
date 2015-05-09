@@ -569,7 +569,7 @@ System.Nullable`1[ELong]: one
 System.Nullable`1[ELong]: <null>
 System.Nullable`1[ELong]: <null>";
 
-            CompileAndVerify(source, expectedOutput: expected, emitOptions: TestEmitters.RefEmitBug_646048);
+            CompileAndVerify(source, expectedOutput: expected, emitters: TestEmitters.RefEmitBug_646048);
         }
 
         [Fact]
@@ -1161,7 +1161,8 @@ public static class ErrorCases
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"));
         }
 
-        [Fact, WorkItem(544440, "DevDiv")]
+        [WorkItem(544440, "DevDiv")]
+        [ClrOnlyFact]
         public void TestBug12768()
         {
             string sourceDefinitions = @"
@@ -1338,7 +1339,7 @@ class C
         }
 
         [WorkItem(545337, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void TestVbDecimalAndDateTimeDefaultParameters()
         {
             var vb = @"
@@ -2057,7 +2058,7 @@ public struct S
             };
 
             // TODO: RefEmit doesn't emit the default value of M1's parameter.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitters: TestEmitters.RefEmitBug);
         }
 
         [Fact]
@@ -2293,7 +2294,7 @@ public class C
             };
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitters: TestEmitters.RefEmitBug);
         }
     }
 }

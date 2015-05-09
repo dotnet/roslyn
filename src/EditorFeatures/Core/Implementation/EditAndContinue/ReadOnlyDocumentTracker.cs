@@ -86,12 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             AssertIsForeground();
 
-            var document = _workspace.CurrentSolution.GetDocument(documentId);
-            Debug.Assert(document != null);
-
             SessionReadOnlyReason sessionReason;
             ProjectReadOnlyReason projectReason;
-            bool isReadOnly = _encService.IsProjectReadOnly(document.Project.Name, out sessionReason, out projectReason);
+            bool isReadOnly = _encService.IsProjectReadOnly(documentId.ProjectId, out sessionReason, out projectReason);
 
             if (isEdit && isReadOnly)
             {

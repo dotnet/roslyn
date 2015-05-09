@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 #Region "Symbol / Type Info"
 
         <Fact>
-        Sub WithAliasedStaticField()
+        Public Sub WithAliasedStaticField()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -49,7 +49,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
+        Public Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -76,7 +76,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(544083, "DevDiv")>
-        Sub WithSpeculativeSymbolInfo()
+        Public Sub WithSpeculativeSymbolInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -95,7 +95,7 @@ End Module
     </file>
 </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression(".property2")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
@@ -114,7 +114,7 @@ End Module
 #Region "FlowAnalysis"
 
         <Fact>
-        Sub UseWithVariableInNestedLambda()
+        Public Sub UseWithVariableInNestedLambda()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -141,9 +141,9 @@ End Module
             Assert.Empty(dataFlowResults.DataFlowsIn)
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Empty(dataFlowResults.ReadInside)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.ReadOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
             Assert.Empty(dataFlowResults.WrittenInside)
-            Assert.Equal("f, x", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
+            Assert.Equal("x, f", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
 
             Assert.Empty(controlFlowResults.EntryPoints)
             Assert.False(controlFlowResults.EndPointIsReachable)
@@ -152,7 +152,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub WithDeclaresAnonymousLocalDataFlow()
+        Public Sub WithDeclaresAnonymousLocalDataFlow()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -184,7 +184,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub EmptyWith()
+        Public Sub EmptyWith()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -202,9 +202,9 @@ End Module
 
             Assert.Empty(dataFlowResults.VariablesDeclared)
             Assert.Empty(dataFlowResults.AlwaysAssigned)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.DataFlowsIn))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.ReadInside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.ReadOutside)
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.WrittenOutside)

@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const string HTML = "HTML";
         private const string Razor = "Razor";
+        private const string XOML = "XOML";
 
         private const char RazorExplicit = '@';
 
@@ -72,11 +72,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly string _itemMoniker;
 
         public AbstractProject Project { get { return _containedLanguage.Project; } }
-        public DocumentId Id { get; private set; }
-        public IReadOnlyList<string> Folders { get; private set; }
-        public TextLoader Loader { get; private set; }
-        public DocumentKey Key { get; private set; }
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+
+        public DocumentId Id { get; }
+        public IReadOnlyList<string> Folders { get; }
+        public TextLoader Loader { get; }
+        public DocumentKey Key { get; }
 
         public ContainedDocument(
             AbstractContainedLanguage containedLanguage,
@@ -97,7 +98,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _hostType = GetHostType();
 
             var rdt = (IVsRunningDocumentTable)componentModel.GetService<SVsServiceProvider>().GetService(typeof(SVsRunningDocumentTable));
-            var filePath = rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
+
+            IVsHierarchy sharedHierarchy;
+            uint itemIdInSharedHierarchy;
+            var isSharedHierarchy = LinkedFileUtilities.TryGetSharedHierarchyAndItemId(hierarchy, itemId, out sharedHierarchy, out itemIdInSharedHierarchy);
+
+            var filePath = isSharedHierarchy
+                ? rdt.GetMonikerForHierarchyAndItemId(sharedHierarchy, itemIdInSharedHierarchy)
+                : rdt.GetMonikerForHierarchyAndItemId(hierarchy, itemId);
+
+            // we couldn't look up the document moniker in RDT for a hierarchy/item pair
+            // Since we only use this moniker as a key, we could fall back to something else, like the document name.
+            if (filePath == null)
+            {
+                Debug.Assert(false, "Could not get the document moniker for an item in its hierarchy.");
+                filePath = hierarchy.GetDocumentNameForHierarchyAndItemId(itemId);
+            }
 
             if (Project.Hierarchy != null)
             {
@@ -117,14 +133,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private HostType GetHostType()
         {
-            if (_containedLanguage.DataBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML)))
+            var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
+            if (projectionBuffer != null)
             {
-                return HostType.HTML;
-            }
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML)))
+                {
+                    return HostType.HTML;
+                }
 
-            if (_containedLanguage.DataBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
+                {
+                    return HostType.Razor;
+                }
+            }
+            else
             {
-                return HostType.Razor;
+                // XOML is set up differently. For XOML, the secondary buffer (i.e. SubjectBuffer)
+                // is a projection buffer, while the primary buffer (i.e. DataBuffer) is not. Instead,
+                // the primary buffer is a regular unprojected ITextBuffer with the HTML content type.
+                if (_containedLanguage.DataBuffer.CurrentSnapshot.ContentType.IsOfType(HTML))
+                {
+                    return HostType.XOML;
+                }
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -629,17 +659,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private static string GetReplacementStrings(string leftText, string rightText, string initialReplacement)
         {
-            if (leftText.IndexOf(initialReplacement) < 0 && rightText.IndexOf(initialReplacement) < 0)
+            if (leftText.IndexOf(initialReplacement, StringComparison.Ordinal) < 0 && rightText.IndexOf(initialReplacement, StringComparison.Ordinal) < 0)
             {
                 return initialReplacement;
             }
 
             // okay, there is already one in the given text.
-            var format = "{{|{0}|{1}|{0}|}}";
+            const string format = "{{|{0}|{1}|{0}|}}";
             for (var i = 0; true; i++)
             {
                 var replacement = string.Format(format, i.ToString(), initialReplacement);
-                if (leftText.IndexOf(replacement) < 0 && rightText.IndexOf(replacement) < 0)
+                if (leftText.IndexOf(replacement, StringComparison.Ordinal) < 0 && rightText.IndexOf(replacement, StringComparison.Ordinal) < 0)
                 {
                     return replacement;
                 }
@@ -707,11 +737,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public IEnumerable<TextSpan> GetEditorVisibleSpans()
         {
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
-            return _containedLanguage.DataBuffer.CurrentSnapshot
-                       .GetSourceSpans()
-                       .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
-                       .Select(s => s.Span.ToTextSpan())
-                       .OrderBy(s => s.Start);
+
+            var projectionDataBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
+            if (projectionDataBuffer != null)
+            {
+                return projectionDataBuffer.CurrentSnapshot
+                    .GetSourceSpans()
+                    .Where(ss => ss.Snapshot.TextBuffer == subjectBuffer)
+                    .Select(s => s.Span.ToTextSpan())
+                    .OrderBy(s => s.Start);
+            }
+            else
+            {
+                return SpecializedCollections.EmptyEnumerable<TextSpan>();
+            }
         }
 
         private static void ApplyChanges(
@@ -911,6 +950,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         out indentSize,
                         out useTabs,
                         out tabSize));
+
                 if (!string.IsNullOrEmpty(baseIndentationString))
                 {
                     return baseIndentationString.GetColumnFromLineOffset(baseIndentationString.Length, editorOptions.GetTabSize()) + additionalIndentation;
@@ -1029,9 +1069,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private RazorCodeBlockType GetRazorCodeBlockType(int position)
         {
+            Debug.Assert(_hostType == HostType.Razor);
+
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
             var subjectSnapshot = subjectBuffer.CurrentSnapshot;
-            var surfaceSnapshot = _containedLanguage.DataBuffer.CurrentSnapshot;
+            var surfaceSnapshot = ((IProjectionBuffer)_containedLanguage.DataBuffer).CurrentSnapshot;
 
             var surfacePoint = surfaceSnapshot.MapFromSourceSnapshot(new SnapshotPoint(subjectSnapshot, position), PositionAffinity.Predecessor);
             if (!surfacePoint.HasValue)
@@ -1153,7 +1195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private enum HostType
         {
             HTML,
-            Razor
+            Razor,
+            XOML
         }
     }
 }

@@ -40,6 +40,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Verify(evalResult,
                 EvalResult("s", "\"", "string", "s", editableValue: "\"\\\"\"", flags: DkmEvaluationResultFlags.RawString));
 
+            // "\\"
+            value = CreateDkmClrValue("\\", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "\\", "string", "s", editableValue: "\"\\\\\"", flags: DkmEvaluationResultFlags.RawString));
+
+            // "a\r\n\t\v\b\u001eb"
+            value = CreateDkmClrValue("a\r\n\tb\v\b\u001ec", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "a\r\n\tb\v\b\u001ec", "string", "s", editableValue: "\"a\\r\\n\\tb\\v\\b\\u001ec\"", flags: DkmEvaluationResultFlags.RawString));
+
+            // "a\0b"
+            value = CreateDkmClrValue("a\0b", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "a\0b", "string", "s", editableValue: "\"a\\0b\"", flags: DkmEvaluationResultFlags.RawString));
+
+            // "\u007f\u009f"
+            value = CreateDkmClrValue("\u007f\u009f", type: stringType);
+            evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("s", "\u007f\u009f", "string", "s", editableValue: "\"\\u007f\\u009f\"", flags: DkmEvaluationResultFlags.RawString));
+
             // " " with alias
             value = CreateDkmClrValue(" ", type: stringType, alias: "1", evalFlags: DkmEvaluationResultFlags.HasObjectId);
             evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
@@ -68,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var value = CreateDkmClrValue((char)0, type: charType);
             var evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
             Verify(evalResult,
-                EvalResult("c", "0 \\0", "char", "c", editableValue: "'\\0'", flags: DkmEvaluationResultFlags.None));
+                EvalResult("c", "0 \0", "char", "c", editableValue: "'\\0'", flags: DkmEvaluationResultFlags.None));
 
             // '\''
             value = CreateDkmClrValue('\'', type: charType);
@@ -81,6 +105,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
             Verify(evalResult,
                 EvalResult("c", "34 \"", "char", "c", editableValue: "'\"'", flags: DkmEvaluationResultFlags.None));
+
+            // '\\'
+            value = CreateDkmClrValue('\\', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "92 \\", "char", "c", editableValue: "'\\\\'", flags: DkmEvaluationResultFlags.None));
+
+            // '\n'
+            value = CreateDkmClrValue('\n', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "10 \n", "char", "c", editableValue: "'\\n'", flags: DkmEvaluationResultFlags.None));
+
+            // '\u001e'
+            value = CreateDkmClrValue('\u001e', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "30 \u001e", "char", "c", editableValue: "'\\u001e'", flags: DkmEvaluationResultFlags.None));
+
+            // '\u007f'
+            value = CreateDkmClrValue('\u007f', type: charType);
+            evalResult = FormatResult("c", value, inspectionContext: inspectionContext);
+            Verify(evalResult,
+                EvalResult("c", "127 \u007f", "char", "c", editableValue: "'\\u007f'", flags: DkmEvaluationResultFlags.None));
 
             // array
             value = CreateDkmClrValue(new char[] { '1' }, type: charType.MakeArrayType());
@@ -234,7 +282,7 @@ class Program
             value = CreateDkmClrValue(new System.Collections.ArrayList(new[] { 2 }), type: runtime.GetType(typeof(System.Collections.ArrayList)));
             evalResult = FormatResult("a", value, inspectionContext: inspectionContext);
             Verify(evalResult,
-                EvalResult("a", "Expanding the Results View will enumerate the IEnumerable", "", "a, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                EvalResult("a", "Count = 1", "System.Collections.ArrayList", "a, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
             var children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("[0]", "2", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView(a).Items[0]"));
@@ -243,7 +291,7 @@ class Program
             value = CreateDkmClrValue(new System.Collections.Generic.List<object>(new object[] { 3 }), type: runtime.GetType(typeof(System.Collections.Generic.List<object>)));
             evalResult = FormatResult("l", value, inspectionContext: inspectionContext);
             Verify(evalResult,
-                EvalResult("l", "Expanding the Results View will enumerate the IEnumerable", "", "l, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                EvalResult("l", "Count = 1", "System.Collections.Generic.List<object>", "l, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
             children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("[0]", "3", "object {int}", "new System.Linq.SystemCore_EnumerableDebugView<object>(l).Items[0]"));
@@ -276,7 +324,7 @@ class C : IEnumerable
                     type: type);
                 var evalResult = FormatResult("o", "o, results, d", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
-                    EvalResult("o", "Expanding the Results View will enumerate the IEnumerable", "", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                    EvalResult("o", "{C}", "C", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
                 var children = GetChildren(evalResult);
                 // ResultsOnly is not inherited.
                 Verify(children,
@@ -316,7 +364,7 @@ struct S<T> : IEnumerable<T>
                     type: type);
                 var evalResult = FormatResult("o", "o, results", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
-                    EvalResult("o", "Expanding the Results View will enumerate the IEnumerable", "", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                    EvalResult("o", "{S<int>}", "S<int>", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
                 var children = GetChildren(evalResult);
                 Verify(children,
                     EvalResult("[0]", "2", "int", "new System.Linq.SystemCore_EnumerableDebugView<int>(o).Items[0]"));
@@ -406,7 +454,7 @@ class P
                     type: type);
                 var evalResult = FormatResult("o", "o, results", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
-                    EvalResult("o", "Expanding the Results View will enumerate the IEnumerable", "", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
+                    EvalResult("o", "{C}", "C", "o, results", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Method));
             }
         }
 
@@ -439,11 +487,11 @@ class C
             {
                 var type = runtime.GetType("C");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
-                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C");
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", "o.P, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.P", "'o.P' threw an exception of type 'System.NotImplementedException'"));
-                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C");
+                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 evalResult = FormatResult("o.Q", "o.Q, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.Q", "'o.Q' threw an exception of type 'E'"));
@@ -489,11 +537,11 @@ class C
             {
                 var type = runtime.GetType("C");
                 var value = CreateDkmClrValue(type.Instantiate(), type: type);
-                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C");
+                var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", "o.P, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.P", "Property 'P' evaluation timed out"));
-                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C");
+                memberValue = value.GetMemberValue("Q", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 evalResult = FormatResult("o.Q", "o.Q, results", memberValue, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(evalResult,
                     EvalFailedResult("o.Q", "Property 'Q' evaluation timed out"));

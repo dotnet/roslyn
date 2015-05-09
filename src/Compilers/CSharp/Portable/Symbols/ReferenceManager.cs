@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -165,53 +164,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void CreateSourceAssemblyForCompilation(CSharpCompilation compilation)
             {
-                using (Logger.LogBlock(FunctionId.CSharp_Compilation_CreateSourceAssembly, message: compilation.AssemblyName))
+                // We are reading the Reference Manager state outside of a lock by accessing 
+                // IsBound and HasCircularReference properties.
+                // Once isBound flag is flipped the state of the manager is available and doesn't change.
+                // 
+                // If two threads are building SourceAssemblySymbol and the first just updated 
+                // set isBound flag to 1 but not yet set lazySourceAssemblySymbol,
+                // the second thread may end up reusing the Reference Manager data the first thread calculated. 
+                // That's ok since 
+                // 1) the second thread would produce the same data,
+                // 2) all results calculated by the second thread will be thrown away since the first thread 
+                //    already acquired SymbolCacheAndReferenceManagerStateGuard that is needed to publish the data.
+
+                // The given compilation is the first compilation that shares this manager and its symbols are requested.
+                // Perform full reference resolution and binding.
+                if (!IsBound && CreateAndSetSourceAssemblyFullBind(compilation))
                 {
-                    // We are reading the Reference Manager state outside of a lock by accessing 
-                    // IsBound and HasCircularReference properties.
-                    // Once isBound flag is flipped the state of the manager is available and doesn't change.
-                    // 
-                    // If two threads are building SourceAssemblySymbol and the first just updated 
-                    // set isBound flag to 1 but not yet set lazySourceAssemblySymbol,
-                    // the second thread may end up reusing the Reference Manager data the first thread calculated. 
-                    // That's ok since 
-                    // 1) the second thread would produce the same data,
-                    // 2) all results calculated by the second thread will be thrown away since the first thread 
-                    //    already acquired SymbolCacheAndReferenceManagerStateGuard that is needed to publish the data.
-
-                    // The given compilation is the first compilation that shares this manager and its symbols are requested.
-                    // Perform full reference resolution and binding.
-                    if (!IsBound && CreateAndSetSourceAssemblyFullBind(compilation))
-                    {
-                        // we have successfully bound the references for the compilation
-                    }
-                    else if (!HasCircularReference)
-                    {
-                        // Another compilation that shares the manager with the given compilation
-                        // already bound its references and produced tables that we can use to construct 
-                        // source assembly symbol faster. Unless we encountered a circular reference.
-                        CreateAndSetSourceAssemblyReuseData(compilation);
-                    }
-                    else
-                    {
-                        // We encountered a circular reference while binding the previous compilation.
-                        // This compilation can't share bound references with other compilations. Create a new manager.
-
-                        // NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
-
-                        var newManager = new ReferenceManager(this.SimpleAssemblyName, this.IdentityComparer, this.ObservedMetadata);
-                        var successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation);
-
-                        // The new manager isn't shared with any other compilation so there is no other 
-                        // thread but the current one could have initialized it.
-                        Debug.Assert(successful);
-
-                        newManager.AssertBound();
-                    }
-
-                    AssertBound();
-                    Debug.Assert((object)compilation._lazyAssemblySymbol != null);
+                    // we have successfully bound the references for the compilation
                 }
+                else if (!HasCircularReference)
+                {
+                    // Another compilation that shares the manager with the given compilation
+                    // already bound its references and produced tables that we can use to construct 
+                    // source assembly symbol faster. Unless we encountered a circular reference.
+                    CreateAndSetSourceAssemblyReuseData(compilation);
+                }
+                else
+                {
+                    // We encountered a circular reference while binding the previous compilation.
+                    // This compilation can't share bound references with other compilations. Create a new manager.
+
+                    // NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
+
+                    var newManager = new ReferenceManager(this.SimpleAssemblyName, this.IdentityComparer, this.ObservedMetadata);
+                    var successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation);
+
+                    // The new manager isn't shared with any other compilation so there is no other 
+                    // thread but the current one could have initialized it.
+                    Debug.Assert(successful);
+
+                    newManager.AssertBound();
+                }
+
+                AssertBound();
+                Debug.Assert((object)compilation._lazyAssemblySymbol != null);
             }
 
             /// <summary>
@@ -930,8 +926,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     referencedAssemblies = assembly.AssemblyReferences;
                 }
 
-                private bool _internalsVisibleComputed = false;
-                private bool _internalsPotentiallyVisibleToCompilation = false;
+                private bool _internalsVisibleComputed;
+                private bool _internalsPotentiallyVisibleToCompilation;
 
                 internal override AssemblySymbol CreateAssemblySymbol()
                 {

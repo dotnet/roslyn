@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             AllowOmissionOfConditionalCalls = 8
         End Enum
 
-        Private ReadOnly Flags As RewritingFlags
+        Private ReadOnly _flags As RewritingFlags
 
     End Class
 End Namespace

@@ -4713,7 +4713,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TooDeepObjectInitializer()
         {
             var builder = new StringBuilder();
@@ -4758,7 +4758,7 @@ class Test
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         [WorkItem(1085618, "DevDiv")]
         public void TooDeepDelegateDeclaration()
         {
@@ -4787,6 +4787,60 @@ class Program
 
             var parsedTree = Parse(builder.ToString());
             var actualErrors = parsedTree.GetDiagnostics().ToArray();
+            Assert.Equal(1, actualErrors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
+        }
+
+        [ClrOnlyFact]
+        public void TooDeepObjectInitializerAsExpression()
+        {
+            var builder = new StringBuilder();
+            const int depth = 5000;
+            builder.Append(@"new C {");
+
+            for (int i = 0; i < depth; i++)
+            {
+                builder.AppendLine("c = new C {");
+            }
+
+            builder.Append("c = new C(), u = 0");
+
+            for (int i = 0; i < depth - 1; i++)
+            {
+                builder.AppendLine("}, u = 0");
+            }
+
+            builder.Append(@"}");
+
+            var expr = SyntaxFactory.ParseExpression(builder.ToString());
+            var actualErrors = expr.GetDiagnostics().ToArray();
+            Assert.Equal(1, actualErrors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
+        }
+
+        [ClrOnlyFact]
+        public void TooDeepObjectInitializerAsStatement()
+        {
+            var builder = new StringBuilder();
+            const int depth = 5000;
+            builder.Append(@"C c = new C {");
+
+            for (int i = 0; i < depth; i++)
+            {
+                builder.AppendLine("c = new C {");
+            }
+
+            builder.Append("c = new C(), u = 0");
+
+            for (int i = 0; i < depth - 1; i++)
+            {
+                builder.AppendLine("}, u = 0");
+            }
+
+            builder.Append(@"}");
+
+            var stmt = SyntaxFactory.ParseStatement(builder.ToString());
+            var actualErrors = stmt.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }

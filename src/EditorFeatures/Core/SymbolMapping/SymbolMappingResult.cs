@@ -4,8 +4,8 @@ namespace Microsoft.CodeAnalysis.Editor.SymbolMapping
 {
     internal class SymbolMappingResult
     {
-        public Project Project { get; private set; }
-        public ISymbol Symbol { get; private set; }
+        public Project Project { get; }
+        public ISymbol Symbol { get; }
 
         internal SymbolMappingResult(Project project, ISymbol symbol)
         {

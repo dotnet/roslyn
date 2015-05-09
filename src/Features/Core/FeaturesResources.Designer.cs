@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
+        /// </summary>
+        internal static string AccessingCapturedVariableInLambda {
+            get {
+                return ResourceManager.GetString("AccessingCapturedVariableInLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Actions can not be empty..
         /// </summary>
         internal static string ActionsCanNotBeEmpty {
@@ -120,42 +129,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string AddingAnImportedMethod {
             get {
                 return ResourceManager.GetString("AddingAnImportedMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a statement which contains a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAStatementWhichContainsALambda {
-            get {
-                return ResourceManager.GetString("AddingAStatementWhichContainsALambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a statement which contains an anonymous method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAStatementWhichContainsAnAnonymousMethod {
-            get {
-                return ResourceManager.GetString("AddingAStatementWhichContainsAnAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a statement which contains an anonymous type will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAStatementWhichContainsAnAnonymousType {
-            get {
-                return ResourceManager.GetString("AddingAStatementWhichContainsAnAnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a statement which contains a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string AddingAStatementWhichContainsAQuery {
-            get {
-                return ResourceManager.GetString("AddingAStatementWhichContainsAQuery", resourceCulture);
             }
         }
         
@@ -268,24 +241,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An active statement marker has been deleted. You must revert your changes to continue or restart the debugging session..
-        /// </summary>
-        internal static string AnActiveStatementMarkerHasBeenDeleted {
-            get {
-                return ResourceManager.GetString("AnActiveStatementMarkerHasBeenDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to An active statement marker has been deleted and cannot be remapped in the current source file. You must revert your changes to continue or restart the debugging session..
-        /// </summary>
-        internal static string AnActiveStatementMarkerHasBeenDeletedAnd {
-            get {
-                return ResourceManager.GetString("AnActiveStatementMarkerHasBeenDeletedAnd", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Anonymous Types:.
         /// </summary>
         internal static string AnonymousTypes {
@@ -349,6 +304,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to attribute.
+        /// </summary>
+        internal static string Attribute {
+            get {
+                return ResourceManager.GetString("Attribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to auto-property.
+        /// </summary>
+        internal static string AutoProperty {
+            get {
+                return ResourceManager.GetString("AutoProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Available.
         /// </summary>
         internal static string Available {
@@ -372,6 +345,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string CantNotConstructFinalTree {
             get {
                 return ResourceManager.GetString("CantNotConstructFinalTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capturing variable &apos;{0}&apos; that hasn&apos;t been captured before will prevent the debug session from continuing..
+        /// </summary>
+        internal static string CapturingVariable {
+            get {
+                return ResourceManager.GetString("CapturingVariable", resourceCulture);
             }
         }
         
@@ -421,6 +403,51 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the declaration scope of a captured variable &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingCapturedVariableScope {
+            get {
+                return ResourceManager.GetString("ChangingCapturedVariableScope", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the type of a captured variable &apos;{0}&apos; previously of type &apos;{1}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingCapturedVariableType {
+            get {
+                return ResourceManager.GetString("ChangingCapturedVariableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the parameters of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingLambdaParameters {
+            get {
+                return ResourceManager.GetString("ChangingLambdaParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the return type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingLambdaReturnType {
+            get {
+                return ResourceManager.GetString("ChangingLambdaReturnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing the type of &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string ChangingQueryLambdaType {
+            get {
+                return ResourceManager.GetString("ChangingQueryLambdaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing the constraint from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string ChangingTheConstraintFromTo {
@@ -439,6 +466,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to class.
+        /// </summary>
+        internal static string Class {
+            get {
+                return ResourceManager.GetString("Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to constant.
         /// </summary>
         internal static string Constant {
@@ -448,38 +484,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constructor cannot be modified while debugging because field &apos;{0}&apos; has an initializer using an anonymous method..
+        ///   Looks up a localized string similar to const field.
         /// </summary>
-        internal static string ConstructorCannotBeModifiedAnonymousMethod {
+        internal static string ConstField {
             get {
-                return ResourceManager.GetString("ConstructorCannotBeModifiedAnonymousMethod", resourceCulture);
+                return ResourceManager.GetString("ConstField", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constructor cannot be modified while debugging because field &apos;{0}&apos; has an initializer with an anonymous type..
+        ///   Looks up a localized string similar to constructor.
         /// </summary>
-        internal static string ConstructorCannotBeModifiedAnonymousType {
+        internal static string Constructor {
             get {
-                return ResourceManager.GetString("ConstructorCannotBeModifiedAnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Constructor cannot be modified while debugging because field &apos;{0}&apos; has an initializer using a lambda expression..
-        /// </summary>
-        internal static string ConstructorCannotBeModifiedLambda {
-            get {
-                return ResourceManager.GetString("ConstructorCannotBeModifiedLambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Constructor cannot be modified while debugging because field &apos;{0}&apos; has an initializer using a query expression..
-        /// </summary>
-        internal static string ConstructorCannotBeModifiedQuery {
-            get {
-                return ResourceManager.GetString("ConstructorCannotBeModifiedQuery", resourceCulture);
+                return ResourceManager.GetString("Constructor", resourceCulture);
             }
         }
         
@@ -511,6 +529,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to delegate.
+        /// </summary>
+        internal static string Delegate {
+            get {
+                return ResourceManager.GetString("Delegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing &apos;{0}&apos; that accessed captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
+        /// </summary>
+        internal static string DeleteLambdaWithMultiScopeCapture {
+            get {
+                return ResourceManager.GetString("DeleteLambdaWithMultiScopeCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deleting &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
         internal static string DeletingAAroundAnActiveStatement {
@@ -529,42 +565,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Deleting a statement which contains an anonymous method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string DeletingAStatementWhichContainsAnonymousMethod {
-            get {
-                return ResourceManager.GetString("DeletingAStatementWhichContainsAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Deleting a statement which contains an anonymous type will prevent the debug session from continuing..
-        /// </summary>
-        internal static string DeletingAStatementWhichContainsAnonymousType {
-            get {
-                return ResourceManager.GetString("DeletingAStatementWhichContainsAnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Deleting a statement which contains a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string DeletingAStatementWhichContainsLambda {
-            get {
-                return ResourceManager.GetString("DeletingAStatementWhichContainsLambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Deleting a statement which contains a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string DeletingAStatementWhichContainsQuery {
-            get {
-                return ResourceManager.GetString("DeletingAStatementWhichContainsQuery", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Deleting &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string DeletingAWillPrevent {
@@ -574,11 +574,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DiagnosticDescriptor with ID &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Deleting captured variable &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
-        internal static string DiagnosticDescriptorThrows {
+        internal static string DeletingCapturedVariable {
             get {
-                return ResourceManager.GetString("DiagnosticDescriptorThrows", resourceCulture);
+                return ResourceManager.GetString("DeletingCapturedVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: dispose managed state (managed objects)..
+        /// </summary>
+        internal static string DisposeManagedStateTodo {
+            get {
+                return ResourceManager.GetString("DisposeManagedStateTodo", resourceCulture);
             }
         }
         
@@ -588,51 +597,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string EditAndContinue {
             get {
                 return ResourceManager.GetString("EditAndContinue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Editing or commenting out an active statement inside a readonly section will prevent the debug session from continuing..
-        /// </summary>
-        internal static string EditingOrCommentingOut {
-            get {
-                return ResourceManager.GetString("EditingOrCommentingOut", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Editing or deleting an active statement which is being executed will prevent the debug session from continuing..
-        /// </summary>
-        internal static string EditingOrDeletingBeingExecuted {
-            get {
-                return ResourceManager.GetString("EditingOrDeletingBeingExecuted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Editing or deleting an active statement on a constructor declaration will prevent the debug session from continuing..
-        /// </summary>
-        internal static string EditingOrDeletingConstructorDeclaration {
-            get {
-                return ResourceManager.GetString("EditingOrDeletingConstructorDeclaration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Editing or deleting an active statement in a field initializer will prevent the debug session from continuing..
-        /// </summary>
-        internal static string EditingOrDeletingFieldInitializer {
-            get {
-                return ResourceManager.GetString("EditingOrDeletingFieldInitializer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Editing or deleting an active statement which is not at the top of the callstack will prevent the debug session from continuing..
-        /// </summary>
-        internal static string EditingOrDeletingNotAtTheTop {
-            get {
-                return ResourceManager.GetString("EditingOrDeletingNotAtTheTop", resourceCulture);
             }
         }
         
@@ -673,11 +637,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error locating an active statement in source file. You must restart the debugging session..
+        ///   Looks up a localized string similar to enum.
         /// </summary>
-        internal static string ErrorLocatingAnActiveStatement {
+        internal static string Enum {
             get {
-                return ResourceManager.GetString("ErrorLocatingAnActiveStatement", resourceCulture);
+                return ResourceManager.GetString("Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to enum value.
+        /// </summary>
+        internal static string EnumValue {
+            get {
+                return ResourceManager.GetString("EnumValue", resourceCulture);
             }
         }
         
@@ -687,6 +660,51 @@ namespace Microsoft.CodeAnalysis {
         internal static string ErrorOrUnknownType {
             get {
                 return ResourceManager.GetString("ErrorOrUnknownType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Build.
+        /// </summary>
+        internal static string ErrorSourceBuild {
+            get {
+                return ResourceManager.GetString("ErrorSourceBuild", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit And Continue.
+        /// </summary>
+        internal static string ErrorSourceEnC {
+            get {
+                return ResourceManager.GetString("ErrorSourceEnC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IntelliSense Build.
+        /// </summary>
+        internal static string ErrorSourceIntelliSense {
+            get {
+                return ResourceManager.GetString("ErrorSourceIntelliSense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to event.
+        /// </summary>
+        internal static string Event {
+            get {
+                return ResourceManager.GetString("Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to event accessor.
+        /// </summary>
+        internal static string EventAccessor {
+            get {
+                return ResourceManager.GetString("EventAccessor", resourceCulture);
             }
         }
         
@@ -1105,11 +1123,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing..
+        /// </summary>
+        internal static string InsertConstructorToTypeWithInitializersWithLambdas {
+            get {
+                return ResourceManager.GetString("InsertConstructorToTypeWithInitializersWithLambdas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding &apos;{0}&apos; that accesses captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
+        /// </summary>
+        internal static string InsertLambdaWithMultiScopeCapture {
+            get {
+                return ResourceManager.GetString("InsertLambdaWithMultiScopeCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interactive Host not initialized..
         /// </summary>
         internal static string InteractiveHostNotInitialized {
             get {
                 return ResourceManager.GetString("InteractiveHostNotInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to interface.
+        /// </summary>
+        internal static string Interface {
+            get {
+                return ResourceManager.GetString("Interface", resourceCulture);
             }
         }
         
@@ -1267,6 +1312,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to method.
+        /// </summary>
+        internal static string Method {
+            get {
+                return ResourceManager.GetString("Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingACatchFinallyHandler {
@@ -1281,15 +1335,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string ModifyingACatchHandlerAround {
             get {
                 return ResourceManager.GetString("ModifyingACatchHandlerAround", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; containing an active statement in compiler generated code will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAContainingAnActiveStatement {
-            get {
-                return ResourceManager.GetString("ModifyingAContainingAnActiveStatement", resourceCulture);
             }
         }
         
@@ -1312,92 +1357,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; initializer with an anonymous method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAInitializerWithAnonymousMethod {
-            get {
-                return ResourceManager.GetString("ModifyingAInitializerWithAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; initializer with an anonymous type will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAInitializerWithAnonymousType {
-            get {
-                return ResourceManager.GetString("ModifyingAInitializerWithAnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; initializer with a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAInitializerWithLambda {
-            get {
-                return ResourceManager.GetString("ModifyingAInitializerWithLambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; initializer with a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAInitializerWithQuery {
-            get {
-                return ResourceManager.GetString("ModifyingAInitializerWithQuery", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying a method inside the context of a generic type will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingAMethodInsideTheContext {
             get {
                 return ResourceManager.GetString("ModifyingAMethodInsideTheContext", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying an asynchronous &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAnAsynchronous {
-            get {
-                return ResourceManager.GetString("ModifyingAnAsynchronous", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a statement which contains an anonymous method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAStatementWhichContainsAnonymousMethod {
-            get {
-                return ResourceManager.GetString("ModifyingAStatementWhichContainsAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a statement which contains an anonymous type will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAStatementWhichContainsAnonymousType {
-            get {
-                return ResourceManager.GetString("ModifyingAStatementWhichContainsAnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a statement which contains a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAStatementWhichContainsLambda {
-            get {
-                return ResourceManager.GetString("ModifyingAStatementWhichContainsLambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying a statement which contains a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAStatementWhichContainsQuery {
-            get {
-                return ResourceManager.GetString("ModifyingAStatementWhichContainsQuery", resourceCulture);
             }
         }
         
@@ -1411,47 +1375,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an anonymous method will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing..
         /// </summary>
-        internal static string ModifyingAWhichContainsAnonymousMethod {
+        internal static string ModifyingAWhichContainsComplexQuery {
             get {
-                return ResourceManager.GetString("ModifyingAWhichContainsAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains an anonymous type will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsAnonymousType {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsAnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a dynamic invocation will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsDynamic {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsDynamic", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a usage of an embedded interop type/member will prevent the debug session from continuing.\r\nTo enable Edit and Continue, try setting \&quot;Embed Interop Types\&quot; property to \&quot;False\&quot; for COM references when debugging..
-        /// </summary>
-        internal static string ModifyingAWhichContainsEmbeddedInterop {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsEmbeddedInterop", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsLambda {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsLambda", resourceCulture);
+                return ResourceManager.GetString("ModifyingAWhichContainsComplexQuery", resourceCulture);
             }
         }
         
@@ -1465,15 +1393,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingAWhichContainsQuery {
-            get {
-                return ResourceManager.GetString("ModifyingAWhichContainsQuery", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains the &apos;stackalloc&apos; operator will prevent the debug session from continuing..
         /// </summary>
         internal static string ModifyingAWhichContainsStackalloc {
@@ -1483,38 +1402,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains &apos;yield return&apos; or &apos;yield break&apos; statement will prevent the debug session from continuing..
+        ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
         /// </summary>
-        internal static string ModifyingAWhichContainsYield {
+        internal static string ModifyingAWhichContainsStaticLocal {
             get {
-                return ResourceManager.GetString("ModifyingAWhichContainsYield", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying local &apos;{0}&apos; which is referenced in an anonymous method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingLocalReferencedInAnonymousMethod {
-            get {
-                return ResourceManager.GetString("ModifyingLocalReferencedInAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying local &apos;{0}&apos; which is referenced in a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingLocalReferencedInLambda {
-            get {
-                return ResourceManager.GetString("ModifyingLocalReferencedInLambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifying local &apos;{0}&apos; which is referenced in a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingLocalReferencedInQuery {
-            get {
-                return ResourceManager.GetString("ModifyingLocalReferencedInQuery", resourceCulture);
+                return ResourceManager.GetString("ModifyingAWhichContainsStaticLocal", resourceCulture);
             }
         }
         
@@ -1555,56 +1447,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifying whitespace or comments in an asynchronous &apos;{0}&apos; will prevent the debug session from continuing..
-        /// </summary>
-        internal static string ModifyingTriviaOfAnAsynchronous {
-            get {
-                return ResourceManager.GetString("ModifyingTriviaOfAnAsynchronous", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Moving a statement which contains an anonymous method will prevent the debug session from continuing..
-        /// </summary>
-        internal static string MovingAStatementWhichContainsAnonymousMethod {
-            get {
-                return ResourceManager.GetString("MovingAStatementWhichContainsAnonymousMethod", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Moving a statement which contains an anonymous type will prevent the debug session from continuing..
-        /// </summary>
-        internal static string MovingAStatementWhichContainsAnonymousType {
-            get {
-                return ResourceManager.GetString("MovingAStatementWhichContainsAnonymousType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Moving a statement which contains a lambda expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string MovingAStatementWhichContainsLambda {
-            get {
-                return ResourceManager.GetString("MovingAStatementWhichContainsLambda", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Moving a statement which contains a query expression will prevent the debug session from continuing..
-        /// </summary>
-        internal static string MovingAStatementWhichContainsQuery {
-            get {
-                return ResourceManager.GetString("MovingAStatementWhichContainsQuery", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Moving &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string MovingAWillPreventTheDebug {
             get {
                 return ResourceManager.GetString("MovingAWillPreventTheDebug", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to namespace.
+        /// </summary>
+        internal static string Namespace {
+            get {
+                return ResourceManager.GetString("Namespace", resourceCulture);
             }
         }
         
@@ -1618,6 +1474,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ceasing to access captured variable &apos;{0}&apos; in {1} will prevent the debug session from continuing..
+        /// </summary>
+        internal static string NotAccessingCapturedVariableInLambda {
+            get {
+                return ResourceManager.GetString("NotAccessingCapturedVariableInLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not Available.
         /// </summary>
         internal static string NotAvailable {
@@ -1627,11 +1492,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ceasing to capture variable &apos;{0}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string NotCapturingVariable {
+            get {
+                return ResourceManager.GetString("NotCapturingVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Note: Tab twice to insert the &apos;{0}&apos; snippet..
         /// </summary>
         internal static string NoteTabTwiceToInsertTheSnippet {
             get {
                 return ResourceManager.GetString("NoteTabTwiceToInsertTheSnippet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to operator.
+        /// </summary>
+        internal static string Operator {
+            get {
+                return ResourceManager.GetString("Operator", resourceCulture);
             }
         }
         
@@ -1695,6 +1578,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ProjectAvailability {
             get {
                 return ResourceManager.GetString("ProjectAvailability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to property.
+        /// </summary>
+        internal static string Property {
+            get {
+                return ResourceManager.GetString("Property", resourceCulture);
             }
         }
         
@@ -1785,6 +1677,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string SearchedInDirectory {
             get {
                 return ResourceManager.GetString("SearchedInDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TODO: set large fields to null..
+        /// </summary>
+        internal static string SetLargeFieldsToNullTodo {
+            get {
+                return ResourceManager.GetString("SetLargeFieldsToNullTodo", resourceCulture);
             }
         }
         
@@ -1935,11 +1836,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To detect redundant calls.
+        /// </summary>
+        internal static string ToDetectRedundantCalls {
+            get {
+                return ResourceManager.GetString("ToDetectRedundantCalls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type constraint.
+        /// </summary>
+        internal static string TypeConstraint {
+            get {
+                return ResourceManager.GetString("TypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type &quot;#help&quot; for more information..
         /// </summary>
         internal static string TypeHelpForMoreInformation {
             get {
                 return ResourceManager.GetString("TypeHelpForMoreInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type parameter.
+        /// </summary>
+        internal static string TypeParameter {
+            get {
+                return ResourceManager.GetString("TypeParameter", resourceCulture);
             }
         }
         
@@ -1994,6 +1922,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UnknownSymbolKind {
             get {
                 return ResourceManager.GetString("UnknownSymbolKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
+        /// </summary>
+        internal static string UnsupportedDiagnosticReported {
+            get {
+                return ResourceManager.GetString("UnsupportedDiagnosticReported", resourceCulture);
             }
         }
         
@@ -2178,11 +2115,21 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The User Diagnostic Analyzer &apos;{0}&apos; threw an exception with message &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The User Diagnostic Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
         /// </summary>
         internal static string UserDiagnosticAnalyzerThrows {
             get {
                 return ResourceManager.GetString("UserDiagnosticAnalyzerThrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw the following exception:
+        ///&apos;{1}&apos;..
+        /// </summary>
+        internal static string UserDiagnosticAnalyzerThrowsDescription {
+            get {
+                return ResourceManager.GetString("UserDiagnosticAnalyzerThrowsDescription", resourceCulture);
             }
         }
         

@@ -1426,6 +1426,42 @@ public class C
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(50, "https://github.com/dotnet/roslyn/issues/50")>
+        Public Sub TestCSRemoveThisPreservesTrivia()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C1
+{
+    int _field;
+
+    void M()
+    {
+        this /*comment 1*/ . /* comment 2 */ {|SimplifyParent:_field|} /* comment 3 */ = 0;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C1
+{
+    int _field;
+
+    void M()
+    {
+         /*comment 1*/  /* comment 2 */ _field /* comment 3 */ = 0;
+    }
+}
+</code>
+
+            Test(input, expected)
+        End Sub
+
         <WorkItem(649385)>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharpSimplifyToVarCorrect()

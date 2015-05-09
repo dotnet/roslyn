@@ -1526,7 +1526,7 @@ class C : PublicClass.ProtectedInternalClass
         }
 
         [WorkItem(545365, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ProtectedAndInternalNestedBaseClass()
         {
             // Note: the problem was with the "protected" check so we use InternalsVisibleTo to make

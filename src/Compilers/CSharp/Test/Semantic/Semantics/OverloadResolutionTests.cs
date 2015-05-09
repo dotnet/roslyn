@@ -602,24 +602,10 @@ class C
         }
 
 
-        [Fact]
+        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TestOverloadResolutionTiebreaker()
         {
-            // The native compiler gets this one wrong, giving an ambiguity error. 
-            // The correct analysis is that there are four candidates:
-            // 0: X(params string[]) in normal form
-            // 1: X(params string[]) in expanded form
-            // 2: X<string>(string)
-            // 3: X(string, object) with default value for second parameter
-            //
-            // Candidate 0 is obviously inapplicable. The other three have identical formal parameter types
-            // corresponding to the given arguments, so we must go to tiebreaker round. The tiebreakers are:
-            // * Nongeneric beats generic, and then
-            // * applicable in normal form beats applicable only in expanded form, then
-            // * more parameters declared beats fewer parameters declared
-            // By these rules: 1 beats 2, 3 beats 1, 3 beats 2. 3 is unbeaten and beats at least one
-            // other candidate. No other candidate has this property, so candidate 3 should win.
-
+            // Testing that we get the same ambiguity error as the one reported by the native compiler. 
             string source = @"
 class C 
 {
@@ -632,11 +618,16 @@ class C
     }
 }";
 
-            TestOverloadResolutionWithDiff(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics(
+    // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.X(params string[])' and 'C.X<T>(T)'
+    //         X((string)null); //-C.X(string, object)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "X").WithArguments("C.X(params string[])", "C.X<T>(T)").WithLocation(9, 9)
+                );
         }
+
         [Fact]
-
-
         private void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
@@ -1076,7 +1067,7 @@ class Test2
 
         [WorkItem(540153, "DevDiv")]
         [WorkItem(540406, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverridingMismatchedParamsErrorCase_Metadata()
         {
             // Tests:
@@ -6221,7 +6212,7 @@ class D<T>
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(598032, "DevDiv")]
+        [Fact, WorkItem(598032, "DevDiv"), WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void GenericVsOptionalParameter()
         {
             string source = @"
@@ -6231,17 +6222,15 @@ class C
     public static int Foo(int x, string y = null) { return 1; }
     public static int Foo<T>(T x) { return 0; }
 
-    public static int M()
+    public static void Main()
     {
-        return Foo(0);  //-C.Foo(int, string)
+        System.Console.WriteLine(Foo(0));
     }
 }
 ";
-            // Roslyn is correctly following the spec here. Dev11 compares the two methods' parameter lists without first 
-            // removing the parameters for which optional arguments are used. This is incorrect. It then concludes that the 
-            // parameter lists are different and decides not to use part of the tie-breaker rules, 
-            // but does use the "least number of optional args" tie-breaker.
-            TestOverloadResolutionWithDiff(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: "0");
         }
 
         [WorkItem(598029, "DevDiv")]
@@ -7590,6 +7579,446 @@ public class C : CodeAccessSecurityAttribute
                 // (30,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
+        }
+
+        [WorkItem(2249, "https://github.com/dotnet/roslyn/issues/2249")]
+        [Fact]
+        public void TestRefMethodGroup()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void M()
+    {
+        Console.WriteLine(""pass"");
+    }
+
+    public static void Main(string[] args)
+    {
+        Action a1 = new Action(ref M);
+        a1();
+        Action a2 = new Action(out a1);
+        a2();
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"pass
+pass").VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable())).VerifyDiagnostics(
+                // (12,36): error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'
+                //         Action a1 = new Action(ref M);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
+                // (14,36): error CS0149: Method name expected
+                //         Action a2 = new Action(out a1);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "a1").WithLocation(14, 36)
+                );
+        }
+
+        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void ParamsAndOptionals()
+        {
+            string source1 = @"
+
+using System;
+using System.Collections.Generic;
+using VS2015CompilerBug;
+
+
+public static class Extensions
+{
+    //extension with params keyword
+    public static int Properties(this IFirstInterface source, params int[] x)
+    {
+        System.Console.WriteLine(""int Properties(this IFirstInterface source, params int[] x)"");
+        return 0;
+    }
+    public static bool Properties(this ISecondInterface source, int x = 0, params int[] y)
+    {
+        System.Console.WriteLine(""bool Properties(this ISecondInterface source, int x = 0, params int[] y)"");
+        return true;
+    }
+
+    //extension without params keyword
+    public static int Properties2(this IFirstInterface source)
+    {
+        System.Console.WriteLine(""int Properties2(this IFirstInterface source)"");
+        return 0;
+    }
+    public static bool Properties2(this ISecondInterface source, int x = 0)
+    {
+        System.Console.WriteLine(""bool Properties2(this ISecondInterface source, int x = 0)"");
+        return true;
+    }
+}
+
+namespace VS2015CompilerBug
+{
+    public interface IFirstInterface
+    {
+
+    }
+    public interface ISecondInterface
+    {
+
+    }
+
+    public interface IFinalInterface : ISecondInterface, IFirstInterface
+    {
+
+    }
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            IFinalInterface x = default(IFinalInterface);
+            var properties = x.Properties();  
+            var properties2 = x.Properties2();  
+
+
+            (new VS2015CompilerBug()).Test2(); 
+        }
+
+        private void Test2(int x = 5, params int[] y)
+        {
+            System.Console.WriteLine(""void Test2(int x = 5, params int[] y)"");
+        }
+        private void Test2(params int[] x)
+        {
+            System.Console.WriteLine(""void Test2(params int[] x)"");
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"int Properties(this IFirstInterface source, params int[] x)
+int Properties2(this IFirstInterface source)
+void Test2(params int[] x)");
+        }
+
+        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void TieBreakOnNumberOfDeclaredParameters_01()
+        {
+            string source1 = @"
+
+namespace VS2015CompilerBug
+{
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            (new VS2015CompilerBug()).Test2(1);   
+            (new VS2015CompilerBug()).Test2(1, 2);   
+            (new VS2015CompilerBug()).Test2(1, 2, 3);   
+            (new VS2015CompilerBug()).Test3(1, 2);   
+            (new VS2015CompilerBug()).Test3(1, 2, 3);   
+            (new VS2015CompilerBug()).Test3(1, 2, 3, 4);   
+        }
+
+        private void Test2(int x, params int[] y)
+        {
+            System.Console.WriteLine(""void Test2(int x, params int[] y)"");
+        }
+        private void Test2(params int[] x)
+        {
+            System.Console.WriteLine(""void Test2(params int[] x)"");
+        }
+
+        private void Test3(int x, int y, params int[] z)
+        {
+            System.Console.WriteLine(""void Test3(int x, int y, params int[] z)"");
+        }
+        private void Test3(int x, params int[] y)
+        {
+            System.Console.WriteLine(""void Test3(int x, params int[] y)"");
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"void Test2(int x, params int[] y)
+void Test2(int x, params int[] y)
+void Test2(int x, params int[] y)
+void Test3(int x, int y, params int[] z)
+void Test3(int x, int y, params int[] z)
+void Test3(int x, int y, params int[] z)");
+        }
+
+        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void TieBreakOnNumberOfDeclaredParameters_02()
+        {
+            string source1 = @"
+
+namespace VS2015CompilerBug
+{
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            (new VS2015CompilerBug()).Test2(1, 2);   
+            (new VS2015CompilerBug()).Test3(1, 2, 3);   
+        }
+
+        private void Test2(int x = 0, int y = 0)
+        {
+            System.Console.WriteLine(""void Test2(int x = 0, int y = 0)"");
+        }
+        private void Test2(int x, int y = 0, int z = 0)
+        {
+            System.Console.WriteLine(""void Test2(int x, int y = 0, int z = 0)"");
+        }
+
+        private void Test3(int x, int y, int z = 0, int u = 0)
+        {
+            System.Console.WriteLine(""void Test3(int x, int y, int z = 0, int u = 0)"");
+        }
+        private void Test3(int x, int y = 0, int z = 0)
+        {
+            System.Console.WriteLine(""void Test3(int x, int y = 0, int z = 0)"");
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"void Test2(int x = 0, int y = 0)
+void Test3(int x, int y = 0, int z = 0)");
+        }
+
+        [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void TieBreakOnNumberOfDeclaredParameters_03()
+        {
+            string source1 = @"
+
+namespace VS2015CompilerBug
+{
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            (new VS2015CompilerBug()).Test2(1);   
+            (new VS2015CompilerBug()).Test3(1, 2);   
+        }
+
+        private void Test2(int x = 0, int y = 0)
+        {
+        }
+        private void Test2(int x, int y = 0, int z = 0)
+        {
+        }
+
+        private void Test3(int x, int y, int z = 0, int u = 0)
+        {
+        }
+        private void Test3(int x, int y = 0, int z = 0)
+        {
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (9,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test2(int, int)' and 'VS2015CompilerBug.Test2(int, int, int)'
+    //             (new VS2015CompilerBug()).Test2(1);   
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test2").WithArguments("VS2015CompilerBug.VS2015CompilerBug.Test2(int, int)", "VS2015CompilerBug.VS2015CompilerBug.Test2(int, int, int)").WithLocation(9, 39),
+    // (10,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test3(int, int, int, int)' and 'VS2015CompilerBug.Test3(int, int, int)'
+    //             (new VS2015CompilerBug()).Test3(1, 2);   
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test3").WithArguments("VS2015CompilerBug.VS2015CompilerBug.Test3(int, int, int, int)", "VS2015CompilerBug.VS2015CompilerBug.Test3(int, int, int)").WithLocation(10, 39)
+                );
+        }
+
+        [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
+        public void BetterErrorMessage()
+        {
+            string source1 = @"
+class C
+{
+    static void F1(object x, object y) { }
+    static void F1(object x, object w, object z) { }
+
+    static void F2(object x, object w, object z) { }
+    static void F2(object x, object y) { }
+
+    static void Main()
+    {
+        F1(x: 1, y: 2, z: 3);
+        F2(x: 1, y: 2, z: 3);
+
+        M1(0, x: 1);
+
+        M2(0, x: 1);
+        M3(0, x: 1);
+
+        M4(0, x: 1);
+        M5(0, x: 1);
+        M6(0, x: 1);
+
+        M7(0, x: 1);
+        M9(0, x: 1);
+        M8(0, x: 1);
+        M10(0, x: 1);
+
+        M11(x: 1, y: 2, z: 3);
+
+        M12(1, 2, 3, 4);
+        M13(1, 2, 3, 4);
+
+        M14(1, 2, 3);
+
+        M15(1, z: 0);
+        M16(1, z: 0);
+
+        M17(1, x: 2, y: 3);
+        M18(1, x: 2, y: 3);
+        M19(1, x: 2, y: 3);
+    }
+
+    static void M1() { }
+
+    static void M2() { }
+    static void M2(int u, int w) { }
+
+    static void M3(int u, int w) { }
+    static void M3() { }
+
+    static void M4() { }
+    static void M4(int u, int w) { }
+    static void M4(int x) { }
+
+    static void M5() { }
+    static void M5(int x) { }
+    static void M5(int u, int w) { }
+
+    static void M6(int x) { }
+    static void M6() { }
+    static void M6(int u, int w) { }
+
+    static void M7() { }
+    static void M7(int u, int w) { }
+    static void M7(int x) { }
+    static void M7(int u, int x, int w) { }
+
+    static void M8() { }
+    static void M8(int u, int w) { }
+    static void M8(int u, int x, int w) { }
+    static void M8(int x) { }
+
+    static void M9() { }
+    static void M9(int u, int x, int w) { }
+    static void M9(int u, int w) { }
+    static void M9(int x) { }
+
+    static void M10(int u, int x, int w) { }
+    static void M10() { }
+    static void M10(int u, int w) { }
+    static void M10(int x) { }
+
+    static void M11(object x, int y) { }
+    static void M11(object x, short y) { }
+
+    static void M12(object x, object y) { }
+    static void M12(object x, object y, object z) { }
+
+    static void M13(object x, object y, object z) { }
+    static void M13(object x, object y) { }
+
+    static void M14(object x, int y) { }
+    static void M14(object x, short y) { }
+
+    static void M15(object x, int y, object z = null) { }
+    static void M15(object x, short y, object z = null) { }
+
+    static void M16(object x, int y, object z = null) { }
+    static void M16(object x, short y, object z = null) { }
+
+    static void M17(object x, int y, int z) { }
+    static void M17(object y, short x, int z) { }
+
+    static void M18(object y, int x, int z) { }
+    static void M18(object x, short y, int z) { }
+
+    static void M19(object x, int y, int z) { }
+    static void M19(object x, short y, int z) { }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1);
+
+            compilation.VerifyDiagnostics(
+    // (12,24): error CS1739: The best overload for 'F1' does not have a parameter named 'z'
+    //         F1(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("F1", "z").WithLocation(12, 24),
+    // (13,24): error CS1739: The best overload for 'F2' does not have a parameter named 'z'
+    //         F2(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("F2", "z").WithLocation(13, 24),
+    // (15,9): error CS1501: No overload for method 'M1' takes 2 arguments
+    //         M1(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "2").WithLocation(15, 9),
+    // (17,15): error CS1739: The best overload for 'M2' does not have a parameter named 'x'
+    //         M2(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("M2", "x").WithLocation(17, 15),
+    // (18,15): error CS1739: The best overload for 'M3' does not have a parameter named 'x'
+    //         M3(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("M3", "x").WithLocation(18, 15),
+    // (20,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M4(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(20, 15),
+    // (21,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M5(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(21, 15),
+    // (22,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M6(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(22, 15),
+    // (24,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M7(int, int, int)'
+    //         M7(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M7").WithArguments("w", "C.M7(int, int, int)").WithLocation(24, 9),
+    // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M9(int, int, int)'
+    //         M9(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M9").WithArguments("w", "C.M9(int, int, int)").WithLocation(25, 9),
+    // (26,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M8(int, int, int)'
+    //         M8(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M8").WithArguments("w", "C.M8(int, int, int)").WithLocation(26, 9),
+    // (27,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M10(int, int, int)'
+    //         M10(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M10").WithArguments("w", "C.M10(int, int, int)").WithLocation(27, 9),
+    // (29,25): error CS1739: The best overload for 'M11' does not have a parameter named 'z'
+    //         M11(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("M11", "z").WithLocation(29, 25),
+    // (31,9): error CS1501: No overload for method 'M12' takes 4 arguments
+    //         M12(1, 2, 3, 4);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M12").WithArguments("M12", "4").WithLocation(31, 9),
+    // (32,9): error CS1501: No overload for method 'M13' takes 4 arguments
+    //         M13(1, 2, 3, 4);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M13").WithArguments("M13", "4").WithLocation(32, 9),
+    // (34,9): error CS1501: No overload for method 'M14' takes 3 arguments
+    //         M14(1, 2, 3);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M14").WithArguments("M14", "3").WithLocation(34, 9),
+    // (36,9): error CS1501: No overload for method 'M15' takes 2 arguments
+    //         M15(1, z: 0);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M15").WithArguments("M15", "2").WithLocation(36, 9),
+    // (37,9): error CS1501: No overload for method 'M16' takes 2 arguments
+    //         M16(1, z: 0);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M16").WithArguments("M16", "2").WithLocation(37, 9),
+    // (39,22): error CS1744: Named argument 'y' specifies a parameter for which a positional argument has already been given
+    //         M17(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "y").WithArguments("y").WithLocation(39, 22),
+    // (40,22): error CS1744: Named argument 'y' specifies a parameter for which a positional argument has already been given
+    //         M18(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "y").WithArguments("y").WithLocation(40, 22),
+    // (41,16): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M19(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(41, 16)
+                );
         }
     }
 }

@@ -21,7 +21,7 @@ internal static class Program
         AdhocWorkspace workspace = new AdhocWorkspace();
         Solution solution = workspace.CurrentSolution;
         Project project = solution.AddProject("projectName", "assemblyName", LanguageNames.CSharp);
-        Document document = project.AddDocument("name.cs", 
+        Document document = project.AddDocument("name.cs",
 @"class C
 {
 static void Main()
@@ -35,7 +35,7 @@ WriteLine(""Hello, World!"");
         IEnumerable<ClassifiedSpan> classifiedSpans = await Classifier.GetClassifiedSpansAsync(document, TextSpan.FromBounds(0, text.Length));
         Console.BackgroundColor = ConsoleColor.Black;
 
-        var ranges = classifiedSpans.Select(classifiedSpan => 
+        var ranges = classifiedSpans.Select(classifiedSpan =>
             new Range(classifiedSpan, text.GetSubText(classifiedSpan.TextSpan).ToString()));
 
         ranges = FillGaps(text, ranges);

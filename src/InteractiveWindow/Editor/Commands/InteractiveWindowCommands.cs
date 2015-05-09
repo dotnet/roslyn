@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,15 +14,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     internal sealed class Commands : IInteractiveWindowCommands
     {
-        private static readonly char[] CommandNameSeparators = new[] { '\r', '\n', ' ', '\t' };
+        private const string _commandSeparator = ",";
 
-        private readonly Dictionary<string, IInteractiveWindowCommand> commands;
-        private readonly int maxCommandNameLength;
-        private readonly IInteractiveWindow window;
-        private readonly IContentType commandContentType;
-        private readonly IStandardClassificationService classificationRegistry;
-        private IContentType languageContentType;
-        private ITextBuffer previousBuffer;
+        private readonly Dictionary<string, IInteractiveWindowCommand> _commands;
+        private readonly int _maxCommandNameLength;
+        private readonly IInteractiveWindow _window;
+        private readonly IContentType _commandContentType;
+        private readonly IStandardClassificationService _classificationRegistry;
+        private IContentType _languageContentType;
+        private ITextBuffer _previousBuffer;
 
         public string CommandPrefix { get; set; }
 
@@ -28,39 +30,46 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             get
             {
-                return window.CurrentLanguageBuffer.ContentType == commandContentType;
+                return _window.CurrentLanguageBuffer.ContentType == _commandContentType;
             }
         }
 
         internal Commands(IInteractiveWindow window, string prefix, IEnumerable<IInteractiveWindowCommand> commands, IContentTypeRegistryService contentTypeRegistry = null, IStandardClassificationService classificationRegistry = null)
         {
             CommandPrefix = prefix;
-            this.window = window;
+            _window = window;
 
             Dictionary<string, IInteractiveWindowCommand> commandsDict = new Dictionary<string, IInteractiveWindowCommand>();
             foreach (var command in commands)
             {
-                if (command.Name == null)
+                int length = 0;
+                foreach (var name in command.Names)
                 {
-                    continue;
-                }
+                    if (commandsDict.ContainsKey(name))
+                    {
+                        throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, string.Join(", ", command.Names)));
+                    }
+                    if (length != 0)
+                    {
+                        length += _commandSeparator.Length;
+                    }
+                    length += name.Length;
 
-                if (commandsDict.ContainsKey(command.Name))
-                {
-                    throw new InvalidOperationException(string.Format(InteractiveWindowResources.DuplicateCommand, command.Name));
+                    commandsDict[name] = command;
                 }
-
-                commandsDict[command.Name] = command;
+                if (length == 0) {
+                    throw new InvalidOperationException(string.Format(InteractiveWindowResources.MissingCommandName, command.GetType().Name));
+                }
+                _maxCommandNameLength = Math.Max(_maxCommandNameLength, length);
             }
 
-            this.commands = commandsDict;
+            _commands = commandsDict;
 
-            this.maxCommandNameLength = (this.commands.Count > 0) ? this.commands.Values.Select(command => command.Name.Length).Max() : 0;
+            _classificationRegistry = classificationRegistry;
 
-            this.classificationRegistry = classificationRegistry;
             if (contentTypeRegistry != null)
             {
-                this.commandContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
+                _commandContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
             }
 
             if (window != null)
@@ -72,14 +81,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         private void Window_SubmissionBufferAdded(object sender, SubmissionBufferAddedEventArgs e)
         {
-            if (previousBuffer != null)
+            if (_previousBuffer != null)
             {
-                previousBuffer.Changed -= NewBufferChanged;
+                _previousBuffer.Changed -= NewBufferChanged;
             }
 
-            languageContentType = e.NewBuffer.ContentType;
+            _languageContentType = e.NewBuffer.ContentType;
             e.NewBuffer.Changed += NewBufferChanged;
-            previousBuffer = e.NewBuffer;
+            _previousBuffer = e.NewBuffer;
         }
 
         private void NewBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -90,18 +99,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             IContentType contentType = buffer.ContentType;
             IContentType newContentType = null;
 
-            if (contentType == languageContentType)
+            if (contentType == _languageContentType)
             {
                 if (isCommand)
                 {
-                    newContentType = commandContentType;
+                    newContentType = _commandContentType;
                 }
             }
             else
             {
                 if (!isCommand)
                 {
-                    newContentType = languageContentType;
+                    newContentType = _languageContentType;
                 }
             }
 
@@ -143,20 +152,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get
             {
                 IInteractiveWindowCommand command;
-                commands.TryGetValue(name, out command);
+                _commands.TryGetValue(name, out command);
                 return command;
             }
         }
 
         public IEnumerable<IInteractiveWindowCommand> GetCommands()
         {
-            return commands.Values;
+            return _commands.Values;
         }
 
         internal IEnumerable<string> Help()
         {
-            string format = "{0,-" + maxCommandNameLength + "}  {1}";
-            return commands.OrderBy(entry => entry.Key).Select(cmd => string.Format(format, cmd.Key, cmd.Value.Description));
+            string format = "{0,-" + _maxCommandNameLength + "}  {1}";
+            return _commands.OrderBy(entry => entry.Key).Select(cmd => string.Format(format, cmd.Key, cmd.Value.Description));
         }
 
         public IEnumerable<ClassificationSpan> Classify(SnapshotSpan span)
@@ -170,12 +179,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
             if (span.OverlapsWith(prefixSpan))
             {
-                yield return Classification(span.Snapshot, prefixSpan, classificationRegistry.Keyword);
+                yield return Classification(span.Snapshot, prefixSpan, _classificationRegistry.Keyword);
             }
 
             if (span.OverlapsWith(commandSpan))
             {
-                yield return Classification(span.Snapshot, commandSpan, classificationRegistry.Keyword);
+                yield return Classification(span.Snapshot, commandSpan, _classificationRegistry.Keyword);
             }
 
             if (argumentsSpan.Length > 0)
@@ -194,7 +203,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public Task<ExecutionResult> TryExecuteCommand()
         {
-            var span = window.CurrentLanguageBuffer.CurrentSnapshot.GetExtent();
+            var span = _window.CurrentLanguageBuffer.CurrentSnapshot.GetExtent();
 
             SnapshotSpan prefixSpan, commandSpan, argumentsSpan;
             var command = TryParseCommand(span, out prefixSpan, out commandSpan, out argumentsSpan);
@@ -205,18 +214,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
             try
             {
-                return command.Execute(window, argumentsSpan.GetText()) ?? ExecutionResult.Failed;
+                return command.Execute(_window, argumentsSpan.GetText()) ?? ExecutionResult.Failed;
             }
             catch (Exception e)
             {
-                window.ErrorOutputWriter.WriteLine(string.Format("Command '{0}' failed: {1}", command.Name, e.Message));
+                _window.ErrorOutputWriter.WriteLine(string.Format("Command '{0}' failed: {1}", command.Names.First(), e.Message));
                 return ExecutionResult.Failed;
             }
         }
 
         private const string HelpIndent = "  ";
 
-        private static readonly string[] ShortcutDescriptions = new[]
+        private static readonly string[] s_shortcutDescriptions = new[]
         {
 "Enter                Evaluate the current input if it appears to be complete.",
 "Ctrl-Enter           If the caret is in current pending input submission, evaluate the entire submission.",
@@ -234,18 +243,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public void DisplayHelp()
         {
-            window.WriteLine("Keyboard shortcuts:");
-            foreach (var line in ShortcutDescriptions)
+            _window.WriteLine("Keyboard shortcuts:");
+            foreach (var line in s_shortcutDescriptions)
             {
-                window.Write(HelpIndent);
-                window.WriteLine(line);
+                _window.Write(HelpIndent);
+                _window.WriteLine(line);
             }
 
-            window.WriteLine("REPL commands:");
+            _window.WriteLine("REPL commands:");
             foreach (var line in Help())
             {
-                window.Write(HelpIndent);
-                window.WriteLine(line);
+                _window.Write(HelpIndent);
+                _window.WriteLine(line);
             }
         }
 
@@ -260,7 +269,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             writer.WriteLine("Usage:");
             writer.Write(HelpIndent);
             writer.Write(CommandPrefix);
-            writer.Write(command.Name);
+            writer.Write(string.Join(_commandSeparator, command.Names));
 
             string commandLine = command.CommandLine;
             if (commandLine != null)
@@ -302,7 +311,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public void DisplayCommandHelp(IInteractiveWindowCommand command)
         {
-            DisplayCommandUsage(command, window.OutputWriter, displayDetails: true);
+            DisplayCommandUsage(command, _window.OutputWriter, displayDetails: true);
         }
     }
 }

@@ -10,7 +10,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
     Public Class BasicSymbolDeclaredEventAnalyzer
         Inherits SymbolDeclaredEventAnalyzer(Of SyntaxKind)
 
-        Private Shared ReadOnly sourceModuleTypeFullName As String = "Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceModuleSymbol"
+        Private Shared ReadOnly s_sourceModuleTypeFullName As String = "Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceModuleSymbol"
 
         Protected Overrides Function GetCompilationAnalyzer(compilation As Compilation, symbolType As INamedTypeSymbol) As CompilationAnalyzer
             Dim compilationType = compilation.GetTypeByMetadataName(GetType(VisualBasicCompilation).FullName)
@@ -18,7 +18,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
                 Return Nothing
             End If
 
-            Dim sourceModuleType = compilation.GetTypeByMetadataName(sourceModuleTypeFullName)
+            Dim sourceModuleType = compilation.GetTypeByMetadataName(s_sourceModuleTypeFullName)
             If sourceModuleType Is Nothing Then
                 Return Nothing
             End If
@@ -35,20 +35,20 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
         Private NotInheritable Class BasicCompilationAnalyzer
             Inherits CompilationAnalyzer
 
-            Private ReadOnly sourceModuleType As INamedTypeSymbol
+            Private ReadOnly _sourceModuleType As INamedTypeSymbol
 
-            Private Shared ReadOnly _symbolTypesWithExpectedSymbolDeclaredEvent As HashSet(Of String) =
+            Private Shared ReadOnly s_symbolTypesWithExpectedSymbolDeclaredEvent As HashSet(Of String) =
                 New HashSet(Of String) From {"SourceNamespaceSymbol", "SourceNamedTypeSymbol", "SourceEventSymbol", "SourceFieldSymbol", "SourceMethodSymbol", "SourcePropertySymbol"}
-            Private Const AtomicSetFlagAndRaiseSymbolDeclaredEventName As String = "AtomicSetFlagAndRaiseSymbolDeclaredEvent"
+            Private Const s_atomicSetFlagAndRaiseSymbolDeclaredEventName As String = "AtomicSetFlagAndRaiseSymbolDeclaredEvent"
 
             Public Sub New(symbolType As INamedTypeSymbol, compilationType As INamedTypeSymbol, sourceModuleSymbol As INamedTypeSymbol)
                 MyBase.New(symbolType, compilationType)
-                Me.sourceModuleType = sourceModuleSymbol
+                Me._sourceModuleType = sourceModuleSymbol
             End Sub
 
             Protected Overrides ReadOnly Property SymbolTypesWithExpectedSymbolDeclaredEvent As HashSet(Of String)
                 Get
-                    Return _symbolTypesWithExpectedSymbolDeclaredEvent
+                    Return s_symbolTypesWithExpectedSymbolDeclaredEvent
                 End Get
             End Property
 
@@ -65,8 +65,8 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
             End Function
 
             Friend Overrides Sub AnalyzeMethodInvocation(invocationSymbol As IMethodSymbol, context As SyntaxNodeAnalysisContext)
-                If invocationSymbol.Name.Equals(AtomicSetFlagAndRaiseSymbolDeclaredEventName, StringComparison.OrdinalIgnoreCase) AndAlso
-                    sourceModuleType.Equals(invocationSymbol.ContainingType) Then
+                If invocationSymbol.Name.Equals(s_atomicSetFlagAndRaiseSymbolDeclaredEventName, StringComparison.OrdinalIgnoreCase) AndAlso
+                    _sourceModuleType.Equals(invocationSymbol.ContainingType) Then
 
                     Dim argumentOpt As SyntaxNode = Nothing
                     Dim invocationExp = DirectCast(context.Node, InvocationExpressionSyntax)

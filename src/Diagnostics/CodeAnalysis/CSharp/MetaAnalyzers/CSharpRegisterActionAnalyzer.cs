@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 
         private sealed class CSharpRegisterActionCompilationAnalyzer : RegisterActionCompilationAnalyzer
         {
-            private readonly ITypeSymbol _csharpSyntaxKind,_basicSyntaxKind;
+            private readonly ITypeSymbol _csharpSyntaxKind, _basicSyntaxKind;
 
             public CSharpRegisterActionCompilationAnalyzer(
                 INamedTypeSymbol csharpSyntaxKind,

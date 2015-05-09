@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
                 for (var i = 0; i < expectedArray.Length; i++)
                 {
                     int position;
-                    var key = spans.Keys.FirstOrDefault(k => k.StartsWith(i + "-"));
+                    var key = spans.Keys.FirstOrDefault(k => k.StartsWith(i + "-", StringComparison.Ordinal));
                     if (key != null)
                     {
                         var parts = key.Split('-');
@@ -134,7 +134,7 @@ class Program
 }
 ";
 
-            TestCaching(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", }, new[] { "k", }, new string[] { });
+            TestCaching(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", }, new[] { "k", }, Array.Empty<string>());
         }
     }
 }

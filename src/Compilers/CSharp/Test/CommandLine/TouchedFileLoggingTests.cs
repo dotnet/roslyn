@@ -5,13 +5,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CompilerServer;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -29,7 +32,7 @@ class C
     }
 }";
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TrivialSourceFileOnlyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -57,7 +60,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void AppConfigCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -103,7 +106,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StrongNameKeyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -138,7 +141,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void XmlDocumentFileCsc()
         {
             var sourcePath = Temp.CreateFile().WriteAllText(@"
@@ -195,7 +198,7 @@ public class C { }").Path;
             CleanupAllGeneratedFiles(sourcePath);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TrivialMetadataCaching()
         {
             List<String> filelist = new List<string>();
@@ -212,11 +215,13 @@ public class C { }").Path;
 
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
-                var cmd = new CSharpCompilerServer(null,
+                var cmd = new CSharpCompilerServer(
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
+                    null,
                     _baseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory(),
                     s_libDirectory,
-                    Path.GetTempPath());
+                    new TestAnalyzerAssemblyLoader());
 
                 List<string> expectedReads;
                 List<string> expectedWrites;
@@ -263,11 +268,6 @@ public class C { }").Path;
             var writes = new List<string>();
             writes.Add(outputPath);
 
-            // Hook temporary file creation
-            cmd.OnCreateTempFile += (tempPath, stream) =>
-                                    {
-                                        writes.Add(tempPath);
-                                    };
             expectedWrites = writes;
         }
 
@@ -286,6 +286,19 @@ public class C { }").Path;
             expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
+        }
+
+        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

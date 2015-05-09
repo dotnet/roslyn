@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class MetadataReference
     {
-        public MetadataReferenceProperties Properties { get; private set; }
+        public MetadataReferenceProperties Properties { get; }
 
         internal MetadataReference(MetadataReferenceProperties properties)
         {
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis
             Stream peStream = FileStreamLightUp.OpenFileStream(location);
 
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
-            // which migth also lock the file until the reference is GC'd.
+            // which might also lock the file until the reference is GC'd.
             var metadata = AssemblyMetadata.CreateFromStream(peStream);
 
             return metadata.GetReference(filePath: location);

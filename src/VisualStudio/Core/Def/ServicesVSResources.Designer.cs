@@ -115,6 +115,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; encountered an error and has been disabled..
+        /// </summary>
+        internal static string CodefixOrRefactoringEncounteredError {
+            get {
+                return ResourceManager.GetString("CodefixOrRefactoringEncounteredError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find location of folder on disk.
         /// </summary>
         internal static string CouldNotFindLocationOfFol {
@@ -147,6 +156,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string CreateNodeIdFailed {
             get {
                 return ResourceManager.GetString("CreateNodeIdFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current block.
+        /// </summary>
+        internal static string CurrentBlock {
+            get {
+                return ResourceManager.GetString("CurrentBlock", resourceCulture);
             }
         }
         
@@ -196,6 +214,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Determining current block..
+        /// </summary>
+        internal static string DeterminingCurrentBlock {
+            get {
+                return ResourceManager.GetString("DeterminingCurrentBlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Get help for &apos;{0}&apos;{1}{2}{3}.
+        /// </summary>
+        internal static string DiagnosticIdHyperlinkTooltipText {
+            get {
+                return ResourceManager.GetString("DiagnosticIdHyperlinkTooltipText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C#/VB Diagnostics Table Data Source.
         /// </summary>
         internal static string DiagnosticsTableSourceName {
@@ -228,6 +264,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ElementRenameFailed {
             get {
                 return ResourceManager.GetString("ElementRenameFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        internal static string Enable {
+            get {
+                return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable and ignore future errors.
+        /// </summary>
+        internal static string EnableAndIgnore {
+            get {
+                return ResourceManager.GetString("EnableAndIgnore", resourceCulture);
             }
         }
         
@@ -336,6 +390,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string FilePathCannotUseReservedKeywords {
             get {
                 return ResourceManager.GetString("FilePathCannotUseReservedKeywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  from Bing.
+        /// </summary>
+        internal static string FromBing {
+            get {
+                return ResourceManager.GetString("FromBing", resourceCulture);
             }
         }
         
@@ -666,6 +729,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No Changes.
+        /// </summary>
+        internal static string NoChanges {
+            get {
+                return ResourceManager.GetString("NoChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not a valid value.
         /// </summary>
         internal static string NotAValidValue {
@@ -837,6 +909,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ProjectNavBarTooltipWithShortcut {
             get {
                 return ResourceManager.GetString("ProjectNavBarTooltipWithShortcut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} references.
+        /// </summary>
+        internal static string ReferenceCountPlural {
+            get {
+                return ResourceManager.GetString("ReferenceCountPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1 reference.
+        /// </summary>
+        internal static string ReferenceCountSingular {
+            get {
+                return ResourceManager.GetString("ReferenceCountSingular", resourceCulture);
             }
         }
         

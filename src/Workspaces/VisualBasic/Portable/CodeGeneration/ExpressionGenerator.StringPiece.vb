@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Partial Module ExpressionGenerator
+    Friend Partial Module ExpressionGenerator
         Private Structure StringPiece
             Public ReadOnly Value As String
             Public ReadOnly Kind As StringPieceKind

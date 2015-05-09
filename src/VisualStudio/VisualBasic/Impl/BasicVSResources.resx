@@ -157,10 +157,10 @@
     <value>A_utomatic insertion of end constructs</value>
   </data>
   <data name="Option_EnableHighlightKeywords" xml:space="preserve">
-    <value>_Highlight references to symbol under cursor</value>
+    <value>Highlight related _keywords under cursor</value>
   </data>
   <data name="Option_EnableHighlightReferences" xml:space="preserve">
-    <value>Highlight related _keywords under cursor</value>
+    <value>_Highlight references to symbol under cursor</value>
   </data>
   <data name="Option_EnableLineCommit" xml:space="preserve">
     <value>_Pretty listing (reformatting) of code</value>
@@ -194,5 +194,8 @@
   </data>
   <data name="Option_Performance" xml:space="preserve">
     <value>Performance</value>
+  </data>
+  <data name="Option_RenameTrackingPreview" xml:space="preserve">
+    <value>Show preview for _rename tracking</value>
   </data>
 </root>

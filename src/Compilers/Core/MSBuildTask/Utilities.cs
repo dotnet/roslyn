@@ -1,16 +1,26 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Globalization;
 using System.IO;
 using System.Security;
 using Microsoft.Build.Framework;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// General utilities.
     /// </summary>
     internal static class Utilities
     {
+        internal static bool IsCriticalException(Exception e)
+        {
+            return e is StackOverflowException
+                || e is AccessViolationException
+                || e is AppDomainUnloadedException
+                || e is BadImageFormatException
+                || e is DivideByZeroException;
+        }
         /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
         /// be converted.
@@ -126,7 +136,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                                                                 string errorString,
                                                                 params object[] args)
         {
-            return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args), e); 
+            return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args), e);
         }
 
         internal static Exception GetLocalizedArgumentException(string errorString,

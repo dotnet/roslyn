@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Retargeting map from underlying module to this one.
         ''' </summary>
-        Private ReadOnly m_SymbolMap As New ConcurrentDictionary(Of Symbol, Symbol)()
+        Private ReadOnly _symbolMap As New ConcurrentDictionary(Of Symbol, Symbol)()
 
         Private ReadOnly _createRetargetingMethod As Func(Of Symbol, RetargetingMethodSymbol)
         Private ReadOnly _createRetargetingNamespace As Func(Of Symbol, RetargetingNamespaceSymbol)
@@ -76,11 +76,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Friend Class RetargetingSymbolTranslator
             Inherits VisualBasicSymbolVisitor(Of RetargetOptions, Symbol)
 
-            Private ReadOnly m_RetargetingModule As RetargetingModuleSymbol
+            Private ReadOnly _retargetingModule As RetargetingModuleSymbol
 
             Public Sub New(retargetingModule As RetargetingModuleSymbol)
                 Debug.Assert(retargetingModule IsNot Nothing)
-                m_RetargetingModule = retargetingModule
+                _retargetingModule = retargetingModule
             End Sub
 
             ''' <summary>
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ''' </summary>
             Private ReadOnly Property SymbolMap As ConcurrentDictionary(Of Symbol, Symbol)
                 Get
-                    Return m_RetargetingModule.m_SymbolMap
+                    Return _retargetingModule._symbolMap
                 End Get
             End Property
 
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ''' </summary>
             Private ReadOnly Property RetargetingAssembly As RetargetingAssemblySymbol
                 Get
-                    Return m_RetargetingModule.m_RetargetingAssembly
+                    Return _retargetingModule._retargetingAssembly
                 End Get
             End Property
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ''' </summary>
             Private ReadOnly Property RetargetingAssemblyMap As Dictionary(Of AssemblySymbol, DestinationData)
                 Get
-                    Return m_RetargetingModule.m_RetargetingAssemblyMap
+                    Return _retargetingModule._retargetingAssemblyMap
                 End Get
             End Property
 
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ''' </summary>
             Private ReadOnly Property UnderlyingModule As SourceModuleSymbol
                 Get
-                    Return m_RetargetingModule.m_UnderlyingModule
+                    Return _retargetingModule._underlyingModule
                 End Get
             End Property
 
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Function Retarget(ns As NamespaceSymbol) As NamespaceSymbol
-                Return DirectCast(SymbolMap.GetOrAdd(ns, m_RetargetingModule._createRetargetingNamespace), NamespaceSymbol)
+                Return DirectCast(SymbolMap.GetOrAdd(ns, _retargetingModule._createRetargetingNamespace), NamespaceSymbol)
             End Function
 
             Private Function RetargetNamedTypeDefinition(type As NamedTypeSymbol, options As RetargetOptions) As NamedTypeSymbol
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         End If
                         container = container.ContainingType
                     End While
-                    Return DirectCast(Me.SymbolMap.GetOrAdd(type, m_RetargetingModule._createRetargetingNamedType), NamedTypeSymbol)
+                    Return DirectCast(Me.SymbolMap.GetOrAdd(type, _retargetingModule._createRetargetingNamedType), NamedTypeSymbol)
                 Else
                     ' The type is defined in one of the added modules
                     Debug.Assert([module].Ordinal > 0)
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Dim name = MetadataTypeName.FromFullName(type.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), forcedArity:=type.Arity)
                     Dim identifier As String = Nothing
 
-                    If type.ContainingModule Is m_RetargetingModule.UnderlyingModule Then
+                    If type.ContainingModule Is _retargetingModule.UnderlyingModule Then
                         ' This is a local type explicitly declared in source. Get information from TypeIdentifier attribute.
                         For Each attrData In type.GetAttributes()
                             Dim signatureIndex = attrData.GetTargetAttributeSignatureIndex(type, AttributeDescription.TypeIdentifierAttribute)
@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Case SymbolKind.ErrorType, SymbolKind.NamedType
                         Dim namedType = DirectCast(symbol, NamedTypeSymbol)
 
-                        If symbol.OriginalDefinition.ContainingModule Is m_RetargetingModule.UnderlyingModule AndAlso
+                        If symbol.OriginalDefinition.ContainingModule Is _retargetingModule.UnderlyingModule AndAlso
                             namedType.IsExplicitDefinitionOfNoPiaLocalType Then
                             Return True
                         End If
@@ -549,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Overridable Function Retarget(typeParameter As TypeParameterSymbol) As TypeParameterSymbol
-                Return DirectCast(SymbolMap.GetOrAdd(typeParameter, m_RetargetingModule._createRetargetingTypeParameter), TypeParameterSymbol)
+                Return DirectCast(SymbolMap.GetOrAdd(typeParameter, _retargetingModule._createRetargetingTypeParameter), TypeParameterSymbol)
             End Function
 
             Public Function Retarget(type As ArrayTypeSymbol) As ArrayTypeSymbol
@@ -836,12 +836,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Function Retarget(method As MethodSymbol) As RetargetingMethodSymbol
-                Return DirectCast(SymbolMap.GetOrAdd(method, m_RetargetingModule._createRetargetingMethod), RetargetingMethodSymbol)
+                Return DirectCast(SymbolMap.GetOrAdd(method, _retargetingModule._createRetargetingMethod), RetargetingMethodSymbol)
             End Function
 
             Public Function Retarget(method As MethodSymbol, retargetedMethodComparer As IEqualityComparer(Of MethodSymbol)) As MethodSymbol
                 If method.ContainingModule Is Me.UnderlyingModule AndAlso method.IsDefinition Then
-                    Return DirectCast(SymbolMap.GetOrAdd(method, m_RetargetingModule._createRetargetingMethod), RetargetingMethodSymbol)
+                    Return DirectCast(SymbolMap.GetOrAdd(method, _retargetingModule._createRetargetingMethod), RetargetingMethodSymbol)
                 End If
 
                 Dim containingType = method.ContainingType
@@ -884,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                     ' A generic method needs special handling because its signature is very likely
                     ' to refer to method's type parameters.
-                    Dim finder = New RetargetedTypeMethodFinder(translator.m_RetargetingModule)
+                    Dim finder = New RetargetedTypeMethodFinder(translator._retargetingModule)
                     Return FindWorker(finder, method, retargetedType, retargetedMethodComparer)
                 End Function
 
@@ -943,20 +943,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Class
 
             Public Function Retarget(field As FieldSymbol) As RetargetingFieldSymbol
-                Return DirectCast(SymbolMap.GetOrAdd(field, m_RetargetingModule._createRetargetingField), RetargetingFieldSymbol)
+                Return DirectCast(SymbolMap.GetOrAdd(field, _retargetingModule._createRetargetingField), RetargetingFieldSymbol)
             End Function
 
             Public Function Retarget([property] As PropertySymbol) As RetargetingPropertySymbol
-                Return DirectCast(SymbolMap.GetOrAdd([property], m_RetargetingModule._createRetargetingProperty), RetargetingPropertySymbol)
+                Return DirectCast(SymbolMap.GetOrAdd([property], _retargetingModule._createRetargetingProperty), RetargetingPropertySymbol)
             End Function
 
             Public Function Retarget([event] As EventSymbol) As RetargetingEventSymbol
-                Return DirectCast(SymbolMap.GetOrAdd([event], m_RetargetingModule._createRetargetingEvent), RetargetingEventSymbol)
+                Return DirectCast(SymbolMap.GetOrAdd([event], _retargetingModule._createRetargetingEvent), RetargetingEventSymbol)
             End Function
 
             Public Function RetargetImplementedEvent([event] As EventSymbol) As EventSymbol
                 If ([event].ContainingModule Is Me.UnderlyingModule) AndAlso [event].IsDefinition Then
-                    Return DirectCast(SymbolMap.GetOrAdd([event], m_RetargetingModule._createRetargetingEvent), RetargetingEventSymbol)
+                    Return DirectCast(SymbolMap.GetOrAdd([event], _retargetingModule._createRetargetingEvent), RetargetingEventSymbol)
                 End If
 
                 Dim containingType = [event].ContainingType
@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Public Function Retarget([property] As PropertySymbol, retargetedPropertyComparer As IEqualityComparer(Of PropertySymbol)) As PropertySymbol
                 If ([property].ContainingModule Is Me.UnderlyingModule) AndAlso [property].IsDefinition Then
-                    Return DirectCast(SymbolMap.GetOrAdd([property], m_RetargetingModule._createRetargetingProperty), RetargetingPropertySymbol)
+                    Return DirectCast(SymbolMap.GetOrAdd([property], _retargetingModule._createRetargetingProperty), RetargetingPropertySymbol)
                 End If
 
                 Dim containingType = [property].ContainingType
@@ -1035,8 +1035,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Public Overrides Function VisitModule(symbol As ModuleSymbol, options As RetargetOptions) As Symbol
                 ' We shouldn't run into any other module, but the underlying module
-                Debug.Assert(symbol Is m_RetargetingModule.UnderlyingModule)
-                Return m_RetargetingModule
+                Debug.Assert(symbol Is _retargetingModule.UnderlyingModule)
+                Return _retargetingModule
             End Function
 
             Public Overrides Function VisitNamespace(symbol As NamespaceSymbol, options As RetargetOptions) As Symbol

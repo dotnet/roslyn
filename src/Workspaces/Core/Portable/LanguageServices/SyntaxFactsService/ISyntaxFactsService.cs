@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        bool IsEntirelyWithinStringOrCharLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+        bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type);
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
 
         SyntaxNode GetContainingTypeDeclaration(SyntaxNode root, int position);
-        SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position);
+        SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
         SyntaxNode GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode node);
 
         SyntaxToken FindTokenOnLeftOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);

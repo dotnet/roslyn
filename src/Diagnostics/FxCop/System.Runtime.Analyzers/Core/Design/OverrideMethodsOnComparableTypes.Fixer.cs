@@ -31,7 +31,8 @@ namespace System.Runtime.Analyzers
 
             var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var typeSymbol = model.GetDeclaredSymbol(declaration) as INamedTypeSymbol;
-            if (typeSymbol == null)
+            if (typeSymbol?.TypeKind != TypeKind.Class &&
+                typeSymbol?.TypeKind != TypeKind.Struct)
             {
                 return;
             }
@@ -51,18 +52,18 @@ namespace System.Runtime.Analyzers
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
-            if (!OverrideMethodsOnComparableTypesAnalyzer.DoesOverrideEquals(typeSymbol))
+            if (!typeSymbol.DoesOverrideEquals())
             {
                 var equalsMethod = generator.MethodDeclaration(WellKnownMemberNames.ObjectEquals,
                                         new[] { generator.ParameterDeclaration("obj", generator.TypeExpression(SpecialType.System_Object)) },
                                         returnType: generator.TypeExpression(SpecialType.System_Boolean),
                                         accessibility: Accessibility.Public,
                                         modifiers: DeclarationModifiers.Override,
-                                        statements: new[] { generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException")))});
+                                        statements: new[] { generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException"))) });
                 editor.AddMember(declaration, equalsMethod);
             }
 
-            if (!OverrideMethodsOnComparableTypesAnalyzer.DoesOverrideGetHashCode(typeSymbol))
+            if (!typeSymbol.DoesOverrideGetHashCode())
             {
                 var getHashCodeMethod = generator.MethodDeclaration(WellKnownMemberNames.ObjectGetHashCode,
                                             returnType: generator.TypeExpression(SpecialType.System_Int32),
@@ -72,7 +73,7 @@ namespace System.Runtime.Analyzers
                 editor.AddMember(declaration, getHashCodeMethod);
             }
 
-            if (!OverrideMethodsOnComparableTypesAnalyzer.IsOperatorImplemented(typeSymbol, WellKnownMemberNames.EqualityOperatorName))
+            if (!typeSymbol.IsOperatorImplemented(WellKnownMemberNames.EqualityOperatorName))
             {
                 var equalityOperator = GenerateOperatorDeclaration(generator.TypeExpression(SpecialType.System_Boolean),
                                                                    WellKnownMemberNames.EqualityOperatorName,
@@ -85,7 +86,7 @@ namespace System.Runtime.Analyzers
                 editor.AddMember(declaration, equalityOperator);
             }
 
-            if (!OverrideMethodsOnComparableTypesAnalyzer.IsOperatorImplemented(typeSymbol, WellKnownMemberNames.InequalityOperatorName))
+            if (!typeSymbol.IsOperatorImplemented(WellKnownMemberNames.InequalityOperatorName))
             {
                 var inequalityOperator = GenerateOperatorDeclaration(generator.TypeExpression(SpecialType.System_Boolean),
                                                                    WellKnownMemberNames.InequalityOperatorName,
@@ -98,7 +99,7 @@ namespace System.Runtime.Analyzers
                 editor.AddMember(declaration, inequalityOperator);
             }
 
-            if (!OverrideMethodsOnComparableTypesAnalyzer.IsOperatorImplemented(typeSymbol, WellKnownMemberNames.LessThanOperatorName))
+            if (!typeSymbol.IsOperatorImplemented(WellKnownMemberNames.LessThanOperatorName))
             {
                 var lessThanOperator = GenerateOperatorDeclaration(generator.TypeExpression(SpecialType.System_Boolean),
                                                                    WellKnownMemberNames.LessThanOperatorName,
@@ -111,7 +112,7 @@ namespace System.Runtime.Analyzers
                 editor.AddMember(declaration, lessThanOperator);
             }
 
-            if (!OverrideMethodsOnComparableTypesAnalyzer.IsOperatorImplemented(typeSymbol, WellKnownMemberNames.GreaterThanOperatorName))
+            if (!typeSymbol.IsOperatorImplemented(WellKnownMemberNames.GreaterThanOperatorName))
             {
                 var greaterThanOperator = GenerateOperatorDeclaration(generator.TypeExpression(SpecialType.System_Boolean),
                                                                    WellKnownMemberNames.GreaterThanOperatorName,

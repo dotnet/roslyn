@@ -204,26 +204,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EnC source mapping only operates on statements.
             var local = _factory.SynthesizedLocal(condition.Type, containingStatement.Syntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
 
-            var condConst = condition.ConstantValue;
-            if (condConst == null)
-            {
-                return new BoundSequence(
-                    condition.Syntax,
-                    ImmutableArray.Create(local),
-                    ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
-                    new BoundSequencePointExpression(syntax: null, expression: _factory.Local(local), type: condition.Type),
-                    condition.Type);
-            }
-            else
-            {
-                // const expression must stay a const to not invalidate results of control flow analysis
-                return new BoundSequence(
-                    condition.Syntax,
-                    ImmutableArray.Create(local),
-                    ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
-                    condition,
-                    condition.Type);
-            }
+            // Add hidden sequence point unless the condition is a constant expression.
+            // Constant expression must stay a const to not invalidate results of control flow analysis.
+            var valueExpression = (condition.ConstantValue == null) ?
+                new BoundSequencePointExpression(syntax: null, expression: _factory.Local(local), type: condition.Type) :
+                condition;
+
+            return new BoundSequence(
+                condition.Syntax,
+                ImmutableArray.Create(local),
+                ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
+                valueExpression,
+                condition.Type);
         }
     }
 }

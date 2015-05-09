@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
             }
 
-            public int OriginalColumn { get; private set; }
+            public int OriginalColumn { get; }
         }
 
         int IIntervalIntrospector<AnchorData>.GetStart(AnchorData value)

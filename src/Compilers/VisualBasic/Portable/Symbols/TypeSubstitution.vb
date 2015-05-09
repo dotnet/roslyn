@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim currentParent As TypeSubstitution = Nothing
             Dim currentContainer As Symbol = Nothing
 #If DEBUG Then
-            Dim haveSubstitutionForOrdinal = BitArray.Create(params.Length)
+            Dim haveSubstitutionForOrdinal = BitVector.Create(params.Length)
 #End If
 
             Dim pairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).GetInstance()
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim pairsHaveChanged As Boolean = False
             Dim oldPairs = oldConstructSubstitution.Pairs
 
-            Dim haveSubstitutionForOrdinal As BitArray = Nothing
+            Dim haveSubstitutionForOrdinal As BitVector = Nothing
             Dim targetGenericDefinition As Symbol = oldConstructSubstitution.TargetGenericDefinition
 
             If oldPairs.Length > 0 Then
@@ -642,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     arity = DirectCast(targetGenericDefinition, NamedTypeSymbol).Arity
                 End If
 
-                haveSubstitutionForOrdinal = BitArray.Create(arity)
+                haveSubstitutionForOrdinal = BitVector.Create(arity)
             End If
 
             For i = 0 To oldPairs.Length - 1 Step 1

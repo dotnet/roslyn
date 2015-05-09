@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly ulong _address;
 
         internal ObjectAddressLocalSymbol(MethodSymbol method, string name, TypeSymbol type, ulong address) :
-            base(method, name, type)
+            base(method, name, name, type)
         {
             Debug.Assert(type.SpecialType == SpecialType.System_Object);
             _address = address;
@@ -26,18 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            var method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetObjectAtAddressMethodName,
-                (c, n, s) =>
-                {
-                    var parameterType = compilation.GetSpecialType(SpecialType.System_UInt64);
-                    return new PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        this.Type,
-                        m => ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(m, parameterType, ordinal: 0, refKind: RefKind.None)));
-                });
+            var method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetObjectAtAddressMethodName);
             var argument = new BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_address),

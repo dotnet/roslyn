@@ -386,11 +386,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function Insert(list As SyntaxTokenList, index As Integer, ParamArray items As SyntaxToken()) As SyntaxTokenList
             If index < 0 OrElse index > list.Count Then
-                Throw New ArgumentOutOfRangeException("index")
+                Throw New ArgumentOutOfRangeException(NameOf(index))
             End If
 
             If items Is Nothing Then
-                Throw New ArgumentNullException("items")
+                Throw New ArgumentNullException(NameOf(items))
             End If
 
             If list.Count = 0 Then
@@ -1496,32 +1496,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' DistinctClauseSyntax -       Returns Distinct method associated with DistinctClauseSyntax.
-        ''' 
-        ''' WhereClauseSyntax -          Returns Where method associated with WhereClauseSyntax.
-        ''' 
-        ''' PartitionWhileClauseSyntax - Returns TakeWhile/SkipWhile method associated with PartitionWhileClauseSyntax.
-        ''' 
-        ''' PartitionClauseSyntax -      Returns Take/Skip method associated with PartitionClauseSyntax.
-        ''' 
-        ''' GroupByClauseSyntax -        Returns GroupBy method associated with GroupByClauseSyntax.
-        ''' 
-        ''' JoinClauseSyntax -           Returns Join/GroupJoin method associated with JoinClauseSyntax/GroupJoinClauseSyntax.
-        ''' 
-        ''' SelectClauseSyntax -         Returns Select method associated with SelectClauseSyntax, if needed.
-        ''' 
-        ''' FromClauseSyntax -           Returns Select method associated with FromClauseSyntax, which has only one 
-        '''                              CollectionRangeVariableSyntax and is the only query clause within 
-        '''                              QueryExpressionSyntax. NotNeeded SymbolInfo otherwise. 
-        '''                              The method call is injected by the compiler to make sure that query is translated to at 
-        '''                              least one method call. 
-        ''' 
-        ''' LetClauseSyntax -            NotNeeded SymbolInfo.
-        ''' 
-        ''' OrderByClauseSyntax -        NotNeeded SymbolInfo.
-        ''' 
-        ''' AggregateClauseSyntax -      Empty SymbolInfo. GetAggregateClauseInfo should be used instead.
+        ''' Returns symbol information for a query clause.
         ''' </summary>
+        ''' <remarks>
+        ''' <list type="table">
+        ''' <listheader>
+        '''     <term>Syntax node type</term>
+        '''     <description>Symbol information returned</description>
+        ''' </listheader>
+        ''' <item>
+        '''     <term><see cref="DistinctClauseSyntax"/></term>
+        '''     <description>Returns Distinct method associated with <see cref="DistinctClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="WhereClauseSyntax"/></term>
+        '''     <description>Returns Where method associated with <see cref="WhereClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="PartitionWhileClauseSyntax"/></term>
+        '''     <description>Returns TakeWhile/SkipWhile method associated with <see cref="PartitionWhileClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="PartitionClauseSyntax"/></term>
+        '''     <description>Returns Take/Skip method associated with <see cref="PartitionClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="GroupByClauseSyntax"/></term>
+        '''     <description>Returns GroupBy method associated with <see cref="GroupByClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="JoinClauseSyntax"/></term>
+        '''     <description>Returns Join/GroupJoin method associated with <see cref="JoinClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="SelectClauseSyntax"/></term>
+        '''     <description>Returns Select method associated with <see cref="SelectClauseSyntax"/>, or <see cref="SymbolInfo.None"/> if none is.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="FromClauseSyntax"/></term>
+        '''     <description>
+        '''         Returns Select method associated with <see cref="FromClauseSyntax"/>, which has only one 
+        '''         <see cref="CollectionRangeVariableSyntax"/> and is the only query clause within 
+        '''         <see cref="QueryExpressionSyntax"/>. <see cref="SymbolInfo.None"/> otherwise. 
+        '''         The method call is injected by the compiler to make sure that query is translated to at 
+        '''         least one method call. 
+        '''     </description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="LetClauseSyntax"/></term>
+        '''     <description><see cref="SymbolInfo.None"/></description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="OrderByClauseSyntax"/></term>
+        '''     <description><see cref="SymbolInfo.None"/></description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="AggregateClauseSyntax"/></term>
+        '''     <description>
+        '''         <see cref="SymbolInfo.None"/>.
+        '''         Use <see cref="GetAggregateClauseSymbolInfo(SemanticModel, AggregateClauseSyntax, CancellationToken)"/> instead.
+        '''     </description>
+        ''' </item>
+        ''' </list>
+        ''' </remarks>
         <Extension>
         Public Function GetSymbolInfo(
             semanticModel As SemanticModel,
@@ -1537,8 +1574,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns Select method associated with ExpressionRangeVariableSyntax within a LetClauseSyntax, if needed.
-        ''' NotNeeded SymbolInfo otherwise.
+        ''' Returns Select method associated with <see cref="ExpressionRangeVariableSyntax"/> within a <see cref="LetClauseSyntax"/>, 
+        ''' or <see cref="SymbolInfo.None"/> otherwise if none is.
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(
@@ -1555,7 +1592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns aggregate function associated with FunctionAggregationSyntax.
+        ''' Returns aggregate function associated with <see cref="FunctionAggregationSyntax"/>.
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(
@@ -1572,7 +1609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns OrdrBy/OrderByDescending/ThenBy/ThenByDescending method associated with OrderingSyntax.
+        ''' Returns OrderBy/OrderByDescending/ThenBy/ThenByDescending method associated with <see cref="OrderingSyntax"/>.
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(

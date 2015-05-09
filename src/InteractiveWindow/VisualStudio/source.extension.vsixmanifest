@@ -15,9 +15,10 @@
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.InteractiveWindow.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.VsInteractiveWindow.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|InteractiveWindow;GetTargetPath|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|%CurrentProject%;GetTargetPath|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="|InteractiveWindow;GetTargetPath|" AssemblyName="|InteractiveWindow|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="|%CurrentProject%;GetTargetPath|" AssemblyName="|%CurrentProject%|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.VsInteractiveWindow.pkgdef" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="BindingPath.pkgdef" />
   </Assets>
 </PackageManifest>

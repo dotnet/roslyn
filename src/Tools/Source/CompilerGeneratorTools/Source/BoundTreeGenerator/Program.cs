@@ -12,7 +12,7 @@ namespace BoundTreeGenerator
     {
         private static void Main(string[] args)
         {
-            var nonSwitches = args.Where(a => !a.StartsWith("/")).ToArray();
+            var nonSwitches = args.Where(a => !a.StartsWith("/", StringComparison.Ordinal)).ToArray();
             string language;
             string infilename;
             string outfilename;

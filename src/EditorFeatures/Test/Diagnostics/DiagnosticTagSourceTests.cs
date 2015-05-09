@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>() { { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) } };
-            analyzerService = new DiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary());
+            analyzerService = new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary());
 
             var diagnosticListeners = SpecializedCollections.SingletonEnumerable(new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
                     () => diagnosticWaiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.DiagnosticService } })));
@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private class Analyzer : DiagnosticAnalyzer
         {
-            private DiagnosticDescriptor rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, true);
+            private DiagnosticDescriptor _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(_rule);
                 }
             }
 
@@ -104,13 +104,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 context.RegisterSyntaxTreeAction(c =>
                 {
-                    c.ReportDiagnostic(Diagnostic.Create(rule, Location.Create(c.Tree, new Text.TextSpan(0, 1))));
+                    c.ReportDiagnostic(Diagnostic.Create(_rule, Location.Create(c.Tree, new Text.TextSpan(0, 1))));
                 });
             }
 
             public void ChangeSeverity()
             {
-                rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
+                _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
             }
         }
 

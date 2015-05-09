@@ -818,7 +818,7 @@ End Class
 
         Private Function EvaluateStatement(source As String, methodName As String, expr As String, <Out> ByRef errorMessage As String, Optional atLineNumber As Integer = -1) As CompilationTestData
             Dim compilationFlags = DkmEvaluationFlags.None
-            If expr IsNot Nothing AndAlso expr.StartsWith("?") Then
+            If expr IsNot Nothing AndAlso expr.StartsWith("?", StringComparison.Ordinal) Then
                 ' This mimics Immediate Window behavior...
                 compilationFlags = DkmEvaluationFlags.TreatAsExpression
                 expr = expr.Substring(1)
@@ -833,9 +833,9 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim result = context.CompileExpression(
-                    DefaultInspectionContext.Instance,
                     expr,
                     compilationFlags,
+                    NoAliases,
                     VisualBasicDiagnosticFormatter.Instance,
                     resultProperties,
                     errorMessage,

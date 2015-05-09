@@ -12,12 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitConversion(node As BoundConversion) As BoundNode
 
-            If Not inExpressionLambda AndAlso Conversions.IsIdentityConversion(node.ConversionKind) Then
+            If Not _inExpressionLambda AndAlso Conversions.IsIdentityConversion(node.ConversionKind) Then
                 Return Visit(node.Operand)
             End If
 
             If node.Operand.Kind = BoundKind.UserDefinedConversion Then
-                If inExpressionLambda Then
+                If _inExpressionLambda Then
                     Return node.Update(DirectCast(Visit(node.Operand), BoundExpression),
                                        node.ConversionKind,
                                        node.Checked,
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' For example   Nothing --> Boolean?  has conversionkind = WideningNothingLiteral
             If (node.Type IsNot Nothing AndAlso node.Type.IsNullableType OrElse
                 node.Operand.Type IsNot Nothing AndAlso node.Operand.Type.IsNullableType) AndAlso
-               Not inExpressionLambda Then
+               Not _inExpressionLambda Then
 
                 Return RewriteNullableConversion(node)
             End If
@@ -90,9 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Set "inExpressionLambda" if we're converting lambda to expression tree.
             Dim returnValue As BoundNode
-            Dim wasInExpressionlambda As Boolean = inExpressionLambda
+            Dim wasInExpressionlambda As Boolean = _inExpressionLambda
             If (node.ConversionKind And (ConversionKind.Lambda Or ConversionKind.ConvertedToExpressionTree)) = (ConversionKind.Lambda Or ConversionKind.ConvertedToExpressionTree) Then
-                inExpressionLambda = True
+                _inExpressionLambda = True
             End If
 
             If node.RelaxationLambdaOpt IsNot Nothing Then
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            inExpressionLambda = wasInExpressionlambda
+            _inExpressionLambda = wasInExpressionlambda
             Return returnValue
         End Function
 
@@ -123,10 +123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          node.Type.IsDelegateType() AndAlso
                          node.Type.SpecialType <> SpecialType.System_MulticastDelegate)
 
-            Dim F As New SyntheticBoundNodeFactory(Me.topMethod, Me.currentMethodOrLambda, node.Syntax, Me.compilationState, Me.diagnostics)
+            Dim F As New SyntheticBoundNodeFactory(Me._topMethod, Me._currentMethodOrLambda, node.Syntax, Me._compilationState, Me._diagnostics)
             If (node.Operand.IsDefaultValueConstant) Then
                 Return F.Null(node.Type)
-            ElseIf (Not Me.inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
+            ElseIf (Not Me._inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
                 Dim savedOriginalValue = F.SynthesizedLocal(node.Operand.Type)
                 Dim checkIfNothing = F.ReferenceIsNothing(F.Local(savedOriginalValue, False))
                 Dim conversionIfNothing = F.Null(node.Type)
@@ -164,16 +164,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 Case BoundKind.Call
                     Dim t = DirectCast(node, BoundCall)
-                    Return t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate, True) OrElse
-                        t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4, True) OrElse
-                        t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, True)
+                    Return Not (t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate, True) OrElse
+                                t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4, True) OrElse
+                                t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, True))
                 Case Else
                     Return True
             End Select
         End Function
 
         Private Function RewriteNullableConversion(node As BoundConversion) As BoundExpression
-            Debug.Assert(Not inExpressionLambda)
+            Debug.Assert(Not _inExpressionLambda)
 
             Dim rewrittenOperand = DirectCast(Me.Visit(node.Operand), BoundExpression)
 
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                     Dim convKind = Conversions.ClassifyConversion(rewrittenOperand.Type, innerTargetType, useSiteDiagnostics).Key
                     Debug.Assert(Conversions.ConversionExists(convKind))
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteDiagnostics)
                     Return WrapInNullable(
                                     TransformRewrittenConversion(
                                         node.Update(rewrittenOperand,
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                         Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteDiagnostics)
                         Debug.Assert(Conversions.ConversionExists(convKind))
-                        diagnostics.Add(node, useSiteDiagnostics)
+                        _diagnostics.Add(node, useSiteDiagnostics)
                         Return New BoundDirectCast(node.Syntax,
                                                    unwrappedOperand,
                                                    convKind,
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     operand = RewriteConstant(New BoundLiteral(node.Syntax, constantResult, unwrappedResultType), constantResult)
 
                 Else
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteDiagnostics)
                     operand = TransformRewrittenConversion(
                                 New BoundConversion(node.Syntax,
                                                     operand,
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim convKind = Conversions.ClassifyConversion(operandType, innerTargetType, useSiteDiagnostics).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
-                diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteDiagnostics)
                 Return WrapInNullable(
                             TransformRewrittenConversion(
                                 node.Update(rewrittenOperand,
@@ -420,7 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteDiagnostics)
                 Debug.Assert(Conversions.ConversionExists(convKind))
-                diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteDiagnostics)
                 Return TransformRewrittenConversion(
                             node.Update(rewrittenOperand,
                                         node.ConversionKind And (Not ConversionKind.Nullable),
@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                     Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteDiagnostics)
                     Debug.Assert(Conversions.ConversionExists(convKind))
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteDiagnostics)
                     Return New BoundDirectCast(node.Syntax,
                                                unwrappedOperand,
                                                convKind,
@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteDiagnostics)
                 Debug.Assert(Conversions.ConversionExists(convKind))
-                diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteDiagnostics)
                 Return New BoundDirectCast(node.Syntax,
                                            rewrittenOperand,
                                            convKind,
@@ -591,7 +591,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Post-rewrite conversion"
 
         Private Function TransformRewrittenConversion(rewrittenConversion As BoundConversion) As BoundExpression
-            If rewrittenConversion.HasErrors OrElse inExpressionLambda Then
+            If rewrittenConversion.HasErrors OrElse _inExpressionLambda Then
                 Return rewrittenConversion
             End If
 
@@ -686,11 +686,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If constr.ParameterCount = 0 Then
 
                     '  check 'constr' 
-                    If AccessCheck.IsSymbolAccessible(constr, Me.topMethod.ContainingType, typeTo, useSiteDiagnostics:=Nothing) Then
+                    If AccessCheck.IsSymbolAccessible(constr, Me._topMethod.ContainingType, typeTo, useSiteDiagnostics:=Nothing) Then
                         ' before we use constructor symbol we need to report use site error if any
                         Dim useSiteError = constr.GetUseSiteErrorInfo()
                         If useSiteError IsNot Nothing Then
-                            ReportDiagnostic(node, useSiteError, Me.diagnostics)
+                            ReportDiagnostic(node, useSiteError, Me._diagnostics)
                         End If
 
                         ' update bound node
@@ -737,7 +737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   operand,
                                                   Conversions.ClassifyDirectCastConversion(operand.Type, objectType, useSiteDiagnostics),
                                                   objectType)
-                    diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteDiagnostics)
                 End If
 
                 result = New BoundCall(node.Syntax, memberSymbol, Nothing, Nothing,
@@ -1172,15 +1172,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "DirectCast"
 
         Public Overrides Function VisitDirectCast(node As BoundDirectCast) As BoundNode
-            If Not inExpressionLambda AndAlso Conversions.IsIdentityConversion(node.ConversionKind) Then
+            If Not _inExpressionLambda AndAlso Conversions.IsIdentityConversion(node.ConversionKind) Then
                 Return VisitExpressionNode(node.Operand)
             End If
 
             ' Set "inExpressionLambda" if we're converting lambda to expression tree.
             Dim returnValue As BoundNode
-            Dim wasInExpressionlambda As Boolean = inExpressionLambda
+            Dim wasInExpressionlambda As Boolean = _inExpressionLambda
             If (node.ConversionKind And (ConversionKind.Lambda Or ConversionKind.ConvertedToExpressionTree)) = (ConversionKind.Lambda Or ConversionKind.ConvertedToExpressionTree) Then
-                inExpressionLambda = True
+                _inExpressionLambda = True
             End If
 
             If node.RelaxationLambdaOpt Is Nothing Then
@@ -1191,7 +1191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    relaxationLambdaOpt:=Nothing, type:=node.Type)
             End If
 
-            inExpressionLambda = wasInExpressionlambda
+            _inExpressionLambda = wasInExpressionlambda
             Return returnValue
         End Function
 
@@ -1200,15 +1200,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "TryCast"
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode
-            If Not inExpressionLambda AndAlso Conversions.IsIdentityConversion(node.ConversionKind) Then
+            If Not _inExpressionLambda AndAlso Conversions.IsIdentityConversion(node.ConversionKind) Then
                 Return Visit(node.Operand)
             End If
 
             ' Set "inExpressionLambda" if we're converting lambda to expression tree.
             Dim returnValue As BoundNode
-            Dim wasInExpressionlambda As Boolean = inExpressionLambda
+            Dim wasInExpressionlambda As Boolean = _inExpressionLambda
             If (node.ConversionKind And (ConversionKind.Lambda Or ConversionKind.ConvertedToExpressionTree)) = (ConversionKind.Lambda Or ConversionKind.ConvertedToExpressionTree) Then
-                inExpressionLambda = True
+                _inExpressionLambda = True
             End If
 
             If node.RelaxationLambdaOpt Is Nothing Then
@@ -1243,7 +1243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        relaxationLambdaOpt:=Nothing, type:=node.Type)
             End If
 
-            inExpressionLambda = wasInExpressionlambda
+            _inExpressionLambda = wasInExpressionlambda
             Return returnValue
         End Function
 

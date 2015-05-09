@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public bool HasOverloads { get { return false; } }
 
-            public string LocalizedErrorMessage { get; private set; }
+            public bool ForceRenameOverloads { get { return false; } }
+
+            public string LocalizedErrorMessage { get; }
 
             public TextSpan TriggerSpan { get { return default(TextSpan); } }
 

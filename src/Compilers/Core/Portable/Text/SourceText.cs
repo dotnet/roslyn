@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Text
         private TextLineCollection _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
 
-        private static readonly Encoding Utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
+        private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
         protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
         {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
-            encoding = encoding ?? Utf8EncodingWithNoBOM;
+            encoding = encoding ?? s_utf8EncodingWithNoBOM;
 
             // If the resulting string would end up on the large object heap, then use LargeEncodedText.
             if (encoding.GetMaxCharCount((int)stream.Length) >= LargeObjectHeapLimitInChars)
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
-            string text = Decode(buffer, length, encoding ?? Utf8EncodingWithNoBOM, out encoding);
+            string text = Decode(buffer, length, encoding ?? s_utf8EncodingWithNoBOM, out encoding);
             if (throwIfBinaryDetected && IsBinary(text))
             {
                 throw new InvalidDataException();
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (span.Start < 0 || span.Start > this.Length || span.End > this.Length)
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
         }
 
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (start < 0 || start > this.Length)
             {
-                throw new ArgumentOutOfRangeException("start");
+                throw new ArgumentOutOfRangeException(nameof(start));
             }
 
             if (start == 0)
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        protected static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
+        private static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 position = change.Span.End;
 
-                changeRanges.Add(new TextChangeRange(change.Span, change.NewText != null ? change.NewText.Length : 0));
+                changeRanges.Add(new TextChangeRange(change.Span, change.NewText?.Length ?? 0));
             }
 
             if (position < this.Length)
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (oldText == null)
             {
-                throw new ArgumentNullException("oldText");
+                throw new ArgumentNullException(nameof(oldText));
             }
 
             if (oldText == this)
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly SourceText _text;
             private readonly int[] _lineStarts;
-            private int _lastLineNumber = 0;
+            private int _lastLineNumber;
 
             public LineInfo(SourceText text, int[] lineStarts)
             {
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     if (index < 0 || index >= _lineStarts.Length)
                     {
-                        throw new ArgumentOutOfRangeException("index");
+                        throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
                     int start = _lineStarts[index];
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 if (position < 0 || position > _text.Length)
                 {
-                    throw new ArgumentOutOfRangeException("position");
+                    throw new ArgumentOutOfRangeException(nameof(position));
                 }
 
                 int lineNumber;
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.Text
             // Corner case check
             if (0 == this.Length)
             {
-                return new int[] { 0 };
+                return new[] { 0 };
             }
 
             var position = 0;

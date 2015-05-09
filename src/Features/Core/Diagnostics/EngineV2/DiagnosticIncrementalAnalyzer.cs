@@ -14,15 +14,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
         private readonly int _correlationId;
-        private readonly DiagnosticAnalyzerService _owner;
-        private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-            : base(workspace, hostDiagnosticUpdateSource)
+        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;
-            _owner = owner;
-            _workspaceAnalyzerManager = workspaceAnalyzerManager;
         }
 
         #region IIncrementalAnalyzer
@@ -48,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return SpecializedTasks.EmptyTask;
         }
 
+        public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyTask;
+        }
+
         public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
@@ -60,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override void RemoveDocument(DocumentId documentId)
         {
-            _owner.RaiseDiagnosticsUpdated(
+            Owner.RaiseDiagnosticsUpdated(
                 this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
-            _owner.RaiseDiagnosticsUpdated(
+            Owner.RaiseDiagnosticsUpdated(
                 this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
         }
         #endregion
@@ -154,14 +155,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var analyzers = _workspaceAnalyzerManager.CreateDiagnosticAnalyzers(project);
+            var analyzers = HostAnalyzerManager.CreateDiagnosticAnalyzers(project);
 
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
             // REVIEW: this API is a bit strange. 
             //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
             var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
-            
+
             return dxs;
         }
 
@@ -185,6 +186,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
+        public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            // V2 engine doesn't do anything. 
+            // it means live error always win over build errors. build errors that can't be reported by live analyzer
+            // are already taken cared by engine
+            return SpecializedTasks.EmptyTask;
+        }
+
+        public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            // V2 engine doesn't do anything. 
+            // it means live error always win over build errors. build errors that can't be reported by live analyzer
+            // are already taken cared by engine
+            return SpecializedTasks.EmptyTask;
+        }
+
         private void RaiseEvents(Project project, ImmutableArray<DiagnosticData> diagnostics)
         {
             var groups = diagnostics.GroupBy(d => d.DocumentId);
@@ -196,13 +213,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 if (kv.Key == null)
                 {
-                    _owner.RaiseDiagnosticsUpdated(
+                    Owner.RaiseDiagnosticsUpdated(
                         this, new DiagnosticsUpdatedArgs(
                             ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
                     continue;
                 }
 
-                _owner.RaiseDiagnosticsUpdated(
+                Owner.RaiseDiagnosticsUpdated(
                     this, new DiagnosticsUpdatedArgs(
                         ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
             }

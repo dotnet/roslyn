@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class BinderFactory
+    Friend Partial Class BinderFactory
         Private Enum NodeUsage As Byte
             ' For the compilation unit 
             CompilationUnit

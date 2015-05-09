@@ -6,7 +6,9 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -51,10 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 exeBytes,
                 new SymReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("(p == null) ? f : null", out resultProperties, out error, testData);
+            context.CompileExpression("(p == null) ? f : null", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -97,10 +98,9 @@ class C
                 exeBytes,
                 new SymReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("X::Windows.Storage.FileProperties.PhotoOrientation.Unspecified", out resultProperties, out error, testData);
+            context.CompileExpression("X::Windows.Storage.FileProperties.PhotoOrientation.Unspecified", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -180,10 +180,9 @@ class C
 }";
             var runtime = CreateRuntime(source, compileReferences, runtimeReferences);
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("(object)a ?? (object)b ?? (object)t ?? f", out resultProperties, out error, testData);
+            context.CompileExpression("(object)a ?? (object)b ?? (object)t ?? f", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -205,7 +204,7 @@ class C
   IL_0010:  ret
 }");
             testData = new CompilationTestData();
-            var result = context.CompileExpression("default(Windows.Storage.StorageFolder)", out resultProperties, out error, testData);
+            var result = context.CompileExpression("default(Windows.Storage.StorageFolder)", out error, testData);
             Assert.Null(error);
             var methodData = testData.GetMethodData("<>x.<>m0");
             methodData.VerifyIL(
@@ -259,30 +258,26 @@ class C
                 source,
                 ImmutableArray.CreateRange(WinRtRefs),
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")));
-            var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
+            var context = CreateMethodContext(
+                runtime,
+                "C.M");
+            var aliases = ImmutableArray.Create(
+                VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
+                VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"));
             string error;
             var testData = new CompilationTestData();
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty.
-                    Add("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime").
-                    Add("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
                 "(object)s.Attributes ?? d.UniversalTime",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                aliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       55 (0x37)
   .maxstack  2
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""Windows.Storage.StorageFolder""
   IL_000f:  callvirt   ""Windows.Storage.FileAttributes Windows.Storage.StorageFolder.Attributes.get""
   IL_0014:  box        ""Windows.Storage.FileAttributes""
@@ -290,7 +285,7 @@ class C
   IL_001a:  brtrue.s   IL_0036
   IL_001c:  pop
   IL_001d:  ldstr      ""d""
-  IL_0022:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0022:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0027:  unbox.any  ""Windows.Foundation.DateTime""
   IL_002c:  ldfld      ""long Windows.Foundation.DateTime.UniversalTime""
   IL_0031:  box        ""long""
@@ -314,27 +309,20 @@ class C
                 ImmutableArray.CreateRange(WinRtRefs),
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Foundation", "Windows.UI", "Windows.UI.Xaml")));
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "f.RenderSize",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                out resultProperties,
+                NoAliases,
                 out error,
-                out missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Empty(missingAssemblyIdentities);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       55 (0x37)
   .maxstack  2
   IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""Windows.Storage.StorageFolder""
   IL_000f:  callvirt   ""Windows.Storage.FileAttributes Windows.Storage.StorageFolder.Attributes.get""
   IL_0014:  box        ""Windows.Storage.FileAttributes""
@@ -342,11 +330,53 @@ class C
   IL_001a:  brtrue.s   IL_0036
   IL_001c:  pop
   IL_001d:  ldstr      ""d""
-  IL_0022:  call       ""object <>x.<>GetObjectByAlias(string)""
+  IL_0022:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0027:  unbox.any  ""Windows.Foundation.DateTime""
   IL_002c:  ldfld      ""long Windows.Foundation.DateTime.UniversalTime""
   IL_0031:  box        ""long""
   IL_0036:  ret
+}");
+        }
+
+        [WorkItem(1154988)]
+        [ConditionalFact(typeof(OSVersionWin8))]
+        public void WinMdAssemblyReferenceRequiresRedirect()
+        {
+            var source =
+@"class C : Windows.UI.Xaml.Controls.UserControl
+{
+    static void M(C c)
+    {
+    }
+}";
+            var runtime = CreateRuntime(source,
+                ImmutableArray.Create(WinRtRefs),
+                ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI", "Windows.UI.Xaml")));  
+            string errorMessage;
+            var testData = new CompilationTestData();
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                runtime.Modules.SelectAsArray(m => m.MetadataBlock),
+                "c.Dispatcher",
+                (metadataBlocks, _) =>
+                {
+                    return CreateMethodContext(runtime, "C.M");
+                },
+                (AssemblyIdentity assembly, out uint size) =>
+                {
+                    // Compilation should succeed without retry if we redirect assembly refs correctly.
+                    // Throwing so that we don't loop forever (as we did before fix)...
+                    throw ExceptionUtilities.Unreachable;
+                },
+                out errorMessage,
+                out testData);
+            Assert.Null(errorMessage);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""Windows.UI.Core.CoreDispatcher Windows.UI.Xaml.DependencyObject.Dispatcher.get""
+  IL_0006:  ret
 }");
         }
 
@@ -366,7 +396,7 @@ class C
             compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
             return CreateRuntimeInstance(
                 ExpressionCompilerUtilities.GenerateUniqueName(),
-                runtimeReferences,
+                runtimeReferences.AddIntrinsicAssembly(),
                 exeBytes,
                 new SymReader(pdbBytes));
         }

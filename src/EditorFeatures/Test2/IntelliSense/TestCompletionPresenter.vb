@@ -9,15 +9,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestCompletionPresenter
         Implements IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)
 
-        Private ReadOnly testState As IIntelliSenseTestState
+        Private ReadOnly _testState As IIntelliSenseTestState
 
         Public Sub New(testState As IIntelliSenseTestState)
-            Me.testState = testState
+            Me._testState = testState
         End Sub
 
         Public Function CreateSession(textView As ITextView, subjectBuffer As ITextBuffer, sessionOpt As ICompletionSession) As ICompletionPresenterSession _
             Implements IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession).CreateSession
-            Return New TestCompletionPresenterSession(testState)
+            Return New TestCompletionPresenterSession(_testState)
         End Function
     End Class
 End Namespace

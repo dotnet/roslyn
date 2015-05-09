@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal readonly SyntaxReference Syntax;
 
         /// <summary>
-        /// A sum of widths of full spans of all preceding initializers 
-        /// (instance and static initializers are summed separately).
+        /// A sum of widths of spans of all preceding initializers 
+        /// (instance and static initializers are summed separately, and trivias are not counted).
         /// </summary>
         internal readonly int PrecedingInitializersLength;
 

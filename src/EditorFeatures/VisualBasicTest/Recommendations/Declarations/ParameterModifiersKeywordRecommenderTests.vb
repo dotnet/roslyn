@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
+#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class ParameterModifiersKeywordRecommenderTests
 

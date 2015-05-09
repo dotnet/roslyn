@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public void TestPragmaWarningOnEveryNodes()
         {
-            TestPragma(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable") >= 0);
+            TestPragma(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 TestResource.AllInOneCSharpCode,
                 CSharpParseOptions.Default,
                 digInto: n => !(n is StatementSyntax) || n is BlockSyntax,
-                verifier: t => t.IndexOf("SuppressMessage") >= 0);
+                verifier: t => t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0);
         }
     }
 }

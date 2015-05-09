@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateType
     Public Class GenerateTypeTests
@@ -162,7 +162,7 @@ expectedDocumentName:="Bar.vb")
             TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim x As New [|Foo|] \n End Sub \n End Module"),
 NewLines("Friend Class Foo \n End Class"),
-expectedContainers:={},
+expectedContainers:=Array.Empty(Of String)(),
 expectedDocumentName:="Foo.vb")
         End Sub
 
@@ -269,7 +269,7 @@ NewLines("Imports [|System|]"))
             TestAddDocument(
 NewLines("Class Base \n Sub Main \n Dim p = New [|Derived|]() \n End Sub \n End Class"),
 NewLines("Friend Class Derived \n Public Sub New() \n End Sub \n End Class"),
-expectedContainers:=New String() {},
+expectedContainers:=Array.Empty(Of String)(),
 expectedDocumentName:="Derived.vb")
         End Sub
 
@@ -747,12 +747,113 @@ NewLines("Public Interface I \n  Sub Foo(a As X.Y.Z) \n End Interface \n Public 
 index:=0)
         End Sub
 
+        <WorkItem(1130905)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInImports()
+            Test(
+NewLines("Imports [|Fizz|]"),
+NewLines("Friend Class Fizz\nEnd Class\n"), isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1130905)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestGenerateTypeInImports2()
+            Test(
+NewLines("Imports [|Fizz|]"),
+NewLines("Imports Fizz \n Friend Class Fizz \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields2()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class A \n Public B As New B() \n End Class \n\n Public Class B \n Public Sub New() \n End Sub \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields3()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
+NewLines("Public Class A \n Public B As New B() \n Public Class B \n Public Sub New() \n End Sub \n End Class \n End Class"),
+index:=2)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields4()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class B \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields5()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class A \n Public B As New B \n End Class \n\n Public Class B \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields6()
+            Test(
+NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
+NewLines("Public Class A \n Public B As New B \n Public Class B \n End Class \n End Class"),
+index:=2)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields7()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class B(Of T) \n End Class"),
+index:=0,
+isAddedDocument:=True)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields8()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class A \n Public B As New B(Of Integer) \n End Class \n\n Public Class B(Of T) \n End Class"),
+index:=1)
+        End Sub
+
+        <WorkItem(1107929)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestAccesiblityForPublicFields9()
+            Test(
+NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class A \n Public B As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),
+index:=2)
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    New VisualBasicAddImportDiagnosticAnalyzer(),
+                    New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
                     New GenerateTypeCodeFixProvider())
             End Function
 

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the main module. If there is no existing assembly that can be used as a source for the primitive types, 
         ''' the value is a Compilation.MissingCorLibrary. 
         ''' </summary>
-        Private m_CorLibrary As AssemblySymbol
+        Private _corLibrary As AssemblySymbol
 
         ''' <summary>
         ''' The system assembly, which provides primitive types like Object, String, etc., e.g. mscorlib.dll. 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property CorLibrary As AssemblySymbol
             Get
-                Return m_CorLibrary
+                Return _corLibrary
             End Get
         End Property
 
@@ -51,8 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="corLibrary"></param>
         Friend Sub SetCorLibrary(corLibrary As AssemblySymbol)
-            Debug.Assert(m_CorLibrary Is Nothing)
-            m_CorLibrary = corLibrary
+            Debug.Assert(_corLibrary Is Nothing)
+            _corLibrary = corLibrary
         End Sub
 
         ''' <summary>
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function ResolveForwardedType(fullyQualifiedMetadataName As String) As NamedTypeSymbol
             If fullyQualifiedMetadataName Is Nothing Then
-                Throw New ArgumentNullException("fullyQualifiedMetadataName")
+                Throw New ArgumentNullException(NameOf(fullyQualifiedMetadataName))
             End If
 
             Dim emittedName = MetadataTypeName.FromFullName(fullyQualifiedMetadataName)
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=False, isWellKnownType:=False)
         End Function
 
-        Private Shared ReadOnly m_NestedTypeNameSeparators As Char() = {"+"c}
+        Private Shared ReadOnly s_nestedTypeNameSeparators As Char() = {"+"c}
 
         ''' <summary>
         ''' Lookup a type within the assembly using its canonical CLR metadata name (names are compared case-sensitively).
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, Optional useCLSCompliantNameArityEncoding As Boolean = False) As NamedTypeSymbol
 
             If metadataName Is Nothing Then
-                Throw New ArgumentNullException("metadataName")
+                Throw New ArgumentNullException(NameOf(metadataName))
             End If
 
             Dim type As NamedTypeSymbol = Nothing
@@ -441,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If metadataName.Contains("+"c) Then
 
-                Dim parts() As String = metadataName.Split(m_NestedTypeNameSeparators)
+                Dim parts() As String = metadataName.Split(s_nestedTypeNameSeparators)
 
                 If parts.Length > 0 Then
                     mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)

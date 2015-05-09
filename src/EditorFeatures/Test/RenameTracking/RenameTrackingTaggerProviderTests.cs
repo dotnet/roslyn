@@ -835,56 +835,6 @@ End Enum";
             }
         }
 
-        [Fact, WorkItem(978099)]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public void RenameTrackingPreviewChanges()
-        {
-            var code = @"
-class C$$
-{
-}";
-
-            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
-            {
-                var mockPreview = state.Workspace.Services.GetService<IPreviewDialogService>() as MockPreviewDialogService;
-                mockPreview.Called = false;
-                mockPreview.ReturnsNull = false;
-                state.EditorOperations.InsertText("at");
-                state.AssertTag("C", "Cat", invokeAction: true, actionIndex: 1);
-                Assert.True(mockPreview.Called);
-                Assert.Equal("Rename 'C' to 'Cat':", mockPreview.Description);
-                Assert.Equal("Preview Changes - Rename", mockPreview.Title);
-                Assert.Equal("C", mockPreview.TopLevelName);
-                Assert.Equal(Glyph.ClassInternal, mockPreview.TopLevelGlyph);
-            }
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public void RenameTrackingCancelPreviewChanges()
-        {
-            var code = @"
-class C$$
-{
-}";
-
-            var expected = @"
-class Cat
-{
-}";
-            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
-            {
-                var mockPreview = state.Workspace.Services.GetService<IPreviewDialogService>() as MockPreviewDialogService;
-                mockPreview.Called = false;
-                mockPreview.ReturnsNull = true;
-                state.EditorOperations.InsertText("at");
-                state.AssertTag("C", "Cat", invokeAction: true, actionIndex: 1);
-                Assert.True(mockPreview.Called);
-                Assert.Equal(expected, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
-                state.AssertTag("C", "Cat");
-            }
-        }
-
         [Fact, WorkItem(1028072)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotThrowAggregateException()
@@ -946,6 +896,7 @@ class C$$
             }
         }
 
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingNotWhenDeclaringEnumMembersEvenAfterCancellation()
         {
@@ -960,6 +911,182 @@ End Enum";
                 state.AssertNoTag();
                 state.SendEscape();
                 state.EditorOperations.InsertText("c");
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [WorkItem(540, "https://github.com/dotnet/roslyn/issues/540")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTrackingDoesNotProvideDiagnosticAfterCancellation()
+        {
+           var code = @"
+class C$$
+{
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+                state.AssertTag("C", "Cat");
+
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+
+                state.SendEscape();
+                state.AssertNoTag();
+
+                Assert.Empty(state.GetDocumentDiagnostics());
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromMethodGroupReference()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        nameof(M$$).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+
+                state.AssertTag("M", "Mat", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void Mat()
+    {
+        nameof(Mat).ToString();
+    }
+
+    void Mat(int x)
+    {
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromMethodDefinition_NoOverloads()
+        {
+            var code = @"
+class C
+{
+    void M$$()
+    {
+        nameof(M).ToString();
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+
+                state.AssertTag("M", "Mat", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void Mat()
+    {
+        nameof(Mat).ToString();
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromMethodDefinition_WithOverloads()
+        {
+            var code = @"
+class C
+{
+    void M$$()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("at");
+
+                state.AssertTag("M", "Mat", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+class C
+{
+    void Mat()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_Nameof_FromReferenceToMetadata_NoTag()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var x = nameof(ToString$$);
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("z");
+                state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [WorkItem(762964)]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_NoTagWhenFirstEditChangesReferenceToAnotherSymbol()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        int abc = 7;
+        int ab = 8;
+        int z = abc$$;
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
                 state.AssertNoTag();
             }
         }

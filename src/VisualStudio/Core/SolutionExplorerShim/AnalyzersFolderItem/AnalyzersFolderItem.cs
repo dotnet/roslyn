@@ -17,21 +17,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly Workspace _workspace;
         private readonly ProjectId _projectId;
         private readonly IVsHierarchyItem _parentItem;
+        private readonly IContextMenuController _contextMenuController;
 
-        private static readonly ContextMenuController s_folderContextMenuController =
-            new ContextMenuController(
-                ID.RoslynCommands.AnalyzerFolderContextMenu,
-                items => items.Count() == 1);
 
         public AnalyzersFolderItem(
             Workspace workspace,
             ProjectId projectId,
-            IVsHierarchyItem parentItem)
+            IVsHierarchyItem parentItem,
+            IContextMenuController contextMenuController)
             : base(SolutionExplorerShim.AnalyzersFolderItem_Name)
         {
             _workspace = workspace;
             _projectId = projectId;
             _parentItem = parentItem;
+            _contextMenuController = contextMenuController;
         }
 
         public override ImageMoniker IconMoniker
@@ -72,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override IContextMenuController ContextMenuController
         {
-            get { return s_folderContextMenuController; }
+            get { return _contextMenuController; }
         }
 
         /// <summary>

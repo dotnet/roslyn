@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 int index;
                 if (GeneratedNames.TryParseAnonymousTypeTemplateName(name, out index))
                 {
-                    var builder = ArrayBuilder<string>.GetInstance();
+                    var builder = ArrayBuilder<AnonymousTypeKeyField>.GetInstance();
                     if (TryGetAnonymousTypeKey(reader, def, builder))
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private static bool TryGetAnonymousTypeKey(
             MetadataReader reader,
             TypeDefinition def,
-            ArrayBuilder<string> builder)
+            ArrayBuilder<AnonymousTypeKeyField> builder)
         {
             foreach (var typeParameterHandle in def.GetGenericParameters())
             {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     return false;
                 }
-                builder.Add(fieldName);
+                builder.Add(AnonymousTypeKeyField.CreateField(fieldName));
             }
             return true;
         }

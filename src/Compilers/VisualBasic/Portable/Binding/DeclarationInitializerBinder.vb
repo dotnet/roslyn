@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Backing field for the ContainingMember property
         ''' </summary>
-        Private ReadOnly m_symbol As Symbol
+        Private ReadOnly _symbol As Symbol
 
         ''' <summary> Root syntax node </summary>
-        Private _root As VisualBasicSyntaxNode
+        Private ReadOnly _root As VisualBasicSyntaxNode
 
         ''' <summary>
         ''' Initializes a new instance of the <see cref="DeclarationInitializerBinder"/> class.
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(symbol As Symbol, [next] As Binder, root As VisualBasicSyntaxNode)
             MyBase.New([next])
             Debug.Assert((symbol.Kind = SymbolKind.Field) OrElse (symbol.Kind = SymbolKind.Property) OrElse (symbol.Kind = SymbolKind.Parameter))
-            Me.m_symbol = symbol
+            Me._symbol = symbol
             Debug.Assert(root IsNot Nothing)
             _root = root
         End Sub
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
-                Return Me.m_symbol
+                Return Me._symbol
             End Get
         End Property
 

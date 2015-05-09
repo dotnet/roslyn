@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -13,10 +14,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract class BaseDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
-        protected BaseDiagnosticIncrementalAnalyzer(Workspace workspace, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        protected BaseDiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
+            this.Owner = owner;
             this.Workspace = workspace;
+            this.HostAnalyzerManager = hostAnalyzerManager;
             this.HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            this.DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
         }
 
         #region IIncrementalAnalyzer
@@ -58,7 +62,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns></returns>
         public abstract Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         /// <summary>
-        /// Flush cached diagnostics produced by a prior analysis of a document.
+        /// Respond to a document being closed in the host.
+        /// </summary>
+        /// <param name="document">The closed document.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public abstract Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
+        /// <summary>
+        /// Flush cached diagnostics produced by a prior analysis of a document. 
+        /// This will be called in a case where we need to re-analyze a document without textual, syntactic or semantic change of a solution.
+        /// For example, engine or analyzer's option changes.
         /// </summary>
         /// <param name="document">The document whose diagnostics are to be flushed.</param>
         /// <param name="cancellationToken"></param>
@@ -162,8 +175,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken);
         #endregion
 
-        public Workspace Workspace { get; private set; }
-        protected AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
+        #region build error synchronization
+        /// <summary>
+        /// Callback from build listener.
+        /// 
+        /// Given diagnostics are errors host got from explicit build.
+        /// It is up to each incremental analyzer how they will merge this information with live diagnostic info.
+        /// 
+        /// this API doesn't have cancellationToken since it can't be cancelled.
+        /// 
+        /// given diagnostics are project wide diagnsotics that doesn't contain a source location.
+        /// </summary>
+        public abstract Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics);
+
+        /// <summary>
+        /// Callback from build listener.
+        /// 
+        /// Given diagnostics are errors host got from explicit build.
+        /// It is up to each incremental analyzer how they will merge this information with live diagnostic info
+        /// 
+        /// this API doesn't have cancellationToken since it can't be cancelled.
+        /// 
+        /// given diagnostics are ones that has a source location.
+        /// </summary>
+        public abstract Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics);
+        #endregion
+
+        internal DiagnosticAnalyzerService Owner { get; }
+        internal Workspace Workspace { get; }
+        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        internal HostAnalyzerManager HostAnalyzerManager { get; }
+        internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
+
+        protected void ResetDiagnosticLogAggregator()
+        {
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(Owner);
+        }
 
         public virtual bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
@@ -172,6 +219,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public virtual void LogAnalyzerCountSummary()
         {
+        }
+
+        // internal for testing purposes.
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
+        {
+            return Owner?.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
+        }
+
+        // internal for testing purposes.
+        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException_NoTelemetryLogging(ProjectId projectId)
+        {
+            return Owner?.GetOnAnalyzerException_NoTelemetryLogging(projectId);
         }
     }
 }

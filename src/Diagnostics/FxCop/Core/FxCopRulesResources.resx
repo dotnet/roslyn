@@ -120,9 +120,6 @@
   <data name="TypeOwnsDisposableFieldButIsNotDisposable" xml:space="preserve">
     <value>Type '{0}' owns disposable fields but is not disposable</value>
   </data>
-  <data name="OverloadOperatorEqualsOnOverridingValueTypeEquals" xml:space="preserve">
-    <value>Overload operator equals on overriding ValueType.Equals</value>
-  </data>
   <data name="TypeIsAbstractButHasPublicConstructors" xml:space="preserve">
     <value>Type '{0}' is abstract but has public constructors</value>
   </data>
@@ -131,12 +128,6 @@
   </data>
   <data name="StaticHolderTypeIsNotStatic" xml:space="preserve">
     <value>Type '{0}' is a static holder type but is neither static nor NotInheritable</value>
-  </data>
-  <data name="SealAttributeTypesForImprovedPerf" xml:space="preserve">
-    <value>Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes.</value>
-  </data>
-  <data name="StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase" xml:space="preserve">
-    <value>String comparison should use StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase</value>
   </data>
   <data name="RethrowException" xml:space="preserve">
     <value>Re-throwing caught exception changes stack information.</value>
@@ -156,29 +147,8 @@
   <data name="SerializationCtorAccessibilityForUnSealedType" xml:space="preserve">
     <value>Declare serialization constructor for unsealed type {0} as protected</value>
   </data>
-  <data name="AssembliesShouldBeMarkedWithAssemblyVersionAttribute" xml:space="preserve">
-    <value>Assemblies should be marked with AssemblyVersionAttribute</value>
-  </data>
-  <data name="MarkAssembliesWithCLSCompliantAttribute" xml:space="preserve">
-    <value>Mark assemblies with CLSCompliantAttribute</value>
-  </data>
-  <data name="DisposableFieldsShouldBeDisposed" xml:space="preserve">
-    <value>Disposable fields should be disposed</value>
-  </data>
   <data name="RemoveEmptyFinalizers" xml:space="preserve">
     <value>Remove empty finalizers</value>
-  </data>
-  <data name="PInvokeMethodShouldNotBeVisible" xml:space="preserve">
-    <value>P/Invoke method '{0}' should not be visible</value>
-  </data>
-  <data name="SpecifyMarshalingForPInvokeStringArguments" xml:space="preserve">
-    <value>Specify marshaling for P/Invoke string arguments</value>
-  </data>
-  <data name="MovePInvokesToNativeMethodsClass" xml:space="preserve">
-    <value>Move P/Invokes to native methods class</value>
-  </data>
-  <data name="DoNotLockOnWeakIdentity" xml:space="preserve">
-    <value>Do not lock on a reference of type '{0}' as it has weak identity. Replace that with a lock against an object with strong identity.</value>
   </data>
   <data name="EnumsShouldZeroValueFlagsRename" xml:space="preserve">
     <value>In enum '{0}', change the name of '{1}' to 'None'.</value>
@@ -192,12 +162,6 @@
   <data name="ChangeToAPropertyIfAppropriate" xml:space="preserve">
     <value>Change '{0}' to a property if appropriate.</value>
   </data>
-  <data name="MarkEnumsWithFlagsMessage" xml:space="preserve">
-    <value>The constituent members of '{0}' appear to represent flags that can be combined rather than discrete values. If this is correct, mark the enumeration with FlagsAttribute.</value>
-  </data>
-  <data name="DoNotMarkEnumsWithFlagsMessage" xml:space="preserve">
-    <value>'{0}' is marked with FlagsAttribute but a discrete member cannot be found for every settable bit that is used across the range of enum values. Remove FlagsAttribute from the type or define new members for the following (currently missing) values: '{1}'.</value>
-  </data>
   <data name="ImplementSerializationConstructor" xml:space="preserve">
     <value>Implement Serialization constructor</value>
   </data>
@@ -206,12 +170,6 @@
   </data>
   <data name="StaticHolderTypesShouldNotHaveConstructorsMessage" xml:space="preserve">
     <value>Type '{0}' is a static holder type and should not contain Instance Constructors</value>
-  </data>
-  <data name="AvoidUnsealedAttributes" xml:space="preserve">
-    <value>Avoid unsealed attributes.</value>
-  </data>
-  <data name="DoNotLockOnObjectsWithWeakIdentity" xml:space="preserve">
-    <value>Do not lock on objects with weak identity.</value>
   </data>
   <data name="EnumsShouldHaveZeroValue" xml:space="preserve">
     <value>Enums should have zero value.</value>
@@ -222,9 +180,6 @@
   <data name="MarkISerializableTypesWithAttribute" xml:space="preserve">
     <value>Mark ISerializable types with SerializableAttribute.</value>
   </data>
-  <data name="PInvokesShouldNotBeVisible" xml:space="preserve">
-    <value>P/Invokes should not be visible.</value>
-  </data>
   <data name="RethrowToPreserveStackDetails" xml:space="preserve">
     <value>Rethrow to preserve stack details.</value>
   </data>
@@ -234,26 +189,11 @@
   <data name="AbstractTypesShouldNotHavePublicConstructorsCodeFix" xml:space="preserve">
     <value>Change the accessibility of all public contructors in this class to protected.</value>
   </data>
-  <data name="CA1017_NoAttribute" xml:space="preserve">
-    <value>Because {0} exposes externally visible types, mark it with ComVisible(false) at the assembly level and then mark all types within the assembly that should be exposed to COM clients with ComVisible(true).</value>
-  </data>
-  <data name="CA1017_AttributeTrue" xml:space="preserve">
-    <value>Consider changing the ComVisible attribute on {0} to false, and opting in at the type level.</value>
-  </data>
   <data name="IdentifiersShouldDifferByMoreThanCase" xml:space="preserve">
     <value>Identifier names should differ by more than case</value>
   </data>
-  <data name="MarkAllAssembliesWithComVisible" xml:space="preserve">
-    <value>Mark all assemblies with ComVisible</value>
-  </data>
   <data name="AbstractTypesShouldNotHavePublicConstructors" xml:space="preserve">
     <value>Abstract classes should not have public constructors</value>
-  </data>
-  <data name="DoNotMarkEnumsWithFlags" xml:space="preserve">
-    <value>Do not mark Enum with FlagsAttribute</value>
-  </data>
-  <data name="MarkEnumsWithFlags" xml:space="preserve">
-    <value>Mark Enum with FlagsAttribute</value>
   </data>
   <data name="StaticHolderTypesShouldBeStaticOrNotInheritable" xml:space="preserve">
     <value>Static holder types should be Static or NotInheritable</value>
@@ -270,23 +210,14 @@
   <data name="TypeParameterNamesShouldStartWithT" xml:space="preserve">
     <value>Type parameter names should be prefixed with 'T'</value>
   </data>
-  <data name="UseGenericEventHandlerInstances" xml:space="preserve">
-    <value>Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler</value>
-  </data>
   <data name="EnumsShouldHaveZeroValueDescription" xml:space="preserve">
     <value>An enum should generally have a zero value. If the enum is not decorated with the Flags attribute, it should have a member with a value of zero that represents the empty state. Optionally, this value is named 'None'. For a Flags-attributed enum, a zero-valued member is optional and, if it exists, should always be named 'None'. This value should indicate that no values have been set in the enum. Using a zero-valued member for other purposes is contrary to the use of the Flags attribute in that the bitwise AND and OR operators are useless with the member.</value>
-  </data>
-  <data name="MarkAllAssembliesWithComVisibleDescription" xml:space="preserve">
-    <value>The System.Runtime.InteropServices.ComVisible attribute indicates whether COM clients can use the library. Good design dictates that developers explicitly indicate COM visibility. The default value for this attribute is 'true'. However, the best design is to mark the assembly ComVisible false, and then mark types, interfaces, and individual members as ComVisible true, as appropriate.</value>
   </data>
   <data name="UsePropertiesWhereAppropriateDescription" xml:space="preserve">
     <value>Properties should be used instead of Get/Set methods in most situations. Methods are preferable to properties in the following situations: the operation is a conversion, is expensive or has an observable side-effect; the order of execution is important; calling the member twice in succession creates different results; a member is static but returns a mutable value; or the member returns an array.</value>
   </data>
   <data name="DoNotCallOverridableMethodsInConstructorsDescription" xml:space="preserve">
     <value>Virtual methods defined on the class should not be called from constructors. If a derived class has overridden the method, the derived class version will be called (before the derived class constructor is called).</value>
-  </data>
-  <data name="DoNotMarkEnumsWithFlagsDescription" xml:space="preserve">
-    <value>The enumeration does not appear to contain a consistent set values that can be combined using  the OR (|) and AND (&amp;amp;amp;amp;) operators. Using the Flags attribute on an enumeration suggests that the enumeration values are meant to be combined using the AND and OR operators. Typically, a flags enumeration uses values that are either powers of two, or combine other values that are powers of two.</value>
   </data>
   <data name="IdentifiersShouldDifferByMoreThanCaseDescription" xml:space="preserve">
     <value>Do not use names that require case sensitivity for uniqueness. Components must be fully usable from both case-sensitive and case-insensitive languages. Since case-insensitive languages cannot distinguish between two names within the same context that differ only by case, components must avoid this situation.</value>
@@ -297,26 +228,11 @@
   <data name="MarkAllNonSerializableFieldsDescription" xml:space="preserve">
     <value>All fields that cannot be serialized directly should have the NonSerializedAttribute. Types that have the SerializableAttribute should not have fields of types that do not have the SerializableAttribute unless the fields are marked with the NonSerializedAttribute.</value>
   </data>
-  <data name="MarkAssembliesWithCLSCompliantDescription" xml:space="preserve">
-    <value>Assemblies should explicitly state their CLS compliance using the CLSCompliant attribute. An assembly without this attribute is not CLS-compliant. Assemblies, modules, and types can be CLS-compliant even if some parts of the assembly, module, or type are not CLS-compliant. The following rules apply: 1) If the element is marked CLSCompliant, any noncompliant members must have the CLSCompliant attribute present with its argument set to false. 2) A comparable CLS-compliant alternative member must be supplied for each member that is not CLS-compliant.</value>
-  </data>
-  <data name="MarkEnumsWithFlagsDescription" xml:space="preserve">
-    <value>The enumeration appears to be made up of combinable flags. If this true, apply the Flags attribute to the enumeration.</value>
-  </data>
   <data name="MarkISerializableTypesWithAttributeDescription" xml:space="preserve">
     <value>The System.Runtime.Serialization.ISerializable interface allows the type to customize its serialization, while the Serializable attribute enables the runtime to recognize the type as being serializable.</value>
   </data>
-  <data name="OverloadOperatorEqualsOnOverridingValueTypeEqualsDescription" xml:space="preserve">
-    <value>Value types that redefine System.ValueType.Equals should redefine the equality operator as well to ensure that these members return the same results. This helps ensure that types that rely on Equals (such as ArrayList and Hashtable) behave in a manner that is expected and consistent with the equality operator.</value>
-  </data>
   <data name="RemoveEmptyFinalizersDescription" xml:space="preserve">
     <value>Finalizers should be avoided where possible, to avoid the additional performance overhead involved in tracking object lifetime.</value>
-  </data>
-  <data name="SpecifyMarshalingForPInvokeStringArgumentsDescription" xml:space="preserve">
-    <value>When marshaling strings as ANSI (or as Auto on Win9x), some characters may be changed. If best-fit mapping is on, strings that appear different in Unicode will be marshaled to identical ANSI strings, which may lead to incorrect security decisions. Turning best-fit mapping off reduces this risk, as all characters without equivalents are mapped to '?'. Also, note that CharSet.Ansi is the default setting for all string marshaling; Unicode marshaling must be specified explicitly, either as a CharSet setting of DllImport or StructLayout, or as a MarshalAs attribute with a Unicode (or system-dependent) UnmanagedType.</value>
-  </data>
-  <data name="StringComparisonShouldBeOrdinalDescription" xml:space="preserve">
-    <value>For non-linguistic comparisons, StringComparison.Ordinal or StringComparison.OrdinalIgnoreCase should be used instead of the linguistically-sensitive StringComparison.InvariantCulture.</value>
   </data>
   <data name="CategoryDesign" xml:space="preserve">
     <value>Design</value>

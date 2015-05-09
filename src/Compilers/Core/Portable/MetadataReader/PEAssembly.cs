@@ -167,13 +167,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyDeclaresTheObjectClass == ThreeState.Unknown)
                 {
-                    if (!_modules[0].FindSystemObjectTypeDef().IsNil)
-                    {
-                        _lazyDeclaresTheObjectClass = ThreeState.True;
-                        return true;
-                    }
-
-                    _lazyDeclaresTheObjectClass = ThreeState.False;
+                    var value = _modules[0].MetadataReader.DeclaresTheObjectClass();
+                    _lazyDeclaresTheObjectClass = value.ToThreeState();
                 }
 
                 return _lazyDeclaresTheObjectClass == ThreeState.True;

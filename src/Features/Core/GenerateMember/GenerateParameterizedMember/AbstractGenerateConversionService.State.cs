@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     if (!TryInitializeImplicitConversion(service, document, node, cancellationToken))
                     {
-                        return Task.FromResult(false);
+                        return SpecializedTasks.False;
                     }
                 }
                 else if (service.IsExplicitConversionGeneration(node))
                 {
                     if (!TryInitializeExplicitConversion(service, document, node, cancellationToken))
                     {
-                        return Task.FromResult(false);
+                        return SpecializedTasks.False;
                     }
                 }
 

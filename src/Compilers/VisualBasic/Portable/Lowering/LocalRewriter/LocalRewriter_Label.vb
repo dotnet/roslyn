@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim statement = DirectCast(MyBase.VisitLabelStatement(node), BoundStatement)
 
             ' Keep track of line number if need to.
-            If currentLineTemporary IsNot Nothing AndAlso currentMethodOrLambda Is topMethod AndAlso
+            If _currentLineTemporary IsNot Nothing AndAlso _currentMethodOrLambda Is _topMethod AndAlso
                Not node.WasCompilerGenerated AndAlso node.Syntax.Kind = SyntaxKind.LabelStatement Then
                 Dim labelSyntax = DirectCast(node.Syntax, LabelStatementSyntax)
 
@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Integer.TryParse(labelSyntax.LabelToken.ValueText, NumberStyles.None, CultureInfo.InvariantCulture, lineNumber)
                     Dim trackLineNumber As BoundStatement = New BoundAssignmentOperator(node.Syntax,
-                                                                                        New BoundLocal(node.Syntax, currentLineTemporary, currentLineTemporary.Type),
-                                                                                        New BoundLiteral(node.Syntax, ConstantValue.Create(lineNumber), currentLineTemporary.Type),
+                                                                                        New BoundLocal(node.Syntax, _currentLineTemporary, _currentLineTemporary.Type),
+                                                                                        New BoundLiteral(node.Syntax, ConstantValue.Create(lineNumber), _currentLineTemporary.Type),
                                                                                         suppressObjectClone:=True).ToStatement()
 
                     ' Need to update resume state when we track line numbers for labels.
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' only labels from the source get their sequence points here
             ' synthetic labels are the responsibility of whoever created them
-            If node.Label.IsFromCompilation(compilationState.Compilation) Then
+            If node.Label.IsFromCompilation(_compilationState.Compilation) Then
                 statement = MarkStatementWithSequencePoint(statement)
             End If
 

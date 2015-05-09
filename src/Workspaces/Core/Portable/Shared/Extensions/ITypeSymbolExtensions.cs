@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : shortName;
         }
 
-        private static bool IsSpecialType(this ITypeSymbol symbol)
+        public static bool IsSpecialType(this ITypeSymbol symbol)
         {
             if (symbol != null)
             {

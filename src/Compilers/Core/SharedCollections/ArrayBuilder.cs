@@ -101,7 +101,10 @@ namespace Microsoft.CodeAnalysis
 
         public void EnsureCapacity(int capacity)
         {
-            _builder.EnsureCapacity(capacity);
+            if (_builder.Capacity < capacity)
+            {
+                _builder.Capacity = capacity;
+            }
         }
 
         public void Clear()
@@ -112,6 +115,11 @@ namespace Microsoft.CodeAnalysis
         public bool Contains(T item)
         {
             return _builder.Contains(item);
+        }
+
+        public int IndexOf(T item)
+        {
+            return _builder.IndexOf(item);
         }
 
         public void RemoveAt(int index)
@@ -126,7 +134,7 @@ namespace Microsoft.CodeAnalysis
 
         public void ReverseContents()
         {
-            _builder.ReverseContents();
+            _builder.Reverse();
         }
 
         public void Sort()

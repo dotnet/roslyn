@@ -176,10 +176,10 @@ namespace Microsoft.CodeAnalysis.Emit
         private unsafe static void UncompressLambdaMap(
             ImmutableArray<byte> compressedLambdaMap,
             out int methodOrdinal,
-            out ImmutableArray<ClosureDebugInfo> closures, 
+            out ImmutableArray<ClosureDebugInfo> closures,
             out ImmutableArray<LambdaDebugInfo> lambdas)
         {
-            methodOrdinal = MethodDebugId.UndefinedOrdinal;
+            methodOrdinal = DebugId.UndefinedOrdinal;
             closures = default(ImmutableArray<ClosureDebugInfo>);
             lambdas = default(ImmutableArray<LambdaDebugInfo>);
 
@@ -191,9 +191,6 @@ namespace Microsoft.CodeAnalysis.Emit
             var closuresBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
             var lambdasBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
 
-            int syntaxOffsetBaseline = -1;
-            int closureCount;
-
             fixed (byte* blobPtr = &compressedLambdaMap.ToArray()[0])
             {
                 var blobReader = new BlobReader(blobPtr, compressedLambdaMap.Length);
@@ -204,28 +201,30 @@ namespace Microsoft.CodeAnalysis.Emit
                     // [-1, inf)
                     methodOrdinal = blobReader.ReadCompressedInteger() - 1;
 
-                    syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
+                    int syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
 
-                    closureCount = blobReader.ReadCompressedInteger();
+                    int closureCount = blobReader.ReadCompressedInteger();
 
                     for (int i = 0; i < closureCount; i++)
                     {
                         int syntaxOffset = blobReader.ReadCompressedInteger();
 
-                        closuresBuilder.Add(new ClosureDebugInfo(syntaxOffset + syntaxOffsetBaseline));
+                        var closureId = new DebugId(closuresBuilder.Count, generation: 0);
+                        closuresBuilder.Add(new ClosureDebugInfo(syntaxOffset + syntaxOffsetBaseline, closureId));
                     }
 
                     while (blobReader.RemainingBytes > 0)
                     {
                         int syntaxOffset = blobReader.ReadCompressedInteger();
-                        int closureOrdinal = blobReader.ReadCompressedInteger() - 1;
+                        int closureOrdinal = blobReader.ReadCompressedInteger() + LambdaDebugInfo.MinClosureOrdinal;
 
                         if (closureOrdinal >= closureCount)
                         {
                             throw CreateInvalidDataException(compressedLambdaMap, blobReader.Offset);
                         }
 
-                        lambdasBuilder.Add(new LambdaDebugInfo(syntaxOffset + syntaxOffsetBaseline, closureOrdinal));
+                        var lambdaId = new DebugId(lambdasBuilder.Count, generation: 0);
+                        lambdasBuilder.Add(new LambdaDebugInfo(syntaxOffset + syntaxOffsetBaseline, lambdaId, closureOrdinal));
                     }
                 }
                 catch (BadImageFormatException)
@@ -270,10 +269,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (LambdaDebugInfo info in this.Lambdas)
             {
-                Debug.Assert(info.ClosureOrdinal >= -1);
+                Debug.Assert(info.ClosureOrdinal >= LambdaDebugInfo.MinClosureOrdinal);
+                Debug.Assert(info.LambdaId.Generation == 0);
 
                 writer.WriteCompressedUInt((uint)(info.SyntaxOffset - syntaxOffsetBaseline));
-                writer.WriteCompressedUInt((uint)(info.ClosureOrdinal + 1));
+                writer.WriteCompressedUInt((uint)(info.ClosureOrdinal - LambdaDebugInfo.MinClosureOrdinal));
             }
         }
 

@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(EmitContext context)
-            =>StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
+            => StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
 
         public bool AcceptsExtraArguments => false;
 
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             => SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
 
         public void Dispatch(Cci.MetadataVisitor visitor)
-            => visitor.Visit((Cci.IMethodReference)this);
+            => visitor.Visit(this);
 
         public Cci.IDefinition AsDefinition(EmitContext context)
             => null;

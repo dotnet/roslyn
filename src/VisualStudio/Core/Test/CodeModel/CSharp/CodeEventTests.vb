@@ -114,6 +114,38 @@ class C
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=38)))
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPointExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=10, lineOffset:=5, absoluteOffset:=131, lineLength:=43)))
+        End Sub
+
 #End Region
 
 #Region "GetEndPoint tests"
@@ -219,6 +251,38 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=7, lineOffset:=6, absoluteOffset:=96, lineLength:=5)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPointExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=19, lineOffset:=6, absoluteOffset:=250, lineLength:=5)))
         End Sub
 
 #End Region
@@ -333,6 +397,36 @@ class C
             TestFullName(code, "C.F")
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.SampleEvent")
+        End Sub
+
 #End Region
 
 #Region "IsPropertyStyleEvent tests"
@@ -427,6 +521,36 @@ class C
             TestName(code, "F")
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestName(code, "I1.SampleEvent")
+        End Sub
+
 #End Region
 
 #Region "Type tests"
@@ -497,7 +621,7 @@ class C
 #Region "Set IsShared tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared1()
+        Public Sub SetIsShared1()
             Dim code =
 <Code>
 class C
@@ -518,7 +642,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared2()
+        Public Sub SetIsShared2()
             Dim code =
 <Code>
 class C
@@ -539,7 +663,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared3()
+        Public Sub SetIsShared3()
             Dim code =
 <Code>
 class C
@@ -560,7 +684,7 @@ class C
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared4()
+        Public Sub SetIsShared4()
             Dim code =
 <Code>
 class C
@@ -585,7 +709,7 @@ class C
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 class C

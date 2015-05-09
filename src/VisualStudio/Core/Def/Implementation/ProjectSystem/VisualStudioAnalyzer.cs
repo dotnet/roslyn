@@ -6,8 +6,10 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -18,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ProjectId _projectId;
         private readonly Workspace _workspace;
+        private readonly IAnalyzerAssemblyLoader _loader;
         private readonly string _language;
 
         private AnalyzerReference _analyzerReference;
@@ -34,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public event EventHandler UpdatedOnDisk;
 
-        public VisualStudioAnalyzer(string fullPath, IVsFileChangeEx fileChangeService, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, Workspace workspace, string language)
+        public VisualStudioAnalyzer(string fullPath, IVsFileChangeEx fileChangeService, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, Workspace workspace, IAnalyzerAssemblyLoader loader, string language)
         {
             _fullPath = fullPath;
             _tracker = new FileChangeTracker(fileChangeService, fullPath);
@@ -44,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _projectId = projectId;
             _workspace = workspace;
+            _loader = loader;
             _language = language;
         }
 
@@ -58,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (File.Exists(_fullPath))
                 {
-                    _analyzerReference = new AnalyzerFileReference(_fullPath);
+                    _analyzerReference = new AnalyzerFileReference(_fullPath, _loader);
                     ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed += OnAnalyzerLoadError;
                 }
                 else

@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
 using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
@@ -317,7 +317,7 @@ public static class MyExtension
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("(extension) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Once we do the work to allow extension methods in nested types, we should change this.
             Test(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
@@ -514,17 +514,17 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem(
-@"void List<'a>.Add('a item)
+$@"void List<'a>.Add('a item)
 
-Anonymous Types:
-    'a is new { string Name, int Age }",
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{ string Name, int Age }}",
                     methodDocumentation: string.Empty,
                     parameterDocumentation: string.Empty,
                     currentParameterIndex: 0,
-                    description: @"
+                    description: $@"
 
-Anonymous Types:
-    'a is new { string Name, int Age }")
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{ string Name, int Age }}")
             };
 
             Test(markup, expectedOrderedItems);
@@ -1504,12 +1504,12 @@ class C
     }
 }";
 
-            var description = @"
-Usage:
+            var description = $@"
+{WorkspacesResources.Usage}
   await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("(awaitable) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             TestSignatureHelpWithMscorlib45(markup, expectedOrderedItems, "C#");
         }
@@ -1527,12 +1527,12 @@ class C
     }
 }";
 
-            var description = @"
-Usage:
+            var description = $@"
+{WorkspacesResources.Usage}
   Task<int> x = await Foo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("(awaitable) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task<Task<int>> C.Foo()", methodDocumentation: description, currentParameterIndex: 0));
 
             TestSignatureHelpWithMscorlib45(markup, expectedOrderedItems, "C#");
         }
@@ -1621,7 +1621,7 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem("void IFoo.Bar<T>()", currentParameterIndex: 0),
-                new SignatureHelpTestItem("(extension) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"({CSharpFeaturesResources.Extension}) void IFoo.Bar<T1, T2>()", currentParameterIndex: 0),
             };
 
             // Extension methods are supported in Interactive/Script (yet).
@@ -1676,7 +1676,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = new SignatureHelpTestItem("void C.bar()\r\n\r\n    Proj1 - Available\r\n    Proj2 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
             VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
         }
 
@@ -1712,7 +1712,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem("void C.bar()\r\n\r\n    Proj1 - Available\r\n    Proj3 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
             VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
         }
 
@@ -1862,6 +1862,90 @@ class Foo
 // foo($$";
 
             Test(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    void Do(string x){}
+#endif
+    void Shared()
+    {
+        this.Do($$
+    }
+
+}]]></Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = new SignatureHelpTestItem($"void C.Do(int x)", currentParameterIndex: 0);
+            VerifyItemWithReferenceWorker(markup, new[] { expectedDescription }, false);
+        }
+
+        [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
+        [WorkItem(1068424)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestGenericParameters1()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        Foo(""""$$);
+    }
+
+    void Foo<T>(T a) { }
+    void Foo<T, U>(T a, U b) { }
+}
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>()
+            {
+                new SignatureHelpTestItem("void C.Foo<string>(string a)", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("void C.Foo<T, U>(T a, U b)", string.Empty)
+            };
+
+            Test(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(699, "https://github.com/dotnet/roslyn/issues/699")]
+        [WorkItem(1068424)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestGenericParameters2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        Foo("""", $$);
+    }
+
+    void Foo<T>(T a) { }
+    void Foo<T, U>(T a, U b) { }
+}
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>()
+            {
+                new SignatureHelpTestItem("void C.Foo<T>(T a)", string.Empty),
+                new SignatureHelpTestItem("void C.Foo<T, U>(T a, U b)", string.Empty, string.Empty, currentParameterIndex: 1)
+            };
+
+            Test(markup, expectedOrderedItems);
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -252,10 +254,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("struct", changes[0].NewText);
         }
 
-        [Fact]
+        [Fact, WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
         public void TestQualifyWithThis()
         {
-            var original =  @"
+            var original = @"
 class C
 {
     int Sign;
@@ -276,21 +278,21 @@ class C
 }";
             var oldTree = SyntaxFactory.ParseSyntaxTree(original);
             var root = oldTree.GetRoot();
-            
+
             var indexText = "Sign +";
 
             // Expected behavior: Qualifying identifier 'Sign' with 'this.' and doing a diff between trees 
             // should return a single text change with 'this.' as added text.
 
             // Works as expected for last index
-            var index = original.LastIndexOf(indexText);
+            var index = original.LastIndexOf(indexText, StringComparison.Ordinal);
             TestQualifyWithThisCore(root, index);
 
             // Doesn't work as expected for first index.
             // It returns 2 changes with add followed by delete, 
             // causing the 2 isolated edits of adding "this." to seem conflicting edits, even though they are not.
             // See https://github.com/dotnet/roslyn/issues/320 for details.
-            index = original.IndexOf(indexText);
+            index = original.IndexOf(indexText, StringComparison.Ordinal);
             TestQualifyWithThisCore(root, index);
         }
 
@@ -317,6 +319,68 @@ class C
             Assert.NotNull(changes);
             Assert.Equal(1, changes.Count);
             Assert.Equal("this.", changes[0].NewText);
+        }
+
+        [Fact, WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
+        public void TestReplaceWithBuiltInType()
+        {
+            var original = @"
+using System;
+using System.Collections.Generic;
+
+public class TestClass
+{
+    public void TestMethod()
+    {
+        var dictionary = new Dictionary<Object, Object>();
+        dictionary[new Object()] = new Object();
+    }
+}";
+            var oldTree = SyntaxFactory.ParseSyntaxTree(original);
+            var root = oldTree.GetRoot();
+
+            var indexText = "Object";
+
+            // Expected behavior: Replacing identifier 'Object' with 'object' and doing a diff between trees 
+            // should return a single text change for character replace.
+
+            // Works as expected for first index
+            var index = original.IndexOf(indexText, StringComparison.Ordinal);
+            TestReplaceWithBuiltInTypeCore(root, index);
+
+            // Works as expected for last index
+            index = original.LastIndexOf(indexText, StringComparison.Ordinal);
+            TestReplaceWithBuiltInTypeCore(root, index);
+
+            // Doesn't work as expected for the third index.
+            // It returns 2 changes with add followed by delete, 
+            // causing the 2 isolated edits to seem conflicting edits, even though they are not.
+            // See https://github.com/dotnet/roslyn/issues/320 for details.
+            indexText = "Object()";
+            index = original.IndexOf(indexText, StringComparison.Ordinal);
+            TestReplaceWithBuiltInTypeCore(root, index);
+        }
+
+        private void TestReplaceWithBuiltInTypeCore(SyntaxNode root, int index)
+        {
+            var oldTree = root.SyntaxTree;
+
+            var span = new TextSpan(index, 6);
+            var node = root.FindNode(span, getInnermostNodeForTie: true) as SimpleNameSyntax;
+            Assert.NotNull(node);
+            Assert.Equal("Object", node.Identifier.ValueText);
+
+            var leadingTrivia = node.GetLeadingTrivia();
+            var newNode = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))
+                .WithLeadingTrivia(leadingTrivia);
+
+            var newRoot = root.ReplaceNode(node, newNode);
+            var newTree = newRoot.SyntaxTree;
+
+            var changes = newTree.GetChanges(oldTree);
+            Assert.NotNull(changes);
+            Assert.Equal(1, changes.Count);
+            Assert.Equal("o", changes[0].NewText);
         }
     }
 }

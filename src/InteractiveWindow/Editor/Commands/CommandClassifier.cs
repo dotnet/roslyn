@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Language.StandardClassification;
@@ -9,18 +11,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     internal sealed class CommandClassifier : IClassifier
     {
-        private readonly IStandardClassificationService registry;
-        private readonly IInteractiveWindowCommands commands;
+        private readonly IStandardClassificationService _registry;
+        private readonly IInteractiveWindowCommands _commands;
 
         public CommandClassifier(IStandardClassificationService registry, IInteractiveWindowCommands commands)
         {
-            this.registry = registry;
-            this.commands = commands;
+            _registry = registry;
+            _commands = commands;
         }
 
         public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span)
         {
-            return commands.Classify(span).ToArray();
+            return _commands.Classify(span).ToArray();
         }
 
 #pragma warning disable 67 // unused event

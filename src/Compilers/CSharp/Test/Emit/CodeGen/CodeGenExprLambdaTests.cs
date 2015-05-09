@@ -2273,6 +2273,19 @@ public class Test
             CompileAndVerify(
                 text,
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+
+            // Also verify with the assemblies on which the tests are running, as there's a higher
+            // likelihood that they have Array.Empty, and we want to verify that Array.Empty is not used
+            // in expression lambdas.  This can be changed to use the mscorlib 4.6 metadata once it's
+            // available in the Roslyn tests.
+            CompileAndVerify(CreateCompilation(
+                text,
+                references: new[] {
+                    MetadataReference.CreateFromAssembly(typeof(object).Assembly),
+                    MetadataReference.CreateFromAssembly(typeof(System.Linq.Enumerable).Assembly)
+                },
+                options: TestOptions.ReleaseExe),
+                expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
         [WorkItem(544270, "DevDiv")]
@@ -2843,7 +2856,7 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                emitOptions: TestEmitters.RefEmitBug,
+                emitters: TestEmitters.RefEmitBug,
                 verify: false);
 
             c.VerifyDiagnostics();
@@ -4907,6 +4920,48 @@ class C : TestBase
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
+        }
+
+        /// <summary>
+        /// Ignore inaccessible members of System.Linq.Expressions.Expression.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void IgnoreInaccessibleExpressionMembers()
+        {
+            var source1 =
+@"namespace System.Linq.Expressions
+{
+    public class Expression
+    {
+        public static Expression Constant(object o, Type t) { return null; }
+        protected static Expression Convert(object e, Type t) { return null; }
+        public static Expression Convert(Expression e, object t) { return null; }
+        protected static void Lambda<T>(Expression e, ParameterExpression[] args) { }
+        public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
+    }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
+}";
+            var compilation1 = CreateCompilationWithMscorlib(source1);
+            compilation1.VerifyDiagnostics();
+            var reference1 = compilation1.EmitToImageReference();
+
+            var source2 =
+@"using System.Linq.Expressions;
+delegate object D();
+class C
+{
+    static Expression<D> E = () => 1;
+}";
+            var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+
+            using (var stream = new MemoryStream())
+            {
+                var result = compilation2.Emit(stream);
+                result.Diagnostics.Verify();
+            }
         }
 
         #endregion Regression Tests

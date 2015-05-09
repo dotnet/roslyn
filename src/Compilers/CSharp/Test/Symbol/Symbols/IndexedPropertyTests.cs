@@ -344,7 +344,7 @@ class B
 }";
             // Note that Dev11 (incorrectly) calls F() twice in a.P[ref F()[0]]
             // for compound assignment and increment.
-            var compilation2 = CompileAndVerify(source2, emitOptions: TestEmitters.RefEmitBug, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, emitters: TestEmitters.RefEmitBug, additionalRefs: new[] { reference1 }, expectedOutput:
 @"F()
 F()
 0
@@ -503,7 +503,7 @@ F()
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void RefParametersIndexers()
         {
             var source1 =
@@ -720,7 +720,7 @@ F()
         y = 0;
     }
 }";
-            var compilation2 = CompileAndVerify(source2, emitOptions: TestEmitters.RefEmitBug, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, emitters: TestEmitters.RefEmitBug, additionalRefs: new[] { reference1 }, expectedOutput:
 @"0, 0
 0, 0
 0, 3");
@@ -877,7 +877,7 @@ End Class";
         a[2] = a[1];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, emitOptions: TestEmitters.CCI);
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI);
             compilation3.VerifyIL("C.M()",
 @"{
   // Code size       21 (0x15)
@@ -1078,7 +1078,7 @@ Q[6] = 5
         o = i.valid_name(1);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitOptions: TestEmitters.CCI, verify: true);
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI, verify: true);
 
             var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
             // Indexed property with valid name.
@@ -1555,7 +1555,7 @@ End Class";
         o = b.Q[2, 3];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, emitOptions: TestEmitters.CCI, verify: false);
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI, verify: false);
             compilation3.VerifyIL("C.M(B)",
 @"{
   // Code size       33 (0x21)
@@ -1681,7 +1681,7 @@ public class B2 : A2
         Console.WriteLine(""B2.set_P({0}, ...)"", index);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitOptions: TestEmitters.CCI);
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI);
             var reference2 = MetadataReference.CreateFromImage(compilation2.EmittedAssemblyData);
             // Can invoke C# implementations by invoking the accessors directly
             // or by casting to the COM interface and invoking the indexed property.
@@ -1709,7 +1709,7 @@ public class B2 : A2
         i.P[6] = i.P[5];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1, reference2 }, emitOptions: TestEmitters.CCI, expectedOutput:
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1, reference2 }, emitters: TestEmitters.CCI, expectedOutput:
 @"A2.get_P(1)
 A2.set_P(2, ...)
 A2.get_P(3)
@@ -1830,7 +1830,7 @@ class C
         b2.set_P(1, b2.get_P(0));
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitOptions: TestEmitters.CCI, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI, expectedOutput:
 @"B1.get_P(0)
 A1.set_P(1, ...)
 A1.get_P(0)
@@ -1960,7 +1960,7 @@ End Class";
         a = new IA() { P3 = { 6, 7 } };
     }
 }";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitOptions: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
@@ -2110,7 +2110,7 @@ class B
 class B
 {
 }";
-            var compilation3 = CompileAndVerify(source3, new[] { reference1 }, emitOptions: TestEmitters.CCI);
+            var compilation3 = CompileAndVerify(source3, new[] { reference1 }, emitters: TestEmitters.CCI);
         }
 
         [Fact]
@@ -2252,7 +2252,7 @@ class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitOptions: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
@@ -2322,7 +2322,7 @@ class B
 }
 ";
 
-            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, emitOptions: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
 @"P1(2).get
 P1(2).get
 P1(2).get
@@ -2397,7 +2397,7 @@ class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitOptions: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
 @"P1(3).get
 P1(3).set
 6

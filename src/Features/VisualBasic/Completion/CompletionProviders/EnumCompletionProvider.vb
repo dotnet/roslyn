@@ -89,21 +89,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         ' PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
-        Private cachedDisplayAndInsertionTextContainingType As INamedTypeSymbol
-        Private cachedDisplayAndInsertionTextContext As AbstractSyntaxContext
-        Private cachedDisplayAndInsertionTextContainingTypeText As String
+        Private _cachedDisplayAndInsertionTextContainingType As INamedTypeSymbol
+        Private _cachedDisplayAndInsertionTextContext As AbstractSyntaxContext
+        Private _cachedDisplayAndInsertionTextContainingTypeText As String
 
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
             If symbol.ContainingType IsNot Nothing AndAlso symbol.ContainingType.TypeKind = TypeKind.Enum Then
-                If cachedDisplayAndInsertionTextContainingType IsNot symbol.ContainingType OrElse cachedDisplayAndInsertionTextContext IsNot context Then
+                If _cachedDisplayAndInsertionTextContainingType IsNot symbol.ContainingType OrElse _cachedDisplayAndInsertionTextContext IsNot context Then
                     Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None)
                     Dim displayService = context.GetLanguageService(Of ISymbolDisplayService)()
-                    cachedDisplayAndInsertionTextContainingTypeText = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol.ContainingType, displayFormat)
-                    cachedDisplayAndInsertionTextContainingType = symbol.ContainingType
-                    cachedDisplayAndInsertionTextContext = context
+                    _cachedDisplayAndInsertionTextContainingTypeText = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol.ContainingType, displayFormat)
+                    _cachedDisplayAndInsertionTextContainingType = symbol.ContainingType
+                    _cachedDisplayAndInsertionTextContext = context
                 End If
 
-                Dim text As String = cachedDisplayAndInsertionTextContainingTypeText & "." & symbol.Name
+                Dim text As String = _cachedDisplayAndInsertionTextContainingTypeText & "." & symbol.Name
                 Return ValueTuple.Create(text, text)
             End If
 

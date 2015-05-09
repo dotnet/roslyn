@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.CodeAnalysis.BuildTask
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
     /// Functions for dealing with the specially formatted errors returned by
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
     internal static class CanonicalError
     {
         // Defines the main pattern for matching messages.
-        private static Regex originCategoryCodeTextExpression = new Regex
+        private static readonly Regex s_originCategoryCodeTextExpression = new Regex
              (
                 // Beginning of line and any amount of whitespace.
                 @"^\s*"
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
              );
 
         // Matches and extracts filename and location from an 'origin' element.
-        private static Regex filenameLocationFromOrigin = new Regex
+        private static readonly Regex s_filenameLocationFromOrigin = new Regex
              (
                  "^"                                             // Beginning of line
                  + @"(\d+>)?"                                     // Optional ddd> project number prefix
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
              );
 
         // Matches location that is a simple number.
-        private static Regex lineFromLocation = new Regex        // Example: line
+        private static readonly Regex s_lineFromLocation = new Regex        // Example: line
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             );
 
         // Matches location that is a range of lines.
-        private static Regex lineLineFromLocation = new Regex    // Example: line-line
+        private static readonly Regex s_lineLineFromLocation = new Regex    // Example: line-line
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             );
 
         // Matches location that is a line and column
-        private static Regex lineColFromLocation = new Regex     // Example: line,col
+        private static readonly Regex s_lineColFromLocation = new Regex     // Example: line,col
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             );
 
         // Matches location that is a line and column-range
-        private static Regex lineColColFromLocation = new Regex  // Example: line,col-col
+        private static readonly Regex s_lineColColFromLocation = new Regex  // Example: line,col-col
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             );
 
         // Matches location that is line,col,line,col
-        private static Regex lineColLineColFromLocation = new Regex      // Example: line,col,line,col
+        private static readonly Regex s_lineColLineColFromLocation = new Regex      // Example: line,col,line,col
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -304,7 +306,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
             //  Here's an example from the Japanese version of LINK.EXE:
             //   AssemblyInfo.cpp : fatal error LNK1106: ???????????? ??????????????: 0x6580 ??????????
             //
-            Match match = originCategoryCodeTextExpression.Match(message);
+            Match match = s_originCategoryCodeTextExpression.Match(message);
 
             if (!match.Success)
             {
@@ -335,7 +337,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
 
             // Origin is not a simple file, but it still could be of the form,
             //  foo.cpp(location)
-            match = filenameLocationFromOrigin.Match(origin);
+            match = s_filenameLocationFromOrigin.Match(origin);
 
             if (match.Success)
             {
@@ -355,14 +357,14 @@ namespace Microsoft.CodeAnalysis.BuildTask
                 //      (line,col,line,col)
                 if (location.Length > 0)
                 {
-                    match = lineFromLocation.Match(location);
+                    match = s_lineFromLocation.Match(location);
                     if (match.Success)
                     {
                         parsedMessage.line = ConvertToIntWithDefault(match.Groups["LINE"].Value.Trim());
                     }
                     else
                     {
-                        match = lineLineFromLocation.Match(location);
+                        match = s_lineLineFromLocation.Match(location);
                         if (match.Success)
                         {
                             parsedMessage.line = ConvertToIntWithDefault(match.Groups["LINE"].Value.Trim());
@@ -370,7 +372,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                         }
                         else
                         {
-                            match = lineColFromLocation.Match(location);
+                            match = s_lineColFromLocation.Match(location);
                             if (match.Success)
                             {
                                 parsedMessage.line = ConvertToIntWithDefault(match.Groups["LINE"].Value.Trim());
@@ -378,7 +380,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                             }
                             else
                             {
-                                match = lineColColFromLocation.Match(location);
+                                match = s_lineColColFromLocation.Match(location);
                                 if (match.Success)
                                 {
                                     parsedMessage.line = ConvertToIntWithDefault(match.Groups["LINE"].Value.Trim());
@@ -387,7 +389,7 @@ namespace Microsoft.CodeAnalysis.BuildTask
                                 }
                                 else
                                 {
-                                    match = lineColLineColFromLocation.Match(location);
+                                    match = s_lineColLineColFromLocation.Match(location);
                                     if (match.Success)
                                     {
                                         parsedMessage.line = ConvertToIntWithDefault(match.Groups["LINE"].Value.Trim());

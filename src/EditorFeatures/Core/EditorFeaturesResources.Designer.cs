@@ -439,6 +439,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cursor must be on a member name..
+        /// </summary>
+        internal static string CursorMustBeOnAMemberName {
+            get {
+                return ResourceManager.GetString("CursorMustBeOnAMemberName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Directly Called In.
         /// </summary>
         internal static string DirectlyCalledIn {
@@ -625,6 +634,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string FixAllOccurrencesIn {
             get {
                 return ResourceManager.GetString("FixAllOccurrencesIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Brace Matching.
+        /// </summary>
+        internal static string FontAndColors_BraceMatching {
+            get {
+                return ResourceManager.GetString("FontAndColors_BraceMatching", resourceCulture);
             }
         }
         
@@ -1066,6 +1084,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string HighlightedDefinition {
             get {
                 return ResourceManager.GetString("HighlightedDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Highlighted Written Reference.
+        /// </summary>
+        internal static string HighlightedWrittenReference {
+            get {
+                return ResourceManager.GetString("HighlightedWrittenReference", resourceCulture);
             }
         }
         
@@ -1592,15 +1619,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename &apos;{0}&apos; to &apos;{1}&apos; with preview....
-        /// </summary>
-        internal static string RenameToWithPreview {
-            get {
-                return ResourceManager.GetString("RenameToWithPreview", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Renaming anonymous type members is not yet supported..
         /// </summary>
         internal static string RenamingAnonymousTypeMemberNotSupported {
@@ -1718,6 +1736,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The rename tracking session was cancelled and is no longer available..
+        /// </summary>
+        internal static string TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable {
+            get {
+                return ResourceManager.GetString("TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The token is not contained in the workspace..
         /// </summary>
         internal static string TheTokenIsNotContainedInWorkspace {
@@ -1826,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning.
+        ///   Looks up a localized string similar to Preview Warning.
         /// </summary>
         internal static string Warning {
             get {

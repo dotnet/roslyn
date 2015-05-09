@@ -134,9 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _sealed = 0 Then
 #End If
 
-                Debug.Assert(symbol.IsDefinition)
-                Debug.Assert(symbol.IsEmbedded)
-                AddReferencedSymbolWithDependents(symbol, allSymbols)
+            Debug.Assert(symbol.IsDefinition)
+            Debug.Assert(symbol.IsEmbedded)
+            AddReferencedSymbolWithDependents(symbol, allSymbols)
 
 #If Not Debug Then
             End If

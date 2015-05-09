@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private Type m_CSParserType = null;
         private Type m_VBParserType = null;
 #endif
-        private Type _CSSyntaxTreeType = null;
-        private Type _visualBasicSyntaxTreeType = null;
-        private object _CSOptions = null;
-        private object _VBOptions = null;
+        private Type _CSSyntaxTreeType;
+        private Type _visualBasicSyntaxTreeType;
+        private object _CSOptions;
+        private object _VBOptions;
         private readonly string _CSFileName = "Default.cs";
         private readonly string _VBFileName = "Default.vb";
-        private object _codeKind = null;
+        private object _codeKind;
         public SyntaxTree ParseCSTree(string code, string folder)
         {
             if (_CSSyntaxTreeType == null)

@@ -8,14 +8,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Private Class PostProcessor
-            Private ReadOnly semanticModel As SemanticModel
-            Private ReadOnly contextPosition As Integer
+            Private ReadOnly _semanticModel As SemanticModel
+            Private ReadOnly _contextPosition As Integer
 
             Public Sub New(semanticModel As SemanticModel, contextPosition As Integer)
                 Contract.ThrowIfNull(semanticModel)
 
-                Me.semanticModel = semanticModel
-                Me.contextPosition = contextPosition
+                Me._semanticModel = semanticModel
+                Me._contextPosition = contextPosition
             End Sub
 
             Public Function MergeDeclarationStatements(statements As IEnumerable(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfFalse(statement.Declarators.Count = 1)
 
                 Dim declarator = statement.Declarators(0)
-                Dim symbolInfo = Me.semanticModel.GetSpeculativeSymbolInfo(Me.contextPosition, declarator.AsClause.Type, SpeculativeBindingOption.BindAsTypeOrNamespace)
+                Dim symbolInfo = Me._semanticModel.GetSpeculativeSymbolInfo(Me._contextPosition, declarator.AsClause.Type, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim type = TryCast(symbolInfo.Symbol, ITypeSymbol)
                 Contract.ThrowIfNull(type)
 
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return False
                 End If
 
-                Dim symbolInfo = Me.semanticModel.GetSpeculativeSymbolInfo(Me.contextPosition, declarationStatement.Declarators(0).AsClause.Type, SpeculativeBindingOption.BindAsTypeOrNamespace)
+                Dim symbolInfo = Me._semanticModel.GetSpeculativeSymbolInfo(Me._contextPosition, declarationStatement.Declarators(0).AsClause.Type, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim type = TryCast(symbolInfo.Symbol, ITypeSymbol)
                 If type Is Nothing OrElse
                    type.TypeKind = TypeKind.Error OrElse

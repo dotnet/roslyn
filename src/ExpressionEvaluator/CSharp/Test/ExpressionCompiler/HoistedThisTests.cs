@@ -12,6 +12,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -641,7 +642,7 @@ class C : I<int>
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: ilBytes.ToArray(),
-                symReader: new SymReader(ilPdbBytes.ToArray()));
+                symReader: new SymReader(ilPdbBytes.ToArray(), ilBytes.ToArray()));
 
             var context = CreateMethodContext(runtime, "C.<I<System.Int32>.F>d__0.MoveNext");
             VerifyHasThis(context, "C", @"
@@ -974,10 +975,9 @@ class C
             VerifyMethodData(testData.Methods.Single(m => m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL);
             locals.Free();
 
-            ResultProperties resultProperties;
             string error;
             testData = new CompilationTestData();
-            context.CompileExpression("this", out resultProperties, out error, testData);
+            context.CompileExpression("this", out error, testData);
             Assert.Null(error);
             VerifyMethodData(testData.Methods.Single(m => m.Key.Contains("<>m0")).Value, expectedType, expectedIL);
         }
@@ -1000,10 +1000,9 @@ class C
 
         private static void VerifyNoThis(EvaluationContext context)
         {
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this", out resultProperties, out error, testData);
+            context.CompileExpression("this", out error, testData);
             Assert.Contains(error, new[]
             {
                 "error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer",
@@ -1011,7 +1010,7 @@ class C
             });
 
             testData = new CompilationTestData();
-            context.CompileExpression("base.ToString()", out resultProperties, out error, testData);
+            context.CompileExpression("base.ToString()", out error, testData);
             Assert.Contains(error, new[]
             {
                 "error CS1511: Keyword 'base' is not available in a static method",
@@ -1046,10 +1045,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -1085,10 +1083,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -1124,10 +1121,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>b__1_0");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -1162,10 +1158,9 @@ class Derived : Base
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("base.x", out resultProperties, out error, testData);
+            context.CompileExpression("base.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -1206,10 +1201,9 @@ class Derived : Base
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("base.x", out resultProperties, out error, testData);
+            context.CompileExpression("base.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -1250,10 +1244,9 @@ class Derived : Base
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "Derived.<F>b__1_0");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size        7 (0x7)

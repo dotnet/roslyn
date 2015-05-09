@@ -125,6 +125,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                case SyntaxKind.ArrowExpressionClause:
+                    {
+                        // Arrow expression clause declares getter symbol for properties and indexers.
+                        var parentProperty = node.Parent as BasePropertyDeclarationSyntax;
+                        if (parentProperty != null)
+                        {
+                            builder.Add(GetExpressionBodyDeclarationInfo(parentProperty, (ArrowExpressionClauseSyntax)node, model, getSymbol, cancellationToken));
+                        }
+
+                        return;
+                    }
+
                 case SyntaxKind.PropertyDeclaration:
                     {
                         var t = (PropertyDeclarationSyntax)node;
@@ -133,7 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         }
 
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken, t.Initializer, t.ExpressionBody));
+                        if (t.ExpressionBody != null)
+                        {
+                            ComputeDeclarations(model, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
+                        }
+
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken, t.Initializer));
                         return;
                     }
 
@@ -148,11 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
                         if (t.ExpressionBody != null)
                         {
-                            codeBlocks = codeBlocks.Concat(t.ExpressionBody);
+                            ComputeDeclarations(model, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
                         }
+
+                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
                         return;
@@ -204,6 +222,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return;
             }
+        }
+
+        private static DeclarationInfo GetExpressionBodyDeclarationInfo(
+            BasePropertyDeclarationSyntax declarationWithExpressionBody,
+            ArrowExpressionClauseSyntax expressionBody,
+            SemanticModel model,
+            bool getSymbol,
+            CancellationToken cancellationToken)
+        {
+            // TODO: use 'model.GetDeclaredSymbol(expressionBody)' when compiler is fixed to return the getter symbol for it.
+            var declaredAccessor = getSymbol ? (model.GetDeclaredSymbol(declarationWithExpressionBody, cancellationToken) as IPropertySymbol)?.GetMethod : null;
+
+            return new DeclarationInfo(
+                declaredNode: expressionBody,
+                executableCodeBlocks: ImmutableArray.Create<SyntaxNode>(expressionBody),
+                declaredSymbol: declaredAccessor);
         }
 
         /// <summary>

@@ -1691,8 +1691,8 @@ Public Class C
 End Class
 ]]>.Value
 
-            Dim operatorPos = source.IndexOf("+")
-            Dim parenPos = source.IndexOf("(")
+            Dim operatorPos = source.IndexOf("+"c)
+            Dim parenPos = source.IndexOf("("c)
 
             Dim comp = CreateCompilationWithMscorlib({Parse(source)})
             Dim Symbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single()
@@ -1713,7 +1713,7 @@ End Class
 ]]>.Value
 
             ' Used to raise an exception.
-            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, options:=TestOptions.ReleaseDll)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC33016: Operator '+' must have either one or two parameters.
     Public Shared Operator +(Of T)

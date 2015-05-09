@@ -18,6 +18,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\TestUtilities.csproj">
@@ -48,8 +49,8 @@
       <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
       <Name>BasicCodeAnalysis.Desktop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\vbc\vbc.vbproj">
-      <Project>{2AC2755D-9437-4271-BBDE-1A3795A0C320}</Project>
+    <ProjectReference Include="..\..\vbc\vbc.csproj">
+      <Project>{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}</Project>
       <Name>vbc</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
@@ -66,8 +67,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc1-20150208-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
-    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -100,6 +101,7 @@
     <Compile Include="CommandLineArgumentsTests.vb" />
     <Compile Include="CommandLineBreakingChanges.vb" />
     <Compile Include="CommandLineTests.vb" />
+    <Compile Include="ErrorLoggerTests.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>

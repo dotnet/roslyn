@@ -1,15 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
@@ -85,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 </Workspace>
             TestCSharp(workspace,
                        StringFromLines("dynamic",
-                                       "Represents an object whose operations will be resolved at runtime."))
+                                       FeaturesResources.RepresentsAnObjectWhoseOperations))
         End Sub
 
         <WorkItem(543912)>
@@ -105,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestCSharp(workspace, "(local constant) int x = 2")
+            TestCSharp(workspace, $"({FeaturesResources.LocalConstant}) int x = 2")
         End Sub
 
 #End Region
@@ -200,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "T in Foo(Of T)")
+            TestBasic(workspace, $"T {FeaturesResources.In} Foo(Of T)")
         End Sub
 
         <Fact>
@@ -218,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "T in Outer(Of T)")
+            TestBasic(workspace, $"T {FeaturesResources.In} Outer(Of T)")
         End Sub
 
         <Fact>
@@ -236,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "T in Outer(Of T)")
+            TestBasic(workspace, $"T {FeaturesResources.In} Outer(Of T)")
         End Sub
 
         <Fact>
@@ -255,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace,
                       StringFromLines("Structure System.Nullable(Of T As Structure)",
                                       String.Empty,
-                                      "T is Integer"))
+                                      $"T {FeaturesResources.Is} Integer"))
         End Sub
 
         <Fact>
@@ -435,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "(field) Foo.field As Integer")
+            TestBasic(workspace, $"({FeaturesResources.Field}) Foo.field As Integer")
         End Sub
 
         <Fact>
@@ -453,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "(local variable) x As String")
+            TestBasic(workspace, $"({FeaturesResources.LocalVariable}) x As String")
         End Sub
 
         <Fact>
@@ -608,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "(parameter) x As String")
+            TestBasic(workspace, $"({FeaturesResources.Parameter}) x As String")
         End Sub
 
         <Fact>
@@ -685,7 +679,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim workspace = WrapCodeInWorkspace("Imports System.Collections.Generic",
                                                 "Class CC(Of T$$ As IEnumerable(Of Integer))",
                                                 "End Class")
-            Dim expectedDescription = "T in CC(Of T As IEnumerable(Of Integer))"
+            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As IEnumerable(Of Integer))"
 
             TestBasic(workspace, expectedDescription)
         End Sub
@@ -696,7 +690,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim workspace = WrapCodeInWorkspace("Imports System.Collections.Generic",
                                                 "Interface IMyInterface(Of T$$ As IEnumerable(Of Integer))",
                                                 "End Interface")
-            Dim expectedDescription = "T in IMyInterface(Of T As IEnumerable(Of Integer))"
+            Dim expectedDescription = $"T {FeaturesResources.In} IMyInterface(Of T As IEnumerable(Of Integer))"
 
             TestBasic(workspace, expectedDescription)
         End Sub
@@ -706,7 +700,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Sub TestReferenceTypeConstraintOnClass()
             Dim workspace = WrapCodeInWorkspace("Class CC(Of T$$ As Class)",
                                                 "End Class")
-            Dim expectedDescription = "T in CC(Of T As Class)"
+            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As Class)"
 
             TestBasic(workspace, expectedDescription)
         End Sub
@@ -716,7 +710,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Sub TestValueTypeConstraintOnClass()
             Dim workspace = WrapCodeInWorkspace("Class CC(Of T$$ As Structure)",
                                                 "End Class")
-            Dim expectedDescription = "T in CC(Of T As Structure)"
+            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As Structure)"
 
             TestBasic(workspace, expectedDescription)
         End Sub
@@ -726,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Sub TestValueTypeConstraintOnStructure()
             Dim workspace = WrapCodeInWorkspace("Structure S(Of T$$ As Class)",
                                                 "End Structure")
-            Dim expectedDescription = "T in S(Of T As Class)"
+            Dim expectedDescription = $"T {FeaturesResources.In} S(Of T As Class)"
 
             TestBasic(workspace, expectedDescription)
         End Sub
@@ -736,7 +730,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         Public Sub TestMultipleConstraintsOnClass()
             Dim workspace = WrapCodeInWorkspace("Public Class CC(Of T$$ As {IComparable, IDisposable, Class, New})",
                                                 "End Class")
-            Dim expectedDescription = "T in CC(Of T As {Class, IComparable, IDisposable, New})"
+            Dim expectedDescription = $"T {FeaturesResources.In} CC(Of T As {{Class, IComparable, IDisposable, New}})"
 
             TestBasic(workspace, expectedDescription)
         End Sub
@@ -749,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                 "End Class")
             Dim expectedDescription = StringFromLines("Interface System.Collections.Generic.IEnumerable(Of Out T)",
                                                       String.Empty,
-                                                      "T is Integer")
+                                                      $"T {FeaturesResources.Is} Integer")
             TestBasic(workspace, expectedDescription)
         End Sub
 
@@ -762,7 +756,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                 "End Class")
             Dim expectedDescription = StringFromLines("Interface System.Collections.Generic.IEnumerable(Of Out T)",
                                                       String.Empty,
-                                                      "T is IEnumerable(Of Integer)")
+                                                      $"T {FeaturesResources.Is} IEnumerable(Of Integer)")
             TestBasic(workspace, expectedDescription)
         End Sub
 
@@ -884,7 +878,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "(field) C.x As Integer")
+            TestBasic(workspace, $"({FeaturesResources.Field}) C.x As Integer")
         End Sub
 
         <WorkItem(538806)>
@@ -904,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "(local variable) y As Integer")
+            TestBasic(workspace, $"({FeaturesResources.LocalVariable}) y As Integer")
         End Sub
 
         <WorkItem(543911)>
@@ -922,7 +916,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            TestBasic(workspace, "(local constant) b As Integer = 2")
+            TestBasic(workspace, $"({FeaturesResources.LocalConstant}) b As Integer = 2")
         End Sub
 
 #End Region

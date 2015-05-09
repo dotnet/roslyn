@@ -2389,7 +2389,8 @@ B");
                 // mscorlib.dll
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(mscorlib.Name, "mscorlib");
-                Assert.False(mscorlib.MightContainExtensionMethods);
+                // We assume every PE assembly may contain extension methods.
+                Assert.True(mscorlib.MightContainExtensionMethods);
 
                 // TODO: Original references are not included in symbol validator.
                 if (isFromSource)
@@ -2407,7 +2408,7 @@ B");
 
             CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 additionalRefs: new[] { SystemCoreRef },
                 sourceSymbolValidator: validator(true),
                 symbolValidator: validator(false),
@@ -2432,7 +2433,9 @@ B");
             {
                 var assembly = module.ContainingAssembly;
                 var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
-                Assert.Equal(isFromSource, mightContainExtensionMethods);
+                // Every PE assembly is assumed to be capable of having an extension method.
+                // The source assembly doesn't know (so reports "true") until all methods have been inspected.
+                Assert.True(mightContainExtensionMethods);
                 if (isFromSource)
                 {
                     Assert.Null(sourceAssembly);
@@ -2491,7 +2494,7 @@ static class S
                     "void S.M3<T, U>(U u, IEnumerable<T> t)");
             };
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(compilation, emitters: TestEmitters.CCI, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         private void CheckExtensionMethod(
@@ -2550,7 +2553,7 @@ internal static class C
                 Assert.Equal(extensionAttrCtor.ContainingType, attr.GetType(context));
                 context.Diagnostics.Verify();
             };
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
+            CompileAndVerify(source, emitters: TestEmitters.CCI, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
         }
 
         [WorkItem(541327, "DevDiv")]
@@ -2676,7 +2679,7 @@ class Program
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
-            var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode")).Parent;
+            var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode", StringComparison.Ordinal)).Parent;
             var symbolInfo = model.GetSymbolInfo((SimpleNameSyntax)node);
             var methodSymbol = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(methodSymbol.IsFromCompilation(compilation));
@@ -2686,7 +2689,7 @@ class Program
             Assert.Equal(parameter.ContainingSymbol, methodSymbol);
 
             // Get the GenericNameSyntax node Cast<T1> for binding
-            node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>")).Parent;
+            node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("Cast<T1>", StringComparison.Ordinal)).Parent;
             symbolInfo = model.GetSymbolInfo((GenericNameSyntax)node);
             methodSymbol = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(methodSymbol.IsFromCompilation(compilation));
@@ -2700,7 +2703,7 @@ class Program
         {
             return CompileAndVerify(
                 source: source,
-                emitOptions: TestEmitters.CCI,
+                emitters: TestEmitters.CCI,
                 additionalRefs: new[] { SystemCoreRef },
                 expectedOutput: expectedOutput,
                 sourceSymbolValidator: validator,
@@ -2984,7 +2987,7 @@ static class Program
             var libCompilation = CreateCompilationWithMscorlibAndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
             var libReference = new CSharpCompilationReference(libCompilation);
 
-            CompileAndVerify(consumer, additionalRefs: new[] { libReference }, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(consumer, additionalRefs: new[] { libReference }, emitters: TestEmitters.RefEmitBug);
         }
 
         [Fact, WorkItem(545800, "DevDiv")]
@@ -3176,7 +3179,7 @@ End Module";
 }";
             var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -3189,7 +3192,7 @@ namespace NB
 }";
             var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "B");
             compilation2.VerifyDiagnostics();
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilation2, emitters: TestEmitters.CCI);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"using NB;
@@ -3614,6 +3617,55 @@ namespace N
                 // (4,5): hidden CS8019: Unnecessary using directive.
                 //     using X = N.S;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.S;").WithLocation(4, 5));
+        }
+
+        [WorkItem(1094849, "DevDiv"), WorkItem(2288, "https://github.com/dotnet/roslyn/issues/2288")]
+        [Fact]
+        public void LookupSymbolsWithPartialInference()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+namespace ConsoleApplication22
+{
+    static class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+
+        internal static void GetEnumerableDisposable1<T, TEnumerator>(this IEnumerable<T> enumerable)
+            where TEnumerator : struct , IEnumerator<T>
+        {
+        }
+
+        internal static void GetEnumerableDisposable2<T, TEnumerator>(this IEnumerable<T> enumerable)
+            where TEnumerator : struct
+        {
+        }
+
+        private static void Overlaps<T, TEnumerator>(IEnumerable<T> other) where TEnumerator : struct, IEnumerator<T>
+        {
+            other.GetEnumerableDisposable1<T, TEnumerator>();
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+
+            compilation.VerifyDiagnostics();
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(syntaxTree);
+
+            var member = (MemberAccessExpressionSyntax)syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            Assert.Equal("other.GetEnumerableDisposable1<T, TEnumerator>", member.ToString());
+
+            var type = model.GetTypeInfo(member.Expression).Type;
+            Assert.Equal("System.Collections.Generic.IEnumerable<T>", type.ToTestDisplayString());
+
+            var symbols = model.LookupSymbols(member.Expression.EndPosition, type, includeReducedExtensionMethods: true).Select(s => s.Name).ToArray();
+            Assert.Contains("GetEnumerableDisposable2", symbols);
+            Assert.Contains("GetEnumerableDisposable1", symbols);
         }
     }
 }

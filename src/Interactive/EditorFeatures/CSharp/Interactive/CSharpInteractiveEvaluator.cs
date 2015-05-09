@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
         }
 
-        public override bool CanExecuteText(string text)
+        public override bool CanExecuteCode(string text)
         {
-            if (base.CanExecuteText(text))
+            if (base.CanExecuteCode(text))
             {
                 return true;
             }

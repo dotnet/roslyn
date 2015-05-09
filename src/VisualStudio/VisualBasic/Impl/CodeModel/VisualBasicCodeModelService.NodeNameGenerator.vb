@@ -108,9 +108,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             Private Shared Sub AppendOperatorName(builder As StringBuilder, kind As SyntaxKind)
                 Dim name = "#op_" & kind.ToString()
-                If name.EndsWith("Keyword") Then
+                If name.EndsWith("Keyword", StringComparison.Ordinal) Then
                     name = name.Substring(0, name.Length - 7)
-                ElseIf name.EndsWith("Token") Then
+                ElseIf name.EndsWith("Token", StringComparison.Ordinal) Then
                     name = name.Substring(0, name.Length - 5)
                 End If
 

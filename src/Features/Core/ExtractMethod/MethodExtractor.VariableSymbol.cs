@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// <summary>
             /// return true if original type had anonymous type or delegate somewhere in the type
             /// </summary>
-            public bool OriginalTypeHadAnonymousTypeOrDelegate { get; private set; }
+            public bool OriginalTypeHadAnonymousTypeOrDelegate { get; }
 
             /// <summary>
             /// get the original type with anonymous type removed
             /// </summary>
-            public ITypeSymbol OriginalType { get; private set; }
+            public ITypeSymbol OriginalType { get; }
 
             public static int Compare(VariableSymbol left, VariableSymbol right)
             {

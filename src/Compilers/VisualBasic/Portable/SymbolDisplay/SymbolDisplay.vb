@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        format As SymbolDisplayFormat,
                                        minimal As Boolean) As ImmutableArray(Of SymbolDisplayPart)
             If symbol Is Nothing Then
-                Throw New ArgumentNullException("symbol")
+                Throw New ArgumentNullException(NameOf(symbol))
             End If
 
             If minimal Then
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sb = pooledBuilder.Builder
 
             Dim lastKind = -1
-            For Each token As Integer In ObjectDisplay.TokenizeString(str, quote:=True, nonPrintableSubstitute:=Nothing, useHexadecimalNumbers:=True)
+            For Each token As Integer In ObjectDisplay.TokenizeString(str, quote:=True, useHexadecimalNumbers:=True)
                 Dim kind = token >> 16
 
                 ' merge contiguous tokens of the same kind into a single part

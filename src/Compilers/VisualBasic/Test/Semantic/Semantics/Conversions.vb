@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ConversionsTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly NoConversion As ConversionKind = Nothing
+        Private Shared ReadOnly s_noConversion As ConversionKind = Nothing
 
         <Fact()>
         Public Sub TryCastDirectCastConversions()
@@ -60,42 +60,42 @@ End Class
             Assert.Equal(ConversionKind.NarrowingValue, ClassifyDirectCastAssignment(m13p(c), m13p(a), methodBodyBinder)) ' Integer)
             Assert.Equal(ConversionKind.NarrowingValue, ClassifyDirectCastAssignment(m13p(c), m13p(b), methodBodyBinder)) ' Integer)
             Assert.True(Conversions.IsIdentityConversion(ClassifyDirectCastAssignment(m13p(c), m13p(c), methodBodyBinder))) ' Integer)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(c), m13p(d), methodBodyBinder)) ' Integer) 'error BC30311: Value of type 'Long' cannot be converted to 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(c), m13p(d), methodBodyBinder)) ' Integer) 'error BC30311: Value of type 'Long' cannot be converted to 'Integer'.
             Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesEnumTypeConversions, ClassifyDirectCastAssignment(m13p(c), m13p(e), methodBodyBinder)) ' Integer)
             Assert.True(Conversions.IsIdentityConversion(ClassifyDirectCastAssignment(m13p(d), m13p(d), methodBodyBinder))) ' Long)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(d), m13p(c), methodBodyBinder)) ' Long) 'error BC30311: Value of type 'Integer' cannot be converted to 'Long'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(d), m13p(c), methodBodyBinder)) ' Long) 'error BC30311: Value of type 'Integer' cannot be converted to 'Long'.
             Assert.True(Conversions.IsIdentityConversion(ClassifyDirectCastAssignment(m13p(e), m13p(e), methodBodyBinder))) ' Enum1)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(e), m13p(f), methodBodyBinder)) ' Enum1) 'error BC30311: Value of type 'Enum2' cannot be converted to 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(e), m13p(f), methodBodyBinder)) ' Enum1) 'error BC30311: Value of type 'Enum2' cannot be converted to 'Enum1'.
             Assert.Equal(ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions, ClassifyDirectCastAssignment(m13p(e), m13p(g), methodBodyBinder)) ' Enum1)
             Assert.True(Conversions.IsIdentityConversion(ClassifyDirectCastAssignment(m13p(f), m13p(f), methodBodyBinder))) ' Enum2)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(f), m13p(g), methodBodyBinder)) ' Enum2) ' error BC30311: Value of type 'Enum4' cannot be converted to 'Enum2'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(f), m13p(g), methodBodyBinder)) ' Enum2) ' error BC30311: Value of type 'Enum4' cannot be converted to 'Enum2'.
             Assert.Equal(ConversionKind.WideningArray, ClassifyDirectCastAssignment(m13p(h), m13p(i), methodBodyBinder)) ' Class8())
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyDirectCastAssignment(m13p(i), m13p(h), methodBodyBinder)) ' Class9())
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(i), m13p(j), methodBodyBinder)) ' Class9()) ' error BC30332: Value of type '1-dimensional array of Class11' cannot be converted to '1-dimensional array of Class9' because 'Class11' is not derived from 'Class9'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(i), m13p(j), methodBodyBinder)) ' Class9()) ' error BC30332: Value of type '1-dimensional array of Class11' cannot be converted to '1-dimensional array of Class9' because 'Class11' is not derived from 'Class9'.
             Assert.True(Conversions.IsIdentityConversion(ClassifyDirectCastAssignment(m13p(k), m13p(k), methodBodyBinder))) ' MT1)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(k), m13p(l), methodBodyBinder)) ' MT1) ' error BC30311: Value of type 'MT2' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(k), m13p(l), methodBodyBinder)) ' MT1) ' error BC30311: Value of type 'MT2' cannot be converted to 'MT1'.
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyDirectCastAssignment(m13p(k), m13p(m), methodBodyBinder)) ' MT1)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(k), m13p(q), methodBodyBinder)) ' MT1) ' error BC30311: Value of type 'MT4' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(l), m13p(k), methodBodyBinder)) ' MT2) ' Value of type 'MT1' cannot be converted to 'MT2'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(k), m13p(q), methodBodyBinder)) ' MT1) ' error BC30311: Value of type 'MT4' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(l), m13p(k), methodBodyBinder)) ' MT2) ' Value of type 'MT1' cannot be converted to 'MT2'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyDirectCastAssignment(m13p(m), m13p(k), methodBodyBinder)) ' MT3)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(n), m13p(o), methodBodyBinder)) ' MT1()) ' Value of type '1-dimensional array of MT2' cannot be converted to '1-dimensional array of MT1' because 'MT2' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(n), m13p(p), methodBodyBinder)) ' MT1()) ' error BC30332: Value of type '2-dimensional array of MT2' cannot be converted to '1-dimensional array of MT1' because 'MT2' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(n), m13p(u), methodBodyBinder)) ' MT1()) ' error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of MT1' because 'Integer' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(q), m13p(k), methodBodyBinder)) ' MT4) ' error BC30311: Value of type 'MT1' cannot be converted to 'MT4'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(q), m13p(b), methodBodyBinder)) ' MT4) ' error BC30311: Value of type 'System.ValueType' cannot be converted
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(q), m13p(c), methodBodyBinder)) ' MT4) ' error BC30311: Value of type 'Integer' cannot be converted to 'MT4'
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(r), m13p(s), methodBodyBinder)) ' MT5) ' error BC30311: Value of type 'MT6' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(r), m13p(t), methodBodyBinder)) ' MT5) ' error BC30311: Value of type 'MT7' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(r), m13p(w), methodBodyBinder)) ' MT5) ' error BC30311: Value of type 'MT8' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(s), m13p(r), methodBodyBinder)) ' MT6) ' error BC30311: Value of type 'MT5' cannot be converted to 'MT6'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(s), m13p(t), methodBodyBinder)) ' MT6) ' error BC30311: Value of type 'MT7' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(n), m13p(o), methodBodyBinder)) ' MT1()) ' Value of type '1-dimensional array of MT2' cannot be converted to '1-dimensional array of MT1' because 'MT2' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(n), m13p(p), methodBodyBinder)) ' MT1()) ' error BC30332: Value of type '2-dimensional array of MT2' cannot be converted to '1-dimensional array of MT1' because 'MT2' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(n), m13p(u), methodBodyBinder)) ' MT1()) ' error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of MT1' because 'Integer' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(q), m13p(k), methodBodyBinder)) ' MT4) ' error BC30311: Value of type 'MT1' cannot be converted to 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(q), m13p(b), methodBodyBinder)) ' MT4) ' error BC30311: Value of type 'System.ValueType' cannot be converted
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(q), m13p(c), methodBodyBinder)) ' MT4) ' error BC30311: Value of type 'Integer' cannot be converted to 'MT4'
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(r), m13p(s), methodBodyBinder)) ' MT5) ' error BC30311: Value of type 'MT6' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(r), m13p(t), methodBodyBinder)) ' MT5) ' error BC30311: Value of type 'MT7' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(r), m13p(w), methodBodyBinder)) ' MT5) ' error BC30311: Value of type 'MT8' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(s), m13p(r), methodBodyBinder)) ' MT6) ' error BC30311: Value of type 'MT5' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(s), m13p(t), methodBodyBinder)) ' MT6) ' error BC30311: Value of type 'MT7' cannot be converted to 'MT6'.
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyDirectCastAssignment(m13p(s), m13p(w), methodBodyBinder)) ' MT6)
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(t), m13p(r), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT5' cannot be converted to 'MT7'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(t), m13p(s), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT6' cannot be converted to 'MT7'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(t), m13p(w), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT8' cannot be converted to 'MT7'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(u), m13p(n), methodBodyBinder)) ' Integer()) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of Integer' because 'MT1' is not derived from 'Integer'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(u), m13p(v), methodBodyBinder)) ' Integer()) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of Integer' because 'MT4' is not derived from 'Integer'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(v), m13p(u), methodBodyBinder)) ' MT4())     'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of MT4' because 'Integer' is not derived from 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(t), m13p(r), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT5' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(t), m13p(s), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT6' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(t), m13p(w), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT8' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(u), m13p(n), methodBodyBinder)) ' Integer()) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of Integer' because 'MT1' is not derived from 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(u), m13p(v), methodBodyBinder)) ' Integer()) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of Integer' because 'MT4' is not derived from 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(v), m13p(u), methodBodyBinder)) ' MT4())     'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of MT4' because 'Integer' is not derived from 'MT4'.
 
             Dim [nothing] = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Nothing, Nothing)
             Dim intZero = New BoundLiteral(DirectCast(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), VisualBasicSyntaxNode), ConstantValue.Create(0I), m13p(c))
@@ -105,11 +105,11 @@ End Class
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyDirectCastAssignment(m13p(b), [nothing], methodBodyBinder))
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyDirectCastAssignment(m13p(c), [nothing], methodBodyBinder))
             Assert.True(Conversions.IsIdentityConversion(ClassifyDirectCastAssignment(m13p(c), intZero, methodBodyBinder)))
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(c), longZero, methodBodyBinder)) 'error BC30311: Value of type 'Long' cannot be converted to 'Integer'.
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(d), intZero, methodBodyBinder)) ' error BC30311: Value of type 'Integer' cannot be converted to 'Long'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(c), longZero, methodBodyBinder)) 'error BC30311: Value of type 'Long' cannot be converted to 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(d), intZero, methodBodyBinder)) ' error BC30311: Value of type 'Integer' cannot be converted to 'Long'.
             Assert.True(Conversions.IsIdentityConversion(ClassifyDirectCastAssignment(m13p(d), longZero, methodBodyBinder)))
             Assert.Equal(ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions, ClassifyDirectCastAssignment(m13p(e), intZero, methodBodyBinder))
-            Assert.Equal(NoConversion, ClassifyDirectCastAssignment(m13p(e), longZero, methodBodyBinder)) ' error BC30311: Value of type 'Long' cannot be converted to 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyDirectCastAssignment(m13p(e), longZero, methodBodyBinder)) ' error BC30311: Value of type 'Long' cannot be converted to 'Enum1'.
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyDirectCastAssignment(m13p(e), [nothing], methodBodyBinder))
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyDirectCastAssignment(m13p(k), [nothing], methodBodyBinder))
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyDirectCastAssignment(m13p(q), [nothing], methodBodyBinder))
@@ -121,18 +121,18 @@ End Class
             Assert.Equal(ConversionKind.NarrowingValue, ClassifyTryCastAssignment(m13p(c), m13p(a), methodBodyBinder)) ' Integer) ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
             Assert.Equal(ConversionKind.NarrowingValue, ClassifyTryCastAssignment(m13p(c), m13p(b), methodBodyBinder)) ' Integer) ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
             Assert.Equal(ConversionKind.Identity, ClassifyTryCastAssignment(m13p(c), m13p(c), methodBodyBinder)) ' Integer) ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(c), m13p(d), methodBodyBinder)) ' Integer) ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(c), m13p(d), methodBodyBinder)) ' Integer) ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
             Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesEnumTypeConversions, ClassifyTryCastAssignment(m13p(c), m13p(e), methodBodyBinder)) ' Integer) ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
             Assert.Equal(ConversionKind.Identity, ClassifyTryCastAssignment(m13p(d), m13p(d), methodBodyBinder)) ' Long)    ' error BC30792: 'TryCast' operand must be reference type, but 'Long' is a value type.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(d), m13p(c), methodBodyBinder)) ' Long)    ' error BC30792: 'TryCast' operand must be reference type, but 'Long' is a value type.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(d), m13p(c), methodBodyBinder)) ' Long)    ' error BC30792: 'TryCast' operand must be reference type, but 'Long' is a value type.
             Assert.Equal(ConversionKind.Identity, ClassifyTryCastAssignment(m13p(e), m13p(e), methodBodyBinder)) ' Enum1)   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(e), m13p(f), methodBodyBinder)) ' Enum1)   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(e), m13p(f), methodBodyBinder)) ' Enum1)   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
             Assert.Equal(ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions, ClassifyTryCastAssignment(m13p(e), m13p(g), methodBodyBinder)) ' Enum1)   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
             Assert.Equal(ConversionKind.Identity, ClassifyTryCastAssignment(m13p(f), m13p(f), methodBodyBinder)) ' Enum2)   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum2' is a value type.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(f), m13p(g), methodBodyBinder)) ' Enum2)   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum2' is a value type.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(f), m13p(g), methodBodyBinder)) ' Enum2)   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum2' is a value type.
             Assert.Equal(ConversionKind.WideningArray, ClassifyTryCastAssignment(m13p(h), m13p(i), methodBodyBinder)) ' Class8())
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyTryCastAssignment(m13p(i), m13p(h), methodBodyBinder)) ' Class9())
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(i), m13p(j), methodBodyBinder)) ' Class9()) ' error BC30332: Value of type '1-dimensional array of Class11' cannot be converted to '1-dimensional array of Class9' because 'Class11' is not derived from 'Class9'.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(i), m13p(j), methodBodyBinder)) ' Class9()) ' error BC30332: Value of type '1-dimensional array of Class11' cannot be converted to '1-dimensional array of Class9' because 'Class11' is not derived from 'Class9'.
             Assert.Equal(ConversionKind.Identity, ClassifyTryCastAssignment(m13p(k), m13p(k), methodBodyBinder)) ' MT1)      ' error BC30793: 'TryCast' operands must be class-constrained type parameter, but 'MT1' has no class constraint.
             Assert.Equal(ConversionKind.Narrowing, ClassifyTryCastAssignment(m13p(k), m13p(l), methodBodyBinder)) ' MT1)      ' error BC30793: 'TryCast' operands must be class-constrained type parameter, but 'MT1' has no class constraint.
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyTryCastAssignment(m13p(k), m13p(m), methodBodyBinder)) ' MT1)      ' error BC30793: 'TryCast' operands must be class-constrained type parameter, but 'MT1' has no class constraint.
@@ -149,25 +149,25 @@ End Class
             Assert.Equal(ConversionKind.Narrowing, ClassifyTryCastAssignment(m13p(r), m13p(t), methodBodyBinder)) ' MT5)
             Assert.Equal(ConversionKind.Narrowing, ClassifyTryCastAssignment(m13p(r), m13p(w), methodBodyBinder)) ' MT5)
             Assert.Equal(ConversionKind.Narrowing, ClassifyTryCastAssignment(m13p(s), m13p(r), methodBodyBinder)) ' MT6)
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(s), m13p(t), methodBodyBinder)) ' MT6) ' error BC30311: Value of type 'MT7' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(s), m13p(t), methodBodyBinder)) ' MT6) ' error BC30311: Value of type 'MT7' cannot be converted to 'MT6'.
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyTryCastAssignment(m13p(s), m13p(w), methodBodyBinder)) ' MT6)
             Assert.Equal(ConversionKind.Narrowing, ClassifyTryCastAssignment(m13p(t), m13p(r), methodBodyBinder)) ' MT7)
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(t), m13p(s), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT6' cannot be converted to 'MT7'.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(t), m13p(w), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT8' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(t), m13p(s), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT6' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(t), m13p(w), methodBodyBinder)) ' MT7) ' error BC30311: Value of type 'MT8' cannot be converted to 'MT7'.
             Assert.Equal(ConversionKind.Narrowing, ClassifyTryCastAssignment(m13p(u), m13p(n), methodBodyBinder)) ' Integer())
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(u), m13p(v), methodBodyBinder)) ' Integer()) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of Integer' because 'MT4' is not derived from 'Integer'.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(v), m13p(u), methodBodyBinder)) ' MT4())     'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of MT4' because 'Integer' is not derived from 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(u), m13p(v), methodBodyBinder)) ' Integer()) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of Integer' because 'MT4' is not derived from 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(v), m13p(u), methodBodyBinder)) ' MT4())     'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of MT4' because 'Integer' is not derived from 'MT4'.
 
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyTryCastAssignment(m13p(a), [nothing], methodBodyBinder))
             Assert.Equal(ConversionKind.WideningValue, ClassifyTryCastAssignment(m13p(a), intZero, methodBodyBinder))
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyTryCastAssignment(m13p(b), [nothing], methodBodyBinder))
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyTryCastAssignment(m13p(c), [nothing], methodBodyBinder)) ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type. 
             Assert.Equal(ConversionKind.Identity, ClassifyTryCastAssignment(m13p(c), intZero, methodBodyBinder))       ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(c), longZero, methodBodyBinder))      ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(d), intZero, methodBodyBinder))         ' error BC30792: 'TryCast' operand must be reference type, but 'Long' is a value type.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(c), longZero, methodBodyBinder))      ' error BC30792: 'TryCast' operand must be reference type, but 'Integer' is a value type.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(d), intZero, methodBodyBinder))         ' error BC30792: 'TryCast' operand must be reference type, but 'Long' is a value type.
             Assert.Equal(ConversionKind.Identity, ClassifyTryCastAssignment(m13p(d), longZero, methodBodyBinder))         ' error BC30792: 'TryCast' operand must be reference type, but 'Long' is a value type.
             Assert.Equal(ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions, ClassifyTryCastAssignment(m13p(e), intZero, methodBodyBinder))         ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
-            Assert.Equal(NoConversion, ClassifyTryCastAssignment(m13p(e), longZero, methodBodyBinder))        ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
+            Assert.Equal(s_noConversion, ClassifyTryCastAssignment(m13p(e), longZero, methodBodyBinder))        ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyTryCastAssignment(m13p(e), [nothing], methodBodyBinder))   ' error BC30792: 'TryCast' operand must be reference type, but 'Enum1' is a value type.
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyTryCastAssignment(m13p(k), [nothing], methodBodyBinder))   ' error BC30793: 'TryCast' operands must be class-constrained type parameter, but 'MT1' has no class constraint.
             Assert.Equal(ConversionKind.WideningNothingLiteral, ClassifyTryCastAssignment(m13p(q), [nothing], methodBodyBinder))
@@ -1432,7 +1432,7 @@ End Class
             Public ReadOnly Type As TypeSymbol
             Public ReadOnly Value As Object
 
-            Sub New(type As TypeSymbol, value As Object)
+            Public Sub New(type As TypeSymbol, value As Object)
                 Me.Type = type
                 Me.Value = value
             End Sub
@@ -1459,23 +1459,23 @@ End Class
             Dim m1p = m1.Parameters.Select(Function(p) p.Type).ToArray()
 
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(m1p(a), m1p(b))))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(a), m1p(c))) 'error BC30311: Value of type 'Class2' cannot be converted to 'Class1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(a), m1p(d))) 'error BC30311: Value of type '1-dimensional array of Class1' cannot be converted to 'Class1'. 
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(a), m1p(c))) 'error BC30311: Value of type 'Class2' cannot be converted to 'Class1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(a), m1p(d))) 'error BC30311: Value of type '1-dimensional array of Class1' cannot be converted to 'Class1'. 
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(m1p(d), m1p(e))))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(d), m1p(f))) 'error BC30332: Value of type '1-dimensional array of Class2' cannot be converted to '1-dimensional array of Class1' because 'Class2' is not derived from 'Class1'. 
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(d), m1p(f))) 'error BC30332: Value of type '1-dimensional array of Class2' cannot be converted to '1-dimensional array of Class1' because 'Class2' is not derived from 'Class1'. 
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(m1p(g), m1p(h))))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(g), m1p(i))) 'error BC30311: Value of type 'Class2.Class3(Of Byte)' cannot be converted to 'Class2.Class3(Of Integer)'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(g), m1p(j))) 'error BC30311: Value of type 'Class4(Of Integer)' cannot be converted to 'Class2.Class3(Of Integer)'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(g), m1p(i))) 'error BC30311: Value of type 'Class2.Class3(Of Byte)' cannot be converted to 'Class2.Class3(Of Integer)'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(g), m1p(j))) 'error BC30311: Value of type 'Class4(Of Integer)' cannot be converted to 'Class2.Class3(Of Integer)'.
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(m1p(j), m1p(k))))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(j), m1p(l))) 'error BC30311: Value of type 'Class4(Of Byte)' cannot be converted to 'Class4(Of Integer)'. 
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(j), m1p(l))) 'error BC30311: Value of type 'Class4(Of Byte)' cannot be converted to 'Class4(Of Integer)'. 
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(m1p(m), m1p(n))))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(m), m1p(o))) 'error BC30311: Value of type 'Class4(Of Byte).Class5(Of Integer)' cannot be converted to 'Class4(Of Integer).Class5(Of Integer)'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(m), m1p(p))) 'error BC30311: Value of type 'Class4(Of Integer).Class5(Of Byte)' cannot be converted to 'Class4(Of Integer).Class5(Of Integer)'. 
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(m), m1p(o))) 'error BC30311: Value of type 'Class4(Of Byte).Class5(Of Integer)' cannot be converted to 'Class4(Of Integer).Class5(Of Integer)'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(m), m1p(p))) 'error BC30311: Value of type 'Class4(Of Integer).Class5(Of Byte)' cannot be converted to 'Class4(Of Integer).Class5(Of Integer)'. 
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(m1p(q), m1p(r))))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(q), m1p(s))) 'error BC30311: Value of type 'Class4(Of Byte).Class6' cannot be converted to 'Class4(Of Integer).Class6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(q), m1p(s))) 'error BC30311: Value of type 'Class4(Of Byte).Class6' cannot be converted to 'Class4(Of Integer).Class6'.
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(m1p(t), m1p(u))))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(t), m1p(v))) 'error BC30311: Value of type 'Class4(Of Byte).Class6.Class7(Of Integer)' cannot be converted to 'Class4(Of Integer).Class6.Class7(Of Integer)'. 
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m1p(t), m1p(w))) 'error BC30311: Value of type 'Class4(Of Integer).Class6.Class7(Of Byte)' cannot be converted to 'Class4(Of Integer).Class6.Class7(Of Integer)'. 
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(t), m1p(v))) 'error BC30311: Value of type 'Class4(Of Byte).Class6.Class7(Of Integer)' cannot be converted to 'Class4(Of Integer).Class6.Class7(Of Integer)'. 
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m1p(t), m1p(w))) 'error BC30311: Value of type 'Class4(Of Integer).Class6.Class7(Of Byte)' cannot be converted to 'Class4(Of Integer).Class6.Class7(Of Integer)'. 
 
             Dim modifiers = asmModifiers.Modules(0).GlobalNamespace.GetTypeMembers("Modifiers").Single()
             Dim modifiedArrayInt32 = modifiers.GetMembers("F5").OfType(Of MethodSymbol)().Single().Parameters(0).Type
@@ -1535,8 +1535,8 @@ End Class
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(c), m3p(b))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class8' to 'Class9'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(d), m3p(b))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class8' to 'Class10'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(d), m3p(c))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class9' to 'Class10'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(c), m3p(e))) 'error BC30311: Value of type 'Class11' cannot be converted to 'Class9'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(e), m3p(c))) 'error BC30311: Value of type 'Class9' cannot be converted to 'Class11'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(c), m3p(e))) 'error BC30311: Value of type 'Class11' cannot be converted to 'Class9'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(e), m3p(c))) 'error BC30311: Value of type 'Class9' cannot be converted to 'Class11'.
             Assert.Equal(ConversionKind.WideningReference, ClassifyPredefinedAssignment(m3p(a), m3p(g)))
             Assert.Equal(ConversionKind.WideningReference, ClassifyPredefinedAssignment(m3p(f), m3p(g)))
             Assert.Equal(ConversionKind.WideningReference, ClassifyPredefinedAssignment(m3p(a), m3p(h)))
@@ -1578,9 +1578,9 @@ End Class
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(o), m3p(b))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class8' to 'Interface7'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(o), m3p(c))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class9' to 'Interface7'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(o), m3p(d))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class10' to 'Interface7'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(q), m3p(h))) 'error BC30311: Value of type '2-dimensional array of Integer' cannot be converted to 'System.Collections.Generic.IList(Of Integer)'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(r), m3p(h))) 'error BC30311: Value of type '2-dimensional array of Integer' cannot be converted to 'System.Collections.Generic.ICollection(Of Integer)'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(s), m3p(h))) 'error BC30311: Value of type '2-dimensional array of Integer' cannot be converted to 'System.Collections.Generic.IEnumerable(Of Integer)'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(q), m3p(h))) 'error BC30311: Value of type '2-dimensional array of Integer' cannot be converted to 'System.Collections.Generic.IList(Of Integer)'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(r), m3p(h))) 'error BC30311: Value of type '2-dimensional array of Integer' cannot be converted to 'System.Collections.Generic.ICollection(Of Integer)'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(s), m3p(h))) 'error BC30311: Value of type '2-dimensional array of Integer' cannot be converted to 'System.Collections.Generic.IEnumerable(Of Integer)'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(t), m3p(g))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Integer' to 'System.Collections.Generic.IList(Of Long)'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(w), m3p(u))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Class9' to 'System.Collections.Generic.IList(Of Class11)'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(i), m3p(l))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface4' to 'Interface1'.
@@ -1588,17 +1588,17 @@ End Class
             Assert.Equal(ConversionKind.WideningReference, ClassifyPredefinedAssignment(m3p(a), m3p(o)))
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(x), m3p(o))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface7' to 'System.Action'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(e), m3p(o))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface7' to 'Class11'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(g), m3p(o))) 'error BC30311: Value of type 'Interface7' cannot be converted to '1-dimensional array of Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(h), m3p(o))) 'error BC30311: Value of type 'Interface7' cannot be converted to '2-dimensional array of Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(u), m3p(o))) 'error BC30311: Value of type 'Interface7' cannot be converted to '1-dimensional array of Class9'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(g), m3p(o))) 'error BC30311: Value of type 'Interface7' cannot be converted to '1-dimensional array of Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(h), m3p(o))) 'error BC30311: Value of type 'Interface7' cannot be converted to '2-dimensional array of Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(u), m3p(o))) 'error BC30311: Value of type 'Interface7' cannot be converted to '1-dimensional array of Class9'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(g), m3p(p))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.Collections.IEnumerable' to '1-dimensional array of Integer'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(h), m3p(p))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.Collections.IEnumerable' to '2-dimensional array of Integer'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(g), m3p(q))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.Collections.Generic.IList(Of Integer)' to '1-dimensional array of Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(h), m3p(q))) 'error BC30311: Value of type 'System.Collections.Generic.IList(Of Integer)' cannot be converted to '2-dimensional array of Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(h), m3p(q))) 'error BC30311: Value of type 'System.Collections.Generic.IList(Of Integer)' cannot be converted to '2-dimensional array of Integer'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(g), m3p(t))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.Collections.Generic.IList(Of Long)' to '1-dimensional array of Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(h), m3p(t))) 'error BC30311: Value of type 'System.Collections.Generic.IList(Of Long)' cannot be converted to '2-dimensional array of Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(h), m3p(t))) 'error BC30311: Value of type 'System.Collections.Generic.IList(Of Long)' cannot be converted to '2-dimensional array of Integer'.
             Assert.Equal(ConversionKind.NarrowingReference, ClassifyPredefinedAssignment(m3p(g), m3p(w))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.Collections.Generic.IList(Of Class11)' to '1-dimensional array of Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m3p(h), m3p(w))) 'error BC30311: Value of type 'System.Collections.Generic.IList(Of Class11)' cannot be converted to '2-dimensional array of Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m3p(h), m3p(w))) 'error BC30311: Value of type 'System.Collections.Generic.IList(Of Class11)' cannot be converted to '2-dimensional array of Integer'.
 
             Dim [object] = c1.GetSpecialType(System_Object)
             Dim module2 = asmVBConversions.Modules(0).GlobalNamespace.GetTypeMembers("Module2").Single()
@@ -1624,10 +1624,10 @@ End Class
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyPredefinedAssignment(m6p(e), m6p(h)))
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(f), m6p(e))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface3' to 'MT4'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(h), m6p(e))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface3' to 'MT6'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(f), m6p(g))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(g), m6p(f))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(h), m6p(i))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT6'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(i), m6p(h))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(f), m6p(g))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(g), m6p(f))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(h), m6p(i))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(i), m6p(h))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT7'.
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyPredefinedAssignment(m6p(e), m6p(k)))
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyPredefinedAssignment(m6p(j), m6p(k)))
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyPredefinedAssignment(m6p(j), m6p(f)))
@@ -1640,10 +1640,10 @@ End Class
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(k), m6p(l))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class10' to 'MT8'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(k), m6p(m))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class8' to 'MT8'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(c), m6p(p))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.ValueType' to 'MT2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(n), m6p(k))) 'error BC30311: Value of type 'MT8' cannot be converted to 'Class12'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(k), m6p(n))) 'error BC30311: Value of type 'Class12' cannot be converted to 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(k), m6p(o))) 'error BC30311: Value of type 'MT9' cannot be converted to 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(o), m6p(k))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT9'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(n), m6p(k))) 'error BC30311: Value of type 'MT8' cannot be converted to 'Class12'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(k), m6p(n))) 'error BC30311: Value of type 'Class12' cannot be converted to 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(k), m6p(o))) 'error BC30311: Value of type 'MT9' cannot be converted to 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(o), m6p(k))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT9'.
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyPredefinedAssignment(m6p(b), m6p(q)))
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyPredefinedAssignment(m6p(b), m6p(r)))
             Assert.Equal(ConversionKind.WideningTypeParameter, ClassifyPredefinedAssignment(m6p(t), m6p(s)))
@@ -1652,8 +1652,8 @@ End Class
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(r), m6p(b))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT1' to 'MT11'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(s), m6p(t))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class9' to 'MT13'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(s), m6p(m))) 'error BC30512: Option Strict On disallows implicit conversions from 'Class8' to 'MT13'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(l), m6p(s))) 'error BC30311: Value of type 'MT13' cannot be converted to 'Class10'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(s), m6p(l))) 'error BC30311: Value of type 'Class10' cannot be converted to 'MT13'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(l), m6p(s))) 'error BC30311: Value of type 'MT13' cannot be converted to 'Class10'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(s), m6p(l))) 'error BC30311: Value of type 'Class10' cannot be converted to 'MT13'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(u), m6p(k))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT8' to 'Interface7'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(k), m6p(u))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface7' to 'MT8'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(u), m6p(f))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT4' to 'Interface7'.
@@ -1663,8 +1663,8 @@ End Class
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(u), m6p(c))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT2' to 'Interface7'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m6p(c), m6p(u))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface7' to 'MT2'.
 
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(v), m6p(q))) 'error BC30311: Value of type 'MT10' cannot be converted to 'MT14'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m6p(q), m6p(v))) 'error BC30311: Value of type 'MT14' cannot be converted to 'MT10'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(v), m6p(q))) 'error BC30311: Value of type 'MT10' cannot be converted to 'MT14'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m6p(q), m6p(v))) 'error BC30311: Value of type 'MT14' cannot be converted to 'MT10'.
 
             Dim m7 = DirectCast(test.GetMembers("M7").Single(), MethodSymbol)
             Dim m7p = m7.Parameters.Select(Function(p) p.Type).ToArray()
@@ -1703,30 +1703,30 @@ End Class
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m7p(o), m7p(m))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT13' to 'Interface1'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m7p(d), m7p(o))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface1' to 'MT4'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m7p(o), m7p(d))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT4' to 'Interface1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(r), m7p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'Enum1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(e), m7p(r))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(s), m7p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'Enum2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(d), m7p(s))) 'error BC30311: Value of type 'Enum2' cannot be converted to 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(r), m7p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'Enum1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(f), m7p(r))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'MT6'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(t), m7p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to '1-dimensional array of Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(h), m7p(t))) 'error BC30311: Value of type '1-dimensional array of Integer' cannot be converted to 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(v), m7p(i))) 'error BC30311: Value of type 'MT9' cannot be converted to '1-dimensional array of Class9'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(i), m7p(v))) 'error BC30311: Value of type '1-dimensional array of Class9' cannot be converted to 'MT9'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(a), m7p(b))) 'error BC30311: Value of type 'MT2' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(b), m7p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(g), m7p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT7'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(h), m7p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(g), m7p(l))) 'error BC30311: Value of type 'MT12' cannot be converted to 'MT7'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(l), m7p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT12'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(c), m7p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT3'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(d), m7p(c))) 'error BC30311: Value of type 'MT3' cannot be converted to 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(i), m7p(j))) 'error BC30311: Value of type 'MT10' cannot be converted to 'MT9'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(j), m7p(i))) 'error BC30311: Value of type 'MT9' cannot be converted to 'MT10'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(a), m7p(n))) 'error BC30311: Value of type 'MT14' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(n), m7p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT14'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(d), m7p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m7p(f), m7p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(r), m7p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(e), m7p(r))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(s), m7p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'Enum2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(d), m7p(s))) 'error BC30311: Value of type 'Enum2' cannot be converted to 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(r), m7p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(f), m7p(r))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(t), m7p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to '1-dimensional array of Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(h), m7p(t))) 'error BC30311: Value of type '1-dimensional array of Integer' cannot be converted to 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(v), m7p(i))) 'error BC30311: Value of type 'MT9' cannot be converted to '1-dimensional array of Class9'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(i), m7p(v))) 'error BC30311: Value of type '1-dimensional array of Class9' cannot be converted to 'MT9'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(a), m7p(b))) 'error BC30311: Value of type 'MT2' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(b), m7p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(g), m7p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(h), m7p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(g), m7p(l))) 'error BC30311: Value of type 'MT12' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(l), m7p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT12'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(c), m7p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT3'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(d), m7p(c))) 'error BC30311: Value of type 'MT3' cannot be converted to 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(i), m7p(j))) 'error BC30311: Value of type 'MT10' cannot be converted to 'MT9'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(j), m7p(i))) 'error BC30311: Value of type 'MT9' cannot be converted to 'MT10'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(a), m7p(n))) 'error BC30311: Value of type 'MT14' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(n), m7p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT14'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(d), m7p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m7p(f), m7p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT6'.
 
             Dim m8 = DirectCast(test.GetMembers("M8").Single(), MethodSymbol)
             Dim m8p = m8.Parameters.Select(Function(p) p.Type).ToArray()
@@ -1742,12 +1742,12 @@ End Class
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m8p(e), m8p(b))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT2' to 'MT5'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m8p(f), m8p(b))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT2' to 'MT6'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m8p(h), m8p(g))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT7' to 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m8p(a), m8p(b))) 'error BC30311: Value of type 'MT2' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m8p(b), m8p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m8p(b), m8p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m8p(d), m8p(b))) 'error BC30311: Value of type 'MT2' cannot be converted to 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m8p(a), m8p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m8p(g), m8p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(a), m8p(b))) 'error BC30311: Value of type 'MT2' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(b), m8p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(b), m8p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(d), m8p(b))) 'error BC30311: Value of type 'MT2' cannot be converted to 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(a), m8p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m8p(g), m8p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT7'.
 
 
             Dim m9 = DirectCast(test.GetMembers("M9").Single(), MethodSymbol)
@@ -1771,35 +1771,35 @@ End Class
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m9p(u), m9p(s))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.ValueType' to 'MT15'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m9p(u), m9p(t))) 'error BC30512: Option Strict On disallows implicit conversions from 'MT14' to 'MT15'.
             Assert.Equal(ConversionKind.NarrowingTypeParameter, ClassifyPredefinedAssignment(m9p(v), m9p(s))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.ValueType' to 'MT16'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(e), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(e), m9p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(g), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT7'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(l))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(l), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'Enum1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(i))) 'error BC30311: Value of type 'MT9' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(c))) 'error BC30311: Value of type 'MT3' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(c), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT3'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(d), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(f), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT6'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(h), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(e), m9p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(f), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT6'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(e), m9p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(h), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(a), m9p(k))) 'error BC30311: Value of type 'UInteger' cannot be converted to 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(k), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'UInteger'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(e), m9p(k))) 'error BC30311: Value of type 'UInteger' cannot be converted to 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(k), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'UInteger'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(n), m9p(o))) 'error BC30311: Value of type 'MT11' cannot be converted to 'MT10'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(o), m9p(n))) 'error BC30311: Value of type 'MT10' cannot be converted to 'MT11'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(q), m9p(r))) 'error BC30311: Value of type 'MT13' cannot be converted to 'MT12'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(r), m9p(q))) 'error BC30311: Value of type 'MT12' cannot be converted to 'MT13'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(v), m9p(w))) 'error BC30311: Value of type 'MT17' cannot be converted to 'MT16'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m9p(w), m9p(v))) 'error BC30311: Value of type 'MT16' cannot be converted to 'MT17'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(e), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(e), m9p(g))) 'error BC30311: Value of type 'MT7' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(g), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(l))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(l), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(i))) 'error BC30311: Value of type 'MT9' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(c))) 'error BC30311: Value of type 'MT3' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(c), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT3'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(d))) 'error BC30311: Value of type 'MT4' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(d), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(f), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(h), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(e), m9p(f))) 'error BC30311: Value of type 'MT6' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(f), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(e), m9p(h))) 'error BC30311: Value of type 'MT8' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(h), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(a), m9p(k))) 'error BC30311: Value of type 'UInteger' cannot be converted to 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(k), m9p(a))) 'error BC30311: Value of type 'MT1' cannot be converted to 'UInteger'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(e), m9p(k))) 'error BC30311: Value of type 'UInteger' cannot be converted to 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(k), m9p(e))) 'error BC30311: Value of type 'MT5' cannot be converted to 'UInteger'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(n), m9p(o))) 'error BC30311: Value of type 'MT11' cannot be converted to 'MT10'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(o), m9p(n))) 'error BC30311: Value of type 'MT10' cannot be converted to 'MT11'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(q), m9p(r))) 'error BC30311: Value of type 'MT13' cannot be converted to 'MT12'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(r), m9p(q))) 'error BC30311: Value of type 'MT12' cannot be converted to 'MT13'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(v), m9p(w))) 'error BC30311: Value of type 'MT17' cannot be converted to 'MT16'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m9p(w), m9p(v))) 'error BC30311: Value of type 'MT16' cannot be converted to 'MT17'.
 
             ' ------------- Array conversions
             Dim m4 = DirectCast(test.GetMembers("M4").Single(), MethodSymbol)
@@ -1832,33 +1832,33 @@ End Class
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyPredefinedAssignment(m4p(i), m4p(p))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Interface5' to '1-dimensional array of Class8'.
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyPredefinedAssignment(m4p(i), m4p(x))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Object' to '1-dimensional array of Class8'.
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyPredefinedAssignment(m4p(w), m4p(x))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Object' to '1-dimensional array of System.ValueType'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(a), m4p(b))) 'error BC30332: Value of type '1-dimensional array of MT2' cannot be converted to '1-dimensional array of MT1' because 'MT2' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(b), m4p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT2' because 'MT1' is not derived from 'MT2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(b), m4p(d))) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of MT2' because 'MT4' is not derived from 'MT2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(d), m4p(b))) 'error BC30332: Value of type '1-dimensional array of MT2' cannot be converted to '1-dimensional array of MT4' because 'MT2' is not derived from 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(a), m4p(g))) 'error BC30332: Value of type '1-dimensional array of MT7' cannot be converted to '1-dimensional array of MT1' because 'MT7' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(g), m4p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT7' because 'MT1' is not derived from 'MT7'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(j), m4p(k))) 'error BC30332: Value of type '1-dimensional array of Class11' cannot be converted to '1-dimensional array of Class9' because 'Class11' is not derived from 'Class9'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(i), m4p(l))) 'error BC30414: Value of type '2-dimensional array of Class8' cannot be converted to '1-dimensional array of Class8' because the array types have different numbers of dimensions.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(l), m4p(i))) 'error BC30414: Value of type '1-dimensional array of Class8' cannot be converted to '2-dimensional array of Class8' because the array types have different numbers of dimensions.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(l), m4p(n))) 'error BC30332: Value of type '1-dimensional array of 1-dimensional array of Class8' cannot be converted to '2-dimensional array of Class8' because '1-dimensional array of Class8' is not derived from 'Class8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(n), m4p(l))) 'error BC30332: Value of type '2-dimensional array of Class8' cannot be converted to '1-dimensional array of 1-dimensional array of Class8' because 'Class8' is not derived from '1-dimensional array of Class8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(p), m4p(q))) 'error BC30332: Value of type '1-dimensional array of Structure1' cannot be converted to '1-dimensional array of Interface5' because 'Structure1' is not derived from 'Interface5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(q), m4p(p))) 'error BC30332: Value of type '1-dimensional array of Interface5' cannot be converted to '1-dimensional array of Structure1' because 'Interface5' is not derived from 'Structure1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(q), m4p(w))) 'error BC30332: Value of type '1-dimensional array of System.ValueType' cannot be converted to '1-dimensional array of Structure1' because 'System.ValueType' is not derived from 'Structure1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(w), m4p(q))) 'error BC30333: Value of type '1-dimensional array of Structure1' cannot be converted to '1-dimensional array of System.ValueType' because 'Structure1' is not a reference type.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(a), m4p(b))) 'error BC30332: Value of type '1-dimensional array of MT2' cannot be converted to '1-dimensional array of MT1' because 'MT2' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(b), m4p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT2' because 'MT1' is not derived from 'MT2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(b), m4p(d))) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of MT2' because 'MT4' is not derived from 'MT2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(d), m4p(b))) 'error BC30332: Value of type '1-dimensional array of MT2' cannot be converted to '1-dimensional array of MT4' because 'MT2' is not derived from 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(a), m4p(g))) 'error BC30332: Value of type '1-dimensional array of MT7' cannot be converted to '1-dimensional array of MT1' because 'MT7' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(g), m4p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT7' because 'MT1' is not derived from 'MT7'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(j), m4p(k))) 'error BC30332: Value of type '1-dimensional array of Class11' cannot be converted to '1-dimensional array of Class9' because 'Class11' is not derived from 'Class9'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(i), m4p(l))) 'error BC30414: Value of type '2-dimensional array of Class8' cannot be converted to '1-dimensional array of Class8' because the array types have different numbers of dimensions.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(l), m4p(i))) 'error BC30414: Value of type '1-dimensional array of Class8' cannot be converted to '2-dimensional array of Class8' because the array types have different numbers of dimensions.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(l), m4p(n))) 'error BC30332: Value of type '1-dimensional array of 1-dimensional array of Class8' cannot be converted to '2-dimensional array of Class8' because '1-dimensional array of Class8' is not derived from 'Class8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(n), m4p(l))) 'error BC30332: Value of type '2-dimensional array of Class8' cannot be converted to '1-dimensional array of 1-dimensional array of Class8' because 'Class8' is not derived from '1-dimensional array of Class8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(p), m4p(q))) 'error BC30332: Value of type '1-dimensional array of Structure1' cannot be converted to '1-dimensional array of Interface5' because 'Structure1' is not derived from 'Interface5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(q), m4p(p))) 'error BC30332: Value of type '1-dimensional array of Interface5' cannot be converted to '1-dimensional array of Structure1' because 'Interface5' is not derived from 'Structure1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(q), m4p(w))) 'error BC30332: Value of type '1-dimensional array of System.ValueType' cannot be converted to '1-dimensional array of Structure1' because 'System.ValueType' is not derived from 'Structure1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(w), m4p(q))) 'error BC30333: Value of type '1-dimensional array of Structure1' cannot be converted to '1-dimensional array of System.ValueType' because 'Structure1' is not a reference type.
             Assert.Equal(ConversionKind.WideningArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m4p(r), m4p(t)))
             Assert.Equal(ConversionKind.WideningArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m4p(s), m4p(u)))
             Assert.Equal(ConversionKind.NarrowingArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m4p(t), m4p(r))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Integer' to '1-dimensional array of Enum1'.
             Assert.Equal(ConversionKind.NarrowingArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m4p(u), m4p(s))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Long' to '1-dimensional array of Enum2'.
             Assert.Equal(ConversionKind.NarrowingArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m4p(t), m4p(v))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Enum4' to '1-dimensional array of Enum1'.
             Assert.Equal(ConversionKind.NarrowingArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m4p(v), m4p(t))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Enum1' to '1-dimensional array of Enum4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(r), m4p(s))) 'error BC30332: Value of type '1-dimensional array of Long' cannot be converted to '1-dimensional array of Integer' because 'Long' is not derived from 'Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(s), m4p(r))) 'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of Long' because 'Integer' is not derived from 'Long'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(r), m4p(u))) 'error BC30332: Value of type '1-dimensional array of Enum2' cannot be converted to '1-dimensional array of Integer' because 'Enum2' is not derived from 'Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(u), m4p(r))) 'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of Enum2' because 'Integer' is not derived from 'Enum2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(t), m4p(u))) 'error BC30332: Value of type '1-dimensional array of Enum2' cannot be converted to '1-dimensional array of Enum1' because 'Enum2' is not derived from 'Enum1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m4p(u), m4p(t))) 'error BC30332: Value of type '1-dimensional array of Enum1' cannot be converted to '1-dimensional array of Enum2' because 'Enum1' is not derived from 'Enum2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(r), m4p(s))) 'error BC30332: Value of type '1-dimensional array of Long' cannot be converted to '1-dimensional array of Integer' because 'Long' is not derived from 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(s), m4p(r))) 'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of Long' because 'Integer' is not derived from 'Long'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(r), m4p(u))) 'error BC30332: Value of type '1-dimensional array of Enum2' cannot be converted to '1-dimensional array of Integer' because 'Enum2' is not derived from 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(u), m4p(r))) 'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of Enum2' because 'Integer' is not derived from 'Enum2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(t), m4p(u))) 'error BC30332: Value of type '1-dimensional array of Enum2' cannot be converted to '1-dimensional array of Enum1' because 'Enum2' is not derived from 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m4p(u), m4p(t))) 'error BC30332: Value of type '1-dimensional array of Enum1' cannot be converted to '1-dimensional array of Enum2' because 'Enum1' is not derived from 'Enum2'.
 
 
             Dim m5 = DirectCast(test.GetMembers("M5").Single(), MethodSymbol)
@@ -1879,25 +1879,25 @@ End Class
             Assert.Equal(ConversionKind.NarrowingArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m5p(l), m5p(a))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of MT1' to '1-dimensional array of Enum1'.
             Assert.Equal(ConversionKind.NarrowingArray Or ConversionKind.InvolvesEnumTypeConversions, ClassifyPredefinedAssignment(m5p(e), m5p(j))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Integer' to '1-dimensional array of MT5'.
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyPredefinedAssignment(m5p(e), m5p(l))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of Enum1' to '1-dimensional array of MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(a), m5p(i))) 'error BC30332: Value of type '1-dimensional array of MT9' cannot be converted to '1-dimensional array of MT1' because 'MT9' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(a), m5p(c))) 'error BC30332: Value of type '1-dimensional array of MT3' cannot be converted to '1-dimensional array of MT1' because 'MT3' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(c), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT3' because 'MT1' is not derived from 'MT3'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(a), m5p(d))) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of MT1' because 'MT4' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(d), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT4' because 'MT1' is not derived from 'MT4'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(a), m5p(f))) 'error BC30332: Value of type '1-dimensional array of MT6' cannot be converted to '1-dimensional array of MT1' because 'MT6' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(f), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT6' because 'MT1' is not derived from 'MT6'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(a), m5p(h))) 'error BC30332: Value of type '1-dimensional array of MT8' cannot be converted to '1-dimensional array of MT1' because 'MT8' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(h), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT8' because 'MT1' is not derived from 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(e), m5p(f))) 'error BC30332: Value of type '1-dimensional array of MT6' cannot be converted to '1-dimensional array of MT5' because 'MT6' is not derived from 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(f), m5p(e))) 'error BC30332: Value of type '1-dimensional array of MT5' cannot be converted to '1-dimensional array of MT6' because 'MT5' is not derived from 'MT6'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(e), m5p(h))) 'error BC30332: Value of type '1-dimensional array of MT8' cannot be converted to '1-dimensional array of MT5' because 'MT8' is not derived from 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(h), m5p(e))) 'error BC30332: Value of type '1-dimensional array of MT5' cannot be converted to '1-dimensional array of MT8' because 'MT5' is not derived from 'MT8'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(a), m5p(k))) 'error BC30332: Value of type '1-dimensional array of UInteger' cannot be converted to '1-dimensional array of MT1' because 'UInteger' is not derived from 'MT1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(k), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of UInteger' because 'MT1' is not derived from 'UInteger'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(e), m5p(k))) 'error BC30332: Value of type '1-dimensional array of UInteger' cannot be converted to '1-dimensional array of MT5' because 'UInteger' is not derived from 'MT5'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(k), m5p(e))) 'error BC30332: Value of type '1-dimensional array of MT5' cannot be converted to '1-dimensional array of UInteger' because 'MT5' is not derived from 'UInteger'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(j), m5p(k))) 'error BC30332: Value of type '1-dimensional array of UInteger' cannot be converted to '1-dimensional array of Integer' because 'UInteger' is not derived from 'Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(k), m5p(j))) 'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of UInteger' because 'Integer' is not derived from 'UInteger'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(a), m5p(i))) 'error BC30332: Value of type '1-dimensional array of MT9' cannot be converted to '1-dimensional array of MT1' because 'MT9' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(a), m5p(c))) 'error BC30332: Value of type '1-dimensional array of MT3' cannot be converted to '1-dimensional array of MT1' because 'MT3' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(c), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT3' because 'MT1' is not derived from 'MT3'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(a), m5p(d))) 'error BC30332: Value of type '1-dimensional array of MT4' cannot be converted to '1-dimensional array of MT1' because 'MT4' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(d), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT4' because 'MT1' is not derived from 'MT4'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(a), m5p(f))) 'error BC30332: Value of type '1-dimensional array of MT6' cannot be converted to '1-dimensional array of MT1' because 'MT6' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(f), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT6' because 'MT1' is not derived from 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(a), m5p(h))) 'error BC30332: Value of type '1-dimensional array of MT8' cannot be converted to '1-dimensional array of MT1' because 'MT8' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(h), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of MT8' because 'MT1' is not derived from 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(e), m5p(f))) 'error BC30332: Value of type '1-dimensional array of MT6' cannot be converted to '1-dimensional array of MT5' because 'MT6' is not derived from 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(f), m5p(e))) 'error BC30332: Value of type '1-dimensional array of MT5' cannot be converted to '1-dimensional array of MT6' because 'MT5' is not derived from 'MT6'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(e), m5p(h))) 'error BC30332: Value of type '1-dimensional array of MT8' cannot be converted to '1-dimensional array of MT5' because 'MT8' is not derived from 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(h), m5p(e))) 'error BC30332: Value of type '1-dimensional array of MT5' cannot be converted to '1-dimensional array of MT8' because 'MT5' is not derived from 'MT8'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(a), m5p(k))) 'error BC30332: Value of type '1-dimensional array of UInteger' cannot be converted to '1-dimensional array of MT1' because 'UInteger' is not derived from 'MT1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(k), m5p(a))) 'error BC30332: Value of type '1-dimensional array of MT1' cannot be converted to '1-dimensional array of UInteger' because 'MT1' is not derived from 'UInteger'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(e), m5p(k))) 'error BC30332: Value of type '1-dimensional array of UInteger' cannot be converted to '1-dimensional array of MT5' because 'UInteger' is not derived from 'MT5'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(k), m5p(e))) 'error BC30332: Value of type '1-dimensional array of MT5' cannot be converted to '1-dimensional array of UInteger' because 'MT5' is not derived from 'UInteger'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(j), m5p(k))) 'error BC30332: Value of type '1-dimensional array of UInteger' cannot be converted to '1-dimensional array of Integer' because 'UInteger' is not derived from 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(k), m5p(j))) 'error BC30332: Value of type '1-dimensional array of Integer' cannot be converted to '1-dimensional array of UInteger' because 'Integer' is not derived from 'UInteger'.
 
             Assert.Equal(ConversionKind.WideningArray, ClassifyPredefinedAssignment(m5p(m), m5p(n)))
             Assert.Equal(ConversionKind.WideningArray, ClassifyPredefinedAssignment(m5p(p), m5p(q)))
@@ -1909,12 +1909,12 @@ End Class
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyPredefinedAssignment(m5p(u), m5p(t))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of MT14' to '1-dimensional array of MT15'.
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyPredefinedAssignment(m5p(s), m5p(v))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of MT16' to '1-dimensional array of System.ValueType'.
             Assert.Equal(ConversionKind.NarrowingArray, ClassifyPredefinedAssignment(m5p(v), m5p(s))) 'error BC30512: Option Strict On disallows implicit conversions from '1-dimensional array of System.ValueType' to '1-dimensional array of MT16'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(n), m5p(o))) 'error BC30332: Value of type '1-dimensional array of MT11' cannot be converted to '1-dimensional array of MT10' because 'MT11' is not derived from 'MT10'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(o), m5p(n))) 'error BC30332: Value of type '1-dimensional array of MT10' cannot be converted to '1-dimensional array of MT11' because 'MT10' is not derived from 'MT11'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(q), m5p(r))) 'error BC30332: Value of type '1-dimensional array of MT13' cannot be converted to '1-dimensional array of MT12' because 'MT13' is not derived from 'MT12'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(r), m5p(q))) 'error BC30332: Value of type '1-dimensional array of MT12' cannot be converted to '1-dimensional array of MT13' because 'MT12' is not derived from 'MT13'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(v), m5p(w))) 'error BC30332: Value of type '1-dimensional array of MT17' cannot be converted to '1-dimensional array of MT16' because 'MT17' is not derived from 'MT16'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m5p(w), m5p(v))) 'error BC30332: Value of type '1-dimensional array of MT16' cannot be converted to '1-dimensional array of MT17' because 'MT16' is not derived from 'MT17'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(n), m5p(o))) 'error BC30332: Value of type '1-dimensional array of MT11' cannot be converted to '1-dimensional array of MT10' because 'MT11' is not derived from 'MT10'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(o), m5p(n))) 'error BC30332: Value of type '1-dimensional array of MT10' cannot be converted to '1-dimensional array of MT11' because 'MT10' is not derived from 'MT11'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(q), m5p(r))) 'error BC30332: Value of type '1-dimensional array of MT13' cannot be converted to '1-dimensional array of MT12' because 'MT13' is not derived from 'MT12'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(r), m5p(q))) 'error BC30332: Value of type '1-dimensional array of MT12' cannot be converted to '1-dimensional array of MT13' because 'MT12' is not derived from 'MT13'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(v), m5p(w))) 'error BC30332: Value of type '1-dimensional array of MT17' cannot be converted to '1-dimensional array of MT16' because 'MT17' is not derived from 'MT16'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m5p(w), m5p(v))) 'error BC30332: Value of type '1-dimensional array of MT16' cannot be converted to '1-dimensional array of MT17' because 'MT16' is not derived from 'MT17'.
 
 
             ' ------------- Value Type 
@@ -1922,10 +1922,10 @@ End Class
             Dim valueType = c1.GetSpecialType(System_ValueType)
 
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(void, void)))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment([object], void))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(void, [object]))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(valueType, void))
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(void, valueType))
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment([object], void))
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(void, [object]))
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(valueType, void))
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(void, valueType))
 
             Dim m10 = DirectCast(test.GetMembers("M10").Single(), MethodSymbol)
             Dim m10p = m10.Parameters.Select(Function(p) p.Type).ToArray()
@@ -1945,16 +1945,16 @@ End Class
             Assert.Equal(ConversionKind.NarrowingValue, ClassifyPredefinedAssignment(m10p(h), m10p(c))) 'error BC30512: Option Strict On disallows implicit conversions from 'System.Enum' to 'Enum1'.
             Assert.Equal(ConversionKind.NarrowingValue, ClassifyPredefinedAssignment(m10p(f), m10p(d))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface1' to 'Structure2'.
             Assert.Equal(ConversionKind.NarrowingValue, ClassifyPredefinedAssignment(m10p(f), m10p(i))) 'error BC30512: Option Strict On disallows implicit conversions from 'Interface3' to 'Structure2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(c), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'System.Enum'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(f), m10p(c))) 'error BC30311: Value of type 'System.Enum' cannot be converted to 'Structure2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(d), m10p(h))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'Interface1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(h), m10p(d))) 'error BC30311: Value of type 'Interface1' cannot be converted to 'Enum1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(e), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Interface7'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(f), m10p(e))) 'error BC30311: Value of type 'Interface7' cannot be converted to 'Structure2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(f), m10p(g))) 'error BC30311: Value of type 'Structure1' cannot be converted to 'Structure2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(g), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Structure1'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(f), m10p(h))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'Structure2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m10p(h), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(c), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'System.Enum'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(f), m10p(c))) 'error BC30311: Value of type 'System.Enum' cannot be converted to 'Structure2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(d), m10p(h))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'Interface1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(h), m10p(d))) 'error BC30311: Value of type 'Interface1' cannot be converted to 'Enum1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(e), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Interface7'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(f), m10p(e))) 'error BC30311: Value of type 'Interface7' cannot be converted to 'Structure2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(f), m10p(g))) 'error BC30311: Value of type 'Structure1' cannot be converted to 'Structure2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(g), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Structure1'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(f), m10p(h))) 'error BC30311: Value of type 'Enum1' cannot be converted to 'Structure2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m10p(h), m10p(f))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Enum1'.
 
             ' ------------ Nullable
             Dim m11 = DirectCast(test.GetMembers("M11").Single(), MethodSymbol)
@@ -1977,12 +1977,12 @@ End Class
             Assert.Equal(ConversionKind.NarrowingNullable, ClassifyPredefinedAssignment(m11p(i), m11p(k))) 'error BC30512: Option Strict On disallows implicit conversions from 'Long?' to 'Integer?'.
             Assert.Equal(ConversionKind.NarrowingNullable, ClassifyPredefinedAssignment(m11p(i), m11p(j))) 'error BC30512: Option Strict On disallows implicit conversions from 'Long' to 'Integer?'.
             Assert.Equal(ConversionKind.NarrowingNullable, ClassifyPredefinedAssignment(m11p(j), m11p(i))) 'error BC30512: Option Strict On disallows implicit conversions from 'Integer?' to 'Long'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m11p(c), m11p(i))) 'error BC30311: Value of type 'Integer?' cannot be converted to 'Structure2'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m11p(i), m11p(c))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Integer?'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m11p(d), m11p(h))) 'error BC30311: Value of type 'Integer' cannot be converted to 'Structure2?'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m11p(h), m11p(d))) 'error BC30311: Value of type 'Structure2?' cannot be converted to 'Integer'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m11p(d), m11p(i))) 'error BC30311: Value of type 'Integer?' cannot be converted to 'Structure2?'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m11p(i), m11p(d))) 'error BC30311: Value of type 'Structure2?' cannot be converted to 'Integer?'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(c), m11p(i))) 'error BC30311: Value of type 'Integer?' cannot be converted to 'Structure2'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(i), m11p(c))) 'error BC30311: Value of type 'Structure2' cannot be converted to 'Integer?'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(d), m11p(h))) 'error BC30311: Value of type 'Integer' cannot be converted to 'Structure2?'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(h), m11p(d))) 'error BC30311: Value of type 'Structure2?' cannot be converted to 'Integer'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(d), m11p(i))) 'error BC30311: Value of type 'Integer?' cannot be converted to 'Structure2?'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m11p(i), m11p(d))) 'error BC30311: Value of type 'Structure2?' cannot be converted to 'Integer?'.
 
 
             ' ------------ String
@@ -1993,8 +1993,8 @@ End Class
             Assert.Equal(ConversionKind.WideningString, ClassifyPredefinedAssignment(m12p(a), m12p(c)))
             Assert.Equal(ConversionKind.NarrowingString, ClassifyPredefinedAssignment(m12p(b), m12p(a))) 'error BC30512: Option Strict On disallows implicit conversions from 'String' to 'Char'.
             Assert.Equal(ConversionKind.NarrowingString, ClassifyPredefinedAssignment(m12p(c), m12p(a))) 'error BC30512: Option Strict On disallows implicit conversions from 'String' to '1-dimensional array of Char'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m12p(b), m12p(c))) 'error BC30311: Value of type '1-dimensional array of Char' cannot be converted to 'Char'.
-            Assert.Equal(NoConversion, ClassifyPredefinedAssignment(m12p(c), m12p(b))) 'error BC30311: Value of type 'Char' cannot be converted to '1-dimensional array of Char'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m12p(b), m12p(c))) 'error BC30311: Value of type '1-dimensional array of Char' cannot be converted to 'Char'.
+            Assert.Equal(s_noConversion, ClassifyPredefinedAssignment(m12p(c), m12p(b))) 'error BC30311: Value of type 'Char' cannot be converted to '1-dimensional array of Char'.
 
         End Sub
 
@@ -2004,7 +2004,7 @@ End Class
             Return result
         End Function
 
-        Enum Parameters
+        Public Enum Parameters
             a
             b
             c
@@ -2087,7 +2087,7 @@ End Class
                     Else
                         Dim baseline = HasBuiltInWideningConversions(types(i), types(j))
 
-                        If baseline = NoConversion Then
+                        If baseline = s_noConversion Then
                             baseline = HasBuiltInNarrowingConversions(types(i), types(j))
                         End If
 
@@ -2100,7 +2100,7 @@ End Class
         Private Function HasBuiltInWideningConversions(from As TypeSymbol, [to] As TypeSymbol) As ConversionKind
             Dim result = HasBuiltInWideningConversions(from.SpecialType, [to].SpecialType)
 
-            If result = NoConversion Then
+            If result = s_noConversion Then
                 Dim fromIsNullable = from.IsNullableType()
                 Dim fromElement = If(fromIsNullable, from.GetNullableUnderlyingType(), Nothing)
 
@@ -2138,7 +2138,7 @@ End Class
         Private Function HasBuiltInNarrowingConversions(from As TypeSymbol, [to] As TypeSymbol) As ConversionKind
             Dim result = HasBuiltInNarrowingConversions(from.SpecialType, [to].SpecialType)
 
-            If result = NoConversion Then
+            If result = s_noConversion Then
                 Dim toIsNullable = [to].IsNullableType()
                 Dim toElement = If(toIsNullable, [to].GetNullableUnderlyingType(), Nothing)
 
@@ -2157,8 +2157,8 @@ End Class
                     End If
 
                     '•	From a type S? to a type T, where there is a conversion from the type S to the type T.
-                    If HasBuiltInWideningConversions(fromElement, [to]) <> NoConversion OrElse
-                        HasBuiltInNarrowingConversions(fromElement, [to]) <> NoConversion Then
+                    If HasBuiltInWideningConversions(fromElement, [to]) <> s_noConversion OrElse
+                        HasBuiltInNarrowingConversions(fromElement, [to]) <> s_noConversion Then
                         Return ConversionKind.NarrowingNullable
                     End If
                 End If
@@ -2182,121 +2182,121 @@ End Class
             Return result
         End Function
 
-        Const [Byte] = System_Byte
-        Const [SByte] = System_SByte
-        Const [UShort] = System_UInt16
-        Const [Short] = System_Int16
-        Const [UInteger] = System_UInt32
-        Const [Integer] = System_Int32
-        Const [ULong] = System_UInt64
-        Const [Long] = System_Int64
-        Const [Decimal] = System_Decimal
-        Const [Single] = System_Single
-        Const [Double] = System_Double
-        Const [String] = System_String
-        Const [Char] = System_Char
-        Const [Boolean] = System_Boolean
-        Const [Date] = System_DateTime
-        Const [Object] = System_Object
+        Private Const s_byte = System_Byte
+        Private Const s_SByte = System_SByte
+        Private Const s_UShort = System_UInt16
+        Private Const s_short = System_Int16
+        Private Const s_UInteger = System_UInt32
+        Private Const s_integer = System_Int32
+        Private Const s_ULong = System_UInt64
+        Private Const s_long = System_Int64
+        Private Const s_decimal = System_Decimal
+        Private Const s_single = System_Single
+        Private Const s_double = System_Double
+        Private Const s_string = System_String
+        Private Const s_char = System_Char
+        Private Const s_boolean = System_Boolean
+        Private Const s_date = System_DateTime
+        Private Const s_object = System_Object
 
         Private Function HasBuiltInWideningConversions(from As SpecialType, [to] As SpecialType) As ConversionKind
             Select Case CInt(from)
                 'Numeric conversions
                 '•	From Byte to UShort, Short, UInteger, Integer, ULong, Long, Decimal, Single, or Double.
-                Case [Byte]
+                Case s_byte
                     Select Case CInt([to])
 
-                        Case [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double]
+                        Case s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From SByte to Short, Integer, Long, Decimal, Single, or Double.
-                Case [SByte]
+                '•	From SByte to Short, Integer, Long, Decimal, Single, or Double.
+                Case s_SByte
                     Select Case CInt([to])
 
-                        Case [Short], [Integer], [Long], [Decimal], [Single], [Double]
+                        Case s_short, s_integer, s_long, s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From UShort to UInteger, Integer, ULong, Long, Decimal, Single, or Double.
-                Case [UShort]
+                '•	From UShort to UInteger, Integer, ULong, Long, Decimal, Single, or Double.
+                Case s_UShort
                     Select Case CInt([to])
 
-                        Case [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double]
+                        Case s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From Short to Integer, Long, Decimal, Single or Double.
-                Case [Short]
+                '•	From Short to Integer, Long, Decimal, Single or Double.
+                Case s_short
                     Select Case CInt([to])
 
-                        Case [Integer], [Long], [Decimal], [Single], [Double]
+                        Case s_integer, s_long, s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From UInteger to ULong, Long, Decimal, Single, or Double.
-                Case [UInteger]
+                '•	From UInteger to ULong, Long, Decimal, Single, or Double.
+                Case s_UInteger
                     Select Case CInt([to])
 
-                        Case [ULong], [Long], [Decimal], [Single], [Double]
+                        Case s_ULong, s_long, s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From Integer to Long, Decimal, Single or Double.
-                Case [Integer]
+                '•	From Integer to Long, Decimal, Single or Double.
+                Case s_integer
                     Select Case CInt([to])
 
-                        Case [Long], [Decimal], [Single], [Double]
+                        Case s_long, s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From ULong to Decimal, Single, or Double.
-                Case [ULong]
+                '•	From ULong to Decimal, Single, or Double.
+                Case s_ULong
                     Select Case CInt([to])
 
-                        Case [Decimal], [Single], [Double]
+                        Case s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From Long to Decimal, Single or Double.
-                Case [Long]
+                '•	From Long to Decimal, Single or Double.
+                Case s_long
                     Select Case CInt([to])
 
-                        Case [Decimal], [Single], [Double]
+                        Case s_decimal, s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From Decimal to Single or Double.
-                Case [Decimal]
+                '•	From Decimal to Single or Double.
+                Case s_decimal
                     Select Case CInt([to])
 
-                        Case [Single], [Double]
+                        Case s_single, s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    '•	From Single to Double.
-                Case [Single]
+                '•	From Single to Double.
+                Case s_single
                     Select Case CInt([to])
 
-                        Case [Double]
+                        Case s_double
                             Return ConversionKind.WideningNumeric
                     End Select
 
-                    'Reference conversions
-                    '•	From a reference type to a base type.
-                Case [String]
+                'Reference conversions
+                '•	From a reference type to a base type.
+                Case s_string
                     Select Case CInt([to])
 
-                        Case [Object]
+                        Case s_object
                             Return ConversionKind.WideningReference
                     End Select
 
-                    'String conversions
-                    '•	From Char to String.
-                Case [Char]
+                'String conversions
+                '•	From Char to String.
+                Case s_char
                     Select Case CInt([to])
 
-                        Case [String]
+                        Case s_string
                             Return ConversionKind.WideningString
                     End Select
 
@@ -2305,141 +2305,141 @@ End Class
             Select Case CInt([to])
                 'Value Type conversions
                 '•	From a value type to a base type.
-                Case [Object]
+                Case s_object
                     Select Case CInt([from])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double],
-                                [Char], [Boolean], [Date]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double,
+                                s_char, s_boolean, s_date
                             Return ConversionKind.WideningValue
                     End Select
 
             End Select
 
-            Return NoConversion
+            Return s_noConversion
         End Function
 
         Private Function HasBuiltInNarrowingConversions(from As SpecialType, [to] As SpecialType) As ConversionKind
             Select Case CInt(from)
                 'Boolean conversions
                 '•	From Boolean to Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, Single, or Double.
-                Case [Boolean]
+                Case s_boolean
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double
                             Return ConversionKind.NarrowingBoolean
                     End Select
 
-                    'Numeric conversions
-                    '•	From Byte to SByte.
-                Case [Byte]
+                'Numeric conversions
+                '•	From Byte to SByte.
+                Case s_byte
                     Select Case CInt([to])
 
-                        Case [SByte]
+                        Case s_SByte
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From SByte to Byte, UShort, UInteger, or ULong.
-                Case [SByte]
+                '•	From SByte to Byte, UShort, UInteger, or ULong.
+                Case s_SByte
                     Select Case CInt([to])
 
-                        Case [Byte], [UShort], [UInteger], [ULong]
+                        Case s_byte, s_UShort, s_UInteger, s_ULong
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From UShort to Byte, SByte, or Short.
-                Case [UShort]
+                '•	From UShort to Byte, SByte, or Short.
+                Case s_UShort
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [Short]
+                        Case s_byte, s_SByte, s_short
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From Short to Byte, SByte, UShort, UInteger, or ULong.
-                Case [Short]
+                '•	From Short to Byte, SByte, UShort, UInteger, or ULong.
+                Case s_short
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [UInteger], [ULong]
+                        Case s_byte, s_SByte, s_UShort, s_UInteger, s_ULong
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From UInteger to Byte, SByte, UShort, Short, or Integer.
-                Case [UInteger]
+                '•	From UInteger to Byte, SByte, UShort, Short, or Integer.
+                Case s_UInteger
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [Integer]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_integer
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From Integer to Byte, SByte, UShort, Short, UInteger, or ULong.
-                Case [Integer]
+                '•	From Integer to Byte, SByte, UShort, Short, UInteger, or ULong.
+                Case s_integer
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [ULong]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_ULong
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From ULong to Byte, SByte, UShort, Short, UInteger, Integer, or Long.
-                Case [ULong]
+                '•	From ULong to Byte, SByte, UShort, Short, UInteger, Integer, or Long.
+                Case s_ULong
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [Long]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_long
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From Long to Byte, SByte, UShort, Short, UInteger, Integer, or ULong.
-                Case [Long]
+                '•	From Long to Byte, SByte, UShort, Short, UInteger, Integer, or ULong.
+                Case s_long
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From Decimal to Byte, SByte, UShort, Short, UInteger, Integer, ULong, or Long.
-                Case [Decimal]
+                '•	From Decimal to Byte, SByte, UShort, Short, UInteger, Integer, ULong, or Long.
+                Case s_decimal
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From Single to Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, or Decimal.
-                Case [Single]
+                '•	From Single to Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, or Decimal.
+                Case s_single
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    '•	From Double to Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, or Single.
-                Case [Double]
+                '•	From Double to Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, or Single.
+                Case s_double
                     Select Case CInt([to])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single
                             Return ConversionKind.NarrowingNumeric
                     End Select
 
-                    'String conversions
-                    '•	From String to Char.
-                    '•	From String to Boolean and from Boolean to String.
-                    '•	Conversions between String and Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, Single, or Double.
-                    '•	From String to Date and from Date to String.
-                Case [String]
+                'String conversions
+                '•	From String to Char.
+                '•	From String to Boolean and from Boolean to String.
+                '•	Conversions between String and Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, Single, or Double.
+                '•	From String to Date and from Date to String.
+                Case s_string
                     Select Case CInt([to])
 
-                        Case [Char],
-                             [Boolean],
-                             [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double],
-                             [Date]
+                        Case s_char,
+                             s_boolean,
+                             s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double,
+                             s_date
                             Return ConversionKind.NarrowingString
                     End Select
 
-                    'VB Runtime Conversions
-                Case [Object]
+                'VB Runtime Conversions
+                Case s_object
                     Select Case CInt([to])
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double],
-                                [Char], [Boolean], [Date]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double,
+                                s_char, s_boolean, s_date
                             Return ConversionKind.NarrowingValue
-                        Case [String]
+                        Case s_string
                             Return ConversionKind.NarrowingReference
                     End Select
             End Select
@@ -2447,28 +2447,28 @@ End Class
             Select Case CInt([to])
                 'Boolean conversions
                 '•	From            Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, Single, or Double to Boolean.
-                Case [Boolean]
+                Case s_boolean
                     Select Case CInt([from])
 
-                        Case [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double]
+                        Case s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double
                             Return ConversionKind.NarrowingBoolean
                     End Select
 
-                    'String conversions
-                    '•	From String to Boolean and from Boolean to String.
-                    '•	Conversions between String and Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, Single, or Double.
-                    '•	From String to Date and from Date to String.
-                Case [String]
+                'String conversions
+                '•	From String to Boolean and from Boolean to String.
+                '•	Conversions between String and Byte, SByte, UShort, Short, UInteger, Integer, ULong, Long, Decimal, Single, or Double.
+                '•	From String to Date and from Date to String.
+                Case s_string
                     Select Case CInt([from])
 
-                        Case [Boolean],
-                             [Byte], [SByte], [UShort], [Short], [UInteger], [Integer], [ULong], [Long], [Decimal], [Single], [Double],
-                             [Date]
+                        Case s_boolean,
+                             s_byte, s_SByte, s_UShort, s_short, s_UInteger, s_integer, s_ULong, s_long, s_decimal, s_single, s_double,
+                             s_date
                             Return ConversionKind.NarrowingString
                     End Select
             End Select
 
-            Return NoConversion
+            Return s_noConversion
         End Function
 
         <Fact()>
@@ -4072,7 +4072,7 @@ End Module
             Dim model = c.GetSemanticModel(tree)
 
             ' Get VariableDeclaratorSyntax corresponding to variable 'ii' above.
-            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii")).Parent.Parent, VariableDeclaratorSyntax)
+            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii", StringComparison.Ordinal)).Parent.Parent, VariableDeclaratorSyntax)
 
             ' Get TypeSymbol corresponding to above VariableDeclaratorSyntax.
             Dim targetType As TypeSymbol = CType(model.GetDeclaredSymbol(variableDeclarator.Names.Single), LocalSymbol).Type
@@ -4081,13 +4081,13 @@ End Module
             Assert.Equal(1, local.Locations.Length)
 
             ' Perform ClassifyConversion for expressions from within the above SyntaxTree.
-            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)")).Parent, ExpressionSyntax)
+            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             Dim conversion As Conversion = model.ClassifyConversion(sourceExpression1, targetType)
 
             Assert.True(conversion.IsWidening)
             Assert.True(conversion.IsNumeric)
 
-            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)")).Parent, ExpressionSyntax)
+            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             conversion = model.ClassifyConversion(sourceExpression2, targetType)
 
             Assert.True(conversion.IsNarrowing)
@@ -4096,7 +4096,7 @@ End Module
             ' Perform ClassifyConversion for constructed expressions
             ' at the position identified by the comment "' Perform ..." above.
             Dim sourceExpression3 As ExpressionSyntax = SyntaxFactory.IdentifierName("jj")
-            Dim position = source.IndexOf("' ")
+            Dim position = source.IndexOf("' ", StringComparison.Ordinal)
             conversion = model.ClassifyConversion(position, sourceExpression3, targetType)
 
             Assert.True(conversion.IsWidening)
@@ -4158,7 +4158,7 @@ End Module
             Dim model = c.GetSemanticModel(tree)
 
             ' Get VariableDeclaratorSyntax corresponding to variable 'ii' above.
-            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii")).Parent.Parent, VariableDeclaratorSyntax)
+            Dim variableDeclarator = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ii", StringComparison.Ordinal)).Parent.Parent, VariableDeclaratorSyntax)
 
             ' Get TypeSymbol corresponding to above VariableDeclaratorSyntax.
             Dim targetType As TypeSymbol = CType(model.GetDeclaredSymbol(variableDeclarator.Names.Single), LocalSymbol).Type
@@ -4167,13 +4167,13 @@ End Module
             Assert.Equal(1, local.Locations.Length)
 
             ' Perform ClassifyConversion for expressions from within the above SyntaxTree.
-            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)")).Parent, ExpressionSyntax)
+            Dim sourceExpression1 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("jj)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             Dim conversion As Conversion = model.ClassifyConversion(sourceExpression1, targetType)
 
             Assert.True(conversion.IsWidening)
             Assert.True(conversion.IsNumeric)
 
-            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)")).Parent, ExpressionSyntax)
+            Dim sourceExpression2 = CType(tree.GetCompilationUnitRoot().FindToken(source.IndexOf("ss)", StringComparison.Ordinal)).Parent, ExpressionSyntax)
             conversion = model.ClassifyConversion(sourceExpression2, targetType)
 
             Assert.True(conversion.IsNarrowing)
@@ -4182,7 +4182,7 @@ End Module
             ' Perform ClassifyConversion for constructed expressions
             ' at the position identified by the comment "' Perform ..." above.
             Dim sourceExpression3 As ExpressionSyntax = SyntaxFactory.IdentifierName("jj")
-            Dim position = source.IndexOf("' ")
+            Dim position = source.IndexOf("' ", StringComparison.Ordinal)
             conversion = model.ClassifyConversion(position, sourceExpression3, targetType)
 
             Assert.True(conversion.IsWidening)
@@ -4682,6 +4682,48 @@ BC30439: Constant expression not representable in type 'Integer?'.
 
             compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
             AssertTheseDiagnostics(compilation, expectedError)
+        End Sub
+
+        <WorkItem(2094, "https://github.com/dotnet/roslyn/issues/2094")>
+        <Fact()>
+        Public Sub DirectCastNothingToAStructure()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class Program
+    Shared Sub Main()
+        Try
+            Dim val = DirectCast(Nothing, S)
+            System.Console.WriteLine("Unexpected - 1 !!!")
+        Catch e as System.NullReferenceException
+            System.Console.WriteLine("Expected - 1")
+        End Try
+
+        Try
+            M(DirectCast(Nothing, S))
+            System.Console.WriteLine("Unexpected - 2 !!!")
+        Catch e as System.NullReferenceException
+            System.Console.WriteLine("Expected - 2")
+        End Try
+    End Sub
+
+    Shared Sub M(val as S)
+    End Sub
+End Class
+
+Structure S
+End Structure
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            Dim expectedOutput = <![CDATA[
+Expected - 1
+Expected - 2
+]]>
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
     End Class
