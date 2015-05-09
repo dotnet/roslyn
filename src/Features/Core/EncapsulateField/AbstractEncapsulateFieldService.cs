@@ -239,14 +239,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var markFieldPrivate = field.DeclaredAccessibility != Accessibility.Private;
             var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibility(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
 
-            document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration.Item1), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             solution = document.Project.Solution;
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
                 var linkedDocument = solution.GetDocument(linkedDocumentId);
                 var updatedLinkedRoot = await RewriteFieldNameAndAccessibility(finalFieldName, markFieldPrivate, linkedDocument, declarationAnnotation, cancellationToken).ConfigureAwait(false);
-                var updatedLinkedDocument = await Formatter.FormatAsync(linkedDocument.WithSyntaxRoot(updatedLinkedRoot), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var updatedLinkedDocument = await Formatter.FormatAsync(linkedDocument.WithSyntaxRoot(updatedLinkedRoot.Item1), Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                 solution = updatedLinkedDocument.Project.Solution;
             }
 
@@ -259,17 +259,25 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var newDeclaration = newRoot.GetAnnotatedNodes<SyntaxNode>(declarationAnnotation).First();
             field = semanticModel.GetDeclaredSymbol(newDeclaration, cancellationToken) as IFieldSymbol;
 
-            var generatedProperty = GenerateProperty(generatedPropertyName, finalFieldName, originalField.DeclaredAccessibility, originalField, field.ContainingType, new SyntaxAnnotation(), document, cancellationToken);
+            var propertyAnnotation = new SyntaxAnnotation();
+            var generatedProperty = GenerateProperty(generatedPropertyName, finalFieldName, originalField.DeclaredAccessibility, originalField, field.ContainingType, propertyAnnotation, document, cancellationToken);
 
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
-            var solutionWithProperty = await AddPropertyAsync(document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
+            var solutionWithProperty = await AddPropertyAsync(document, document.Project.Solution, field, generatedProperty, rewrittenFieldDeclaration.Item2, propertyAnnotation, cancellationToken).ConfigureAwait(false);
 
             return new Result(solutionWithProperty, originalField.ToDisplayString(), originalField.GetGlyph());
         }
 
         internal abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
 
-        protected async Task<Solution> AddPropertyAsync(Document document, Solution destinationSolution, IFieldSymbol field, IPropertySymbol property, CancellationToken cancellationToken)
+        protected async Task<Solution> AddPropertyAsync(
+            Document document, 
+            Solution destinationSolution, 
+            IFieldSymbol field, 
+            IPropertySymbol property, 
+            List<SyntaxTrivia> trivia, 
+            SyntaxAnnotation propertyAnnotation,
+            CancellationToken cancellationToken)
         {
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
 
@@ -279,6 +287,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var destination = field.ContainingType;
             var updatedDocument = await codeGenerationService.AddPropertyAsync(destinationSolution, destination, property, options, cancellationToken)
                 .ConfigureAwait(false);
+
+            if (trivia.Any())
+            {
+                var root = await updatedDocument.GetSyntaxRootAsync().ConfigureAwait(false);
+                var declaration = root.GetAnnotatedNodesAndTokens(propertyAnnotation).First().AsNode();
+                updatedDocument = updatedDocument.WithSyntaxRoot(root.ReplaceNode(declaration, declaration.WithLeadingTrivia(trivia)));
+            }
 
             updatedDocument = await Formatter.FormatAsync(updatedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             updatedDocument = await Simplifier.ReduceAsync(updatedDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -371,7 +386,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return char.ToUpper(baseName[0]).ToString() + baseName.Substring(1);
         }
 
-        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
+        protected abstract Task<Tuple<SyntaxNode, List<SyntaxTrivia>>> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         internal class Result

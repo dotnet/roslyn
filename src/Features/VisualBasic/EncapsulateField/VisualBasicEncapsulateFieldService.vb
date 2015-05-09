@@ -18,16 +18,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                                                         makePrivate As Boolean,
                                                         document As Document,
                                                         declarationAnnotation As SyntaxAnnotation,
-                                                        cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+                                                        cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxNode, List(Of SyntaxTrivia)))
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim fieldIdentifier = root.GetAnnotatedNodes(Of ModifiedIdentifierSyntax)(declarationAnnotation).FirstOrDefault()
+            Dim fieldSyntax = fieldIdentifier.GetAncestor(Of FieldDeclarationSyntax)
+            Dim documentationTrivia = New List(Of SyntaxTrivia)
+
+            Dim updatedField = fieldSyntax
+            If fieldSyntax IsNot Nothing AndAlso fieldSyntax.HasStructuredTrivia Then
+                documentationTrivia.Add(SyntaxFactory.ElasticMarker)
+
+                For Each trivium In fieldSyntax.DescendantTrivia()
+                    If trivium.Kind() = SyntaxKind.DocumentationCommentTrivia Then
+                        updatedField = updatedField.ReplaceTrivia(trivium, SyntaxFactory.ElasticCarriageReturnLineFeed)
+                        documentationTrivia.Add(trivium)
+                    End If
+                Next
+            End If
+
+            root = root.ReplaceNode(fieldSyntax, updatedField.WithAdditionalAnnotations(Formatter.Annotation))
+            fieldIdentifier = root.GetAnnotatedNodes(Of ModifiedIdentifierSyntax)(declarationAnnotation).FirstOrDefault()
 
             ' There may be no field to rewrite if this document is part of a set of linked files 
             ' and the declaration is not conditionally compiled in this document's project.
             If fieldIdentifier Is Nothing Then
-                Return root
+                Return Tuple.Create(root, documentationTrivia)
             End If
 
             Dim identifier = fieldIdentifier.Identifier
@@ -47,11 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                                                             .WithTrailingTrivia(fieldDeclaration.GetTrailingTrivia()) _
                                                             .WithAdditionalAnnotations(Formatter.Annotation)
 
-                    Return root.ReplaceNode(fieldDeclaration, updatedDeclaration)
+                    Return Tuple.Create(root.ReplaceNode(fieldDeclaration, updatedDeclaration), documentationTrivia)
                 End If
             End If
 
-            Return root
+            Return Tuple.Create(root, documentationTrivia)
         End Function
 
         Protected Overrides Async Function GetFieldsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of IFieldSymbol))
