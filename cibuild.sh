@@ -87,9 +87,7 @@ save_toolset()
     local compiler_binaries=(
         csc.exe
         Microsoft.CodeAnalysis.dll
-        Microsoft.CodeAnalysis.Desktop.dll
         Microsoft.CodeAnalysis.CSharp.dll
-        Microsoft.CodeAnalysis.CSharp.Desktop.dll
         System.Collections.Immutable.dll
         System.Reflection.Metadata.dll)
 
@@ -97,8 +95,7 @@ save_toolset()
         compiler_binaries=(
             ${compiler_binaries[@]} 
             vbc.exe
-            Microsoft.CodeAnalysis.VisualBasic.dll
-            Microsoft.CodeAnalysis.VisualBasic.Desktop.dll)
+            Microsoft.CodeAnalysis.VisualBasic.dll)
     fi
 
     mkdir Binaries/Bootstrap

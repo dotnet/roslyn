@@ -35,10 +35,6 @@
       <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>

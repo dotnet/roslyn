@@ -18,10 +18,6 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Desktop">
-      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
       <Private>false</Private>
