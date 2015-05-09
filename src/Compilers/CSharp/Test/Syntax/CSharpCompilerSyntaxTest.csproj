@@ -139,6 +139,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Syntax\ChildSyntaxListTests.cs" />
+    <Compile Include="Syntax\LambdaUtilitiesTests.cs" />
     <Compile Include="Syntax\SyntaxTreeTests.cs" />
     <Compile Include="Syntax\GreenNodeTests.cs" />
     <Compile Include="Syntax\RedNodeTests.cs" />

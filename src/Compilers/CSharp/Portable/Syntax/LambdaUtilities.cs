@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static bool IsNotLambdaBody(SyntaxNode node)
+        {
+            return !IsLambdaBody(node);
+        }
+
         /// <summary>
         /// Returns true if the specified <paramref name="node"/> represents a body of a lambda.
         /// </summary>
@@ -109,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
-                    return true;
+                    var anonymousFunction = (AnonymousFunctionExpressionSyntax)parent;
+                    return anonymousFunction.Body == node;
 
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)parent;
@@ -217,6 +223,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Compares content of two nodes ignoring lambda bodies and trivia.
+        /// </summary>
+        public static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode oldNode, SyntaxNode newNode)
+        {
+            // all tokens that don't belong to a lambda body:
+            var oldTokens = oldNode.DescendantTokens(node => node == oldNode || !IsLambdaBodyStatementOrExpression(node));
+            var newTokens = newNode.DescendantTokens(node => node == newNode || !IsLambdaBodyStatementOrExpression(node));
+
+            return oldTokens.SequenceEqual(newTokens, SyntaxFactory.AreEquivalent);
         }
 
         /// <summary>
