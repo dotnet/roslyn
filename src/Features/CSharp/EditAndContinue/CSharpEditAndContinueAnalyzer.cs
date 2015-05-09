@@ -386,6 +386,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return SyntaxFactory.AreEquivalent(left, right);
         }
 
+        private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
+        {
+            // usual case:
+            if (SyntaxFactory.AreEquivalent(left, right))
+            {
+                return true;
+            }
+
+            return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right);
+        }
+
         internal override SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
         {
             return SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode);
@@ -750,49 +761,49 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // fixed and for statements don't need special handling since the active statement is a variable declaration
                 default:
-                    return SyntaxFactory.AreEquivalent(oldStatement, newStatement);
+                    return AreEquivalentIgnoringLambdaBodies(oldStatement, newStatement);
             }
         }
 
         private static bool AreEquivalentActiveStatements(IfStatementSyntax oldNode, IfStatementSyntax newNode)
         {
             // only check the condition, edits in the body are allowed:
-            return SyntaxFactory.AreEquivalent(oldNode.Condition, newNode.Condition);
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Condition, newNode.Condition);
         }
 
         private static bool AreEquivalentActiveStatements(WhileStatementSyntax oldNode, WhileStatementSyntax newNode)
         {
             // only check the condition, edits in the body are allowed:
-            return SyntaxFactory.AreEquivalent(oldNode.Condition, newNode.Condition);
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Condition, newNode.Condition);
         }
 
         private static bool AreEquivalentActiveStatements(DoStatementSyntax oldNode, DoStatementSyntax newNode)
         {
             // only check the condition, edits in the body are allowed:
-            return SyntaxFactory.AreEquivalent(oldNode.Condition, newNode.Condition);
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Condition, newNode.Condition);
         }
 
         private static bool AreEquivalentActiveStatements(SwitchStatementSyntax oldNode, SwitchStatementSyntax newNode)
         {
             // only check the expression, edits in the body are allowed:
-            return SyntaxFactory.AreEquivalent(oldNode.Expression, newNode.Expression);
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
         }
 
         private static bool AreEquivalentActiveStatements(LockStatementSyntax oldNode, LockStatementSyntax newNode)
         {
             // only check the expression, edits in the body are allowed:
-            return SyntaxFactory.AreEquivalent(oldNode.Expression, newNode.Expression);
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
         }
 
         private static bool AreEquivalentActiveStatements(FixedStatementSyntax oldNode, FixedStatementSyntax newNode)
         {
-            return SyntaxFactory.AreEquivalent(oldNode.Declaration, newNode.Declaration);
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Declaration, newNode.Declaration);
         }
 
         private static bool AreEquivalentActiveStatements(UsingStatementSyntax oldNode, UsingStatementSyntax newNode)
         {
             // only check the expression/declaration, edits in the body are allowed:
-            return SyntaxFactory.AreEquivalent(
+            return AreEquivalentIgnoringLambdaBodies(
                 (SyntaxNode)oldNode.Declaration ?? oldNode.Expression,
                 (SyntaxNode)newNode.Declaration ?? newNode.Expression);
         }
@@ -800,8 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private static bool AreEquivalentActiveStatements(ForEachStatementSyntax oldNode, ForEachStatementSyntax newNode)
         {
             // This is conservative, we might be able to allow changing the type.
-            return SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type)
-                && SyntaxFactory.AreEquivalent(oldNode.Expression, newNode.Expression);
+            return AreEquivalentIgnoringLambdaBodies(oldNode.Type, newNode.Type)
+                && AreEquivalentIgnoringLambdaBodies(oldNode.Expression, newNode.Expression);
         }
 
         internal override bool IsMethod(SyntaxNode declaration)

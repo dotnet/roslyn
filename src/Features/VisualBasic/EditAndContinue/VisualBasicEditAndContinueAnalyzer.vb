@@ -819,6 +819,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return SyntaxFactory.AreEquivalent(left, right)
         End Function
 
+        Private Shared Function AreEquivalentIgnoringLambdaBodies(left As SyntaxNode, right As SyntaxNode) As Boolean
+            ' usual case
+            If SyntaxFactory.AreEquivalent(left, right) Then
+                Return True
+            End If
+
+            Return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right)
+        End Function
+
         Protected Overrides Function AreEquivalentActiveStatements(oldStatement As SyntaxNode, newStatement As SyntaxNode, statementPart As Integer) As Boolean
             If oldStatement.RawKind <> newStatement.RawKind Then
                 Return False
@@ -827,9 +836,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' Dim a,b,c As <NewExpression>
             ' We need to check the actual initializer expression in addition to the identifier.
             If HasMultiInitializer(oldStatement) Then
-                Return SyntaxFactory.AreEquivalent(oldStatement, newStatement) AndAlso
-                       SyntaxFactory.AreEquivalent(DirectCast(oldStatement.Parent, VariableDeclaratorSyntax).AsClause,
-                                                   DirectCast(newStatement.Parent, VariableDeclaratorSyntax).AsClause)
+                Return AreEquivalentIgnoringLambdaBodies(oldStatement, newStatement) AndAlso
+                       AreEquivalentIgnoringLambdaBodies(DirectCast(oldStatement.Parent, VariableDeclaratorSyntax).AsClause,
+                                                         DirectCast(newStatement.Parent, VariableDeclaratorSyntax).AsClause)
             End If
 
             Select Case oldStatement.Kind
@@ -848,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return True
 
                 Case Else
-                    Return SyntaxFactory.AreEquivalent(oldStatement, newStatement)
+                    Return AreEquivalentIgnoringLambdaBodies(oldStatement, newStatement)
             End Select
         End Function
 
@@ -3124,20 +3133,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
             ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, SyntaxKind.SyncLockBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
                 areSimilar:=Nothing)
 
             ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, SyntaxKind.WithBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.WithStatement.Expression, n2.WithStatement.Expression),
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
                 areSimilar:=Nothing)
 
             ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, SyntaxKind.UsingBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
                 areSimilar:=Nothing)
 
             ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, SyntaxKind.ForEachBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
-                areSimilar:=Function(n1, n2) SyntaxFactory.AreEquivalent(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
+                areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
 #End Region

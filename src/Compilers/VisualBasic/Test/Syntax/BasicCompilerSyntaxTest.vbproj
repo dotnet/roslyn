@@ -148,6 +148,7 @@
     <Compile Include="Scanner\XmlScannerTests.vb" />
     <Compile Include="Syntax\ConstantExpressionEvaluatorTests.vb" />
     <Compile Include="Syntax\GeneratedTests.vb" />
+    <Compile Include="Syntax\LambdaUtilitiesTests.vb" />
     <Compile Include="Syntax\ManualTests.vb" />
     <Compile Include="Syntax\SeparatedSyntaxListTests.vb" />
     <Compile Include="Syntax\SerializationTests.vb" />
