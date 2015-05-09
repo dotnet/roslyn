@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             DataContext = viewModel;
 
             Loaded += ChangeSignatureDialog_Loaded;
-            ContentRendered += ChangeSignatureDialog_ContentRendered;
+            IsVisibleChanged += ChangeSignatureDialog_IsVisibleChanged;
         }
 
         private void ChangeSignatureDialog_Loaded(object sender, RoutedEventArgs e)
@@ -73,9 +73,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             Members.Focus();
         }
 
-        private void ChangeSignatureDialog_ContentRendered(object sender, EventArgs e)
+        private void ChangeSignatureDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            TEST_DialogLoaded?.Invoke();
+            if ((bool)e.NewValue)
+            {
+                IsVisibleChanged -= ChangeSignatureDialog_IsVisibleChanged;
+                TEST_DialogLoaded?.Invoke();
+            }
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
