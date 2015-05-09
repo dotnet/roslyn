@@ -60,10 +60,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         return;
                     }
 
-                    Task.Factory.SafeStartNew(
-                        () => NavigateOnForegroundThread(sourceLocation, symbolId, project, document),
-                        CancellationToken.None,
-                        ForegroundTaskScheduler);
+                    if (IsForeground())
+                    {
+                        // If we are already on the UI thread, invoke NavigateOnForegroundThread
+                        // directly to preserve any exsting NewDocumentStateScope.
+                        NavigateOnForegroundThread(sourceLocation, symbolId, project, document);
+                    }
+                    else
+                    {
+                        // Navigation must be performed on the UI thread. If we are invoked from a
+                        // background thread then the current NewDocumentStateScope is unrelated to
+                        // this navigation and it is safe to continue on the UI thread 
+                        // asynchronously.
+                        Task.Factory.SafeStartNew(
+                            () => NavigateOnForegroundThread(sourceLocation, symbolId, project, document),
+                            CancellationToken.None,
+                            ForegroundTaskScheduler);
+                    }
                 }
             }
         }
