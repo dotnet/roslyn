@@ -92,16 +92,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         return false;
                     }
 
+                    // The PointTrackingMode should not matter because we are not tracking between
+                    // versions, and the PositionAffinity is set towards the identifier.
+                    var newPointInView = view.BufferGraph.MapUpToBuffer(
+                        newPoint,
+                        PointTrackingMode.Negative,
+                        lineStart ? PositionAffinity.Successor : PositionAffinity.Predecessor,
+                        view.TextBuffer);
+
+                    if (!newPointInView.HasValue)
+                    {
+                        return false;
+                    }
+
                     if (extendSelection)
                     {
-                        view.Selection.Select(view.Selection.AnchorPoint, new VirtualSnapshotPoint(newPoint));
+                        view.Selection.Select(view.Selection.AnchorPoint, new VirtualSnapshotPoint(newPointInView.Value));
                     }
                     else
                     {
                         view.Selection.Clear();
                     }
 
-                    view.Caret.MoveTo(newPoint);
+                    view.Caret.MoveTo(newPointInView.Value);
                     return true;
                 }
             }
