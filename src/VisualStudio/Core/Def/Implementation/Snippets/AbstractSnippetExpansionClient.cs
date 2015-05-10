@@ -355,6 +355,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var buffer = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextBuffer);
+            if (buffer == null)
+            {
+                // Without a buffer adapter we cannot find the IVsExpansion
+                return false;
+            }
+
             buffer.GetLineIndexOfPosition(surfaceBufferSpan.Start.Position, out startLine, out startIndex);
             buffer.GetLineIndexOfPosition(surfaceBufferSpan.End.Position, out endLine, out endIndex);
 
