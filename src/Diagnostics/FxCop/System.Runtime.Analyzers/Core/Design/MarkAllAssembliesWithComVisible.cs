@@ -14,8 +14,8 @@ namespace System.Runtime.Analyzers
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAllAssembliesWithComVisible), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAllAssembliesWithComVisibleDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
-        private static readonly LocalizableString s_localizableMessageA = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.CA1017_AttributeTrue), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessageB = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.CA1017_NoAttribute), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageA = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.ChangeAssemblyLevelComVisibleToFalse), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageB = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.AddAssemblyLevelComVisibleFalse), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static readonly DiagnosticDescriptor RuleA = new DiagnosticDescriptor(RuleId,
                                                                                        s_localizableTitle,
