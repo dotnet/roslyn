@@ -24,12 +24,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly ElasticMarker As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia)
         Private Shared ReadOnly s_elasticMarkerList As SyntaxTriviaList = SyntaxFactory.TriviaList(CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia))
 
-        Public Shared Function Whitespace(text As String, Optional elastic As Boolean = True) As SyntaxTrivia
-            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic), SyntaxTrivia)
+        Public Shared Function Whitespace(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic:=False), SyntaxTrivia)
+
+        End Function
+        Public Shared Function ElasticWhitespace(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic:=True), SyntaxTrivia)
         End Function
 
-        Public Shared Function EndOfLine(text As String, Optional elastic As Boolean = True) As SyntaxTrivia
-            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic), SyntaxTrivia)
+        Public Shared Function EndOfLine(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic:=False), SyntaxTrivia)
+        End Function
+
+        Public Shared Function ElasticEndOfLine(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic:=True), SyntaxTrivia)
         End Function
 
         ''' <summary> 

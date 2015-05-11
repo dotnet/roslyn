@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override SyntaxTrivia CreateWhitespace(string text)
         {
-            return SyntaxFactory.Whitespace(text, elastic: false);
+            return SyntaxFactory.Whitespace(text);
         }
 
         protected override SyntaxTrivia CreateEndOfLine()
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (_newLine == default(SyntaxTrivia))
             {
                 var text = this.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
-                _newLine = SyntaxFactory.EndOfLine(text, elastic: false);
+                _newLine = SyntaxFactory.EndOfLine(text);
             }
 
             return _newLine;

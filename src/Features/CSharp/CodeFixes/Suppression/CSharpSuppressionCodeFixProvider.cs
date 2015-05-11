@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var ids = new SeparatedSyntaxList<ExpressionSyntax>().Add(id);
             var pragmaDirective = SyntaxFactory.PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
             var pragmaDirectiveTrivia = SyntaxFactory.Trivia(pragmaDirective.WithAdditionalAnnotations(Formatter.Annotation));
-            var endOfLineTrivia = SyntaxFactory.EndOfLine(@"
-");
+            var endOfLineTrivia = SyntaxFactory.CarriageReturnLineFeed;
             var triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia);
 
             var title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture);
@@ -153,8 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                 attributeList = SyntaxFactory.AttributeList(attributes);
             }
 
-            var endOfLineTrivia = SyntaxFactory.EndOfLine(@"
-");
+            var endOfLineTrivia = SyntaxFactory.CarriageReturnLineFeed;
             var triviaList = SyntaxFactory.TriviaList();
 
             if (needsLeadingEndOfLine)

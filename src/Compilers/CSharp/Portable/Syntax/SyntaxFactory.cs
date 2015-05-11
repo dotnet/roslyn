@@ -87,14 +87,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a trivia with kind EndOfLineTrivia containing the specified text. 
         /// </summary>
-        /// <param name="text">The text of the trivia. Any text can be specified here, however only carriage return and
+        /// <param name="text">The text of the end of line. Any text can be specified here, however only carriage return and
         /// line feed characters are recognized by the parser as end of line.</param>
-        /// <param name="elastic">If true, the trivia produced is an elastic trivia. Elastic trivia are used to denote
-        /// trivia that was not produced by parsing source text, and are usually not preserved during
-        /// formatting.</param>
-        public static SyntaxTrivia EndOfLine(string text, bool elastic = true)
+        public static SyntaxTrivia EndOfLine(string text)
         {
-            return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic);
+            return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic: false);
+        }
+
+        /// <summary>
+        /// Creates a trivia with kind EndOfLineTrivia containing the specified text. Elastic trivia are used to
+        /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
+        /// </summary>
+        /// <param name="text">The text of the end of line. Any text can be specified here, however only carriage return and
+        /// line feed characters are recognized by the parser as end of line.</param>
+        public static SyntaxTrivia ElasticEndOfLine(string text)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic: true);
         }
 
         /// <summary>
@@ -102,12 +110,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="text">The text of the whitespace. Any text can be specified here, however only specific
         /// whitespace characters are recognized by the parser.</param>
-        /// <param name="elastic">If true, the trivia produced is an elastic trivia. Elastic trivia are used to denote
-        /// trivia that was not produced by parsing source text, and are usually not preserved during
-        /// formatting.</param>
-        public static SyntaxTrivia Whitespace(string text, bool elastic = true)
+        public static SyntaxTrivia Whitespace(string text)
         {
-            return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic);
+            return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic: false);
+        }
+
+        /// <summary>
+        /// Creates a trivia with kind WhitespaceTrivia containing the specified text. Elastic trivia are used to
+        /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
+        /// </summary>
+        /// <param name="text">The text of the whitespace. Any text can be specified here, however only specific
+        /// whitespace characters are recognized by the parser.</param>
+        public static SyntaxTrivia ElasticWhitespace(string text)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic: false);
         }
 
         /// <summary>
