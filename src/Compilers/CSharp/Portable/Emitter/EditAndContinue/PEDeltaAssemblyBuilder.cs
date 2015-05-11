@@ -157,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return anonymousTypes;
         }
 
-        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)
+        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod)
         {
-            return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method);
+            return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method, topLevelMethod);
         }
 
         internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()

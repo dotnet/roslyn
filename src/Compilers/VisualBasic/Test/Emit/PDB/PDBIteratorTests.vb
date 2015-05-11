@@ -42,9 +42,9 @@ End Module
         <method containingType="Program+_Closure$__+VB$StateMachine___Lambda$__0-0" name="MoveNext">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="20" offset="-1"/>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="20" offset="4"/>
+                    <slot kind="27" offset="4"/>
+                    <slot kind="21" offset="4"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>

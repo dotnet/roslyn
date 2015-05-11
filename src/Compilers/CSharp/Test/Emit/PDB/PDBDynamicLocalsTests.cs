@@ -988,7 +988,7 @@ class Test
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
         <encLocalSlotMap>
-          <slot kind=""0"" offset=""10"" />
+          <slot kind=""0"" offset=""73"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>

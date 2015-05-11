@@ -519,8 +519,8 @@ End Class
     <method containingType=""C"" name=""_Lambda$__2-0"">
       <customDebugInfo>
         <encLocalSlotMap>
-          <slot kind=""21"" offset=""-1"" />
-          <slot kind=""4"" offset=""0"" />
+          <slot kind=""21"" offset=""48"" />
+          <slot kind=""4"" offset=""80"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>

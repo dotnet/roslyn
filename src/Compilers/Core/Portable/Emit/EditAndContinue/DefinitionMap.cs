@@ -151,10 +151,11 @@ namespace Microsoft.CodeAnalysis.Emit
         protected abstract ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo);
         protected abstract ITypeSymbol TryGetStateMachineType(Handle methodHandle);
 
-        internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method)
+        internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method, IMethodSymbol topLevelMethod)
         {
+            // Top-level methods are always included in the semantic edit list. Lambda methods are not.
             MappedMethod mappedMethod;
-            if (!this.mappedMethods.TryGetValue(method, out mappedMethod))
+            if (!this.mappedMethods.TryGetValue(topLevelMethod, out mappedMethod))
             {
                 return null;
             }

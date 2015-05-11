@@ -3972,5 +3972,133 @@ End Class
                 "C.VB$StateMachine_1#1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}",
                 "C.VB$StateMachine_3#4_H: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
         End Sub
+
+        <Fact>
+        Public Sub UpdateAsyncLambda()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Sub F()
+        Dim <N:0>g1</N:0> = <N:1>Async Function()
+                                    Await A1()
+                                    Await A2()
+                                 End Function</N:1>
+    End Sub
+
+    Shared Function A1() As Task(Of Boolean)
+        Return Nothing
+    End Function
+
+    Shared Function A2() As Task(Of Integer)
+        Return Nothing
+    End Function
+
+    Shared Function A3() As Task(Of Double)
+        Return Nothing
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Sub F()
+        Dim <N:0>g1</N:0> = <N:1>Async Function()
+                                    Await A2()
+                                    Await A1()
+                                 End Function</N:1>
+    End Sub
+
+    Shared Function A1() As Task(Of Boolean)
+        Return Nothing
+    End Function
+
+    Shared Function A2() As Task(Of Integer)
+        Return Nothing
+    End Function
+
+    Shared Function A3() As Task(Of Double)
+        Return Nothing
+    End Function
+End Class
+")
+            Dim source2 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Sub F()
+        Dim <N:0>g1</N:0> = <N:1>Async Function()
+                                    Await A1()
+                                    Await A2()
+                                 End Function</N:1>
+    End Sub
+
+    Shared Function A1() As Task(Of Boolean)
+        Return Nothing
+    End Function
+
+    Shared Function A2() As Task(Of Integer)
+        Return Nothing
+    End Function
+
+    Shared Function A3() As Task(Of Double)
+        Return Nothing
+    End Function
+End Class")
+
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0, symbolValidator:=
+                Sub([module])
+                    Assert.Equal(
+                    {
+                         "$State: System.Int32",
+                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
+                         "$VB$NonLocal__Closure$__: C._Closure$__",
+                         "$A0: System.Runtime.CompilerServices.TaskAwaiter(Of System.Boolean)",
+                         "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of System.Int32)"
+                    }, [module].GetFieldNamesAndTypes("C._Closure$__.VB$StateMachine___Lambda$__1-0"))
+                End Sub)
+
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            ' note that the types of the awaiter fields $A0, $A1 are the same as in the previous generation
+            diff1.VerifySynthesizedFields("C._Closure$__.VB$StateMachine___Lambda$__1-0",
+                "$State: Integer",
+                "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
+                "$VB$NonLocal__Closure$__: C._Closure$__",
+                "$A0: System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)",
+                "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of Integer)")
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            ' note that the types of the awaiter fields $A0, $A1 are the same as in the previous generation
+            diff2.VerifySynthesizedFields("C._Closure$__.VB$StateMachine___Lambda$__1-0",
+                "$State: Integer",
+                "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
+                "$VB$NonLocal__Closure$__: C._Closure$__",
+                "$A0: System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)",
+                "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of Integer)")
+
+        End Sub
     End Class
 End Namespace

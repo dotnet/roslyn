@@ -153,8 +153,8 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" />
         <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""54"" />
+          <slot kind=""30"" offset=""56"" />
+          <slot kind=""0"" offset=""110"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
@@ -324,8 +324,8 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" />
         <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""54"" />
+          <slot kind=""30"" offset=""56"" />
+          <slot kind=""0"" offset=""110"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
