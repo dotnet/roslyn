@@ -2851,6 +2851,7 @@ End Class
             End Sub
 
             <WorkItem(1193, "https://github.com/dotnet/roslyn/issues/1193")>
+            <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
             <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub MemberQualificationInNameOfUsesTypeName_InstanceReferencingInstance()
                 Using result = RenameEngineResult.Create(
@@ -2858,8 +2859,8 @@ End Class
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document>
 Class C
-    Sub F([|$$z|] As Integer)
-        Dim x = NameOf({|ref:zoo|})
+    Sub F([|$$z|] As String)
+        F(NameOf({|ref:zoo|}).ToString())
     End Sub
 
     Dim zoo As Integer
@@ -2868,7 +2869,7 @@ End Class
                         </Project>
                     </Workspace>, renameTo:="zoo")
 
-                    result.AssertLabeledSpansAre("ref", "Dim x = NameOf(C.zoo)", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("ref", "F(NameOf(C.zoo).ToString())", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
         End Class

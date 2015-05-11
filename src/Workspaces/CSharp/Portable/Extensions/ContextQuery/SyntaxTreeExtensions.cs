@@ -2117,71 +2117,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel semanticModelOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            token = token.GetPreviousTokenIfTouchingWord(position);
 
-            // nameof(Foo.|
-            // nameof(Foo.Bar.|
-            // Locate the open paren.
-            if (token.IsKind(SyntaxKind.DotToken))
+            
+
+            var invocationExpression = token.GetAncestor(a => a.IsKind(SyntaxKind.InvocationExpression)) as InvocationExpressionSyntax;
+
+            if (invocationExpression != null && 
+                invocationExpression.Expression.IsKind(SyntaxKind.IdentifierName) &&
+                ((IdentifierNameSyntax)invocationExpression.Expression).Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword))
             {
-                // Could have been parsed as member access
-                if (token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                {
-                    var parentMemberAccess = token.Parent;
-                    while (parentMemberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
-                    {
-                        parentMemberAccess = parentMemberAccess.Parent;
-                    }
-
-                    if (parentMemberAccess.IsParentKind(SyntaxKind.Argument) &&
-                        parentMemberAccess.Parent.IsChildNode<ArgumentListSyntax>(a => a.Arguments.FirstOrDefault()))
-                    {
-                        token = ((ArgumentListSyntax)parentMemberAccess.Parent.Parent).OpenParenToken;
-                    }
-                }
-
-                // Could have been parsed as a qualified name.
-                if (token.Parent.IsKind(SyntaxKind.QualifiedName))
-                {
-                    var parentQualifiedName = token.Parent;
-                    while (parentQualifiedName.IsParentKind(SyntaxKind.QualifiedName))
-                    {
-                        parentQualifiedName = parentQualifiedName.Parent;
-                    }
-
-                    if (parentQualifiedName.IsParentKind(SyntaxKind.Argument) &&
-                        parentQualifiedName.Parent.IsChildNode<ArgumentListSyntax>(a => a.Arguments.FirstOrDefault()))
-                    {
-                        token = ((ArgumentListSyntax)parentQualifiedName.Parent.Parent).OpenParenToken;
-                    }
-                }
-            }
-
-            ExpressionSyntax parentExpression = null;
-
-            // if the nameof expression has a missing close paren, it is parsed as an invocation expression.
-            if (token.Parent.IsKind(SyntaxKind.ArgumentList) &&
-                token.Parent.IsParentKind(SyntaxKind.InvocationExpression))
-            {
-                var invocationExpression = (InvocationExpressionSyntax)token.Parent.Parent;
-                if (!invocationExpression.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
-                    !invocationExpression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                    !invocationExpression.IsParentKind(SyntaxKind.PointerMemberAccessExpression) &&
-                    invocationExpression.Expression.IsKind(SyntaxKind.IdentifierName) &&
-                    ((IdentifierNameSyntax)invocationExpression.Expression).Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword))
-                {
-                    parentExpression = invocationExpression;
-                }
-            }
-
-            if (parentExpression != null)
-            {
-                if (semanticModelOpt == null)
-                {
-                    return true;
-                }
-
-                return semanticModelOpt.GetSymbolInfo(parentExpression, cancellationToken).Symbol == null;
+                return semanticModelOpt != null
+                    ? semanticModelOpt.GetSymbolInfo(invocationExpression, cancellationToken).Symbol == null
+                    : true;
             }
 
             return false;
