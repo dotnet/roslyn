@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             // Storing the actual values
             ClassName = className;
             GenerateTypeDialogOptions = generateTypeDialogOptions;
-            var defaultNamespace = projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
+
             return new GenerateTypeOptionsResult(
                 accessibility: Accessibility,
                 typeKind: TypeKind,
@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
                 fullFilePath: FullFilePath,
                 existingDocument: ExistingDocument,
                 areFoldersValidIdentifiers: AreFoldersValidIdentifiers,
-                defaultNamespace: defaultNamespace,
                 isCancelled: IsCancelled);
         }
 

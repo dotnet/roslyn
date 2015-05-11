@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
 
                     var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
-                    var defaultNamespace = _generateTypeOptionsResult.DefaultNamespace;
+                    var defaultNamespace = projectManagementService.GetDefaultNamespace(targetProject, targetProject.Solution.Workspace);
 
                     // Case 1 : If the type is generated into the same C# project or
                     // Case 2 : If the type is generated from a C# project to a C# Project

@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
         public string FullFilePath { get; }
         public string TypeName { get; }
         public bool AreFoldersValidIdentifiers { get; }
-        public string DefaultNamespace { get; }
 
         public GenerateTypeOptionsResult(
             Accessibility accessibility,
@@ -32,7 +31,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             string fullFilePath,
             Document existingDocument,
             bool areFoldersValidIdentifiers,
-            string defaultNamespace,
             bool isCancelled = false)
         {
             this.Accessibility = accessibility;
@@ -45,7 +43,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             this.FullFilePath = fullFilePath;
             this.ExistingDocument = existingDocument;
             this.AreFoldersValidIdentifiers = areFoldersValidIdentifiers;
-            this.DefaultNamespace = defaultNamespace;
             this.IsCancelled = isCancelled;
         }
 
