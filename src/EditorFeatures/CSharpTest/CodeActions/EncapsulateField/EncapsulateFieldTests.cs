@@ -912,7 +912,10 @@ partial class Program {
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void ErrorTolerance()
         {
-            var text = @"a b c [|b|]";
+            var text = @"class Program 
+{
+    a b c [|b|]
+}";
 
             using (var workspace = CreateWorkspaceFromFile(text, null, null))
             {
