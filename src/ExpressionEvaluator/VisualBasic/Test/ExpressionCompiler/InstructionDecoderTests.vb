@@ -371,6 +371,25 @@ End Class"
                 GetName(source, "C.M", DkmVariableInfoFlags.Types Or DkmVariableInfoFlags.Names))
         End Sub
 
+        <Fact, WorkItem(1154945, "DevDiv")>
+        Public Sub GetNameIncorrectNumberOfArgumentValues()
+            Dim source = "
+Class C
+    Sub M(x As Integer, y As Integer)
+    End Sub
+End Class"
+            Dim expected = "C.M(Integer x, Integer y)"
+
+            Assert.Equal(expected,
+                GetName(source, "C.M", DkmVariableInfoFlags.Types Or DkmVariableInfoFlags.Names, argumentValues:={}))
+
+            Assert.Equal(expected,
+                GetName(source, "C.M", DkmVariableInfoFlags.Types Or DkmVariableInfoFlags.Names, argumentValues:={"1"}))
+
+            Assert.Equal(expected,
+                GetName(source, "C.M", DkmVariableInfoFlags.Types Or DkmVariableInfoFlags.Names, argumentValues:={"1", "2", "3"}))
+        End Sub
+
         <Fact>
         Public Sub GetReturnTypeNamePrimitive()
             Dim source = "
@@ -458,7 +477,6 @@ End Class"
             Dim includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names)
             Dim builder As ArrayBuilder(Of String) = Nothing
             If argumentValues IsNot Nothing Then
-                Assert.InRange(argumentValues.Length, 1, Integer.MaxValue)
                 builder = ArrayBuilder(Of String).GetInstance()
                 builder.AddRange(argumentValues)
             End If
