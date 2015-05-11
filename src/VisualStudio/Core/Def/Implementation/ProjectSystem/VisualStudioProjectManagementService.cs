@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.Progression;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -39,10 +38,7 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
 
                 try
                 {
-                    UIThread.Invoke(new System.Action(() =>
-                    {
-                        defaultNamespace = (string)envDTEProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
-                    }));
+                    defaultNamespace = (string)envDTEProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
                 }
                 catch (ArgumentException)
                 {
