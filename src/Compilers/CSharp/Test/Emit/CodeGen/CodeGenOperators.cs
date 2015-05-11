@@ -3362,7 +3362,7 @@ False");
 
         [WorkItem(539398, "DevDiv")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3398,7 +3398,7 @@ Infinity");
 
         [WorkItem(539398, "DevDiv")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3435,7 +3435,7 @@ Infinity");
         // NOTE: decimal doesn't have infinity, so we convert to double.
         [WorkItem(539398, "DevDiv")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestDecimalNegativeZero()
         {
             var text = @"
