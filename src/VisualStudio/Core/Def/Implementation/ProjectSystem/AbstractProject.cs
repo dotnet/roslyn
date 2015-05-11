@@ -560,6 +560,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private bool TransitivelyReferences(ProjectId projectId)
         {
+            return TransitivelyReferencesWorker(projectId, new HashSet<ProjectId>());
+        }
+
+        private bool TransitivelyReferencesWorker(ProjectId projectId, HashSet<ProjectId> visited)
+        {
+            visited.Add(this.Id);
+
             foreach (var pr in this._projectReferences)
             {
                 if (projectId == pr.ProjectId)
@@ -567,12 +574,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return true;
                 }
 
-                var project = this.ProjectTracker.GetProject(pr.ProjectId);
-                if (project != null)
+                if (!visited.Contains(pr.ProjectId))
                 {
-                    if (project.TransitivelyReferences(projectId))
+                    var project = this.ProjectTracker.GetProject(pr.ProjectId);
+                    if (project != null)
                     {
-                        return true;
+                        if (project.TransitivelyReferencesWorker(projectId, visited))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
