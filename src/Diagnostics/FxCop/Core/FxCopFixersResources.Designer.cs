@@ -142,6 +142,33 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make &apos;{0}&apos; protected..
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesFix1 {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesFix1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change &apos;{0}&apos; to a public interface implementation..
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesFix2 {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesFix2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make the containing type &apos;{0}&apos; sealed..
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesFix3 {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesFix3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove empty finalizers.
         /// </summary>
         internal static string RemoveEmptyFinalizers {

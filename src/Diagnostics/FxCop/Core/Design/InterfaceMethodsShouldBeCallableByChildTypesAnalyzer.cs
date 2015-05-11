@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public abstract class InterfaceMethodsShouldBeCallableByChildTypesAnalyzer<TInvocationExpressionSyntax> : DiagnosticAnalyzer
         where TInvocationExpressionSyntax: SyntaxNode
     {
-        private const string RuleId = "CA1033";
+        internal const string RuleId = "CA1033";
 
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceMethodsShouldBeCallableByChildTypesTitle), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceMethodsShouldBeCallableByChildTypesMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
