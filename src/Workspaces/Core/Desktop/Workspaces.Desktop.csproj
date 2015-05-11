@@ -115,7 +115,6 @@
     </Compile>
     <Compile Include="Workspace\CommandLineProject.cs" />
     <Compile Include="Workspace\FileTextLoader.cs" />
-    <Compile Include="Workspace\Host\CommandLineArgumentsFactory\ICommandLineArgumentsFactoryService.cs" />
     <Compile Include="Workspace\Host\Documentation\DocumentationProviderServiceFactory.cs" />
     <Compile Include="Workspace\Host\Mef\DesktopMefHostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />

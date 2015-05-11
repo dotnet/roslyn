@@ -23,6 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return LanguageNames.CSharp; }
         }
 
+        public IMSBuildHost MSBuildHost
+        {
+            get { return _workspaceServices.GetLanguageServices(Language).GetService<IMSBuildHost>(); }
+        }
+
+        public ICommandLineArgumentsFactoryService CommandLineArgumentsFactoryService
+        {
+            get { return _workspaceServices.GetLanguageServices(Language).GetService<ICommandLineArgumentsFactoryService>(); }
+        }
+
         protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
         {
             return new CSharpProjectFile(this, loadedProject, _workspaceServices.GetService<IMetadataService>(), _workspaceServices.GetService<IAnalyzerService>());
