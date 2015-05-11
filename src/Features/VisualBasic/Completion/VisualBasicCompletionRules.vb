@@ -14,6 +14,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 MyBase.New(service)
             End Sub
 
+            Protected Overrides Function CompareMatches(leftMatch As PatternMatch, rightMatch As PatternMatch, leftItem As CompletionItem, rightItem As CompletionItem) As Integer
+                Dim diff As Integer
+                diff = PatternMatch.CompareType(leftMatch, rightMatch)
+                If diff <> 0 Then
+                    Return diff
+                End If
+
+                diff = PatternMatch.CompareCamelCase(leftMatch, rightMatch)
+                If diff <> 0 Then
+                    Return diff
+                End If
+
+                ' More important than the case sensitivity is that "left" isn't an argument name
+                Dim leftIsNamedArgument = TypeOf leftItem.CompletionProvider Is NamedParameterCompletionProvider
+                Dim rightIsNamedArgument = TypeOf rightItem.CompletionProvider Is NamedParameterCompletionProvider
+                If leftIsNamedArgument AndAlso Not rightIsNamedArgument Then
+                    Return 1
+                End If
+
+                diff = PatternMatch.CompareCase(leftMatch, rightMatch)
+                If diff <> 0 Then
+                    Return diff
+                End If
+
+                diff = PatternMatch.ComparePunctuation(leftMatch, rightMatch)
+                If diff <> 0 Then
+                    Return diff
+                End If
+
+                Return 0
+            End Function
+
             Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean?
                 If filterReason = CompletionFilterReason.BackspaceOrDelete Then
                     Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
