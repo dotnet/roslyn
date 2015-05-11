@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _containingType = containingType;
 
             EventAttributes mdFlags = 0;
-            Handle eventType = default(Handle);
+            EntityHandle eventType = default(EntityHandle);
 
             try
             {

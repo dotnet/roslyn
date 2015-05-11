@@ -553,7 +553,19 @@ partial struct C
                 {
                     var type = reader.GetTypeDefinition(typeHandle);
                     var name = reader.GetString(type.Name);
-                    var mdLayout = type.GetLayout();
+
+                    bool badLayout = false;
+                    System.Reflection.Metadata.TypeLayout mdLayout;
+                    try
+                    {
+                        mdLayout = type.GetLayout();
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        badLayout = true;
+                        mdLayout = default(System.Reflection.Metadata.TypeLayout);
+                    }
+
                     bool hasClassLayout = !mdLayout.IsDefault;
                     TypeLayout layout = module.Module.GetTypeLayout(typeHandle);
                     switch (name)
@@ -561,22 +573,14 @@ partial struct C
                         case "<Module>":
                             Assert.False(hasClassLayout);
                             Assert.Equal(default(TypeLayout), layout);
+                            Assert.False(badLayout);
                             break;
 
                         case "S1":
-                            // invalid size/pack value
-                            Assert.True(hasClassLayout);
-                            Assert.Equal(unchecked((int)0xaaaaaaaa), mdLayout.Size);
-                            Assert.Equal(0xffff, mdLayout.PackingSize);
-                            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), layout);
-                            break;
-
                         case "S2":
-                            // invalid size value
-                            Assert.True(hasClassLayout);
-                            Assert.Equal(-1, mdLayout.Size);
-                            Assert.Equal(0x0002, mdLayout.PackingSize);
-                            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 2), layout);
+                            // invalid size/pack value
+                            Assert.False(hasClassLayout);
+                            Assert.True(badLayout);
                             break;
 
                         case "S3":
@@ -584,6 +588,7 @@ partial struct C
                             Assert.Equal(1, mdLayout.Size);
                             Assert.Equal(2, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 1, alignment: 2), layout);
+                            Assert.False(badLayout);
                             break;
 
                         case "S4":
@@ -591,12 +596,14 @@ partial struct C
                             Assert.Equal(unchecked((int)0x12345678), mdLayout.Size);
                             Assert.Equal(0, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0x12345678, alignment: 0), layout);
+                            Assert.False(badLayout);
                             break;
 
                         case "S5":
                             // doesn't have layout
                             Assert.False(hasClassLayout);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0, alignment: 0), layout);
+                            Assert.False(badLayout);
                             break;
 
                         default:

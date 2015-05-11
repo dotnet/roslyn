@@ -851,7 +851,7 @@ public class C
                 var flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags;
                 //confirm file does not claim to be signed
                 Assert.Equal(0, (int)(flags & CorFlags.StrongNameSigned));
-                Handle token = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
+                EntityHandle token = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
                 Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
                 var attrInfos = metadata.Module.FindTargetAttributes(token, expectedModuleAttr);
                 Assert.Equal(1, attrInfos.Count());

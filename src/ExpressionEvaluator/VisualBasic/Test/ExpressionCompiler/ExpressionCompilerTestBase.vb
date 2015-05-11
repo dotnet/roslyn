@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             moduleVersionId = id
             symReader = DirectCast(moduleInstance.SymReader, ISymUnmanagedReader)
 
-            Dim methodOrTypeHandle As Handle
+            Dim methodOrTypeHandle As EntityHandle
             If methodOrType.Kind = SymbolKind.Method Then
                 methodOrTypeHandle = DirectCast(methodOrType, PEMethodSymbol).Handle
                 localSignatureToken = moduleInstance.GetLocalSignatureToken(CType(methodOrTypeHandle, MethodDefinitionHandle))
