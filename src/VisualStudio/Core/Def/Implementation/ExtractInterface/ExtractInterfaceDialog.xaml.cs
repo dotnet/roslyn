@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             DataContext = viewModel;
 
             Loaded += ExtractInterfaceDialog_Loaded;
-            ContentRendered += ExtractInterfaceDialog_ContentRendered;
+            IsVisibleChanged += ExtractInterfaceDialog_IsVisibleChanged;
         }
 
         private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
@@ -54,9 +54,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             interfaceNameTextBox.SelectAll();
         }
 
-        private void ExtractInterfaceDialog_ContentRendered(object sender, EventArgs e)
+        private void ExtractInterfaceDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            TEST_DialogLoaded?.Invoke();
+            if ((bool)e.NewValue)
+            {
+                IsVisibleChanged -= ExtractInterfaceDialog_IsVisibleChanged;
+                TEST_DialogLoaded?.Invoke();
+            }
         }
 
         private void SetCommandBindings()
