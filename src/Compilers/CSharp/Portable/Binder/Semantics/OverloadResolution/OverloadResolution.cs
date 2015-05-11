@@ -1146,7 +1146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EX to PX is better than the conversion from EX to QX.
 
             bool allSame = true; // Are all parameter types equivalent by identify conversions?
-            for (int i = 0; i < arguments.Count; ++i)
+            int i;
+            for (i = 0; i < arguments.Count; ++i)
             {
                 var argumentKind = arguments[i].Kind;
 
@@ -1186,9 +1187,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (okToDowngradeToNeither)
+                if (!considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                 {
-                    Debug.Assert(Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
+                    Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
                     allSame = false;
                 }
 
@@ -1237,7 +1238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    return BetterResult.Neither;
+                    result = BetterResult.Neither;
+                    break;
                 }
                 else
                 {
@@ -1266,6 +1268,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             GetParameterCounts(m1, arguments, out m1ParameterCount, out m1ParametersUsedIncludingExpansionAndOptional);
             GetParameterCounts(m2, arguments, out m2ParameterCount, out m2ParametersUsedIncludingExpansionAndOptional);
+
+            // We might have got out of the loop above early and allSame isn't completely calculated.
+            // We need to ensure that we are not going to skip over the next 'if' because of that.
+            if (allSame && m1ParametersUsedIncludingExpansionAndOptional == m2ParametersUsedIncludingExpansionAndOptional)
+            {
+                // Complete comparison for the remaining parameter types
+                for (i = i + 1; i < arguments.Count; ++i)
+                {
+                    var argumentKind = arguments[i].Kind;
+
+                    // If these are both applicable varargs methods and we're looking at the __arglist argument
+                    // then clearly neither of them is going to be better in this argument.
+                    if (argumentKind == BoundKind.ArgListOperator)
+                    {
+                        Debug.Assert(i == arguments.Count - 1);
+                        Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
+                        continue;
+                    }
+
+                    RefKind refKind1, refKind2;
+                    var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
+                    var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
+
+                    if (Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    {
+                        allSame = false;
+                        break;
+                    }
+                }
+            }
 
             // SPEC VIOLATION: When checking for matching parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN},
             //                 native compiler includes types of optinal parameters. We partially duplicate this behavior
@@ -1395,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
             var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
             var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            for (int i = 0; i < arguments.Count; ++i)
+            for (i = 0; i < arguments.Count; ++i)
             {
                 uninst1.Add(GetParameterType(i, m1.Result, m1Original));
                 uninst2.Add(GetParameterType(i, m2.Result, m2Original));
