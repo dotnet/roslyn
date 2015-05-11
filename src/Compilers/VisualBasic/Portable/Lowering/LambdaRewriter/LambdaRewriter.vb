@@ -888,12 +888,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
+            Dim variableSlotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
 
             ' In case of async/iterator lambdas, the method has already been uniquely named, so there is no need to
             ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
             Const methodOrdinal As Integer = -1
 
-            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, SlotAllocatorOpt, stateMachineTypeOpt)
+            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt:=variableSlotAllocatorOpt, stateMachineTypeOpt:=stateMachineTypeOpt) ' /* SlotAllocatorOpt:=Nothing*/
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode

@@ -1250,6 +1250,57 @@ End Class")
 }")
         End Sub
 
+        <WorkItem(1160391)>
+        <Fact>
+        Public Sub AddAsyncLambda()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim <N:0>g1</N:0> As Func(Of Task) = <N:1>Async Function()
+                                     Await Task.FromResult(1)
+                                 End Function</N:1>
+    End Sub
+End Class")
+
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim <N:0>g1</N:0> As Func(Of Task) = <N:1>Async Function()
+                                     Await Task.FromResult(1)
+                                 End Function</N:1>
+
+        Dim g2 As Func(Of Task) = Async Function()
+                                     Await Task.FromResult(2)
+                                 End Function
+    End Sub
+End Class")
+
+            Dim compilation0 = CreateCompilationWithReferences(source0.Tree, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1#1, _Lambda$__1-0, _Lambda$__1-1#1, VB$StateMachine___Lambda$__1-0, VB$StateMachine___Lambda$__1-1#1}",
+                "C._Closure$__.VB$StateMachine___Lambda$__1-0: {$State, $Builder, $VB$NonLocal__Closure$__, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
+                "C._Closure$__.VB$StateMachine___Lambda$__1-1#1: {$State, $Builder, $VB$NonLocal__Closure$__, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+        End Sub
+
         <Fact>
         Public Sub LambdasInInitializers()
             Dim source0 = MarkedSource("
