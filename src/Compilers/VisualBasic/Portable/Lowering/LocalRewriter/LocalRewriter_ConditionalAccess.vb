@@ -164,6 +164,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
+        Private Shared Function IsConditionalAccess(operand As BoundExpression, <Out> ByRef whenNotNull As BoundExpression, <Out> ByRef whenNull As BoundExpression) As Boolean
+            If operand.Kind = BoundKind.Sequence Then
+                Dim sequence = DirectCast(operand, BoundSequence)
+
+                If sequence.ValueOpt Is Nothing Then
+                    whenNotNull = Nothing
+                    whenNull = Nothing
+                    Return False
+                End If
+
+                operand = sequence.ValueOpt
+            End If
+
+            If operand.Kind = BoundKind.LoweredConditionalAccess Then
+                Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
+                whenNotNull = conditional.WhenNotNull
+                whenNull = conditional.WhenNullOpt
+                Return True
+            End If
+
+            whenNotNull = Nothing
+            whenNull = Nothing
+            Return False
+        End Function
+
+        Private Shared Function UpdateConditionalAccess(operand As BoundExpression, whenNotNull As BoundExpression, whenNull As BoundExpression) As BoundExpression
+            Dim sequence As BoundSequence
+
+            If operand.Kind = BoundKind.Sequence Then
+                sequence = DirectCast(operand, BoundSequence)
+                operand = sequence.ValueOpt
+            Else
+                sequence = Nothing
+            End If
+
+            Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
+
+            operand = conditional.Update(conditional.ReceiverOrCondition,
+                                         conditional.CaptureReceiver,
+                                         conditional.PlaceholderId,
+                                         whenNotNull,
+                                         whenNull,
+                                         whenNotNull.Type)
+
+            If sequence Is Nothing Then
+                Return operand
+            End If
+
+            Return sequence.Update(sequence.Locals, sequence.SideEffects, operand, operand.Type)
+        End Function
+
     End Class
 End Namespace
 
