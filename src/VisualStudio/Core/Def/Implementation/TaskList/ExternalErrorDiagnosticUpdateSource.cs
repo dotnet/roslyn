@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -25,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly IGlobalOperationNotificationService _notificationService;
 
         private readonly SimpleTaskQueue _taskQueue;
         private readonly IAsynchronousOperationListener _listener;
@@ -58,6 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _diagnosticService = diagnosticService;
+
+            _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
@@ -133,8 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
-                var service = _workspace.Services.GetService<IGlobalOperationNotificationService>();
-                using (var operation = service.Start("BuildDone"))
+                using (var operation = _notificationService.Start("BuildDone"))
                 {
                     // we will have a race here since we can't track version of solution the out of proc build actually used.
                     // result of the race will be us dropping some diagnostics from the build to the floor.
@@ -229,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
             if (diagnosticService == null)
             {
-                // we don't synchronize if implementation is not DiagnosticService
+                // we don't synchronize if implementation is not DiagnosticAnalyzerService
                 return;
             }
 
