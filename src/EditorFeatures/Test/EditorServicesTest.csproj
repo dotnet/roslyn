@@ -245,6 +245,7 @@
     <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="Diagnostics\TestHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Extensions\IBufferGraphExtensionsTests.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />

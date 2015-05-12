@@ -39,6 +39,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case BufferMapDirection.Down:
                     {
                         var spans = bufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
+
+                        // Workaround:
+                        // An elision buffer that elides an entire buffer (the length of the elision is 0)
+                        // will return two spans: the null span starting at 0, and a second span that's probably
+                        // the "real" span. 
+                        // If we need to map down from an elision buffer and get back two spans, we will ignore
+                        // the one that starts at 0.
+                        if (span.Snapshot.TextBuffer is IElisionBuffer && spans.Count > 1 && spans[0].Start == 0 && spans[0].Length == 0)
+                        {
+                            return (SnapshotSpan?)spans[1];
+                        }
+
                         return spans.Select(s => (SnapshotSpan?)s).FirstOrDefault();
                     }
 
