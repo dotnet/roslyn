@@ -121,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // them in the given order.
 
             // (1) Is there any argument without a corresponding parameter?
-            //
 
             if (unmatchedArgumentIndex != null)
             {
@@ -138,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (2) was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
 
-
             int? nameUsedForPositional = NameUsedForPositional(arguments, argsToParameters);
             if (nameUsedForPositional != null)
             {
@@ -148,10 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (3) Is there any non-optional parameter without a corresponding argument?
 
             int? requiredParameterMissing = CheckForMissingRequiredParameter(argsToParameters, parameters, isMethodGroupConversion, expanded);
-
             if (requiredParameterMissing != null)
             {
                 return ArgumentAnalysisResult.RequiredParameterMissing(requiredParameterMissing.Value);
+            }
+
+            // __arglist cannot be used with named arguments (as it doesn't have a name)
+            if (arguments.Names.Count != 0 && symbol.GetIsVararg())
+            {
+                return ArgumentAnalysisResult.RequiredParameterMissing(parameters.Length);
             }
 
             // We're good; this one might be applicable in the given form.

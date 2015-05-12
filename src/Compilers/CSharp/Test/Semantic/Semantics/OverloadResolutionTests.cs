@@ -8078,5 +8078,26 @@ class C
     Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(41, 16)
                 );
         }
+
+        [Fact, WorkItem(2631, "https://github.com/dotnet/roslyn/issues/2631")]
+        public void ArglistCompilerCrash()
+        {
+            var source =
+@"class Program
+{
+    static void M(object x) { }
+    static void M(object x, object y) { }
+    static void M(object x, object y, object z) { }
+    static void M(object x, object y, object z, __arglist) { }
+    static void M(object x, params object[] args) { }
+    static void Main(string[] args)
+    {
+        M(x: 1, y: 2, z: 3);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics();
+        }
+
     }
 }
