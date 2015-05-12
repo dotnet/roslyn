@@ -351,34 +351,69 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
         }
 
-        public override SyntaxNode AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode typeName)
+        public override SyntaxNode AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceTypeName, string interfaceMemberName)
         {
-            // C# interface implementations are implicit/not-specified
-            return PreserveTrivia(declaration, d => AsImplementation(d, Accessibility.Public));
+            // C# interface implementations are implicit/not-specified -- so they are just named the name as the interface member
+            return PreserveTrivia(declaration, d =>
+            {
+                d = AsImplementation(d, Accessibility.Public);
+
+                if (interfaceMemberName != null)
+                {
+                    d = WithName(d, interfaceMemberName);
+                }
+
+                return WithInterfaceSpecifier(d, null);
+            });
         }
 
-        public override SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode typeName)
+        public override SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceTypeName, string interfaceMemberName)
         {
             return PreserveTrivia(declaration, d =>
             {
-                var specifier = SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)typeName);
-
                 d = AsImplementation(d, Accessibility.NotApplicable);
 
-                switch (d.Kind())
+                if (interfaceMemberName != null)
                 {
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)d).WithExplicitInterfaceSpecifier(specifier);
-                    case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)d).WithExplicitInterfaceSpecifier(specifier);
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)d).WithExplicitInterfaceSpecifier(specifier);
-                    case SyntaxKind.EventDeclaration:
-                        return ((EventDeclarationSyntax)d).WithExplicitInterfaceSpecifier(specifier);
+                    d = WithName(d, interfaceMemberName);
                 }
 
-                return d;
+                return WithInterfaceSpecifier(d, SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)interfaceTypeName));
             });
+        }
+
+        private ExplicitInterfaceSpecifierSyntax GetInterfaceSpecifier(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)declaration).ExplicitInterfaceSpecifier;
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)declaration).ExplicitInterfaceSpecifier;
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)declaration).ExplicitInterfaceSpecifier;
+                case SyntaxKind.EventDeclaration:
+                    return ((EventDeclarationSyntax)declaration).ExplicitInterfaceSpecifier;
+                default:
+                    return null;
+            }
+        }
+
+        private SyntaxNode WithInterfaceSpecifier(SyntaxNode declaration, ExplicitInterfaceSpecifierSyntax specifier)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier);
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier);
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier);
+                case SyntaxKind.EventDeclaration:
+                    return ((EventDeclarationSyntax)declaration).WithExplicitInterfaceSpecifier(specifier);
+                default:
+                    return declaration;
+            }
         }
 
         private SyntaxNode AsImplementation(SyntaxNode declaration, Accessibility requiredAccess)

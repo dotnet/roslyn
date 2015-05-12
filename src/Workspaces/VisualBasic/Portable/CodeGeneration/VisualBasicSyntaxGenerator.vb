@@ -840,78 +840,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.EndRaiseEventStatement())
         End Function
 
-        Public Overrides Function AsPublicInterfaceImplementation(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
-            Return Isolate(declaration, Function(decl) AsPublicInterfaceImplementationInternal(decl, typeName))
+        Public Overrides Function AsPublicInterfaceImplementation(declaration As SyntaxNode, interfaceTypeName As SyntaxNode, interfaceMemberName As String) As SyntaxNode
+            Return Isolate(declaration, Function(decl) AsPublicInterfaceImplementationInternal(decl, interfaceTypeName, interfaceMemberName))
         End Function
 
-        Private Function AsPublicInterfaceImplementationInternal(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
-            Dim type = DirectCast(typeName, NameSyntax)
+        Private Function AsPublicInterfaceImplementationInternal(declaration As SyntaxNode, interfaceTypeName As SyntaxNode, interfaceMemberName As String) As SyntaxNode
+            Dim type = DirectCast(interfaceTypeName, NameSyntax)
 
             declaration = WithBody(declaration, allowDefault:=True)
             declaration = WithAccessibility(declaration, Accessibility.Public)
 
-            Dim method = TryCast(declaration, MethodBlockSyntax)
-            If method IsNot Nothing Then
-                Return method.WithSubOrFunctionStatement(
-                    method.SubOrFunctionStatement.WithImplementsClause(
-                        SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, SyntaxFactory.IdentifierName(method.SubOrFunctionStatement.Identifier)))))
-            End If
-
-            Dim prop = TryCast(declaration, PropertyBlockSyntax)
-            If prop IsNot Nothing Then
-                Return prop.WithPropertyStatement(
-                    prop.PropertyStatement.WithImplementsClause(
-                        SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, SyntaxFactory.IdentifierName(prop.PropertyStatement.Identifier)))))
-            End If
+            Dim memberName = If(interfaceMemberName IsNot Nothing, interfaceMemberName, GetMemberName(declaration))
+            declaration = WithName(declaration, memberName)
+            declaration = WithImplementsClause(declaration, SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, SyntaxFactory.IdentifierName(memberName))))
 
             Return declaration
         End Function
 
-        Public Overrides Function AsPrivateInterfaceImplementation(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
-            Return Isolate(declaration, Function(decl) AsPrivateInterfaceImplementationInternal(decl, typeName))
+        Public Overrides Function AsPrivateInterfaceImplementation(declaration As SyntaxNode, interfaceTypeName As SyntaxNode, interfaceMemberName As String) As SyntaxNode
+            Return Isolate(declaration, Function(decl) AsPrivateInterfaceImplementationInternal(decl, interfaceTypeName, interfaceMemberName))
         End Function
 
-        Private Function AsPrivateInterfaceImplementationInternal(declaration As SyntaxNode, typeName As SyntaxNode) As SyntaxNode
-            Dim type = DirectCast(typeName, NameSyntax)
+        Private Function AsPrivateInterfaceImplementationInternal(declaration As SyntaxNode, interfaceTypeName As SyntaxNode, interfaceMemberName As String) As SyntaxNode
+            Dim type = DirectCast(interfaceTypeName, NameSyntax)
 
-            ' convert declaration statements to blocks
             declaration = WithBody(declaration, allowDefault:=False)
             declaration = WithAccessibility(declaration, Accessibility.Private)
 
-            Dim method = TryCast(declaration, MethodBlockSyntax)
-            If method IsNot Nothing Then
-                Dim interfaceMemberName = SyntaxFactory.IdentifierName(method.SubOrFunctionStatement.Identifier)
-
-                ' original method's name is used for interface member's name
-                Dim memberName = SyntaxFactory.IdentifierName(method.SubOrFunctionStatement.Identifier)
-
-                ' change actual method name to hide it
-                method = method.WithSubOrFunctionStatement(
-                    method.SubOrFunctionStatement.WithIdentifier(SyntaxFactory.Identifier(GetNameAsIdentifier(typeName) & "_" & GetNameAsIdentifier(memberName))))
-
-                ' add implements clause
-                Return method.WithSubOrFunctionStatement(
-                    method.SubOrFunctionStatement.WithImplementsClause(
-                        SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, interfaceMemberName))))
-            End If
-
-            Dim prop = TryCast(declaration, PropertyBlockSyntax)
-            If prop IsNot Nothing Then
-                Dim interfaceMemberName = SyntaxFactory.IdentifierName(prop.PropertyStatement.Identifier)
-
-                ' original property's name is used as interface member's name
-                Dim memberName = SyntaxFactory.IdentifierName(prop.PropertyStatement.Identifier)
-
-                ' change actual property name to hide it
-                prop = prop.WithPropertyStatement(
-                    prop.PropertyStatement.WithIdentifier((GetNameAsIdentifier(typeName) & "_" & GetNameAsIdentifier(memberName)).ToIdentifierToken()))
-
-                Return prop.WithPropertyStatement(
-                    prop.PropertyStatement.WithImplementsClause(
-                        SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, interfaceMemberName))))
-            End If
+            Dim memberName = If(interfaceMemberName IsNot Nothing, interfaceMemberName, GetMemberName(declaration))
+            declaration = WithName(declaration, GetNameAsIdentifier(interfaceTypeName) & "_" & memberName)
+            declaration = WithImplementsClause(declaration, SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, SyntaxFactory.IdentifierName(memberName))))
 
             Return declaration
+        End Function
+
+        Private Function GetMemberName(declaration As SyntaxNode) As String
+            If GetImplementsClause(declaration) Is Nothing Then
+                Return GetName(declaration)
+            Else
+                Dim fullName = GetName(declaration)
+                If fullName IsNot Nothing Then
+                    Dim last = fullName.Split({"_"c}, StringSplitOptions.RemoveEmptyEntries).LastOrDefault()
+                    If last IsNot Nothing Then
+                        Return last
+                    End If
+                End If
+                Return fullName
+            End If
+        End Function
+
+        Private Function GetImplementsClause(declaration As SyntaxNode) As ImplementsClauseSyntax
+            Select Case declaration.Kind
+                Case SyntaxKind.SubBlock,
+                    SyntaxKind.FunctionBlock
+                    Return DirectCast(declaration, MethodBlockSyntax).SubOrFunctionStatement.ImplementsClause
+                Case SyntaxKind.SubStatement,
+                    SyntaxKind.FunctionStatement
+                    Return DirectCast(declaration, MethodStatementSyntax).ImplementsClause
+                Case SyntaxKind.PropertyBlock
+                    Return DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.ImplementsClause
+                Case SyntaxKind.PropertyStatement
+                    Return DirectCast(declaration, PropertyStatementSyntax).ImplementsClause
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+        Private Function WithImplementsClause(declaration As SyntaxNode, clause As ImplementsClauseSyntax) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.SubBlock,
+                    SyntaxKind.FunctionBlock
+                    Dim mb = DirectCast(declaration, MethodBlockSyntax)
+                    Return mb.WithSubOrFunctionStatement(mb.SubOrFunctionStatement.WithImplementsClause(clause))
+                Case SyntaxKind.SubStatement,
+                    SyntaxKind.FunctionStatement
+                    Return DirectCast(declaration, MethodStatementSyntax).WithImplementsClause(clause)
+                Case SyntaxKind.PropertyBlock
+                    Dim pb = DirectCast(declaration, PropertyBlockSyntax)
+                    Return pb.WithPropertyStatement(pb.PropertyStatement.WithImplementsClause(clause))
+                Case SyntaxKind.PropertyStatement
+                    Return DirectCast(declaration, PropertyStatementSyntax).WithImplementsClause(clause)
+                Case Else
+                    Return declaration
+            End Select
         End Function
 
         Private Function GetNameAsIdentifier(type As SyntaxNode) As String
@@ -1771,13 +1782,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                      SyntaxKind.SubStatement
                     Return DirectCast(declaration, MethodStatementSyntax).Identifier.ValueText
                 Case SyntaxKind.PropertyBlock
-                    If GetDeclarationKind(declaration) = DeclarationKind.Property Then
-                        Return DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.Identifier.ValueText
-                    End If
+                    Return DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.Identifier.ValueText
                 Case SyntaxKind.PropertyStatement
-                    If GetDeclarationKind(declaration) = DeclarationKind.Property Then
-                        Return DirectCast(declaration, PropertyStatementSyntax).Identifier.ValueText
-                    End If
+                    Return DirectCast(declaration, PropertyStatementSyntax).Identifier.ValueText
                 Case SyntaxKind.EventBlock
                     Return DirectCast(declaration, EventBlockSyntax).EventStatement.Identifier.ValueText
                 Case SyntaxKind.EventStatement
@@ -1859,13 +1866,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                      SyntaxKind.SubStatement
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, MethodStatementSyntax).Identifier, id)
                 Case SyntaxKind.PropertyBlock
-                    If GetDeclarationKind(declaration) = DeclarationKind.Property Then
-                        Return ReplaceWithTrivia(declaration, DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.Identifier, id)
-                    End If
+                    Return ReplaceWithTrivia(declaration, DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.Identifier, id)
                 Case SyntaxKind.PropertyStatement
-                    If GetDeclarationKind(declaration) = DeclarationKind.Property Then
-                        Return ReplaceWithTrivia(declaration, DirectCast(declaration, PropertyStatementSyntax).Identifier, id)
-                    End If
+                    Return ReplaceWithTrivia(declaration, DirectCast(declaration, PropertyStatementSyntax).Identifier, id)
                 Case SyntaxKind.EventBlock
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, EventBlockSyntax).EventStatement.Identifier, id)
                 Case SyntaxKind.EventStatement
