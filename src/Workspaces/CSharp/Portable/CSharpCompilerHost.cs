@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    [ExportLanguageService(typeof(IMSBuildHost), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpMSBuildHost : IMSBuildHost
+    [ExportLanguageService(typeof(IHostBuildDataFactory), LanguageNames.CSharp), Shared]
+    internal sealed class CSharpMSBuildHost : IHostBuildDataFactory
     {
-        public MSBuildData Create(MSBuildOptions options)
+        public HostBuildData Create(HostBuildOptions options)
         {
             var parseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);
             var compilationOptions = new CSharpCompilationOptions(
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(warnings);
-            return new MSBuildData(
+            return new HostBuildData(
                 parseOptions,
                 compilationOptions);
         }

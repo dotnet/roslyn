@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return LanguageNames.CSharp; }
         }
 
-        public IMSBuildHost MSBuildHost
+        public IHostBuildDataFactory MSBuildHost
         {
-            get { return _workspaceServices.GetLanguageServices(Language).GetService<IMSBuildHost>(); }
+            get { return _workspaceServices.GetLanguageServices(Language).GetService<IHostBuildDataFactory>(); }
         }
 
         public ICommandLineArgumentsFactoryService CommandLineArgumentsFactoryService

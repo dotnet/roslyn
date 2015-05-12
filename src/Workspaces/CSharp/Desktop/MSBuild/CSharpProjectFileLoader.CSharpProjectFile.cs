@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly IMetadataService _metadataService;
             private readonly IAnalyzerService _analyzerService;
-            private readonly IMSBuildHost _msbuildHost;
+            private readonly IHostBuildDataFactory _msbuildHost;
             private readonly ICommandLineArgumentsFactoryService _commandLineArgumentsFactoryService;
 
             public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService, IAnalyzerService analyzerService)
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly CSharpProjectFile _projectFile;
 
                 internal bool Initialized { get; private set; }
-                internal MSBuildOptions Options { get; private set; }
+                internal HostBuildOptions Options { get; private set; }
                 internal int CodePage { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var projectDirectory = Path.GetDirectoryName(projectFile.FilePath);
                     var outputDirectory = projectFile.GetOutputDirectory();
 
-                    this.Options = new MSBuildOptions();
+                    this.Options = new HostBuildOptions();
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();

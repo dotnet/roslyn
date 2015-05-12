@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class MSBuildOptions
+    internal sealed class HostBuildOptions
     {
         public string ProjectDirectory { get; set; }
         public string OutputDirectory { get; set; }
@@ -32,27 +32,27 @@ namespace Microsoft.CodeAnalysis
         public Tuple<bool, bool> DelaySign { get; set; }
         public Dictionary<string, ReportDiagnostic> Warnings { get; set; }
 
-        internal MSBuildOptions()
+        internal HostBuildOptions()
         {
             Warnings = new Dictionary<string, ReportDiagnostic>();
         }
     }
 
-    internal sealed class MSBuildData
+    internal sealed class HostBuildData
     {
         internal readonly ParseOptions ParseOptions;
 
         internal readonly CompilationOptions CompilationOptions;
 
-        internal MSBuildData(ParseOptions parseOptions, CompilationOptions compilationOptions)
+        internal HostBuildData(ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
             ParseOptions = parseOptions;
             CompilationOptions = compilationOptions;
         }
     }
 
-    internal interface IMSBuildHost : ILanguageService
+    internal interface IHostBuildDataFactory : ILanguageService
     {
-        MSBuildData Create(MSBuildOptions options);
+        HostBuildData Create(HostBuildOptions options);
     }
 }
