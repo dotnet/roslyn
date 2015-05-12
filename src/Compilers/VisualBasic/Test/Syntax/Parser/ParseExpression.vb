@@ -99,6 +99,7 @@ Public Class ParseExpressionTest
     Public Sub ParseIntegerLiteralTest()
         ParseExpression("&H1")
         ParseExpression("&O1")
+        ParseExpression("&B1")
     End Sub
 
     <Fact>
