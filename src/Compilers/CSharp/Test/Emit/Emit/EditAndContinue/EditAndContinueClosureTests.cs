@@ -1705,6 +1705,64 @@ class C
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
+        [WorkItem(1160391)]
+        [Fact]
+        public void AddAsyncLambda()
+        {
+            var source0 = MarkedSource(
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F()
+    {
+        Func<Task> <N:0>g1 = <N:1>async () =>
+        {
+            await Task.FromResult(1);
+        }</N:1></N:0>;
+    }
+}");
+            var source1 = MarkedSource(
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F()
+    {
+        Func<Task> <N:0>g1 = <N:1>async () =>
+        {
+            await Task.FromResult(1);
+        }</N:1></N:0>;
+
+        Func<Task> g2 = async () =>
+        {
+            await Task.FromResult(2);
+        };
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1, <<F>b__0_0>d, <<F>b__0_1#1>d}",
+                "C.<>c.<<F>b__0_0>d: {<>1__state, <>t__builder, <>4__this, <>u__1, MoveNext, SetStateMachine}",
+                "C.<>c.<<F>b__0_1#1>d: {<>1__state, <>t__builder, <>4__this, <>u__1, MoveNext, SetStateMachine}");
+        }
+
+
         [Fact]
         public void LambdasInInitializers()
         {
