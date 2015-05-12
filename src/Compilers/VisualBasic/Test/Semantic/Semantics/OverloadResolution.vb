@@ -5475,5 +5475,58 @@ BC30661: Field or property 'p1' is not found.
 ]]></expected>)
         End Sub
 
+        <Fact, WorkItem(2604, "https://github.com/dotnet/roslyn/issues/2604")>
+        Public Sub FailureDueToAnErrorInALambda()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        M0(0, Function() doesntexist)
+        M1(0, Function() doesntexist)
+        M2(0, Function() doesntexist)
+    End Sub
+
+    Sub M0(x As Integer, y As System.Func(Of Integer))
+    End Sub
+
+    Sub M1(x As Integer, y As System.Func(Of Integer))
+    End Sub
+
+    Sub M1(x As Long, y As System.Func(Of Long))
+    End Sub
+
+    Sub M2(x As Integer, y As System.Func(Of Integer))
+    End Sub
+
+    Sub M2(x As c1, y As System.Func(Of Long))
+    End Sub
+End Module
+
+Class c1
+End Class
+]]>
+
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protection level.
+        M0(0, Function() doesntexist)
+                         ~~~~~~~~~~~
+BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protection level.
+        M1(0, Function() doesntexist)
+                         ~~~~~~~~~~~
+BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protection level.
+        M2(0, Function() doesntexist)
+                         ~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
     End Class
 End Namespace
