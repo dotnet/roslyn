@@ -477,4 +477,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="DeterminingCurrentBlock" xml:space="preserve">
     <value>Determining current block.</value>
   </data>
+  <data name="WorkspaceOutputPaneTitle" xml:space="preserve">
+    <value>IntelliSense</value>
+  </data>
 </root>
