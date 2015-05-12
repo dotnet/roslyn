@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static partial class SyntaxFactory
     {
         /// <summary>
-        /// A trivia with kind EndOfLineTrivia containing both the carriage return and line feed
-        /// characters.
+        /// A trivia with kind EndOfLineTrivia containing both the carriage return and line feed characters.
         /// </summary>
         public static readonly SyntaxTrivia CarriageReturnLineFeed = Syntax.InternalSyntax.SyntaxFactory.CarriageReturnLineFeed;
 
