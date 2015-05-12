@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return new EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation);
         }
 
-        internal static Handle Handle(int rowNumber, TableIndex table)
+        internal static EntityHandle Handle(int rowNumber, TableIndex table)
         {
             return MetadataTokens.Handle(table, rowNumber);
         }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return false;
         }
 
-        internal static void CheckEncMap(MetadataReader reader, params Handle[] handles)
+        internal static void CheckEncMap(MetadataReader reader, params EntityHandle[] handles)
         {
             AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);
         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 row.Operation);
         }
 
-        internal static string EncMapRowToString(Handle handle)
+        internal static string EncMapRowToString(EntityHandle handle)
         {
             TableIndex tableIndex;
             MetadataTokens.TryGetTableIndex(handle.Kind, out tableIndex);

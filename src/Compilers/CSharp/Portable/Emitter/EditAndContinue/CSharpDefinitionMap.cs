@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        protected override ITypeSymbol TryGetStateMachineType(Handle methodHandle)
+        protected override ITypeSymbol TryGetStateMachineType(EntityHandle methodHandle)
         {
             string typeName;
             if (_metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out typeName) ||

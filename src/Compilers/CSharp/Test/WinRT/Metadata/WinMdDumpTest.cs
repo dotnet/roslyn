@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
                         string eventName;
                         EventAttributes eventAttrs;
-                        Handle type;
+                        EntityHandle type;
                         ((PEModuleSymbol)container.ContainingModule).Module.GetEventDefPropsOrThrow(evnt.Handle, out eventName, out eventAttrs, out type);
 
                         if (MetadataSignatureHelper.AppendEventAttributes(result, eventAttrs))

@@ -1082,10 +1082,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // get the directly enclosing statement
             var enclosingStatement = token.GetAncestors(n => n is StatementSyntax).FirstOrDefault();
 
-            // see if there's an enclosing lambda expression
+            // System.Func<int, int> myFunc = arg => X;
             SyntaxNode possibleLambdaExpression = enclosingStatement == null
                 ? token.GetAncestors(n => n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax).FirstOrDefault()
                 : null;
+            if (possibleLambdaExpression != null)
+            {
+                var lambdaExpression = ((LambdaExpressionSyntax)possibleLambdaExpression);
+                if (lambdaExpression.Body is ExpressionSyntax)
+                {
+                    return lambdaExpression.Body;
+                }
+            }
+
+            // int M() => X;
+            var possibleArrowExpressionClause = enclosingStatement == null
+                ? token.GetAncestors<ArrowExpressionClauseSyntax>().FirstOrDefault()
+                : null;
+            if (possibleArrowExpressionClause != null)
+            {
+                return possibleArrowExpressionClause.Expression;
+            }
 
             var enclosingNameMemberCrefOrnull = token.GetAncestors(n => n is NameMemberCrefSyntax).LastOrDefault();
             if (enclosingNameMemberCrefOrnull != null)

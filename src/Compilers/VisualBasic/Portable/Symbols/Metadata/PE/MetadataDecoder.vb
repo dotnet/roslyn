@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim baseType As TypeSymbol = Nothing
 
                 If Not isInterface Then
-                    Dim baseToken As Handle = Me.Module.GetBaseTypeOfTypeOrThrow(typeDef)
+                    Dim baseToken As EntityHandle = Me.Module.GetBaseTypeOfTypeOrThrow(typeDef)
 
                     If Not baseToken.IsNil() Then
                         baseType = GetTypeOfToken(baseToken)

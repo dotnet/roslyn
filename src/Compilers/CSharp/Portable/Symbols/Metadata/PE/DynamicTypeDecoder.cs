@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static TypeSymbol TransformType(
             TypeSymbol metadataType,
             int targetSymbolCustomModifierCount,
-            Handle targetSymbolToken,
+            EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,
             RefKind targetSymbolRefKind = RefKind.None)
         {

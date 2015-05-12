@@ -219,13 +219,14 @@ using System.Linq;
 public class B
 {
     public readonly int z = 0;
-    public int X(int [|$$x|]) => [|x|] + {|resolve:z|};
+    public int X(int [|$$x|]) => {|direct:x|} + {|resolve:z|};
 }
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="z")
 
-                    result.AssertLabeledSpansAre("resolve", "this.z", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("direct", "z + this.z", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("resolve", "z + this.z", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -244,13 +245,14 @@ using System.Linq;
 public class B
 {
     public static readonly int z = 0;
-    public int X(int [|$$x|]) => [|x|] + {|resolve:z|};
+    public int X(int [|$$x|]) => {|direct:x|} + {|resolve:z|};
 }
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="z")
 
-                    result.AssertLabeledSpansAre("resolve", "B.z", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("direct", "z + B.z", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("resolve", "z + B.z", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -3001,6 +3003,51 @@ class C
                 </Workspace>, renameTo:="zoo")
 
                 result.AssertLabeledSpansAre("ref", "string x = nameof(this.zoo);", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1053, "https://github.com/dotnet/roslyn/issues/1053")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameComplexifiesInLambdaBodyExpression()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    static int [|$$M|](int b) => 5;
+    static int N(long b) => 5;
+    System.Func<int, int> a = d => {|resolved:N|}(1);
+    System.Func<int> b = () => {|resolved:N|}(1);
+}]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="N")
+
+                result.AssertLabeledSpansAre("resolved", "N((long)1)", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1053, "https://github.com/dotnet/roslyn/issues/1053")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameComplexifiesInExpressionBodiedMembers()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    int f = new C().{|resolved1:N|}(0);
+    int [|$$M|](int b) => {|resolved2:N|}(0);
+    int N(long b) => [|M|](0);
+    int P => {|resolved2:N|}(0);
+}]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="N")
+
+                result.AssertLabeledSpansAre("resolved1", "new C().N((long)0)", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("resolved2", "N((long)0)", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
     End Class
