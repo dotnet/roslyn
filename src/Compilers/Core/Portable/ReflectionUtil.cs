@@ -66,6 +66,11 @@ namespace Roslyn.Utilities
 
         public static T CreateDelegate<T>(this MethodInfo methodInfo)
         {
+            if (methodInfo == null)
+            {
+                return default(T);
+            }
+
             return (T)(object)methodInfo.CreateDelegate(typeof(T));
         }
     }
