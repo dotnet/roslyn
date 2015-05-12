@@ -102,6 +102,8 @@
   <ItemGroup>
     <Compile Include="AbstractNamedTypeAnalyzer.cs" />
     <Compile Include="CodeFixProviderBase.cs" />
+    <Compile Include="Design\CodeFixes\InterfaceMethodsShouldBeCallableByChildTypesFixer.cs" />
+    <Compile Include="Design\InterfaceMethodsShouldBeCallableByChildTypesAnalyzer.cs" />
     <Compile Include="DiagnosticCustomTags.cs" />
     <Compile Include="Design\CA1008DiagnosticAnalyzer.cs" />
     <Compile Include="Design\CA1012DiagnosticAnalyzer.cs" />

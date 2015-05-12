@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Design\CodeFixes\CA1008CSharpCodeFixProvider.cs" />
     <Compile Include="Design\CodeFixes\CA1052CSharpCodeFixProvider.cs" />
+    <Compile Include="Design\CSharpInterfaceMethodsShouldBeCallableByChildTypesAnalyzer.cs" />
     <Compile Include="Design\CSharpCA1024DiagnosticAnalyzer.cs" />
     <Compile Include="Performance\RemoveEmptyFinalizers.cs" />
     <Compile Include="Usage\MarkAllNonSerializableFields.Fixer.cs" />

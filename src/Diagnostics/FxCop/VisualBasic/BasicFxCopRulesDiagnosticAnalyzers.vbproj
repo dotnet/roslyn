@@ -96,6 +96,7 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Design\BasicInterfaceMethodsShouldBeCallableByChildTypesAnalyzer.vb" />
     <Compile Include="Design\BasicCA1024DiagnosticAnalyzer.vb" />
     <Compile Include="Design\CodeFixes\CA1008BasicCodeFixProvider.vb" />
     <Compile Include="Design\CodeFixes\CA1052BasicCodeFixProvider.vb" />
