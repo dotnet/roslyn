@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -58,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // our input span was).
             // If we had no such spans, just return.
             var span = WpfTextView.TextViewModel.DataBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
-            var subjectSpan = WpfTextView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeInclusive, _subjectBuffer)
+            var subjectSpan = WpfTextView.BufferGraph.Hack_WorkaroundElisionBuffers_MapDownToBuffer(span, SpanTrackingMode.EdgeInclusive, _subjectBuffer)
                                 .SingleOrDefault(x => x.Length == 1);
 
             if (subjectSpan == default(SnapshotSpan))
