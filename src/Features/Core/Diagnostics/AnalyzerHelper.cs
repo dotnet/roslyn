@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool enabledByDefault)
         {
             return GetEffectiveSeverity(
-                options.GeneralDiagnosticOption,
-                options.SpecificDiagnosticOptions,
+                options?.GeneralDiagnosticOption ?? ReportDiagnostic.Default,
+                options?.SpecificDiagnosticOptions,
                 ruleId,
                 defaultSeverity,
                 enabledByDefault);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool enabledByDefault)
         {
             ReportDiagnostic report = ReportDiagnostic.Default;
-            var isSpecified = specificOptions.TryGetValue(ruleId, out report);
+            var isSpecified = specificOptions?.TryGetValue(ruleId, out report) ?? false;
             if (!isSpecified)
             {
                 report = enabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
