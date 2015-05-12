@@ -903,6 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int start = TextWindow.Position;
             char ch;
             bool isHex = false;
+            bool isBinary = false;
             bool hasDecimal = false;
             bool hasExponent = false;
             info.Text = null;
@@ -912,20 +913,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool hasLSuffix = false;
 
             ch = TextWindow.PeekChar();
-            if (ch == '0' && ((ch = TextWindow.PeekChar(1)) == 'x' || ch == 'X'))
+            if (ch == '0')
             {
-                TextWindow.AdvanceChar(2);
-                isHex = true;
+                ch = TextWindow.PeekChar(1);
+                if (ch == 'x' || ch == 'X')
+                {
+                    TextWindow.AdvanceChar(2);
+                    isHex = true;
+                }
+                else if (ch == 'b' || ch == 'B')
+                {
+                    TextWindow.AdvanceChar(2);
+                    isBinary = true;
+                }
             }
 
-            if (isHex)
+            if (isHex || isBinary)
             {
                 // It's OK if it has no digits after the '0x' -- we'll catch it in ScanNumericLiteral
                 // and give a proper error then.
-                while (SyntaxFacts.IsHexDigit(ch = TextWindow.PeekChar()))
+                if (isHex)
                 {
-                    _builder.Append(ch);
-                    TextWindow.AdvanceChar();
+                    while (SyntaxFacts.IsHexDigit(ch = TextWindow.PeekChar()))
+                    {
+                        _builder.Append(ch);
+                        TextWindow.AdvanceChar();
+                    }
+                }
+                else if (isBinary)
+                {
+                    while (SyntaxFacts.IsBinaryDigit(ch = TextWindow.PeekChar()))
+                    {
+                        _builder.Append(ch);
+                        TextWindow.AdvanceChar();
+                    }
                 }
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
@@ -1102,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        val = this.GetValueUInt64(valueText, isHex);
+                        val = this.GetValueUInt64(valueText, isHex, isBinary);
                     }
 
                     // 2.4.4.2 Integer literals
@@ -1198,6 +1219,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return true;
         }
 
+        // TODO: Change to Int64.TryParse when it supports NumberStyles.AllowBinarySpecifier (inline this method into GetValueUInt32/64)
+        private bool TryParseBinaryUInt64(string text, out ulong value)
+        {
+            value = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                // if uppermost bit is set, then the next bitshift will overflow
+                if ((value & 0x8000000000000000) != 0)
+                {
+                    return false;
+                }
+                if (!SyntaxFacts.IsBinaryDigit(text[i]))
+                {
+                    return false;
+                }
+                var bit = (ulong)SyntaxFacts.DecValue(text[i]);
+                value = (value << 1) | bit;
+            }
+            return true;
+        }
+
         //used in directives
         private int GetValueInt32(string text, bool isHex)
         {
@@ -1212,10 +1254,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         //used for all non-directive integer literals (cast to desired type afterward)
-        private ulong GetValueUInt64(string text, bool isHex)
+        private ulong GetValueUInt64(string text, bool isHex, bool isBinary)
         {
             ulong result;
-            if (!UInt64.TryParse(text, isHex ? NumberStyles.AllowHexSpecifier : NumberStyles.None, CultureInfo.InvariantCulture, out result))
+            if (isBinary)
+            {
+                if (!TryParseBinaryUInt64(text, out result))
+                {
+                    this.AddError(MakeError(ErrorCode.ERR_IntOverflow));
+                }
+            }
+            else if (!UInt64.TryParse(text, isHex ? NumberStyles.AllowHexSpecifier : NumberStyles.None, CultureInfo.InvariantCulture, out result))
             {
                 //we've already lexed the literal, so the error must be from overflow
                 this.AddError(MakeError(ErrorCode.ERR_IntOverflow));
@@ -1744,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         goto Fail;
                     }
                     // Parse hex value to check for overflow.
-                    this.GetValueUInt64(valueText, isHex: true);
+                    this.GetValueUInt64(valueText, isHex: true, isBinary: false);
                 }
 
                 return true;

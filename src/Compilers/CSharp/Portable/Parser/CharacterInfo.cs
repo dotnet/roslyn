@@ -23,6 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the Unicode character is a binary (0-1) digit.
+        /// </summary>
+        /// <param name="c">The Unicode character.</param>
+        /// <returns>true if the character is a binary digit.</returns>
+        internal static bool IsBinaryDigit(char c)
+        {
+            return c == '0' || c == '1';
+        }
+
+        /// <summary>
         /// Returns true if the Unicode character is a decimal digit.
         /// </summary>
         /// <param name="c">The Unicode character.</param>
