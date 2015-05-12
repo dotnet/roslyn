@@ -361,5 +361,30 @@ namespace Roslyn.Utilities
                 throw new IOException(e.Message);
             }
         }
+
+        internal static Stream OpenFileStream(string path)
+        {
+            try
+            {
+                return PortableShim.File.OpenRead(path);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (IOException e)
+            {
+                if (e.GetType().Name == "DirectoryNotFoundException")
+                {
+                    throw new FileNotFoundException(e.Message, path, e);
+                }
+
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new IOException(e.Message, e);
+            }
+        }
     }
 }

@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceProperties properties = default(MetadataReferenceProperties),
             DocumentationProvider documentation = null)
         {
-            var peStream = PortableShim.File.OpenRead(path);
+            var peStream = FileUtilities.OpenFileStream(path);
 
             // prefetch image, close stream to avoid locking it:
             var module = ModuleMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage);
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             string location = AssemblyLocationLightUp.GetAssemblyLocation(assembly);
-            Stream peStream = PortableShim.File.OpenRead(location);
+            Stream peStream = FileUtilities.OpenFileStream(location);
 
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
             // which might also lock the file until the reference is GC'd.

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
         public static ModuleMetadata CreateFromFile(string path)
         {
-            return CreateFromStream(PortableShim.File.OpenRead(path));
+            return CreateFromStream(FileUtilities.OpenFileStream(path));
         }
 
         /// <summary>

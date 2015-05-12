@@ -259,7 +259,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.FileStream";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"${TypeName}, ${CoreNames.System_IO_FileSystem}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
             internal static readonly PropertyInfo Name = Type
@@ -347,7 +347,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.Threading.Thread";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"${TypeName}, ${CoreNames.System_Threading_Thread}",
+                contractName: $"{TypeName}, {CoreNames.System_Threading_Thread}",
                 desktopName: TypeName);
 
             internal static readonly PropertyInfo CurrentThread = Type
@@ -364,7 +364,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.Runtime.CompilerServices.RuntimeHelpers";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"${TypeName}, ${CoreNames.System_Runtime}",
+                contractName: $"{TypeName}, {CoreNames.System_Runtime}",
                 desktopName: TypeName);
 
             internal static readonly Action EnsureSufficientExecutionStack = Type
@@ -399,8 +399,8 @@ namespace Roslyn.Utilities
                 internal const string TypeName = "System.Xml.XPath.Extensions";
 
                 internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                    contractName: $"${TypeName}, ${CoreNames.System_Runtime}",
-                    desktopName: $"${TypeName}, ${DesktopNames.System_Xml_Linq}");
+                    contractName: $"{TypeName}, {CoreNames.System_Runtime}",
+                    desktopName: $"{TypeName}, {DesktopNames.System_Xml_Linq}");
 
                 internal static readonly Func<XNode, string, IEnumerable<XElement>> XPathSelectElements = Type
                     .GetTypeInfo()
