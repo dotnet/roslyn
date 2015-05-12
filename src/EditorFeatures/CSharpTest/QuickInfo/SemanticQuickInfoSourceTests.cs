@@ -4082,5 +4082,58 @@ class C
             var expectedDescription = $"void C.Do(int x)";
             VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored_ContainingType()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+    void Shared()
+    {
+        var x = GetThing().Do$$();
+    }
+
+#if ONE
+    private Methods1 GetThing()
+    {
+        return new Methods1();
+    }
+#endif
+
+#if TWO
+    private Methods2 GetThing()
+    {
+        return new Methods2();
+    }
+#endif
+}
+
+#if ONE
+public class Methods1
+{
+    public void Do(string x) { }
+}
+#endif
+
+#if TWO
+public class Methods2
+{
+    public void Do(string x) { }
+}
+#endif
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void Methods1.Do(string x)";
+            VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
+        }
     }
 }

@@ -201,6 +201,16 @@
   <data name="StaticHolderTypesShouldNotHaveConstructors" xml:space="preserve">
     <value>Static holder types should not have instance constructors</value>
   </data>
+  <data name="InterfaceMethodsShouldBeCallableByChildTypesTitle" xml:space="preserve">
+    <value>Interface methods should be callable by child types</value>
+  </data>
+  <data name="InterfaceMethodsShouldBeCallableByChildTypesMessage" xml:space="preserve">
+    <value>Make '{0}' sealed (a breaking change if this class has previously shipped), implement the method non-explicitly, or implement a new method that exposes the functionality of '{1}' and is visible to derived classes.</value>
+  </data>
+  <data name="InterfaceMethodsShouldBeCallableByChildTypesDescription" xml:space="preserve">
+    <value>An unsealed externally visible type provides an explicit method implementation of a public interface and does not provide an alternative externally visible method that has the same name.
+Consider a base type that explicitly implements a public interface method. A type that derives from the base type can access the inherited interface method only through a reference to the current instance that is cast to the interface. If the derived type re-implements (explicitly) the inherited interface method, the base implementation can no longer be accessed. The call through the current instance reference will invoke the derived implementation; this causes recursion and an eventual stack overflow.</value>
+  </data>
   <data name="TypesThatOwnDisposableFieldsShouldBeDisposable" xml:space="preserve">
     <value>Types that own disposable fields should be disposable</value>
   </data>

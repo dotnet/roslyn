@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSequencePointStatement(node As BoundSequencePointWithSpan)
-            Dim span = node.SequenceSpan
+            Dim span = node.Span
             If span <> Nothing AndAlso _emitPdbSequencePoints Then
                 EmitSequencePoint(node.SyntaxTree, span)
             End If

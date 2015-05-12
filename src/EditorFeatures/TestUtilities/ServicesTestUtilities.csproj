@@ -55,6 +55,7 @@
     <Compile Include="Async\AsynchronousOperationBlocker.cs" />
     <Compile Include="Async\Checkpoint.cs" />
     <Compile Include="Async\WaitHelper.cs" />
+    <Compile Include="BlindAggregatorFactory.cs" />
     <Compile Include="DispatcherExtensions.cs" />
     <Compile Include="DirectoryExtensions.cs" />
     <Compile Include="ExceptionUtilities.cs" />

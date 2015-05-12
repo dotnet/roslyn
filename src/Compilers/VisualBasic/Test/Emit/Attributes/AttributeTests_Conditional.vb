@@ -273,7 +273,7 @@ End Class
             Debug.Assert(Not preprocessorSymbols.IsDefault)
             Dim parseOpts = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
             Dim testSource As String = condDefs & s_commonTestSource_ConditionalAttrDefs & s_commonTestSource_ConditionalAttributesApplied
-            Dim compilation = CreateCompilationWithMscorlib({Parse(testSource, parseOpts)}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib({Parse(testSource, parseOpts)}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, emitters:=TestEmitters.CCI, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
 
@@ -305,7 +305,7 @@ Imports System.Diagnostics
             CompileAndVerify(comp, emitters:=TestEmitters.CCI, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
 
             ' Different source files, different compilation
-            Dim comp1 = CreateCompilationWithMscorlib({Parse(source1, parseOpts1)}, TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
             Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)})
             CompileAndVerify(comp2, emitters:=TestEmitters.CCI, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub

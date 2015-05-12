@@ -699,44 +699,50 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
                     Dim name = reader.GetString(type.Name)
 
                     Dim classSize As UInteger = 0, packingSize As UInteger = 0
-                    Dim mdLayout = type.GetLayout()
-                    Dim hasClassLayout = Not mdLayout.IsDefault
 
+                    Dim badLayout = False
+                    Dim mdLayout As System.Reflection.Metadata.TypeLayout
+                    Try
+                        mdLayout = type.GetLayout()
+                    Catch ex As BadImageFormatException
+                        badLayout = True
+                        mdLayout = Nothing
+                    End Try
+
+                    Dim hasClassLayout = Not mdLayout.IsDefault
                     Dim layout As TypeLayout = [module].Module.GetTypeLayout(typeHandle)
 
                     Select Case name
                         Case "<Module>"
                             Assert.False(hasClassLayout)
                             Assert.Equal(Nothing, layout)
+                            Assert.False(badLayout)
 
                         Case "S1"
-                            Assert.True(hasClassLayout)
-                            Assert.Equal(&HAAAAAAAA, mdLayout.Size)
-                            Assert.Equal(&HFFFF, mdLayout.PackingSize)
-                            Assert.Equal(New TypeLayout(LayoutKind.Sequential, 0, 0), layout)
-
                         Case "S2"
-                            Assert.True(hasClassLayout)
-                            Assert.Equal(&HFFFFFFFF, mdLayout.Size)
-                            Assert.Equal(2S, mdLayout.PackingSize)
-                            Assert.Equal(New TypeLayout(LayoutKind.Explicit, 0, 2), layout)
+                            ' invalid size/pack value
+                            Assert.False(hasClassLayout)
+                            Assert.True(badLayout)
 
                         Case "S3"
                             Assert.True(hasClassLayout)
                             Assert.Equal(1, mdLayout.Size)
                             Assert.Equal(2, mdLayout.PackingSize)
                             Assert.Equal(New TypeLayout(LayoutKind.Sequential, size:=1, alignment:=2), layout)
+                            Assert.False(badLayout)
 
                         Case "S4"
                             Assert.True(hasClassLayout)
                             Assert.Equal(&H12345678, mdLayout.Size)
                             Assert.Equal(0, mdLayout.PackingSize)
                             Assert.Equal(New TypeLayout(LayoutKind.Sequential, size:=&H12345678, alignment:=0), layout)
+                            Assert.False(badLayout)
 
                         Case "S5"
                             ' doesn't have layout
                             Assert.False(hasClassLayout)
                             Assert.Equal(New TypeLayout(LayoutKind.Sequential, size:=0, alignment:=0), layout)
+                            Assert.False(badLayout)
 
                         Case Else
                             Throw TestExceptionUtilities.UnexpectedValue(name)

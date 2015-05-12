@@ -57,9 +57,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -147,9 +146,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -246,9 +244,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C(Of T).VB$StateMachine_1_F(Of U) V_3,
-                System.Exception V_4)
+                C(Of T).VB$StateMachine_1_F(Of U) V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C(Of T).VB$StateMachine_1_F(Of U).$VB$Me As C(Of T)""
   IL_0006:  ret
@@ -332,9 +329,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -811,9 +807,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_2_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_2_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_2_F.$VB$Me As C""
   IL_0006:  ldfld      ""C.x As Object""
@@ -896,9 +891,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                Derived.VB$StateMachine_2_F V_3,
-                System.Exception V_4)
+                Derived.VB$StateMachine_2_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""Derived.VB$StateMachine_2_F.$VB$Me As Derived""
   IL_0006:  ldfld      ""Base.x As Integer""

@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      ctor.ContainingType)
 
                 If Not temporaries.IsDefault Then
-                    result = GenerateSequenceValueSideEffects(result, StaticCast(Of LocalSymbol).From(temporaries), copyBack)
+                    result = GenerateSequenceValueSideEffects(_currentMethodOrLambda, result, StaticCast(Of LocalSymbol).From(temporaries), copyBack)
                 End If
 
                 ' If a coclass was instantiated, convert the class to the interface type.

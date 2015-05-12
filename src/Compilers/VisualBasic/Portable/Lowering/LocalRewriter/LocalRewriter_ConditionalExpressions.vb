@@ -218,20 +218,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return rewrittenRight
             End If
 
-            If rewrittenLeft.Kind = BoundKind.LoweredConditionalAccess Then
-                Dim conditional = DirectCast(rewrittenLeft, BoundLoweredConditionalAccess)
-
-                If HasNoValue(conditional.WhenNullOpt) Then
-                    If HasValue(conditional.WhenNotNull) Then
-                        Return conditional.Update(conditional.ReceiverOrCondition,
-                                              conditional.CaptureReceiver,
-                                              conditional.PlaceholderId,
-                                              MakeResultFromNonNullLeft(conditional.WhenNotNull, node.ConvertedTestExpression, node.TestExpressionPlaceholder),
-                                              rewrittenRight,
-                                              node.Type)
+            Dim whenNotNull As BoundExpression = Nothing
+            Dim whenNull As BoundExpression = Nothing
+            If IsConditionalAccess(rewrittenLeft, whenNotNull, whenNull) Then
+                If HasNoValue(whenNull) Then
+                    If HasValue(whenNotNull) Then
+                        Return UpdateConditionalAccess(rewrittenLeft,
+                                                       MakeResultFromNonNullLeft(whenNotNull, node.ConvertedTestExpression, node.TestExpressionPlaceholder),
+                                                       rewrittenRight)
 
                     Else
-                        Debug.Assert(Not HasNoValue(conditional.WhenNotNull)) ' Not optimizing for this case
+                        Debug.Assert(Not HasNoValue(whenNotNull)) ' Not optimizing for this case
 
                         ' CONSIDER: We could do inlining when rewrittenRight.IsConstant
                     End If

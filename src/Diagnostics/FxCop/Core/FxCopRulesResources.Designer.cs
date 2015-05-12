@@ -277,6 +277,34 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An unsealed externally visible type provides an explicit method implementation of a public interface and does not provide an alternative externally visible method that has the same name.
+        ///Consider a base type that explicitly implements a public interface method. A type that derives from the base type can access the inherited interface method only through a reference to the current instance that is cast to the interface. If the derived type re-implements (explicitly) the inherited interface method, the base  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesDescription {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make &apos;{0}&apos; sealed (a breaking change if this class has previously shipped), implement the method non-explicitly, or implement a new method that exposes the functionality of &apos;{1}&apos; and is visible to derived classes..
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesMessage {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface methods should be callable by child types.
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesTitle {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interface names should be prefixed with &apos;I&apos;.
         /// </summary>
         internal static string InterfaceNamesShouldStartWithI {

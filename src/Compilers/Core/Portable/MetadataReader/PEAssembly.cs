@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis
             _owner = owner;
         }
 
-        internal Handle Handle
+        internal EntityHandle Handle
         {
             get
             {
-                return Handle.AssemblyDefinition;
+                return EntityHandle.AssemblyDefinition;
             }
         }
 

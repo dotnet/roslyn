@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var moduleSymbol = containingType.ContainingPEModule;
 
-            Handle[] constraints;
+            EntityHandle[] constraints;
 
             try
             {

@@ -76,8 +76,7 @@ End Class"
                 Integer& V_1,
                 Object V_2,
                 Boolean V_3,
-                Integer V_4, //c
-                Boolean V_5)
+                Integer V_4) //c
   IL_0000:  ldarg.0
   IL_0001:  ret
 }")
@@ -89,8 +88,7 @@ End Class"
                 Integer& V_1,
                 Object V_2,
                 Boolean V_3,
-                Integer V_4, //c
-                Boolean V_5)
+                Integer V_4) //c
   IL_0000:  ldarg.1
   IL_0001:  ret
 }")
@@ -102,8 +100,7 @@ End Class"
                 Integer& V_1,
                 Object V_2,
                 Boolean V_3,
-                Integer V_4, //c
-                Boolean V_5)
+                Integer V_4) //c
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")
@@ -115,8 +112,7 @@ End Class"
                 Integer& V_1,
                 Object V_2,
                 Boolean V_3,
-                Integer V_4, //c
-                Boolean V_5)
+                Integer V_4) //c
   IL_0000:  ldloc.s    V_4
   IL_0002:  ret
 }")
@@ -418,7 +414,8 @@ End Class
                 Boolean V_2,
                 Object() V_3,
                 Integer V_4,
-                Object V_5) //o
+                Object V_5, //o
+                Boolean V_6)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""C._Closure$__1-0.$VB$Local_args As Object()""
   IL_0006:  ret
@@ -432,7 +429,8 @@ End Class
                 Boolean V_2,
                 Object() V_3,
                 Integer V_4,
-                Object V_5) //o
+                Object V_5, //o
+                Boolean V_6)
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
@@ -445,7 +443,8 @@ End Class
                 Boolean V_2,
                 Object() V_3,
                 Integer V_4,
-                Object V_5) //o
+                Object V_5, //o
+                Boolean V_6)
   IL_0000:  ldloc.s    V_5
   IL_0002:  ret
 }")
@@ -1363,9 +1362,7 @@ End Class
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (Boolean V_0,
-                Integer V_1,
-                Integer V_2,
-                Boolean V_3)
+                Integer V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F(Of T).$VB$Local_o As T()""
   IL_0006:  ret
@@ -1375,9 +1372,7 @@ End Class
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (Boolean V_0,
-                Integer V_1,
-                Integer V_2,
-                Boolean V_3)
+                Integer V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F(Of T).$VB$ResumableLocal_i$1 As Integer""
   IL_0006:  ret
@@ -1387,9 +1382,7 @@ End Class
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (Boolean V_0,
-                Integer V_1,
-                Integer V_2,
-                Boolean V_3)
+                Integer V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F(Of T).$VB$ResumableLocal_t1$2 As T""
   IL_0006:  ret
@@ -1400,9 +1393,7 @@ End Class
   // Code size        6 (0x6)
   .maxstack  1
   .locals init (Boolean V_0,
-                Integer V_1,
-                Integer V_2,
-                Boolean V_3)
+                Integer V_1)
   IL_0000:  newobj     ""Sub <>c__TypeVariables(Of T)..ctor()""
   IL_0005:  ret
 }")
@@ -1622,9 +1613,8 @@ End Class"
                 Integer V_1,
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Runtime.CompilerServices.TaskAwaiter V_3,
-                Boolean V_4,
-                C.VB$StateMachine_3_M V_5,
-                System.Exception V_6)
+                C.VB$StateMachine_3_M V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$Local_x As Integer""
   IL_0006:  ret
@@ -1637,9 +1627,8 @@ End Class"
                 Integer V_1,
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Runtime.CompilerServices.TaskAwaiter V_3,
-                Boolean V_4,
-                C.VB$StateMachine_3_M V_5,
-                System.Exception V_6)
+                C.VB$StateMachine_3_M V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$ResumableLocal_$VB$Closure_$0 As C._Closure$__3-0""
   IL_0006:  ldfld      ""C._Closure$__3-0.$VB$Local_y As Integer""
@@ -1773,8 +1762,7 @@ End Class
   .maxstack  1
   .locals init (Object V_0,
                 Boolean V_1,
-                Integer V_2, //x
-                Boolean V_3)
+                Integer V_2) //x
   IL_0000:  ldnull
   IL_0001:  starg.s    V_1
   IL_0003:  ret
@@ -2719,9 +2707,8 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_3_M V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_3_M V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$Me As C""
   IL_0006:  ret
@@ -2732,9 +2719,8 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_3_M V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_3_M V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$ResumableLocal_$VB$Closure_$0 As C._Closure$__3-0""
   IL_0006:  ldfld      ""C._Closure$__3-0.$VB$Local_s As String""

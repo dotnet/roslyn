@@ -112,7 +112,8 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="20" offset="-1"/>
                     <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="54"/>
+                    <slot kind="1" offset="139"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -128,6 +129,7 @@ End Module
                 <entry offset="0xc6" startLine="19" startColumn="9" endLine="19" endColumn="13" document="0"/>
                 <entry offset="0xc7" hidden="true" document="0"/>
                 <entry offset="0xd5" hidden="true" document="0"/>
+                <entry offset="0xe6" hidden="true" document="0"/>
                 <entry offset="0xe9" startLine="21" startColumn="9" endLine="21" endColumn="28" document="0"/>
                 <entry offset="0xfb" hidden="true" document="0"/>
                 <entry offset="0x114" startLine="22" startColumn="13" endLine="22" endColumn="44" document="0"/>
@@ -135,6 +137,7 @@ End Module
                 <entry offset="0x15e" startLine="24" startColumn="9" endLine="24" endColumn="13" document="0"/>
                 <entry offset="0x15f" hidden="true" document="0"/>
                 <entry offset="0x16d" hidden="true" document="0"/>
+                <entry offset="0x181" hidden="true" document="0"/>
                 <entry offset="0x187" startLine="26" startColumn="5" endLine="26" endColumn="17" document="0"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x189">

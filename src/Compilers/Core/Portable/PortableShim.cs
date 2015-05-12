@@ -28,6 +28,8 @@ namespace Roslyn.Utilities
     /// 
     /// This is an unfortunate situation but it will all be removed fairly quickly after RTM and converted
     /// to the proper 4.6 portable contracts.  
+    ///
+    /// Note: Only portable APIs should be present here.
     /// </summary>
     internal static class PortableShim
     {
@@ -37,74 +39,18 @@ namespace Roslyn.Utilities
         private const string System_Runtime_Extensions_Name = "System.Runtime.Extensions, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
         private const string System_Threading_Thread_Name = "System.Threading.Thread, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
 
-        /// <summary>
-        /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
-        /// would exist in mscorlib.  This helps satisfy both the CoreCLR and Desktop scenarios. 
-        /// </summary>
-        private static Type GetTypeFromEither(string contractName, string desktopName)
-        {
-            var type = Type.GetType(contractName, throwOnError: false);
-
-            if (type == null)
-            {
-                type = Type.GetType(desktopName, throwOnError: false);
-            }
-
-            return type;
-        }
-
-        private static T FindItem<T>(IEnumerable<T> collection, params Type[] paramTypes)
-            where T : MethodBase
-        {
-            foreach (var current in collection)
-            {
-                var p = current.GetParameters();
-                if (p.Length != paramTypes.Length)
-                {
-                    continue;
-                }
-
-                bool allMatch = true;
-                for (int i = 0; i < paramTypes.Length; i++)
-                {
-                    if (p[i].ParameterType != paramTypes[i])
-                    {
-                        allMatch = false;
-                        break;
-                    }
-                }
-
-                if (allMatch)
-                {
-                    return current;
-                }
-            }
-
-            return null;
-        }
-
-        private static MethodInfo GetDeclaredMethod(this TypeInfo typeInfo, string name, params Type[] paramTypes)
-        {
-            return FindItem(typeInfo.GetDeclaredMethods(name), paramTypes);
-        }
-
-        private static ConstructorInfo GetDeclaredConstructor(this TypeInfo typeInfo, params Type[] paramTypes)
-        {
-            return FindItem(typeInfo.DeclaredConstructors, paramTypes);
-        }
-
         internal static class Environment
         {
             internal const string TypeName = "System.Environment";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_Runtime_Extensions_Name}",
                 desktopName: TypeName);
 
-            internal static Func<string, string> ExpandEnvironmentVariables = (Func<string, string>)Type
+            internal static Func<string, string> ExpandEnvironmentVariables = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(ExpandEnvironmentVariables), paramTypes: new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, string>));
+                .CreateDelegate<Func<string, string>>();
 
             internal static Func<string, string> GetEnvironmentVariable = (Func<string, string>)Type
                 .GetTypeInfo()
@@ -116,7 +62,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.Path";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_Runtime_Extensions_Name}",
                 desktopName: TypeName);
 
@@ -130,10 +76,10 @@ namespace Roslyn.Utilities
                 .GetDeclaredField(nameof(AltDirectorySeparatorChar))
                 .GetValue(null);
 
-            internal static readonly Func<string, string> GetFullPath = (Func<string, string>)Type
+            internal static readonly Func<string, string> GetFullPath = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetFullPath), paramTypes: new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, string>));
+                .CreateDelegate<Func<string, string>>();
 
             internal static readonly Func<string> GetTempFileName = (Func<string>)Type
                 .GetTypeInfo()
@@ -145,52 +91,66 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.File";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
                 desktopName: TypeName);
 
-            internal static readonly Func<string, DateTime> GetLastWriteTimeUtc = (Func<string, DateTime>)Type
+            internal static readonly Func<string, DateTime> GetLastWriteTimeUtc = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetLastWriteTimeUtc), new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, DateTime>));
+                .CreateDelegate<Func<string, DateTime>>();
 
-            internal static readonly Func<string, Stream> Create = (Func<string, Stream>)Type
+            internal static readonly Func<string, Stream> Create = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(Create), paramTypes: new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, Stream>));
+                .CreateDelegate<Func<string, Stream>>();
 
-            internal static readonly Func<string, Stream> OpenRead = (Func<string, Stream>)Type
+            internal static readonly Func<string, Stream> OpenRead = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(OpenRead), paramTypes: new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, Stream>));
+                .CreateDelegate<Func<string, Stream>>();
 
-            internal static readonly Func<string, bool> Exists = (Func<string, bool>)Type
+            internal static readonly Func<string, bool> Exists = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(Exists), new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, bool>));
+                .CreateDelegate<Func<string, bool>>();
 
-            internal static readonly Action<string> Delete = (Action<string>)Type
+            internal static readonly Action<string> Delete = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(Delete), new[] { typeof(string) })
-                .CreateDelegate(typeof(Action<string>));
+                .CreateDelegate<Action<string>>();
 
-            internal static readonly Func<string, byte[]> ReadAllBytes = (Func<string, byte[]>)Type
+            internal static readonly Func<string, byte[]> ReadAllBytes = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(ReadAllBytes), paramTypes: new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, byte[]>));
+                .CreateDelegate<Func<string, byte[]>>();
         }
 
         internal static class Directory
         {
             internal const string TypeName = "System.IO.Directory";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
                 desktopName: TypeName);
+
+            private static readonly MethodInfo s_enumerateDirectories = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(EnumerateDirectories), new[] { typeof(string), typeof(string), SearchOption.Type });
 
             private static readonly MethodInfo s_enumerateFiles = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(EnumerateFiles), new[] { typeof(string), typeof(string), SearchOption.Type });
+
+            internal static IEnumerable<string> EnumerateDirectories(string path, string searchPattern, object searchOption)
+            {
+                return (IEnumerable<string>)s_enumerateDirectories.Invoke(null, new object[] { path, searchPattern, searchOption });
+            }
+
+            internal static readonly Func<string, bool> Exists = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(Exists), new[] { typeof(string) })
+                .CreateDelegate<Func<string, bool>>();
 
             internal static IEnumerable<string> EnumerateFiles(string path, string searchPattern, object searchOption)
             {
@@ -202,7 +162,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileMode";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
                 desktopName: TypeName);
 
@@ -223,7 +183,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileAccess";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
                 desktopName: TypeName);
 
@@ -238,7 +198,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileShare";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
                 desktopName: TypeName);
 
@@ -261,7 +221,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileOptions";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
                 desktopName: TypeName);
 
@@ -274,7 +234,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.SearchOption";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
                 desktopName: TypeName);
 
@@ -287,7 +247,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileStream";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"${TypeName}, ${System_IO_FileSystem_Name}",
                 desktopName: TypeName);
 
@@ -325,27 +285,27 @@ namespace Roslyn.Utilities
                 }
             }
 
-            public static Stream Create(string path, object mode)
+            internal static Stream Create(string path, object mode)
             {
                 return InvokeConstructor(s_Ctor_String_FileMode, new[] { path, mode });
             }
 
-            public static Stream Create(string path, object mode, object access)
+            internal static Stream Create(string path, object mode, object access)
             {
                 return InvokeConstructor(s_Ctor_String_FileMode_FileAccess, new[] { path, mode, access });
             }
 
-            public static Stream Create(string path, object mode, object access, object share)
+            internal static Stream Create(string path, object mode, object access, object share)
             {
                 return InvokeConstructor(s_Ctor_String_FileMode_FileAccess_FileShare, new[] { path, mode, access, share });
             }
 
-            public static Stream Create(string path, object mode, object access, object share, int bufferSize, object options)
+            internal static Stream Create(string path, object mode, object access, object share, int bufferSize, object options)
             {
                 return InvokeConstructor(s_Ctor_String_FileMode_FileAccess_FileShare_Int32_FileOptions, new[] { path, mode, access, share, bufferSize, options });
             }
 
-            public static Stream Create_String_FileMode_FileAccess_FileShare(string path, object mode, object access, object share)
+            internal static Stream Create_String_FileMode_FileAccess_FileShare(string path, object mode, object access, object share)
             {
                 return Create(path, mode, access, share);
             }
@@ -357,14 +317,14 @@ namespace Roslyn.Utilities
 
             internal static readonly string DesktopName = $"{TypeName}, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"{TypeName}, {System_Diagnotsics_FileVersionInfo_Name}",
                 desktopName: DesktopName);
 
-            internal static readonly Func<string, object> GetVersionInfo = (Func<string, object>)Type
+            internal static readonly Func<string, object> GetVersionInfo = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetVersionInfo), new[] { typeof(string) })
-                .CreateDelegate(typeof(Func<string, object>));
+                .CreateDelegate<Func<string, object>>();
 
             internal static readonly PropertyInfo FileVersion = Type
                 .GetTypeInfo()
@@ -375,7 +335,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.Threading.Thread";
 
-            internal static readonly Type Type = GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
                 contractName: $"${TypeName}, ${System_Threading_Thread_Name}",
                 desktopName: TypeName);
 
@@ -392,10 +352,10 @@ namespace Roslyn.Utilities
         {
             internal static readonly Type Type = typeof(System.Text.Encoding);
 
-            internal static readonly Func<int, System.Text.Encoding> GetEncoding = (Func<int, System.Text.Encoding>)Type
+            internal static readonly Func<int, System.Text.Encoding> GetEncoding = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetEncoding), paramTypes: new[] { typeof(int) })
-                .CreateDelegate(typeof(Func<int, System.Text.Encoding>));
+                .CreateDelegate<Func<int, System.Text.Encoding>>();
         }
 
         internal static class MemoryStream

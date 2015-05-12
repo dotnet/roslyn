@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenConsequence = VisitStatement(node.Consequence);
             var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
             var syntax = (IfStatementSyntax)node.Syntax;
+
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the condition are being executed.
             var result = RewriteIfStatement(syntax, AddConditionSequencePoint(rewrittenCondition, node), rewrittenConsequence, rewrittenAlternative, node.HasErrors);
 
             // add sequence point before the whole statement

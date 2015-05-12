@@ -4,10 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -18,10 +17,12 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
 {
     [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Host), Shared]
-    internal class VisualStudioProjectManagementService : IProjectManagementService
+    internal class VisualStudioProjectManagementService : ForegroundThreadAffinitizedObject, IProjectManagementService
     {
         public string GetDefaultNamespace(Microsoft.CodeAnalysis.Project project, Workspace workspace)
         {
+            this.AssertIsForeground();
+
             if (project.Language == LanguageNames.VisualBasic)
             {
                 return "";

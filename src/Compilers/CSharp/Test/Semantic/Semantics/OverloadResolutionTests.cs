@@ -7837,6 +7837,64 @@ namespace VS2015CompilerBug
                 );
         }
 
+        [Fact, WorkItem(2533, "https://github.com/dotnet/roslyn/issues/2533")]
+        public void TieBreakOnNumberOfDeclaredParameters_04()
+        {
+            string source1 = @"
+public class Test
+{
+    static void M1(object o, object o1, string s, object o2 = null) 
+    { 
+        System.Console.WriteLine(""void M1(object o, object o1, string s, object o2 = null) "");
+    }
+
+    static void M1(string s, object o1, object o2)
+    {
+        System.Console.WriteLine(""void M1(string s, object o1, object o2)"");
+    }
+
+    public static void Main()
+    {
+        M1(""M"", null, null);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"void M1(string s, object o1, object o2)");
+        }
+
+        [Fact, WorkItem(2533, "https://github.com/dotnet/roslyn/issues/2533")]
+        public void TieBreakOnNumberOfDeclaredParameters_05()
+        {
+            string source1 = @"
+public class Test
+{
+    static void M1(object o, object o1, string s) 
+    { 
+    }
+
+    static void M1(string s, object o1, object o2)
+    {
+    }
+
+    public static void Main()
+    {
+        M1(""M"", null, null);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.M1(object, object, string)' and 'Test.M1(string, object, object)'
+    //         M1("M", null, null);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Test.M1(object, object, string)", "Test.M1(string, object, object)").WithLocation(14, 9)
+                );
+        }
+
         [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
         public void BetterErrorMessage()
         {

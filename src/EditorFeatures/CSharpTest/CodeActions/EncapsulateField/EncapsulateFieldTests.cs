@@ -912,7 +912,10 @@ partial class Program {
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void ErrorTolerance()
         {
-            var text = @"a b c [|b|]";
+            var text = @"class Program 
+{
+    a b c [|b|]
+}";
 
             using (var workspace = CreateWorkspaceFromFile(text, null, null))
             {
@@ -979,6 +982,26 @@ namespace ConsoleApplication1
 }";
 
             Test(text, expected);
+        }
+
+        [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void DoNotEncapsulateOutsideTypeDeclaration()
+        {
+            TestMissing(@"
+var [|x|] = 1;");
+
+            TestMissing(@"
+namespace N
+{
+    var [|x|] = 1;
+}");
+
+            TestMissing(@"
+enum E
+{
+    [|x|] = 1;
+}");
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -101,6 +102,106 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
+        }
+
+        public static ReportDiagnostic GetEffectiveSeverity(
+            this Compilation compilation,
+            string ruleId,
+            DiagnosticSeverity defaultSeverity,
+            bool enabledByDefault)
+        {
+            return GetEffectiveSeverity(
+                compilation.Options,
+                ruleId,
+                defaultSeverity,
+                enabledByDefault);
+        }
+
+        public static ReportDiagnostic GetEffectiveSeverity(
+            this CompilationOptions options,
+            string ruleId,
+            DiagnosticSeverity defaultSeverity,
+            bool enabledByDefault)
+        {
+            return GetEffectiveSeverity(
+                options.GeneralDiagnosticOption,
+                options.SpecificDiagnosticOptions,
+                ruleId,
+                defaultSeverity,
+                enabledByDefault);
+        }
+
+        public static ReportDiagnostic GetEffectiveSeverity(
+            this DiagnosticDescriptor descriptor,
+            CompilationOptions options)
+        {
+            return GetEffectiveSeverity(
+                options,
+                descriptor.Id,
+                descriptor.DefaultSeverity,
+                descriptor.IsEnabledByDefault);
+        }
+
+        public static ReportDiagnostic GetEffectiveSeverity(
+            ReportDiagnostic generalOption,
+            IDictionary<string, ReportDiagnostic> specificOptions,
+            string ruleId,
+            DiagnosticSeverity defaultSeverity,
+            bool enabledByDefault)
+        {
+            ReportDiagnostic report = ReportDiagnostic.Default;
+            var isSpecified = specificOptions.TryGetValue(ruleId, out report);
+            if (!isSpecified)
+            {
+                report = enabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
+            }
+
+            if (report == ReportDiagnostic.Default)
+            {
+                switch (generalOption)
+                {
+                    case ReportDiagnostic.Error:
+                        if (defaultSeverity == DiagnosticSeverity.Warning)
+                        {
+                            if (!isSpecified)
+                            {
+                                return ReportDiagnostic.Error;
+                            }
+                        }
+
+                        break;
+                    case ReportDiagnostic.Suppress:
+                        if (defaultSeverity == DiagnosticSeverity.Warning || defaultSeverity == DiagnosticSeverity.Info)
+                        {
+                            return ReportDiagnostic.Suppress;
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
+
+                return MapSeverityToReport(defaultSeverity);
+            }
+
+            return report;
+        }
+
+        private static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity defaultSeverity)
+        {
+            switch (defaultSeverity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    return ReportDiagnostic.Hidden;
+                case DiagnosticSeverity.Info:
+                    return ReportDiagnostic.Info;
+                case DiagnosticSeverity.Warning:
+                    return ReportDiagnostic.Warn;
+                case DiagnosticSeverity.Error:
+                    return ReportDiagnostic.Error;
+                default:
+                    throw new ArgumentException("Unhandled DiagnosticSeverity: " + defaultSeverity, "defaultSeverity");
+            }
         }
     }
 }

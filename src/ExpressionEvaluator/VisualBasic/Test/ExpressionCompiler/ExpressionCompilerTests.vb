@@ -491,10 +491,9 @@ End Class
   // Code size        4 (0x4)
   .maxstack  2
   .locals init (String V_0, //F
-  Object V_1,
-  Boolean V_2,
-  String V_3, //s
-  Boolean V_4)
+                Object V_1,
+                Boolean V_2,
+                String V_3) //s
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  ldelem.i4
@@ -966,7 +965,8 @@ End Class
                 Boolean V_1,
                 Object() V_2,
                 Integer V_3,
-                Object V_4) //o
+                Object V_4, //o
+                Boolean V_5)
   IL_0000:  ldloc.s    V_4
   IL_0002:  ret
 }")
@@ -2292,10 +2292,11 @@ End Class"
   // Code size       18 (0x12)
   .maxstack  3
   .locals init (Boolean V_0, //M
-  Object() V_1,
-  Integer V_2,
-  Object V_3,
-  Boolean V_4)
+                Object() V_1,
+                Integer V_2,
+                Object V_3,
+                Boolean V_4,
+                Boolean V_5)
   IL_0000:  newobj     ""Sub C..ctor()""
   IL_0005:  dup
   IL_0006:  ldc.i4.1

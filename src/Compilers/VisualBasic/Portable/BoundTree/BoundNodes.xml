@@ -505,7 +505,7 @@
       associated with next statement (which could be a fairly random statement in random scope).
       -->
         <Field Name="StatementOpt" Type="BoundStatement" Null="allow"/>
-        <Field Name="SequenceSpan" Type="TextSpan"/>
+        <Field Name="Span" Type="TextSpan"/>
     </Node>
 
     <Node Name="BoundNoOpStatement" Base="BoundStatement">

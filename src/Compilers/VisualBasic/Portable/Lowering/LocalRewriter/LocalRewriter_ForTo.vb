@@ -40,70 +40,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function FinishNonObjectForLoop(node As BoundForToStatement,
-                                              rewrittenControlVariable As BoundExpression,
-                                              rewrittenInitialValue As BoundExpression,
-                                              rewrittenLimit As BoundExpression,
-                                              rewrittenStep As BoundExpression) As BoundBlock
+        Private Function FinishNonObjectForLoop(forStatement As BoundForToStatement,
+                                                rewrittenControlVariable As BoundExpression,
+                                                rewrittenInitialValue As BoundExpression,
+                                                rewrittenLimit As BoundExpression,
+                                                rewrittenStep As BoundExpression) As BoundBlock
 
-            Dim syntax = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
-            Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
+            Dim blockSyntax = DirectCast(forStatement.Syntax, ForOrForEachBlockSyntax)
 
-            ' Force unused "ForLoopObject" local here. 
-            ' It will mark the start of the For loop locals in EnC
-            ' The type is irrelevant since this local will not be used and in optimized builds will be removed.
-            locals.Add(New SynthesizedLocal(Me._currentMethodOrLambda, rewrittenInitialValue.Type, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement))
-
-            Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
+            Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(forStatement)
 
             Dim loopResumeTarget As ImmutableArray(Of BoundStatement) = Nothing
 
             If generateUnstructuredExceptionHandlingResumeCode Then
-                loopResumeTarget = RegisterUnstructuredExceptionHandlingResumeTarget(syntax, canThrow:=True)
+                loopResumeTarget = RegisterUnstructuredExceptionHandlingResumeTarget(blockSyntax, canThrow:=True)
             End If
 
             Dim cacheAssignments = ArrayBuilder(Of BoundExpression).GetInstance()
 
             ' need to do this early while constant values are still constants 
             ' (may become sequences that capture initialization later)
-            Dim unconditionalEntry As Boolean = WillDoAtLeastOneIteration(rewrittenInitialValue,
-                                             rewrittenLimit,
-                                             rewrittenStep)
+            Dim unconditionalEntry As Boolean = WillDoAtLeastOneIteration(rewrittenInitialValue, rewrittenLimit, rewrittenStep)
 
             ' For loop must ensure that loop range and step do not change while iterating so it needs to 
             ' cache nonconstant values.
             ' We do not need to do this for object loops though. Object loop helpers do caching internally.
 
-            'NOTE the order of the following initializations is important!!!!
-            'Values are evaluated before hoisting and it must be done in the order of declaration (value, limit, step).
-            rewrittenLimit = CacheToTempIfNotConst(rewrittenLimit, locals, cacheAssignments, SynthesizedLocalKind.ForLimit, syntax.ForOrForEachStatement)
-            rewrittenStep = CacheToTempIfNotConst(rewrittenStep, locals, cacheAssignments, SynthesizedLocalKind.ForStep, syntax.ForOrForEachStatement)
+            ' NOTE the order of the following initializations is important!!!!
+            ' Values are evaluated before hoisting and it must be done in the order of declaration (value, limit, step).
+
+            Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
+
+            rewrittenInitialValue = CacheToLocalIfNotConst(_currentMethodOrLambda, rewrittenInitialValue, locals, cacheAssignments, SynthesizedLocalKind.ForInitialValue, blockSyntax)
+            rewrittenLimit = CacheToLocalIfNotConst(_currentMethodOrLambda, rewrittenLimit, locals, cacheAssignments, SynthesizedLocalKind.ForLimit, blockSyntax)
+            rewrittenStep = CacheToLocalIfNotConst(_currentMethodOrLambda, rewrittenStep, locals, cacheAssignments, SynthesizedLocalKind.ForStep, blockSyntax)
 
             Dim positiveFlag As SynthesizedLocal = Nothing
 
-            If node.OperatorsOpt IsNot Nothing Then
+            If forStatement.OperatorsOpt IsNot Nothing Then
                 ' calculate and cache result of a positive check := step >= (step - step).
-                AddPlaceholderReplacement(node.OperatorsOpt.LeftOperandPlaceholder, rewrittenStep)
-                AddPlaceholderReplacement(node.OperatorsOpt.RightOperandPlaceholder, rewrittenStep)
+                AddPlaceholderReplacement(forStatement.OperatorsOpt.LeftOperandPlaceholder, rewrittenStep)
+                AddPlaceholderReplacement(forStatement.OperatorsOpt.RightOperandPlaceholder, rewrittenStep)
 
-                Dim subtraction = VisitExpressionNode(node.OperatorsOpt.Subtraction)
+                Dim subtraction = VisitExpressionNode(forStatement.OperatorsOpt.Subtraction)
 
-                UpdatePlaceholderReplacement(node.OperatorsOpt.RightOperandPlaceholder, subtraction)
+                UpdatePlaceholderReplacement(forStatement.OperatorsOpt.RightOperandPlaceholder, subtraction)
 
-                Dim greaterThanOrEqual = VisitExpressionNode(node.OperatorsOpt.GreaterThanOrEqual)
+                Dim greaterThanOrEqual = VisitExpressionNode(forStatement.OperatorsOpt.GreaterThanOrEqual)
 
-                positiveFlag = New SynthesizedLocal(_currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
+                positiveFlag = New SynthesizedLocal(_currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, blockSyntax)
                 locals.Add(positiveFlag)
 
-                cacheAssignments.Add(New BoundAssignmentOperator(node.OperatorsOpt.Syntax,
-                                                                 New BoundLocal(node.OperatorsOpt.Syntax,
+                cacheAssignments.Add(New BoundAssignmentOperator(forStatement.OperatorsOpt.Syntax,
+                                                                 New BoundLocal(forStatement.OperatorsOpt.Syntax,
                                                                                 positiveFlag,
                                                                                 positiveFlag.Type),
                                                                  greaterThanOrEqual,
                                                                  suppressObjectClone:=True, type:=positiveFlag.Type))
 
-                RemovePlaceholderReplacement(node.OperatorsOpt.LeftOperandPlaceholder)
-                RemovePlaceholderReplacement(node.OperatorsOpt.RightOperandPlaceholder)
+                RemovePlaceholderReplacement(forStatement.OperatorsOpt.LeftOperandPlaceholder)
+                RemovePlaceholderReplacement(forStatement.OperatorsOpt.RightOperandPlaceholder)
 
             ElseIf rewrittenStep.ConstantValueOpt Is Nothing AndAlso
                 Not rewrittenStep.Type.GetEnumUnderlyingTypeOrSelf.IsSignedIntegralType AndAlso
@@ -149,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             isUp)
                     End If
 
-                    positiveFlag = New SynthesizedLocal(_currentMethodOrLambda, isUp.Type, SynthesizedLocalKind.ForDirection, syntax.ForOrForEachStatement)
+                    positiveFlag = New SynthesizedLocal(_currentMethodOrLambda, isUp.Type, SynthesizedLocalKind.ForDirection, blockSyntax)
                     locals.Add(positiveFlag)
 
                     cacheAssignments.Add(New BoundAssignmentOperator(isUp.Syntax,
@@ -165,12 +161,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If cacheAssignments.Count > 0 Then
-                rewrittenInitialValue = GenerateSequenceValueSideEffects(rewrittenInitialValue,
-                                                                         ImmutableArray(Of LocalSymbol).Empty,
-                                                                         cacheAssignments.ToImmutable)
+                rewrittenInitialValue = New BoundSequence(rewrittenInitialValue.Syntax,
+                                                          ImmutableArray(Of LocalSymbol).Empty,
+                                                          cacheAssignments.ToImmutable(),
+                                                          rewrittenInitialValue,
+                                                          rewrittenInitialValue.Type)
             End If
-            cacheAssignments.Free()
 
+            cacheAssignments.Free()
 
             Dim rewrittenInitializer As BoundStatement = New BoundExpressionStatement(
                 rewrittenInitialValue.Syntax,
@@ -189,36 +187,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If GenerateDebugInfo Then
                 ' first sequence point to highlight the for statement
-                rewrittenInitializer = New BoundSequencePoint(syntax.ForOrForEachStatement, rewrittenInitializer)
+                rewrittenInitializer = New BoundSequencePoint(blockSyntax.ForOrForEachStatement, rewrittenInitializer)
             End If
 
-            Dim rewrittenBody = DirectCast(Visit(node.Body), BoundStatement)
+            Dim rewrittenBody = DirectCast(Visit(forStatement.Body), BoundStatement)
 
             Dim rewrittenIncrement As BoundStatement = RewriteForLoopIncrement(
                                                 rewrittenControlVariable,
                                                 rewrittenStep,
-                                                node.Checked,
-                                                node.OperatorsOpt)
+                                                forStatement.Checked,
+                                                forStatement.OperatorsOpt)
 
             If generateUnstructuredExceptionHandlingResumeCode Then
-                rewrittenIncrement = RegisterUnstructuredExceptionHandlingResumeTarget(syntax, rewrittenIncrement, canThrow:=True)
+                rewrittenIncrement = RegisterUnstructuredExceptionHandlingResumeTarget(blockSyntax, rewrittenIncrement, canThrow:=True)
             End If
 
             If GenerateDebugInfo Then
-                If syntax.NextStatement IsNot Nothing Then
-                    rewrittenIncrement = New BoundSequencePoint(syntax.NextStatement, rewrittenIncrement)
+                If blockSyntax.NextStatement IsNot Nothing Then
+                    rewrittenIncrement = New BoundSequencePoint(blockSyntax.NextStatement, rewrittenIncrement)
                 End If
             End If
 
             Dim rewrittenCondition = RewriteForLoopCondition(rewrittenControlVariable, rewrittenLimit, rewrittenStep,
-                                                             node.OperatorsOpt, positiveFlag)
+                                                             forStatement.OperatorsOpt, positiveFlag)
 
             Dim startLabel = GenerateLabel("start")
             Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
-                                                                 syntax,
-                                                                 rewrittenCondition,
-                                                                 True,
-                                                                 startLabel)
+                blockSyntax,
+                rewrittenCondition,
+                True,
+                startLabel)
 
             ' For i as Integer = 3 To 6 step 2
             '    body
@@ -255,11 +253,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 'This jump may be a target of another jump (for example if loops are nested) and that will make 
                 'impression of the previous statement being re-executed
                 postIncrementLabel = New GeneratedLabelSymbol("PostIncrement")
-                Dim postIncrement As New BoundLabelStatement(syntax, postIncrementLabel)
+                Dim postIncrement As New BoundLabelStatement(blockSyntax, postIncrementLabel)
 
                 gotoPostIncrement = New BoundSequencePoint(
                                                          Nothing,
-                                                         New BoundGotoStatement(syntax, postIncrementLabel, Nothing))
+                                                         New BoundGotoStatement(blockSyntax, postIncrementLabel, Nothing))
             End If
 
             Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
@@ -270,14 +268,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 statements.Add(gotoPostIncrement)
             End If
 
-            statements.Add(New BoundLabelStatement(syntax, startLabel))
+            statements.Add(New BoundLabelStatement(blockSyntax, startLabel))
             statements.Add(rewrittenBody)
 
-            statements.Add(New BoundLabelStatement(syntax, node.ContinueLabel))
+            statements.Add(New BoundLabelStatement(blockSyntax, forStatement.ContinueLabel))
             statements.Add(rewrittenIncrement)
 
             If postIncrementLabel IsNot Nothing Then
-                Dim label As BoundStatement = New BoundLabelStatement(syntax, postIncrementLabel)
+                Dim label As BoundStatement = New BoundLabelStatement(blockSyntax, postIncrementLabel)
                 If GenerateDebugInfo Then
                     gotoPostIncrement = New BoundSequencePoint(Nothing, label)
                 End If
@@ -289,15 +287,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
             statements.Add(ifConditionGotoStart)
 
-            statements.Add(New BoundLabelStatement(syntax, node.ExitLabel))
+            statements.Add(New BoundLabelStatement(blockSyntax, forStatement.ExitLabel))
 
-            Dim localSymbol = node.DeclaredOrInferredLocalOpt
+            Dim localSymbol = forStatement.DeclaredOrInferredLocalOpt
             If localSymbol IsNot Nothing Then
                 locals.Add(localSymbol)
             End If
 
             Return New BoundBlock(
-                syntax,
+                blockSyntax,
                 Nothing,
                 locals.ToImmutableAndFree(),
                 statements.ToImmutableAndFree
@@ -305,8 +303,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function WillDoAtLeastOneIteration(rewrittenInitialValue As BoundExpression,
-                                              rewrittenLimit As BoundExpression,
-                                              rewrittenStep As BoundExpression) As Boolean
+                                                          rewrittenLimit As BoundExpression,
+                                                          rewrittenStep As BoundExpression) As Boolean
 
             Dim initialConst = rewrittenInitialValue.ConstantValueOpt
             If initialConst Is Nothing Then
@@ -379,15 +377,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Function FinishObjectForLoop(node As BoundForToStatement,
-                                      rewrittenControlVariable As BoundExpression,
-                                      rewrittenInitialValue As BoundExpression,
-                                      rewrittenLimit As BoundExpression,
-                                      rewrittenStep As BoundExpression) As BoundBlock
+        Private Function FinishObjectForLoop(forStatement As BoundForToStatement,
+                                             rewrittenControlVariable As BoundExpression,
+                                             rewrittenInitialValue As BoundExpression,
+                                             rewrittenLimit As BoundExpression,
+                                             rewrittenStep As BoundExpression) As BoundBlock
 
             Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
-            Dim syntax = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
-            Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
+            Dim blockSyntax = DirectCast(forStatement.Syntax, ForOrForEachBlockSyntax)
+            Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(forStatement)
 
             ' For i as Object = 3 To 6 step 2
             '    body
@@ -413,102 +411,109 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Compilation.GetSpecialType(SpecialType.System_Object) Is rewrittenControlVariable.Type)
             Dim objType = rewrittenControlVariable.Type
-            Dim loopObjLocal = New SynthesizedLocal(Me._currentMethodOrLambda, objType, SynthesizedLocalKind.ForLoopObject, syntax.ForOrForEachStatement)
+            Dim loopObjLocal = New SynthesizedLocal(Me._currentMethodOrLambda, objType, SynthesizedLocalKind.ForInitialValue, blockSyntax)
             locals.Add(loopObjLocal)
 
-            Dim loopObj = New BoundLocal(syntax, loopObjLocal, isLValue:=True, type:=loopObjLocal.Type)
+            Dim loopObj = New BoundLocal(blockSyntax, loopObjLocal, isLValue:=True, type:=loopObjLocal.Type)
 
             ' Create loop initialization and entrance criteria -
             '     if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl) 
             '                               goto exit:
             Dim rewrittenInitCondition As BoundExpression
-            Dim arguments = ImmutableArray.Create(Of BoundExpression)(
-                                           rewrittenControlVariable.MakeRValue(),
-                                           rewrittenInitialValue,
-                                           rewrittenLimit,
-                                           rewrittenStep,
-                                           loopObj,
-                                           rewrittenControlVariable)
+            Dim arguments = ImmutableArray.Create(
+                rewrittenControlVariable.MakeRValue(),
+                rewrittenInitialValue,
+                rewrittenLimit,
+                rewrittenStep,
+                loopObj,
+                rewrittenControlVariable)
 
             Dim ForLoopInitObj As MethodSymbol = Nothing
-            If TryGetWellknownMember(ForLoopInitObj, WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj, syntax) Then
+            If TryGetWellknownMember(ForLoopInitObj, WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj, blockSyntax) Then
                 ' ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl)
-                rewrittenInitCondition = New BoundCall(rewrittenLimit.Syntax,
-                                       ForLoopInitObj,
-                                       Nothing,
-                                       Nothing,
-                                       arguments,
-                                       Nothing,
-                                       Compilation.GetSpecialType(SpecialType.System_Boolean),
-                                       suppressObjectClone:=True)
+                rewrittenInitCondition = New BoundCall(
+                    rewrittenLimit.Syntax,
+                    ForLoopInitObj,
+                    Nothing,
+                    Nothing,
+                    arguments,
+                    Nothing,
+                    Compilation.GetSpecialType(SpecialType.System_Boolean),
+                    suppressObjectClone:=True)
             Else
                 rewrittenInitCondition = New BoundBadExpression(rewrittenLimit.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
                                                                 StaticCast(Of BoundNode).From(arguments), Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
             End If
 
+            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            ' the containing method is edited while the invoked method is being executed.
             Dim ifNotInitObjExit As BoundStatement = New BoundConditionalGoto(
-                                                                 syntax,
-                                                                 rewrittenInitCondition,
-                                                                 False,
-                                                                 node.ExitLabel)
+                blockSyntax,
+                AddConditionSequencePoint(rewrittenInitCondition, forStatement),
+                False,
+                forStatement.ExitLabel)
 
             If generateUnstructuredExceptionHandlingResumeCode Then
-                ifNotInitObjExit = RegisterUnstructuredExceptionHandlingResumeTarget(syntax, ifNotInitObjExit, canThrow:=True)
+                ifNotInitObjExit = RegisterUnstructuredExceptionHandlingResumeTarget(blockSyntax, ifNotInitObjExit, canThrow:=True)
             End If
 
             If GenerateDebugInfo Then
                 ' first sequence point to highlight the for each statement
-                ifNotInitObjExit = New BoundSequencePoint(syntax.ForOrForEachStatement, ifNotInitObjExit)
+                ifNotInitObjExit = New BoundSequencePoint(blockSyntax.ForOrForEachStatement, ifNotInitObjExit)
             End If
 
             '### body
 
-            Dim rewrittenBody = DirectCast(Visit(node.Body), BoundStatement)
+            Dim rewrittenBody = DirectCast(Visit(forStatement.Body), BoundStatement)
 
             ' Create loop condition (ifConditionGotoStart) - 
             '    if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl) 
             '                                               GoTo start
             Dim rewrittenLoopCondition As BoundExpression
 
-            arguments = ImmutableArray.Create(Of BoundExpression)(
-                                                       rewrittenControlVariable.MakeRValue(),
-                                                       loopObj.MakeRValue,
-                                                       rewrittenControlVariable)
+            arguments = ImmutableArray.Create(
+                rewrittenControlVariable.MakeRValue(),
+                loopObj.MakeRValue,
+                rewrittenControlVariable)
 
             Dim ForNextCheckObj As MethodSymbol = Nothing
-            If TryGetWellknownMember(ForNextCheckObj, WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj, syntax) Then
+            If TryGetWellknownMember(ForNextCheckObj, WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj, blockSyntax) Then
                 ' ForNextCheckObj(ctrl, loopObj, ref ctrl) 
-                rewrittenLoopCondition = New BoundCall(rewrittenLimit.Syntax,
-                                                   ForNextCheckObj,
-                                                   Nothing,
-                                                   Nothing,
-                                                   arguments,
-                                                   Nothing,
-                                                   Compilation.GetSpecialType(SpecialType.System_Boolean),
-                                                   suppressObjectClone:=True)
+                rewrittenLoopCondition = New BoundCall(
+                    rewrittenLimit.Syntax,
+                    ForNextCheckObj,
+                    Nothing,
+                    Nothing,
+                    arguments,
+                    Nothing,
+                    Compilation.GetSpecialType(SpecialType.System_Boolean),
+                    suppressObjectClone:=True)
             Else
                 rewrittenLoopCondition = New BoundBadExpression(rewrittenLimit.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
                                                                 StaticCast(Of BoundNode).From(arguments), Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
             End If
 
             Dim startLabel = GenerateLabel("start")
+
+            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            ' the containing method is edited while the invoked function is being executed.
             Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
-                                                                 syntax,
-                                                                 rewrittenLoopCondition,
-                                                                 True,
-                                                                 startLabel)
+                blockSyntax,
+                AddConditionSequencePoint(rewrittenLoopCondition, forStatement),
+                True,
+                startLabel)
 
             If generateUnstructuredExceptionHandlingResumeCode Then
-                ifConditionGotoStart = RegisterUnstructuredExceptionHandlingResumeTarget(syntax, ifConditionGotoStart, canThrow:=True)
+                ifConditionGotoStart = RegisterUnstructuredExceptionHandlingResumeTarget(blockSyntax, ifConditionGotoStart, canThrow:=True)
             End If
 
             If GenerateDebugInfo Then
-                If syntax.NextStatement IsNot Nothing Then
-                    ifConditionGotoStart = New BoundSequencePoint(syntax.NextStatement, ifConditionGotoStart)
+                If blockSyntax.NextStatement IsNot Nothing Then
+                    ifConditionGotoStart = New BoundSequencePoint(blockSyntax.NextStatement, ifConditionGotoStart)
                 End If
             End If
 
-            Dim label As BoundStatement = New BoundLabelStatement(syntax, node.ContinueLabel)
+            Dim label As BoundStatement = New BoundLabelStatement(blockSyntax, forStatement.ContinueLabel)
 
             If GenerateDebugInfo Then
                 label = New BoundSequencePoint(Nothing, label)
@@ -516,24 +521,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             'Build the rewritten loop
-            Dim statements = ImmutableArray.Create(Of BoundStatement)(ifNotInitObjExit,
-                                                                     New BoundLabelStatement(syntax, startLabel),
-                                                                     rewrittenBody,
-                                                                     label,
-                                                                     ifConditionGotoStart,
-                                                                     New BoundLabelStatement(syntax, node.ExitLabel))
+            Dim statements = ImmutableArray.Create(
+                ifNotInitObjExit,
+                New BoundLabelStatement(blockSyntax, startLabel),
+                rewrittenBody,
+                label,
+                ifConditionGotoStart,
+                New BoundLabelStatement(blockSyntax, forStatement.ExitLabel))
 
-            Dim localSymbol = node.DeclaredOrInferredLocalOpt
+            Dim localSymbol = forStatement.DeclaredOrInferredLocalOpt
             If localSymbol IsNot Nothing Then
                 locals.Add(localSymbol)
             End If
 
             Return New BoundBlock(
-                syntax,
+                blockSyntax,
                 Nothing,
                 locals.ToImmutableAndFree(),
-                statements
-            )
+                statements)
         End Function
 
         Private Function RewriteForLoopIncrement(controlVariable As BoundExpression,
@@ -776,33 +781,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return condition
-        End Function
-
-        ''' <summary>
-        ''' If value is const, returns the value unchanged.
-        ''' 
-        ''' In a case if value is not a const, a proxy temp is created and added to "locals"
-        ''' In addition to that, code that evaluates and stores the value is added to "expressions"
-        ''' The access expression to the proxy temp is returned.
-        ''' 
-        ''' Purpose:
-        ''' Limit and Step are supposed to be captured for the duration of the loop.
-        ''' To ensure that behavior non-constant values are hoisted into temps before entering the loop
-        ''' which avoids re-fetching potentially changed values.
-        ''' </summary>
-        Private Function CacheToTempIfNotConst(
-                            value As BoundExpression,
-                            locals As ArrayBuilder(Of LocalSymbol),
-                            expressions As ArrayBuilder(Of BoundExpression),
-                            kind As SynthesizedLocalKind,
-                            syntax As StatementSyntax) As BoundExpression
-
-            Return CacheToTempIfNotConst(Me._currentMethodOrLambda, value, locals, expressions, kind, syntax)
-
-            'TODO: optimization for arrays/strings -
-            '      does it make sense to store actual arrays/strings instead of their lengths when used as a limit?
-            '      will it help JIT with hoisting range checks? 
-            '      or perhaps it is just "too cute" and we should do such optimization only in ForEach?
         End Function
     End Class
 End Namespace

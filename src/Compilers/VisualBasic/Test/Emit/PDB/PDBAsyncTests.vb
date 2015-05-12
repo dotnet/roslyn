@@ -70,7 +70,6 @@ End Module
                     <slot kind="temp"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -79,18 +78,18 @@ End Module
                 <entry offset="0xf" startLine="11" startColumn="5" endLine="11" endColumn="68" document="0"/>
                 <entry offset="0x10" startLine="12" startColumn="9" endLine="12" endColumn="25" document="0"/>
                 <entry offset="0x20" hidden="true" document="0"/>
-                <entry offset="0x7f" startLine="13" startColumn="9" endLine="13" endColumn="17" document="0"/>
-                <entry offset="0x83" hidden="true" document="0"/>
-                <entry offset="0x8b" hidden="true" document="0"/>
-                <entry offset="0xa8" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0xb2" hidden="true" document="0"/>
+                <entry offset="0x7c" startLine="13" startColumn="9" endLine="13" endColumn="17" document="0"/>
+                <entry offset="0x80" hidden="true" document="0"/>
+                <entry offset="0x88" hidden="true" document="0"/>
+                <entry offset="0xa5" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0xaf" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xc0">
+            <scope startOffset="0x0" endOffset="0xbd">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="Module1" methodName="F" parameterNames="a"/>
-                <await yield="0x36" resume="0x52" declaringType="Module1+VB$StateMachine_1_F" methodName="MoveNext"/>
+                <await yield="0x32" resume="0x4e" declaringType="Module1+VB$StateMachine_1_F" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -121,7 +120,6 @@ End Module
                     <slot kind="33" offset="94"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
-                    <slot kind="temp"/>
                     <slot kind="33" offset="155"/>
                     <slot kind="33" offset="205"/>
                     <slot kind="33" offset="163"/>
@@ -137,40 +135,40 @@ End Module
                 <entry offset="0x68" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
                 <entry offset="0x69" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
                 <entry offset="0x7c" hidden="true" document="0"/>
-                <entry offset="0xea" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x102" hidden="true" document="0"/>
-                <entry offset="0x18b" hidden="true" document="0"/>
-                <entry offset="0x1f7" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1f8" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1f9" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1fa" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x20d" hidden="true" document="0"/>
-                <entry offset="0x28a" hidden="true" document="0"/>
-                <entry offset="0x307" hidden="true" document="0"/>
-                <entry offset="0x375" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x38d" hidden="true" document="0"/>
-                <entry offset="0x412" hidden="true" document="0"/>
-                <entry offset="0x495" hidden="true" document="0"/>
-                <entry offset="0x4f5" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x4f7" hidden="true" document="0"/>
-                <entry offset="0x4ff" hidden="true" document="0"/>
-                <entry offset="0x51c" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x526" hidden="true" document="0"/>
+                <entry offset="0xe6" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
+                <entry offset="0xfe" hidden="true" document="0"/>
+                <entry offset="0x183" hidden="true" document="0"/>
+                <entry offset="0x1eb" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
+                <entry offset="0x1ec" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
+                <entry offset="0x1ed" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
+                <entry offset="0x1ee" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
+                <entry offset="0x201" hidden="true" document="0"/>
+                <entry offset="0x27a" hidden="true" document="0"/>
+                <entry offset="0x2f3" hidden="true" document="0"/>
+                <entry offset="0x35d" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
+                <entry offset="0x375" hidden="true" document="0"/>
+                <entry offset="0x3f6" hidden="true" document="0"/>
+                <entry offset="0x475" hidden="true" document="0"/>
+                <entry offset="0x4d1" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
+                <entry offset="0x4d3" hidden="true" document="0"/>
+                <entry offset="0x4db" hidden="true" document="0"/>
+                <entry offset="0x4f8" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
+                <entry offset="0x502" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x533">
+            <scope startOffset="0x0" endOffset="0x50f">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="Module1" methodName="Test"/>
-                <await yield="0x92" resume="0xb2" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x118" resume="0x138" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x1a1" resume="0x1c0" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x223" resume="0x243" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x2a0" resume="0x2c0" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x31d" resume="0x33d" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x3a3" resume="0x3c3" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x428" resume="0x447" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x4ab" resume="0x4c7" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x8e" resume="0xae" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x110" resume="0x130" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x195" resume="0x1b4" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x213" resume="0x233" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x28c" resume="0x2ac" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x305" resume="0x325" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x387" resume="0x3a7" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x408" resume="0x427" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x487" resume="0x4a3" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -198,7 +196,6 @@ End Module
                     <slot kind="temp"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -207,19 +204,19 @@ End Module
                 <entry offset="0xf" startLine="26" startColumn="5" endLine="26" endColumn="18" document="0"/>
                 <entry offset="0x10" startLine="27" startColumn="9" endLine="27" endColumn="25" document="0"/>
                 <entry offset="0x1f" hidden="true" document="0"/>
-                <entry offset="0x7c" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0x7e" hidden="true" document="0"/>
-                <entry offset="0x86" hidden="true" document="0"/>
-                <entry offset="0xa3" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0xad" hidden="true" document="0"/>
+                <entry offset="0x7a" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
+                <entry offset="0x7c" hidden="true" document="0"/>
+                <entry offset="0x84" hidden="true" document="0"/>
+                <entry offset="0xa1" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
+                <entry offset="0xab" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xba">
+            <scope startOffset="0x0" endOffset="0xb8">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
             <asyncInfo>
-                <catchHandler offset="0x7e"/>
+                <catchHandler offset="0x7c"/>
                 <kickoffMethod declaringType="Module1" methodName="S"/>
-                <await yield="0x33" resume="0x4f" declaringType="Module1+VB$StateMachine_3_S" methodName="MoveNext"/>
+                <await yield="0x31" resume="0x4c" declaringType="Module1+VB$StateMachine_3_S" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -266,7 +263,6 @@ End Class
                     <slot kind="temp"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -279,24 +275,24 @@ End Class
                 <entry offset="0x36" startLine="9" startColumn="13" endLine="9" endColumn="53" document="0"/>
                 <entry offset="0x4d" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
                 <entry offset="0x7d" hidden="true" document="0"/>
-                <entry offset="0xdd" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
-                <entry offset="0xee" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
-                <entry offset="0xff" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0x101" hidden="true" document="0"/>
-                <entry offset="0x109" hidden="true" document="0"/>
-                <entry offset="0x126" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0x130" hidden="true" document="0"/>
+                <entry offset="0xdb" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
+                <entry offset="0xec" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
+                <entry offset="0xfd" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0xff" hidden="true" document="0"/>
+                <entry offset="0x107" hidden="true" document="0"/>
+                <entry offset="0x124" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0x12e" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x13d">
+            <scope startOffset="0x0" endOffset="0x13b">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
-                <scope startOffset="0x12" endOffset="0x100">
-                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0x100" attributes="0"/>
-                    <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0x100" attributes="0"/>
+                <scope startOffset="0x12" endOffset="0xfe">
+                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0xfe" attributes="0"/>
+                    <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0xfe" attributes="0"/>
                 </scope>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_Lambda"/>
-                <await yield="0x91" resume="0xb0" declaringType="C+VB$StateMachine_1_Async_Lambda" methodName="MoveNext"/>
+                <await yield="0x8f" resume="0xad" declaringType="C+VB$StateMachine_1_Async_Lambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -405,7 +401,6 @@ End Class
                     <slot kind="temp"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -416,26 +411,26 @@ End Class
                 <entry offset="0x17" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
                 <entry offset="0x1e" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
                 <entry offset="0x44" hidden="true" document="0"/>
-                <entry offset="0xa4" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
-                <entry offset="0xb0" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
-                <entry offset="0xbc" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xbe" hidden="true" document="0"/>
-                <entry offset="0xc6" hidden="true" document="0"/>
-                <entry offset="0xe3" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xed" hidden="true" document="0"/>
+                <entry offset="0xa2" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
+                <entry offset="0xae" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
+                <entry offset="0xba" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
+                <entry offset="0xbc" hidden="true" document="0"/>
+                <entry offset="0xc4" hidden="true" document="0"/>
+                <entry offset="0xe1" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
+                <entry offset="0xeb" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xfa">
+            <scope startOffset="0x0" endOffset="0xf8">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <scope startOffset="0xf" endOffset="0xbd">
-                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
-                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xbd" attributes="0"/>
+                <scope startOffset="0xf" endOffset="0xbb">
+                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xbb" attributes="0"/>
+                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xbb" attributes="0"/>
                 </scope>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_NoLambda"/>
-                <await yield="0x58" resume="0x77" declaringType="C+VB$StateMachine_1_Async_NoLambda" methodName="MoveNext"/>
+                <await yield="0x56" resume="0x74" declaringType="C+VB$StateMachine_1_Async_NoLambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>

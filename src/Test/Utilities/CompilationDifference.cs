@@ -59,10 +59,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public void VerifyIL(
-            string expectedIL)
+            string expectedIL,
+            [CallerLineNumber]int callerLine = 0,
+            [CallerFilePath]string callerPath = null)
         {
             string actualIL = ILDelta.GetMethodIL();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: null, expectedValueSourceLine: 0);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
         public void VerifyIL(
@@ -91,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VerifyPdb(methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
         }
 
+        public void VerifyPdb(IEnumerable<MethodDefinitionHandle> methodHandles, XElement expectedPdb)
+        {
+            VerifyPdb(methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
+        }
+
         public void VerifyPdb(
             IEnumerable<int> methodTokens, 
             string expectedPdb,
@@ -99,6 +106,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, methodTokens);
             AssertXml.Equal(XElement.Parse(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
+        }
+
+        public void VerifyPdb(
+            IEnumerable<int> methodTokens,
+            XElement expectedPdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, methodTokens);
+            AssertXml.Equal(expectedPdb, XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)
