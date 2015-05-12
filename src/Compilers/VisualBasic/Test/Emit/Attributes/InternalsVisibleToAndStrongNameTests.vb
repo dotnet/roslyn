@@ -1148,7 +1148,7 @@ End Class
             Dim flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags
             ' confirm file does not claim to be signed
             Assert.Equal(0, CInt(flags And CorFlags.StrongNameSigned))
-            Dim token As Handle = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
+            Dim token As EntityHandle = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
             Assert.False(token.IsNil)   ' could the magic type ref be located? If not then the attribute's not there.
             Dim attrInfos = metadata.Module.FindTargetAttributes(token, expectedModuleAttr)
             Assert.Equal(1, attrInfos.Count())

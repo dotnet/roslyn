@@ -1345,7 +1345,7 @@ End Interface
             End Using
         End Sub
 
-        Private Function HasAnyCustomAttribute(reader As MetadataReader, parent As Handle) As Boolean
+        Private Function HasAnyCustomAttribute(reader As MetadataReader, parent As EntityHandle) As Boolean
             For Each ca In reader.CustomAttributes
                 If reader.GetCustomAttribute(ca).Parent = parent Then
                     Return True

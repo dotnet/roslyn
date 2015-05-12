@@ -1277,7 +1277,7 @@ namespace Roslyn.Test.PdbUtilities
             return (flags & ((TypeAttributes)0x00000006)) != 0;
         }
 
-        private static string GetFullTypeName(MetadataReader metadataReader, Handle handle)
+        private static string GetFullTypeName(MetadataReader metadataReader, EntityHandle handle)
         {
             if (handle.IsNil)
             {

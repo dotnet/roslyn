@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (!isInterface)
                 {
-                    Handle baseToken = Module.GetBaseTypeOfTypeOrThrow(typeDef);
+                    EntityHandle baseToken = Module.GetBaseTypeOfTypeOrThrow(typeDef);
 
                     if (!baseToken.IsNil)
                     {

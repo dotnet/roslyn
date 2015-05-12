@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
-            Handle ctor;
+            EntityHandle ctor;
             return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticNamespaceName, nameof(DiagnosticAnalyzerAttribute), out ctor);
         }
 

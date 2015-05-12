@@ -8,10 +8,10 @@ namespace Roslyn.Test.Utilities
 {
     internal struct CustomAttributeRow : IEquatable<CustomAttributeRow>
     {
-        public readonly Handle ParentToken;
-        public readonly Handle ConstructorToken;
+        public readonly EntityHandle ParentToken;
+        public readonly EntityHandle ConstructorToken;
 
-        public CustomAttributeRow(Handle parentToken, Handle constructorToken)
+        public CustomAttributeRow(EntityHandle parentToken, EntityHandle constructorToken)
         {
             this.ParentToken = parentToken;
             this.ConstructorToken = constructorToken;

@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Emit
             out int awaiterSlotCount);
 
         protected abstract ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo);
-        protected abstract ITypeSymbol TryGetStateMachineType(Handle methodHandle);
+        protected abstract ITypeSymbol TryGetStateMachineType(EntityHandle methodHandle);
 
         internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method)
         {
