@@ -920,6 +920,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return start < TextWindow.Position;
         }
 
+        // Allows underscores in integers, except at beginning and end
+        private void ScanNumericLiteralSingleInteger(StringBuilder builder, ref bool underscoreInWrongPlace)
+        {
+            char ch;
+            bool lastCharWasUnderscore = false;
+            if (TextWindow.PeekChar() == '_')
+            {
+                underscoreInWrongPlace = true;
+            }
+            while (((ch = TextWindow.PeekChar()) >= '0' && ch <= '9') || ch == '_')
+            {
+                if (ch != '_')
+                {
+                    builder.Append(ch);
+                    lastCharWasUnderscore = false;
+                }
+                else
+                {
+                    lastCharWasUnderscore = true;
+                }
+                TextWindow.AdvanceChar();
+            }
+            if (lastCharWasUnderscore)
+            {
+                underscoreInWrongPlace = true;
+            }
+        }
+
         private bool ScanNumericLiteral(ref TokenInfo info)
         {
             int start = TextWindow.Position;
@@ -933,6 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _builder.Clear();
             bool hasUSuffix = false;
             bool hasLSuffix = false;
+            bool underscoreInWrongPlace = false;
 
             ch = TextWindow.PeekChar();
             if (ch == '0')
@@ -954,21 +983,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // It's OK if it has no digits after the '0x' -- we'll catch it in ScanNumericLiteral
                 // and give a proper error then.
-                if (isHex)
+
+                if (TextWindow.PeekChar() == '_')
                 {
-                    while (SyntaxFacts.IsHexDigit(ch = TextWindow.PeekChar()))
-                    {
-                        _builder.Append(ch);
-                        TextWindow.AdvanceChar();
-                    }
+                    underscoreInWrongPlace = true;
                 }
-                else if (isBinary)
+
+                var lastCharWasUnderscore = false;
+                while (true)
                 {
-                    while (SyntaxFacts.IsBinaryDigit(ch = TextWindow.PeekChar()))
+                    ch = TextWindow.PeekChar();
+                    if (ch == '_')
                     {
-                        _builder.Append(ch);
-                        TextWindow.AdvanceChar();
+                        lastCharWasUnderscore = true;
                     }
+                    else
+                    {
+                        if (isHex && !SyntaxFacts.IsHexDigit(ch))
+                        {
+                            break;
+                        }
+                        if (isBinary && !SyntaxFacts.IsBinaryDigit(ch))
+                        {
+                            break;
+                        }
+                        _builder.Append(ch);
+                        lastCharWasUnderscore = false;
+                    }
+                    TextWindow.AdvanceChar();
+                }
+
+                if (lastCharWasUnderscore)
+                {
+                    underscoreInWrongPlace = true;
                 }
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
@@ -999,11 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
-                {
-                    _builder.Append(ch);
-                    TextWindow.AdvanceChar();
-                }
+                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace);
 
                 if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar() == '#')
                 {
@@ -1024,11 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         _builder.Append(ch);
                         TextWindow.AdvanceChar();
 
-                        while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
-                        {
-                            _builder.Append(ch);
-                            TextWindow.AdvanceChar();
-                        }
+                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace);
                     }
                     else if (_builder.Length == 0)
                     {
@@ -1050,11 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
-                    {
-                        _builder.Append(ch);
-                        TextWindow.AdvanceChar();
-                    }
+                    ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace);
                 }
 
                 if (hasExponent || hasDecimal)
@@ -1119,6 +1154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         hasLSuffix = true;
                     }
                 }
+            }
+
+            if (underscoreInWrongPlace)
+            {
+                this.AddError(MakeError(start, TextWindow.Position - start, ErrorCode.ERR_InvalidNumber));
             }
 
             info.Kind = SyntaxKind.NumericLiteralToken;
