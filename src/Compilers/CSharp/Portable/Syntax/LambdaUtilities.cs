@@ -239,10 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// "Pair lambda" is a synthesized lambda that creates an instance of an anonymous type representing a pair of values. 
-        /// TODO: Avoid generating these lambdas. Instead generate a method on the anonymous type, or use KeyValuePair instead.
         /// </summary>
         internal static bool IsQueryPairLambda(SyntaxNode syntax)
         {
+            // TODO (bug https://github.com/dotnet/roslyn/issues/2663): 
+            // Avoid generating these lambdas. Instead generate a static factory method on the anonymous type.
             return syntax.IsKind(SyntaxKind.GroupClause) ||
                    syntax.IsKind(SyntaxKind.JoinClause) ||
                    syntax.IsKind(SyntaxKind.FromClause);
