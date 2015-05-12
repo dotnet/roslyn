@@ -1796,6 +1796,19 @@ FullWidthRepeat:
                             Here += 1
                         End While
 
+                    Case "B"c, "b"c
+                        Here += 1
+                        IntegerLiteralStart = Here
+                        Base = LiteralBase.Binary
+
+                        While CanGet(Here)
+                            ch = Peek(Here)
+                            If Not IsBinaryDigit(ch) Then
+                                Exit While
+                            End If
+                            Here += 1
+                        End While
+
                     Case "O"c, "o"c
                         Here += 1
                         IntegerLiteralStart = Here
@@ -2039,8 +2052,8 @@ FullWidthRepeat2:
                             Overflows = True
                         End If
                     Else
-                        Dim Shift As Integer = If(Base = LiteralBase.Hexadecimal, 4, 3)
-                        Dim OverflowMask As UInt64 = If(Base = LiteralBase.Hexadecimal, &HF000000000000000UL, &HE000000000000000UL)
+                        Dim Shift As Integer = If(Base = LiteralBase.Hexadecimal, 4, If(Base = LiteralBase.Octal, 3, 1))
+                        Dim OverflowMask As UInt64 = If(Base = LiteralBase.Hexadecimal, &HF000000000000000UL, If(Base = LiteralBase.Octal, &HE000000000000000UL, &H8000000000000000UL))
 
                         ' Init For loop
                         For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1

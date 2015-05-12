@@ -707,6 +707,13 @@ End If]]>.Value,
         Assert.Equal(LiteralBase.Hexadecimal, tks(1).GetBase())
         Assert.Equal(&H42L, tks(1).Value)
         Assert.Equal(TypeCharacter.Long, tks(1).GetTypeCharacter())
+
+        Str = " &B1010L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&HAL, tk.Value)
+        Assert.Equal(" &B1010L ", tk.ToFullString())
     End Sub
 
     <Fact>
@@ -821,6 +828,22 @@ End If]]>.Value,
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Assert.Equal(30036, tk.GetSyntaxErrorsNoTree()(0).Code)
         Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&B111111111111111111111111111111111I"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(30036, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&B11111111111111111111111111111111UI"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(&HFFFFFFFFUI, CUInt(tk.Value))
+
+        Str = "&B1111111111111111111111111111111I"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(&H7FFFFFFFI, CInt(tk.Value))
 
         Str = "1.7976931348623157E+308d"
         tk = ScanOnce(Str)
