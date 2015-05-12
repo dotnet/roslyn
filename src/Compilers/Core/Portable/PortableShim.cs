@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Xml.Linq;
 
 namespace Roslyn.Utilities
 {
@@ -33,18 +34,28 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class PortableShim
     {
-        private const string System_Diagnotsics_FileVersionInfo_Name = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-        private const string System_IO_FileSystem_Name = "System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-        private const string System_IO_FileSystem_Primitives_Name = "System.IO.FileSystem.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-        private const string System_Runtime_Extensions_Name = "System.Runtime.Extensions, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-        private const string System_Threading_Thread_Name = "System.Threading.Thread, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+        private static class CoreNames
+        {
+            internal const string System_Diagnotsics_FileVersionInfo = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_IO_FileSystem = "System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_IO_FileSystem_Primitives = "System.IO.FileSystem.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Runtime = "System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Runtime_Extensions = "System.Runtime.Extensions, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Threading_Thread = "System.Threading.Thread, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Xml_XPath_XDocument = "System.Xml.XPath.XDocument, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+        }
+
+        private static class DesktopNames
+        {
+            internal const string System_Xml_Linq = "System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
+        }
 
         internal static class Environment
         {
             internal const string TypeName = "System.Environment";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_Runtime_Extensions_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_Runtime_Extensions}",
                 desktopName: TypeName);
 
             internal static Func<string, string> ExpandEnvironmentVariables = Type
@@ -63,7 +74,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.Path";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_Runtime_Extensions_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_Runtime_Extensions}",
                 desktopName: TypeName);
 
             internal static readonly char DirectorySeparatorChar = (char)Type
@@ -92,7 +103,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.File";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
             internal static readonly Func<string, DateTime> GetLastWriteTimeUtc = Type
@@ -131,7 +142,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.Directory";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
             private static readonly MethodInfo s_enumerateDirectories = Type
@@ -163,7 +174,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.FileMode";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem_Primitives}",
                 desktopName: TypeName);
 
             internal static readonly object CreateNew = Enum.ToObject(Type, 1);
@@ -184,7 +195,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.FileAccess";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem_Primitives}",
                 desktopName: TypeName);
 
             internal static readonly object Read = Enum.ToObject(Type, 1);
@@ -199,7 +210,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.FileShare";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_IO_FileSystem_Primitives_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem_Primitives}",
                 desktopName: TypeName);
 
             internal static readonly object None = Enum.ToObject(Type, 0);
@@ -222,7 +233,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.FileOptions";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
             internal static readonly object None = Enum.ToObject(Type, 0);
@@ -235,7 +246,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.SearchOption";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_IO_FileSystem_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
             internal static readonly object TopDirectoryOnly = Enum.ToObject(Type, 0);
@@ -248,7 +259,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.IO.FileStream";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"${TypeName}, ${System_IO_FileSystem_Name}",
+                contractName: $"${TypeName}, ${CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
             internal static readonly PropertyInfo Name = Type
@@ -318,7 +329,7 @@ namespace Roslyn.Utilities
             internal static readonly string DesktopName = $"{TypeName}, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {System_Diagnotsics_FileVersionInfo_Name}",
+                contractName: $"{TypeName}, {CoreNames.System_Diagnotsics_FileVersionInfo}",
                 desktopName: DesktopName);
 
             internal static readonly Func<string, object> GetVersionInfo = Type
@@ -336,7 +347,7 @@ namespace Roslyn.Utilities
             internal const string TypeName = "System.Threading.Thread";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"${TypeName}, ${System_Threading_Thread_Name}",
+                contractName: $"${TypeName}, ${CoreNames.System_Threading_Thread}",
                 desktopName: TypeName);
 
             internal static readonly PropertyInfo CurrentThread = Type
@@ -346,6 +357,20 @@ namespace Roslyn.Utilities
             internal static readonly PropertyInfo CurrentUICulture = Type
                 .GetTypeInfo()
                 .GetDeclaredProperty(nameof(CurrentUICulture));
+        }
+
+        internal static class RuntimeHelpers
+        {
+            internal const string TypeName = "System.Runtime.CompilerServices.RuntimeHelpers";
+
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+                contractName: $"${TypeName}, ${CoreNames.System_Runtime}",
+                desktopName: TypeName);
+
+            internal static readonly Action EnsureSufficientExecutionStack = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(EnsureSufficientExecutionStack), paramTypes: new Type[] { })
+                .CreateDelegate<Action>();
         }
 
         internal static class Encoding
@@ -365,6 +390,33 @@ namespace Roslyn.Utilities
             internal static readonly MethodInfo GetBuffer = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(GetBuffer));
+        }
+
+        internal static class XPath
+        {
+            internal static class Extensions
+            {
+                internal const string TypeName = "System.Xml.XPath.Extensions";
+
+                internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+                    contractName: $"${TypeName}, ${CoreNames.System_Runtime}",
+                    desktopName: $"${TypeName}, ${DesktopNames.System_Xml_Linq}");
+
+                internal static readonly Func<XNode, string, IEnumerable<XElement>> XPathSelectElements = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod(nameof(XPathSelectElements), new[] { typeof(XNode), typeof(string) })
+                    .CreateDelegate<Func<XNode, string, IEnumerable<XElement>>>();
+            }
+        }
+
+        /// <summary>
+        /// APIs contained here are proposed for CoreFX but not yet finalized.  Their contracts are
+        /// subject to change. 
+        /// </summary>
+        internal static class Proposed
+        {
+
+
         }
 
         internal static class Misc

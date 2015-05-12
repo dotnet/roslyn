@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.InternalUtilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
         public static ModuleMetadata CreateFromFile(string path)
         {
-            return CreateFromStream(FileStreamLightUp.OpenFileStream(path));
+            return CreateFromStream(PortableShim.File.OpenRead(path));
         }
 
         /// <summary>
