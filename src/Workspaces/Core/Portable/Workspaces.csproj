@@ -384,7 +384,7 @@
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Log\WorkspaceErrorLogger.cs" />
-    <Compile Include="MSBuildShim.cs" />
+    <Compile Include="HostBuild.cs" />
     <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />

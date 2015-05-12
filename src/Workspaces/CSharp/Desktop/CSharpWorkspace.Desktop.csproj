@@ -62,11 +62,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MSBuild\CSharpProjectFileLoader.cs" />
-    <Compile Include="MSBuild\CSharpProjectFileLoader.CSharpProjectFile.cs" />
-    <Compile Include="MSBuild\CSharpProjectFileLoaderFactory.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>

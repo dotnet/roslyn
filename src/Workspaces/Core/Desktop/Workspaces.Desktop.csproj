@@ -55,6 +55,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -122,6 +123,9 @@
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
     <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
+    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.cs" />
+    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
+    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
