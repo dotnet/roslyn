@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Default properties for a module reference.
         /// </summary>
-        public static readonly MetadataReferenceProperties Module = new MetadataReferenceProperties(MetadataImageKind.Module);
+        public static MetadataReferenceProperties Module => new MetadataReferenceProperties(MetadataImageKind.Module);
 
         /// <summary>
         /// Default properties for an assembly reference.
         /// </summary>
-        public static readonly MetadataReferenceProperties Assembly = new MetadataReferenceProperties(MetadataImageKind.Assembly);
+        public static MetadataReferenceProperties Assembly => new MetadataReferenceProperties(MetadataImageKind.Assembly);
 
         /// <summary>
         /// Initializes reference properties.
@@ -104,10 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The image kind (assembly or module) the reference refers to.
         /// </summary>
-        public MetadataImageKind Kind
-        {
-            get { return _kind; }
-        }
+        public MetadataImageKind Kind => _kind;
 
         /// <summary>
         /// Alias that represents a global declaration space.
@@ -115,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Namespaces in references whose <see cref="Aliases"/> contain <see cref="GlobalAlias"/> are available in global declaration space.
         /// </remarks>
-        public static readonly string GlobalAlias = "global";
+        public static string GlobalAlias => "global";
 
         /// <summary>
         /// Aliases for the metadata reference. Empty if the reference has no aliases.
@@ -135,10 +132,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if interop types defined in the referenced metadata should be embedded into the compilation referencing the metadata.
         /// </summary>
-        public bool EmbedInteropTypes
-        {
-            get { return _embedInteropTypes; }
-        }
+        public bool EmbedInteropTypes => _embedInteropTypes;
 
         public override bool Equals(object obj)
         {
