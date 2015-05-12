@@ -135,6 +135,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var assemblyVersion = thisAssemblyName.Version;
             var publicKeyToken = thisAssemblyName.GetPublicKeyToken().Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
 
+            if (string.IsNullOrEmpty(publicKeyToken))
+            {
+                publicKeyToken = "null";
+            }
+
             var assemblyName = new AssemblyName(string.Format("{0}, Version={1}, Culture=neutral, PublicKeyToken={2}", assemblySimpleName, assemblyVersion, publicKeyToken));
 
             try
