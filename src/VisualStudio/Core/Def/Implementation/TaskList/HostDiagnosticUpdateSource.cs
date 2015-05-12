@@ -76,9 +76,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
-            foreach (var key in projectDiagnosticKeys)
+            if (projectDiagnosticKeys != null)
             {
-                RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
+                foreach (var key in projectDiagnosticKeys)
+                {
+                    RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
+                }
             }
         }
 
