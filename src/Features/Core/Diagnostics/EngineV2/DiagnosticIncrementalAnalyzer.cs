@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // The requested project version is not the same as that of the current compilation.
                     // Assume that the requested version is newer.
                   
-                    results.CurrentCompilation = new CompilationResult(this, project, projectVersion, GetCompilationWithAnalzyers(compilation, project, cancellationToken));
+                    results.CurrentCompilation = new CompilationResult(this, project, projectVersion, GetCompilationWithAnalyzers(compilation, project, cancellationToken));
                 }
 
                 return results.CurrentCompilation;
@@ -417,10 +417,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private async Task<ImmutableArray<Diagnostic>> GetIsolatedDocumentDiagnostics(Compilation compilation, Project project, Document document, CancellationToken cancellationToken)
         {
-            return await AnalyzeDocumentCoreAsync(GetCompilationWithAnalzyers(compilation, project, cancellationToken), document, cancellationToken).ConfigureAwait(false);
+            return await AnalyzeDocumentCoreAsync(GetCompilationWithAnalyzers(compilation, project, cancellationToken), document, cancellationToken).ConfigureAwait(false);
         }
 
-        private CompilationWithAnalyzers GetCompilationWithAnalzyers(Compilation compilation, Project project, CancellationToken cancellationToken)
+        private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation, Project project, CancellationToken cancellationToken)
         {
             ImmutableArray<DiagnosticAnalyzer> analyzers = Flatten(HostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project).Values);
             return !analyzers.IsEmpty ? compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, GetOnAnalyzerException(project.Id), cancellationToken) : null;
