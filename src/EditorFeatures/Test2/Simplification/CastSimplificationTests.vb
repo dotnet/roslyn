@@ -2052,7 +2052,7 @@ class Program
 
         <WorkItem(529884)>
         <WorkItem(1043494, "DevDiv")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_DoNotRemove_ParamDefaultValueNegativeZero()
             Dim input =
 <Workspace>
@@ -2110,7 +2110,7 @@ sealed class C : I
 
         <WorkItem(529884)>
         <WorkItem(1043494, "DevDiv")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_DoNotRemove_ParamDefaultValueNegativeZero2()
             Dim input =
 <Workspace>
