@@ -9,6 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     /// </summary>
     internal interface IRoslynTelemetrySetup
     {
-        void Initialize(IServiceProvider componentModel);
+        void Initialize(IServiceProvider serviceProvider);
     }
 }

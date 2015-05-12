@@ -14,7 +14,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
-using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -28,14 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [ProvideMenuResource("Menus.ctmenu", version: 10)]
-    public class RoslynPackage : Package
+    internal class RoslynPackage : Package
     {
         private LibraryManager _libraryManager;
         private uint _libraryManagerCookie;
         private VisualStudioWorkspace _workspace;
         private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
-        private AnalyzerItemsTracker _analyzerTracker;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
 
@@ -229,17 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void LoadAnalyzerNodeComponents()
         {
-            _analyzerTracker = this.ComponentModel.GetService<AnalyzerItemsTracker>();
-            if (_analyzerTracker != null)
-            {
-                _analyzerTracker.Register();
-            }
-
-            var analyzerCommandHandler = this.ComponentModel.GetService<AnalyzersCommandHandler>();
-            if (analyzerCommandHandler != null)
-            {
-                analyzerCommandHandler.Initialize((IMenuCommandService)this.GetService(typeof(IMenuCommandService)));
-            }
+            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Initialize(this);
 
             _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
             if (_ruleSetEventHandler != null)
@@ -250,11 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void UnregisterAnalyzerTracker()
         {
-            if (_analyzerTracker != null)
-            {
-                _analyzerTracker.Unregister();
-                _analyzerTracker = null;
-            }
+            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
         }
 
         private void UnregisterRuleSetEventHandler()

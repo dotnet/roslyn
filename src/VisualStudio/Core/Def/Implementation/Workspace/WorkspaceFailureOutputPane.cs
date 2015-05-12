@@ -4,9 +4,8 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.VisualStudio.Setup;
 
-namespace Microsoft.VisualStudio.LanguageServices.Setup
+namespace Microsoft.VisualStudio.LanguageServices
 {
     internal class WorkspaceFailureOutputPane : ForegroundThreadAffinitizedObject
     {
@@ -55,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                     // If the workspace pane has not been registered before, create it
                     if (_doNotAccessDirectlyOutputPane == null || hr != VSConstants.S_OK)
                     {
-                        if (ErrorHandler.Failed(outputWindow.CreatePane(ref workspacePaneGuid, VSPackage.WorkspaceOutputPaneTitle, fInitVisible: 1, fClearWithSolution: 1)) ||
+                        if (ErrorHandler.Failed(outputWindow.CreatePane(ref workspacePaneGuid, ServicesVSResources.WorkspaceOutputPaneTitle, fInitVisible: 1, fClearWithSolution: 1)) ||
                             ErrorHandler.Failed(outputWindow.GetPane(ref workspacePaneGuid, out _doNotAccessDirectlyOutputPane)))
                         {
                             return null;
