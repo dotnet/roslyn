@@ -144,9 +144,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             protected override void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect, bool undoConflictResolution)
             {
-                var undoManager = this.UndoManagers[subjectBuffer].UndoManager;
-                var startRenameUndoPrimitive = this.UndoManagers[subjectBuffer].StartRenameSessionUndoPrimitive;
-                var markerPrimitive = this.UndoManagers[subjectBuffer].ConflictResolutionRenameUndoPrimitive ?? startRenameUndoPrimitive;
+                // There are crashes from Windows Error Reporting that indicate the BufferUndoState
+                // may be being unavailable here when inline rename has been dismissed due to an
+                // external workspace change. See bug #1167415.
+                BufferUndoState bufferUndoState;
+                if (!this.UndoManagers.TryGetValue(subjectBuffer, out bufferUndoState))
+                {
+                    return;
+                }
+
+                var undoManager = bufferUndoState.UndoManager;
+                var startRenameUndoPrimitive = bufferUndoState.StartRenameSessionUndoPrimitive;
+                var markerPrimitive = bufferUndoState.ConflictResolutionRenameUndoPrimitive ?? startRenameUndoPrimitive;
 
                 // If we're not undoing conflict resolution, we need to undo the next unit after our startRenameUndoPrimitive
                 var count = GetUndoUnits(undoManager).SkipWhile(u => u != markerPrimitive).Count() + (undoConflictResolution ? 0 : -1);
@@ -165,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 {
                     // If we undid conflict resolution, then we need to put back our start rename transaction
                     undoManager.Add(startRenameUndoPrimitive);
-                    this.UndoManagers[subjectBuffer].ConflictResolutionRenameUndoPrimitive = null;
+                    bufferUndoState.ConflictResolutionRenameUndoPrimitive = null;
                 }
             }
 
