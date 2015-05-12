@@ -9702,7 +9702,7 @@ class MyMainClass
 
         [WorkItem(528060, "DevDiv")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "1043494")]
         public void DoubleDivByNegativeZero()
         {
             string source = @"
@@ -13058,7 +13058,7 @@ True");
         }
 
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "1043494")]
         public void NegativeZeroIsNotAZero()
         {
             var source = @"
@@ -13143,7 +13143,7 @@ class A
         }
 
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "1043494")]
         public void NegativeZeroIsNotAZero1()
         {
             var source = @"

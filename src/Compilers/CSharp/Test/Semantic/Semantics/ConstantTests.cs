@@ -1391,7 +1391,7 @@ ulong.MinValue --> 0";
         /// </summary>
         [WorkItem(529730, "DevDiv")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "1043494")]
         public void TestConstantFoldingDecimalOperations01()
         {
             var source =
