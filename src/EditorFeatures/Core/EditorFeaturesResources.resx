@@ -697,11 +697,11 @@ Do you want to proceed?</value>
   <data name="PreviewChangesSummaryText" xml:space="preserve">
     <value>Preview changes</value>
   </data>
-  <data name="Intellisense" xml:space="preserve">
-    <value>Intellisense</value>
+  <data name="IntelliSense" xml:space="preserve">
+    <value>IntelliSense</value>
   </data>
-  <data name="IntellisenseCommitFormatting" xml:space="preserve">
-    <value>Intellisense Commit Formatting</value>
+  <data name="IntelliSenseCommitFormatting" xml:space="preserve">
+    <value>IntelliSense Commit Formatting</value>
   </data>
   <data name="FontAndColors_RenameTracking" xml:space="preserve">
     <value>Rename Tracking</value>
