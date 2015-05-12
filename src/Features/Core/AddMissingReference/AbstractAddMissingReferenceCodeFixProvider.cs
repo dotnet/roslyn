@@ -31,58 +31,70 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             }
         }
 
+        /// <summary>
+        /// Find all the identifier names in the given location, any of these could be the symbols triggering the diagnostic.
+        /// </summary>
         private static IEnumerable<SyntaxNode> FindNodes(SyntaxNode root, Diagnostic diagnostic)
         {
             var node = root.FindNode(diagnostic.Location.SourceSpan);
             return node.DescendantNodesAndSelf().OfType<TIdentifierNameSyntax>();
         }
 
+        /// <summary>
+        /// Get all of the symbols we can for the given nodes since we have no way to determine up front which symbol is triggering the error.
+        /// </summary>
         private static IEnumerable<ITypeSymbol> GetTypesForNodes(SemanticModel model, IEnumerable<SyntaxNode> nodes, CancellationToken cancellationToken)
         {
+            var symbols = new List<ITypeSymbol>();
             foreach (var node in nodes)
             {
-                yield return model.GetTypeInfo(node, cancellationToken).Type;
+                symbols.Add(model.GetTypeInfo(node, cancellationToken).Type);
                 var symbol = model.GetSymbolInfo(node, cancellationToken).GetAnySymbol();
-                if (symbol != null)
+                symbols.AddRange(GetTypesFromSymbol(symbol));
+                symbols.AddRange(GetTypesFromSymbol(symbol?.OriginalDefinition));
+            }
+
+            return symbols;
+        }
+
+        /// <summary>
+        /// Look for additional symbols related to the symbol that we have.
+        /// All of these are candidates for the IErrorTypeSymbol that is causing the missing assembly reference.
+        /// </summary>
+        private static IEnumerable<ITypeSymbol> GetTypesFromSymbol(ISymbol symbol)
+        {
+            if (symbol != null)
+            {
+                if (symbol is IMethodSymbol)
                 {
-                    if (symbol is IMethodSymbol)
+                    var methodSymbol = symbol as IMethodSymbol;
+                    foreach (var param in methodSymbol.Parameters)
                     {
-                        foreach (var param in (symbol as IMethodSymbol).Parameters)
-                        {
-                            yield return param.Type;
-                        }
+                        yield return param.Type;
                     }
-                    if (symbol is IPropertySymbol)
-                    {
-                        foreach (var param in (symbol as IPropertySymbol).Parameters)
-                        {
-                            yield return param.Type;
-                        }
-                    }
-                    yield return symbol?.GetContainingTypeOrThis();
+
+                    yield return methodSymbol.ReturnType;
                 }
-                var originalSymbol = symbol?.OriginalDefinition;
-                if (originalSymbol != null)
+                if (symbol is IPropertySymbol)
                 {
-                    if (originalSymbol is IMethodSymbol)
+                    var propertySymbol = symbol as IPropertySymbol;
+                    foreach (var param in propertySymbol.Parameters)
                     {
-                        foreach (var param in (originalSymbol as IMethodSymbol).Parameters)
-                        {
-                            yield return param.Type;
-                        }
+                        yield return param.Type;
                     }
-                    if (originalSymbol is IPropertySymbol)
-                    {
-                        foreach (var param in (originalSymbol as IPropertySymbol).Parameters)
-                        {
-                            yield return param.Type;
-                        }
-                    }
-                    yield return originalSymbol?.GetContainingTypeOrThis();
+
+                    yield return propertySymbol.Type;
                 }
+                yield return symbol?.GetContainingTypeOrThis();
             }
         }
 
+        /// <summary>
+        /// Look for the first error type symbol that has a valid containing assembly.
+        /// This is how the missing assembly error is triggered by the compiler, 
+        /// so it is safe to assume if this case exists for one of the symbols given 
+        /// it is the assembly we want to add.
+        /// </summary>
         private static AssemblyIdentity GetAssemblyIdentity(IEnumerable<ITypeSymbol> types)
         {
             foreach (var type in types)
