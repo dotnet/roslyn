@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis
 
         private class TextStorage : ITemporaryTextStorage
         {
-            private string _text;
-            private Encoding _encoding;
+            private SourceText _sourceText;
 
             public void Dispose()
             {
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis
 
             public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
             {
-                return SourceText.From(_text, _encoding);
+                return _sourceText;
             }
 
             public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -94,10 +93,8 @@ namespace Microsoft.CodeAnalysis
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
             {
-                // Decompose the SourceText into it's underlying parts, since we use it as a key
-                // into many other caches that don't expect it to be held
-                _text = text.ToString();
-                _encoding = text.Encoding;
+                // This is a trivial implementation, indeed.
+                _sourceText = text;
             }
 
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
