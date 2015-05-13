@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Sub New(options As VBCompilerOptions, compilerHost As IVbCompilerHost, globalImports As IEnumerable(Of GlobalImport), strongNameKeyPaths As ImmutableArray(Of String), projectDirectoryOpt As String, ruleSetOpt As IRuleSetFile)
             If options.wszOutputPath IsNot Nothing AndAlso options.wszExeName IsNot Nothing Then
-                OutputPath = Path.Combine(options.wszOutputPath, options.wszExeName)
+                OutputPath = PathUtilities.CombinePathsUnchecked(options.wszOutputPath, options.wszExeName)
             Else
                 OutputPath = String.Empty
             End If
@@ -80,36 +80,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Dim runtimes = New List(Of String)
             Select Case options.vbRuntimeKind
                 Case VBRuntimeKind.DefaultRuntime
-                    runtimes.Add(Path.Combine(compilerHost.GetSdkPath(), "Microsoft.VisualBasic.dll"))
+                    runtimes.Add(PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), "Microsoft.VisualBasic.dll"))
 
                 Case VBRuntimeKind.SpecifiedRuntime
-                    If options.wszSpecifiedVBRuntime Is Nothing Then
-                        Throw New ArgumentException()
-                    End If
-
-                    ' If they specified a fully qualified file, use it
-                    If File.Exists(options.wszSpecifiedVBRuntime) Then
-                        runtimes.Add(options.wszSpecifiedVBRuntime)
-                    Else
-                        ' If it's just a filename, try to find it in the SDK path.
-                        If options.wszSpecifiedVBRuntime <> Path.GetFileName(options.wszSpecifiedVBRuntime) Then
-                            Throw New ArgumentException()
-                        End If
-
-                        Dim runtimePath = Path.Combine(compilerHost.GetSdkPath(), options.wszSpecifiedVBRuntime)
-                        If File.Exists(runtimePath) Then
-                            runtimes.Add(runtimePath)
+                    If options.wszSpecifiedVBRuntime IsNot Nothing Then
+                        ' If they specified a fully qualified file, use it
+                        If File.Exists(options.wszSpecifiedVBRuntime) Then
+                            runtimes.Add(options.wszSpecifiedVBRuntime)
                         Else
-                            Throw New ArgumentException()
+                            ' If it's just a filename, try to find it in the SDK path.
+                            If options.wszSpecifiedVBRuntime = PathUtilities.GetFileName(options.wszSpecifiedVBRuntime) Then
+                                Dim runtimePath = PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), options.wszSpecifiedVBRuntime)
+                                If File.Exists(runtimePath) Then
+                                    runtimes.Add(runtimePath)
+                                End If
+                            End If
                         End If
                     End If
             End Select
 
             If Not options.bNoStandardLibs Then
-                runtimes.Add(Path.Combine(compilerHost.GetSdkPath(), "System.dll"))
+                runtimes.Add(PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), "System.dll"))
             End If
 
-            runtimes.Add(Path.Combine(compilerHost.GetSdkPath(), "mscorlib.dll"))
+            runtimes.Add(PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), "mscorlib.dll"))
 
             RuntimeLibraries = runtimes
 
