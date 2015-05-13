@@ -155,5 +155,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actual = EmitResult.Baseline.SynthesizedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
             AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
         }
+
+        public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
+        {
+            var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.OfType<IFieldSymbol>().Select(f => f.Name + ": " + f.Type);
+            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
+        }
     }
 }

@@ -591,7 +591,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var methodWithBody in compilationState.SynthesizedMethods)
             {
                 var method = methodWithBody.Method;
-                var variableSlotAllocatorOpt = _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method);
+
+                var lambda = method as SynthesizedLambdaMethod;
+                var variableSlotAllocatorOpt = ((object)lambda != null) ? 
+                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
+                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
 
                 // We make sure that an asynchronous mutation to the diagnostic bag does not 
                 // confuse the method body generator by making a fresh bag and then loading
@@ -1184,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lazyVariableSlotAllocator == null)
             {
-                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method);
+                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method);
             }
 
             BoundStatement bodyWithoutLambdas = loweredBody;

@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="method">Method symbol for the rewritten lambda body.</param>
         ''' <param name="lambda">Original lambda node.</param>
         ''' <returns>Lambda body rewritten as a body of the given method symbol.</returns>
-        Public Function RewriteLambdaAsMethod(method As MethodSymbol, lambda As BoundLambda) As BoundBlock
+        Public Function RewriteLambdaAsMethod(method As SynthesizedLambdaMethod, lambda As BoundLambda) As BoundBlock
 
             ' report use site errors for attributes that are needed later on in the rewriter
             Dim lambdaSyntax = lambda.Syntax
@@ -893,7 +893,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
             Const methodOrdinal As Integer = -1
 
-            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, SlotAllocatorOpt, stateMachineTypeOpt)
+            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod)
+            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode
