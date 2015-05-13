@@ -1766,6 +1766,7 @@ FullWidthRepeat:
 
             Dim Here As Integer = 0
             Dim IntegerLiteralStart As Integer
+            Dim UnderscoreInWrongPlace As Boolean
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1788,39 +1789,45 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
+                        UnderscoreInWrongPlace = Peek(Here) = "_"c
                         While CanGet(Here)
                             ch = Peek(Here)
-                            If Not IsHexDigit(ch) Then
+                            If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
                             End If
                             Here += 1
                         End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
 
                     Case "B"c, "b"c
                         Here += 1
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Binary
 
+                        UnderscoreInWrongPlace = Peek(Here) = "_"c
                         While CanGet(Here)
                             ch = Peek(Here)
-                            If Not IsBinaryDigit(ch) Then
+                            If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
                             End If
                             Here += 1
                         End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
 
                     Case "O"c, "o"c
                         Here += 1
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
+                        UnderscoreInWrongPlace = Peek(Here) = "_"c
                         While CanGet(Here)
                             ch = Peek(Here)
-                            If Not IsOctalDigit(ch) Then
+                            If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
                             End If
                             Here += 1
                         End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
 
                     Case Else
                         If IsFullWidth(ch) Then
@@ -1833,13 +1840,17 @@ FullWidthRepeat:
             Else
                 ' no base specifier - just go through decimal digits.
                 IntegerLiteralStart = Here
+                UnderscoreInWrongPlace = Peek(Here) = "_"c
                 While CanGet(Here)
                     ch = Peek(Here)
-                    If Not IsDecimalDigit(ch) Then
+                    If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                         Exit While
                     End If
                     Here += 1
                 End While
+                If Here <> IntegerLiteralStart Then
+                    UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
+                End If
             End If
 
             ' we may have a dot, and then it is a float, but if this is an integral, then we have seen it all.
@@ -1859,11 +1870,12 @@ FullWidthRepeat:
                     ' all following decimal digits belong to the literal (fractional part)
                     While CanGet(Here)
                         ch = Peek(Here)
-                        If Not IsDecimalDigit(ch) Then
+                        If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                             Exit While
                         End If
                         Here += 1
                     End While
+                    UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
                     literalKind = NumericLiteralKind.Float
                 End If
 
@@ -1884,11 +1896,12 @@ FullWidthRepeat:
                         Here += 1
                         While CanGet(Here)
                             ch = Peek(Here)
-                            If Not IsDecimalDigit(ch) Then
+                            If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
                             End If
                             Here += 1
                         End While
+                        UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
                     Else
                         Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidLiteralExponent)
                     End If
@@ -2031,12 +2044,16 @@ FullWidthRepeat2:
                 If IntegerLiteralStart = IntegerLiteralEnd Then
                     Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_Syntax)
                 Else
-                    IntegralValue = IntegralLiteralCharacterValue(Peek(IntegerLiteralStart))
+                    IntegralValue = 0
 
                     If Base = LiteralBase.Decimal Then
                         ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
-                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(Peek(LiteralCharacter))
+                        For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
+                            Dim LiteralCharacterValue As Char = Peek(LiteralCharacter)
+                            If LiteralCharacterValue = "_"c Then
+                                Continue For
+                            End If
+                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(LiteralCharacterValue)
 
                             If IntegralValue < 1844674407370955161UL OrElse
                               (IntegralValue = 1844674407370955161UL AndAlso NextCharacterValue <= 5UI) Then
@@ -2056,12 +2073,17 @@ FullWidthRepeat2:
                         Dim OverflowMask As UInt64 = If(Base = LiteralBase.Hexadecimal, &HF000000000000000UL, If(Base = LiteralBase.Octal, &HE000000000000000UL, &H8000000000000000UL))
 
                         ' Init For loop
-                        For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
+                        For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
+                            Dim LiteralCharacterValue As Char = Peek(LiteralCharacter)
+                            If LiteralCharacterValue = "_"c Then
+                                Continue For
+                            End If
+
                             If (IntegralValue And OverflowMask) <> 0 Then
                                 Overflows = True
                             End If
 
-                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(Peek(LiteralCharacter))
+                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(LiteralCharacterValue)
                         Next
                     End If
 
@@ -2104,7 +2126,9 @@ FullWidthRepeat2:
                 Dim scratch = GetScratch()
                 For i = 0 To literalWithoutTypeChar - 1
                     Dim curCh = Peek(i)
-                    scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
+                    If curCh <> "_"c Then
+                        scratch.Append(If(IsFullWidth(curCh), MakeHalfWidth(curCh), curCh))
+                    End If
                 Next
                 Dim LiteralSpelling = GetScratchTextInterned(scratch)
 
@@ -2132,17 +2156,19 @@ FullWidthRepeat2:
             Dim result As SyntaxToken
             Select Case literalKind
                 Case NumericLiteralKind.Integral
-                    result = MakeIntegerLiteralToken(precedingTrivia, Base, TypeCharacter, If(Overflows, 0UL, IntegralValue), Here)
+                    result = MakeIntegerLiteralToken(precedingTrivia, Base, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0UL, IntegralValue), Here)
                 Case NumericLiteralKind.Float
-                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows, 0.0F, FloatingValue), Here)
+                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0.0F, FloatingValue), Here)
                 Case NumericLiteralKind.Decimal
-                    result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows, 0D, DecimalValue), Here)
+                    result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0D, DecimalValue), Here)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(literalKind)
             End Select
 
             If Overflows Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
+            ElseIf UnderscoreInWrongPlace Then
+                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
             End If
 
             Return result

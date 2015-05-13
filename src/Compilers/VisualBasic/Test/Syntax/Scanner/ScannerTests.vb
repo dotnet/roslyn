@@ -694,12 +694,26 @@ End If]]>.Value,
         Assert.Equal(42, tk.Value)
         Assert.Equal(" 42 ", tk.ToFullString())
 
+        Str = " 4_2 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Decimal, tk.GetBase())
+        Assert.Equal(42, tk.Value)
+        Assert.Equal(" 4_2 ", tk.ToFullString())
+
         Str = " &H42L "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
         Assert.Equal(&H42L, tk.Value)
         Assert.Equal(" &H42L ", tk.ToFullString())
+
+        Str = " &H4_2L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H42L, tk.Value)
+        Assert.Equal(" &H4_2L ", tk.ToFullString())
 
         Str = " &H42L &H42& "
         Dim tks = ScanAllCheckDw(Str)
@@ -714,6 +728,13 @@ End If]]>.Value,
         Assert.Equal(LiteralBase.Binary, tk.GetBase())
         Assert.Equal(&HAL, tk.Value)
         Assert.Equal(" &B1010L ", tk.ToFullString())
+
+        Str = " &B1_0_1_0L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&HAL, tk.Value)
+        Assert.Equal(" &B1_0_1_0L ", tk.ToFullString())
     End Sub
 
     <Fact>
@@ -729,6 +750,13 @@ End If]]>.Value,
         Assert.Equal(0.42, tk.Value)
         Assert.IsType(Of Double)(tk.Value)
         Assert.Equal(" 0.42 ", tk.ToFullString())
+
+        Str = " 0_0.4_2 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(0.42, tk.Value)
+        Assert.IsType(Of Double)(tk.Value)
+        Assert.Equal(" 0_0.4_2 ", tk.ToFullString())
 
         Str = " 0.42# "
         tk = ScanOnce(Str)
@@ -856,6 +884,44 @@ End If]]>.Value,
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
         Assert.Equal(30036, tk.GetSyntaxErrorsNoTree()(0).Code)
         Assert.Equal(0.0F, tk.Value)
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_UnderscoreWrongLocation()
+        Dim Str = "_1"
+        Dim tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IdentifierToken, tk.Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count())
+
+        Str = "1_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H_1"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H1_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "1_.1"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "1.1_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
     End Sub
 
     <Fact>
