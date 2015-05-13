@@ -1027,12 +1027,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _assembly.DeclaresTheObjectClass;
                     }
                 }
-
-                public override bool GetWinMdVersion(out int majorVersion, out int minorVersion)
-                {
-                    var reader = _assembly.ManifestModule.MetadataReader;
-                    return reader.GetWinMdVersion(out majorVersion, out minorVersion);
-                }
             }
 
             private sealed class AssemblyDataForCompilation : AssemblyDataForMetadataOrCompilation
@@ -1135,13 +1129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return _compilation.DeclaresTheObjectClass;
                     }
-                }
-
-                public override bool GetWinMdVersion(out int majorVersion, out int minorVersion)
-                {
-                    majorVersion = 0;
-                    minorVersion = 0;
-                    return false;
                 }
             }
 
