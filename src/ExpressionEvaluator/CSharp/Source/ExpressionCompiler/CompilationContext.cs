@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 synthesizedType.Methods,
                 additionalTypes: ImmutableArray.Create((NamedTypeSymbol)synthesizedType),
+                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -209,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 synthesizedType.Methods,
                 additionalTypes: ImmutableArray.Create((NamedTypeSymbol)synthesizedType),
+                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -393,6 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 synthesizedType.Methods,
                 additionalTypes: additionalTypes.ToImmutableAndFree(),
+                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -455,15 +458,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             CSharpCompilation compilation,
             ImmutableArray<MethodSymbol> methods,
             ImmutableArray<NamedTypeSymbol> additionalTypes,
+            EENamedTypeSymbol synthesizedType,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData,
             DiagnosticBag diagnostics)
         {
             // Each assembly must have a unique name.
             var emitOptions = new EmitOptions(outputNameOverride: ExpressionCompilerUtilities.GenerateUniqueName());
 
+            var dynamicOperationContextType = GetNonDisplayClassContainer(synthesizedType.SubstitutedSourceType);
+
             string runtimeMetadataVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMetadataVersion);
-            return new EEAssemblyBuilder(compilation.SourceAssembly, emitOptions, methods, serializationProperties, additionalTypes, testData);
+            return new EEAssemblyBuilder(compilation.SourceAssembly, emitOptions, methods, serializationProperties, additionalTypes, dynamicOperationContextType, testData);
         }
 
         internal EEMethodSymbol CreateMethod(
