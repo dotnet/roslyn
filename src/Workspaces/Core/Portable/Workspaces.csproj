@@ -226,6 +226,24 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\SimpleRecordingObjectBinder.cs">
       <Link>Serialization\SimpleRecordingObjectBinder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
+      <Link>InternalUtilities\FileUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs">
+      <Link>InternalUtilities\PathUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\AssemblyReferenceResolver.cs">
+      <Link>InternalUtilities\AssemblyReferenceResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\MetadataFileReferenceResolver.cs">
+      <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\ReflectionUtil.cs">
+      <Link>InternalUtilities\ReflectionUtil.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\PortableShim.cs">
+      <Link>InternalUtilities\PortableShim.cs</Link>
+    </Compile>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

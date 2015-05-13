@@ -20,6 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._workspaceServices = workspaceServices
         End Sub
 
+        Friend ReadOnly Property LanguageServices As HostLanguageServices
+            Get
+                Return _workspaceServices.GetLanguageServices(LanguageNames.VisualBasic)
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Language As String
             Get
                 Return LanguageNames.VisualBasic
@@ -35,11 +41,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _metadataService As IMetadataService
             Private ReadOnly _analyzerService As IAnalyzerService
+            Private ReadOnly _hostBuildDataFactory As IHostBuildDataFactory
+            Private ReadOnly _commandLineArgumentsFactory As ICommandLineArgumentsFactoryService
 
             Public Sub New(loader As VisualBasicProjectFileLoader, loadedProject As MSB.Evaluation.Project, metadataService As IMetadataService, analyzerService As IAnalyzerService)
                 MyBase.New(loader, loadedProject)
                 Me._metadataService = metadataService
                 Me._analyzerService = analyzerService
+                Me._hostBuildDataFactory = loader.LanguageServices.GetService(Of IHostBuildDataFactory)
+                Me._commandLineArgumentsFactory = loader.LanguageServices.GetService(Of ICommandLineArgumentsFactoryService)
             End Sub
 
             Public Overrides Function GetSourceCodeKind(documentFileName As String) As SourceCodeKind
@@ -78,13 +88,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim outputPath = Path.Combine(Me.GetOutputDirectory(), compilerInputs.OutputFileName)
                 Dim assemblyName = Me.GetAssemblyName()
+                Dim hostBuildData = _hostBuildDataFactory.Create(compilerInputs.HostBuildOptions)
 
                 Return New ProjectFileInfo(
                     outputPath,
                     assemblyName,
-                    compilerInputs.CompilationOptions,
-                    compilerInputs.ParseOptions.WithPreprocessorSymbols(AddPredefinedPreprocessorSymbols(
-                        compilerInputs.CompilationOptions.OutputKind, compilerInputs.ParseOptions.PreprocessorSymbols)),
+                    hostBuildData.CompilationOptions,
+                    hostBuildData.ParseOptions,
                     compilerInputs.CodePage,
                     Me.GetDocuments(compilerInputs.Sources, executedProject),
                     Me.GetDocuments(compilerInputs.AdditionalFiles, executedProject),
@@ -139,8 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     args.Add("/sdkpath:" + compilerInputs.SdkPath)
                 End If
 
-                Dim commandLineParser = VisualBasicCommandLineParser.Default
-                Dim commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory())
+                Dim commandLineArgs = _commandLineArgumentsFactory.CreateCommandLineArguments(args, executedProject.Directory, False, RuntimeEnvironment.GetRuntimeDirectory())
                 Dim resolver = New MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(New AssemblyReferenceResolver(resolver, Me._metadataService.GetProvider()))
 
@@ -210,14 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.SetOptionExplicit(Me.ReadPropertyBool(executedProject, "OptionExplicit"))
                 compilerInputs.SetOptionInfer(Me.ReadPropertyBool(executedProject, "OptionInfer"))
 
-                Dim optionStrictText = Me.ReadPropertyString(executedProject, "OptionStrict")
-                Dim optionStrictValue As OptionStrict
-                If TryGetOptionStrict(optionStrictText, optionStrictValue) Then
-                    compilerInputs.SetOptionStrict(optionStrictValue = OptionStrict.On)
-                End If
-
-                compilerInputs.SetOptionStrictType(Me.ReadPropertyString(executedProject, "OptionStrictType"))
-
+                compilerInputs.SetOptionStrictType(Me.ReadPropertyString(executedProject, "OptionStrict"))
                 compilerInputs.SetOutputAssembly(Me.GetItemString(executedProject, "IntermediateAssembly"))
 
                 If Me.ReadPropertyBool(executedProject, "Prefer32Bit") Then
@@ -249,18 +251,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.EndInitialization()
             End Sub
 
-            Private Shared Function TryGetOptionStrict(text As String, ByRef optionStrictType As OptionStrict) As Boolean
-                If text = "On" Then
-                    optionStrictType = OptionStrict.On
-                    Return True
-                ElseIf text = "Off" Then
-                    optionStrictType = OptionStrict.Custom
-                    Return True
-                Else
-                    Return False
-                End If
-            End Function
-
             Private Class VisualBasicCompilerInputs
                 Implements MSB.Tasks.Hosting.IVbcHostObject5, MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
 #If Not MSBUILD12 Then
@@ -268,8 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
                 Private ReadOnly _projectFile As VisualBasicProjectFile
                 Private _initialized As Boolean
-                Private _parseOptions As VisualBasicParseOptions
-                Private _compilationOptions As VisualBasicCompilationOptions
+                Private _options As HostBuildOptions
                 Private _codePage As Integer
                 Private _sources As IEnumerable(Of MSB.Framework.ITaskItem)
                 Private _additionalFiles As IEnumerable(Of MSB.Framework.ITaskItem)
@@ -285,17 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Sub New(projectFile As VisualBasicProjectFile)
                     Me._projectFile = projectFile
-                    Me._parseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse)
-                    Dim projectDirectory = Path.GetDirectoryName(projectFile.FilePath)
-                    Dim outputDirectory = projectFile.GetOutputDirectory()
-                    Me._compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
-                        xmlReferenceResolver:=New XmlFileResolver(projectDirectory),
-                        sourceReferenceResolver:=New SourceFileResolver(ImmutableArray(Of String).Empty, projectDirectory),
-                        metadataReferenceResolver:=New AssemblyReferenceResolver(
-                            New MetadataFileReferenceResolver(ImmutableArray(Of String).Empty, projectDirectory),
-                            MetadataFileReferenceProvider.Default),
-                        strongNameProvider:=New DesktopStrongNameProvider(ImmutableArray.Create(Of String)(projectDirectory, outputDirectory)),
-                        assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
+                    Me._options = New HostBuildOptions()
                     Me._sources = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
                     Me._references = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
                     Me._analyzerReferences = SpecializedCollections.EmptyEnumerable(Of MSB.Framework.ITaskItem)()
@@ -308,15 +287,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public ReadOnly Property CompilationOptions As VisualBasicCompilationOptions
+                Public ReadOnly Property HostBuildOptions As HostBuildOptions
                     Get
-                        Return Me._compilationOptions
-                    End Get
-                End Property
-
-                Public ReadOnly Property ParseOptions As VisualBasicParseOptions
-                    Get
-                        Return Me._parseOptions
+                        Return Me._options
                     End Get
                 End Property
 
@@ -394,10 +367,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Sub EndInitialization() Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.EndInitialization
-                    If Me._warnings.Count > 0 Then
-                        Me._compilationOptions = Me._compilationOptions.WithSpecificDiagnosticOptions(Me._warnings)
-                    End If
-
                     Me._initialized = True
                 End Sub
 
@@ -436,16 +405,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetDefineConstants(defineConstants As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDefineConstants
-                    If Not String.IsNullOrEmpty(defineConstants) Then
-                        Dim errors As IEnumerable(Of Diagnostic) = Nothing
-                        Me._parseOptions = Me._parseOptions.WithPreprocessorSymbols(VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(defineConstants, errors))
-                        Return True
-                    End If
-                    Return False
+                    Me._options.DefineConstants = defineConstants
+                    Return True
                 End Function
 
                 Public Function SetDelaySign(delaySign As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDelaySign
-                    Me._compilationOptions = Me._compilationOptions.WithDelaySign(delaySign)
+                    Me._options.DelaySign = Tuple.Create(delaySign, False)
                     Return True
                 End Function
 
@@ -455,12 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetDocumentationFile(documentationFile As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetDocumentationFile
-                    If Not String.IsNullOrEmpty(documentationFile) Then
-                        _parseOptions = _parseOptions.WithDocumentationMode(DocumentationMode.Diagnose)
-                    Else
-                        _parseOptions = _parseOptions.WithDocumentationMode(DocumentationMode.Parse)
-                    End If
-
+                    Me._options.DocumentationFile = documentationFile
                     Return True
                 End Function
 
@@ -480,26 +440,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Function SetImports(importsList() As Microsoft.Build.Framework.ITaskItem) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetImports
                     If importsList IsNot Nothing Then
-                        Dim array = importsList.Select(Function(item) GlobalImport.Parse(item.ItemSpec.Trim()))
-                        Me._compilationOptions = Me._compilationOptions.WithGlobalImports(array)
+                        _options.GlobalImports.AddRange(importsList.Select(Function(item) item.ItemSpec.Trim()))
                     End If
                     Return True
                 End Function
 
                 Public Function SetKeyContainer(keyContainer As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetKeyContainer
-                    If Not String.IsNullOrEmpty(keyContainer) Then
-                        Me._compilationOptions = Me._compilationOptions.WithCryptoKeyContainer(keyContainer)
-                        Return True
-                    End If
-                    Return False
+                    Me._options.KeyContainer = keyContainer
+                    Return True
                 End Function
 
                 Public Function SetKeyFile(keyFile As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetKeyFile
-                    If Not String.IsNullOrEmpty(keyFile) Then
-                        Me._compilationOptions = Me._compilationOptions.WithCryptoKeyFile(keyFile)
-                        Return True
-                    End If
-                    Return False
+                    Me._options.KeyFile = keyFile
+                    Return True
                 End Function
 
                 Public Function SetLinkResources(linkResources() As Microsoft.Build.Framework.ITaskItem) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetLinkResources
@@ -508,9 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetMainEntryPoint(mainEntryPoint As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetMainEntryPoint
-                    If Not String.IsNullOrEmpty(mainEntryPoint) AndAlso mainEntryPoint <> "Sub Main" Then
-                        Me._compilationOptions = Me._compilationOptions.WithMainTypeName(mainEntryPoint)
-                    End If
+                    Me._options.MainEntryPoint = mainEntryPoint
                     Return True
                 End Function
 
@@ -524,42 +475,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetNoWarnings(noWarnings As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetNoWarnings
-                    Me._compilationOptions = Me._compilationOptions.WithGeneralDiagnosticOption(If(noWarnings, ReportDiagnostic.Suppress, ReportDiagnostic.Warn))
+                    Me._options.NoWarnings = noWarnings
                     Return True
                 End Function
 
                 Public Function SetOptimize(optimize As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOptimize
-                    Me._compilationOptions = Me._compilationOptions.WithOptimizationLevel(If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug))
+                    Me._options.Optimize = optimize
                     Return True
                 End Function
 
                 Public Function SetOptionCompare(optionCompare As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOptionCompare
-                    If Not String.IsNullOrEmpty(optionCompare) Then
-                        Me._compilationOptions = Me._compilationOptions.WithOptionCompareText(optionCompare = "Text")
-                        Return True
-                    End If
-                    Return False
+                    Me._options.OptionCompare = optionCompare
+                    Return True
                 End Function
 
                 Public Function SetOptionExplicit(optionExplicit As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOptionExplicit
-                    Me._compilationOptions = Me._compilationOptions.WithOptionExplicit(optionExplicit)
+                    Me._options.OptionExplicit = optionExplicit
                     Return True
                 End Function
 
                 Public Function SetOptionStrict(_optionStrict As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOptionStrict
-                    Me._compilationOptions = Me._compilationOptions.WithOptionStrict(If(_optionStrict, OptionStrict.On, OptionStrict.Custom))
+                    Me._options.OptionStrict = If(_optionStrict, "On", "Custom")
                     Return True
                 End Function
 
                 Public Function SetOptionStrictType(optionStrictType As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOptionStrictType
-                    If Not String.IsNullOrEmpty(optionStrictType) Then
-                        Dim _optionStrict As OptionStrict = OptionStrict.Custom
-                        If VisualBasicProjectFile.TryGetOptionStrict(optionStrictType, _optionStrict) Then
-                            Me._compilationOptions = Me._compilationOptions.WithOptionStrict(_optionStrict)
-                            Return True
-                        End If
-                    End If
-                    Return False
+                    Me._options.OptionStrict = optionStrictType
+                    Return True
                 End Function
 
                 Public Function SetOutputAssembly(outputAssembly As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetOutputAssembly
@@ -568,29 +510,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetPlatform(_platform As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetPlatform
-                    If Not String.IsNullOrEmpty(_platform) Then
-                        Dim plat As Platform
-                        If [Enum].TryParse(_platform, plat) Then
-                            Me._compilationOptions = Me._compilationOptions.WithPlatform(plat)
-                            Return True
-                        End If
-                    End If
-                    Return False
+                    Me._options.Platform = _platform
+                    Return True
                 End Function
 
                 Public Function SetPlatformWith32BitPreference(_platform As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject5.SetPlatformWith32BitPreference
-                    If Not String.IsNullOrEmpty(_platform) Then
-                        Dim plat As Platform
-                        If [Enum].TryParse(_platform, True, plat) Then
-                            Dim outputKind = Me._compilationOptions.OutputKind
-                            If plat = Platform.AnyCpu AndAlso outputKind <> OutputKind.DynamicallyLinkedLibrary AndAlso outputKind <> OutputKind.NetModule AndAlso outputKind <> OutputKind.WindowsRuntimeMetadata Then
-                                plat = Platform.AnyCpu32BitPreferred
-                            End If
-                            Me._compilationOptions = Me._compilationOptions.WithPlatform(plat)
-                            Return True
-                        End If
-                    End If
-                    Return False
+                    Me._options.PlatformWith32BitPreference = _platform
+                    Return True
                 End Function
 
                 Public Function SetReferences(references() As Microsoft.Build.Framework.ITaskItem) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetReferences
@@ -617,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetRemoveIntegerChecks(removeIntegerChecks As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetRemoveIntegerChecks
-                    Me._compilationOptions = Me._compilationOptions.WithOverflowChecks(Not removeIntegerChecks)
+                    Me._options.CheckForOverflowUnderflow = Not removeIntegerChecks
                     Return True
                 End Function
 
@@ -630,11 +556,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetRootNamespace(rootNamespace As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetRootNamespace
-                    If Not String.IsNullOrEmpty(rootNamespace) Then
-                        Me._compilationOptions = Me._compilationOptions.WithRootNamespace(rootNamespace)
-                        Return True
-                    End If
-                    Return False
+                    Me._options.RootNamespace = rootNamespace
+                    Return True
                 End Function
 
                 Public Function SetSdkPath(sdkPath As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetSdkPath
@@ -656,15 +579,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not String.IsNullOrEmpty(targetType) Then
                         Dim _outputKind As OutputKind
                         If VisualBasicProjectFile.TryGetOutputKind(targetType, _outputKind) Then
-                            Me._compilationOptions = Me._compilationOptions.WithOutputKind(_outputKind)
-                            If Me._compilationOptions.Platform = Platform.AnyCpu32BitPreferred AndAlso
-                                (_outputKind = OutputKind.DynamicallyLinkedLibrary Or _outputKind = OutputKind.NetModule Or _outputKind = OutputKind.WindowsRuntimeMetadata) Then
-                                Me._compilationOptions = Me._compilationOptions.WithPlatform(Platform.AnyCpu)
-                            End If
-                            Return True
+                            Me._options.OutputKind = _outputKind
                         End If
                     End If
-                    Return False
+                    Return True
                 End Function
 
 #If Not MSBUILD12 Then
@@ -672,20 +590,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Else
                 Public Function SetRuleSet(ruleSetFile As String) As Boolean
 #End If
-                    If Not String.IsNullOrEmpty(ruleSetFile) Then
-                        Dim fullPath = FileUtilities.ResolveRelativePath(ruleSetFile, Path.GetDirectoryName(Me._projectFile.FilePath))
-
-                        Dim specificDiagnosticOptions As Dictionary(Of String, ReportDiagnostic) = Nothing
-                        Dim generalDiagnosticOption = RuleSet.GetDiagnosticOptionsFromRulesetFile(fullPath, specificDiagnosticOptions)
-                        Me._compilationOptions = Me._compilationOptions.WithGeneralDiagnosticOption(generalDiagnosticOption)
-                        Me._warnings.AddRange(specificDiagnosticOptions)
-                    End If
-
+                    Me._options.RuleSetFile = ruleSetFile
                     Return True
                 End Function
 
                 Public Function SetTreatWarningsAsErrors(treatWarningsAsErrors As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject.SetTreatWarningsAsErrors
-                    Me._compilationOptions = Me._compilationOptions.WithGeneralDiagnosticOption(If(treatWarningsAsErrors, ReportDiagnostic.Error, ReportDiagnostic.Warn))
+                    Me._options.WarningsAsErrors = treatWarningsAsErrors
                     Return True
                 End Function
 
@@ -727,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetOptionInfer(optionInfer As Boolean) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject2.SetOptionInfer
-                    Me._compilationOptions = Me._compilationOptions.WithOptionInfer(optionInfer)
+                    Me._options.OptionInfer = optionInfer
                     Return True
                 End Function
 
@@ -736,26 +646,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function SetLanguageVersion(_languageVersion As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject3.SetLanguageVersion
-                    If Not String.IsNullOrEmpty(_languageVersion) Then
-                        Dim version As Integer
-                        If Int32.TryParse(_languageVersion, version) Then
-                            Dim lv As LanguageVersion = CType(version, LanguageVersion)
-                            If [Enum].IsDefined(GetType(LanguageVersion), lv) Then
-                                Me._parseOptions = Me._parseOptions.WithLanguageVersion(lv)
-                                Return True
-                            End If
-                        End If
-                    End If
-                    Return False
+                    Me._options.LanguageVersion = _languageVersion
+                    Return True
                 End Function
 
                 Public Function SetVBRuntime(VBRuntime As String) As Boolean Implements Microsoft.Build.Tasks.Hosting.IVbcHostObject4.SetVBRuntime
                     Me._vbRuntime = VBRuntime
-
-                    If VBRuntime = "Embed" Then
-                        Me._compilationOptions = Me._compilationOptions.WithEmbedVbCoreRuntime(True)
-                    End If
-
+                    Me._options.VBRuntime = VBRuntime
                     Return True
                 End Function
 

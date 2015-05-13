@@ -23,18 +23,27 @@ namespace Microsoft.CodeAnalysis
         public string ModuleAssemblyName { get; set; }
         public string Platform { get; set; }
         public string RuleSetFile { get; set; }
+        public string OptionCompare { get; set; }
+        public string OptionStrict { get; set; }
+        public string RootNamespace { get; set; }
+        public string VBRuntime { get; set; }
         public bool? AllowUnsafeBlocks { get; set; }
         public bool? CheckForOverflowUnderflow { get; set; }
         public bool? Optimize { get; set; }
         public bool? WarningsAsErrors { get; set; }
+        public bool? NoWarnings { get; set; }
+        public bool? OptionExplicit { get; set; }
+        public bool? OptionInfer { get; set; }
         public int? WarningLevel { get; set; }
         public OutputKind? OutputKind { get; set; }
         public Tuple<bool, bool> DelaySign { get; set; }
+        public List<string> GlobalImports { get; set; }
         public Dictionary<string, ReportDiagnostic> Warnings { get; set; }
 
         internal HostBuildOptions()
         {
             Warnings = new Dictionary<string, ReportDiagnostic>();
+            GlobalImports = new List<string>();
         }
     }
 
