@@ -1025,19 +1025,19 @@ public class C  : I
 
             var solution = GetSolution(code);
             var typeC = (INamedTypeSymbol)GetSymbols(solution, "C").First();
-            var method = typeC.GetMembers().First(m => m.Kind == SymbolKind.Method);
+            var property = typeC.GetMembers().First(m => m.Kind == SymbolKind.Property);
 
             var editor = SymbolEditor.Create(solution);
 
-            var newMethod = editor.EditOneDeclarationAsync(method, (e, d) =>
+            var newProperty = editor.EditOneDeclarationAsync(property, (e, d) =>
             {
                 // nothing
             });
 
             var typeI = (INamedTypeSymbol)GetSymbols(solution, "I").First();
-            var imethod = typeI.GetMembers().First(m => m.Kind == SymbolKind.Method);
+            var iproperty = typeI.GetMembers().First(m => m.Kind == SymbolKind.Property);
 
-            var newIMethod = editor.EditOneDeclarationAsync(imethod, (e, d) =>
+            var newIProperty = editor.EditOneDeclarationAsync(iproperty, (e, d) =>
             {
                 // nothing;
             });
