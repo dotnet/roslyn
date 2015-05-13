@@ -14,19 +14,19 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// The type of edit.
         /// </summary>
-        public readonly SemanticEditKind Kind;
+        public SemanticEditKind Kind { get; }
 
         /// <summary>
         /// The symbol from the earlier compilation,
         /// or null if the edit represents an addition.
         /// </summary>
-        public readonly ISymbol OldSymbol;
+        public ISymbol OldSymbol { get; }
 
         /// <summary>
         /// The symbol from the later compilation,
         /// or null if the edit represents a deletion.
         /// </summary>
-        public readonly ISymbol NewSymbol;
+        public ISymbol NewSymbol { get; }
 
         /// <summary>
         /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The map does not need to map all syntax nodes in the active method, only those syntax nodes
         /// that declare a local or generate a long lived local.
         /// </remarks>
-        public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
+        public Func<SyntaxNode, SyntaxNode> SyntaxMap { get; }
 
         /// <summary>
         /// True if the edit is an update of the active method and local values
         /// should be preserved; false otherwise.
         /// </summary>
-        public readonly bool PreserveLocalVariables;
+        public bool PreserveLocalVariables { get; }
 
         /// <summary>
         /// Initializes an instance of <see cref="SemanticEdit"/>.

@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis
             public abstract bool IsLinked { get; }
 
             public abstract bool DeclaresTheObjectClass { get; }
-
-            public abstract bool GetWinMdVersion(out int majorVersion, out int minorVersion);
         }
     }
 }

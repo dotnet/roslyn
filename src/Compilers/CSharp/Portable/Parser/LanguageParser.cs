@@ -6317,7 +6317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _recursionDepth++;
                 if (_recursionDepth > MaxUncheckedRecursionDepth)
                 {
-                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack();
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
                 }
 
                 if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
@@ -8262,7 +8262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (_recursionDepth > MaxUncheckedRecursionDepth)
             {
-                EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack();
+                PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
             }
 
             var result = ParseSubExpressionCore(precedence);

@@ -1963,7 +1963,6 @@ class Program
         public void ExecuteCscBuildTaskWithServer()
         {
             var csc = new Csc();
-            csc.ToolPath = _compilerDirectory;
             var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcCs[0].Key).WriteAllText(s_helloWorldSrcCs[0].Value).Path;
             var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
 
@@ -1993,7 +1992,6 @@ class Program
         public void ExecuteVbcBuildTaskWithServer()
         {
             var vbc = new Vbc();
-            vbc.ToolPath = _compilerDirectory;
             var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcVb[0].Key).WriteAllText(s_helloWorldSrcVb[0].Value).Path;
             var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
 

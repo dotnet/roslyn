@@ -987,7 +987,7 @@ End class
             Dim metadataReader = metadata.GetMetadataReader()
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType))
 
-            Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+            Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
             Assert.True(token.IsNil)
 
             CompileAndVerify(appCompilation, emitters:=TestEmitters.RefEmitBug,

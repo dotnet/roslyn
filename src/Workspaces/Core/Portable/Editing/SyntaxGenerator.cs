@@ -309,13 +309,31 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Converts method, property and indexer declarations into public interface implementations.
         /// This is equivalent to an implicit C# interface implementation (you can access it via the interface or directly via the named member.)
         /// </summary>
-        public abstract SyntaxNode AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType);
+        public SyntaxNode AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType)
+        {
+            return this.AsPublicInterfaceImplementation(declaration, interfaceType, null);
+        }
+
+        /// <summary>
+        /// Converts method, property and indexer declarations into public interface implementations.
+        /// This is equivalent to an implicit C# interface implementation (you can access it via the interface or directly via the named member.)
+        /// </summary>
+        public abstract SyntaxNode AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType, string interfaceMemberName);
 
         /// <summary>
         /// Converts method, property and indexer declarations into private interface implementations.
         /// This is equivalent to a C# explicit interface implementation (you can declare it for access via the interface, but cannot call it directly).
         /// </summary>
-        public abstract SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType);
+        public SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType)
+        {
+            return this.AsPrivateInterfaceImplementation(declaration, interfaceType, null);
+        }
+
+        /// <summary>
+        /// Converts method, property and indexer declarations into private interface implementations.
+        /// This is equivalent to a C# explicit interface implementation (you can declare it for access via the interface, but cannot call it directly).
+        /// </summary>
+        public abstract SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType, string interfaceMemberName);
 
         /// <summary>
         /// Creates a class declaration.

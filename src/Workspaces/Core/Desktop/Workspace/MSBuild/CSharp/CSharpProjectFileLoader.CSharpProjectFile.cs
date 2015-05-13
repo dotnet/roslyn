@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -26,12 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly IMetadataService _metadataService;
             private readonly IAnalyzerService _analyzerService;
+            private readonly IHostBuildDataFactory _msbuildHost;
+            private readonly ICommandLineArgumentsFactoryService _commandLineArgumentsFactoryService;
 
             public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService, IAnalyzerService analyzerService)
                 : base(loader, project)
             {
                 _metadataService = metadataService;
                 _analyzerService = analyzerService;
+                _msbuildHost = loader.MSBuildHost;
+                _commandLineArgumentsFactoryService = loader.CommandLineArgumentsFactoryService;
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -99,12 +102,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
                 var assemblyName = this.GetAssemblyName();
+                var msbuildData = _msbuildHost.Create(compilerInputs.Options);
 
                 return new ProjectFileInfo(
                     outputPath,
                     assemblyName,
-                    compilerInputs.CompilationOptions,
-                    compilerInputs.ParseOptions,
+                    msbuildData.CompilationOptions,
+                    msbuildData.ParseOptions,
                     compilerInputs.CodePage,
                     docs,
                     additionalDocs,
@@ -178,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     args.Add("/nostdlib");
                 }
 
-                var commandLineParser = CSharpCommandLineParser.Default;
-                var commandLineArgs = commandLineParser.Parse(args, executedProject.Directory, RuntimeEnvironment.GetRuntimeDirectory());
+                var commandLineArgs = _commandLineArgumentsFactoryService.CreateCommandLineArguments(args, executedProject.Directory, isInteractive: false, sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
                 var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
                 metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
@@ -271,8 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly CSharpProjectFile _projectFile;
 
                 internal bool Initialized { get; private set; }
-                internal CSharpParseOptions ParseOptions { get; private set; }
-                internal CSharpCompilationOptions CompilationOptions { get; private set; }
+                internal HostBuildOptions Options { get; private set; }
                 internal int CodePage { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
@@ -280,33 +282,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles { get; private set; }
                 internal IReadOnlyList<string> LibPaths { get; private set; }
                 internal bool NoStandardLib { get; private set; }
-                internal Dictionary<string, ReportDiagnostic> Warnings { get; }
                 internal string OutputFileName { get; private set; }
-
-                private static readonly CSharpParseOptions s_defaultParseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);
 
                 internal CSharpCompilerInputs(CSharpProjectFile projectFile)
                 {
                     _projectFile = projectFile;
-                    var projectDirectory = Path.GetDirectoryName(projectFile.FilePath);
-                    var outputDirectory = projectFile.GetOutputDirectory();
-
-                    this.ParseOptions = s_defaultParseOptions;
-                    this.CompilationOptions = new CSharpCompilationOptions(
-                        OutputKind.ConsoleApplication,
-                        xmlReferenceResolver: new XmlFileResolver(projectDirectory),
-                        sourceReferenceResolver: new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory),
-                        metadataReferenceResolver: new AssemblyReferenceResolver(
-                            new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
-                            MetadataFileReferenceProvider.Default),
-                        strongNameProvider: new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputDirectory)),
-                        assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);
-                    this.Warnings = new Dictionary<string, ReportDiagnostic>();
+                    this.Options = new HostBuildOptions();
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AdditionalFiles = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.LibPaths = SpecializedCollections.EmptyReadOnlyList<string>();
+
+                    this.Options.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
+                    this.Options.OutputDirectory = projectFile.GetOutputDirectory();
                 }
 
                 public bool Compile()
@@ -320,11 +309,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool EndInitialization(out string errorMessage, out int errorCode)
                 {
-                    if (this.Warnings.Count > 0)
-                    {
-                        this.CompilationOptions = this.CompilationOptions.WithSpecificDiagnosticOptions(this.Warnings);
-                    }
-
                     this.Initialized = true;
                     errorMessage = string.Empty;
                     errorCode = 0;
@@ -339,25 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetPlatformWith32BitPreference(string platformWith32BitPreference)
                 {
-                    if (!string.IsNullOrEmpty(platformWith32BitPreference))
-                    {
-                        Platform platform;
-                        if (Enum.TryParse<Platform>(platformWith32BitPreference, true, out platform))
-                        {
-                            if (platform == Platform.AnyCpu &&
-                                this.CompilationOptions.OutputKind != OutputKind.DynamicallyLinkedLibrary &&
-                                this.CompilationOptions.OutputKind != OutputKind.NetModule &&
-                                this.CompilationOptions.OutputKind != OutputKind.WindowsRuntimeMetadata)
-                            {
-                                platform = Platform.AnyCpu32BitPreferred;
-                            }
-
-                            this.CompilationOptions = this.CompilationOptions.WithPlatform(platform);
-                            return true;
-                        }
-                    }
-
-                    return false;
+                    this.Options.PlatformWith32BitPreference = platformWith32BitPreference;
+                    return true;
                 }
 
                 public bool SetSubsystemVersion(string subsystemVersion)
@@ -368,21 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetApplicationConfiguration(string applicationConfiguration)
                 {
-                    if (!string.IsNullOrEmpty(applicationConfiguration))
-                    {
-                        var appConfigPath = FileUtilities.ResolveRelativePath(applicationConfiguration, Path.GetDirectoryName(_projectFile.FilePath));
-                        try
-                        {
-                            using (var appConfigStream = new FileStream(appConfigPath, FileMode.Open, FileAccess.Read))
-                            {
-                                this.CompilationOptions = this.CompilationOptions.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream));
-                            }
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-
+                    this.Options.ApplicationConfiguration = applicationConfiguration;
                     return true;
                 }
 
@@ -416,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetAllowUnsafeBlocks(bool allowUnsafeBlocks)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithAllowUnsafe(allowUnsafeBlocks);
+                    this.Options.AllowUnsafeBlocks = allowUnsafeBlocks;
                     return true;
                 }
 
@@ -428,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetCheckForOverflowUnderflow(bool checkForOverflowUnderflow)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithOverflowChecks(checkForOverflowUnderflow);
+                    this.Options.CheckForOverflowUnderflow = checkForOverflowUnderflow;
                     return true;
                 }
 
@@ -448,21 +401,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetDefineConstants(string defineConstants)
                 {
-                    if (!string.IsNullOrEmpty(defineConstants))
-                    {
-                        IEnumerable<Diagnostic> diagnostics;
-                        this.ParseOptions = this.ParseOptions.WithPreprocessorSymbols(CSharpCommandLineParser.ParseConditionalCompilationSymbols(defineConstants, out diagnostics));
-                        return true;
-                    }
-
-                    return false;
+                    this.Options.DefineConstants = defineConstants;
+                    return true;
                 }
 
                 private static readonly char[] s_preprocessorSymbolSeparators = new char[] { ';', ',' };
 
                 public bool SetDelaySign(bool delaySignExplicitlySet, bool delaySign)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithDelaySign(delaySignExplicitlySet ? delaySign : (bool?)null);
+                    this.Options.DelaySign = Tuple.Create(delaySignExplicitlySet, delaySign);
                     return true;
                 }
 
@@ -481,11 +428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int warningId;
                             if (int.TryParse(warning, out warningId))
                             {
-                                this.Warnings["CS" + warningId.ToString("0000")] = reportStyle;
+                                this.Options.Warnings["CS" + warningId.ToString("0000")] = reportStyle;
                             }
                             else
                             {
-                                this.Warnings[warning] = reportStyle;
+                                this.Options.Warnings[warning] = reportStyle;
                             }
                         }
                     }
@@ -493,8 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetDocumentationFile(string documentationFile)
                 {
-                    this.ParseOptions = this.ParseOptions.WithDocumentationMode(!string.IsNullOrEmpty(documentationFile) ? DocumentationMode.Diagnose : DocumentationMode.Parse);
-
+                    this.Options.DocumentationFile = documentationFile;
                     return true;
                 }
 
@@ -524,33 +470,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetKeyContainer(string keyContainer)
                 {
-                    if (!string.IsNullOrEmpty(keyContainer))
-                    {
-                        this.CompilationOptions = this.CompilationOptions.WithCryptoKeyContainer(keyContainer);
-                    }
-
+                    this.Options.KeyContainer = keyContainer;
                     return true;
                 }
 
                 public bool SetKeyFile(string keyFile)
                 {
-                    if (!string.IsNullOrEmpty(keyFile))
-                    {
-                        var fullPath = FileUtilities.ResolveRelativePath(keyFile, Path.GetDirectoryName(_projectFile.FilePath));
-                        this.CompilationOptions = this.CompilationOptions.WithCryptoKeyFile(fullPath);
-                    }
-
+                    this.Options.KeyFile = keyFile;
                     return true;
                 }
 
                 public bool SetLangVersion(string langVersion)
                 {
-                    var languageVersion = CompilationOptionsConversion.GetLanguageVersion(langVersion);
-                    if (languageVersion.HasValue)
-                    {
-                        this.ParseOptions = this.ParseOptions.WithLanguageVersion(languageVersion.Value);
-                    }
-
+                    this.Options.LanguageVersion = langVersion;
                     return true;
                 }
 
@@ -562,22 +494,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetMainEntryPoint(string targetType, string mainEntryPoint)
                 {
-                    // TODO: targetType is redundant? Already has SetTargetType()?
-                    if (!string.IsNullOrEmpty(mainEntryPoint))
-                    {
-                        this.CompilationOptions = this.CompilationOptions.WithMainTypeName(mainEntryPoint);
-                    }
-
+                    this.Options.MainEntryPoint = mainEntryPoint;
                     return true;
                 }
 
                 public bool SetModuleAssemblyName(string moduleAssemblyName)
                 {
-                    if (!string.IsNullOrEmpty(moduleAssemblyName))
-                    {
-                        this.CompilationOptions = this.CompilationOptions.WithModuleName(moduleAssemblyName);
-                    }
-
+                    this.Options.ModuleAssemblyName = moduleAssemblyName;
                     return true;
                 }
 
@@ -595,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetOptimize(bool optimize)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithOptimizationLevel(optimize ? OptimizationLevel.Release : OptimizationLevel.Debug);
+                    this.Options.Optimize = optimize;
                     return true;
                 }
 
@@ -614,17 +537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetPlatform(string platform)
                 {
-                    if (!string.IsNullOrEmpty(platform))
-                    {
-                        Platform plat;
-                        if (Enum.TryParse<Platform>(platform, ignoreCase: true, result: out plat))
-                        {
-                            this.CompilationOptions = this.CompilationOptions.WithPlatform(plat);
-                            return true;
-                        }
-                    }
-
-                    return false;
+                    this.Options.Platform = platform;
+                    return true;
                 }
 
                 public bool SetReferences(MSB.Framework.ITaskItem[] references)
@@ -666,46 +580,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public bool SetTargetType(string targetType)
                 {
                     OutputKind kind;
-                    if (!string.IsNullOrEmpty(targetType) && ProjectFile.TryGetOutputKind(targetType, out kind))
+                    if (ProjectFile.TryGetOutputKind(targetType, out kind))
                     {
-                        this.CompilationOptions = this.CompilationOptions.WithOutputKind(kind);
-                        if (this.CompilationOptions.Platform == Platform.AnyCpu32BitPreferred &&
-                            (kind == OutputKind.DynamicallyLinkedLibrary || kind == OutputKind.NetModule || kind == OutputKind.WindowsRuntimeMetadata))
-                        {
-                            this.CompilationOptions = this.CompilationOptions.WithPlatform(Platform.AnyCpu);
-                        }
-
-                        return true;
+                        this.Options.OutputKind = kind;
                     }
 
-                    return false;
+                    return true;
                 }
 
                 public bool SetRuleSet(string ruleSetFile)
                 {
-                    // Get options from the ruleset file, if any.
-                    if (!string.IsNullOrEmpty(ruleSetFile))
-                    {
-                        var fullPath = FileUtilities.ResolveRelativePath(ruleSetFile, Path.GetDirectoryName(_projectFile.FilePath));
-
-                        Dictionary<string, ReportDiagnostic> specificDiagnosticOptions;
-                        var generalDiagnosticOption = RuleSet.GetDiagnosticOptionsFromRulesetFile(fullPath, out specificDiagnosticOptions);
-                        this.CompilationOptions = this.CompilationOptions.WithGeneralDiagnosticOption(generalDiagnosticOption);
-                        this.Warnings.AddRange(specificDiagnosticOptions);
-                    }
-
+                    this.Options.RuleSetFile = ruleSetFile;
                     return true;
                 }
 
                 public bool SetTreatWarningsAsErrors(bool treatWarningsAsErrors)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithGeneralDiagnosticOption(treatWarningsAsErrors ? ReportDiagnostic.Error : ReportDiagnostic.Default);
+                    this.Options.WarningsAsErrors = treatWarningsAsErrors;
                     return true;
                 }
 
                 public bool SetWarningLevel(int warningLevel)
                 {
-                    this.CompilationOptions = this.CompilationOptions.WithWarningLevel(warningLevel);
+                    this.Options.WarningLevel = warningLevel;
                     return true;
                 }
 

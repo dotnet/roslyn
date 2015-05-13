@@ -128,6 +128,7 @@
     <Compile Include="AnalyzerItemTracker.cs" />
     <Compile Include="AnalyzerItem\AnalyzerItemProvider.cs" />
     <Compile Include="AnalyzerItem\AnalyzerItemSource.cs" />
+    <Compile Include="AnalyzerNodeSetup.cs" />
     <Compile Include="AnalyzersCommandHandler.cs" />
     <Compile Include="AnalyzersFolderItem\AnalyzersFolderItem.BrowseObject.cs" />
     <Compile Include="AnalyzersFolderItem\AnalyzersFolderItem.cs" />

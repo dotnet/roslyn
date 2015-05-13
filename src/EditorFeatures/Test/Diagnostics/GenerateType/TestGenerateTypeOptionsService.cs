@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public string FullFilePath = null;
         public Document ExistingDocument = null;
         public bool AreFoldersValidIdentifiers = true;
+        public string DefaultNamespace = null;
         public bool IsCancelled = false;
 
         // Actual input
@@ -40,7 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             // Storing the actual values
             ClassName = className;
             GenerateTypeDialogOptions = generateTypeDialogOptions;
-
+            if (DefaultNamespace == null)
+            {
+                DefaultNamespace = projectManagementService.GetDefaultNamespace(Project, Project?.Solution.Workspace);
+            }
             return new GenerateTypeOptionsResult(
                 accessibility: Accessibility,
                 typeKind: TypeKind,
@@ -52,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
                 fullFilePath: FullFilePath,
                 existingDocument: ExistingDocument,
                 areFoldersValidIdentifiers: AreFoldersValidIdentifiers,
+                defaultNamespace: DefaultNamespace,
                 isCancelled: IsCancelled);
         }
 
@@ -66,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             string fullFilePath = null,
             Document existingDocument = null,
             bool areFoldersValidIdentifiers = true,
+            string defaultNamespace = null,
             bool isCancelled = false)
         {
             Accessibility = accessibility;
@@ -78,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             FullFilePath = fullFilePath;
             ExistingDocument = existingDocument;
             AreFoldersValidIdentifiers = areFoldersValidIdentifiers;
+            DefaultNamespace = defaultNamespace;
             IsCancelled = isCancelled;
         }
     }

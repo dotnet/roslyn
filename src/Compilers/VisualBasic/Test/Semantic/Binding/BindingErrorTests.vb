@@ -5909,11 +5909,9 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
-        x.Where(Function(y)
-          ~~~~~
+BC30393: 'Exit Try' can only appear inside a 'Try' statement.
+                        Exit Try
+                        ~~~~~~~~
 </expected>)
         End Sub
 
@@ -8178,11 +8176,9 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-        x.Where(Function(y)
-          ~~~~~
+BC30101: Branching out of a 'Finally' is not valid.
+                        Exit Function
+                        ~~~~~~~~~~~~~
 BC42353: Function '&lt;anonymous method>' doesn't return a value on all code paths. Are you missing a 'Return' statement?
                 End Function)
                 ~~~~~~~~~~~~

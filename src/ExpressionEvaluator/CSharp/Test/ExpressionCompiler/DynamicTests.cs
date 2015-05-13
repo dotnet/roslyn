@@ -546,7 +546,7 @@ public class Outer<T, U>
 
         private static CustomTypeInfo MakeCustomTypeInfo(params bool[] flags)
         {
-            var dynamicFlagsInfo = new DynamicFlagsCustomTypeInfo(new BitArray(flags));
+            var dynamicFlagsInfo = new DynamicFlagsCustomTypeInfo(flags);
             return new CustomTypeInfo(DynamicFlagsCustomTypeInfo.PayloadTypeId, dynamicFlagsInfo.GetCustomTypeInfoPayload());
         }
 

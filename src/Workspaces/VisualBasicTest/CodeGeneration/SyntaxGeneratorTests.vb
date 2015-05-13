@@ -1408,6 +1408,21 @@ End Property</x>.Value)
     Set(value As t)
     End Set
 End Property</x>.Value)
+
+            ' convert private method to public 
+            Dim pim = _g.AsPrivateInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType:=_g.IdentifierName("t")),
+                    _g.IdentifierName("i"))
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2")),
+<x>Public Function m() As t Implements i2.m
+End Function</x>.Value)
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+<x>Public Function m2() As t Implements i2.m2
+End Function</x>.Value)
         End Sub
 
         <Fact>
@@ -1449,6 +1464,21 @@ End Property</x>.Value)
     Set(value As t)
     End Set
 End Property</x>.Value)
+
+            ' convert public method to private
+            Dim pim = _g.AsPublicInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType:=_g.IdentifierName("t")),
+                    _g.IdentifierName("i"))
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2")),
+<x>Private Function i2_m() As t Implements i2.m
+End Function</x>.Value)
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+<x>Private Function i2_m2() As t Implements i2.m2
+End Function</x>.Value)
         End Sub
 
         <Fact>
@@ -1906,8 +1936,8 @@ End Interface</x>.Value)
             Assert.Equal("p", _g.GetName(_g.ParameterDeclaration("p")))
             Assert.Equal("p", _g.GetName(_g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)))
             Assert.Equal("p", _g.GetName(_g.PropertyDeclaration("p", _g.IdentifierName("t"))))
-            Assert.Equal("", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"))))
-            Assert.Equal("", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)))
+            Assert.Equal("Item", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"))))
+            Assert.Equal("Item", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)))
             Assert.Equal("f", _g.GetName(_g.FieldDeclaration("f", _g.IdentifierName("t"))))
             Assert.Equal("v", _g.GetName(_g.EnumMember("v")))
             Assert.Equal("ef", _g.GetName(_g.EventDeclaration("ef", _g.IdentifierName("t"))))
@@ -1931,8 +1961,8 @@ End Interface</x>.Value)
             Assert.Equal("p", _g.GetName(_g.WithName(_g.ParameterDeclaration("x"), "p")))
             Assert.Equal("p", _g.GetName(_g.WithName(_g.PropertyDeclaration("x", _g.IdentifierName("t")), "p")))
             Assert.Equal("p", _g.GetName(_g.WithName(_g.PropertyDeclaration("x", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract), "p")))
-            Assert.Equal("", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t")), "this")))
-            Assert.Equal("", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract), "this")))
+            Assert.Equal("X", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t")), "X")))
+            Assert.Equal("X", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract), "X")))
             Assert.Equal("f", _g.GetName(_g.WithName(_g.FieldDeclaration("x", _g.IdentifierName("t")), "f")))
             Assert.Equal("v", _g.GetName(_g.WithName(_g.EnumMember("x"), "v")))
             Assert.Equal("ef", _g.GetName(_g.WithName(_g.EventDeclaration("x", _g.IdentifierName("t")), "ef")))

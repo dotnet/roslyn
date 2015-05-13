@@ -150,4 +150,13 @@
   <data name="AbstractTypesShouldNotHavePublicConstructors" xml:space="preserve">
     <value>Abstract classes should not have public constructors</value>
   </data>
+  <data name="InterfaceMethodsShouldBeCallableByChildTypesFix1" xml:space="preserve">
+    <value>Make '{0}' protected.</value>
+  </data>
+  <data name="InterfaceMethodsShouldBeCallableByChildTypesFix2" xml:space="preserve">
+    <value>Change '{0}' to a public interface implementation.</value>
+  </data>
+  <data name="InterfaceMethodsShouldBeCallableByChildTypesFix3" xml:space="preserve">
+    <value>Make the containing type '{0}' sealed.</value>
+  </data>
 </root>

@@ -1196,20 +1196,20 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Intellisense.
+        ///   Looks up a localized string similar to IntelliSense.
         /// </summary>
-        internal static string Intellisense {
+        internal static string IntelliSense {
             get {
-                return ResourceManager.GetString("Intellisense", resourceCulture);
+                return ResourceManager.GetString("IntelliSense", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Intellisense Commit Formatting.
+        ///   Looks up a localized string similar to IntelliSense Commit Formatting.
         /// </summary>
-        internal static string IntellisenseCommitFormatting {
+        internal static string IntelliSenseCommitFormatting {
             get {
-                return ResourceManager.GetString("IntellisenseCommitFormatting", resourceCulture);
+                return ResourceManager.GetString("IntelliSenseCommitFormatting", resourceCulture);
             }
         }
         

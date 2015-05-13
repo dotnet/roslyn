@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             public override string VisualizeSymbol(uint token)
             {
-                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.Handle((int)token));
+                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
                 ISymbol symbol = reference as ISymbol;
                 return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
             }
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 if (type is int)
                 {
-                    type = _decoder.GetSymbolForILToken(MetadataTokens.Handle((int)type));
+                    type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
                 }
 
                 ISymbol symbol = type as ISymbol;

@@ -54,12 +54,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             InitializeComponent();
             DataContext = viewModel;
 
-            ContentRendered += GenerateTypeDialog_ContentRendered;
+            IsVisibleChanged += GenerateTypeDialog_IsVisibleChanged;
         }
 
-        private void GenerateTypeDialog_ContentRendered(object sender, EventArgs e)
+        private void GenerateTypeDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            TEST_DialogLoaded?.Invoke();
+            if ((bool)e.NewValue)
+            {
+                IsVisibleChanged -= GenerateTypeDialog_IsVisibleChanged;
+                TEST_DialogLoaded?.Invoke();
+            }
         }
 
         private void SetCommandBindings()

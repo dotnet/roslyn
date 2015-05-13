@@ -16,14 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Initialize the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         ''' done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         ''' </summary>
-        Friend Shared Sub InitializeObsoleteDataFromMetadata(ByRef data As ObsoleteAttributeData, token As Handle, containingModule As PEModuleSymbol)
+        Friend Shared Sub InitializeObsoleteDataFromMetadata(ByRef data As ObsoleteAttributeData, token As EntityHandle, containingModule As PEModuleSymbol)
             If data Is ObsoleteAttributeData.Uninitialized Then
                 Dim obsoleteAttributeData As ObsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule)
-                Interlocked.CompareExchange(data, obsoleteAttributeData, obsoleteAttributeData.Uninitialized)
+                Interlocked.CompareExchange(data, obsoleteAttributeData, ObsoleteAttributeData.Uninitialized)
             End If
         End Sub
 
-        Friend Shared Function GetObsoleteDataFromMetadata(token As Handle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
+        Friend Shared Function GetObsoleteDataFromMetadata(token As EntityHandle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
             Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
             Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, obsoleteAttributeData)
             Debug.Assert(isObsolete = (obsoleteAttributeData IsNot Nothing))

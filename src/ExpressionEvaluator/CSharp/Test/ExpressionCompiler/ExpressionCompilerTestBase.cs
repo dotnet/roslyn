@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             moduleVersionId = id;
             symReader = (ISymUnmanagedReader)moduleInstance.SymReader;
 
-            Handle methodOrTypeHandle;
+            EntityHandle methodOrTypeHandle;
             if (methodOrType.Kind == SymbolKind.Method)
             {
                 methodOrTypeHandle = ((PEMethodSymbol)methodOrType).Handle;

@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                return "vbc2.exe";
+                return "vbc.exe";
             }
         }
 

@@ -308,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.IdentifierName:
-                    return BindNonGenericSimpleName((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null);
+                    return BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null);
 
                 case SyntaxKind.GenericName:
-                    return BindGenericSimpleName((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null);
+                    return BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null);
 
                 case SyntaxKind.AliasQualifiedName:
                     {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return new ExtendedErrorTypeSymbol(left, LookupResultKind.NotATypeOrNamespace, diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, node.Alias.Location, node.Alias.Identifier.Text));
                         }
-                        return this.BindSimpleName(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
+                        return this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
                     }
 
                 case SyntaxKind.QualifiedName:
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds a simple name or the simple name portion of a qualified name. 
         /// </summary>
-        private Symbol BindSimpleName(
+        private Symbol BindSimpleNamespaceOrTypeOrAliasSymbol(
             SimpleNameSyntax syntax,
             DiagnosticBag diagnostics,
             ConsList<Symbol> basesBeingResolved,
@@ -417,10 +417,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new ExtendedErrorTypeSymbol(qualifierOpt ?? this.Compilation.Assembly.GlobalNamespace, string.Empty, arity: 0, errorInfo: null);
 
                 case SyntaxKind.IdentifierName:
-                    return BindNonGenericSimpleName((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt);
+                    return BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt);
 
                 case SyntaxKind.GenericName:
-                    return BindGenericSimpleName((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt);
+                    return BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt);
             }
         }
 
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected Symbol BindNonGenericSimpleName(
+        protected Symbol BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol(
             IdentifierNameSyntax node,
             DiagnosticBag diagnostics,
             ConsList<Symbol> basesBeingResolved,
@@ -488,19 +488,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we were looking up the identifier "dynamic" at the topmost level and didn't find anything good,
             // we actually have the type dynamic (assuming /langversion is at least 4).
             if ((object)qualifierOpt == null &&
-                node.Parent != null &&
-                node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as an attribute type
-                SyntaxFacts.IsInTypeOnlyContext(node) &&
-                node.Identifier.ToString() == "dynamic" &&
+                (node.Parent == null ||
+                 node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as an attribute type
+                 SyntaxFacts.IsInTypeOnlyContext(node)) &&
+                node.Identifier.ValueText == "dynamic" &&
                 !IsViableType(result) &&
                 ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
             {
                 bindingResult = Compilation.DynamicType;
-
-                // ACASEY: As far as I can tell, in dev11, the method that reports usage of unavailable features
-                // is called only if the feature IS available.  As a result, it will never be reported unavailable.
-                // CheckFeatureAvailability(node.Identifier.Location, MessageID.IDS_FeatureDynamic, diagnostics);
-
                 ReportUseSiteDiagnosticForDynamic(diagnostics, node);
             }
             else
@@ -630,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private NamedTypeSymbol BindGenericSimpleName(
+        private NamedTypeSymbol BindGenericSimpleNamespaceOrTypeOrAliasSymbol(
             GenericNameSyntax node,
             DiagnosticBag diagnostics,
             ConsList<Symbol> basesBeingResolved,
@@ -976,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // since the name is qualified, it cannot result in a using alias symbol, only a type or namespace
-            var right = this.BindSimpleName(rightName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left) as NamespaceOrTypeSymbol;
+            var right = this.BindSimpleNamespaceOrTypeOrAliasSymbol(rightName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left) as NamespaceOrTypeSymbol;
 
             // If left name bound to an unbound generic type
             // and right name bound to a generic type, we must

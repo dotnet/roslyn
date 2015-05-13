@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string> argumentValues = null)
         {
-            Debug.Assert((argumentValues == null) || (method.Parameters.Length == argumentValues.Count));
-
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
 
@@ -50,11 +48,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             AppendFullName(builder, method);
 
             // parameter list...
-            var includeArgumentValues = argumentValues != null;
+            var parameters = method.Parameters;
+            var includeArgumentValues = (argumentValues != null) && (parameters.Length == argumentValues.Count);
             if (includeParameterTypes || includeParameterNames || includeArgumentValues)
             {
                 builder.Append('(');
-                var parameters = method.Parameters;
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     if (i > 0)

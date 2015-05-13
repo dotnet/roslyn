@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     dkmAlias.Type,
                     new CustomTypeInfo(
                         dkmAlias.CustomTypeInfoPayloadTypeId,
-                        dkmAlias.CustomTypeInfoPayload.ToArray())));
+                        dkmAlias.CustomTypeInfoPayload)));
             }
             return builder.ToImmutableAndFree();
         }
