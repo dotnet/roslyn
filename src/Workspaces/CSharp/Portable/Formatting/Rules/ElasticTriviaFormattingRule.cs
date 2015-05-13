@@ -256,6 +256,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 //     space operation says give 1 space between two tokens (basically means remove new lines)
                 //     then, engine will pick new line operation and ignore space operation
 
+                // make attributes have a space following
+                if (previousToken.IsKind(SyntaxKind.CloseBracketToken) && previousToken.Parent is AttributeListSyntax
+                    && !(currentToken.Parent is AttributeListSyntax))
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+
                 // make every operation forced
                 return CreateAdjustSpacesOperation(Math.Max(0, operation.Space), AdjustSpacesOption.ForceSpaces);
             }
