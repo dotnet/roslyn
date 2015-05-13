@@ -44,14 +44,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectId)
+        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectOpt)
         {
             if (workspace != this.Workspace)
             {
                 return;
             }
 
-            var project = workspace.CurrentSolution.GetProject(projectId);
+            // check whether we are reporting project specific diagnostic or workspace wide diagnostic
+            var project = projectOpt != null ? workspace.CurrentSolution.GetProject(projectOpt) : null;
+            
+            // check whether project the diagnostic belong to still exist
+            if (projectOpt != null && project == null)
+            {
+                // project the diagnostic belong to already removed from the solution.
+                // ignore the diagnostic
+                return;
+            }
 
             bool raiseDiagnosticsUpdated = true;
             var diagnosticData = project != null ?
