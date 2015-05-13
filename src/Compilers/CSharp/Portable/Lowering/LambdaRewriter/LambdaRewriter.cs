@@ -1171,12 +1171,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression cache;
                     if (shouldCacheForStaticMethod || shouldCacheInLoop && (object)containerAsFrame != null)
                     {
+                        // Since the cache variable will be in a container with possibly alpha-rewritten generic parameters, we need to
+                        // substitute the original type according to the type map for that container. That substituted type may be
+                        // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame?.TypeMap.SubstituteType(node.Type) ?? translatedLambdaContainer;
 
-                        // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
-                        // no need to include the top-level method ordinal in the field name.
-
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
+                            // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
+                            // no need to include the top-level method ordinal in the field name.
                             (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
                             topLevelMethodId.Generation,
                             lambdaId.Ordinal,
