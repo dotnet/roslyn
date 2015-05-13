@@ -69,10 +69,6 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MSBuild\VisualBasicProjectFileLoader.vb" />
-    <Compile Include="MSBuild\VisualBasicProjectFileLoaderFactory.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

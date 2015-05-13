@@ -123,6 +123,8 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
+    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoader.cs" />
+    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />
