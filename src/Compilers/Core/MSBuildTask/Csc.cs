@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                return "csc2.exe";
+                return "csc.exe";
             }
         }
 
