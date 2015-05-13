@@ -936,7 +936,7 @@ class C { }";
 {
     // Comment 2
 }";
-                var eol = SyntaxFactory.EndOfLine(@"", elastic: false);
+                var eol = SyntaxFactory.EndOfLine(@"");
                 var newModifiers = new[] { SyntaxFactory.Token(SyntaxKind.InternalKeyword).WithLeadingTrivia(eol) }.Concat(
                     CreateModifierTokens(new DeclarationModifiers(isSealed: true, isPartial: true), LanguageNames.CSharp));
 

@@ -9,27 +9,120 @@ Imports VbObjectDisplay = Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.Objec
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Public Class SyntaxFactory
+        ''' <summary>
+        ''' A trivia with kind EndOfLineTrivia containing both the carriage return And line feed characters.
+        ''' </summary>
         Public Shared ReadOnly CarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturnLineFeed, SyntaxTrivia)
+
+        ''' <summary>
+        ''' A trivia with kind EndOfLineTrivia containing a single line feed character.
+        ''' </summary>
         Public Shared ReadOnly LineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.LineFeed, SyntaxTrivia)
+
+        ''' <summary>
+        ''' A trivia with kind EndOfLineTrivia containing a single carriage return character.
+        ''' </summary>
         Public Shared ReadOnly CarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturn, SyntaxTrivia)
+
+        ''' <summary>
+        '''  A trivia with kind WhitespaceTrivia containing a single space character.
+        ''' </summary>
         Public Shared ReadOnly Space As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Space, SyntaxTrivia)
+
+        ''' <summary>
+        ''' A trivia with kind WhitespaceTrivia containing a single tab character.
+        ''' </summary>
         Public Shared ReadOnly Tab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Tab, SyntaxTrivia)
 
+        ''' <summary>
+        ''' An elastic trivia with kind EndOfLineTrivia containing both the carriage return And line feed characters.
+        ''' Elastic trivia are used to denote trivia that was Not produced by parsing source text, And are usually Not
+        ''' preserved during formatting.
+        ''' </summary>
         Public Shared ReadOnly ElasticCarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind EndOfLineTrivia containing a single line feed character. Elastic trivia are used
+        ''' to denote trivia that was Not produced by parsing source text, And are usually Not preserved during
+        ''' formatting.
+        ''' </summary>
         Public Shared ReadOnly ElasticLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticLineFeed, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind EndOfLineTrivia containing a single carriage return character. Elastic trivia
+        ''' are used to denote trivia that was Not produced by parsing source text, And are usually Not preserved during
+        ''' formatting.
+        ''' </summary>
         Public Shared ReadOnly ElasticCarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturn, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind WhitespaceTrivia containing a single space character. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
         Public Shared ReadOnly ElasticSpace As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticSpace, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind WhitespaceTrivia containing a single tab character. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
         Public Shared ReadOnly ElasticTab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticTab, SyntaxTrivia)
 
+        ''' <summary>
+        ''' An elastic trivia with kind WhitespaceTrivia containing no characters. Elastic marker trivia are included
+        ''' automatically by factory methods when trivia Is Not specified. Syntax formatting will replace elastic
+        ''' markers with appropriate trivia.
+        ''' </summary>
         Public Shared ReadOnly ElasticMarker As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia)
         Private Shared ReadOnly s_elasticMarkerList As SyntaxTriviaList = SyntaxFactory.TriviaList(CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia))
 
-        Public Shared Function Whitespace(text As String, Optional elastic As Boolean = True) As SyntaxTrivia
-            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic), SyntaxTrivia)
+        ''' <summary>
+        ''' Creates a trivia with kind EndOfLineTrivia containing the specified text. 
+        ''' </summary>
+        ''' <param name="text">The text of the end of line. Any text can be specified here, however only carriage return And
+        ''' line feed characters are recognized by the parser as end of line.</param>
+        Public Shared Function EndOfLine(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic:=False), SyntaxTrivia)
         End Function
 
-        Public Shared Function EndOfLine(text As String, Optional elastic As Boolean = True) As SyntaxTrivia
+        ''' <summary>
+        ''' Creates a trivia with kind EndOfLineTrivia containing the specified text. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
+        ''' <param name="text">The text of the end of line. Any text can be specified here, however only carriage return And
+        ''' line feed characters are recognized by the parser as end of line.</param>
+        Public Shared Function ElasticEndOfLine(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic:=True), SyntaxTrivia)
+        End Function
+
+        <Obsolete("Use SyntaxFactory.EndOfLine or SyntaxFactory.ElasticEndOfLine")>
+        <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+        Public Shared Function EndOfLine(text As String, elastic As Boolean) As SyntaxTrivia
             Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic), SyntaxTrivia)
+        End Function
+
+        ''' <summary>
+        ''' Creates a trivia with kind WhitespaceTrivia containing the specified text.
+        ''' </summary>
+        ''' <param name="text">The text of the whitespace. Any text can be specified here, however only specific
+        ''' whitespace characters are recognized by the parser.</param>
+        Public Shared Function Whitespace(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic:=False), SyntaxTrivia)
+        End Function
+
+        ''' <summary>
+        ''' Creates a trivia with kind WhitespaceTrivia containing the specified text. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
+        ''' <param name="text">The text of the whitespace. Any text can be specified here, however only specific
+        ''' whitespace characters are recognized by the parser.</param>
+        Public Shared Function ElasticWhitespace(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic:=True), SyntaxTrivia)
+        End Function
+
+        <Obsolete("Use SyntaxFactory.Whitespace or SyntaxFactory.ElasticWhitespace")>
+        <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+        Public Shared Function Whitespace(text As String, elastic As Boolean) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic), SyntaxTrivia)
         End Function
 
         ''' <summary> 

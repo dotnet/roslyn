@@ -57,13 +57,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Protected Overrides Function CreateWhitespace(text As String) As SyntaxTrivia
-            Return SyntaxFactory.Whitespace(text, elastic:=False)
+            Return SyntaxFactory.Whitespace(text)
         End Function
 
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
             If _newLine = Nothing Then
                 Dim text = Me.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic)
-                _newLine = SyntaxFactory.EndOfLine(text, elastic:=False)
+                _newLine = SyntaxFactory.EndOfLine(text)
             End If
 
             Return _newLine
