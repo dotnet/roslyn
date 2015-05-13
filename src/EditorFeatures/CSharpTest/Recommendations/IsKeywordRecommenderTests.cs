@@ -125,7 +125,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterVarInOutArgument()
         {
-            var experimentalFeatures = new System.Collections.Generic.Dictionary<string, string>(); // no experimental features to enable
+            var experimentalFeatures = System.Collections.Immutable.ImmutableArray<string>.Empty; // no experimental features to enable
             VerifyAbsence(AddInsideMethod(
 @"M(out var $$"), options: Options.Regular.WithFeatures(experimentalFeatures), scriptOptions: Options.Script.WithFeatures(experimentalFeatures));
         }

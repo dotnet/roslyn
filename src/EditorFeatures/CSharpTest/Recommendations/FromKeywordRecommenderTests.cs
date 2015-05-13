@@ -219,7 +219,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterOutInArgument()
         {
-            var experimentalFeatures = new System.Collections.Generic.Dictionary<string, string>(); // no experimental features to enable
+            var experimentalFeatures = System.Collections.Immutable.ImmutableArray<string>.Empty; // no experimental features to enable
             VerifyAbsence(@"
 class C
 {

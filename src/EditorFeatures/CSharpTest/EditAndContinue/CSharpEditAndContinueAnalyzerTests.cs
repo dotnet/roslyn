@@ -403,7 +403,7 @@ class C
 }
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
-            var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
+            var experimentalFeatures = ImmutableArray<string>.Empty; // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(
@@ -448,7 +448,7 @@ class C
 ";
                 var analyzer = new CSharpEditAndContinueAnalyzer();
 
-                var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
+                var featuresToEnable = ImmutableArray.Create(feature);
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
                 using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(

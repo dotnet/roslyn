@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
@@ -230,7 +230,7 @@ text;
         protected override ParseOptions CreateExperimentalParseOptions(ParseOptions parseOptions)
         {
             var options = (CSharpParseOptions)parseOptions;
-            var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
+            var experimentalFeatures = ImmutableArray<string>.Empty; // no experimental features to enable
             return options.WithFeatures(experimentalFeatures);
         }
     }
