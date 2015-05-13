@@ -104,6 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic: true);
         }
 
+        [Obsolete("Use SyntaxFactory.EndOfLine or SyntaxFactory.ElasticEndOfLine")]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static SyntaxTrivia EndOfLine(string text, bool elastic)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic);
+        }
+
         /// <summary>
         /// Creates a trivia with kind WhitespaceTrivia containing the specified text.
         /// </summary>
@@ -123,6 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxTrivia ElasticWhitespace(string text)
         {
             return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic: false);
+        }
+
+        [Obsolete("Use SyntaxFactory.Whitespace or SyntaxFactory.ElasticWhitespace")]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static SyntaxTrivia Whitespace(string text, bool elastic)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic);
         }
 
         /// <summary>

@@ -94,6 +94,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic:=True), SyntaxTrivia)
         End Function
 
+        <Obsolete("Use SyntaxFactory.EndOfLine or SyntaxFactory.ElasticEndOfLine")>
+        <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+        Public Shared Function EndOfLine(text As String, elastic As Boolean) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic), SyntaxTrivia)
+        End Function
+
         ''' <summary>
         ''' Creates a trivia with kind WhitespaceTrivia containing the specified text.
         ''' </summary>
@@ -111,6 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' whitespace characters are recognized by the parser.</param>
         Public Shared Function ElasticWhitespace(text As String) As SyntaxTrivia
             Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic:=True), SyntaxTrivia)
+        End Function
+
+        <Obsolete("Use SyntaxFactory.Whitespace or SyntaxFactory.ElasticWhitespace")>
+        <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+        Public Shared Function Whitespace(text As String, elastic As Boolean) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic), SyntaxTrivia)
         End Function
 
         ''' <summary> 

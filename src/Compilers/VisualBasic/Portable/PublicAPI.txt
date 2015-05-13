@@ -5001,6 +5001,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndModuleStatement(endKe
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndNamespaceStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndNamespaceStatement(endKeyword As Microsoft.CodeAnalysis.SyntaxToken, blockKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndOfLine(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndOfLine(text As String, elastic As Boolean) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndOfLineTrivia(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndOperatorStatement() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.EndOperatorStatement(endKeyword As Microsoft.CodeAnalysis.SyntaxToken, blockKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.EndBlockStatementSyntax
@@ -5681,6 +5682,7 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.WhileOrUntilClause(kind 
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.WhileStatement(condition As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.WhileStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.WhileStatement(whileKeyword As Microsoft.CodeAnalysis.SyntaxToken, condition As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.WhileStatementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Whitespace(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Whitespace(text As String, elastic As Boolean) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.WhitespaceTrivia(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.WithBlock(withStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.WithStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.WithBlockSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.WithBlock(withStatement As Microsoft.CodeAnalysis.VisualBasic.Syntax.WithStatementSyntax, statements As Microsoft.CodeAnalysis.SyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.WithBlockSyntax
