@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression cache;
                     if (shouldCacheForStaticMethod || shouldCacheInLoop && (object)containerAsFrame != null)
                     {
-                        var cacheVariableType = containerAsFrame?.TypeMap.SubstituteType(type) ?? translatedLambdaContainer;
+                        var cacheVariableType = containerAsFrame?.TypeMap.SubstituteType(node.Type) ?? translatedLambdaContainer;
 
                         // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
                         // no need to include the top-level method ordinal in the field name.
