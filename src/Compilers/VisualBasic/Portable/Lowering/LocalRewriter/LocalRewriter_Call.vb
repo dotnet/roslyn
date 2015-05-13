@@ -90,9 +90,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                node.Type)
 
             If Not copyBack.IsDefault Then
-                Return GenerateSequenceValueSideEffects(node, StaticCast(Of LocalSymbol).From(temporaries), copyBack)
+                Return GenerateSequenceValueSideEffects(_currentMethodOrLambda, node, StaticCast(Of LocalSymbol).From(temporaries), copyBack)
+            End If
 
-            ElseIf Not temporaries.IsDefault Then
+            If Not temporaries.IsDefault Then
                 If method.IsSub Then
                     Return New BoundSequence(node.Syntax,
                                              StaticCast(Of LocalSymbol).From(temporaries),

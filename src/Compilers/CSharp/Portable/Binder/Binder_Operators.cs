@@ -2438,7 +2438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (operand.Syntax.Kind() != SyntaxKind.NumericLiteralExpression)
+            if (node.Operand != operand.Syntax || operand.Syntax.Kind() != SyntaxKind.NumericLiteralExpression)
             {
                 return null;
             }

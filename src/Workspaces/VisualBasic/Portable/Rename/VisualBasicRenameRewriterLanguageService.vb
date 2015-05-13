@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Private _modifiedSubSpans As List(Of ValueTuple(Of TextSpan, TextSpan)) = Nothing
             Private _speculativeModel As SemanticModel
             Private _isProcessingStructuredTrivia As Integer
-            Private _complexifiedSpans As HashSet(Of TextSpan) = New HashSet(Of TextSpan)
+            Private ReadOnly _complexifiedSpans As HashSet(Of TextSpan) = New HashSet(Of TextSpan)
 
             Private Sub AddModifiedSpan(oldSpan As TextSpan, newSpan As TextSpan)
                 newSpan = New TextSpan(oldSpan.Start, newSpan.Length)
@@ -585,8 +585,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                If Me._isRenamingInStrings AndAlso newToken.Kind = SyntaxKind.StringLiteralToken Then
-                    newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.StringLiteralToken)
+                If Me._isRenamingInStrings Then
+                    If newToken.Kind = SyntaxKind.StringLiteralToken Then
+                        newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.StringLiteralToken)
+                    ElseIf newToken.Kind = SyntaxKind.InterpolatedStringTextToken Then
+                        newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.InterpolatedStringTextToken)
+                    End If
                 End If
 
                 If Me._isRenamingInComments Then

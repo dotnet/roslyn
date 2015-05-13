@@ -259,6 +259,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a constructor that takes that many arguments..
+        /// </summary>
+        internal static string ERR_BadCtorArgCount {
+            get {
+                return ResourceManager.GetString("ERR_BadCtorArgCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not exist in the current context..
+        /// </summary>
+        internal static string ERR_NameNotInContext {
+            get {
+                return ResourceManager.GetString("ERR_NameNotInContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to event field.
         /// </summary>
         internal static string EventField {

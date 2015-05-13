@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private class WrappedPropertySymbol : AbstractWrappedSymbol, IPropertySymbol
         {
-            private IPropertySymbol _symbol;
+            private readonly IPropertySymbol _symbol;
 
             public WrappedPropertySymbol(IPropertySymbol propertySymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(propertySymbol, canImplementImplicitly, docCommentFormattingService)

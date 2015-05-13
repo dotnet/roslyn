@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
             }
 
-            private int _skipRenameForComplexification = 0;
+            private int _skipRenameForComplexification;
             private bool _isProcessingComplexifiedSpans;
-            private List<ValueTuple<TextSpan, TextSpan>> _modifiedSubSpans = null;
+            private List<ValueTuple<TextSpan, TextSpan>> _modifiedSubSpans;
             private SemanticModel _speculativeModel;
             private int _isProcessingTrivia;
 
@@ -655,9 +655,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return newToken;
                 }
 
-                if (_isRenamingInStrings && newToken.IsKind(SyntaxKind.StringLiteralToken))
+                if (_isRenamingInStrings)
                 {
-                    newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.Literal);
+                    if (newToken.IsKind(SyntaxKind.StringLiteralToken))
+                    {
+                        newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.Literal);
+                    }
+                    else if (newToken.IsKind(SyntaxKind.InterpolatedStringTextToken))
+                    {
+                        newToken = RenameInStringLiteral(oldToken, newToken, (leadingTrivia, text, value, trailingTrivia) =>
+                            SyntaxFactory.Token(newToken.LeadingTrivia, SyntaxKind.InterpolatedStringTextToken, text, value, newToken.TrailingTrivia));
+                    }
                 }
 
                 if (_isRenamingInComments)
@@ -897,7 +905,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             {
                 foreach (var location in symbol.Locations)
                 {
-                    if (location.IsInSource)
+                    // reverseMappedLocations may not contain the location if the location's token
+                    // does not contain the text of it's name (e.g. the getter of "int X { get; }"
+                    // does not contain the text "get_X" so conflicting renames to "get_X" will not
+                    // have added the getter to reverseMappedLocations).
+                    if (location.IsInSource && reverseMappedLocations.ContainsKey(location))
                     {
                         conflicts.Add(reverseMappedLocations[location]);
                     }
@@ -1070,10 +1082,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // get the directly enclosing statement
             var enclosingStatement = token.GetAncestors(n => n is StatementSyntax).FirstOrDefault();
 
-            // see if there's an enclosing lambda expression
+            // System.Func<int, int> myFunc = arg => X;
             SyntaxNode possibleLambdaExpression = enclosingStatement == null
                 ? token.GetAncestors(n => n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax).FirstOrDefault()
                 : null;
+            if (possibleLambdaExpression != null)
+            {
+                var lambdaExpression = ((LambdaExpressionSyntax)possibleLambdaExpression);
+                if (lambdaExpression.Body is ExpressionSyntax)
+                {
+                    return lambdaExpression.Body;
+                }
+            }
+
+            // int M() => X;
+            var possibleArrowExpressionClause = enclosingStatement == null
+                ? token.GetAncestors<ArrowExpressionClauseSyntax>().FirstOrDefault()
+                : null;
+            if (possibleArrowExpressionClause != null)
+            {
+                return possibleArrowExpressionClause.Expression;
+            }
 
             var enclosingNameMemberCrefOrnull = token.GetAncestors(n => n is NameMemberCrefSyntax).LastOrDefault();
             if (enclosingNameMemberCrefOrnull != null)

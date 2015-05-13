@@ -926,8 +926,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     referencedAssemblies = assembly.AssemblyReferences;
                 }
 
-                private bool _internalsVisibleComputed = false;
-                private bool _internalsPotentiallyVisibleToCompilation = false;
+                private bool _internalsVisibleComputed;
+                private bool _internalsPotentiallyVisibleToCompilation;
 
                 internal override AssemblySymbol CreateAssemblySymbol()
                 {

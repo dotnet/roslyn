@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
     Public Class WinMdEventTest
         Inherits BasicTestBase
 
-        Private _eventInterfaceILTemplate As String = <![CDATA[
+        Private ReadOnly _eventInterfaceILTemplate As String = <![CDATA[
 .class interface public abstract auto ansi {0}
 {{
   .method public hidebysig newslot specialname abstract virtual 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 ]]>.Value
         Private ReadOnly _eventLibRef As MetadataReference
 
-        Private _dynamicCommonSrc As XElement =
+        Private ReadOnly _dynamicCommonSrc As XElement =
             <compilation>
                 <file name="dynamic_common.vb">
                     <![CDATA[

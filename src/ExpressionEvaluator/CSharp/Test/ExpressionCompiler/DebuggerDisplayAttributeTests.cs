@@ -181,10 +181,9 @@ class A<T> where T : class
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
             var context = CreateTypeContext(runtime, "A.B");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("F(default(T), default(U))", out resultProperties, out error, testData);
+            var result = context.CompileExpression("F(default(T), default(U))", out error, testData);
             string actualIL = testData.GetMethodData("<>x<T, U>.<>m0").GetMethodIL();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 actualIL,
@@ -233,11 +232,10 @@ namespace N
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
             var context = CreateTypeContext(runtime, "N.C");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
             // Expression compilation should succeed without imports.
-            var result = context.CompileExpression("typeof(N.C) ?? typeof(C)", out resultProperties, out error, testData);
+            var result = context.CompileExpression("typeof(N.C) ?? typeof(C)", out error, testData);
             Assert.Null(error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 testData.GetMethodData("<>x.<>m0").GetMethodIL(),
@@ -256,10 +254,10 @@ namespace N
             // Expression compilation should fail using imports since there are no symbols.
             context = CreateTypeContext(runtime, "N.C");
             testData = new CompilationTestData();
-            result = context.CompileExpression("typeof(A.C) ?? typeof(B) ?? typeof(C)", out resultProperties, out error, testData);
+            result = context.CompileExpression("typeof(A.C) ?? typeof(B) ?? typeof(C)", out error, testData);
             Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
             testData = new CompilationTestData();
-            result = context.CompileExpression("typeof(B) ?? typeof(C)", out resultProperties, out error, testData);
+            result = context.CompileExpression("typeof(B) ?? typeof(C)", out error, testData);
             Assert.Equal(error, "error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)");
         }
 
@@ -275,10 +273,9 @@ class C
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
             var context = CreateTypeContext(runtime, "C");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("$ReturnValue", out resultProperties, out error, testData);
+            var result = context.CompileExpression("$ReturnValue", out error, testData);
             Assert.Equal(error, "error CS0103: The name '$ReturnValue' does not exist in the current context");
         }
 
@@ -365,10 +362,9 @@ public class Derived : Base
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0, includeSymbols: false);
             var context = CreateTypeContext(runtime, "Derived");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("GetDebuggerDisplay()", out resultProperties, out error, testData);
+            var result = context.CompileExpression("GetDebuggerDisplay()", out error, testData);
             Assert.Null(error);
             var actualIL = testData.GetMethodData("<>x.<>m0").GetMethodIL();
             var expectedIL =
@@ -384,10 +380,9 @@ public class Derived : Base
 
         private static string CompileExpression(EvaluationContext context, string expr)
         {
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression(expr, out resultProperties, out error, testData);
+            var result = context.CompileExpression(expr, out error, testData);
             Assert.NotNull(result.Assembly);
             Assert.Null(error);
             return testData.GetMethodData(result.TypeName + "." + result.MethodName).GetMethodIL();

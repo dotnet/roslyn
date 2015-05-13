@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class DashboardViewModel : INotifyPropertyChanged, IDisposable
     {
+        private const int SymbolDescriptionTextLength = 15;
         private readonly Visibility _renameOverloadsVisibility;
 
         private DashboardSeverity _severity = DashboardSeverity.None;
@@ -155,8 +156,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             get
             {
-                return string.Format(EditorFeaturesResources.Rename1, this.Session.OriginalSymbolName);
+                return string.Format(EditorFeaturesResources.Rename1, GetTruncatedSymbolName());
             }
+        }
+
+        private string GetTruncatedSymbolName()
+        {
+            return this.Session.OriginalSymbolName.Length < SymbolDescriptionTextLength
+                ? this.Session.OriginalSymbolName 
+                : this.Session.OriginalSymbolName.Substring(0, SymbolDescriptionTextLength) + "...";
         }
 
         public string SearchText

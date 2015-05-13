@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 {
     internal class EncapsulateFieldCodeAction : CodeAction
     {
-        private EncapsulateFieldResult _result;
-        private string _title;
+        private readonly EncapsulateFieldResult _result;
+        private readonly string _title;
 
         public EncapsulateFieldCodeAction(EncapsulateFieldResult result, string title)
         {

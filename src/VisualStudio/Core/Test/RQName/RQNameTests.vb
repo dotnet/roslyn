@@ -261,13 +261,13 @@ class G<T>
                     AssertEx.Fail("Could not find symbol")
                 End If
 
-                Dim refactoringQualifiedName = String.Empty
 
                 If expectedRQName IsNot Nothing Then
-                    Assert.True(RQNameService.TryBuild(symbol, refactoringQualifiedName))
+                    Dim refactoringQualifiedName = RQName.From(symbol)
+                    Assert.NotNull(refactoringQualifiedName)
                     Assert.Equal(expectedRQName, refactoringQualifiedName)
                 Else
-                    Assert.False(RQNameService.TryBuild(symbol, refactoringQualifiedName))
+                    Assert.Null(RQName.From(symbol))
                 End If
             End Using
         End Sub

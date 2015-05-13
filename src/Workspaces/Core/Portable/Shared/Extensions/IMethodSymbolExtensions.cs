@@ -168,29 +168,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return updatedMethod.RenameParameters(parameterNames);
         }
 
-        public static IMethodSymbol RemoveAttributeFromParametersAndReturnType(
-            this IMethodSymbol method, INamedTypeSymbol attributeType,
+        public static IMethodSymbol RemoveInaccessibleAttributesAndAttributesOfType(
+            this IMethodSymbol method, ISymbol accessibleWithin, INamedTypeSymbol removeAttributeType,
             IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null)
         {
-            if (attributeType == null)
-            {
-                return method;
-            }
+            Func<AttributeData, bool> shouldRemoveAttribute = a =>
+                a.AttributeClass.Equals(removeAttributeType) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
+            return method.RemoveAttributesCore(shouldRemoveAttribute, statements, handlesExpressions);
+        }
+
+        private static IMethodSymbol RemoveAttributesCore(
+            this IMethodSymbol method, Func<AttributeData, bool> shouldRemoveAttribute,
+            IList<SyntaxNode> statements, IList<SyntaxNode> handlesExpressions)
+        {
+            var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
 
             var someParameterHasAttribute = method.Parameters
-                .Any(m => m.GetAttributes().Any(a => a.AttributeClass.Equals(attributeType)));
+                .Any(m => m.GetAttributes().Any(shouldRemoveAttribute));
 
-            var returnTypeHasAttribute = method.GetReturnTypeAttributes()
-                .Any(a => a.AttributeClass.Equals(attributeType));
+            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute);
 
-            if (!someParameterHasAttribute && !returnTypeHasAttribute)
+            if (!methodHasAttribute && !someParameterHasAttribute && !returnTypeHasAttribute)
             {
                 return method;
             }
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 method.ContainingType,
-                method.GetAttributes(),
+                method.GetAttributes().Where(a => !shouldRemoveAttribute(a)).ToList(),
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
@@ -199,12 +204,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.TypeParameters,
                 method.Parameters.Select(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().Where(a => !a.AttributeClass.Equals(attributeType)).ToList(),
+                        p.GetAttributes().Where(a => !shouldRemoveAttribute(a)).ToList(),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)).ToList(),
                 statements,
                 handlesExpressions,
-                method.GetReturnTypeAttributes().Where(a => !a.AttributeClass.Equals(attributeType)).ToList());
+                method.GetReturnTypeAttributes().Where(a => !shouldRemoveAttribute(a)).ToList());
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)

@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellcheck
     Public Class SpellcheckTests
@@ -467,7 +467,7 @@ index:=0)
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    New VisualBasicAddImportDiagnosticAnalyzer(),
+                    New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
                     New SpellcheckCodeFixProvider())
             End Function
 

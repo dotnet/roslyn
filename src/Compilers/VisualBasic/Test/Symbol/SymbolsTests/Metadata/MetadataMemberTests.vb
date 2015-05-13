@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
     Public Class MetadataMemberTests
         Inherits BasicTestBase
 
-        Private _VTableGapClassIL As String = <![CDATA[
+        Private ReadOnly _VTableGapClassIL As String = <![CDATA[
 .class public auto ansi beforefieldinit Class
        extends [mscorlib]System.Object
 {
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 } // end of class Class
 ]]>.Value
 
-        Private _VTableGapInterfaceIL As String = <![CDATA[
+        Private ReadOnly _VTableGapInterfaceIL As String = <![CDATA[
 .class interface public abstract auto ansi Interface
 {
   .method public hidebysig newslot specialname rtspecialname abstract virtual 

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (comparer == null)
             {
-                throw new ArgumentNullException("comparer");
+                throw new ArgumentNullException(nameof(comparer));
             }
 
             return new InverseComparer<T>(comparer);

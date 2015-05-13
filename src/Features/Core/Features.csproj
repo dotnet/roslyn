@@ -44,10 +44,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -100,6 +96,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureService.cs" />
@@ -253,7 +250,7 @@
     <Compile Include="Completion\Rules\ICompletionRules.cs" />
     <Compile Include="Diagnostics\EngineV1\AbstractSyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\Analyzers\AddImportDiagnosticAnalyzerBase.cs" />
+    <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\IDocumentDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\IProjectDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\RemoveUnnecessaryCastDiagnosticAnalyzerBase.cs" />

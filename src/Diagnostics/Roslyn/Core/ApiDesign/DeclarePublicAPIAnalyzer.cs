@@ -73,7 +73,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
+        private static readonly HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
         {
             MethodKind.EventAdd,
             MethodKind.EventRemove

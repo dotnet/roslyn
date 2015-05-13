@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (value == null)
             {
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             }
 
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);

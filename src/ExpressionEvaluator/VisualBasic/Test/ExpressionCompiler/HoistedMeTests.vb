@@ -57,9 +57,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -147,9 +146,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -246,9 +244,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C(Of T).VB$StateMachine_1_F(Of U) V_3,
-                System.Exception V_4)
+                C(Of T).VB$StateMachine_1_F(Of U) V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C(Of T).VB$StateMachine_1_F(Of U).$VB$Me As C(Of T)""
   IL_0006:  ret
@@ -332,9 +329,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -649,10 +645,9 @@ End Module
             VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
             locals.Free()
 
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("Me", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me", errorMessage, testData)
             Assert.Null(errorMessage)
             VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
         End Sub
@@ -684,10 +679,9 @@ End Module
             AssertEx.None(locals, Function(l) l.LocalName.Contains("Me"))
             locals.Free()
 
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("Me", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC32001: 'Me' is not valid within a Module.",
@@ -695,7 +689,7 @@ End Module
                             })
 
             testData = New CompilationTestData()
-            context.CompileExpression("MyBase.ToString()", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC32001: 'MyBase' is not valid within a Module.",
@@ -703,7 +697,7 @@ End Module
                             })
 
             testData = New CompilationTestData()
-            context.CompileExpression("MyClass.ToString()", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyClass.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC30470: 'MyClass' cannot be used outside of a class.",
@@ -731,7 +725,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -767,7 +761,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -805,7 +799,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -813,9 +807,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_2_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_2_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_2_F.$VB$Me As C""
   IL_0006:  ldfld      ""C.x As Object""
@@ -846,7 +839,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -890,7 +883,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -898,9 +891,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                Derived.VB$StateMachine_2_F V_3,
-                System.Exception V_4)
+                Derived.VB$StateMachine_2_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""Derived.VB$StateMachine_2_F.$VB$Me As Derived""
   IL_0006:  ldfld      ""Base.x As Integer""
@@ -932,7 +924,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {

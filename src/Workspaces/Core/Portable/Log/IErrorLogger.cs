@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
 {
     interface IErrorLoggerService : IWorkspaceService
     {
-        void LogError(string source, string message);
-        bool TryLogError(string source, string message);
+        void LogException(object source, Exception exception);
+        bool TryLogException(object source, Exception exception);
     }
 }

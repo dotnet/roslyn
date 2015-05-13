@@ -522,7 +522,7 @@ End Namespace
         Private Class CodeBlockAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private Shared s_descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
+            Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get

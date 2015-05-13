@@ -15,9 +15,9 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class SymbolDeclaredEventAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static readonly string s_fullNameOfSymbol = typeof(ISymbol).FullName;
 
         internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new DiagnosticDescriptor(

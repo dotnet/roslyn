@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         {
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.Name = name;

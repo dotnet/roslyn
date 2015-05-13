@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenExpression = (BoundExpression)Visit(node.BoundExpression);
             var rewrittenSections = VisitSwitchSections(node.SwitchSections);
 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the expression are being executed.
             var rewrittenStatement = MakeSwitchStatement(syntax, AddConditionSequencePoint(rewrittenExpression, node), rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.BreakLabel, node);
 
             // Create the sequence point if generating debug info and

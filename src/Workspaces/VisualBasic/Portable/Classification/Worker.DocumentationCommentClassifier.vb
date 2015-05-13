@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Partial Friend Class Worker
         Private Class DocumentationCommentClassifier
-            Private _worker As Worker
+            Private ReadOnly _worker As Worker
 
             Public Sub New(worker As Worker)
                 _worker = worker

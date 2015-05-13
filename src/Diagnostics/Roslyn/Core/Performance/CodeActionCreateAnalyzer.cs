@@ -14,8 +14,8 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         internal const string CreateMethodName = "Create";
 
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DontUseCodeActionCreateMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor DontUseCodeActionCreateRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DontUseCodeActionCreateRuleId,

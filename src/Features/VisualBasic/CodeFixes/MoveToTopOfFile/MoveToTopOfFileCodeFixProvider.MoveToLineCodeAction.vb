@@ -9,10 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         Private Class MoveToLineCodeAction
             Inherits CodeAction
 
-            Private _destinationLine As Integer
-            Private _document As Document
+            Private ReadOnly _destinationLine As Integer
+            Private ReadOnly _document As Document
             Private _token As SyntaxToken
-            Private _title As String
+            Private ReadOnly _title As String
 
             Public Sub New(document As Document, token As SyntaxToken, destinationLine As Integer, title As String)
                 _document = document

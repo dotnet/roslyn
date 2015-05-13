@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly IReadOnlyList<string> CustomTags;
         public readonly ImmutableDictionary<string, string> Properties;
 
-        // temporary until we make diagnostic data to point back to diagnostic descriptor
-        public readonly string MessageFormat;
+        public readonly string ENUMessageForBingSearch;
 
         public readonly Workspace Workspace;
         public readonly ProjectId ProjectId;
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string id,
             string category,
             string message,
-            string messageFormat,
+            string enuMessageForBingSearch,
             DiagnosticSeverity severity,
             bool isEnabledByDefault,
             int warningLevel,
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string description = null,
             string helpLink = null) :
                 this(
-                    id, category, message, messageFormat,
+                    id, category, message, enuMessageForBingSearch,
                     severity, severity, isEnabledByDefault, warningLevel,
                     ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
                     workspace, projectId, documentId, span,
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string id,
             string category,
             string message,
-            string messageFormat,
+            string enuMessageForBingSearch,
             DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.Id = id;
             this.Category = category;
             this.Message = message;
-            this.MessageFormat = messageFormat;
+            this.ENUMessageForBingSearch = enuMessageForBingSearch;
 
             this.Severity = severity;
             this.DefaultSeverity = defaultSeverity;
@@ -215,6 +214,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var span = _textSpan.HasValue ? _textSpan.Value : GetTextSpan(tree.GetText());
                 location = tree.GetLocation(span);
             }
+            else if (OriginalFilePath != null && _textSpan != null)
+            {
+                var span = _textSpan.Value;
+                location = Location.Create(OriginalFilePath, span, new LinePositionSpan(
+                    new LinePosition(OriginalStartLine, OriginalStartColumn),
+                    new LinePosition(OriginalEndLine, OriginalEndColumn)));
+            }
 
             return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags, properties: this.Properties);
         }
@@ -291,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
+                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -313,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
+                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -350,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
+                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,

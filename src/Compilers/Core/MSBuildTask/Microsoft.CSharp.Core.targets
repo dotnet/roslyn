@@ -70,7 +70,6 @@
           AdditionalFiles="@(AdditionalFiles)"
           AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
           Analyzers="@(Analyzer)"
-          AnalyzerDependencies="@(AnalyzerDependency)"
           ApplicationConfiguration="$(AppConfigForCompiler)"
           BaseAddress="$(BaseAddress)"
           CheckForOverflowUnderflow="$(CheckForOverflowUnderflow)"

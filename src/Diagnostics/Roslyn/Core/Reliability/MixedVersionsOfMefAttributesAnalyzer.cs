@@ -16,8 +16,8 @@ namespace Roslyn.Diagnostics.Analyzers.Reliability
     {
         private static readonly string[] s_mefNamespaces = new[] { "System.ComponentModel.Composition", "System.Composition" };
 
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,

@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
-                    (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax)) ||
-                (SyntaxFacts.IsBinaryExpression(kind) && token.Parent is BinaryExpressionSyntax) ||
+                    (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStringLiteral(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken);
+            return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
         }
 
         public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent)
@@ -633,12 +633,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (root == null)
             {
-                throw new ArgumentNullException("root");
+                throw new ArgumentNullException(nameof(root));
             }
 
             if (position < 0 || position > root.Span.End)
             {
-                throw new ArgumentOutOfRangeException("position");
+                throw new ArgumentOutOfRangeException(nameof(position));
             }
 
             return root
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind() == SyntaxKind.IndexerMemberCref;
         }
 
-        public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position)
+        public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
         {
             Contract.ThrowIfNull(root, "root");
             Contract.ThrowIfTrue(position < 0 || position > root.FullSpan.End, "position");
@@ -721,9 +721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                if (node is MemberDeclarationSyntax)
+                if (useFullSpan || node.Span.Contains(position))
                 {
-                    return node;
+                    if (node is MemberDeclarationSyntax)
+                    {
+                        return node;
+                    }
                 }
 
                 node = node.Parent;

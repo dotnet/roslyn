@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Defines whether or not fields of intrinsic type should be tracked. Such fields should 
         ''' not be tracked for error reporting purposes, but should be tracked for region flow analysis
         ''' </summary>
-        Private _trackStructsWithIntrinsicTypedFields As Boolean
+        Private ReadOnly _trackStructsWithIntrinsicTypedFields As Boolean
 
         ''' <summary>
         ''' Variables that were used anywhere, in the sense required to suppress warnings about unused variables.
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' WARNING: if variable identifier maps into SlotKind.NotTracked, it may mean that VariableIdentifier 
         '''          is a structure without traceable fields. This mapping is created in MakeSlotImpl(...)
         ''' </summary>
-        Private _variableSlot As Dictionary(Of VariableIdentifier, Integer) = New Dictionary(Of VariableIdentifier, Integer)()
+        Private ReadOnly _variableSlot As Dictionary(Of VariableIdentifier, Integer) = New Dictionary(Of VariableIdentifier, Integer)()
 
         ''' <summary>
         ''' A mapping from the local variable slot to the symbol for the local variable itself.  This is used in the
@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' struct, and we'd need two different caches depending on _trackStructsWithIntrinsicTypedFields.
         ' So this optimization is not done for now in VB.
 
-        Private _isEmptyStructType As New Dictionary(Of NamedTypeSymbol, Boolean)()
+        Private ReadOnly _isEmptyStructType As New Dictionary(Of NamedTypeSymbol, Boolean)()
 
         Protected Overridable Function IsEmptyStructType(type As TypeSymbol) As Boolean
             Dim namedType = TryCast(type, NamedTypeSymbol)

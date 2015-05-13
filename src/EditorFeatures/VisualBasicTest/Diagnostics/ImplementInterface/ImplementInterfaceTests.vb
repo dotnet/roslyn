@@ -2127,5 +2127,45 @@ End Interface", index:=1, compareTokens:=False)
 
             Return code
         End Function
+
+        <WorkItem(1132014)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Sub TestInaccesibleAttributes()
+            Test(
+"Imports System
+
+Public Class Foo
+    Implements [|Holder.SomeInterface|]
+End Class
+
+Public Class Holder
+	Public Interface SomeInterface
+		Sub Something(<SomeAttribute> helloWorld As String)
+	End Interface
+
+	Private Class SomeAttribute
+		Inherits Attribute
+	End Class
+End Class",
+"Imports System
+
+Public Class Foo
+    Implements Holder.SomeInterface
+
+    Public Sub Something(helloWorld As String) Implements Holder.SomeInterface.Something
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Public Class Holder
+	Public Interface SomeInterface
+		Sub Something(<SomeAttribute> helloWorld As String)
+	End Interface
+
+	Private Class SomeAttribute
+		Inherits Attribute
+	End Class
+End Class", compareTokens:=False)
+        End Sub
     End Class
 End Namespace

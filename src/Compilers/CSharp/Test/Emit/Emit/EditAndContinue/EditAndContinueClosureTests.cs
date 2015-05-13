@@ -914,7 +914,7 @@ class C
         }
 
         [Fact]
-        public void LambdasMultipleGenerations()
+        public void LambdasMultipleGenerations1()
         {
             var source0 = MarkedSource(@"
 using System;
@@ -1132,6 +1132,148 @@ class C
   IL_000b:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(2284, "https://github.com/dotnet/roslyn/issues/2284")]
+        public void LambdasMultipleGenerations2()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Linq;
+
+class C
+{
+    private int[] _titles = new int[] { 1, 2 };
+    Action A;
+
+    private void F()
+    {
+        // edit 1
+        // var z = from title in _titles
+        //         where title > 0 
+        //         select title;
+
+        A += <N:0>() =>
+        <N:1>{
+            Console.WriteLine(1);
+
+            // edit 2
+            // Console.WriteLine(2);
+        }</N:1></N:0>;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+using System.Linq;
+
+class C
+{
+    private int[] _titles = new int[] { 1, 2 };
+    Action A;
+
+    private void F()
+    {
+        // edit 1
+        var <N:3>z = from title in _titles 
+                     <N:2>where title > 0</N:2>
+                     select title</N:3>;
+
+        A += <N:0>() =>
+        <N:1>{
+            Console.WriteLine(1);
+
+            // edit 2
+            // Console.WriteLine(2);
+        }</N:1></N:0>;
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+using System.Linq;
+
+class C
+{
+    private int[] _titles = new int[] { 1, 2 };
+    Action A;
+
+    private void F()
+    {
+        // edit 1
+        var <N:3>z = from title in _titles
+                     <N:2>where title > 0</N:2> 
+                     select title</N:3>;
+
+        A += <N:0>() =>
+        <N:1>{
+            Console.WriteLine(1);
+
+            // edit 2
+            Console.WriteLine(2);
+        }</N:1></N:0>;
+    }
+}");
+
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // new lambda "<F>b__2_0#1" has been added:
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__2_0#1, <>9__2_0, <F>b__2_0#1, <F>b__2_0}");
+
+            // lambda body unchanged:
+            diff1.VerifyIL("C.<>c.<F>b__2_0", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.WriteLine(int)""
+  IL_0007:  nop
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ret
+}");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            // no new members:
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__2_0#1, <>9__2_0, <F>b__2_0#1, <F>b__2_0}");
+
+            // lambda body updated:
+            diff2.VerifyIL("C.<>c.<F>b__2_0", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.WriteLine(int)""
+  IL_0007:  nop
+  IL_0008:  ldc.i4.2
+  IL_0009:  call       ""void System.Console.WriteLine(int)""
+  IL_000e:  nop
+  IL_000f:  br.s       IL_0011
+  IL_0011:  ret
+}");
         }
 
         [Fact]
@@ -1561,6 +1703,275 @@ class C
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void LambdasInInitializers()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    public int A = G(<N:0>a => a + 1</N:0>);
+
+    public C() : this(G(<N:1>a => a + 2</N:1>))
+    {
+        G(<N:2>a => a + 3</N:2>);
+    }
+
+    public C(int x)
+    {
+        G(<N:3>a => a + 4</N:3>);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    public int A = G(<N:0>a => a - 1</N:0>);
+
+    public C() : this(G(<N:1>a => a - 2</N:1>))
+    {
+        G(<N:2>a => a - 3</N:2>);
+    }
+
+    public C(int x)
+    {
+        G(<N:3>a => a - 4</N:3>);
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var ctor00 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
+            var ctor10 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
+            var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
+            var ctor11 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true),
+                    new SemanticEdit(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__2_0, <>9__2_1, <>9__3_0, <>9__3_1, <.ctor>b__2_0, <.ctor>b__2_1, <.ctor>b__3_0, <.ctor>b__3_1}");
+
+            diff1.VerifyIL("C.<>c.<.ctor>b__2_0", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  sub
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}");
+
+            diff1.VerifyIL("C.<>c.<.ctor>b__2_1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.3
+  IL_0002:  sub
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}");
+
+            diff1.VerifyIL("C.<>c.<.ctor>b__3_0", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.4
+  IL_0002:  sub
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}");
+            diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  sub
+  IL_0003:  stloc.0
+  IL_0004:  br.s       IL_0006
+  IL_0006:  ldloc.0
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void UpdateParameterlessConstructorInPresenceOfFieldInitializersWithLambdas()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int F(Func<int, int> x) => 1;
+
+    int A = F(<N:0>a => a + 1</N:0>);
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int F(Func<int, int> x) => 1;
+
+    int A = F(<N:0>a => a + 1</N:0>);
+    int B = F(b => b + 1);                    // new field
+
+    public C()                                // new ctor
+    {
+        F(c => c + 1);
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var b1 = compilation1.GetMember<FieldSymbol>("C.B");
+            var ctor0 = compilation0.GetMember<MethodSymbol>("C..ctor");
+            var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, b1),
+                    new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__2_0#1, <>9__2_0, <>9__2_2#1, <.ctor>b__2_0#1, <.ctor>b__2_0, <.ctor>b__2_2#1}");
+
+            diff1.VerifyIL("C..ctor", @"
+{
+  // Code size      130 (0x82)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_0""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0020
+  IL_0009:  pop
+  IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000f:  ldftn      ""int C.<>c.<.ctor>b__2_0(int)""
+  IL_0015:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_0""
+  IL_0020:  call       ""int C.F(System.Func<int, int>)""
+  IL_0025:  stfld      ""int C.A""
+  IL_002a:  ldarg.0
+  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_2#1""
+  IL_0030:  dup
+  IL_0031:  brtrue.s   IL_004a
+  IL_0033:  pop
+  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0039:  ldftn      ""int C.<>c.<.ctor>b__2_2#1(int)""
+  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0044:  dup
+  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_2#1""
+  IL_004a:  call       ""int C.F(System.Func<int, int>)""
+  IL_004f:  stfld      ""int C.B""
+  IL_0054:  ldarg.0
+  IL_0055:  call       ""object..ctor()""
+  IL_005a:  nop
+  IL_005b:  nop
+  IL_005c:  ldsfld     ""System.Func<int, int> C.<>c.<>9__2_0#1""
+  IL_0061:  dup
+  IL_0062:  brtrue.s   IL_007b
+  IL_0064:  pop
+  IL_0065:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_006a:  ldftn      ""int C.<>c.<.ctor>b__2_0#1(int)""
+  IL_0070:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0075:  dup
+  IL_0076:  stsfld     ""System.Func<int, int> C.<>c.<>9__2_0#1""
+  IL_007b:  call       ""int C.F(System.Func<int, int>)""
+  IL_0080:  pop
+  IL_0081:  ret
+}
+");
+        }
+
+        [Fact(Skip = "2504"), WorkItem(2504)]
+        public void InsertConstructorInPresenceOfFieldInitializersWithLambdas()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int F(Func<int, int> x) => 1;
+
+    int A = F(<N:0>a => a + 1</N:0>);
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int F(Func<int, int> x) => 1;
+
+    int A = F(<N:0>a => a + 1</N:0>);
+    int B = F(b => b + 1);                    // new field
+
+    public C(int x)                           // new ctor
+    {
+        F(c => c + 1);
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var b1 = compilation1.GetMember<FieldSymbol>("C.B");
+            var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, b1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<> c}",
+                "C.<>c: {<>9__2_0#1, <>9__2_0, <>9__2_2#1, <.ctor>b__2_0#1, <.ctor>b__2_0, <.ctor>b__2_2#1}");
         }
     }
 }

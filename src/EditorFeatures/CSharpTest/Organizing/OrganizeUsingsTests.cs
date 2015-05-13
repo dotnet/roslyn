@@ -435,6 +435,7 @@ namespace B { }";
             Check(initial, final, true);
         }
 
+        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoTouchCommentsAtBeginningOfFile1()
         {
@@ -448,9 +449,9 @@ namespace A { }
 namespace B { }";
 
             var final =
-@"// I like namespace A
+@"// Copyright (c) Microsoft Corporation.  All rights reserved.
+// I like namespace A
 using A;
-// Copyright (c) Microsoft Corporation.  All rights reserved.
 using B;
 
 namespace A { }
@@ -459,6 +460,7 @@ namespace B { }";
             Check(initial, final, true);
         }
 
+        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoTouchCommentsAtBeginningOfFile2()
         {
@@ -472,9 +474,9 @@ namespace A { }
 namespace B { }";
 
             var final =
-@"/* I like namespace A */
+@"/* Copyright (c) Microsoft Corporation.  All rights reserved. */
+/* I like namespace A */
 using A;
-/* Copyright (c) Microsoft Corporation.  All rights reserved. */
 using B;
 
 namespace A { }
@@ -483,6 +485,7 @@ namespace B { }";
             Check(initial, final, true);
         }
 
+        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoTouchCommentsAtBeginningOfFile3()
         {
@@ -503,6 +506,58 @@ using B;
 
 namespace A { }
 namespace B { }";
+
+            Check(initial, final, true);
+        }
+
+        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void CommentsNotAtTheStartOfTheFile1()
+        {
+            var initial =
+@"namespace N
+{
+    // attached to System.Text
+    using System.Text;
+    // attached to System
+    using System;
+}";
+
+            var final =
+@"namespace N
+{
+    // attached to System
+    using System;
+    // attached to System.Text
+    using System.Text;
+}";
+
+            Check(initial, final, true);
+        }
+
+        [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        public void CommentsNotAtTheStartOfTheFile2()
+        {
+            var initial =
+@"namespace N
+{
+    // not attached to System.Text
+
+    using System.Text;
+    // attached to System
+    using System;
+}";
+
+            var final =
+@"namespace N
+{
+    // not attached to System.Text
+
+    // attached to System
+    using System;
+    using System.Text;
+}";
 
             Check(initial, final, true);
         }

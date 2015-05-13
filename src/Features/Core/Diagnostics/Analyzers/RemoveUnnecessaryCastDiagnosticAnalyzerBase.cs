@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
 {
     internal abstract class RemoveUnnecessaryCastDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.RemoveUnnecessaryCast), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.CastIsRedundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.RemoveUnnecessaryCast), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.CastIsRedundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
                                                                     s_localizableTitle,

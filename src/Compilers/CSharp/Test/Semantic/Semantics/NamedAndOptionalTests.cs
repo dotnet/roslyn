@@ -1161,7 +1161,8 @@ public static class ErrorCases
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"));
         }
 
-        [Fact, WorkItem(544440, "DevDiv")]
+        [WorkItem(544440, "DevDiv")]
+        [ClrOnlyFact]
         public void TestBug12768()
         {
             string sourceDefinitions = @"
@@ -1338,7 +1339,7 @@ class C
         }
 
         [WorkItem(545337, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void TestVbDecimalAndDateTimeDefaultParameters()
         {
             var vb = @"

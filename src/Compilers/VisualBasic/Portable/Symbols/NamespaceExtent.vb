@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' assembly, or merged across all modules (source and metadata) in a particular compilation.
     ''' </summary>
     Partial Friend Structure NamespaceExtent
-        Private _kind As NamespaceKind
-        Private _symbolOrCompilation As Object
+        Private ReadOnly _kind As NamespaceKind
+        Private ReadOnly _symbolOrCompilation As Object
 
         ''' <summary>
         ''' Returns what kind of extent: Module, Assembly, or Compilation.

@@ -163,7 +163,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            return RQNameService.TryBuild(symbol, out rqname);
+            rqname = LanguageServices.RQName.From(symbol);
+            return rqname != null;
         }
 
         private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspaceImpl visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)

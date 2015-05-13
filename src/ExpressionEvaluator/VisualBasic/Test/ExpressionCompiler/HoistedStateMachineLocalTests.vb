@@ -93,7 +93,8 @@ End Class
   .maxstack  1
   .locals init (Boolean V_0,
                 Integer V_1,
-                Boolean V_2)
+                Boolean V_2,
+                Boolean V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_M.{0} As Integer""
   IL_0006:  ret
@@ -197,8 +198,9 @@ End Class
                 Boolean V_1,
                 System.Runtime.CompilerServices.TaskAwaiter V_2,
                 C.VB$StateMachine_1_M V_3,
-                System.Runtime.CompilerServices.TaskAwaiter V_4,
-                System.Exception V_5)
+                Boolean V_4,
+                System.Runtime.CompilerServices.TaskAwaiter V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_M.{0} As Integer""
   IL_0006:  ret
@@ -726,12 +728,11 @@ End Class
             Dim context = CreateMethodContext(runtime, "D._Closure$__2-0.VB$StateMachine___Lambda$__0.MoveNext")
 
             Dim errorMessage As String = Nothing
-            Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
             Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
-            testData = New CompilationTestData()
+            Dim testData = New CompilationTestData()
             context.CompileExpression("u1", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("

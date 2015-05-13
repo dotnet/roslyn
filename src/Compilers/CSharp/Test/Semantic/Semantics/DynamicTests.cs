@@ -1260,9 +1260,10 @@ class C
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,9): error CS1501: No overload for method 'Foo' takes 1 arguments
-                //         c.Foo(d);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Foo").WithArguments("Foo", "1"));
+    // (9,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Foo(int, int)'
+    //         c.Foo(d);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "C.Foo(int, int)").WithLocation(9, 11)
+                );
         }
 
         [Fact]
@@ -2839,9 +2840,9 @@ class C : B
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS1501: No overload for method 'this' takes 2 arguments
+                // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c[d, d]").WithArguments("this", "2"),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //     c[d, q=>q, null] = 3; 
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "q=>q"),
@@ -3433,5 +3434,68 @@ class Test
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
 
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void IncorrectArrayLength()
+        {
+            var il = @"
+.assembly extern mscorlib { }
+.assembly extern System.Core { }
+.assembly IncorrectArrayLength { }
+
+.class private auto ansi beforefieldinit D
+       extends [mscorlib]System.Object
+{
+  .field public class Generic`2<object,object> MissingTrue
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[2](false true)}
+
+  .field public class Generic`2<object,object> MissingFalse
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[2](false true)}
+
+  .field public class Generic`2<object,object> ExtraTrue
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[4](false true false true)}
+
+  .field public class Generic`2<object,object> ExtraFalse
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[4](false true false false)}
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+} // end of class D
+
+.class public auto ansi beforefieldinit Generic`2<T,U>
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method Generic`2::.ctor
+
+} // end of class Generic`2
+";
+            var comp = CreateCompilationWithCustomILSource("", il, new[] { SystemCoreRef }, appendDefaultHeader: false);
+            var global = comp.GlobalNamespace;
+            var typeD = global.GetMember<NamedTypeSymbol>("D");
+            var typeG = global.GetMember<NamedTypeSymbol>("Generic");
+            var typeObject = comp.GetSpecialType(SpecialType.System_Object);
+            var typeGConstructed = typeG.Construct(typeObject, typeObject);
+
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
+        }
     }
 }

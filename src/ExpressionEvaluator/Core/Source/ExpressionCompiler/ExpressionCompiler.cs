@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger;
@@ -26,8 +27,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             FatalError.Handler = FailFast.OnFatalException;
         }
 
-        private static readonly ReadOnlyCollection<Alias> s_NoAliases = new ReadOnlyCollection<Alias>(new Alias[0]);
-
         DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
             DkmInspectionContext inspectionContext,
             DkmClrInstructionAddress instructionAddress,
@@ -37,8 +36,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
-                var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
-                var aliases = argumentsOnly ? null : s_NoAliases;
+                var aliases = argumentsOnly 
+                    ? ImmutableArray<Alias>.Empty
+                    : GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 string error;
                 var r = this.CompileWithRetry(
                     moduleInstance,
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
                         string typeName;
                         var assembly = context.CompileGetLocals(
-                            aliases,
                             builder,
                             argumentsOnly,
+                            aliases,
                             diagnostics,
                             out typeName,
                             testData: null);
@@ -69,6 +69,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext inspectionContext)
+        {
+            var dkmAliases = runtimeInstance.GetAliases(inspectionContext);
+            if (dkmAliases == null)
+            {
+                return ImmutableArray<Alias>.Empty;
+            }
+
+            var builder = ArrayBuilder<Alias>.GetInstance(dkmAliases.Count);
+            foreach (var dkmAlias in dkmAliases)
+            {
+                builder.Add(new Alias(
+                    dkmAlias.Kind,
+                    dkmAlias.Name,
+                    dkmAlias.FullName,
+                    dkmAlias.Type,
+                    new CustomTypeInfo(
+                        dkmAlias.CustomTypeInfoPayloadTypeId,
+                        dkmAlias.CustomTypeInfoPayload)));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
         void IDkmClrExpressionCompiler.CompileExpression(
             DkmLanguageExpression expression,
             DkmClrInstructionAddress instructionAddress,
@@ -80,7 +103,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
-                var runtimeInspectionContext = RuntimeInspectionContext.Create(inspectionContext);
+                var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
                     moduleInstance,
                     runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
@@ -89,9 +112,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         ResultProperties resultProperties;
                         var compileResult = context.CompileExpression(
-                            runtimeInspectionContext,
                             expression.Text,
                             expression.CompilationFlags,
+                            aliases,
                             diagnostics,
                             out resultProperties,
                             testData: null);
@@ -117,7 +140,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
-                var runtimeInspectionContext = RuntimeInspectionContext.Create(lValue.InspectionContext);
+                var aliases = GetAliases(runtimeInstance, lValue.InspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
                     moduleInstance,
                     runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
@@ -126,9 +149,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         ResultProperties resultProperties;
                         var compileResult = context.CompileAssignment(
-                            runtimeInspectionContext,
                             lValue.FullName,
                             expression.Text,
+                            aliases,
                             diagnostics,
                             out resultProperties,
                             testData: null);
@@ -164,9 +187,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         ResultProperties unusedResultProperties;
                         return context.CompileExpression(
-                            RuntimeInspectionContext.Empty,
                             expression.Text,
                             DkmEvaluationFlags.TreatAsExpression,
+                            ImmutableArray<Alias>.Empty,
                             diagnostics,
                             out unusedResultProperties,
                             testData: null);
@@ -233,7 +256,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
 
-        private EvaluationContextBase CreateMethodContext(DkmClrInstructionAddress instructionAddress, ImmutableArray<MetadataBlock> metadataBlocks, bool useReferencedModulesOnly)
+        private EvaluationContextBase CreateMethodContext(
+            DkmClrInstructionAddress instructionAddress, 
+            ImmutableArray<MetadataBlock> metadataBlocks, 
+            bool useReferencedModulesOnly)
         {
             var moduleInstance = instructionAddress.ModuleInstance;
             var methodToken = instructionAddress.MethodId.Token;
@@ -292,13 +318,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
             out string errorMessage)
         {
-            errorMessage = null;
             TResult compileResult;
 
             PooledHashSet<AssemblyIdentity> assembliesLoadedInRetryLoop = null;
             bool tryAgain;
             do
             {
+                errorMessage = null;
+
                 var context = createContext(metadataBlocks, useReferencedModulesOnly: false);
                 var diagnostics = DiagnosticBag.GetInstance();
                 compileResult = compile(context, diagnostics);
@@ -351,7 +378,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
-            return DkmClrLocalVariableInfo.Create(local.LocalName, local.MethodName, local.Flags, DkmEvaluationResultCategory.Data, local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
+            return DkmClrLocalVariableInfo.Create(
+                local.LocalDisplayName, 
+                local.LocalName,
+                local.MethodName, 
+                local.Flags, 
+                DkmEvaluationResultCategory.Data, 
+                local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 
         private struct GetLocalsResult

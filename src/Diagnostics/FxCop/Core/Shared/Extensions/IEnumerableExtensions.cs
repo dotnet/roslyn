@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             return source as ISet<T> ?? new HashSet<T>(source);

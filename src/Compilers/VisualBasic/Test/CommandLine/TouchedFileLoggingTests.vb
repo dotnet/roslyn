@@ -2,6 +2,7 @@
 
 Imports System.Globalization
 Imports System.IO
+Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CompilerServer
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -174,7 +175,8 @@ End Class
                     Nothing,
                     _baseDirectory,
                     RuntimeEnvironment.GetRuntimeDirectory(),
-                    s_libDirectory)
+                    s_libDirectory,
+                    New TestAnalyzerAssemblyLoader())
                 Dim expectedReads As List(Of String) = Nothing
                 Dim expectedWrites As List(Of String) = Nothing
                 BuildTouchedFiles(cmd,
@@ -237,6 +239,18 @@ End Class
             Assert.Equal(String.Join(vbCrLf, expected),
                          File.ReadAllText(touchedWritesPath).Trim())
         End Sub
+
+        Private Class TestAnalyzerAssemblyLoader
+            Implements IAnalyzerAssemblyLoader
+
+            Public Sub AddDependencyLocation(fullPath As String) Implements IAnalyzerAssemblyLoader.AddDependencyLocation
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function LoadFromPath(fullPath As String) As Assembly Implements IAnalyzerAssemblyLoader.LoadFromPath
+                Throw New NotImplementedException()
+            End Function
+        End Class
 
     End Class
 End Namespace

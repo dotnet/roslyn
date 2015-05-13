@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     internal class LineScanner
     {
         private readonly string _line;
-        private int _currentPosition = 0;
+        private int _currentPosition;
 
         public LineScanner(string line)
         {

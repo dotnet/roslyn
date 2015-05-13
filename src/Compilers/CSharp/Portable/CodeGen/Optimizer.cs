@@ -292,8 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass1 : BoundTreeRewriter
     {
-        private int _counter = 0;
-        private int _evalStack = 0;
+        private int _counter;
+        private int _evalStack;
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
@@ -1684,8 +1684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass2 : BoundTreeRewriter
     {
-        private int _nodeCounter = 0;
-        private Dictionary<LocalSymbol, LocalDefUseInfo> _info;
+        private int _nodeCounter;
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _info;
 
         private StackOptimizerPass2(Dictionary<LocalSymbol, LocalDefUseInfo> info)
         {

@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 _patterns = patterns;
             }
 
-            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, SearchOption searchOption)
+            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, object searchOption)
             {
                 var key = directory + "|" + fileNamePattern;
-                if (searchOption == SearchOption.TopDirectoryOnly)
+                if (searchOption == PortableShim.SearchOption.TopDirectoryOnly)
                 {
                     return _patterns[key];
                 }
@@ -5312,7 +5312,7 @@ class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ResponseFilesWithNoconfig_01()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -6235,7 +6235,7 @@ class Program3
                     throw new IOException();
                 }
 
-                return File.Open(file, mode, access, share);
+                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6261,7 +6261,7 @@ class Program3
                     throw new IOException();
                 }
 
-                return File.Open(file, mode, access, share);
+                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6287,7 +6287,7 @@ class Program3
                 }
                 else
                 {
-                    return File.Open(file, mode, access, share);
+                    return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
                 }
             };
 

@@ -831,7 +831,7 @@ public class C {}
 
         #region Helpers
 
-        private static string s_defaultNetModuleSourceHeader =
+        private static readonly string s_defaultNetModuleSourceHeader =
             @"using System;
                 using System.Reflection;
                 using System.Security.Permissions;
@@ -842,7 +842,7 @@ public class C {}
                 [assembly: UserDefinedAssemblyAttrAllowMultiple(""UserDefinedAssemblyAttrAllowMultiple"")]
             ";
 
-        private static string s_defaultNetModuleSourceBody =
+        private static readonly string s_defaultNetModuleSourceBody =
                 @"
                 public class NetModuleClass { }
 
@@ -928,7 +928,7 @@ public class C {}
             Assert.Equal(18, metadataReader.CustomAttributes.Count);
             Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
 
-            Handle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             var consoleappCompilation = CreateCompilationWithMscorlib(
@@ -1520,7 +1520,7 @@ class Program1 { static void Main(string[] args) {    } }
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             var metadata = module.Module;
 
-            Handle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
+            EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             var attributes = module.GetCustomAttributesForToken(token);

@@ -1283,7 +1283,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Assert.Null(compilation.GetEntryPoint(Nothing))

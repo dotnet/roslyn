@@ -833,9 +833,9 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim result = context.CompileExpression(
-                    DefaultInspectionContext.Instance,
                     expr,
                     compilationFlags,
+                    NoAliases,
                     VisualBasicDiagnosticFormatter.Instance,
                     resultProperties,
                     errorMessage,

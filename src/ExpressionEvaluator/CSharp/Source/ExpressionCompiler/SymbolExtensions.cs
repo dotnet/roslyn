@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(this MethodSymbol method)
         {
             bool[] dynamicFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(method.ReturnType, method.ReturnTypeCustomModifiers.Length, RefKind.None).ToArray();
-            var dynamicFlagsInfo = new DynamicFlagsCustomTypeInfo(new BitArray(dynamicFlags));
+            var dynamicFlagsInfo = new DynamicFlagsCustomTypeInfo(dynamicFlags);
             return dynamicFlagsInfo.GetCustomTypeInfoPayload();
         }
     }

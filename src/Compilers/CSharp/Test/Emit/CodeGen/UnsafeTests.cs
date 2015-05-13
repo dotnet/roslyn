@@ -9136,6 +9136,78 @@ public unsafe class C
 ", sequencePoints: "C.ToManagedByteArray");
         }
 
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SystemIntPtrInSignature_BreakingChange()
+        {
+            // NOTE: the IL is intentionally not compliant with ECMA spec 
+            //       in particular Metadata spec II.23.2.16 (Short form signatures) says that 
+            //       [mscorlib]System.IntPtr   is not supposed to be used in metadata
+            //       and short-version   'native int' is supposed to be used instead.
+            var ilSource =
+@"
+.class public AddressHelper{
+    .method public hidebysig static valuetype [mscorlib]System.IntPtr AddressOf<T>(!!0& t){
+        ldarg 0
+        ldind.i
+        ret
+    }    
+}
+";
+            var csharpSource =
+@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var s = string.Empty;
+            var i = AddressHelper.AddressOf(ref s);
+            System.Console.WriteLine(i);
+        }
+    }
+";
+            var cscomp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+
+            var expected = new[] {
+                // (7,35): error CS0570: 'AddressHelper.AddressOf<T>(?)' is not supported by the language
+                //             var i = AddressHelper.AddressOf(ref s);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "AddressOf").WithArguments("AddressHelper.AddressOf<T>(?)").WithLocation(7, 35)
+            };
+
+            cscomp.VerifyDiagnostics(expected);
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SystemIntPtrInSignature_BreakingChange_001()
+        {
+            var ilSource =
+@"
+.class public AddressHelper{
+    .method public hidebysig static native int AddressOf<T>(!!0& t){
+        ldc.i4.5
+	    conv.i
+	    ret
+    }    
+}
+";
+            var csharpSource =
+@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var s = string.Empty;
+            var i = AddressHelper.AddressOf(ref s);
+            System.Console.WriteLine(i);
+        }
+    }
+";
+            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.ReleaseExe);
+
+            compilation.VerifyDiagnostics();
+
+            var result = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug, expectedOutput: "5");
+        }
+
         #endregion
     }
 }

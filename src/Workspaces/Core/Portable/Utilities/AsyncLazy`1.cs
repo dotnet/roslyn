@@ -58,19 +58,19 @@ namespace Roslyn.Utilities
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,
         /// and will never be empty.
         /// </summary>
-        private HashSet<Request> _requests = null;
+        private HashSet<Request> _requests;
 
         /// <summary>
         /// If an asynchronous request is active, the CancellationTokenSource that allows for
         /// cancelling the underlying computation.
         /// </summary>
-        private CancellationTokenSource _asynchronousComputationCancellationSource = null;
+        private CancellationTokenSource _asynchronousComputationCancellationSource;
 
         /// <summary>
         /// Whether a computation is active or queued on any thread, whether synchronous or
         /// asynchronous.
         /// </summary>
-        private bool _computationActive = false;
+        private bool _computationActive;
 
         /// <summary>
         /// Creates an AsyncLazy that always returns the value, analogous to <see cref="Task.FromResult{T}" />.

@@ -180,10 +180,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.SetAccessorBlock,
                      SyntaxKind.AddHandlerAccessorBlock,
                      SyntaxKind.RemoveHandlerAccessorBlock,
-                     SyntaxKind.RaiseEventAccessorBlock,
-                     SyntaxKind.DeclareFunctionStatement,
-                     SyntaxKind.DeclareSubStatement
+                     SyntaxKind.RaiseEventAccessorBlock
                     If scope = EnvDTE.vsCMElement.vsCMElementFunction Then
+                        Return True
+                    End If
+
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
+                    If scope = EnvDTE.vsCMElement.vsCMElementDeclareDecl Then
                         Return True
                     End If
 
@@ -567,10 +571,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.OperatorBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionStatement,
-                     SyntaxKind.DeclareFunctionStatement,
-                     SyntaxKind.DeclareSubStatement
+                     SyntaxKind.FunctionStatement
                     Return CType(CodeFunctionWithEventHandler.Create(state, fileCodeModel, nodeKey, node.Kind), EnvDTE.CodeElement)
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
+                    Return CType(CodeFunctionDeclareDecl.Create(state, fileCodeModel, nodeKey, node.Kind), EnvDTE.CodeElement)
                 Case SyntaxKind.PropertyBlock,
                      SyntaxKind.PropertyStatement
                     Return CType(CodeProperty.Create(state, fileCodeModel, nodeKey, node.Kind), EnvDTE.CodeElement)
@@ -606,10 +611,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.OperatorBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.SubStatement,
-                     SyntaxKind.FunctionStatement,
-                     SyntaxKind.DeclareFunctionStatement,
-                     SyntaxKind.DeclareSubStatement
+                     SyntaxKind.FunctionStatement
                     Return CType(CodeFunctionWithEventHandler.CreateUnknown(state, fileCodeModel, node.Kind, GetName(node)), EnvDTE.CodeElement)
+                Case SyntaxKind.DeclareFunctionStatement,
+                     SyntaxKind.DeclareSubStatement
+                    Return CType(CodeFunctionDeclareDecl.CreateUnknown(state, fileCodeModel, node.Kind, GetName(node)), EnvDTE.CodeElement)
                 Case SyntaxKind.PropertyBlock,
                      SyntaxKind.PropertyStatement
                     Return CType(CodeProperty.CreateUnknown(state, fileCodeModel, node.Kind, GetName(node)), EnvDTE.CodeElement)
@@ -3017,6 +3023,62 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return eventBlock
         End Function
 
+        Private Function SetMethodType(declareStatement As DeclareStatementSyntax, typeSymbol As ITypeSymbol) As DeclareStatementSyntax
+            ' Remove the leading and trailing trivia and save it for reattachment later.
+            Dim leadingTrivia = declareStatement.GetLeadingTrivia()
+            Dim trailingTrivia = declareStatement.GetTrailingTrivia()
+            declareStatement = declareStatement _
+                .WithLeadingTrivia(SyntaxTriviaList.Empty) _
+                .WithTrailingTrivia(SyntaxTriviaList.Empty)
+
+            If typeSymbol Is Nothing Then
+                ' If no type is specified (e.g. CodeElement.Type = Nothing), we just convert to a Sub
+                ' it it isn't one already.
+                If declareStatement.IsKind(SyntaxKind.DeclareFunctionStatement) Then
+                    declareStatement = SyntaxFactory.DeclareSubStatement(
+                        attributeLists:=declareStatement.AttributeLists,
+                        modifiers:=declareStatement.Modifiers,
+                        declareKeyword:=declareStatement.DeclareKeyword,
+                        charsetKeyword:=declareStatement.CharsetKeyword,
+                        subOrFunctionKeyword:=SyntaxFactory.Token(SyntaxKind.SubKeyword),
+                        identifier:=declareStatement.Identifier,
+                        libKeyword:=declareStatement.LibKeyword,
+                        libraryName:=declareStatement.LibraryName,
+                        aliasKeyword:=declareStatement.AliasKeyword,
+                        aliasName:=declareStatement.AliasName,
+                        parameterList:=declareStatement.ParameterList,
+                        asClause:=Nothing)
+                End If
+            Else
+                Dim newType = SyntaxFactory.ParseTypeName(typeSymbol.ToDisplayString(s_setTypeFormat))
+
+                declareStatement = SyntaxFactory.DeclareFunctionStatement(
+                    attributeLists:=declareStatement.AttributeLists,
+                    modifiers:=declareStatement.Modifiers,
+                    declareKeyword:=declareStatement.DeclareKeyword,
+                    charsetKeyword:=declareStatement.CharsetKeyword,
+                    subOrFunctionKeyword:=SyntaxFactory.Token(SyntaxKind.FunctionKeyword),
+                    identifier:=declareStatement.Identifier,
+                    libKeyword:=declareStatement.LibKeyword,
+                    libraryName:=declareStatement.LibraryName,
+                    aliasKeyword:=declareStatement.AliasKeyword,
+                    aliasName:=declareStatement.AliasName,
+                    parameterList:=declareStatement.ParameterList,
+                    asClause:=declareStatement.AsClause)
+
+                If declareStatement.AsClause IsNot Nothing Then
+                    Debug.Assert(TypeOf declareStatement.AsClause Is SimpleAsClauseSyntax)
+
+                    Dim oldType = DirectCast(declareStatement.AsClause, SimpleAsClauseSyntax).Type
+                    declareStatement = declareStatement.ReplaceNode(oldType, newType)
+                Else
+                    declareStatement = declareStatement.WithAsClause(SyntaxFactory.SimpleAsClause(newType))
+                End If
+            End If
+
+            Return declareStatement.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia)
+        End Function
+
         Private Function SetMethodType(methodStatement As MethodStatementSyntax, typeSymbol As ITypeSymbol) As MethodStatementSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = methodStatement.GetLeadingTrivia()
@@ -3245,6 +3307,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Debug.Assert(TypeOf node Is DelegateStatementSyntax OrElse
                          TypeOf node Is EventStatementSyntax OrElse
                          TypeOf node Is EventBlockSyntax OrElse
+                         TypeOf node Is DeclareStatementSyntax OrElse
                          TypeOf node Is MethodStatementSyntax OrElse
                          TypeOf node Is MethodBlockBaseSyntax OrElse
                          TypeOf node Is ParameterSyntax OrElse
@@ -3262,6 +3325,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             If TypeOf node Is EventBlockSyntax Then
                 Return SetEventType(DirectCast(node, EventBlockSyntax), typeSymbol)
+            End If
+
+            If TypeOf node Is DeclareStatementSyntax Then
+                Return SetMethodType(DirectCast(node, DeclareStatementSyntax), typeSymbol)
             End If
 
             If TypeOf node Is MethodStatementSyntax Then

@@ -10,9 +10,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
         Private Class ReplaceTokenKeywordCodeAction
             Inherits CodeAction
 
-            Private _blockKind As SyntaxKind
+            Private ReadOnly _blockKind As SyntaxKind
             Private _invalidToken As SyntaxToken
-            Private _document As Document
+            Private ReadOnly _document As Document
 
             Public Sub New(blockKind As SyntaxKind,
                     invalidToken As SyntaxToken,

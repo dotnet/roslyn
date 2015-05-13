@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
 
-        private ImmutableHashSet<Symbol> _lazyAbstractMembers = null;
-        private InterfaceInfo _lazyInterfaceInfo = null;
+        private ImmutableHashSet<Symbol> _lazyAbstractMembers;
+        private InterfaceInfo _lazyInterfaceInfo;
 
         private class InterfaceInfo
         {
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)interfaceMember == null)
             {
-                throw new ArgumentNullException("interfaceMember");
+                throw new ArgumentNullException(nameof(interfaceMember));
             }
 
             return FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember).Symbol;

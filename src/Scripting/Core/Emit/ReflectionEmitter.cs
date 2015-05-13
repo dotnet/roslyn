@@ -2785,7 +2785,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
         }
 
         private static Func<char[], Type, int, Type> s_lazyArrayTypeFactory;
-        private static char[] s_arrayFormat = new[] { '[', ']' };
+        private static readonly char[] s_arrayFormat = new[] { '[', ']' };
 
         // Creates and instance of a BCL internal SymbolType that represents a SzArray of given element type.
         // We can't implement this ourselves since Type.IsSzArray called by signature builder is internal.

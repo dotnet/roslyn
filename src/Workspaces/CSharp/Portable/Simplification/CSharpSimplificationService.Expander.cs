@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private readonly Func<SyntaxNode, bool> _expandInsideNode;
             private readonly CancellationToken _cancellationToken;
             private readonly SyntaxAnnotation _annotationForReplacedAliasIdentifier;
-            private bool _expandParameter;
+            private readonly bool _expandParameter;
 
             public Expander(
                 SemanticModel semanticModel,
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
                 if (originalSimpleName.GetAncestor<AttributeSyntax>() != null)
                 {
-                    if (symbol.IsConstructor() && symbol.ContainingType.IsAttribute())
+                    if (symbol.IsConstructor() && symbol.ContainingType?.IsAttribute() == true)
                     {
                         symbol = symbol.ContainingType;
                         var name = symbol.Name;

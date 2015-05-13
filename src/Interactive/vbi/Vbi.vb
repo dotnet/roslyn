@@ -17,22 +17,18 @@ Friend NotInheritable Class Vbi
 
     Friend Const InteractiveResponseFileName As String = "vbi.rsp"
 
-    Friend Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing) ' TODO: what to pass as additionalReferencePaths?
+    Friend Sub New(responseFile As String, baseDirectory As String, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
+        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing, analyzerLoader) ' TODO: what to pass as additionalReferencePaths?
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
         Try
             Dim responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName)
-            Return ScriptCompilerUtil.RunInteractive(New Vbi(responseFile, Directory.GetCurrentDirectory(), args), Console.Out)
+            Return ScriptCompilerUtil.RunInteractive(New Vbi(responseFile, Directory.GetCurrentDirectory(), args, New SimpleAnalyzerAssemblyLoader()), Console.Out)
         Catch ex As Exception
             Console.WriteLine(ex.ToString())
             Return Failed
         End Try
-    End Function
-
-    Public Overrides Function LoadAssembly(fullPath As String) As Assembly
-        Throw New NotImplementedException()
     End Function
 
     Friend Overrides Function GetExternalMetadataResolver(touchedFiles As TouchedFileLogger) As MetadataFileReferenceResolver

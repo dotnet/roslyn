@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' An array consisting of just the Friend keyword.
-        Private Shared s_friendKeyword As SyntaxKind() = {SyntaxKind.FriendKeyword}
+        Private Shared ReadOnly s_friendKeyword As SyntaxKind() = {SyntaxKind.FriendKeyword}
 
         ' Report an error on the first keyword to match one of the given kinds.
         Public Sub ReportModifierError(modifiers As SyntaxTokenList,
@@ -1104,7 +1104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' An array consisting of just the NotInheritable keyword.
-        Private Shared s_notInheritableKeyword As SyntaxKind() = {SyntaxKind.NotInheritableKeyword}
+        Private Shared ReadOnly s_notInheritableKeyword As SyntaxKind() = {SyntaxKind.NotInheritableKeyword}
 
         ''' <summary>
         ''' Modifier validation code shared between properties and methods.
@@ -1710,12 +1710,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' These are the flags that are found in the syntax.  They must correspond to the modifiers list.
         ''' </summary>
         ''' <remarks></remarks>
-        Private _foundFlags As SourceMemberFlags
+        Private ReadOnly _foundFlags As SourceMemberFlags
         ''' <summary>
         ''' These are flags that are implied or computed
         ''' </summary>
         ''' <remarks></remarks>
-        Private _computedFlags As SourceMemberFlags
+        Private ReadOnly _computedFlags As SourceMemberFlags
 
         Public Sub New(foundFlags As SourceMemberFlags, computedFlags As SourceMemberFlags)
             _foundFlags = foundFlags

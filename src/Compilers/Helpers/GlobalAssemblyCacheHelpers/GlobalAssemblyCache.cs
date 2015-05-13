@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis
         private unsafe struct ASSEMBLY_INFO
         {
             public uint cbAssemblyInfo;
-            public uint dwAssemblyFlags;
-            public ulong uliAssemblySizeInKB;
+            public readonly uint dwAssemblyFlags;
+            public readonly ulong uliAssemblySizeInKB;
             public char* pszCurrentAssemblyPathBuf;
             public uint cchBuf;
         }
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (displayName == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             location = null;

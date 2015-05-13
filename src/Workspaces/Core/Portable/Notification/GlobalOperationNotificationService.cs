@@ -145,8 +145,11 @@ namespace Microsoft.CodeAnalysis.Notification
 
         ~GlobalOperationNotificationService()
         {
-            Contract.ThrowIfFalse(_registrations.Count == 0);
-            Contract.ThrowIfFalse(_operations.Count == 0);
+            if (!Environment.HasShutdownStarted)
+            {
+                Contract.ThrowIfFalse(_registrations.Count == 0);
+                Contract.ThrowIfFalse(_operations.Count == 0);
+            }
         }
     }
 }

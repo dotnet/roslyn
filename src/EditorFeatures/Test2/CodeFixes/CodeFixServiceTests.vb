@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
 Imports Microsoft.CodeAnalysis.Host
@@ -19,13 +20,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     Public Class CodeFixServiceTests
 
+        Dim _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
+
         Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
-            Return New AnalyzerFileReference(
-                fullPath,
-                Function(p)
-                    Dim bytes = File.ReadAllBytes(p)
-                    Return Assembly.Load(bytes)
-                End Function)
+            Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>

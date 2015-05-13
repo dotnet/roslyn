@@ -65,16 +65,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             DataContext = viewModel;
 
             Loaded += ChangeSignatureDialog_Loaded;
+            IsVisibleChanged += ChangeSignatureDialog_IsVisibleChanged;
         }
 
         private void ChangeSignatureDialog_Loaded(object sender, RoutedEventArgs e)
         {
             Members.Focus();
+        }
 
-            var handler = TEST_DialogLoaded;
-            if (handler != null)
+        private void ChangeSignatureDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if ((bool)e.NewValue)
             {
-                handler();
+                IsVisibleChanged -= ChangeSignatureDialog_IsVisibleChanged;
+                TEST_DialogLoaded?.Invoke();
             }
         }
 

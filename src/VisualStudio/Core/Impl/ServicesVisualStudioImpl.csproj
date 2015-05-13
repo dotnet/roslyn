@@ -14,10 +14,6 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -241,6 +237,7 @@
     <Compile Include="CodeModel\InternalElements\CodeEvent.cs" />
     <Compile Include="CodeModel\InternalElements\CodeFunction.cs" />
     <Compile Include="CodeModel\InternalElements\CodeFunction.IMethodXML.cs" />
+    <Compile Include="CodeModel\InternalElements\CodeFunctionDeclareDecl.cs" />
     <Compile Include="CodeModel\InternalElements\CodeFunctionWithEventHandler.cs" />
     <Compile Include="CodeModel\InternalElements\CodeImplementsStatement.cs" />
     <Compile Include="CodeModel\InternalElements\CodeImport.cs" />

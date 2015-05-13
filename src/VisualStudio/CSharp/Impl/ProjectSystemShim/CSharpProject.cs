@@ -69,5 +69,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             this.SetOptions(this.CreateCompilationOptions(), this.CreateParseOptions());
         }
+
+        internal void AddProjectReference(CSharpProject project)
+        {
+            base.AddProjectReference(new ProjectReference(project.Id));
+        }
     }
 }

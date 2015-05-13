@@ -238,6 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
                 {
                     private readonly TableEntriesFactory _factory;
+
+                    // TODO: remove this once we get new drop
                     private readonly int _projectRank;
 
                     private FrameworkElement[] _descriptions;
@@ -245,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     public TableEntriesSnapshot(
                         TableEntriesFactory factory, int version,
                         int projectRank, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, items, trackingPoints)
+                        base(version, GetProjectGuid(factory._workspace, factory._projectId), items, trackingPoints)
                     {
                         _projectRank = projectRank;
                         _factory = factory;
@@ -284,6 +286,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.ErrorCode:
                                 content = item.Id;
                                 return true;
+                            case StandardTableKeyNames.ErrorCodeToolTip:
+                                content = GetHelpLinkToolTipText(item);
+                                return content != null;
                             case StandardTableKeyNames.HelpLink:
                                 content = GetHelpLink(item);
                                 return content != null;
@@ -308,8 +313,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._projectId);
                                 return content != null;
+                            case ProjectGuidKey:
+                                content = ProjectGuid;
+                                return ProjectGuid != Guid.Empty;
                             case StandardTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._projectId, _factory._documentId);
+                                // TODO: remove this once we move to new drop
+                                content = GetHierarchy(_factory._workspace, _factory._projectId);
                                 return content != null;
                             default:
                                 content = null;
@@ -454,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         };
                     }
 
-                    private string GetHelpLink(DiagnosticData item)
+                    private static string GetHelpLink(DiagnosticData item)
                     {
                         Uri link;
                         if (BrowserHelper.TryGetUri(item.HelpLink, out link))
@@ -464,8 +473,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         if (!string.IsNullOrWhiteSpace(item.Id))
                         {
-                            // TODO: once we link descriptor with diagnostic, get en-us message for Uri creation
-                            return BrowserHelper.CreateBingQueryUri(item.Id, item.MessageFormat).AbsoluteUri;
+                            return BrowserHelper.CreateBingQueryUri(item.Id, item.ENUMessageForBingSearch).AbsoluteUri;
+                        }
+
+                        return null;
+                    }
+
+                    private static string GetHelpLinkToolTipText(DiagnosticData item)
+                    {
+                        var isBing = false;
+                        Uri helpUri = null;
+                        if (!BrowserHelper.TryGetUri(item.HelpLink, out helpUri) && !string.IsNullOrWhiteSpace(item.Id))
+                        {
+                            helpUri = BrowserHelper.CreateBingQueryUri(item.Id, item.ENUMessageForBingSearch);
+                            isBing = true;
+                        }
+
+                        // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url dislayed in the tooltip stays human readable.
+                        if (helpUri != null)
+                        {
+                            return string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, item.Id,
+                                isBing ? ServicesVSResources.FromBing : null, Environment.NewLine, helpUri);
                         }
 
                         return null;

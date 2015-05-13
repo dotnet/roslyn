@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                         continue;
 
                     case (int)ErrorCode.WRN_UnreferencedField:
+                    case (int)ErrorCode.WRN_UnreferencedFieldAssg:
                     case (int)ErrorCode.WRN_UnassignedInternalField:
                         // unused field. current live error doesn't support this.
                         continue;

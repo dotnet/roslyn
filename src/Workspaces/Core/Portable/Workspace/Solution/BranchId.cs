@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class BranchId
     {
-        private static int s_nextId = 0;
+        private static int s_nextId;
 
         private readonly int _id;
 

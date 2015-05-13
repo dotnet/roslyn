@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
     {
         private class C
         {
-            private string _value;
+            private readonly string _value;
 
             public C(string value)
             {

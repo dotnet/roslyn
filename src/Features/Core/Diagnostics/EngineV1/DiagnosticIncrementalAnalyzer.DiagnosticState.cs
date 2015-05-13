@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         writer.WriteString(item.Category);
 
                         writer.WriteString(item.Message);
-                        writer.WriteString(item.MessageFormat);
+                        writer.WriteString(item.ENUMessageForBingSearch);
                         writer.WriteString(item.Title);
                         writer.WriteString(item.Description);
                         writer.WriteString(item.HelpLink);

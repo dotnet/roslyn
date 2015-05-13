@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '
         ' Stack is used so that the wait would observe the most recently added task and have 
         ' more chances to do inlined execution.
-        Private _compilerTasks As ConcurrentStack(Of Task)
+        Private ReadOnly _compilerTasks As ConcurrentStack(Of Task)
 
         ' Tracks whether any method body has hasErrors set, and used to avoid
         ' emitting if there are errors without corresponding diagnostics.

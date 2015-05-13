@@ -4,7 +4,7 @@ Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQualify
     Public Class FullyQualifyTests
@@ -378,7 +378,7 @@ compareTokens:=False)
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    New VisualBasicAddImportDiagnosticAnalyzer(),
+                    New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
                     New VisualBasicFullyQualifyCodeFixProvider())
             End Function
 

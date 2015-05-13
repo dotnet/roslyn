@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this is false). Since the analysis proceeds by monotonically changing the state computed
         /// at each label, this must terminate.
         /// </summary>
-        internal bool backwardBranchChanged = false;
+        internal bool backwardBranchChanged;
 
         /// <summary>
         /// See property PendingBranches
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If we are tracking exceptions, then by convention the first entry in the pending braches
         /// buffer contains a summary of the states that can arise from exceptions.
         /// </summary>
-        private bool _trackExceptions;
+        private readonly bool _trackExceptions;
 
         /// <summary>
         /// Pending escapes generated in the current scope (or more deeply nested scopes). When jump
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Where all diagnostics are deposited.
         /// </summary>
-        protected DiagnosticBag Diagnostics { get; private set; }
+        protected DiagnosticBag Diagnostics { get; }
 
         #region Region
         // For region analysis, we maintain some extra data.

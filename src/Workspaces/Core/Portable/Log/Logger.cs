@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal static partial class Logger
     {
-        private static ILogger s_currentLogger = null;
+        private static ILogger s_currentLogger;
 
         /// <summary>
         /// next unique block id that will be given to each LogBlock
         /// </summary>
-        private static int s_lastUniqueBlockId = 0;
+        private static int s_lastUniqueBlockId;
 
         /// <summary>
         /// give a way to explicitly set/replace the logger

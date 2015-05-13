@@ -16,6 +16,9 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
@@ -25,18 +28,11 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>GacFileResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\InMemoryAssemblyProvider.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
-    </Compile>
     <Compile Include="..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
-      <Link>InMemoryAssemblyProvider.cs</Link>
+      <Link>AssemblyIdentityExtensions.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -87,6 +83,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="AssemblyLoader.cs" />
     <Compile Include="AssemblyLoadResult.cs" />
     <Compile Include="ObjectFormatter.cs" />

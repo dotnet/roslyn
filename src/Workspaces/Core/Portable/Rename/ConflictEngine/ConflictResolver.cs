@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static partial class ConflictResolver
     {
-        private static SymbolDisplayFormat s_metadataSymbolDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
@@ -172,13 +172,40 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             IDictionary<Location, Location> reverseMappedLocations,
             CancellationToken cancellationToken)
         {
-            if (renamedSymbol.ContainingSymbol is INamedTypeSymbol)
+            if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
             {
                 var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
-                                                       .Where(s => !s.Equals(renamedSymbol) && string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal) &&
-                                                              (s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method)).ToList();
+                                                       .Where(s => !s.Equals(renamedSymbol) && 
+                                                                   string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal) &&
+                                                                   (s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method));
 
                 AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
+            }
+
+
+            if (renamedSymbol.IsKind(SymbolKind.Namespace) && renamedSymbol.ContainingSymbol.IsKind(SymbolKind.Namespace))
+            {
+                var otherThingsNamedTheSame = ((INamespaceSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
+                                                        .Where(s => !s.Equals(renamedSymbol) &&
+                                                                    !s.IsKind(SymbolKind.Namespace) &&
+                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+
+                AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
+            }
+
+            if (renamedSymbol.IsKind(SymbolKind.NamedType) && renamedSymbol.ContainingSymbol is INamespaceOrTypeSymbol)
+            {
+                var otherThingsNamedTheSame = ((INamespaceOrTypeSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
+                                                        .Where(s => !s.Equals(renamedSymbol) &&
+                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+
+                var conflictingSymbolLocations = otherThingsNamedTheSame.Where(s => !s.IsKind(SymbolKind.Namespace));
+                if (otherThingsNamedTheSame.Any(s => s.IsKind(SymbolKind.Namespace)))
+                {
+                    conflictingSymbolLocations = conflictingSymbolLocations.Concat(renamedSymbol);
+                }
+
+                AddConflictingSymbolLocations(conflictingSymbolLocations, conflictResolution, reverseMappedLocations);
             }
 
             // Some types of symbols (namespaces, cref stuff, etc) might not have ContainingAssemblies

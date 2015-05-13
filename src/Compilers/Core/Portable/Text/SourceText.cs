@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly SourceText _text;
             private readonly int[] _lineStarts;
-            private int _lastLineNumber = 0;
+            private int _lastLineNumber;
 
             public LineInfo(SourceText text, int[] lineStarts)
             {

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (location == null)
             {
-                throw new ArgumentNullException("location");
+                throw new ArgumentNullException(nameof(location));
             }
 
             if (location != this.Location)

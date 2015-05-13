@@ -1366,7 +1366,7 @@ namespace NS
         }
 
         [WorkItem(545911, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
             string moduleA = @"public class Foo{ public static string A = ""Original""; }";
@@ -1435,7 +1435,7 @@ using System;
             CheckForwarderEmit2(source0, source1, source2, "X.Foo");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TypeForwarderInAModule()
         {
             string forwardedTypes =
@@ -1467,7 +1467,7 @@ public class CF1
             Assert.Equal(1, peReader.GetTableRowCount(TableIndex.ExportedType));
             ValidateExportedTypeRow(peReader.ExportedTypes.First(), peReader, "CF1");
 
-            Handle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             // Exported types in .Net module cause PEVerify to fail.

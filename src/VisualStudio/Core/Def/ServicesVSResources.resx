@@ -465,4 +465,19 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="NoChanges" xml:space="preserve">
     <value>No Changes</value>
   </data>
+  <data name="DiagnosticIdHyperlinkTooltipText" xml:space="preserve">
+    <value>Get help for '{0}'{1}{2}{3}</value>
+  </data>
+  <data name="FromBing" xml:space="preserve">
+    <value> from Bing</value>
+  </data>
+  <data name="CurrentBlock" xml:space="preserve">
+    <value>Current block</value>
+  </data>
+  <data name="DeterminingCurrentBlock" xml:space="preserve">
+    <value>Determining current block.</value>
+  </data>
+  <data name="WorkspaceOutputPaneTitle" xml:space="preserve">
+    <value>IntelliSense</value>
+  </data>
 </root>

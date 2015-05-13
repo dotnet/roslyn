@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenIncrement = (BoundStatement)Visit(node.Increment);
             var rewrittenBody = (BoundStatement)Visit(node.Body);
 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the condition are being executed.
             return RewriteForStatement(
                 node.Syntax,
                 node.OuterLocals,

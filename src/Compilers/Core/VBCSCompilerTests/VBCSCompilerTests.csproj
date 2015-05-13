@@ -35,10 +35,6 @@
       <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
@@ -71,7 +67,7 @@
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
-    <Reference Include="..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />    
+    <Reference Include="..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="..\..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
     <Reference Include="Microsoft.Build.Framework">
       <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Framework.dll</HintPath>
@@ -125,6 +121,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnalyzerConsistencyCheckerTests.cs" />
     <Compile Include="BuildProtocolTest.cs" />
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static Dictionary<Document, Task<AbstractSyntaxContext>> s_cachedDocuments = new Dictionary<Document, Task<AbstractSyntaxContext>>();
+        private static readonly Dictionary<Document, Task<AbstractSyntaxContext>> s_cachedDocuments = new Dictionary<Document, Task<AbstractSyntaxContext>>();
         private static int s_cachedPosition;
         private static readonly object s_cacheGate = new object();
 

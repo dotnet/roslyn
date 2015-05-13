@@ -61,6 +61,12 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
+      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
+      <Name>InteractiveEditorFeatures</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
       <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
       <Name>CSharpInteractiveEditorFeatures</Name>
@@ -70,6 +76,8 @@
     <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
       <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
       <Name>BasicInteractiveEditorFeatures</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
       <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
@@ -121,6 +129,10 @@
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>False</Private>
+      <IncludeOutputGroupsInVSIX>
+      </IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>
+      </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

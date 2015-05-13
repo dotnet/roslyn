@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null)
             {
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             }
 
             crefSymbols = default(ImmutableArray<Symbol>);
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (attribute == null)
             {
-                throw new ArgumentNullException("attribute");
+                throw new ArgumentNullException(nameof(attribute));
             }
 
             binder = this.GetSpeculativeBinderForAttribute(position);
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constructorInitializer == null)
             {
-                throw new ArgumentNullException("speculativeConstructorInitializer");
+                throw new ArgumentNullException(nameof(constructorInitializer));
             }
 
             // NOTE: since we're going to be depending on a MemberModel to do the binding for us,
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return fullStart;
             }
 
-            throw new ArgumentOutOfRangeException("position", position,
+            throw new ArgumentOutOfRangeException(nameof(position), position,
                 string.Format(CSharpResources.PositionIsNotWithinSyntax, Root.FullSpan));
         }
 
@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntax == null)
             {
-                throw new ArgumentNullException("syntax");
+                throw new ArgumentNullException(nameof(syntax));
             }
 
             if (!IsInTree(syntax))
@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntax == null)
             {
-                throw new ArgumentNullException("syntax");
+                throw new ArgumentNullException(nameof(syntax));
             }
 
             if (this.IsSpeculativeSemanticModel)
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)symbol == null)
             {
-                throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
             }
 
             var cssymbol = symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>("symbol");
@@ -2359,7 +2359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var cdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
@@ -2423,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             position = CheckAndAdjustPosition(position);
@@ -4219,7 +4219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var expression = node as ExpressionSyntax;
@@ -4265,7 +4265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var expression = node as ExpressionSyntax;
@@ -4299,7 +4299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var expression = node as ExpressionSyntax;
@@ -4550,12 +4550,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (firstStatement == null)
             {
-                throw new ArgumentNullException("firstStatement");
+                throw new ArgumentNullException(nameof(firstStatement));
             }
 
             if (lastStatement == null)
             {
-                throw new ArgumentNullException("lastStatement");
+                throw new ArgumentNullException(nameof(lastStatement));
             }
 
             if (!(firstStatement is StatementSyntax))
@@ -4575,7 +4575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement == null)
             {
-                throw new ArgumentNullException("statement");
+                throw new ArgumentNullException(nameof(statement));
             }
 
             if (!(statement is StatementSyntax))
@@ -4590,12 +4590,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (firstStatement == null)
             {
-                throw new ArgumentNullException("firstStatement");
+                throw new ArgumentNullException(nameof(firstStatement));
             }
 
             if (lastStatement == null)
             {
-                throw new ArgumentNullException("lastStatement");
+                throw new ArgumentNullException(nameof(lastStatement));
             }
 
             if (!(firstStatement is StatementSyntax))
@@ -4615,7 +4615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statementOrExpression == null)
             {
-                throw new ArgumentNullException("statementOrExpression");
+                throw new ArgumentNullException(nameof(statementOrExpression));
             }
 
             if (statementOrExpression is StatementSyntax)
@@ -4636,7 +4636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             return node is ExpressionSyntax

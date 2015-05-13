@@ -2575,18 +2575,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return the inferred type arguments using the original type
-        /// parameters for any type arguments that were not inferred.
+        /// Return the inferred type arguments using null
+        /// for any type arguments that were not inferred.
         /// </summary>
         private ImmutableArray<TypeSymbol> GetInferredTypeArguments()
         {
-            var typeArgs = ArrayBuilder<TypeSymbol>.GetInstance();
-            for (int i = 0; i < _methodTypeParameters.Length; i++)
-            {
-                var typeArg = _fixedResults[i] ?? _methodTypeParameters[i];
-                typeArgs.Add(typeArg);
-            }
-            return typeArgs.ToImmutableAndFree();
+            return _fixedResults.AsImmutable();
         }
 
         private static bool IsReallyAType(TypeSymbol type)

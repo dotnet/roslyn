@@ -604,6 +604,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Compares content of two nodes ignoring lambda bodies and trivia.
+        ''' </summary>
+        Public Shared Function AreEquivalentIgnoringLambdaBodies(oldNode As SyntaxNode, newNode As SyntaxNode) As Boolean
+            ' all tokens that don't belong to a lambda body:
+            Dim oldTokens = oldNode.DescendantTokens(Function(node) node Is oldNode OrElse Not IsLambdaBodyStatementOrExpression(node))
+            Dim newTokens = newNode.DescendantTokens(Function(node) node Is newNode OrElse Not IsLambdaBodyStatementOrExpression(node))
+
+            Return oldTokens.SequenceEqual(newTokens, AddressOf SyntaxFactory.AreEquivalent)
+        End Function
+
+        ''' <summary>
         ''' Non-user code lambdas are synthesized lambdas that create an instance of an anonymous type representing a pair of values,
         ''' or otherwise transform sequences/anonymous types from one form to another without calling user code.
         ''' TODO: Could we avoid generating proper lambdas for these?

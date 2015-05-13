@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
 
                 Try
-                    Dim token As Handle = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(Me._handle)
+                    Dim token As EntityHandle = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(Me._handle)
                     If Not token.IsNil Then
                         Return DirectCast(New MetadataDecoder(moduleSymbol, Me).GetTypeOfToken(token), NamedTypeSymbol)
                     End If
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim tokenDecoder As New MetadataDecoder(moduleSymbol, Me)
                 Dim i = 0
                 For Each interfaceImpl In interfaceImpls
-                    Dim interfaceHandle As Handle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
+                    Dim interfaceHandle As EntityHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
                     Dim namedTypeSymbol As NamedTypeSymbol = TryCast(tokenDecoder.GetTypeOfToken(interfaceHandle), NamedTypeSymbol)
                     'TODO: how to pass reason to unsupported
                     symbols(i) = If(namedTypeSymbol IsNot Nothing, namedTypeSymbol, New UnsupportedMetadataTypeSymbol()) ' "interface tmpList contains a bad type"

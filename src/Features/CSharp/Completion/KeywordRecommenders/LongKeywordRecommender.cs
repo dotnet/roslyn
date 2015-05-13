@@ -3,7 +3,9 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsObjectCreationTypeContext ||
-                context.IsGenericTypeArgumentContext ||
+                (context.IsGenericTypeArgumentContext && !context.TargetToken.Parent.HasAncestor<XmlCrefAttributeSyntax>()) ||
                 context.IsEnumBaseListContext ||
                 context.IsIsOrAsTypeContext ||
                 context.IsLocalVariableDeclarationContext ||

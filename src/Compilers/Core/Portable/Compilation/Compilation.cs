@@ -1639,7 +1639,7 @@ namespace Microsoft.CodeAnalysis
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
-                    nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory);
+                    nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory, deterministic);
                 }
 
                 Func<Stream> getPeStream = () =>
@@ -1779,7 +1779,8 @@ namespace Microsoft.CodeAnalysis
         {
             using (var pdbWriter = new Cci.PdbWriter(
                 moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
-                testSymWriterFactory))
+                testSymWriterFactory,
+                deterministic: false))
             {
                 var context = new EmitContext((Cci.IModule)moduleBeingBuilt, null, diagnostics);
                 var encId = Guid.NewGuid();

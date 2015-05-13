@@ -61,8 +61,8 @@ End Enum
         Private NotInheritable Class TestAdditionalText
             Inherits AdditionalText
 
-            Private _path As String
-            Private _text As SourceText
+            Private ReadOnly _path As String
+            Private ReadOnly _text As SourceText
 
             Public Sub New(path As String, text As SourceText)
                 _path = path

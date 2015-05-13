@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -12,12 +10,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
+    // exporting both Abstract and HostDiagnosticUpdateSource is just to make testing easiler.
+    // use HostDiagnosticUpdateSource when abstract one is not needed for testing purpose
     [Export(typeof(IDiagnosticUpdateSource))]
     [Export(typeof(AbstractHostDiagnosticUpdateSource))]
     [Export(typeof(HostDiagnosticUpdateSource))]
     internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
+
+        private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new Dictionary<ProjectId, HashSet<object>>();
 
         [ImportingConstructor]
@@ -53,9 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             Contract.ThrowIfNull(key);
             Contract.ThrowIfNull(items);
 
-            var projectDiagnosticKeys = _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>());
-
-            projectDiagnosticKeys.Add(key);
+            lock (_gate)
+            {
+                _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>()).Add(key);
+            }
 
             RaiseDiagnosticsUpdatedForProject(projectId, key, items);
         }
@@ -65,10 +68,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             Contract.ThrowIfNull(projectId);
 
             HashSet<object> projectDiagnosticKeys;
-            if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
+            lock (_gate)
             {
-                _diagnosticMap.Remove(projectId);
+                if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
+                {
+                    _diagnosticMap.Remove(projectId);
+                }
+            }
 
+            if (projectDiagnosticKeys != null)
+            {
                 foreach (var key in projectDiagnosticKeys)
                 {
                     RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
@@ -81,13 +90,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             Contract.ThrowIfNull(projectId);
             Contract.ThrowIfNull(key);
 
-            HashSet<object> projectDiagnosticKeys;
-            if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
+            var raiseEvent = false;
+            lock (_gate)
             {
-                if (projectDiagnosticKeys.Remove(key))
+                HashSet<object> projectDiagnosticKeys;
+                if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
                 {
-                    RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
+                    raiseEvent = projectDiagnosticKeys.Remove(key);
                 }
+            }
+
+            if (raiseEvent)
+            {
+                RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
             }
         }
     }

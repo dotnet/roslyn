@@ -308,6 +308,7 @@
     <Compile Include="Implementation\BraceMatching\BraceHighlightingViewTaggerProvider.cs" />
     <Compile Include="Implementation\BraceMatching\BraceHighlightTag.cs" />
     <Compile Include="Implementation\BraceMatching\BraceMatchingService.cs" />
+    <Compile Include="Implementation\BraceMatching\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\CallHierarchy\AbstractCallHierarchyCommandHandler.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyDetail.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyItem.cs" />
@@ -610,6 +611,7 @@
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingCodeAction.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingCommitter.cs" />
+    <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingSolutionSet.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.StateMachine.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.TrackingSession.cs" />

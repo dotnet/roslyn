@@ -184,6 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _map.SubstituteType(_substitutedFrom.GetDeducedBaseType(inProgress));
         }
 
-        private static Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
+        private static readonly Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
     }
 }

@@ -21,13 +21,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
     Public Class DiagnosticServiceTests
 
+        Dim _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
+
         Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
-            Return New AnalyzerFileReference(
-                fullPath,
-                Function(p)
-                    Dim bytes = File.ReadAllBytes(p)
-                    Return Assembly.Load(bytes)
-                End Function)
+            Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>

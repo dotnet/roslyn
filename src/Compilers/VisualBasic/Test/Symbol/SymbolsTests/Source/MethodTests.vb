@@ -1713,7 +1713,7 @@ End Class
 ]]>.Value
 
             ' Used to raise an exception.
-            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, options:=TestOptions.ReleaseDll)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC33016: Operator '+' must have either one or two parameters.
     Public Shared Operator +(Of T)

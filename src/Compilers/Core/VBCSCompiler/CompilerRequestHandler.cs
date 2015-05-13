@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         // Caches are used by C# and VB compilers, and shared here.
         public static readonly ReferenceProvider AssemblyReferenceProvider = new ReferenceProvider();
+        public static readonly IAnalyzerAssemblyLoader AnalyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
 
         private static void LogAbnormalExit(string msg)
         {
@@ -121,32 +122,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     errorOutput: "");
             }
 
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            bool utf8output;
-            int returnCode = CSharpCompile(
+            return CSharpCompile(
                 currentDirectory,
                 libDirectory,
                 _responseFileDirectory,
                 commandLineArguments,
-                output,
-                cancellationToken,
-                out utf8output);
-
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
+                cancellationToken);
         }
 
         /// <summary>
         /// Invoke the C# compiler with the given arguments and current directory, and send output and error
         /// to the given TextWriters.
         /// </summary>
-        private int CSharpCompile(
+        private BuildResponse CSharpCompile(
             string currentDirectory,
             string libDirectory,
             string responseFileDirectory,
             string[] commandLineArguments,
-            TextWriter output,
-            CancellationToken cancellationToken,
-            out bool utf8output)
+            CancellationToken cancellationToken)
         {
             CompilerServerLogger.Log("CurrentDirectory = '{0}'", currentDirectory);
             CompilerServerLogger.Log("LIB = '{0}'", libDirectory);
@@ -161,9 +154,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 currentDirectory,
                 RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
-                output,
-                cancellationToken,
-                out utf8output);
+                AnalyzerLoader,
+                cancellationToken);
         }
 
         /// <summary>
@@ -184,32 +176,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return new CompletedBuildResponse(-1, utf8output: false, output: "", errorOutput: "");
             }
 
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            bool utf8output;
-            int returnCode = BasicCompile(
+            return BasicCompile(
                 _responseFileDirectory,
                 currentDirectory,
                 libDirectory,
                 commandLineArguments,
-                output,
-                cancellationToken,
-                out utf8output);
-
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
+                cancellationToken);
         }
 
         /// <summary>
         /// Invoke the VB compiler with the given arguments and current directory, and send output and error
         /// to the given TextWriters.
         /// </summary>
-        private int BasicCompile(
+        private BuildResponse BasicCompile(
             string responseFileDirectory,
             string currentDirectory,
             string libDirectory,
             string[] commandLineArguments,
-            TextWriter output,
-            CancellationToken cancellationToken,
-            out bool utf8output)
+            CancellationToken cancellationToken)
         {
             CompilerServerLogger.Log("CurrentDirectory = '{0}'", currentDirectory);
             CompilerServerLogger.Log("LIB = '{0}'", libDirectory);
@@ -224,9 +208,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 currentDirectory,
                 RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
-                output,
-                cancellationToken,
-                out utf8output);
+                AnalyzerLoader,
+                cancellationToken);
         }
     }
 }

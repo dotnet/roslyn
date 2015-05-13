@@ -171,9 +171,6 @@
   <data name="MultipleTypes" xml:space="preserve">
     <value>&lt;Multiple Types&gt;</value>
   </data>
-  <data name="Extension" xml:space="preserve">
-    <value>Extension</value>
-  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
@@ -182,5 +179,8 @@
   </data>
   <data name="GenerateMember" xml:space="preserve">
     <value>Generate Member</value>
+  </data>
+  <data name="LineCommit" xml:space="preserve">
+    <value>Line commit</value>
   </data>
 </root>

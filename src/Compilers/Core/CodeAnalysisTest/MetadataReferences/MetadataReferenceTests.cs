@@ -108,6 +108,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsEmpty);
+            Assert.Same(DocumentationProvider.Default, r.DocumentationProvider);
+        }
+
+        [Fact]
+        public void CreateFromAssembly_WithPropertiesAndDocumentation()
+        {
+            var doc = new TestDocumentationProvider();
+            var assembly = typeof(object).Assembly;
+            var r = (PortableExecutableReference)MetadataReference.CreateFromAssembly(assembly, new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a", "b"), embedInteropTypes: true), documentation: doc);
+            Assert.Equal(assembly.Location, r.FilePath);
+            Assert.Equal(assembly.Location, r.Display);
+            Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.True(r.Properties.EmbedInteropTypes);
+            AssertEx.Equal(ImmutableArray.Create("a", "b"), r.Properties.Aliases);
+            Assert.Same(doc, r.DocumentationProvider);
         }
 
         private class TestDocumentationProvider : DocumentationProvider

@@ -3410,6 +3410,53 @@ class C
             var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
         }
 
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfInterpolatedString()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""Hello, world!"");
+        Console.WriteLine($""{DateTime.Now.ToString()}.{args[0]}"");
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
+            {
+                Assert.False(model.GetConstantValue(interp).HasValue);
+            }
+        }
+
+        [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]
+        [Fact]
+        public void TypeOfDynamic()
+        {
+            var source = @"
+using System;
+using System.Dynamic;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            dynamic a = 5;
+        }   
+     }
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var typeSyntax = SyntaxFactory.ParseTypeName("dynamic");
+            int spanStart = source.IndexOf("dynamic a = 5;");
+            var dynamicType = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

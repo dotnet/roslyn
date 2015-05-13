@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public event Action<string> FileFound;
 
-        private readonly string _rootPath = null;
+        private readonly string _rootPath;
         public DirectoryHelper(string path)
         {
             if (!Directory.Exists(path))
             {
-                throw new ArgumentException("Directory '" + path + "' does not exist.", "path");
+                throw new ArgumentException("Directory '" + path + "' does not exist.", nameof(path));
             }
 
             _rootPath = path;

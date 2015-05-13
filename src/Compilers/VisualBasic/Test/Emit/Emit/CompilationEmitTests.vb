@@ -1064,10 +1064,10 @@ Imports System
             Next
         End Sub
 
-        Private Shared Function GetExpectedParentToken(metadataReader As MetadataReader, entry As DeclSecurityEntry) As Handle
+        Private Shared Function GetExpectedParentToken(metadataReader As MetadataReader, entry As DeclSecurityEntry) As EntityHandle
             Select Case entry.ParentKind
                 Case SymbolKind.Assembly
-                    Return Handle.AssemblyDefinition
+                    Return EntityHandle.AssemblyDefinition
 
                 Case SymbolKind.NamedType
                     Return GetTokenForType(metadataReader, entry.ParentNameOpt)

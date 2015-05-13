@@ -4,7 +4,7 @@ Imports System.IO
 Imports <xmlns="http://schemas.microsoft.com/VisualStudio/Roslyn/Compiler">
 
 Public Class XmlRenamer
-    Private _xDoc As XDocument
+    Private ReadOnly _xDoc As XDocument
 
     Public Sub New(xDoc As XDocument)
         _xDoc = xDoc

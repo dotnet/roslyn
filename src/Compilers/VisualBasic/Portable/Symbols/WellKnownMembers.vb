@@ -632,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class WellKnownMembersSignatureComparer
             Inherits SpecialMembersSignatureComparer
 
-            Private _compilation As VisualBasicCompilation
+            Private ReadOnly _compilation As VisualBasicCompilation
 
             Public Sub New(compilation As VisualBasicCompilation)
                 _compilation = compilation

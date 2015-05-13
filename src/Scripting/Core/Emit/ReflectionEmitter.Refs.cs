@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
         private sealed class MethodGenericParameter : UnimplementedType
         {
             private readonly int _position;
-            private MethodInfo _containingMethod;
+            private readonly MethodInfo _containingMethod;
 
             public MethodGenericParameter(MethodInfo containingMethod, int position)
             {
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
             private readonly string _name;
             private readonly CallingConventions _callingConvention;
             private readonly Module _moduleProxy;
-            private Type[] _extraParameterTypes;
+            private readonly Type[] _extraParameterTypes;
             private ParameterInfo[] _parameters;
             private ParameterInfo _returnParameter;
             private Type[] _genericParameters;

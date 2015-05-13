@@ -25,10 +25,6 @@
     <Reference Include="System.Globalization" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -79,13 +75,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSharpFileSystemExtensions.cs" />
-    <Compile Include="CommandLine\CommandLineArguments.cs" />
-    <Compile Include="CommandLine\CommandLineDiagnosticFormatter.cs" />
-    <Compile Include="CommandLine\CommandLineParser.cs" />
-    <Compile Include="CommandLine\CSharpCompiler.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
@@ -104,9 +93,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\CSharpCodeAnalysisRules.ruleset">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>

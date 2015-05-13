@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal abstract class XmlDocumentationProvider : DocumentationProvider
     {
-        private NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new NonReentrantLock();
         private Dictionary<string, string> _docComments;
 
         protected abstract Stream GetSourceStream(CancellationToken cancellationToken);

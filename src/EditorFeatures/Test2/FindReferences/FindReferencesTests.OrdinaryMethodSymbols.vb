@@ -865,6 +865,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
+        <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestInaccessibleMemberOverrideVB()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class C
+                Private Sub M(d As D)
+                    d.[|$$M|](1)
+                End Sub
+            End Class
+            Class D
+                Private Sub {|Definition:M|}(i As Integer)
+                End Sub
+                Private Sub M(d As Double)
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
+        <Fact(Skip:="2544"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestInaccessibleMemberOverrideCS()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class C
+            {
+                private void M(D d)
+                {
+                    d.[|$$M|](1);
+                }
+            }
+
+            class D
+            {
+                private void {|Definition:M|}(int i) { }
+                private void M(double d) { }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+
+            Test(workspace)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpAccessibleInstanceProtectedMethod()
             Dim input =
