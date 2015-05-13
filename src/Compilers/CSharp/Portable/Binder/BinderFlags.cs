@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         AllowAwaitInUnsafeContext = 1 << 25,
 
+        /// <summary>
+        /// Ignore duplicate types from the cor library.
+        /// </summary>
+        IgnoreCorLibraryDuplicatedTypes = 1 << 26,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

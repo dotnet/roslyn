@@ -631,7 +631,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 BinderFlags.UnsafeRegion |
                 BinderFlags.UncheckedRegion |
                 BinderFlags.AllowManagedAddressOf |
-                BinderFlags.AllowAwaitInUnsafeContext);
+                BinderFlags.AllowAwaitInUnsafeContext |
+                BinderFlags.IgnoreCorLibraryDuplicatedTypes);
             var hasImports = !importRecordGroups.IsDefaultOrEmpty;
             var numImportStringGroups = hasImports ? importRecordGroups.Length : 0;
             var currentStringGroup = numImportStringGroups - 1;
