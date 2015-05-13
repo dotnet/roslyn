@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
 
         IDS_FeatureBinaryLiteral = MessageBase + 12704,
-        IDS_FeatureNumericLiteralUnderscore = MessageBase + 12705,
+        IDS_FeatureDigitSeparator = MessageBase + 12705,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 case MessageID.IDS_FeatureBinaryLiteral:
-                case MessageID.IDS_FeatureNumericLiteralUnderscore:
+                case MessageID.IDS_FeatureDigitSeparator:
                     return null;
 
                 // C# 6 features.
@@ -224,8 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MessageID.IDS_FeatureBinaryLiteral:
                     return "binaryLiterals";
-                case MessageID.IDS_FeatureNumericLiteralUnderscore:
-                    return "underscoreSeparator";
+                case MessageID.IDS_FeatureDigitSeparator:
+                    return "digitSeparators";
                 default:
                     return null;
             }

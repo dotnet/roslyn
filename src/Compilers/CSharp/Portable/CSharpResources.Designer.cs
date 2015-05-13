@@ -8865,6 +8865,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to digit separators.
+        /// </summary>
+        internal static string IDS_FeatureDigitSeparator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDigitSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to dynamic.
         /// </summary>
         internal static string IDS_FeatureDynamic {
@@ -9041,15 +9050,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureNullPropagatingOperator {
             get {
                 return ResourceManager.GetString("IDS_FeatureNullPropagatingOperator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to numerics with underscores.
-        /// </summary>
-        internal static string IDS_FeatureNumericLiteralUnderscore {
-            get {
-                return ResourceManager.GetString("IDS_FeatureNumericLiteralUnderscore", resourceCulture);
             }
         }
         

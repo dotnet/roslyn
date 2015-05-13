@@ -5294,4 +5294,10 @@
   <data name="FEATURE_NameOfExpressions" xml:space="preserve">
     <value>'nameof' expressions</value>
   </data>
+  <data name="FEATURE_DigitSeparators" xml:space="preserve">
+    <value>digit separators</value>
+  </data>
+  <data name="FEATURE_BinaryLiterals" xml:space="preserve">
+    <value>binary literals</value>
+  </data>
 </root>

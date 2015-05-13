@@ -43,7 +43,14 @@ Public Class ParseExpressionTest
     Private Function ParseExpression(text As String, Optional expectsErrors As Boolean = False) As ExpressionSyntax
         Dim modText = text.Trim(" "c, CChar(vbTab), CChar(vbCr), CChar(vbLf))
 
-        Dim expr = SyntaxFactory.ParseExpression(modText)
+        ' Don't use SyntaxFactory.ParseExpression because we have our own VisualBasicParseOptions
+        Dim options As VisualBasicParseOptions = New VisualBasicParseOptions(features:=New String() {"binaryLiterals", "digitSeparators"})
+        Dim expr As ExpressionSyntax
+        Using p = New InternalSyntax.Parser(SourceText.From(modText), options)
+            p.GetNextToken()
+            Dim node = p.ParseExpression()
+            expr = DirectCast(p.ConsumeUnexpectedTokens(node).CreateRed(Nothing, 0), ExpressionSyntax)
+        End Using
         Assert.Equal(modText, expr.ToFullString)
         Assert.Equal(expectsErrors, expr.ContainsDiagnostics)
 

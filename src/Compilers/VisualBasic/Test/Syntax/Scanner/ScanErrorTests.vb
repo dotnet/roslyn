@@ -29,6 +29,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(31170, t.GetSyntaxErrorsNoTree(2).Code)
         End Sub
 
+        <Fact>
+        Public Sub BC36716ERR_LanguageVersion_BinaryLiterals()
+            ParseAndVerify("&B1",
+                BasicTestBase.Diagnostic(ERRID.ERR_ObsoleteLineNumbersAreLabels, "&B1").WithLocation(1, 1),
+                BasicTestBase.Diagnostic(ERRID.ERR_InvOutsideProc, "&B1").WithLocation(1, 1),
+                BasicTestBase.Diagnostic(ERRID.ERR_LanguageVersion, "&B1").WithArguments("14.0", "binary literals").WithLocation(1, 1))
+        End Sub
+
+        <Fact>
+        Public Sub BC36716ERR_LanguageVersion_DigitSeperators()
+            ParseAndVerify("1_000",
+                BasicTestBase.Diagnostic(ERRID.ERR_ObsoleteLineNumbersAreLabels, "1_000").WithLocation(1, 1),
+                BasicTestBase.Diagnostic(ERRID.ERR_InvOutsideProc, "1_000").WithLocation(1, 1),
+                BasicTestBase.Diagnostic(ERRID.ERR_LanguageVersion, "1_000").WithArguments("14.0", "digit separators").WithLocation(1, 1))
+        End Sub
+
 #End Region
 
 #Region "Mixed Error Tests"

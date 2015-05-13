@@ -924,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ch = TextWindow.PeekChar();
                 if (ch == '_')
                 {
-                    CheckFeatureAvailability(MessageID.IDS_FeatureNumericLiteralUnderscore);
+                    CheckFeatureAvailability(MessageID.IDS_FeatureDigitSeparator);
                     lastCharWasUnderscore = true;
                 }
                 else

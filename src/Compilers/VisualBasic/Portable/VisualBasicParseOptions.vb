@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared s_defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
 
         Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
+        Private _features As ImmutableArray(Of String)
         Private _languageVersion As LanguageVersion
 
         ''' <summary>
@@ -30,12 +31,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic14,
             Optional documentationMode As DocumentationMode = DocumentationMode.Parse,
             Optional kind As SourceCodeKind = SourceCodeKind.Regular,
-            Optional preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing)
+            Optional preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing,
+            Optional features As IEnumerable(Of String) = Nothing)
 
             MyClass.New(languageVersion,
                         documentationMode,
                         kind,
-                        If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)))
+                        If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
+                        features.AsImmutableOrEmpty)
 
             If Not languageVersion.IsValid Then
                 Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
@@ -75,13 +78,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             languageVersion As LanguageVersion,
             documentationMode As DocumentationMode,
             kind As SourceCodeKind,
-            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)))
+            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)),
+            features As ImmutableArray(Of String))
 
             MyBase.New(kind, documentationMode)
 
             Debug.Assert(Not preprocessorSymbols.IsDefault)
+            Debug.Assert(Not features.IsDefault)
             _languageVersion = languageVersion
             _preprocessorSymbols = preprocessorSymbols
+            _features = features
         End Sub
 
         Private Sub New(other As VisualBasicParseOptions)
@@ -246,22 +252,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Enable some experimental language features for testing.
         ''' </summary>
         Public Shadows Function WithFeatures(features As ImmutableArray(Of String)) As VisualBasicParseOptions
-            ' there are currently no parse options for experimental features
             If features.IsDefault Then
                 Throw New ArgumentException(NameOf(features))
             End If
 
-            If features.Any() Then
-                Throw New ArgumentException("Experimental features are not supported", NameOf(features))
-            End If
-
-            Return Me
+            Return New VisualBasicParseOptions(Me) With {._features = features}
         End Function
 
         Public Overrides ReadOnly Property Features As ImmutableArray(Of String)
             Get
-                ' There are no experimental features at this time.
-                Return ImmutableArray(Of String).Empty
+                Return _features
             End Get
         End Property
 

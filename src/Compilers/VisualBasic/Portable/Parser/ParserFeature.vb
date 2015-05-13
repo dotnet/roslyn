@@ -17,11 +17,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         GlobalNamespace
         NullPropagatingOperator
         NameOfExpressions
+        BinaryLiterals
+        DigitSeparators
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
-        Friend Function GetLanguageVersion(feature As Feature) As LanguageVersion
+        Friend Function GetLanguageVersion(feature As Feature) As LanguageVersion?
 
             Select Case feature
                 Case Feature.AutoProperties,
@@ -41,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.NullPropagatingOperator,
                      Feature.NameOfExpressions
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.BinaryLiterals,
+                     Feature.DigitSeparators
+                    Return Nothing
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -75,6 +81,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_NullPropagatingOperator
                 Case Feature.NameOfExpressions
                     Return ERRID.FEATURE_NameOfExpressions
+                Case Feature.BinaryLiterals
+                    Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.DigitSeparators
+                    Return ERRID.FEATURE_DigitSeparators
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

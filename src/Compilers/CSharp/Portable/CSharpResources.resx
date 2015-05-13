@@ -4597,8 +4597,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureBinaryLiteral" xml:space="preserve">
     <value>binary literals</value>
   </data>
-  <data name="IDS_FeatureNumericLiteralUnderscore" xml:space="preserve">
-    <value>numerics with underscores</value>
+  <data name="IDS_FeatureDigitSeparator" xml:space="preserve">
+    <value>digit separators</value>
   </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LexicalTests()
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
-            var newFeatures = ImmutableArray.Create("underscoreSeparator", "binaryLiterals");
+            var newFeatures = ImmutableArray.Create("digitSeparators", "binaryLiterals");
             _options = _options.WithFeatures(_options.Features.AddRange(newFeatures));
         }
 

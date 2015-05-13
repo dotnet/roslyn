@@ -357,6 +357,26 @@ class Test
     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
         }
 
+        [Fact]
+        public void CS8058ERR_FeatureIsExperimental_DigitSeparators()
+        {
+            var test = "0xa_a";
+            ParserErrorMessageTests.ParseAndValidate(test,
+    // (1,1): error CS8058: Feature 'digit separators' is only available in 'experimental' language version. Use the '/features:digitSeparators' flag to enable.
+    // 0xa_a
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("digit separators", "digitSeparators").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CS8058ERR_FeatureIsExperimental_BinaryLiterals()
+        {
+            var test = "0b01";
+            ParserErrorMessageTests.ParseAndValidate(test,
+    // (1,1): error CS8058: Feature 'binary literals' is only available in 'experimental' language version. Use the '/features:binaryLiterals' flag to enable.
+    // 0b01
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("binary literals", "binaryLiterals").WithLocation(1, 1));
+        }
+
         #endregion
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"

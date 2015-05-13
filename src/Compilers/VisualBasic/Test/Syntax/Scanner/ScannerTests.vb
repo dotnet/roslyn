@@ -12,8 +12,18 @@ Imports Roslyn.Test.Utilities
 Public Class ScannerTests
     Inherits BasicTestBase
 
+    Private _options As VisualBasicParseOptions = New VisualBasicParseOptions(features:=New String() {"binaryLiterals", "digitSeparators"})
+
     Private Function ScanOnce(str As String, Optional startStatement As Boolean = False) As SyntaxToken
-        Return SyntaxFactory.ParseToken(str, startStatement:=startStatement)
+        ' Don't use SyntaxFactory.ParseToken because we have our own VisualBasicParseOptions
+        Dim s = New InternalSyntax.Scanner(SourceText.From(str), _options)
+        Using s
+            Dim state = If(startStatement,
+                               InternalSyntax.ScannerState.VBAllowLeadingMultilineTrivia,
+                               InternalSyntax.ScannerState.VB)
+            s.GetNextTokenInState(state)
+            Return New SyntaxToken(Nothing, s.GetCurrentToken, 0, 0)
+        End Using
     End Function
 
     Private Function AsString(tokens As IEnumerable(Of SyntaxToken)) As String
@@ -754,6 +764,7 @@ End If]]>.Value,
         Str = " 0_0.4_2 "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count)
         Assert.Equal(0.42, tk.Value)
         Assert.IsType(Of Double)(tk.Value)
         Assert.Equal(" 0_0.4_2 ", tk.ToFullString())
@@ -761,6 +772,7 @@ End If]]>.Value,
         Str = " 0.42# "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count)
         Assert.Equal(0.42, tk.Value)
         Assert.IsType(Of Double)(tk.Value)
         Assert.Equal(" 0.42# ", tk.ToFullString())
@@ -768,6 +780,7 @@ End If]]>.Value,
         Str = " 0.42R "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count)
         Assert.Equal(0.42, tk.Value)
         Assert.IsType(Of Double)(tk.Value)
         Assert.Equal(" 0.42R ", tk.ToFullString())
@@ -775,6 +788,7 @@ End If]]>.Value,
         Str = " 0.42! "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count)
         Assert.Equal(0.42!, tk.Value)
         Assert.IsType(Of Single)(tk.Value)
         Assert.Equal(" 0.42! ", tk.ToFullString())
@@ -782,6 +796,7 @@ End If]]>.Value,
         Str = " 0.42F "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count)
         Assert.Equal(0.42F, tk.Value)
         Assert.IsType(Of Single)(tk.Value)
         Assert.Equal(" 0.42F ", tk.ToFullString())
@@ -789,6 +804,7 @@ End If]]>.Value,
         Str = " .42 42# "
         Dim tks = ScanAllCheckDw(Str)
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tks(1).Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count)
         Assert.Equal(42.0#, tks(1).Value)
         Assert.Equal(0.42, tks(0).Value)
         Assert.IsType(Of Double)(tks(1).Value)

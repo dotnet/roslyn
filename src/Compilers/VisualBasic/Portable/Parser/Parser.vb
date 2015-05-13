@@ -6005,7 +6005,10 @@ checkNullable:
 
         Private Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
             Dim required = feature.GetLanguageVersion()
-            Return CInt(required) <= CInt(languageVersion)
+            If required.HasValue Then
+                Return CInt(required.Value) <= CInt(languageVersion)
+            End If
+            Return False
         End Function
 
         Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)

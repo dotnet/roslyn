@@ -979,6 +979,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #End Region
 
+        Private Function FeatureAllowed(token As SyntaxToken, feature As Feature) As SyntaxToken
+            Dim name As String
+            Select Case feature
+                Case Feature.BinaryLiterals
+                    name = "binaryLiterals"
+                Case Feature.DigitSeparators
+                    name = "digitSeparators"
+                Case Else
+                    name = Nothing
+            End Select
+            If name = Nothing OrElse _options.Features.Contains(name) Then
+                Return token
+            End If
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Return DirectCast(token.AddError(errorInfo), SyntaxToken)
+        End Function
+
         ' at this point it is very likely that we are located at 
         ' the beginning of a token        
         Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
@@ -1767,6 +1784,7 @@ FullWidthRepeat:
             Dim Here As Integer = 0
             Dim IntegerLiteralStart As Integer
             Dim UnderscoreInWrongPlace As Boolean
+            Dim UnderscoreUsed As Boolean = False
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1795,6 +1813,9 @@ FullWidthRepeat:
                             If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
                             End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
+                            End If
                             Here += 1
                         End While
                         UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
@@ -1810,6 +1831,9 @@ FullWidthRepeat:
                             If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
                             End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
+                            End If
                             Here += 1
                         End While
                         UnderscoreInWrongPlace = UnderscoreInWrongPlace Or (Peek(Here - 1) = "_"c)
@@ -1824,6 +1848,9 @@ FullWidthRepeat:
                             ch = Peek(Here)
                             If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
+                            End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
                             End If
                             Here += 1
                         End While
@@ -1845,6 +1872,9 @@ FullWidthRepeat:
                     ch = Peek(Here)
                     If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                         Exit While
+                    End If
+                    If ch = "_"c Then
+                        UnderscoreUsed = True
                     End If
                     Here += 1
                 End While
@@ -2169,6 +2199,13 @@ FullWidthRepeat2:
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
             ElseIf UnderscoreInWrongPlace Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
+            End If
+
+            If UnderscoreUsed Then
+                result = FeatureAllowed(result, Feature.DigitSeparators)
+            End If
+            If Base = LiteralBase.Binary Then
+                result = FeatureAllowed(result, Feature.BinaryLiterals)
             End If
 
             Return result
