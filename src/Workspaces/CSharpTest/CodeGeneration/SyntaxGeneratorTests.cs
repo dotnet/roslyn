@@ -867,6 +867,19 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     _g.IndexerDeclaration(parameters: new[] { _g.ParameterDeclaration("p", _g.IdentifierName("a")) }, type: _g.IdentifierName("t"), accessibility: Accessibility.Internal, modifiers: DeclarationModifiers.Abstract),
                     _g.IdentifierName("i")),
                 "public t this[a p]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
+
+            // convert private to public
+            var pim = _g.AsPrivateInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType: _g.IdentifierName("t"), accessibility: Accessibility.Private, modifiers: DeclarationModifiers.Abstract),
+                    _g.IdentifierName("i"));
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2")),
+                "public t m()\r\n{\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+                "public t m2()\r\n{\r\n}");
         }
 
         [Fact]
@@ -895,6 +908,19 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     _g.CustomEventDeclaration("ep", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract),
                     _g.IdentifierName("i")),
                 "event t i.ep\r\n{\r\n    add\r\n    {\r\n    }\r\n\r\n    remove\r\n    {\r\n    }\r\n}");
+
+            // convert public to private
+            var pim = _g.AsPublicInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType: _g.IdentifierName("t"), accessibility: Accessibility.Private, modifiers: DeclarationModifiers.Abstract),
+                    _g.IdentifierName("i"));
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2")),
+                "t i2.m()\r\n{\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+                "t i2.m2()\r\n{\r\n}");
         }
 
         [Fact]
