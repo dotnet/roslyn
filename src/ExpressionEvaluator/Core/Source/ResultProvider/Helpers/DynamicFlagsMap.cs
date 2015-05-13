@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 f++;
             }
 
-            return new DynamicFlagsCustomTypeInfo(new BitArray(substitutedFlags.ToArrayAndFree()));
+            return new DynamicFlagsCustomTypeInfo(substitutedFlags.ToArrayAndFree());
         }
 
         private void AppendFlagsFor(Type type, ArrayBuilder<bool> builder)

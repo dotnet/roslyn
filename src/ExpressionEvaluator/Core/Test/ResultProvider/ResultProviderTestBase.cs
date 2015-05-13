@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 value,
                 workList,
                 declaredType: declaredType ?? value.Type,
-                customTypeInfo: new DynamicFlagsCustomTypeInfo(declaredTypeInfo == null ? null : new BitArray(declaredTypeInfo)).GetCustomTypeInfo(),
+                customTypeInfo: new DynamicFlagsCustomTypeInfo(declaredTypeInfo).GetCustomTypeInfo(),
                 inspectionContext: inspectionContext ?? DefaultInspectionContext,
                 formatSpecifiers: Formatter.NoFormatSpecifiers,
                 resultName: name,
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static DynamicFlagsCustomTypeInfo MakeDynamicFlagsCustomTypeInfo(params bool[] dynamicFlags)
         {
-            return new DynamicFlagsCustomTypeInfo(dynamicFlags == null ? null : new BitArray(dynamicFlags));
+            return new DynamicFlagsCustomTypeInfo(dynamicFlags);
         }
     }
 }

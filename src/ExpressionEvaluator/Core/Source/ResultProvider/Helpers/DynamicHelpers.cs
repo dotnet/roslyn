@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class DynamicHelpers
     {
-        private static readonly BitArray TrueArray = new BitArray(new[] { true });
+        private static readonly bool[] TrueArray = new[] { true };
 
         public static DynamicFlagsCustomTypeInfo GetDynamicFlags(this IList<CustomAttributeData> attributes)
         {
@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             // if ArgumentType indicates an array, then Value will actually be a ReadOnlyCollection.
                             var collection = (ReadOnlyCollection<CustomAttributeTypedArgument>)arguments[0].Value;
                             var numFlags = collection.Count;
-                            var array = new BitArray(numFlags);
-                            for (int i = 0; i < numFlags; i++)
+                            var builder = ArrayBuilder<bool>.GetInstance(numFlags);
+                            foreach (var typedArg in collection)
                             {
-                                array[i] = (bool)collection[i].Value;
+                                builder.Add((bool)typedArg.Value);
                             }
-                            return new DynamicFlagsCustomTypeInfo(array);
+                            return new DynamicFlagsCustomTypeInfo(builder.ToArrayAndFree());
                         }
                     }
                 }

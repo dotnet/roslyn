@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class DynamicFlagsCustomTypeInfoTests : CSharpResultProviderTestBase
     {
         [Fact]
-        public void BitArrayConstructor()
+        public void BoolArrayConstructor()
         {
             ValidateBytes(MakeDynamicFlagsCustomTypeInfo(new bool[0]));
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void SkipOne()
         {
-            var dynamicFlagsCustomTypeInfo = new DynamicFlagsCustomTypeInfo((BitArray)null);
+            var dynamicFlagsCustomTypeInfo = new DynamicFlagsCustomTypeInfo(DynamicFlagsCustomTypeInfo.PayloadTypeId, null);
 
             ValidateBytes(dynamicFlagsCustomTypeInfo.SkipOne());
 
