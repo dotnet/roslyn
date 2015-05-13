@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal interface ICommandLineArgumentsFactoryService : ILanguageService
     {
-        CommandLineArguments CreateCommandLineArguments(IEnumerable<string> arguments, string baseDirectory, bool isInteractive);
+        CommandLineArguments CreateCommandLineArguments(IEnumerable<string> arguments, string baseDirectory, bool isInteractive, string sdkDirectory);
     }
 }
