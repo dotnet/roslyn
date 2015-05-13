@@ -38,6 +38,19 @@ class C
     vo[||]id foo() { }
 }", "void");
         }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public void TestReturn()
+        {
+            Test_Keyword(@"
+class C
+{
+    void foo() 
+    { 
+        ret[||]urn; 
+    }
+}", "return");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestPartialType()
@@ -151,9 +164,9 @@ namespace N
 class C
 {
     void foo()
-{
-    var two = 1 [|+|] 1;
-}
+    {
+        var two = 1 [|+|] 1;
+    }
 }", "+_CSharpKeyword");
         }
 
@@ -306,7 +319,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestParameter()
         {
-            Test(@"    class Class2
+            Test(@"class Class2
     {
         void M1(int par[||]ameter)  // 1
         {
@@ -324,7 +337,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestArgumentType()
         {
-            Test(@"    class Class2
+            Test(@"class Class2
     {
         void M1(int pa[||]rameter)  // 1
         {
@@ -416,9 +429,8 @@ class Program
     static void Main(string[] args)
     {
         foreach (char var in ""!!!"")$$[||]
-{
+        {
         }
-
     }
 }", "");
         }
