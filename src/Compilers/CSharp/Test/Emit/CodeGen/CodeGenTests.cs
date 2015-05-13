@@ -11436,8 +11436,9 @@ public class Test
 }");
         }
 
+        [WorkItem(2272)]
         [Fact]
-        public void Bug2272()
+        public void DefaultParamValueIsEnum()
         {
             string source = @"
 using System;
