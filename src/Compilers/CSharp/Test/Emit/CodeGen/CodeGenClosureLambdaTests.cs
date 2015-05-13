@@ -5206,5 +5206,24 @@ class C
 
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
+
+        [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
+        public void NestedLambdaWithExtensionMethodsInGeneric()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class BadBaby
+{
+    IEnumerable<object> Children;
+    public object Foo<T>()
+    {
+        return from child in Children select from T ch in Children select false;
+    }
+}";
+            CompileAndVerify(source, new[] { SystemCoreRef });
+        }
     }
 }
