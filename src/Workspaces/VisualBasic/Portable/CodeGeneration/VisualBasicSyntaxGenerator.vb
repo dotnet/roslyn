@@ -850,7 +850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             declaration = WithBody(declaration, allowDefault:=True)
             declaration = WithAccessibility(declaration, Accessibility.Public)
 
-            Dim memberName = If(interfaceMemberName IsNot Nothing, interfaceMemberName, GetMemberName(declaration))
+            Dim memberName = If(interfaceMemberName IsNot Nothing, interfaceMemberName, GetInterfaceMemberName(declaration))
             declaration = WithName(declaration, memberName)
             declaration = WithImplementsClause(declaration, SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, SyntaxFactory.IdentifierName(memberName))))
 
@@ -867,26 +867,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             declaration = WithBody(declaration, allowDefault:=False)
             declaration = WithAccessibility(declaration, Accessibility.Private)
 
-            Dim memberName = If(interfaceMemberName IsNot Nothing, interfaceMemberName, GetMemberName(declaration))
+            Dim memberName = If(interfaceMemberName IsNot Nothing, interfaceMemberName, GetInterfaceMemberName(declaration))
             declaration = WithName(declaration, GetNameAsIdentifier(interfaceTypeName) & "_" & memberName)
             declaration = WithImplementsClause(declaration, SyntaxFactory.ImplementsClause(SyntaxFactory.QualifiedName(type, SyntaxFactory.IdentifierName(memberName))))
 
             Return declaration
         End Function
 
-        Private Function GetMemberName(declaration As SyntaxNode) As String
-            If GetImplementsClause(declaration) Is Nothing Then
-                Return GetName(declaration)
-            Else
-                Dim fullName = GetName(declaration)
-                If fullName IsNot Nothing Then
-                    Dim last = fullName.Split({"_"c}, StringSplitOptions.RemoveEmptyEntries).LastOrDefault()
-                    If last IsNot Nothing Then
-                        Return last
-                    End If
+        Private Function GetInterfaceMemberName(declaration As SyntaxNode) As String
+            Dim clause = GetImplementsClause(declaration)
+            If clause IsNot Nothing Then
+                Dim qname = clause.InterfaceMembers.FirstOrDefault(Function(n) n.Right IsNot Nothing)
+                If qname IsNot Nothing Then
+                    Return qname.Right.ToString()
                 End If
-                Return fullName
             End If
+            Return GetName(declaration)
         End Function
 
         Private Function GetImplementsClause(declaration As SyntaxNode) As ImplementsClauseSyntax
