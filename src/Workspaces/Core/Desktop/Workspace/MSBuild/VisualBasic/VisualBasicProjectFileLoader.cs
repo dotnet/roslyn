@@ -309,6 +309,9 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     this._references = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this._analyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this._warnings = new Dictionary<string, ReportDiagnostic>();
+
+                    this._options.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
+                    this._options.OutputDirectory = projectFile.GetOutputDirectory();
                 }
 
                 public bool Initialized
@@ -546,7 +549,10 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetOptionStrictType(string optionStrictType)
                 {
-                    this._options.OptionStrict = optionStrictType;
+                    if (!string.IsNullOrEmpty(optionStrictType))
+                    {
+                        this._options.OptionStrict = optionStrictType;
+                    }
                     return true;
                 }
 

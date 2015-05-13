@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
 
-    <ExportLanguageService(GetType(ICommandLineArgumentsFactoryService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(IHostBuildDataFactory), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicHostBuildDataFactory
         Implements IHostBuildDataFactory
 
@@ -40,6 +40,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             MetadataFileReferenceProvider.Default),
                         strongNameProvider:=New DesktopStrongNameProvider(ImmutableArray.Create(Of String)(options.ProjectDirectory, options.OutputDirectory)),
                         assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
+
+            If Not String.IsNullOrEmpty(options.PlatformWith32BitPreference) Then
+                Dim plat As Platform
+                If [Enum].TryParse(options.PlatformWith32BitPreference, True, plat) Then
+                    Dim outputKind = compilationOptions.OutputKind
+                    If plat = Platform.AnyCpu AndAlso outputKind <> OutputKind.DynamicallyLinkedLibrary AndAlso outputKind <> OutputKind.NetModule AndAlso outputKind <> OutputKind.WindowsRuntimeMetadata Then
+                        plat = Platform.AnyCpu32BitPreferred
+                    End If
+                    compilationOptions = compilationOptions.WithPlatform(plat)
+                End If
+            End If
+
             Dim warnings = New Dictionary(Of String, ReportDiagnostic)()
 
             If options.OutputKind.HasValue Then
@@ -113,18 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If Not String.IsNullOrEmpty(options.PlatformWith32BitPreference) Then
-                Dim plat As Platform
-                If [Enum].TryParse(options.PlatformWith32BitPreference, True, plat) Then
-                    Dim outputKind = compilationOptions.OutputKind
-                    If plat = Platform.AnyCpu AndAlso outputKind <> outputKind.DynamicallyLinkedLibrary AndAlso outputKind <> outputKind.NetModule AndAlso outputKind <> outputKind.WindowsRuntimeMetadata Then
-                        plat = Platform.AnyCpu32BitPreferred
-                    End If
-                    compilationOptions = compilationOptions.WithPlatform(plat)
-                End If
-            End If
-
-            If options.CheckForOverflowUnderflow Then
+            If options.CheckForOverflowUnderflow.HasValue Then
                 compilationOptions = compilationOptions.WithOverflowChecks(options.CheckForOverflowUnderflow.Value)
             End If
 
@@ -146,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If options.OptionInfer.HasValue Then
-                compilationOptions = compilationOptions.WithOptionInfer(options.OptionInfer.HasValue)
+                compilationOptions = compilationOptions.WithOptionInfer(options.OptionInfer.Value)
             End If
 
             If options.VBRuntime = "Embed" Then
@@ -172,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If text = "On" Then
                 optionStrictType = OptionStrict.On
                 Return True
-            ElseIf text = "Off" Then
+            ElseIf text = "Off" OrElse text = "Custom" Then
                 optionStrictType = OptionStrict.Custom
                 Return True
             Else

@@ -287,15 +287,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal CSharpCompilerInputs(CSharpProjectFile projectFile)
                 {
                     _projectFile = projectFile;
-                    var projectDirectory = Path.GetDirectoryName(projectFile.FilePath);
-                    var outputDirectory = projectFile.GetOutputDirectory();
-
                     this.Options = new HostBuildOptions();
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AdditionalFiles = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.LibPaths = SpecializedCollections.EmptyReadOnlyList<string>();
+
+                    this.Options.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
+                    this.Options.OutputDirectory = projectFile.GetOutputDirectory();
                 }
 
                 public bool Compile()
