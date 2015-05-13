@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
-    /// Extends MetadataFileReferenceResolver to enable resolution of assembly
+    /// Extends <see cref="MetadataFileReferenceResolver"/> to enable resolution of assembly
     /// simple names in the GAC.
     /// </summary>
     internal sealed class GacFileResolver : MetadataFileReferenceResolver
