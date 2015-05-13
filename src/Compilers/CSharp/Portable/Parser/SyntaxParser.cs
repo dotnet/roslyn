@@ -1045,20 +1045,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var featureName = feature.Localize();
             var requiredVersion = feature.RequiredVersion();
 
-            if (forceWarning)
+            if (requiredVersion.HasValue)
             {
-                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
-                return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                if (forceWarning)
+                {
+                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Value.Localize());
+                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                }
+
+                return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Value.Localize());
             }
 
-            return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+            string requiredExtension = feature.RequiredExtension();
+            if (requiredExtension != null)
+            {
+                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName, requiredExtension);
+            }
+
+            Debug.Assert(false);
+            return node;
         }
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            return availableVersion >= requiredVersion;
+            LanguageVersion? requiredVersion = feature.RequiredVersion();
+            if (requiredVersion.HasValue)
+            {
+                return availableVersion >= requiredVersion.Value;
+            }
+            string requiredExtension = feature.RequiredExtension();
+            if (requiredExtension != null)
+            {
+                return this.Options.Features.Contains(requiredExtension);
+            }
+            Debug.Assert(false);
+            return false;
         }
     }
 }

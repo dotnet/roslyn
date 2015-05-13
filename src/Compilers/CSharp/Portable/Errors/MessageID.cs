@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInterpolatedStrings = MessageBase + 12702,
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
 
+        IDS_FeatureBinaryLiteral = MessageBase + 12704,
+        IDS_FeatureNumericLiteralUnderscore = MessageBase + 12705,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -144,12 +146,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
-        internal static LanguageVersion RequiredVersion(this MessageID feature)
+        internal static LanguageVersion? RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                case MessageID.IDS_FeatureBinaryLiteral:
+                case MessageID.IDS_FeatureNumericLiteralUnderscore:
+                    return null;
+
                 // C# 6 features.
                 case MessageID.IDS_FeatureExceptionFilter:
                 case MessageID.IDS_FeatureAutoPropertyInitializer:
@@ -210,6 +216,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(feature);
+            }
+        }
+        internal static string RequiredExtension(this MessageID feature)
+        {
+            switch (feature)
+            {
+                case MessageID.IDS_FeatureBinaryLiteral:
+                    return "binaryLiterals";
+                case MessageID.IDS_FeatureNumericLiteralUnderscore:
+                    return "underscoreSeparator";
+                default:
+                    return null;
             }
         }
     }

@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  SyntaxFacts.IsInTypeOnlyContext(node)) &&
                 node.Identifier.ValueText == "dynamic" &&
                 !IsViableType(result) &&
-                ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion().Value)
             {
                 bindingResult = Compilation.DynamicType;
                 ReportUseSiteDiagnosticForDynamic(diagnostics, node);
@@ -1922,11 +1922,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
         {
             LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
+            LanguageVersion? requiredVersion = feature.RequiredVersion();
+            if (requiredVersion.HasValue)
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), requiredVersion.Localize());
+                if (requiredVersion.Value > availableVersion)
+                {
+                    diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), requiredVersion.Value.Localize());
+                }
+                return;
             }
+            string requiredExtension = feature.RequiredExtension();
+            if (requiredExtension != null)
+            {
+                bool supported = location.SourceTree.Options.Features.Contains(requiredExtension);
+                if (!supported)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredExtension);
+                }
+                return;
+            }
+            Debug.Assert(false);
         }
     }
 }

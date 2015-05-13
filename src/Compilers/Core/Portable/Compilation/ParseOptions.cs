@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
@@ -54,17 +55,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
-        public ParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        public ParseOptions WithFeatures(ImmutableArray<string> features)
         {
             return CommonWithFeatures(features);
         }
 
-        protected abstract ParseOptions CommonWithFeatures(IEnumerable<KeyValuePair<string, string>> features);
+        protected abstract ParseOptions CommonWithFeatures(ImmutableArray<string> features);
 
         /// <summary>
         /// Returns the experimental features.
         /// </summary>
-        public abstract IReadOnlyDictionary<string, string> Features
+        public abstract ImmutableArray<string> Features
         {
             get;
         }
@@ -101,13 +102,12 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));
         }
 
-        private static int HashFeatures(IReadOnlyDictionary<string, string> features)
+        private static int HashFeatures(ImmutableArray<string> features)
         {
             int value = 0;
-            foreach (var kv in features)
+            foreach (var feature in features)
             {
-                value = Hash.Combine(kv.Key.GetHashCode(),
-                        Hash.Combine(kv.Value.GetHashCode(), value));
+                value = Hash.Combine(feature.GetHashCode(), value);
             }
 
             return value;

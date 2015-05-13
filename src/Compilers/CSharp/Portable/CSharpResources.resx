@@ -4318,7 +4318,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Feature '{0}' is not available in C# 6.  Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
-    <value>Feature '{0}' is only available in 'experimental' language version.</value>
+    <value>Feature '{0}' is only available in 'experimental' language version. Use the '/features:{1}' flag to enable.</value>
   </data>
   <data name="IDS_VersionExperimental" xml:space="preserve">
     <value>'experimental'</value>
@@ -4593,6 +4593,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
+  </data>
+  <data name="IDS_FeatureBinaryLiteral" xml:space="preserve">
+    <value>binary literals</value>
+  </data>
+  <data name="IDS_FeatureNumericLiteralUnderscore" xml:space="preserve">
+    <value>numerics with underscores</value>
   </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>

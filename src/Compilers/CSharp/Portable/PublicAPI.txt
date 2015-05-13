@@ -59,11 +59,11 @@ Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithXmlReferenceResolver(
 Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
-Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp6, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
+Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp6, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null, System.Collections.Generic.IEnumerable<string> features = null) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Equals(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions other) -> bool
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.LanguageVersion.get -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
-Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithFeatures(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> features) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
+Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithFeatures(System.Collections.Immutable.ImmutableArray<string> features) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithLanguageVersion(Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithPreprocessorSymbols(System.Collections.Generic.IEnumerable<string> preprocessorSymbols) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
@@ -2486,10 +2486,10 @@ override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithXmlRef
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode) -> Microsoft.CodeAnalysis.ParseOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithFeatures(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> features) -> Microsoft.CodeAnalysis.ParseOptions
+override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithFeatures(System.Collections.Immutable.ImmutableArray<string> features) -> Microsoft.CodeAnalysis.ParseOptions
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Features.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Features.get -> System.Collections.Immutable.ImmutableArray<string>
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.PreprocessorSymbolNames.get -> System.Collections.Generic.IEnumerable<string>
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken

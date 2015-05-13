@@ -238,16 +238,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithDocumentationMode(documentationMode)
         End Function
 
-        Protected Overrides Function CommonWithFeatures(features As IEnumerable(Of KeyValuePair(Of String, String))) As ParseOptions
+        Protected Overrides Function CommonWithFeatures(features As ImmutableArray(Of String)) As ParseOptions
             Return WithFeatures(features)
         End Function
 
         ''' <summary>
         ''' Enable some experimental language features for testing.
         ''' </summary>
-        Public Shadows Function WithFeatures(features As IEnumerable(Of KeyValuePair(Of String, String))) As VisualBasicParseOptions
+        Public Shadows Function WithFeatures(features As ImmutableArray(Of String)) As VisualBasicParseOptions
             ' there are currently no parse options for experimental features
-            If features Is Nothing Then
+            If features.IsDefault Then
                 Throw New ArgumentException(NameOf(features))
             End If
 
@@ -258,10 +258,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me
         End Function
 
-        Public Overrides ReadOnly Property Features As IReadOnlyDictionary(Of String, String)
+        Public Overrides ReadOnly Property Features As ImmutableArray(Of String)
             Get
                 ' There are no experimental features at this time.
-                Return New Dictionary(Of String, String)
+                Return ImmutableArray(Of String).Empty
             End Get
         End Property
 

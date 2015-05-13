@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<string> PreprocessorSymbols { get; private set; }
 
+        private ImmutableArray<string> _features;
+
         /// <summary>
         /// Gets the names of defined preprocessor symbols.
         /// </summary>
@@ -37,8 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion languageVersion = LanguageVersion.CSharp6,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
-            IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion, documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty())
+            IEnumerable<string> preprocessorSymbols = null,
+            IEnumerable<string> features = null)
+            : this(languageVersion, documentationMode, kind, preprocessorSymbols.ToImmutableArrayOrEmpty(), features.ToImmutableArrayOrEmpty())
         {
             if (!languageVersion.IsValid())
             {
@@ -66,7 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             languageVersion: other.LanguageVersion,
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
-            preprocessorSymbols: other.PreprocessorSymbols)
+            preprocessorSymbols: other.PreprocessorSymbols,
+            features: other.Features)
         {
         }
 
@@ -75,12 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion languageVersion,
             DocumentationMode documentationMode,
             SourceCodeKind kind,
-            ImmutableArray<string> preprocessorSymbols)
+            ImmutableArray<string> preprocessorSymbols,
+            ImmutableArray<string> features)
             : base(kind, documentationMode)
         {
             Debug.Assert(!preprocessorSymbols.IsDefault);
             this.LanguageVersion = languageVersion;
             this.PreprocessorSymbols = preprocessorSymbols;
+            this._features = features;
         }
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
@@ -163,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithDocumentationMode(documentationMode);
         }
 
-        protected override ParseOptions CommonWithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        protected override ParseOptions CommonWithFeatures(ImmutableArray<string> features)
         {
             return WithFeatures(features);
         }
@@ -171,30 +177,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Enable some experimental language features for testing.
         /// </summary>
-        public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
+        public new CSharpParseOptions WithFeatures(ImmutableArray<string> features)
         {
-            if (features == null)
+            if (features.IsDefault)
             {
                 throw new ArgumentNullException(nameof(features));
             }
 
-            // there are currently no parse options for experimental features
-            if (System.Linq.Enumerable.Any(features))
-            {
-                throw new ArgumentException("Experimental features are not supported", nameof(features));
-            }
-
-            return this;
+            return new CSharpParseOptions(this) { _features = features };
         }
 
-        public override IReadOnlyDictionary<string, string> Features
-        {
-            get
-            {
-                // there are currently no parse options for experimental features
-                return new Dictionary<string, string>();
-            }
-        }
+        public override ImmutableArray<string> Features => _features;
 
         public override bool Equals(object obj)
         {

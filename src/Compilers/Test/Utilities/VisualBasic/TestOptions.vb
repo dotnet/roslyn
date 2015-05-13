@@ -10,7 +10,7 @@ Public Class TestOptions
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
 
-    Private Shared ReadOnly s_features As New Dictionary(Of String, String) ' No experimental features to enable at this time
+    Private Shared ReadOnly s_features As Immutable.ImmutableArray(Of String) = Immutable.ImmutableArray(Of String).Empty ' No experimental features to enable at this time
     Public Shared ReadOnly ExperimentalReleaseExe As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
                                                                                        optimizationLevel:=OptimizationLevel.Release,
                                                                                        parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Regular).WithFeatures(s_features))

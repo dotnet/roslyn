@@ -688,7 +688,7 @@ Microsoft.CodeAnalysis.ParseOptions.GetHashCodeHelper() -> int
 Microsoft.CodeAnalysis.ParseOptions.Kind.get -> Microsoft.CodeAnalysis.SourceCodeKind
 Microsoft.CodeAnalysis.ParseOptions.Kind.set -> void
 Microsoft.CodeAnalysis.ParseOptions.WithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode) -> Microsoft.CodeAnalysis.ParseOptions
-Microsoft.CodeAnalysis.ParseOptions.WithFeatures(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> features) -> Microsoft.CodeAnalysis.ParseOptions
+Microsoft.CodeAnalysis.ParseOptions.WithFeatures(System.Collections.Immutable.ImmutableArray<string> features) -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.ParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
 Microsoft.CodeAnalysis.Platform
 Microsoft.CodeAnalysis.Platform.AnyCpu = 0 -> Microsoft.CodeAnalysis.Platform
@@ -1564,9 +1564,9 @@ abstract Microsoft.CodeAnalysis.Metadata.Dispose() -> void
 abstract Microsoft.CodeAnalysis.Metadata.Kind.get -> Microsoft.CodeAnalysis.MetadataImageKind
 abstract Microsoft.CodeAnalysis.MetadataReferenceResolver.ResolveReference(string reference, string baseFilePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.PortableExecutableReference>
 abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode) -> Microsoft.CodeAnalysis.ParseOptions
-abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithFeatures(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> features) -> Microsoft.CodeAnalysis.ParseOptions
+abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithFeatures(System.Collections.Immutable.ImmutableArray<string> features) -> Microsoft.CodeAnalysis.ParseOptions
 abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
-abstract Microsoft.CodeAnalysis.ParseOptions.Features.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+abstract Microsoft.CodeAnalysis.ParseOptions.Features.get -> System.Collections.Immutable.ImmutableArray<string>
 abstract Microsoft.CodeAnalysis.ParseOptions.PreprocessorSymbolNames.get -> System.Collections.Generic.IEnumerable<string>
 abstract Microsoft.CodeAnalysis.PortableExecutableReference.CreateDocumentationProvider() -> Microsoft.CodeAnalysis.DocumentationProvider
 abstract Microsoft.CodeAnalysis.PortableExecutableReference.GetMetadataImpl() -> Microsoft.CodeAnalysis.Metadata

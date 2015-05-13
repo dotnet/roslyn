@@ -11,6 +11,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -21,11 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LexicalTests()
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
+            var newFeatures = ImmutableArray.Create("underscoreSeparator", "binaryLiterals");
+            _options = _options.WithFeatures(_options.Features.AddRange(newFeatures));
         }
 
         private SyntaxToken Lex(string text)
         {
-            return SyntaxFactory.ParseToken(text);
+            // don't use SyntaxFactory.ParseToken(text) because we need to pass in _options (for the enabled features)
+            using (var lexer = new InternalSyntax.Lexer(SourceText.From(text), _options))
+            {
+                return new SyntaxToken(lexer.Lex(InternalSyntax.LexerMode.Syntax));
+            }
         }
 
         private SyntaxToken LexToken(string text)
