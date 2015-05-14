@@ -81,6 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return;
             }
 
+            this.Source.Shutdown();
             this.TableManager.RemoveSource(this.Source);
         }
 

@@ -40,6 +40,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
+        public void Shutdown()
+        {
+            ImmutableArray<SubscriptionWithoutLock> snapshot;
+
+            lock (Gate)
+            {
+                snapshot = Subscriptions;
+                Map.Clear();
+            }
+
+            // let table manager know that we want to clear all factories
+            for (var i = 0; i < snapshot.Length; i++)
+            {
+                snapshot[i].RemoveAll();
+            }
+        }
+
         protected void ConnectToSolutionCrawlerService(Workspace workspace)
         {
             var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
@@ -181,6 +198,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public void Remove(ITableEntriesSnapshotFactory factory)
             {
                 _sink.RemoveFactory(factory);
+            }
+
+            public void RemoveAll()
+            {
+                _sink.RemoveAllFactories();
             }
 
             public void Dispose()
