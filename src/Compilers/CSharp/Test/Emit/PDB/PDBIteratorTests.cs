@@ -134,8 +134,54 @@ class Program
 }
 ";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+            var v = CompileAndVerify(text, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.<Foo>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1)
+ ~IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Foo>d__0.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_001a
+  IL_0014:  br.s       IL_0034
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ret
+  IL_001a:  ldarg.0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int Program.<Foo>d__0.<>1__state""
+ -IL_0021:  nop
+ -IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  stfld      ""int Program.<Foo>d__0.<>2__current""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  stfld      ""int Program.<Foo>d__0.<>1__state""
+  IL_0030:  ldc.i4.1
+  IL_0031:  stloc.1
+  IL_0032:  br.s       IL_0018
+ ~IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.m1
+  IL_0036:  stfld      ""int Program.<Foo>d__0.<>1__state""
+ -IL_003b:  ldc.i4.0
+  IL_003c:  stloc.1
+  IL_003d:  br.s       IL_0018
+}
+", 
+                sequencePoints: "Program+<Foo>d__0.MoveNext");
+
+            v.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Foo"">

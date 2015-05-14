@@ -248,7 +248,7 @@ End Class
   IL_0000:  ret
 }
 {
-  // Code size       66 (0x42)
+  // Code size       63 (0x3f)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldfld      0x04000005
@@ -258,38 +258,35 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0037
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      0x04000005
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldc.i4.2
-  IL_0027:  stfld      0x04000006
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.1
-  IL_002e:  dup
-  IL_002f:  stloc.1
-  IL_0030:  stfld      0x04000005
-  IL_0035:  ldc.i4.1
-  IL_0036:  ret
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.m1
-  IL_0039:  dup
-  IL_003a:  stloc.1
-  IL_003b:  stfld      0x04000005
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0034
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      0x04000005
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.2
+  IL_0024:  stfld      0x04000006
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  dup
+  IL_002c:  stloc.1
+  IL_002d:  stfld      0x04000005
+  IL_0032:  ldc.i4.1
+  IL_0033:  ret
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.m1
+  IL_0036:  dup
+  IL_0037:  stloc.1
+  IL_0038:  stfld      0x04000005
+  IL_003d:  ldc.i4.0
+  IL_003e:  ret
 }
 {
   // Code size       55 (0x37)
@@ -357,12 +354,11 @@ End Class
         <method token="0x600000e">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x23" startLine="6" startColumn="5" endLine="6" endColumn="53" document="1"/>
-                <entry offset="0x24" startLine="6" startColumn="5" endLine="6" endColumn="53" document="1"/>
-                <entry offset="0x25" startLine="7" startColumn="9" endLine="7" endColumn="16" document="1"/>
-                <entry offset="0x40" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
+                <entry offset="0x21" startLine="6" startColumn="5" endLine="6" endColumn="53" document="1"/>
+                <entry offset="0x22" startLine="7" startColumn="9" endLine="7" endColumn="16" document="1"/>
+                <entry offset="0x3d" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x42">
+            <scope startOffset="0x0" endOffset="0x3f">
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
@@ -566,86 +562,85 @@ End Class
   IL_0006:  ret
 }
 {
-  // Code size      186 (0xba)
+  // Code size      185 (0xb9)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldfld      0x04000001
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  brfalse.s  IL_000c
-  IL_000a:  br.s       IL_000f
-  IL_000c:  nop
-  IL_000d:  br.s       IL_004b
+  IL_000a:  br.s       IL_000e
+  IL_000c:  br.s       IL_004a
+  IL_000e:  nop
   IL_000f:  nop
-  IL_0010:  nop
-  IL_0011:  ldc.i4.1
-  IL_0012:  call       0x2B000002
-  IL_0017:  callvirt   0x0A00000F
-  IL_001c:  stloc.3
-  IL_001d:  ldloca.s   V_3
-  IL_001f:  call       0x0A000010
-  IL_0024:  brtrue.s   IL_0069
-  IL_0026:  ldarg.0
-  IL_0027:  ldc.i4.0
-  IL_0028:  dup
-  IL_0029:  stloc.1
-  IL_002a:  stfld      0x04000001
-  IL_002f:  ldarg.0
-  IL_0030:  ldloc.3
-  IL_0031:  stfld      0x04000004
-  IL_0036:  ldarg.0
-  IL_0037:  ldflda     0x04000002
-  IL_003c:  ldloca.s   V_3
-  IL_003e:  ldarg.0
-  IL_003f:  stloc.s    V_4
-  IL_0041:  ldloca.s   V_4
-  IL_0043:  call       0x2B000003
-  IL_0048:  nop
-  IL_0049:  leave.s    IL_00b9
-  IL_004b:  ldarg.0
-  IL_004c:  ldc.i4.m1
-  IL_004d:  dup
-  IL_004e:  stloc.1
-  IL_004f:  stfld      0x04000001
-  IL_0054:  ldarg.0
-  IL_0055:  ldfld      0x04000004
-  IL_005a:  stloc.3
-  IL_005b:  ldarg.0
-  IL_005c:  ldflda     0x04000004
-  IL_0061:  initobj    0x1B000003
-  IL_0067:  br.s       IL_0069
-  IL_0069:  ldloca.s   V_3
-  IL_006b:  call       0x0A000012
-  IL_0070:  pop
-  IL_0071:  ldloca.s   V_3
-  IL_0073:  initobj    0x1B000003
-  IL_0079:  ldc.i4.0
-  IL_007a:  stloc.0
-  IL_007b:  leave.s    IL_00a2
-  IL_007d:  dup
-  IL_007e:  call       0x0A000013
-  IL_0083:  stloc.s    V_5
-  IL_0085:  ldarg.0
-  IL_0086:  ldc.i4.s   -2
-  IL_0088:  stfld      0x04000001
-  IL_008d:  ldarg.0
-  IL_008e:  ldflda     0x04000002
-  IL_0093:  ldloc.s    V_5
-  IL_0095:  call       0x0A000014
-  IL_009a:  nop
-  IL_009b:  call       0x0A000015
-  IL_00a0:  leave.s    IL_00b9
-  IL_00a2:  ldarg.0
-  IL_00a3:  ldc.i4.s   -2
-  IL_00a5:  dup
-  IL_00a6:  stloc.1
-  IL_00a7:  stfld      0x04000001
-  IL_00ac:  ldarg.0
-  IL_00ad:  ldflda     0x04000002
-  IL_00b2:  ldloc.0
-  IL_00b3:  call       0x0A000016
-  IL_00b8:  nop
-  IL_00b9:  ret
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       0x2B000002
+  IL_0016:  callvirt   0x0A00000F
+  IL_001b:  stloc.3
+  IL_001c:  ldloca.s   V_3
+  IL_001e:  call       0x0A000010
+  IL_0023:  brtrue.s   IL_0068
+  IL_0025:  ldarg.0
+  IL_0026:  ldc.i4.0
+  IL_0027:  dup
+  IL_0028:  stloc.1
+  IL_0029:  stfld      0x04000001
+  IL_002e:  ldarg.0
+  IL_002f:  ldloc.3
+  IL_0030:  stfld      0x04000004
+  IL_0035:  ldarg.0
+  IL_0036:  ldflda     0x04000002
+  IL_003b:  ldloca.s   V_3
+  IL_003d:  ldarg.0
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloca.s   V_4
+  IL_0042:  call       0x2B000003
+  IL_0047:  nop
+  IL_0048:  leave.s    IL_00b8
+  IL_004a:  ldarg.0
+  IL_004b:  ldc.i4.m1
+  IL_004c:  dup
+  IL_004d:  stloc.1
+  IL_004e:  stfld      0x04000001
+  IL_0053:  ldarg.0
+  IL_0054:  ldfld      0x04000004
+  IL_0059:  stloc.3
+  IL_005a:  ldarg.0
+  IL_005b:  ldflda     0x04000004
+  IL_0060:  initobj    0x1B000003
+  IL_0066:  br.s       IL_0068
+  IL_0068:  ldloca.s   V_3
+  IL_006a:  call       0x0A000012
+  IL_006f:  pop
+  IL_0070:  ldloca.s   V_3
+  IL_0072:  initobj    0x1B000003
+  IL_0078:  ldc.i4.0
+  IL_0079:  stloc.0
+  IL_007a:  leave.s    IL_00a1
+  IL_007c:  dup
+  IL_007d:  call       0x0A000013
+  IL_0082:  stloc.s    V_5
+  IL_0084:  ldarg.0
+  IL_0085:  ldc.i4.s   -2
+  IL_0087:  stfld      0x04000001
+  IL_008c:  ldarg.0
+  IL_008d:  ldflda     0x04000002
+  IL_0092:  ldloc.s    V_5
+  IL_0094:  call       0x0A000014
+  IL_0099:  nop
+  IL_009a:  call       0x0A000015
+  IL_009f:  leave.s    IL_00b8
+  IL_00a1:  ldarg.0
+  IL_00a2:  ldc.i4.s   -2
+  IL_00a4:  dup
+  IL_00a5:  stloc.1
+  IL_00a6:  stfld      0x04000001
+  IL_00ab:  ldarg.0
+  IL_00ac:  ldflda     0x04000002
+  IL_00b1:  ldloc.0
+  IL_00b2:  call       0x0A000016
+  IL_00b7:  nop
+  IL_00b8:  ret
 }
 {
   // Code size        1 (0x1)
@@ -664,22 +659,22 @@ End Class
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
                 <entry offset="0x7" hidden="true" document="1"/>
-                <entry offset="0xf" startLine="3" startColumn="5" endLine="3" endColumn="43" document="1"/>
-                <entry offset="0x10" startLine="4" startColumn="9" endLine="4" endColumn="33" document="1"/>
-                <entry offset="0x1d" hidden="true" document="1"/>
-                <entry offset="0x79" startLine="5" startColumn="9" endLine="5" endColumn="17" document="1"/>
-                <entry offset="0x7d" hidden="true" document="1"/>
-                <entry offset="0x85" hidden="true" document="1"/>
-                <entry offset="0xa2" startLine="6" startColumn="5" endLine="6" endColumn="17" document="1"/>
-                <entry offset="0xac" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="3" startColumn="5" endLine="3" endColumn="43" document="1"/>
+                <entry offset="0xf" startLine="4" startColumn="9" endLine="4" endColumn="33" document="1"/>
+                <entry offset="0x1c" hidden="true" document="1"/>
+                <entry offset="0x78" startLine="5" startColumn="9" endLine="5" endColumn="17" document="1"/>
+                <entry offset="0x7c" hidden="true" document="1"/>
+                <entry offset="0x84" hidden="true" document="1"/>
+                <entry offset="0xa1" startLine="6" startColumn="5" endLine="6" endColumn="17" document="1"/>
+                <entry offset="0xab" hidden="true" document="1"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xba">
+            <scope startOffset="0x0" endOffset="0xb9">
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
             <asyncInfo>
                 <kickoffMethod token="0x6000002"/>
-                <await yield="0x2f" resume="0x4b" token="0x6000004"/>
+                <await yield="0x2e" resume="0x4a" token="0x6000004"/>
             </asyncInfo>
         </method>
     </methods>
@@ -1106,7 +1101,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size       66 (0x42)
+  // Code size       63 (0x3f)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -1118,43 +1113,40 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0037
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldc.i4.2
-  IL_0027:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.1
-  IL_002e:  dup
-  IL_002f:  stloc.1
-  IL_0030:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0035:  ldc.i4.1
-  IL_0036:  ret
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.m1
-  IL_0039:  dup
-  IL_003a:  stloc.1
-  IL_003b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0034
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.2
+  IL_0024:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  dup
+  IL_002c:  stloc.1
+  IL_002d:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0032:  ldc.i4.1
+  IL_0033:  ret
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.m1
+  IL_0036:  dup
+  IL_0037:  stloc.1
+  IL_0038:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_003d:  ldc.i4.0
+  IL_003e:  ret
 }
 ")
                 v0.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size       66 (0x42)
+  // Code size       63 (0x3f)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -1166,38 +1158,35 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0037
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldc.i4.1
-  IL_0027:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.1
-  IL_002e:  dup
-  IL_002f:  stloc.1
-  IL_0030:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0035:  ldc.i4.1
-  IL_0036:  ret
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.m1
-  IL_0039:  dup
-  IL_003a:  stloc.1
-  IL_003b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0034
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  dup
+  IL_002c:  stloc.1
+  IL_002d:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0032:  ldc.i4.1
+  IL_0033:  ret
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.m1
+  IL_0036:  dup
+  IL_0037:  stloc.1
+  IL_0038:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_003d:  ldc.i4.0
+  IL_003e:  ret
 }
 ")
             End Using
@@ -1260,7 +1249,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      188 (0xbc)
+  // Code size      187 (0xbb)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -1275,108 +1264,11 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_004c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_004b
+    IL_000e:  nop
     IL_000f:  nop
-    IL_0010:  nop
-    IL_0011:  ldc.i4.s   10
-    IL_0013:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0018:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_001d:  stloc.3
-    IL_001e:  ldloca.s   V_3
-    IL_0020:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0025:  brtrue.s   IL_006a
-    IL_0027:  ldarg.0
-    IL_0028:  ldc.i4.0
-    IL_0029:  dup
-    IL_002a:  stloc.1
-    IL_002b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0030:  ldarg.0
-    IL_0031:  ldloc.3
-    IL_0032:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0037:  ldarg.0
-    IL_0038:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_003d:  ldloca.s   V_3
-    IL_003f:  ldarg.0
-    IL_0040:  stloc.s    V_4
-    IL_0042:  ldloca.s   V_4
-    IL_0044:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
-    IL_0049:  nop
-    IL_004a:  leave.s    IL_00bb
-    IL_004c:  ldarg.0
-    IL_004d:  ldc.i4.m1
-    IL_004e:  dup
-    IL_004f:  stloc.1
-    IL_0050:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0055:  ldarg.0
-    IL_0056:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_005b:  stloc.3
-    IL_005c:  ldarg.0
-    IL_005d:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0062:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0068:  br.s       IL_006a
-    IL_006a:  ldloca.s   V_3
-    IL_006c:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_0071:  pop
-    IL_0072:  ldloca.s   V_3
-    IL_0074:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_007a:  ldc.i4.s   20
-    IL_007c:  stloc.0
-    IL_007d:  leave.s    IL_00a4
-  }
-  catch System.Exception
-  {
-    IL_007f:  dup
-    IL_0080:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0085:  stloc.s    V_5
-    IL_0087:  ldarg.0
-    IL_0088:  ldc.i4.s   -2
-    IL_008a:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_008f:  ldarg.0
-    IL_0090:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0095:  ldloc.s    V_5
-    IL_0097:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_009c:  nop
-    IL_009d:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00a2:  leave.s    IL_00bb
-  }
-  IL_00a4:  ldarg.0
-  IL_00a5:  ldc.i4.s   -2
-  IL_00a7:  dup
-  IL_00a8:  stloc.1
-  IL_00a9:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00ae:  ldarg.0
-  IL_00af:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00b4:  ldloc.0
-  IL_00b5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00ba:  nop
-  IL_00bb:  ret
-}
-")
-                v0.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
-{
-  // Code size      186 (0xba)
-  .maxstack  3
-  .locals init (Integer V_0,
-                Integer V_1,
-                System.Threading.Tasks.Task(Of Integer) V_2,
-                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
-                C.VB$StateMachine_1_F V_4,
-                System.Exception V_5)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0006:  stloc.1
-  .try
-  {
-    IL_0007:  ldloc.1
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_004b
-    IL_000f:  nop
-    IL_0010:  nop
-    IL_0011:  ldc.i4.1
+    IL_0010:  ldc.i4.s   10
     IL_0012:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
     IL_0017:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
     IL_001c:  stloc.3
@@ -1399,7 +1291,7 @@ End Class
     IL_0041:  ldloca.s   V_4
     IL_0043:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
     IL_0048:  nop
-    IL_0049:  leave.s    IL_00b9
+    IL_0049:  leave.s    IL_00ba
     IL_004b:  ldarg.0
     IL_004c:  ldc.i4.m1
     IL_004d:  dup
@@ -1417,37 +1309,132 @@ End Class
     IL_0070:  pop
     IL_0071:  ldloca.s   V_3
     IL_0073:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0079:  ldc.i4.2
-    IL_007a:  stloc.0
-    IL_007b:  leave.s    IL_00a2
+    IL_0079:  ldc.i4.s   20
+    IL_007b:  stloc.0
+    IL_007c:  leave.s    IL_00a3
   }
   catch System.Exception
   {
-    IL_007d:  dup
-    IL_007e:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0083:  stloc.s    V_5
-    IL_0085:  ldarg.0
-    IL_0086:  ldc.i4.s   -2
-    IL_0088:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_008d:  ldarg.0
-    IL_008e:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0093:  ldloc.s    V_5
-    IL_0095:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_009a:  nop
-    IL_009b:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00a0:  leave.s    IL_00b9
+    IL_007e:  dup
+    IL_007f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0084:  stloc.s    V_5
+    IL_0086:  ldarg.0
+    IL_0087:  ldc.i4.s   -2
+    IL_0089:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_008e:  ldarg.0
+    IL_008f:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0094:  ldloc.s    V_5
+    IL_0096:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_009b:  nop
+    IL_009c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00a1:  leave.s    IL_00ba
   }
-  IL_00a2:  ldarg.0
-  IL_00a3:  ldc.i4.s   -2
-  IL_00a5:  dup
-  IL_00a6:  stloc.1
-  IL_00a7:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00ac:  ldarg.0
-  IL_00ad:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00b2:  ldloc.0
-  IL_00b3:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00b8:  nop
-  IL_00b9:  ret
+  IL_00a3:  ldarg.0
+  IL_00a4:  ldc.i4.s   -2
+  IL_00a6:  dup
+  IL_00a7:  stloc.1
+  IL_00a8:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00ad:  ldarg.0
+  IL_00ae:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00b3:  ldloc.0
+  IL_00b4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00b9:  nop
+  IL_00ba:  ret
+}
+")
+                v0.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
+{
+  // Code size      185 (0xb9)
+  .maxstack  3
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Integer) V_2,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                C.VB$StateMachine_1_F V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_004a
+    IL_000e:  nop
+    IL_000f:  nop
+    IL_0010:  ldc.i4.1
+    IL_0011:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0016:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_001b:  stloc.3
+    IL_001c:  ldloca.s   V_3
+    IL_001e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0023:  brtrue.s   IL_0068
+    IL_0025:  ldarg.0
+    IL_0026:  ldc.i4.0
+    IL_0027:  dup
+    IL_0028:  stloc.1
+    IL_0029:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_002e:  ldarg.0
+    IL_002f:  ldloc.3
+    IL_0030:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_003b:  ldloca.s   V_3
+    IL_003d:  ldarg.0
+    IL_003e:  stloc.s    V_4
+    IL_0040:  ldloca.s   V_4
+    IL_0042:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
+    IL_0047:  nop
+    IL_0048:  leave.s    IL_00b8
+    IL_004a:  ldarg.0
+    IL_004b:  ldc.i4.m1
+    IL_004c:  dup
+    IL_004d:  stloc.1
+    IL_004e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0053:  ldarg.0
+    IL_0054:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0059:  stloc.3
+    IL_005a:  ldarg.0
+    IL_005b:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0060:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0066:  br.s       IL_0068
+    IL_0068:  ldloca.s   V_3
+    IL_006a:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_006f:  pop
+    IL_0070:  ldloca.s   V_3
+    IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0078:  ldc.i4.2
+    IL_0079:  stloc.0
+    IL_007a:  leave.s    IL_00a1
+  }
+  catch System.Exception
+  {
+    IL_007c:  dup
+    IL_007d:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0082:  stloc.s    V_5
+    IL_0084:  ldarg.0
+    IL_0085:  ldc.i4.s   -2
+    IL_0087:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_008c:  ldarg.0
+    IL_008d:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0092:  ldloc.s    V_5
+    IL_0094:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_0099:  nop
+    IL_009a:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_009f:  leave.s    IL_00b8
+  }
+  IL_00a1:  ldarg.0
+  IL_00a2:  ldc.i4.s   -2
+  IL_00a4:  dup
+  IL_00a5:  stloc.1
+  IL_00a6:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00ab:  ldarg.0
+  IL_00ac:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00b1:  ldloc.0
+  IL_00b2:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00b7:  nop
+  IL_00b8:  ret
 }
 ")
             End Using
@@ -1518,7 +1505,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size       78 (0x4e)
+  // Code size       75 (0x4b)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -1530,42 +1517,39 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0043
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldarg.0
-  IL_0027:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
-  IL_002c:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
-  IL_0031:  ldarg.0
-  IL_0032:  ldc.i4.2
-  IL_0033:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_0038:  ldarg.0
-  IL_0039:  ldc.i4.1
-  IL_003a:  dup
-  IL_003b:  stloc.1
-  IL_003c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0041:  ldc.i4.1
-  IL_0042:  ret
-  IL_0043:  ldarg.0
-  IL_0044:  ldc.i4.m1
-  IL_0045:  dup
-  IL_0046:  stloc.1
-  IL_0047:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_004c:  ldc.i4.0
-  IL_004d:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0040
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
+  IL_0029:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4.2
+  IL_0030:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0035:  ldarg.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  dup
+  IL_0038:  stloc.1
+  IL_0039:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_003e:  ldc.i4.1
+  IL_003f:  ret
+  IL_0040:  ldarg.0
+  IL_0041:  ldc.i4.m1
+  IL_0042:  dup
+  IL_0043:  stloc.1
+  IL_0044:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
 }
 ")
             End Using
@@ -1639,7 +1623,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size       94 (0x5e)
+  // Code size       91 (0x5b)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -1651,46 +1635,43 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0053
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldarg.0
-  IL_0027:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
-  IL_002c:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
-  IL_0031:  ldarg.0
-  IL_0032:  ldc.i4     0x4d2
-  IL_0037:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
-  IL_003c:  ldarg.0
-  IL_003d:  ldarg.0
-  IL_003e:  ldfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
-  IL_0043:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_0048:  ldarg.0
-  IL_0049:  ldc.i4.1
-  IL_004a:  dup
-  IL_004b:  stloc.1
-  IL_004c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0051:  ldc.i4.1
-  IL_0052:  ret
-  IL_0053:  ldarg.0
-  IL_0054:  ldc.i4.m1
-  IL_0055:  dup
-  IL_0056:  stloc.1
-  IL_0057:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_005c:  ldc.i4.0
-  IL_005d:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0050
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
+  IL_0029:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4     0x4d2
+  IL_0034:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
+  IL_0039:  ldarg.0
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
+  IL_0040:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0045:  ldarg.0
+  IL_0046:  ldc.i4.1
+  IL_0047:  dup
+  IL_0048:  stloc.1
+  IL_0049:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_004e:  ldc.i4.1
+  IL_004f:  ret
+  IL_0050:  ldarg.0
+  IL_0051:  ldc.i4.m1
+  IL_0052:  dup
+  IL_0053:  stloc.1
+  IL_0054:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0059:  ldc.i4.0
+  IL_005a:  ret
 }
 ")
             End Using
@@ -1763,7 +1744,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size       82 (0x52)
+  // Code size       79 (0x4f)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -1775,42 +1756,39 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0047
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldc.i4     0x4d2
-  IL_002b:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
-  IL_0030:  ldarg.0
-  IL_0031:  ldarg.0
-  IL_0032:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
-  IL_0037:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_003c:  ldarg.0
-  IL_003d:  ldc.i4.1
-  IL_003e:  dup
-  IL_003f:  stloc.1
-  IL_0040:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0045:  ldc.i4.1
-  IL_0046:  ret
-  IL_0047:  ldarg.0
-  IL_0048:  ldc.i4.m1
-  IL_0049:  dup
-  IL_004a:  stloc.1
-  IL_004b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0050:  ldc.i4.0
-  IL_0051:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0044
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4     0x4d2
+  IL_0028:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
+  IL_002d:  ldarg.0
+  IL_002e:  ldarg.0
+  IL_002f:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
+  IL_0034:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0039:  ldarg.0
+  IL_003a:  ldc.i4.1
+  IL_003b:  dup
+  IL_003c:  stloc.1
+  IL_003d:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0042:  ldc.i4.1
+  IL_0043:  ret
+  IL_0044:  ldarg.0
+  IL_0045:  ldc.i4.m1
+  IL_0046:  dup
+  IL_0047:  stloc.1
+  IL_0048:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_004d:  ldc.i4.0
+  IL_004e:  ret
 }
 ")
             End Using
@@ -1883,7 +1861,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size       77 (0x4d)
+  // Code size       74 (0x4a)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -1895,41 +1873,38 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0042
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldc.i4     0x4d2
-  IL_002b:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$1 As Integer""
-  IL_0030:  ldarg.0
-  IL_0031:  ldc.i4.0
-  IL_0032:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.1
-  IL_0039:  dup
-  IL_003a:  stloc.1
-  IL_003b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0040:  ldc.i4.1
-  IL_0041:  ret
-  IL_0042:  ldarg.0
-  IL_0043:  ldc.i4.m1
-  IL_0044:  dup
-  IL_0045:  stloc.1
-  IL_0046:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_004b:  ldc.i4.0
-  IL_004c:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_003f
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4     0x4d2
+  IL_0028:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$1 As Integer""
+  IL_002d:  ldarg.0
+  IL_002e:  ldc.i4.0
+  IL_002f:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.1
+  IL_0036:  dup
+  IL_0037:  stloc.1
+  IL_0038:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_003d:  ldc.i4.1
+  IL_003e:  ret
+  IL_003f:  ldarg.0
+  IL_0040:  ldc.i4.m1
+  IL_0041:  dup
+  IL_0042:  stloc.1
+  IL_0043:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0048:  ldc.i4.0
+  IL_0049:  ret
 }
 ")
             End Using
@@ -2033,7 +2008,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      165 (0xa5)
+  // Code size      162 (0xa2)
   .maxstack  5
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -2046,78 +2021,75 @@ End Class
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.1
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0015
-  IL_0010:  br.s       IL_0018
-  IL_0012:  nop
-  IL_0013:  br.s       IL_001a
-  IL_0015:  nop
-  IL_0016:  br.s       IL_0077
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  dup
-  IL_001d:  stloc.1
-  IL_001e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0023:  nop
-  IL_0024:  nop
-  IL_0025:  ldarg.0
-  IL_0026:  ldc.i4.2
-  IL_0027:  newarr     ""Double""
-  IL_002c:  dup
-  IL_002d:  ldc.i4.0
-  IL_002e:  ldc.r8     1
-  IL_0037:  stelem.r8
-  IL_0038:  dup
-  IL_0039:  ldc.i4.1
-  IL_003a:  ldc.r8     2
-  IL_0043:  stelem.r8
-  IL_0044:  stfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
-  IL_0049:  ldarg.0
-  IL_004a:  ldc.i4.0
-  IL_004b:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_0050:  br.s       IL_008f
-  IL_0052:  ldarg.0
-  IL_0053:  ldarg.0
-  IL_0054:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
-  IL_0059:  ldarg.0
-  IL_005a:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_005f:  ldelem.r8
-  IL_0060:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$4 As Double""
-  IL_0065:  ldarg.0
-  IL_0066:  ldc.i4.1
-  IL_0067:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_006c:  ldarg.0
-  IL_006d:  ldc.i4.1
-  IL_006e:  dup
-  IL_006f:  stloc.1
-  IL_0070:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0075:  ldc.i4.1
-  IL_0076:  ret
-  IL_0077:  ldarg.0
-  IL_0078:  ldc.i4.m1
-  IL_0079:  dup
-  IL_007a:  stloc.1
-  IL_007b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0080:  nop
-  IL_0081:  ldarg.0
-  IL_0082:  ldarg.0
-  IL_0083:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_0088:  ldc.i4.1
-  IL_0089:  add.ovf
-  IL_008a:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_008f:  ldarg.0
-  IL_0090:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
-  IL_0095:  ldarg.0
-  IL_0096:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
-  IL_009b:  ldlen
-  IL_009c:  conv.i4
-  IL_009d:  clt
-  IL_009f:  stloc.2
-  IL_00a0:  ldloc.2
-  IL_00a1:  brtrue.s   IL_0052
-  IL_00a3:  ldc.i4.0
-  IL_00a4:  ret
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0074
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.2
+  IL_0024:  newarr     ""Double""
+  IL_0029:  dup
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldc.r8     1
+  IL_0034:  stelem.r8
+  IL_0035:  dup
+  IL_0036:  ldc.i4.1
+  IL_0037:  ldc.r8     2
+  IL_0040:  stelem.r8
+  IL_0041:  stfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
+  IL_0046:  ldarg.0
+  IL_0047:  ldc.i4.0
+  IL_0048:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_004d:  br.s       IL_008c
+  IL_004f:  ldarg.0
+  IL_0050:  ldarg.0
+  IL_0051:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
+  IL_0056:  ldarg.0
+  IL_0057:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_005c:  ldelem.r8
+  IL_005d:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$4 As Double""
+  IL_0062:  ldarg.0
+  IL_0063:  ldc.i4.1
+  IL_0064:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0069:  ldarg.0
+  IL_006a:  ldc.i4.1
+  IL_006b:  dup
+  IL_006c:  stloc.1
+  IL_006d:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0072:  ldc.i4.1
+  IL_0073:  ret
+  IL_0074:  ldarg.0
+  IL_0075:  ldc.i4.m1
+  IL_0076:  dup
+  IL_0077:  stloc.1
+  IL_0078:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_007d:  nop
+  IL_007e:  ldarg.0
+  IL_007f:  ldarg.0
+  IL_0080:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_0085:  ldc.i4.1
+  IL_0086:  add.ovf
+  IL_0087:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_008c:  ldarg.0
+  IL_008d:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
+  IL_0092:  ldarg.0
+  IL_0093:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
+  IL_0098:  ldlen
+  IL_0099:  conv.i4
+  IL_009a:  clt
+  IL_009c:  stloc.2
+  IL_009d:  ldloc.2
+  IL_009e:  brtrue.s   IL_004f
+  IL_00a0:  ldc.i4.0
+  IL_00a1:  ret
 }
 ")
             End Using
@@ -2185,7 +2157,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      201 (0xc9)
+  // Code size      200 (0xc8)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -2201,87 +2173,86 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_0058
-    IL_000f:  nop
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0057
+    IL_000e:  nop
+    IL_000f:  ldarg.0
     IL_0010:  ldarg.0
-    IL_0011:  ldarg.0
-    IL_0012:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
-    IL_0017:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
-    IL_001c:  nop
-    IL_001d:  ldc.i4.s   20
-    IL_001f:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0024:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0029:  stloc.3
-    IL_002a:  ldloca.s   V_3
-    IL_002c:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0031:  brtrue.s   IL_0076
-    IL_0033:  ldarg.0
-    IL_0034:  ldc.i4.0
-    IL_0035:  dup
-    IL_0036:  stloc.1
-    IL_0037:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_003c:  ldarg.0
-    IL_003d:  ldloc.3
-    IL_003e:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0043:  ldarg.0
-    IL_0044:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0049:  ldloca.s   V_3
-    IL_004b:  ldarg.0
-    IL_004c:  stloc.s    V_4
-    IL_004e:  ldloca.s   V_4
-    IL_0050:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
-    IL_0055:  nop
-    IL_0056:  leave.s    IL_00c8
-    IL_0058:  ldarg.0
-    IL_0059:  ldc.i4.m1
-    IL_005a:  dup
-    IL_005b:  stloc.1
-    IL_005c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0061:  ldarg.0
-    IL_0062:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0067:  stloc.3
-    IL_0068:  ldarg.0
-    IL_0069:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_006e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0074:  br.s       IL_0076
-    IL_0076:  ldloca.s   V_3
-    IL_0078:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_007d:  stloc.s    V_5
-    IL_007f:  ldloca.s   V_3
-    IL_0081:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0087:  ldloc.s    V_5
-    IL_0089:  stloc.0
-    IL_008a:  leave.s    IL_00b1
+    IL_0011:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
+    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
+    IL_001b:  nop
+    IL_001c:  ldc.i4.s   20
+    IL_001e:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0023:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0028:  stloc.3
+    IL_0029:  ldloca.s   V_3
+    IL_002b:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0030:  brtrue.s   IL_0075
+    IL_0032:  ldarg.0
+    IL_0033:  ldc.i4.0
+    IL_0034:  dup
+    IL_0035:  stloc.1
+    IL_0036:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_003b:  ldarg.0
+    IL_003c:  ldloc.3
+    IL_003d:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0042:  ldarg.0
+    IL_0043:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0048:  ldloca.s   V_3
+    IL_004a:  ldarg.0
+    IL_004b:  stloc.s    V_4
+    IL_004d:  ldloca.s   V_4
+    IL_004f:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
+    IL_0054:  nop
+    IL_0055:  leave.s    IL_00c7
+    IL_0057:  ldarg.0
+    IL_0058:  ldc.i4.m1
+    IL_0059:  dup
+    IL_005a:  stloc.1
+    IL_005b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0060:  ldarg.0
+    IL_0061:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0066:  stloc.3
+    IL_0067:  ldarg.0
+    IL_0068:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0073:  br.s       IL_0075
+    IL_0075:  ldloca.s   V_3
+    IL_0077:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_007c:  stloc.s    V_5
+    IL_007e:  ldloca.s   V_3
+    IL_0080:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0086:  ldloc.s    V_5
+    IL_0088:  stloc.0
+    IL_0089:  leave.s    IL_00b0
   }
   catch System.Exception
   {
-    IL_008c:  dup
-    IL_008d:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0092:  stloc.s    V_6
-    IL_0094:  ldarg.0
-    IL_0095:  ldc.i4.s   -2
-    IL_0097:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_009c:  ldarg.0
-    IL_009d:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00a2:  ldloc.s    V_6
-    IL_00a4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_00a9:  nop
-    IL_00aa:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00af:  leave.s    IL_00c8
+    IL_008b:  dup
+    IL_008c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0091:  stloc.s    V_6
+    IL_0093:  ldarg.0
+    IL_0094:  ldc.i4.s   -2
+    IL_0096:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_009b:  ldarg.0
+    IL_009c:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00a1:  ldloc.s    V_6
+    IL_00a3:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_00a8:  nop
+    IL_00a9:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00ae:  leave.s    IL_00c7
   }
-  IL_00b1:  ldarg.0
-  IL_00b2:  ldc.i4.s   -2
-  IL_00b4:  dup
-  IL_00b5:  stloc.1
-  IL_00b6:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00bb:  ldarg.0
-  IL_00bc:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00c1:  ldloc.0
-  IL_00c2:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00c7:  nop
-  IL_00c8:  ret
+  IL_00b0:  ldarg.0
+  IL_00b1:  ldc.i4.s   -2
+  IL_00b3:  dup
+  IL_00b4:  stloc.1
+  IL_00b5:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00ba:  ldarg.0
+  IL_00bb:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00c0:  ldloc.0
+  IL_00c1:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00c6:  nop
+  IL_00c7:  ret
 }
 ")
             End Using
@@ -2352,7 +2323,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      213 (0xd5)
+  // Code size      212 (0xd4)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -2368,91 +2339,90 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_0064
-    IL_000f:  nop
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0063
+    IL_000e:  nop
+    IL_000f:  ldarg.0
     IL_0010:  ldarg.0
-    IL_0011:  ldarg.0
-    IL_0012:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
-    IL_0017:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
-    IL_001c:  ldarg.0
-    IL_001d:  ldc.i4.s   10
-    IL_001f:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
-    IL_0024:  nop
-    IL_0025:  ldarg.0
-    IL_0026:  ldfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
-    IL_002b:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0030:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0035:  stloc.3
-    IL_0036:  ldloca.s   V_3
-    IL_0038:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_003d:  brtrue.s   IL_0082
-    IL_003f:  ldarg.0
-    IL_0040:  ldc.i4.0
-    IL_0041:  dup
-    IL_0042:  stloc.1
-    IL_0043:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0048:  ldarg.0
-    IL_0049:  ldloc.3
-    IL_004a:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_004f:  ldarg.0
-    IL_0050:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0055:  ldloca.s   V_3
-    IL_0057:  ldarg.0
-    IL_0058:  stloc.s    V_4
-    IL_005a:  ldloca.s   V_4
-    IL_005c:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
-    IL_0061:  nop
-    IL_0062:  leave.s    IL_00d4
-    IL_0064:  ldarg.0
-    IL_0065:  ldc.i4.m1
-    IL_0066:  dup
-    IL_0067:  stloc.1
-    IL_0068:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_006d:  ldarg.0
-    IL_006e:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0073:  stloc.3
-    IL_0074:  ldarg.0
-    IL_0075:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_007a:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0080:  br.s       IL_0082
-    IL_0082:  ldloca.s   V_3
-    IL_0084:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_0089:  stloc.s    V_5
-    IL_008b:  ldloca.s   V_3
-    IL_008d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0093:  ldloc.s    V_5
-    IL_0095:  stloc.0
-    IL_0096:  leave.s    IL_00bd
+    IL_0011:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
+    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
+    IL_001b:  ldarg.0
+    IL_001c:  ldc.i4.s   10
+    IL_001e:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
+    IL_0023:  nop
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
+    IL_002a:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_002f:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0034:  stloc.3
+    IL_0035:  ldloca.s   V_3
+    IL_0037:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_003c:  brtrue.s   IL_0081
+    IL_003e:  ldarg.0
+    IL_003f:  ldc.i4.0
+    IL_0040:  dup
+    IL_0041:  stloc.1
+    IL_0042:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0047:  ldarg.0
+    IL_0048:  ldloc.3
+    IL_0049:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_004e:  ldarg.0
+    IL_004f:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0054:  ldloca.s   V_3
+    IL_0056:  ldarg.0
+    IL_0057:  stloc.s    V_4
+    IL_0059:  ldloca.s   V_4
+    IL_005b:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
+    IL_0060:  nop
+    IL_0061:  leave.s    IL_00d3
+    IL_0063:  ldarg.0
+    IL_0064:  ldc.i4.m1
+    IL_0065:  dup
+    IL_0066:  stloc.1
+    IL_0067:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_006c:  ldarg.0
+    IL_006d:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0072:  stloc.3
+    IL_0073:  ldarg.0
+    IL_0074:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_007f:  br.s       IL_0081
+    IL_0081:  ldloca.s   V_3
+    IL_0083:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0088:  stloc.s    V_5
+    IL_008a:  ldloca.s   V_3
+    IL_008c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0092:  ldloc.s    V_5
+    IL_0094:  stloc.0
+    IL_0095:  leave.s    IL_00bc
   }
   catch System.Exception
   {
-    IL_0098:  dup
-    IL_0099:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_009e:  stloc.s    V_6
-    IL_00a0:  ldarg.0
-    IL_00a1:  ldc.i4.s   -2
-    IL_00a3:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_00a8:  ldarg.0
-    IL_00a9:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00ae:  ldloc.s    V_6
-    IL_00b0:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_00b5:  nop
-    IL_00b6:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00bb:  leave.s    IL_00d4
+    IL_0097:  dup
+    IL_0098:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_009d:  stloc.s    V_6
+    IL_009f:  ldarg.0
+    IL_00a0:  ldc.i4.s   -2
+    IL_00a2:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00ad:  ldloc.s    V_6
+    IL_00af:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_00b4:  nop
+    IL_00b5:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00ba:  leave.s    IL_00d3
   }
-  IL_00bd:  ldarg.0
-  IL_00be:  ldc.i4.s   -2
-  IL_00c0:  dup
-  IL_00c1:  stloc.1
-  IL_00c2:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00c7:  ldarg.0
-  IL_00c8:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00cd:  ldloc.0
-  IL_00ce:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00d3:  nop
-  IL_00d4:  ret
+  IL_00bc:  ldarg.0
+  IL_00bd:  ldc.i4.s   -2
+  IL_00bf:  dup
+  IL_00c0:  stloc.1
+  IL_00c1:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00c6:  ldarg.0
+  IL_00c7:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00cc:  ldloc.0
+  IL_00cd:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00d2:  nop
+  IL_00d3:  ret
 }
 ")
             End Using
@@ -2522,7 +2492,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      204 (0xcc)
+  // Code size      203 (0xcb)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -2538,87 +2508,86 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_005b
-    IL_000f:  nop
-    IL_0010:  ldarg.0
-    IL_0011:  ldc.i4     0x4d2
-    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
-    IL_001b:  nop
-    IL_001c:  ldarg.0
-    IL_001d:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
-    IL_0022:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0027:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_002c:  stloc.3
-    IL_002d:  ldloca.s   V_3
-    IL_002f:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0034:  brtrue.s   IL_0079
-    IL_0036:  ldarg.0
-    IL_0037:  ldc.i4.0
-    IL_0038:  dup
-    IL_0039:  stloc.1
-    IL_003a:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_003f:  ldarg.0
-    IL_0040:  ldloc.3
-    IL_0041:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0046:  ldarg.0
-    IL_0047:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_004c:  ldloca.s   V_3
-    IL_004e:  ldarg.0
-    IL_004f:  stloc.s    V_4
-    IL_0051:  ldloca.s   V_4
-    IL_0053:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
-    IL_0058:  nop
-    IL_0059:  leave.s    IL_00cb
-    IL_005b:  ldarg.0
-    IL_005c:  ldc.i4.m1
-    IL_005d:  dup
-    IL_005e:  stloc.1
-    IL_005f:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0064:  ldarg.0
-    IL_0065:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_006a:  stloc.3
-    IL_006b:  ldarg.0
-    IL_006c:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0071:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0077:  br.s       IL_0079
-    IL_0079:  ldloca.s   V_3
-    IL_007b:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_0080:  stloc.s    V_5
-    IL_0082:  ldloca.s   V_3
-    IL_0084:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_008a:  ldloc.s    V_5
-    IL_008c:  stloc.0
-    IL_008d:  leave.s    IL_00b4
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_005a
+    IL_000e:  nop
+    IL_000f:  ldarg.0
+    IL_0010:  ldc.i4     0x4d2
+    IL_0015:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
+    IL_001a:  nop
+    IL_001b:  ldarg.0
+    IL_001c:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
+    IL_0021:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0026:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_002b:  stloc.3
+    IL_002c:  ldloca.s   V_3
+    IL_002e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0033:  brtrue.s   IL_0078
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.0
+    IL_0037:  dup
+    IL_0038:  stloc.1
+    IL_0039:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_003e:  ldarg.0
+    IL_003f:  ldloc.3
+    IL_0040:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0045:  ldarg.0
+    IL_0046:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004b:  ldloca.s   V_3
+    IL_004d:  ldarg.0
+    IL_004e:  stloc.s    V_4
+    IL_0050:  ldloca.s   V_4
+    IL_0052:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
+    IL_0057:  nop
+    IL_0058:  leave.s    IL_00ca
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.1
+    IL_005e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0063:  ldarg.0
+    IL_0064:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0069:  stloc.3
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0070:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0076:  br.s       IL_0078
+    IL_0078:  ldloca.s   V_3
+    IL_007a:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_007f:  stloc.s    V_5
+    IL_0081:  ldloca.s   V_3
+    IL_0083:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0089:  ldloc.s    V_5
+    IL_008b:  stloc.0
+    IL_008c:  leave.s    IL_00b3
   }
   catch System.Exception
   {
-    IL_008f:  dup
-    IL_0090:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0095:  stloc.s    V_6
-    IL_0097:  ldarg.0
-    IL_0098:  ldc.i4.s   -2
-    IL_009a:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_009f:  ldarg.0
-    IL_00a0:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00a5:  ldloc.s    V_6
-    IL_00a7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_00ac:  nop
-    IL_00ad:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00b2:  leave.s    IL_00cb
+    IL_008e:  dup
+    IL_008f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0094:  stloc.s    V_6
+    IL_0096:  ldarg.0
+    IL_0097:  ldc.i4.s   -2
+    IL_0099:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00a4:  ldloc.s    V_6
+    IL_00a6:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_00ab:  nop
+    IL_00ac:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00b1:  leave.s    IL_00ca
   }
-  IL_00b4:  ldarg.0
-  IL_00b5:  ldc.i4.s   -2
-  IL_00b7:  dup
-  IL_00b8:  stloc.1
-  IL_00b9:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00be:  ldarg.0
-  IL_00bf:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00c4:  ldloc.0
-  IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00ca:  nop
-  IL_00cb:  ret
+  IL_00b3:  ldarg.0
+  IL_00b4:  ldc.i4.s   -2
+  IL_00b6:  dup
+  IL_00b7:  stloc.1
+  IL_00b8:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00bd:  ldarg.0
+  IL_00be:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00c3:  ldloc.0
+  IL_00c4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00c9:  nop
+  IL_00ca:  ret
 }
 ")
             End Using
@@ -2688,7 +2657,7 @@ End Class
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      204 (0xcc)
+  // Code size      203 (0xcb)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -2704,86 +2673,85 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_005b
-    IL_000f:  nop
-    IL_0010:  ldarg.0
-    IL_0011:  ldc.r8     10
-    IL_001a:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$1 As Double""
-    IL_001f:  nop
-    IL_0020:  ldc.i4.s   20
-    IL_0022:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0027:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_002c:  stloc.3
-    IL_002d:  ldloca.s   V_3
-    IL_002f:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0034:  brtrue.s   IL_0079
-    IL_0036:  ldarg.0
-    IL_0037:  ldc.i4.0
-    IL_0038:  dup
-    IL_0039:  stloc.1
-    IL_003a:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_003f:  ldarg.0
-    IL_0040:  ldloc.3
-    IL_0041:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0046:  ldarg.0
-    IL_0047:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_004c:  ldloca.s   V_3
-    IL_004e:  ldarg.0
-    IL_004f:  stloc.s    V_4
-    IL_0051:  ldloca.s   V_4
-    IL_0053:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
-    IL_0058:  nop
-    IL_0059:  leave.s    IL_00cb
-    IL_005b:  ldarg.0
-    IL_005c:  ldc.i4.m1
-    IL_005d:  dup
-    IL_005e:  stloc.1
-    IL_005f:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0064:  ldarg.0
-    IL_0065:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_006a:  stloc.3
-    IL_006b:  ldarg.0
-    IL_006c:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0071:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0077:  br.s       IL_0079
-    IL_0079:  ldloca.s   V_3
-    IL_007b:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_0080:  stloc.s    V_5
-    IL_0082:  ldloca.s   V_3
-    IL_0084:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_008a:  ldloc.s    V_5
-    IL_008c:  stloc.0
-    IL_008d:  leave.s    IL_00b4
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_005a
+    IL_000e:  nop
+    IL_000f:  ldarg.0
+    IL_0010:  ldc.r8     10
+    IL_0019:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$1 As Double""
+    IL_001e:  nop
+    IL_001f:  ldc.i4.s   20
+    IL_0021:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0026:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_002b:  stloc.3
+    IL_002c:  ldloca.s   V_3
+    IL_002e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0033:  brtrue.s   IL_0078
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.0
+    IL_0037:  dup
+    IL_0038:  stloc.1
+    IL_0039:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_003e:  ldarg.0
+    IL_003f:  ldloc.3
+    IL_0040:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0045:  ldarg.0
+    IL_0046:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004b:  ldloca.s   V_3
+    IL_004d:  ldarg.0
+    IL_004e:  stloc.s    V_4
+    IL_0050:  ldloca.s   V_4
+    IL_0052:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
+    IL_0057:  nop
+    IL_0058:  leave.s    IL_00ca
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.1
+    IL_005e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0063:  ldarg.0
+    IL_0064:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0069:  stloc.3
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0070:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0076:  br.s       IL_0078
+    IL_0078:  ldloca.s   V_3
+    IL_007a:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_007f:  stloc.s    V_5
+    IL_0081:  ldloca.s   V_3
+    IL_0083:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0089:  ldloc.s    V_5
+    IL_008b:  stloc.0
+    IL_008c:  leave.s    IL_00b3
   }
   catch System.Exception
   {
-    IL_008f:  dup
-    IL_0090:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0095:  stloc.s    V_6
-    IL_0097:  ldarg.0
-    IL_0098:  ldc.i4.s   -2
-    IL_009a:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_009f:  ldarg.0
-    IL_00a0:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00a5:  ldloc.s    V_6
-    IL_00a7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_00ac:  nop
-    IL_00ad:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00b2:  leave.s    IL_00cb
+    IL_008e:  dup
+    IL_008f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0094:  stloc.s    V_6
+    IL_0096:  ldarg.0
+    IL_0097:  ldc.i4.s   -2
+    IL_0099:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00a4:  ldloc.s    V_6
+    IL_00a6:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_00ab:  nop
+    IL_00ac:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00b1:  leave.s    IL_00ca
   }
-  IL_00b4:  ldarg.0
-  IL_00b5:  ldc.i4.s   -2
-  IL_00b7:  dup
-  IL_00b8:  stloc.1
-  IL_00b9:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00be:  ldarg.0
-  IL_00bf:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00c4:  ldloc.0
-  IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00ca:  nop
-  IL_00cb:  ret
+  IL_00b3:  ldarg.0
+  IL_00b4:  ldc.i4.s   -2
+  IL_00b6:  dup
+  IL_00b7:  stloc.1
+  IL_00b8:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00bd:  ldarg.0
+  IL_00be:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00c3:  ldloc.0
+  IL_00c4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00c9:  nop
+  IL_00ca:  ret
 }
 ")
             End Using
@@ -3010,7 +2978,7 @@ End Class
 
             diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      204 (0xcc)
+  // Code size      203 (0xcb)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -3025,89 +2993,88 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_005d
-    IL_000f:  nop
-    IL_0010:  ldarg.0
-    IL_0011:  newobj     ""Sub C..ctor()""
-    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$2 As C""
-    IL_001b:  ldarg.0
-    IL_001c:  ldc.i4.3
-    IL_001d:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a2$1 As Integer""
-    IL_0022:  nop
-    IL_0023:  ldc.i4.0
-    IL_0024:  call       ""Function System.Threading.Tasks.Task.Delay(Integer) As System.Threading.Tasks.Task""
-    IL_0029:  callvirt   ""Function System.Threading.Tasks.Task.GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_002e:  stloc.3
-    IL_002f:  ldloca.s   V_3
-    IL_0031:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter.get_IsCompleted() As Boolean""
-    IL_0036:  brtrue.s   IL_007b
-    IL_0038:  ldarg.0
-    IL_0039:  ldc.i4.0
-    IL_003a:  dup
-    IL_003b:  stloc.1
-    IL_003c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0041:  ldarg.0
-    IL_0042:  ldloc.3
-    IL_0043:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_004e:  ldloca.s   V_3
-    IL_0050:  ldarg.0
-    IL_0051:  stloc.s    V_4
-    IL_0053:  ldloca.s   V_4
-    IL_0055:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter, C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter, ByRef C.VB$StateMachine_1_F)""
-    IL_005a:  nop
-    IL_005b:  leave.s    IL_00cb
-    IL_005d:  ldarg.0
-    IL_005e:  ldc.i4.m1
-    IL_005f:  dup
-    IL_0060:  stloc.1
-    IL_0061:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0066:  ldarg.0
-    IL_0067:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_006c:  stloc.3
-    IL_006d:  ldarg.0
-    IL_006e:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0073:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0079:  br.s       IL_007b
-    IL_007b:  ldloca.s   V_3
-    IL_007d:  call       ""Sub System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_0082:  nop
-    IL_0083:  ldloca.s   V_3
-    IL_0085:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_008b:  ldc.i4.1
-    IL_008c:  stloc.0
-    IL_008d:  leave.s    IL_00b4
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_005c
+    IL_000e:  nop
+    IL_000f:  ldarg.0
+    IL_0010:  newobj     ""Sub C..ctor()""
+    IL_0015:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$2 As C""
+    IL_001a:  ldarg.0
+    IL_001b:  ldc.i4.3
+    IL_001c:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a2$1 As Integer""
+    IL_0021:  nop
+    IL_0022:  ldc.i4.0
+    IL_0023:  call       ""Function System.Threading.Tasks.Task.Delay(Integer) As System.Threading.Tasks.Task""
+    IL_0028:  callvirt   ""Function System.Threading.Tasks.Task.GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_002d:  stloc.3
+    IL_002e:  ldloca.s   V_3
+    IL_0030:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter.get_IsCompleted() As Boolean""
+    IL_0035:  brtrue.s   IL_007a
+    IL_0037:  ldarg.0
+    IL_0038:  ldc.i4.0
+    IL_0039:  dup
+    IL_003a:  stloc.1
+    IL_003b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0040:  ldarg.0
+    IL_0041:  ldloc.3
+    IL_0042:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0047:  ldarg.0
+    IL_0048:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004d:  ldloca.s   V_3
+    IL_004f:  ldarg.0
+    IL_0050:  stloc.s    V_4
+    IL_0052:  ldloca.s   V_4
+    IL_0054:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter, C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter, ByRef C.VB$StateMachine_1_F)""
+    IL_0059:  nop
+    IL_005a:  leave.s    IL_00ca
+    IL_005c:  ldarg.0
+    IL_005d:  ldc.i4.m1
+    IL_005e:  dup
+    IL_005f:  stloc.1
+    IL_0060:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_006b:  stloc.3
+    IL_006c:  ldarg.0
+    IL_006d:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0078:  br.s       IL_007a
+    IL_007a:  ldloca.s   V_3
+    IL_007c:  call       ""Sub System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_0081:  nop
+    IL_0082:  ldloca.s   V_3
+    IL_0084:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_008a:  ldc.i4.1
+    IL_008b:  stloc.0
+    IL_008c:  leave.s    IL_00b3
   }
   catch System.Exception
   {
-    IL_008f:  dup
-    IL_0090:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0095:  stloc.s    V_5
-    IL_0097:  ldarg.0
-    IL_0098:  ldc.i4.s   -2
-    IL_009a:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_009f:  ldarg.0
-    IL_00a0:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00a5:  ldloc.s    V_5
-    IL_00a7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_00ac:  nop
-    IL_00ad:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00b2:  leave.s    IL_00cb
+    IL_008e:  dup
+    IL_008f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0094:  stloc.s    V_5
+    IL_0096:  ldarg.0
+    IL_0097:  ldc.i4.s   -2
+    IL_0099:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00a4:  ldloc.s    V_5
+    IL_00a6:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_00ab:  nop
+    IL_00ac:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00b1:  leave.s    IL_00ca
   }
-  IL_00b4:  ldarg.0
-  IL_00b5:  ldc.i4.s   -2
-  IL_00b7:  dup
-  IL_00b8:  stloc.1
-  IL_00b9:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00be:  ldarg.0
-  IL_00bf:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00c4:  ldloc.0
-  IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00ca:  nop
-  IL_00cb:  ret
+  IL_00b3:  ldarg.0
+  IL_00b4:  ldc.i4.s   -2
+  IL_00b6:  dup
+  IL_00b7:  stloc.1
+  IL_00b8:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00bd:  ldarg.0
+  IL_00be:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00c3:  ldloc.0
+  IL_00c4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00c9:  nop
+  IL_00ca:  ret
 }
 ")
 
@@ -3126,7 +3093,7 @@ End Class
 
             diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
-  // Code size      204 (0xcc)
+  // Code size      203 (0xcb)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -3141,89 +3108,88 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_005d
-    IL_000f:  nop
-    IL_0010:  ldarg.0
-    IL_0011:  ldc.i4.1
-    IL_0012:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$3 As Boolean""
-    IL_0017:  ldarg.0
-    IL_0018:  newobj     ""Sub C..ctor()""
-    IL_001d:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a2$4 As C""
-    IL_0022:  nop
-    IL_0023:  ldc.i4.0
-    IL_0024:  call       ""Function System.Threading.Tasks.Task.Delay(Integer) As System.Threading.Tasks.Task""
-    IL_0029:  callvirt   ""Function System.Threading.Tasks.Task.GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_002e:  stloc.3
-    IL_002f:  ldloca.s   V_3
-    IL_0031:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter.get_IsCompleted() As Boolean""
-    IL_0036:  brtrue.s   IL_007b
-    IL_0038:  ldarg.0
-    IL_0039:  ldc.i4.0
-    IL_003a:  dup
-    IL_003b:  stloc.1
-    IL_003c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0041:  ldarg.0
-    IL_0042:  ldloc.3
-    IL_0043:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_004e:  ldloca.s   V_3
-    IL_0050:  ldarg.0
-    IL_0051:  stloc.s    V_4
-    IL_0053:  ldloca.s   V_4
-    IL_0055:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter, C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter, ByRef C.VB$StateMachine_1_F)""
-    IL_005a:  nop
-    IL_005b:  leave.s    IL_00cb
-    IL_005d:  ldarg.0
-    IL_005e:  ldc.i4.m1
-    IL_005f:  dup
-    IL_0060:  stloc.1
-    IL_0061:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0066:  ldarg.0
-    IL_0067:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_006c:  stloc.3
-    IL_006d:  ldarg.0
-    IL_006e:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0073:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0079:  br.s       IL_007b
-    IL_007b:  ldloca.s   V_3
-    IL_007d:  call       ""Sub System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_0082:  nop
-    IL_0083:  ldloca.s   V_3
-    IL_0085:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_008b:  ldc.i4.1
-    IL_008c:  stloc.0
-    IL_008d:  leave.s    IL_00b4
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_005c
+    IL_000e:  nop
+    IL_000f:  ldarg.0
+    IL_0010:  ldc.i4.1
+    IL_0011:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$3 As Boolean""
+    IL_0016:  ldarg.0
+    IL_0017:  newobj     ""Sub C..ctor()""
+    IL_001c:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a2$4 As C""
+    IL_0021:  nop
+    IL_0022:  ldc.i4.0
+    IL_0023:  call       ""Function System.Threading.Tasks.Task.Delay(Integer) As System.Threading.Tasks.Task""
+    IL_0028:  callvirt   ""Function System.Threading.Tasks.Task.GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_002d:  stloc.3
+    IL_002e:  ldloca.s   V_3
+    IL_0030:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter.get_IsCompleted() As Boolean""
+    IL_0035:  brtrue.s   IL_007a
+    IL_0037:  ldarg.0
+    IL_0038:  ldc.i4.0
+    IL_0039:  dup
+    IL_003a:  stloc.1
+    IL_003b:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0040:  ldarg.0
+    IL_0041:  ldloc.3
+    IL_0042:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0047:  ldarg.0
+    IL_0048:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004d:  ldloca.s   V_3
+    IL_004f:  ldarg.0
+    IL_0050:  stloc.s    V_4
+    IL_0052:  ldloca.s   V_4
+    IL_0054:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter, C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter, ByRef C.VB$StateMachine_1_F)""
+    IL_0059:  nop
+    IL_005a:  leave.s    IL_00ca
+    IL_005c:  ldarg.0
+    IL_005d:  ldc.i4.m1
+    IL_005e:  dup
+    IL_005f:  stloc.1
+    IL_0060:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_006b:  stloc.3
+    IL_006c:  ldarg.0
+    IL_006d:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0078:  br.s       IL_007a
+    IL_007a:  ldloca.s   V_3
+    IL_007c:  call       ""Sub System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_0081:  nop
+    IL_0082:  ldloca.s   V_3
+    IL_0084:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_008a:  ldc.i4.1
+    IL_008b:  stloc.0
+    IL_008c:  leave.s    IL_00b3
   }
   catch System.Exception
   {
-    IL_008f:  dup
-    IL_0090:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0095:  stloc.s    V_5
-    IL_0097:  ldarg.0
-    IL_0098:  ldc.i4.s   -2
-    IL_009a:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_009f:  ldarg.0
-    IL_00a0:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00a5:  ldloc.s    V_5
-    IL_00a7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_00ac:  nop
-    IL_00ad:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00b2:  leave.s    IL_00cb
+    IL_008e:  dup
+    IL_008f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0094:  stloc.s    V_5
+    IL_0096:  ldarg.0
+    IL_0097:  ldc.i4.s   -2
+    IL_0099:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00a4:  ldloc.s    V_5
+    IL_00a6:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_00ab:  nop
+    IL_00ac:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00b1:  leave.s    IL_00ca
   }
-  IL_00b4:  ldarg.0
-  IL_00b5:  ldc.i4.s   -2
-  IL_00b7:  dup
-  IL_00b8:  stloc.1
-  IL_00b9:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00be:  ldarg.0
-  IL_00bf:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00c4:  ldloc.0
-  IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00ca:  nop
-  IL_00cb:  ret
+  IL_00b3:  ldarg.0
+  IL_00b4:  ldc.i4.s   -2
+  IL_00b6:  dup
+  IL_00b7:  stloc.1
+  IL_00b8:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00bd:  ldarg.0
+  IL_00be:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00c3:  ldloc.0
+  IL_00c4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00c9:  nop
+  IL_00ca:  ret
 }
 ")
 
@@ -3523,7 +3489,7 @@ End Class
 
             diff1.VerifyIL("C.VB$StateMachine_4_F.MoveNext()", "
 {
-  // Code size      319 (0x13f)
+  // Code size      317 (0x13d)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -3542,130 +3508,128 @@ End Class
     IL_000a:  br.s       IL_000c
     IL_000c:  ldloc.1
     IL_000d:  ldc.i4.1
-    IL_000e:  beq.s      IL_0015
-    IL_0010:  br.s       IL_001b
-    IL_0012:  nop
-    IL_0013:  br.s       IL_005f
-    IL_0015:  nop
-    IL_0016:  br         IL_00cf
-    IL_001b:  nop
-    IL_001c:  nop
-    IL_001d:  ldarg.0
-    IL_001e:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
-    IL_0023:  callvirt   ""Function C.A3() As System.Threading.Tasks.Task(Of C)""
-    IL_0028:  callvirt   ""Function System.Threading.Tasks.Task(Of C).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_002d:  stloc.3
-    IL_002e:  ldloca.s   V_3
-    IL_0030:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).get_IsCompleted() As Boolean""
-    IL_0035:  brtrue.s   IL_007d
-    IL_0037:  ldarg.0
-    IL_0038:  ldc.i4.0
-    IL_0039:  dup
-    IL_003a:  stloc.1
-    IL_003b:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_0040:  ldarg.0
-    IL_0041:  ldloc.3
-    IL_0042:  stfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_0047:  ldarg.0
-    IL_0048:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_004d:  ldloca.s   V_3
-    IL_004f:  ldarg.0
-    IL_0050:  stloc.s    V_4
-    IL_0052:  ldloca.s   V_4
-    IL_0054:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_4_F)""
-    IL_0059:  nop
-    IL_005a:  leave      IL_013e
-    IL_005f:  ldarg.0
-    IL_0060:  ldc.i4.m1
-    IL_0061:  dup
-    IL_0062:  stloc.1
-    IL_0063:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_0068:  ldarg.0
-    IL_0069:  ldfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_006e:  stloc.3
-    IL_006f:  ldarg.0
-    IL_0070:  ldflda     ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_0075:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_007b:  br.s       IL_007d
-    IL_007d:  ldloca.s   V_3
-    IL_007f:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).GetResult() As C""
-    IL_0084:  pop
-    IL_0085:  ldloca.s   V_3
-    IL_0087:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_008d:  nop
-    IL_008e:  ldarg.0
-    IL_008f:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
-    IL_0094:  callvirt   ""Function C.A2() As System.Threading.Tasks.Task(Of Integer)""
-    IL_0099:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_009e:  stloc.s    V_5
-    IL_00a0:  ldloca.s   V_5
-    IL_00a2:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_00a7:  brtrue.s   IL_00ee
-    IL_00a9:  ldarg.0
-    IL_00aa:  ldc.i4.1
-    IL_00ab:  dup
-    IL_00ac:  stloc.1
-    IL_00ad:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_00b2:  ldarg.0
-    IL_00b3:  ldloc.s    V_5
-    IL_00b5:  stfld      ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00ba:  ldarg.0
-    IL_00bb:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00c0:  ldloca.s   V_5
-    IL_00c2:  ldarg.0
-    IL_00c3:  stloc.s    V_4
-    IL_00c5:  ldloca.s   V_4
-    IL_00c7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_4_F)""
-    IL_00cc:  nop
-    IL_00cd:  leave.s    IL_013e
-    IL_00cf:  ldarg.0
-    IL_00d0:  ldc.i4.m1
-    IL_00d1:  dup
-    IL_00d2:  stloc.1
-    IL_00d3:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_00d8:  ldarg.0
-    IL_00d9:  ldfld      ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00de:  stloc.s    V_5
-    IL_00e0:  ldarg.0
-    IL_00e1:  ldflda     ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00e6:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00ec:  br.s       IL_00ee
-    IL_00ee:  ldloca.s   V_5
-    IL_00f0:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_00f5:  pop
-    IL_00f6:  ldloca.s   V_5
-    IL_00f8:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00fe:  ldc.i4.1
-    IL_00ff:  stloc.0
-    IL_0100:  leave.s    IL_0127
+    IL_000e:  beq.s      IL_0014
+    IL_0010:  br.s       IL_0019
+    IL_0012:  br.s       IL_005d
+    IL_0014:  br         IL_00cd
+    IL_0019:  nop
+    IL_001a:  nop
+    IL_001b:  ldarg.0
+    IL_001c:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
+    IL_0021:  callvirt   ""Function C.A3() As System.Threading.Tasks.Task(Of C)""
+    IL_0026:  callvirt   ""Function System.Threading.Tasks.Task(Of C).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_002b:  stloc.3
+    IL_002c:  ldloca.s   V_3
+    IL_002e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).get_IsCompleted() As Boolean""
+    IL_0033:  brtrue.s   IL_007b
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.0
+    IL_0037:  dup
+    IL_0038:  stloc.1
+    IL_0039:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_003e:  ldarg.0
+    IL_003f:  ldloc.3
+    IL_0040:  stfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_0045:  ldarg.0
+    IL_0046:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004b:  ldloca.s   V_3
+    IL_004d:  ldarg.0
+    IL_004e:  stloc.s    V_4
+    IL_0050:  ldloca.s   V_4
+    IL_0052:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_4_F)""
+    IL_0057:  nop
+    IL_0058:  leave      IL_013c
+    IL_005d:  ldarg.0
+    IL_005e:  ldc.i4.m1
+    IL_005f:  dup
+    IL_0060:  stloc.1
+    IL_0061:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_0066:  ldarg.0
+    IL_0067:  ldfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_006c:  stloc.3
+    IL_006d:  ldarg.0
+    IL_006e:  ldflda     ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_0073:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_0079:  br.s       IL_007b
+    IL_007b:  ldloca.s   V_3
+    IL_007d:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).GetResult() As C""
+    IL_0082:  pop
+    IL_0083:  ldloca.s   V_3
+    IL_0085:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_008b:  nop
+    IL_008c:  ldarg.0
+    IL_008d:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
+    IL_0092:  callvirt   ""Function C.A2() As System.Threading.Tasks.Task(Of Integer)""
+    IL_0097:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_009c:  stloc.s    V_5
+    IL_009e:  ldloca.s   V_5
+    IL_00a0:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_00a5:  brtrue.s   IL_00ec
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldc.i4.1
+    IL_00a9:  dup
+    IL_00aa:  stloc.1
+    IL_00ab:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_00b0:  ldarg.0
+    IL_00b1:  ldloc.s    V_5
+    IL_00b3:  stfld      ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00b8:  ldarg.0
+    IL_00b9:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00be:  ldloca.s   V_5
+    IL_00c0:  ldarg.0
+    IL_00c1:  stloc.s    V_4
+    IL_00c3:  ldloca.s   V_4
+    IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_4_F)""
+    IL_00ca:  nop
+    IL_00cb:  leave.s    IL_013c
+    IL_00cd:  ldarg.0
+    IL_00ce:  ldc.i4.m1
+    IL_00cf:  dup
+    IL_00d0:  stloc.1
+    IL_00d1:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_00d6:  ldarg.0
+    IL_00d7:  ldfld      ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00dc:  stloc.s    V_5
+    IL_00de:  ldarg.0
+    IL_00df:  ldflda     ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00e4:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00ea:  br.s       IL_00ec
+    IL_00ec:  ldloca.s   V_5
+    IL_00ee:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_00f3:  pop
+    IL_00f4:  ldloca.s   V_5
+    IL_00f6:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00fc:  ldc.i4.1
+    IL_00fd:  stloc.0
+    IL_00fe:  leave.s    IL_0125
   }
   catch System.Exception
   {
-    IL_0102:  dup
-    IL_0103:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0108:  stloc.s    V_6
-    IL_010a:  ldarg.0
-    IL_010b:  ldc.i4.s   -2
-    IL_010d:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_0112:  ldarg.0
-    IL_0113:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0118:  ldloc.s    V_6
-    IL_011a:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_011f:  nop
-    IL_0120:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_0125:  leave.s    IL_013e
+    IL_0100:  dup
+    IL_0101:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0106:  stloc.s    V_6
+    IL_0108:  ldarg.0
+    IL_0109:  ldc.i4.s   -2
+    IL_010b:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_0110:  ldarg.0
+    IL_0111:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0116:  ldloc.s    V_6
+    IL_0118:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_011d:  nop
+    IL_011e:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0123:  leave.s    IL_013c
   }
-  IL_0127:  ldarg.0
-  IL_0128:  ldc.i4.s   -2
-  IL_012a:  dup
-  IL_012b:  stloc.1
-  IL_012c:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-  IL_0131:  ldarg.0
-  IL_0132:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_0137:  ldloc.0
-  IL_0138:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_013d:  nop
-  IL_013e:  ret
+  IL_0125:  ldarg.0
+  IL_0126:  ldc.i4.s   -2
+  IL_0128:  dup
+  IL_0129:  stloc.1
+  IL_012a:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+  IL_012f:  ldarg.0
+  IL_0130:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_0135:  ldloc.0
+  IL_0136:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_013b:  nop
+  IL_013c:  ret
 }
 ")
 
@@ -3682,7 +3646,7 @@ End Class
 
             diff2.VerifyIL("C.VB$StateMachine_4_F.MoveNext()", "
 {
-  // Code size      319 (0x13f)
+  // Code size      317 (0x13d)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -3701,130 +3665,128 @@ End Class
     IL_000a:  br.s       IL_000c
     IL_000c:  ldloc.1
     IL_000d:  ldc.i4.1
-    IL_000e:  beq.s      IL_0015
-    IL_0010:  br.s       IL_001b
-    IL_0012:  nop
-    IL_0013:  br.s       IL_005f
-    IL_0015:  nop
-    IL_0016:  br         IL_00cf
-    IL_001b:  nop
-    IL_001c:  nop
-    IL_001d:  ldarg.0
-    IL_001e:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
-    IL_0023:  callvirt   ""Function C.A1() As System.Threading.Tasks.Task(Of Boolean)""
-    IL_0028:  callvirt   ""Function System.Threading.Tasks.Task(Of Boolean).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
-    IL_002d:  stloc.3
-    IL_002e:  ldloca.s   V_3
-    IL_0030:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Boolean).get_IsCompleted() As Boolean""
-    IL_0035:  brtrue.s   IL_007d
-    IL_0037:  ldarg.0
-    IL_0038:  ldc.i4.0
-    IL_0039:  dup
-    IL_003a:  stloc.1
-    IL_003b:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_0040:  ldarg.0
-    IL_0041:  ldloc.3
-    IL_0042:  stfld      ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
-    IL_0047:  ldarg.0
-    IL_0048:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_004d:  ldloca.s   V_3
-    IL_004f:  ldarg.0
-    IL_0050:  stloc.s    V_4
-    IL_0052:  ldloca.s   V_4
-    IL_0054:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), ByRef C.VB$StateMachine_4_F)""
-    IL_0059:  nop
-    IL_005a:  leave      IL_013e
-    IL_005f:  ldarg.0
-    IL_0060:  ldc.i4.m1
-    IL_0061:  dup
-    IL_0062:  stloc.1
-    IL_0063:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_0068:  ldarg.0
-    IL_0069:  ldfld      ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
-    IL_006e:  stloc.3
-    IL_006f:  ldarg.0
-    IL_0070:  ldflda     ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
-    IL_0075:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
-    IL_007b:  br.s       IL_007d
-    IL_007d:  ldloca.s   V_3
-    IL_007f:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Boolean).GetResult() As Boolean""
-    IL_0084:  pop
-    IL_0085:  ldloca.s   V_3
-    IL_0087:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
-    IL_008d:  nop
-    IL_008e:  ldarg.0
-    IL_008f:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
-    IL_0094:  callvirt   ""Function C.A3() As System.Threading.Tasks.Task(Of C)""
-    IL_0099:  callvirt   ""Function System.Threading.Tasks.Task(Of C).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_009e:  stloc.s    V_5
-    IL_00a0:  ldloca.s   V_5
-    IL_00a2:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).get_IsCompleted() As Boolean""
-    IL_00a7:  brtrue.s   IL_00ee
-    IL_00a9:  ldarg.0
-    IL_00aa:  ldc.i4.1
-    IL_00ab:  dup
-    IL_00ac:  stloc.1
-    IL_00ad:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_00b2:  ldarg.0
-    IL_00b3:  ldloc.s    V_5
-    IL_00b5:  stfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_00ba:  ldarg.0
-    IL_00bb:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00c0:  ldloca.s   V_5
-    IL_00c2:  ldarg.0
-    IL_00c3:  stloc.s    V_4
-    IL_00c5:  ldloca.s   V_4
-    IL_00c7:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_4_F)""
-    IL_00cc:  nop
-    IL_00cd:  leave.s    IL_013e
-    IL_00cf:  ldarg.0
-    IL_00d0:  ldc.i4.m1
-    IL_00d1:  dup
-    IL_00d2:  stloc.1
-    IL_00d3:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_00d8:  ldarg.0
-    IL_00d9:  ldfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_00de:  stloc.s    V_5
-    IL_00e0:  ldarg.0
-    IL_00e1:  ldflda     ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_00e6:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_00ec:  br.s       IL_00ee
-    IL_00ee:  ldloca.s   V_5
-    IL_00f0:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).GetResult() As C""
-    IL_00f5:  pop
-    IL_00f6:  ldloca.s   V_5
-    IL_00f8:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
-    IL_00fe:  ldc.i4.1
-    IL_00ff:  stloc.0
-    IL_0100:  leave.s    IL_0127
+    IL_000e:  beq.s      IL_0014
+    IL_0010:  br.s       IL_0019
+    IL_0012:  br.s       IL_005d
+    IL_0014:  br         IL_00cd
+    IL_0019:  nop
+    IL_001a:  nop
+    IL_001b:  ldarg.0
+    IL_001c:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
+    IL_0021:  callvirt   ""Function C.A1() As System.Threading.Tasks.Task(Of Boolean)""
+    IL_0026:  callvirt   ""Function System.Threading.Tasks.Task(Of Boolean).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_002b:  stloc.3
+    IL_002c:  ldloca.s   V_3
+    IL_002e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Boolean).get_IsCompleted() As Boolean""
+    IL_0033:  brtrue.s   IL_007b
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.0
+    IL_0037:  dup
+    IL_0038:  stloc.1
+    IL_0039:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_003e:  ldarg.0
+    IL_003f:  ldloc.3
+    IL_0040:  stfld      ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_0045:  ldarg.0
+    IL_0046:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004b:  ldloca.s   V_3
+    IL_004d:  ldarg.0
+    IL_004e:  stloc.s    V_4
+    IL_0050:  ldloca.s   V_4
+    IL_0052:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), ByRef C.VB$StateMachine_4_F)""
+    IL_0057:  nop
+    IL_0058:  leave      IL_013c
+    IL_005d:  ldarg.0
+    IL_005e:  ldc.i4.m1
+    IL_005f:  dup
+    IL_0060:  stloc.1
+    IL_0061:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_0066:  ldarg.0
+    IL_0067:  ldfld      ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_006c:  stloc.3
+    IL_006d:  ldarg.0
+    IL_006e:  ldflda     ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_0073:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_0079:  br.s       IL_007b
+    IL_007b:  ldloca.s   V_3
+    IL_007d:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Boolean).GetResult() As Boolean""
+    IL_0082:  pop
+    IL_0083:  ldloca.s   V_3
+    IL_0085:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_008b:  nop
+    IL_008c:  ldarg.0
+    IL_008d:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
+    IL_0092:  callvirt   ""Function C.A3() As System.Threading.Tasks.Task(Of C)""
+    IL_0097:  callvirt   ""Function System.Threading.Tasks.Task(Of C).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_009c:  stloc.s    V_5
+    IL_009e:  ldloca.s   V_5
+    IL_00a0:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).get_IsCompleted() As Boolean""
+    IL_00a5:  brtrue.s   IL_00ec
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldc.i4.1
+    IL_00a9:  dup
+    IL_00aa:  stloc.1
+    IL_00ab:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_00b0:  ldarg.0
+    IL_00b1:  ldloc.s    V_5
+    IL_00b3:  stfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00b8:  ldarg.0
+    IL_00b9:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00be:  ldloca.s   V_5
+    IL_00c0:  ldarg.0
+    IL_00c1:  stloc.s    V_4
+    IL_00c3:  ldloca.s   V_4
+    IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_4_F)""
+    IL_00ca:  nop
+    IL_00cb:  leave.s    IL_013c
+    IL_00cd:  ldarg.0
+    IL_00ce:  ldc.i4.m1
+    IL_00cf:  dup
+    IL_00d0:  stloc.1
+    IL_00d1:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_00d6:  ldarg.0
+    IL_00d7:  ldfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00dc:  stloc.s    V_5
+    IL_00de:  ldarg.0
+    IL_00df:  ldflda     ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00e4:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00ea:  br.s       IL_00ec
+    IL_00ec:  ldloca.s   V_5
+    IL_00ee:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of C).GetResult() As C""
+    IL_00f3:  pop
+    IL_00f4:  ldloca.s   V_5
+    IL_00f6:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00fc:  ldc.i4.1
+    IL_00fd:  stloc.0
+    IL_00fe:  leave.s    IL_0125
   }
   catch System.Exception
   {
-    IL_0102:  dup
-    IL_0103:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0108:  stloc.s    V_6
-    IL_010a:  ldarg.0
-    IL_010b:  ldc.i4.s   -2
-    IL_010d:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-    IL_0112:  ldarg.0
-    IL_0113:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0118:  ldloc.s    V_6
-    IL_011a:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_011f:  nop
-    IL_0120:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_0125:  leave.s    IL_013e
+    IL_0100:  dup
+    IL_0101:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0106:  stloc.s    V_6
+    IL_0108:  ldarg.0
+    IL_0109:  ldc.i4.s   -2
+    IL_010b:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+    IL_0110:  ldarg.0
+    IL_0111:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0116:  ldloc.s    V_6
+    IL_0118:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_011d:  nop
+    IL_011e:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0123:  leave.s    IL_013c
   }
-  IL_0127:  ldarg.0
-  IL_0128:  ldc.i4.s   -2
-  IL_012a:  dup
-  IL_012b:  stloc.1
-  IL_012c:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
-  IL_0131:  ldarg.0
-  IL_0132:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_0137:  ldloc.0
-  IL_0138:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_013d:  nop
-  IL_013e:  ret
+  IL_0125:  ldarg.0
+  IL_0126:  ldc.i4.s   -2
+  IL_0128:  dup
+  IL_0129:  stloc.1
+  IL_012a:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
+  IL_012f:  ldarg.0
+  IL_0130:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_0135:  ldloc.0
+  IL_0136:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_013b:  nop
+  IL_013c:  ret
 }
 ")
 
