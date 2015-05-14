@@ -513,11 +513,11 @@ class C
 
     void F()
     {
-		var result = <N:0>from a in new[] { 1 }</N:0>
-		             <N:1>from b in <N:9>new[] { 1 }</N:9></N:1>
-		             <N:2>where <N:7>Z(<N:5>() => a</N:5>) > 0</N:7></N:2>
-		             <N:3>where <N:8>Z(<N:6>() => b</N:6>) > 0</N:8></N:3>
-		             <N:4>select a</N:4>;
+		var <N:10>result = <N:0>from a in new[] { 1 }</N:0>
+		                   <N:1>from b in <N:9>new[] { 1 }</N:9></N:1>
+		                   <N:2>where <N:7>Z(<N:5>() => a</N:5>) > 0</N:7></N:2>
+		                   <N:3>where <N:8>Z(<N:6>() => b</N:6>) > 0</N:8></N:3>
+		                   <N:4>select a</N:4></N:10>;
     }
 }");
 
@@ -534,11 +534,11 @@ class C
 
     void F()
     {
-		var result = <N:0>from a in new[] { 1 }</N:0>
-		             <N:1>from b in <N:9>new[] { 2 }</N:9></N:1>
-		             <N:2>where <N:7>Z(<N:5>() => a</N:5>) > 1</N:7></N:2>
-		             <N:3>where <N:8>Z(<N:6>() => b</N:6>) > 2</N:8></N:3>
-		             <N:4>select a</N:4>;
+		var <N:10>result = <N:0>from a in new[] { 1 }</N:0>
+		                   <N:1>from b in <N:9>new[] { 2 }</N:9></N:1>
+		                   <N:2>where <N:7>Z(<N:5>() => a</N:5>) > 1</N:7></N:2>
+		                   <N:3>where <N:8>Z(<N:6>() => b</N:6>) > 2</N:8></N:3>
+		                   <N:4>select a</N:4></N:10>;
     }
 }");
             var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -996,13 +996,14 @@ class C
 {
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.2
   IL_0002:  add
-  IL_0003:  stloc.0
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.0
+  IL_0006:  ldloc.1
   IL_0007:  ret
 }
 ");
@@ -1036,13 +1037,14 @@ class C
 {
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.3
   IL_0002:  add
-  IL_0003:  stloc.0
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.0
+  IL_0006:  ldloc.1
   IL_0007:  ret
 }
 ");
@@ -1091,13 +1093,14 @@ class C
 {
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.4
   IL_0002:  add
-  IL_0003:  stloc.0
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.0
+  IL_0006:  ldloc.1
   IL_0007:  ret
 }
 ");
@@ -1706,7 +1709,7 @@ class C
         }
 
         [Fact]
-        public void LambdasInInitializers()
+        public void LambdasInInitializers1()
         {
             var source0 = MarkedSource(@"
 using System;
@@ -1750,7 +1753,7 @@ class C
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-
+            
             var ctor00 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
             var ctor10 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
             var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
@@ -1775,13 +1778,14 @@ class C
 {
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.2
   IL_0002:  sub
-  IL_0003:  stloc.0
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.0
+  IL_0006:  ldloc.1
   IL_0007:  ret
 }");
 
@@ -1789,13 +1793,14 @@ class C
 {
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.3
   IL_0002:  sub
-  IL_0003:  stloc.0
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.0
+  IL_0006:  ldloc.1
   IL_0007:  ret
 }");
 
@@ -1803,27 +1808,163 @@ class C
 {
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.4
   IL_0002:  sub
-  IL_0003:  stloc.0
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.0
+  IL_0006:  ldloc.1
   IL_0007:  ret
 }");
             diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init ([int] V_0,
+                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  sub
-  IL_0003:  stloc.0
+  IL_0003:  stloc.1
   IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.0
+  IL_0006:  ldloc.1
   IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void LambdasInInitializers2()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    public int A = G(<N:0>a => { int <N:4>v1 = 1</N:4>; return 1; }</N:0>);
+
+    public C() : this(G(<N:1>a => { int <N:5>v2 = 1</N:5>; return 2; }</N:1>))
+    {
+        G(<N:2>a => { int <N:6>v3 = 1</N:6>; return 3; }</N:2>);
+    }
+
+    public C(int x)
+    {
+        G(<N:3>a => { int <N:7>v4 = 1</N:7>; return 4; }</N:3>);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    public int A = G(<N:0>a => { int <N:4>v1 = 10</N:4>; return 1; }</N:0>);
+
+    public C() : this(G(<N:1>a => { int <N:5>v2 = 10</N:5>; return 2; }</N:1>))
+    {
+        G(<N:2>a => { int <N:6>v3 = 10</N:6>; return 3; }</N:2>);
+    }
+
+    public C(int x)
+    {
+        G(<N:3>a => { int <N:7>v4 = 10</N:7>; return 4; }</N:3>);
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var ctor00 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
+            var ctor10 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
+            var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
+            var ctor11 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true),
+                    new SemanticEdit(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__2_0, <>9__2_1, <>9__3_0, <>9__3_1, <.ctor>b__2_0, <.ctor>b__2_1, <.ctor>b__3_0, <.ctor>b__3_1}");
+
+            diff1.VerifyIL("C.<>c.<.ctor>b__2_0", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (int V_0, //v2
+                [int] V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.2
+  IL_0005:  stloc.2
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.2
+  IL_0009:  ret
+}");
+
+            diff1.VerifyIL("C.<>c.<.ctor>b__2_1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (int V_0, //v3
+                [int] V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.3
+  IL_0005:  stloc.2
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.2
+  IL_0009:  ret
+}");
+
+            diff1.VerifyIL("C.<>c.<.ctor>b__3_0", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (int V_0, //v4
+                [int] V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.4
+  IL_0005:  stloc.2
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.2
+  IL_0009:  ret
+}");
+            diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (int V_0, //v1
+                [int] V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  stloc.2
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.2
+  IL_0009:  ret
 }");
         }
 

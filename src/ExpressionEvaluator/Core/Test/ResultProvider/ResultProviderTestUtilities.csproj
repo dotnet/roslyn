@@ -143,6 +143,7 @@
     <Compile Include="Debugger\MemberInfo\ParameterInfoImpl.cs" />
     <Compile Include="Debugger\MemberInfo\PropertyInfoImpl.cs" />
     <Compile Include="Debugger\MemberInfo\TypeImpl.cs" />
+    <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="ReflectionUtilities.cs" />
     <Compile Include="ResultProviderTestBase.cs" />
   </ItemGroup>

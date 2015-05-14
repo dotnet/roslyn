@@ -289,8 +289,8 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".cctor"" />
         <encLocalSlotMap>
-          <slot kind=""0"" offset=""29"" />
-          <slot kind=""0"" offset=""93"" />
+          <slot kind=""0"" offset=""-118"" />
+          <slot kind=""0"" offset=""-54"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
@@ -318,7 +318,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".cctor"" />
         <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
+          <slot kind=""30"" offset=""-45"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>

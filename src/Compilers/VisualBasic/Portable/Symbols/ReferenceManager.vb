@@ -858,7 +858,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
-
                 Public Overrides ReadOnly Property ContainsNoPiaLocalTypes() As Boolean
                     Get
                         Return _assembly.ContainsNoPiaLocalTypes()
@@ -870,11 +869,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return _assembly.DeclaresTheObjectClass
                     End Get
                 End Property
-
-                Public Overrides Function GetWinMdVersion(ByRef majorVersion As Integer, ByRef minorVersion As Integer) As Boolean
-                    Dim reader = _assembly.ManifestModule.MetadataReader
-                    Return reader.GetWinMdVersion(majorVersion, minorVersion)
-                End Function
             End Class
 
             Private NotInheritable Class AssemblyDataForCompilation
@@ -961,12 +955,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return _compilation.DeclaresTheObjectClass
                     End Get
                 End Property
-
-                Public Overrides Function GetWinMdVersion(ByRef majorVersion As Integer, ByRef minorVersion As Integer) As Boolean
-                    majorVersion = 0
-                    minorVersion = 0
-                    Return False
-                End Function
             End Class
 
             ''' <summary>

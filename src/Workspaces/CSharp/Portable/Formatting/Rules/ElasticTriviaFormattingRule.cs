@@ -189,7 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // the first one is a comment, add two more lines than existing number of lines
                 var numberOfLines = GetNumberOfLines(triviaList);
-                return CreateAdjustNewLinesOperation(numberOfLines + 2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
+                var numberOfLinesBeforeComment = GetNumberOfLines(triviaList.Take(triviaList.IndexOf(firstNonWhitespaceTrivia)));
+                var addedLines = (numberOfLinesBeforeComment < 1) ? 2 : 1;
+                return CreateAdjustNewLinesOperation(numberOfLines + addedLines, AdjustNewLinesOption.ForceLines);
             }
 
             // If we have two members of the same kind, we won't insert a blank line if both members
@@ -444,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
         }
 
-        private int GetNumberOfLines(SyntaxTriviaList triviaList)
+        private int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
         {
             return triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
         }

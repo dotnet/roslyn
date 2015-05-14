@@ -2760,6 +2760,201 @@ class C
             locals.Free();
         }
 
+        [WorkItem(1139013, "DevDiv")]
+        [Fact]
+        public void TransparentIdentifiers_FromParameter()
+        {
+            const string source = @"
+using System.Linq;
+
+class C
+{
+    void M(string[] args)
+    {
+        var concat = 
+            from x in args
+            let y = x.ToString()
+            let z = x.GetHashCode()
+            select x + y + z;
+    }
+}
+";
+
+            const string methodName = "C.<>c.<M>b__0_2";
+
+            const string zIL = @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
+  IL_0006:  ret
+}
+";
+            const string xIL = @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<x>i__Field""
+  IL_000b:  ret
+}
+";
+            const string yIL = @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<y>i__Field""
+  IL_000b:  ret
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+
+            string typeName;
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            CompilationTestData testData;
+            GetLocals(runtime, methodName, argumentsOnly: false, locals: locals, count: 3, typeName: out typeName, testData: out testData);
+
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "z", expectedILOpt: zIL);
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt: xIL);
+            VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedILOpt: yIL);
+            locals.Free();
+
+            var context = CreateMethodContext(runtime, methodName);
+            string error;
+
+            testData = new CompilationTestData();
+            context.CompileExpression("z", out error, testData);
+            Assert.Null(error);
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(zIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("x", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(xIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("y", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
+        }
+
+        [WorkItem(1139013, "DevDiv")]
+        [Fact]
+        public void TransparentIdentifiers_FromDisplayClassField()
+        {
+            const string source = @"
+using System.Linq;
+
+class C
+{
+    void M(string[] args)
+    {
+        var concat = 
+            from x in args
+            let y = x.ToString()
+            let z = x.GetHashCode()
+            select x.Select(c => y + z);
+    }
+}
+";
+
+            const string methodName = "C.<>c__DisplayClass0_0.<M>b__3";
+
+            const string cIL = @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}
+";
+            const string zIL = @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
+  IL_0006:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
+  IL_000b:  ret
+}
+";
+            const string xIL = @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
+  IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_000b:  ldfld      ""string <>f__AnonymousType0<string, string>.<x>i__Field""
+  IL_0010:  ret
+}
+";
+            const string yIL = @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
+  IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_000b:  ldfld      ""string <>f__AnonymousType0<string, string>.<y>i__Field""
+  IL_0010:  ret
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+
+            string typeName;
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            CompilationTestData testData;
+            GetLocals(runtime, methodName, argumentsOnly: false, locals: locals, count: 4, typeName: out typeName, testData: out testData);
+
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "c", expectedILOpt: cIL);
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt: zIL);
+            VerifyLocal(testData, typeName, locals[2], "<>m2", "x", expectedILOpt: xIL);
+            VerifyLocal(testData, typeName, locals[3], "<>m3", "y", expectedILOpt: yIL);
+
+            locals.Free();
+
+            var context = CreateMethodContext(runtime, methodName);
+            string error;
+
+            testData = new CompilationTestData();
+            context.CompileExpression("c", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(cIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("z", out error, testData);
+            Assert.Null(error);
+
+            testData.GetMethodData("<>x.<>m0").VerifyIL(zIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("x", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(xIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("y", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
+        }
+
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
         {
             var context = CreateMethodContext(runtime, methodName);

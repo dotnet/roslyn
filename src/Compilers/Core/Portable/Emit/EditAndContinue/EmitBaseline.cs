@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// The original metadata of the module.
         /// </summary>
-        public readonly ModuleMetadata OriginalMetadata;
+        public ModuleMetadata OriginalMetadata { get; }
 
         internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder PEModuleBuilder;

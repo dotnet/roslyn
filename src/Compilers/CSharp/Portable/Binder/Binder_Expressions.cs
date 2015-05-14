@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // There are two forms of __arglist expression. In a method with an __arglist parameter,
             // it is legal to use __arglist as an expression of type RuntimeArgumentHandle. In 
-            // a call to such a method, it is legal to use __arglist(x, y, z) as the final argument.\
+            // a call to such a method, it is legal to use __arglist(x, y, z) as the final argument.
             // This method only handles the first usage; the second usage is parsed as a call syntax.
 
             // The native compiler allows __arglist in a lambda:

@@ -1,5 +1,10 @@
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo other) -> bool
+Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments
+Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.CompilationOptions.get -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
+Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.ParseOptions.get -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
+Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
+Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Parse(System.Collections.Generic.IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AddReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AddReferences(params Microsoft.CodeAnalysis.MetadataReference[] references) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
@@ -58,6 +63,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithWarningLevel(int warn
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithXmlReferenceResolver(Microsoft.CodeAnalysis.XmlReferenceResolver resolver) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions
+Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp6, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Equals(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions other) -> bool
@@ -2429,6 +2435,10 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.Name.get -> Mic
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.StartQuoteToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.GetHashCode() -> int
+override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions
+override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions
+override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.RegularFileExtension.get -> string
+override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.ScriptFileExtension.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AppendDefaultVersionResource(System.IO.Stream resourceStream) -> void
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonAddSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> trees) -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonAssembly.get -> Microsoft.CodeAnalysis.IAssemblySymbol
@@ -3281,6 +3291,7 @@ readonly Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ElementConversion ->
 readonly Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ElementType -> Microsoft.CodeAnalysis.ITypeSymbol
 readonly Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.GetEnumeratorMethod -> Microsoft.CodeAnalysis.IMethodSymbol
 readonly Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.MoveNextMethod -> Microsoft.CodeAnalysis.IMethodSymbol
+static Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.ParseConditionalCompilationSymbols(string value, out System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Collections.Generic.IEnumerable<string>
 static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(string assemblyName, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> syntaxTrees = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateSubmission(string assemblyName, Microsoft.CodeAnalysis.SyntaxTree syntaxTree = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null, Microsoft.CodeAnalysis.Compilation previousSubmission = null, System.Type returnType = null, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.AnalyzeControlFlow(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax firstStatement, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax lastStatement) -> Microsoft.CodeAnalysis.ControlFlowAnalysis
@@ -3369,6 +3380,7 @@ static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.TryGetSpeculativeSemanticM
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.TryGetSpeculativeSemanticModelForMethodBody(this Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax accessor, out Microsoft.CodeAnalysis.SemanticModel speculativeModel) -> bool
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.TryGetSpeculativeSemanticModelForMethodBody(this Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax method, out Microsoft.CodeAnalysis.SemanticModel speculativeModel) -> bool
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.VarianceKindFromToken(this Microsoft.CodeAnalysis.SyntaxToken node) -> Microsoft.CodeAnalysis.VarianceKind
+static Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions.Emit(this Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation, string outputPath, string pdbPath = null, string xmlDocumentationPath = null, string win32ResourcesPath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.DeserializeFrom(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Create(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
@@ -3537,6 +3549,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DoStatement(Microsoft.CodeAna
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DocumentationCommentExterior(string text) -> Microsoft.CodeAnalysis.SyntaxTrivia
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DocumentationCommentTrivia(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax> content = default(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.DocumentationCommentTriviaSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DocumentationCommentTrivia(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.XmlNodeSyntax> content, Microsoft.CodeAnalysis.SyntaxToken endOfComment) -> Microsoft.CodeAnalysis.CSharp.Syntax.DocumentationCommentTriviaSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ElasticEndOfLine(string text) -> Microsoft.CodeAnalysis.SyntaxTrivia
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ElasticWhitespace(string text) -> Microsoft.CodeAnalysis.SyntaxTrivia
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ElementAccessExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ElementAccessExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ElementAccessExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression, Microsoft.CodeAnalysis.CSharp.Syntax.BracketedArgumentListSyntax argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.ElementAccessExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ElementBindingExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.ElementBindingExpressionSyntax
@@ -3551,7 +3565,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EmptyStatement() -> Microsoft
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EmptyStatement(Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.EmptyStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndIfDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken endIfKeyword, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.EndIfDirectiveTriviaSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndIfDirectiveTrivia(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.EndIfDirectiveTriviaSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndOfLine(string text, bool elastic = true) -> Microsoft.CodeAnalysis.SyntaxTrivia
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndOfLine(string text) -> Microsoft.CodeAnalysis.SyntaxTrivia
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndOfLine(string text, bool elastic) -> Microsoft.CodeAnalysis.SyntaxTrivia
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndRegionDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken endRegionKeyword, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.EndRegionDirectiveTriviaSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EndRegionDirectiveTrivia(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.EndRegionDirectiveTriviaSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.EnumDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken enumKeyword, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.BaseListSyntax baseList, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax> members, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.EnumDeclarationSyntax
@@ -3902,7 +3917,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhereClause(Microsoft.CodeAna
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhereClause(Microsoft.CodeAnalysis.SyntaxToken whereKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhereClauseSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhileStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WhileStatement(Microsoft.CodeAnalysis.SyntaxToken whileKeyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax condition, Microsoft.CodeAnalysis.SyntaxToken closeParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Whitespace(string text, bool elastic = true) -> Microsoft.CodeAnalysis.SyntaxTrivia
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Whitespace(string text) -> Microsoft.CodeAnalysis.SyntaxTrivia
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Whitespace(string text, bool elastic) -> Microsoft.CodeAnalysis.SyntaxTrivia
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlCDataSection(Microsoft.CodeAnalysis.SyntaxToken startCDataToken, Microsoft.CodeAnalysis.SyntaxTokenList textTokens, Microsoft.CodeAnalysis.SyntaxToken endCDataToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlCDataSectionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlCDataSection(Microsoft.CodeAnalysis.SyntaxTokenList textTokens = default(Microsoft.CodeAnalysis.SyntaxTokenList)) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlCDataSectionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.XmlComment(Microsoft.CodeAnalysis.SyntaxToken lessThanExclamationMinusMinusToken, Microsoft.CodeAnalysis.SyntaxTokenList textTokens, Microsoft.CodeAnalysis.SyntaxToken minusMinusGreaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlCommentSyntax
@@ -4032,6 +4048,8 @@ static Microsoft.CodeAnalysis.CSharpExtensions.IsKind(this Microsoft.CodeAnalysi
 static Microsoft.CodeAnalysis.CSharpExtensions.IsKind(this Microsoft.CodeAnalysis.SyntaxNodeOrToken nodeOrToken, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharpExtensions.IsKind(this Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharpExtensions.IsKind(this Microsoft.CodeAnalysis.SyntaxTrivia trivia, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
+static readonly Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Default -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
+static readonly Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Interactive -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
 static readonly Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter.Instance -> Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter
 static readonly Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Default -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
 static readonly Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CarriageReturn -> Microsoft.CodeAnalysis.SyntaxTrivia
@@ -4435,17 +4453,3 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.VisitLeadingTrivia(Micr
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.VisitToken(Microsoft.CodeAnalysis.SyntaxToken token) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.VisitTrailingTrivia(Microsoft.CodeAnalysis.SyntaxToken token) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia trivia) -> void
-Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments
-Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.CompilationOptions.get -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
-Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.ParseOptions.get -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
-Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
-Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Parse(System.Collections.Generic.IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments
-Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.RegularFileExtension.get -> string
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.ScriptFileExtension.get -> string
-static Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.ParseConditionalCompilationSymbols(string value, out System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Collections.Generic.IEnumerable<string>
-static Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions.Emit(this Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation, string outputPath, string pdbPath = null, string xmlDocumentationPath = null, string win32ResourcesPath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
-static readonly Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Default -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
-static readonly Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Interactive -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser

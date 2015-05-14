@@ -2904,5 +2904,116 @@ public class C
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<F>d__0#1");
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<F>d__1#2");
         }
+
+        [Fact]
+        public void UpdateAsyncLambda()
+        {
+            var source0 = MarkedSource(
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F()
+    {
+        Func<Task> <N:0>g1 = <N:1>async () =>
+        {
+            await A1(); 
+            await A2();
+        }</N:1></N:0>;
+    }
+
+    static Task<bool> A1() => null;
+    static Task<int> A2() => null;
+    static Task<double> A3() => null;
+}");
+            var source1 = MarkedSource(
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static int G() => 1;
+
+    static void F()
+    {
+        Func<Task> <N:0>g1 = <N:1>async () =>
+        {
+            await A2(); 
+            await A1();
+        }</N:1></N:0>;
+    }
+
+    static Task<bool> A1() => null;
+    static Task<int> A2() => null;
+    static Task<double> A3() => null;
+}");
+            var source2 = MarkedSource(
+ @"using System;
+using System.Threading.Tasks;
+class C
+{
+    static int G() => 1;
+
+    static void F()
+    {
+        Func<Task> <N:0>g1 = <N:1>async () =>
+        {
+            await A1(); 
+            await A2();
+        }</N:1></N:0>;
+    }
+
+    static Task<bool> A1() => null;
+    static Task<int> A2() => null;
+    static Task<double> A3() => null;
+}");
+
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0, symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>1__state: int",
+                    "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
+                    "<>4__this: C.<>c",
+                    "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
+                    "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>"
+                }, module.GetFieldNamesAndTypes("C.<>c.<<F>b__0_0>d"));
+            });
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // note that the types of the awaiter fields <>u__1, <>u__2 are the same as in the previous generation:
+            diff1.VerifySynthesizedFields("C.<>c.<<F>b__0_0>d",
+                "<>1__state: int",
+                "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
+                "<>4__this: C.<>c",
+                "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
+                "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            // note that the types of the awaiter fields <>u__1, <>u__2 are the same as in the previous generation:
+            diff2.VerifySynthesizedFields("C.<>c.<<F>b__0_0>d",
+                "<>1__state: int",
+                "<>t__builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
+                "<>4__this: C.<>c",
+                "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
+                "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
+        }
     }
 }

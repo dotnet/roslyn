@@ -1331,8 +1331,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                         }
 
-                        if (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
-                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel))
+                        // Don't simplify to predefined type if name is part of a QualifiedName.
+                        // QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
+                        // In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
+                        if (!name.Parent.IsKind(SyntaxKind.QualifiedName) &&
+                            (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
+                             PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel)))
                         {
                             var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)

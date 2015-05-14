@@ -53,5 +53,30 @@ Finally
 |
 End Try</MethodBody>, "Finally")
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub FinallyInTryNestedInCatch1()
+            VerifyRecommendationsContain(<MethodBody>
+        Try
+        Catch
+            Try ' Type an 'E' on the next line
+            |
+                Throw
+            End Try</MethodBody>, "Finally")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub FinallyInTryNestedInCatch2()
+            VerifyRecommendationsContain(<MethodBody>
+        Try
+        Catch
+            Try ' Type an 'E' on the next line
+            Catch
+            |
+                Throw
+            End Try</MethodBody>, "Finally")
+        End Sub
     End Class
 End Namespace

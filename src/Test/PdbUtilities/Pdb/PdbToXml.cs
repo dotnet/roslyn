@@ -97,7 +97,7 @@ namespace Roslyn.Test.PdbUtilities
                     if (matching.Length == 0)
                     {
                         xmlWriter.WriteLine("<error>");
-                        xmlWriter.WriteLine(string.Format("<message>No method '{0}' found in metadata.</message>", methodName));
+                        xmlWriter.WriteLine(string.Format("<message><![CDATA[No method '{0}' found in metadata.]]></message>", methodName));
                         xmlWriter.WriteLine("<available-methods>");
 
                         foreach (var methodHandle in metadataReader.MethodDefinitions)

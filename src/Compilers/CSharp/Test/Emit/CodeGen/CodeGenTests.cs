@@ -11436,6 +11436,31 @@ public class Test
 }");
         }
 
+        [WorkItem(2272)]
+        [Fact]
+        public void DefaultParamValueIsEnum()
+        {
+            string source = @"
+using System;
+
+public class Parent
+{
+    public int Foo(ConsoleKey e = ConsoleKey.A) { return e == ConsoleKey.A ? 0 : 1; }
+}
+
+public class Test
+{
+    public static int Main()
+    {
+        var ret = new Parent().Foo();
+        Console.WriteLine(ret);
+        return ret;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"0");
+        }
+
         [WorkItem(543089, "DevDiv")]
         [Fact()]
         public void NoOutAttributeOnMethodReturn()

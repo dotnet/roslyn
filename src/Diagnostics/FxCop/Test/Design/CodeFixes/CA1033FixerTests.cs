@@ -196,8 +196,8 @@ public class ImplementsGeneral  : IGeneral
             VerifyCSharpFix(code, expectedFixedCode);
         }
 
-        [WorkItem(2650, "https://github.com/dotnet/roslyn/issues/2650")]
-        [Fact(Skip = "2650"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WorkItem(2616, "https://github.com/dotnet/roslyn/issues/2616")]
+        [Fact(Skip ="2616"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1033SimpleDiagnosticCasesCSharp_Indexer()
         {
             var code = @"

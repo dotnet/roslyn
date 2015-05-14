@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ExpansionFlags flags)
         {
             var declaredType = member.Type;
-            var declaredTypeInfo = dynamicFlagsMap.SubstituteDynamicFlags(member.OriginalDefinitionType, new DynamicFlagsCustomTypeInfo(member.TypeInfo)).GetCustomTypeInfo();
+            var declaredTypeInfo = dynamicFlagsMap.SubstituteDynamicFlags(member.OriginalDefinitionType, DynamicFlagsCustomTypeInfo.Create(member.TypeInfo)).GetCustomTypeInfo();
             string memberName;
             // Considering, we're not handling the case of a member inherited from a generic base type.
             var typeDeclaringMember = member.GetExplicitlyImplementedInterface(out memberName) ?? member.DeclaringType;

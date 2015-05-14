@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol) As VariableSlotAllocator
+        Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
             If method IsNot Nothing AndAlso _methods.Contains(method) Then
                 Dim defs = GetLocalDefinitions(method.Locals)

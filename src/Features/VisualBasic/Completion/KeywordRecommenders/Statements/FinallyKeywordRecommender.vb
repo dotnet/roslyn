@@ -28,18 +28,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             ' If we're in the Try block, then we simply need to make sure we have no catch blocks, or else a Finally
             ' won't be valid here
             If context.IsInStatementBlockOfKind(SyntaxKind.TryBlock) AndAlso
-               Not context.IsInStatementBlockOfKind(SyntaxKind.CatchBlock) Then
+               Not IsInCatchOfTry(targetToken, tryBlock) Then
 
                 If tryBlock.CatchBlocks.Count = 0 Then
                     Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Finally", VBFeaturesResources.FinallyKeywordToolTip))
                 End If
-            ElseIf context.IsInStatementBlockOfKind(SyntaxKind.CatchBlock) Then
+            ElseIf IsInCatchOfTry(targetToken, tryBlock) Then
                 If TextSpan.FromBounds(tryBlock.CatchBlocks.Last().SpanStart, tryBlock.EndTryStatement.SpanStart).Contains(context.Position) Then
                     Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Finally", VBFeaturesResources.FinallyKeywordToolTip))
                 End If
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+        End Function
+
+        Private Function IsInCatchOfTry(targetToken As SyntaxToken, tryBlock As TryBlockSyntax) As Boolean
+            Dim parent = targetToken.Parent
+            While parent IsNot tryBlock
+                If parent.IsKind(SyntaxKind.CatchBlock) AndAlso tryBlock.CatchBlocks.Contains(DirectCast(parent, CatchBlockSyntax)) Then
+                    Return True
+                End If
+
+                parent = parent.Parent
+            End While
+
+            Return False
         End Function
     End Class
 End Namespace

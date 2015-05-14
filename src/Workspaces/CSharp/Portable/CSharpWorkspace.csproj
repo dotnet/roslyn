@@ -117,6 +117,7 @@
     <Compile Include="CodeGeneration\UsingDirectivesAdder.cs" />
     <Compile Include="CodeGeneration\UsingDirectivesAdder.Rewriter.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="LanguageServices\CSharpHostBuildDataFactory.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

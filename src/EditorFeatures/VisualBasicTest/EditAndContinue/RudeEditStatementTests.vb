@@ -3983,6 +3983,71 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "Function(a)", "Me", VBFeaturesResources.LambdaExpression).WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"),
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "y1", VBFeaturesResources.LambdaExpression).WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"))
         End Sub
+
+        <Fact>
+        Public Sub Lambdas_RenameCapturedLocal1()
+            Dim src1 = "
+Imports System
+Imports System.Diagnostics
+
+Class Program
+
+    Shared Sub Main()
+        Dim x As Integer = 1
+        Dim f As Func(Of Integer) = Function() x
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Diagnostics
+
+Class Program
+
+    Shared Sub Main()
+        Dim X As Integer = 1
+        Dim f As Func(Of Integer) = Function() X
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' Note that lifted variable is a field, which can't be renamed
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_RenameCapturedLocal2()
+            Dim src1 = "
+Imports System
+Imports System.Diagnostics
+
+Class Program
+
+    Shared Sub Main()
+        Dim x As Integer = 1
+        Dim f As Func(Of Integer) = Function() x
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Diagnostics
+
+Class Program
+
+    Shared Sub Main()
+        Dim y As Integer = 1
+        Dim f As Func(Of Integer) = Function() y
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RenamingCapturedVariable, "y", "x", "y"))
+        End Sub
 #End Region
 
 #Region "Queries"
@@ -5343,7 +5408,6 @@ End Class
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Select", "a", VBFeaturesResources.SelectClause),
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function()", "a", VBFeaturesResources.LambdaExpression))
         End Sub
-
 
         <Fact>
         Public Sub Queries_Insert1()

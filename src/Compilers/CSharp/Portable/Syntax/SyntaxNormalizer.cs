@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 string text = i == 0
                     ? ""
                     : _indentations[i - 1].ToString() + _indentWhitespace;
-                _indentations.Add(SyntaxFactory.Whitespace(text, _useElasticTrivia));
+                _indentations.Add(_useElasticTrivia ? SyntaxFactory.ElasticWhitespace(text) : SyntaxFactory.Whitespace(text));
             }
 
             return _indentations[count];

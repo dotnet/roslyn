@@ -936,7 +936,7 @@ class C { }";
 {
     // Comment 2
 }";
-                var eol = SyntaxFactory.EndOfLine(@"", elastic: false);
+                var eol = SyntaxFactory.EndOfLine(@"");
                 var newModifiers = new[] { SyntaxFactory.Token(SyntaxKind.InternalKeyword).WithLeadingTrivia(eol) }.Concat(
                     CreateModifierTokens(new DeclarationModifiers(isSealed: true, isPartial: true), LanguageNames.CSharp));
 
@@ -1005,7 +1005,6 @@ public static class C
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void TestUpdateDeclarationMembers_DifferentOrder()
             {
-                // TODO: Why is an extra EndOfLineTrivia being added here?
                 var input = @"
 public static class [|C|]
 {
@@ -1019,7 +1018,6 @@ public static class [|C|]
 public static class C
 {
     public int f2;
-
 
     // Comment 1
     public static char F() { return 0; }
