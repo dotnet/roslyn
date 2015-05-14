@@ -26,12 +26,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
             return new TextStorage();
         }
 
-        private class StreamStorage : ITemporaryStreamStorage
+        internal class StreamStorage : ITemporaryStreamStorage
         {
             private MemoryStream _stream;
 
+            public static int s_DisposalCount = 0;
+
             public void Dispose()
             {
+                _stream?.Dispose();
+                _stream = null;
+                s_DisposalCount++;
             }
 
             public Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken))
@@ -71,13 +76,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
             }
         }
 
-        private class TextStorage : ITemporaryTextStorage
+        internal class TextStorage : ITemporaryTextStorage
         {
             private string _text;
             private Encoding _encoding;
 
+            public static int s_DisposalCount = 0;
+
             public void Dispose()
             {
+                _text = null;
+                _encoding = null;
+                s_DisposalCount++;
             }
 
             public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
@@ -92,8 +102,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
             {
-                // Decompose the SourceText into it's underlying parts, since we use it as a key
-                // into many other caches that don't expect it to be held
                 _text = text.ToString();
                 _encoding = text.Encoding;
             }

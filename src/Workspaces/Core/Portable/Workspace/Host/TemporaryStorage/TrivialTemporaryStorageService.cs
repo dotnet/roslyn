@@ -28,12 +28,14 @@ namespace Microsoft.CodeAnalysis
             return new TextStorage();
         }
 
-        private class StreamStorage : ITemporaryStreamStorage
+        private sealed class StreamStorage : ITemporaryStreamStorage
         {
             private MemoryStream _stream;
 
             public void Dispose()
             {
+                _stream?.Dispose();
+                _stream = null;
             }
 
             public Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken))
@@ -73,12 +75,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class TextStorage : ITemporaryTextStorage
+        private sealed class TextStorage : ITemporaryTextStorage
         {
             private SourceText _sourceText;
 
             public void Dispose()
             {
+                _sourceText = null;
             }
 
             public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
@@ -93,7 +96,9 @@ namespace Microsoft.CodeAnalysis
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
             {
-                // This is a trivial implementation, indeed.
+                // This is a trivial implementation, indeed. Note, however, that we retain a strong
+                // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
+                // is appropriate for this trivial implementation.
                 _sourceText = text;
             }
 
