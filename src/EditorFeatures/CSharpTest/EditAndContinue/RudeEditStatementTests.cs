@@ -4847,6 +4847,72 @@ class C
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
         }
 
+        [Fact]
+        public void Lambdas_RenameCapturedLocal()
+        {
+            string src1 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        Func<int> f = () => x;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main()
+    {
+        int X = 1;
+        Func<int> f = () => X;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
+        }
+
+        [Fact]
+        public void Lambdas_RenameCapturedParameter()
+        {
+            string src1 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main(int x)
+    {
+        Func<int> f = () => x;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main(int X)
+    {
+        Func<int> f = () => X;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "int X", "parameter"));
+        }
+
         #endregion
 
         #region Queries

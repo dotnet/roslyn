@@ -3331,7 +3331,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     SyntaxNode mappedOldSyntax;
 
                     var newCaptureSyntax = GetSymbolSyntax(newCapture, cancellationToken);
-                    
+
                     // variable doesn't exists in the old method or has not been captured prior the edit:
                     if (!map.Reverse.TryGetValue(newCaptureSyntax, out mappedOldSyntax) ||
                         !oldLocalCapturesBySyntax.TryGetValue(mappedOldSyntax, out oldCaptureIndex))
@@ -3377,6 +3377,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // the corresponding scopes are guaranteed to be preserved as well.
                 if (oldCapture.Kind == SymbolKind.RangeVariable)
                 {
+                    continue;
+                }
+
+                // rename:
+                // Note that the name has to match exactly even in VB, since we can't rename a field.
+                // Consider: We could allow rename by emitting some special debug info for the field.
+                if (newCapture.Name != oldCapture.Name)
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.RenamingCapturedVariable,
+                        newCapture.Locations.First().SourceSpan,
+                        null,
+                        new[] { oldCapture.Name, newCapture.Name }));
+
+                    hasErrors = true;
                     continue;
                 }
 

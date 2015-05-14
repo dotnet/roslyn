@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.GenericTypeInitializerUpdate,              FeaturesResources.ModifyingTheInitializerInGenericType) },
             { GetDescriptorPair(RudeEditKind.PartialTypeInitializerUpdate,              FeaturesResources.ModifyingTheInitializerInPartialType) },
             { GetDescriptorPair(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,  FeaturesResources.InsertConstructorToTypeWithInitializersWithLambdas) },
+            { GetDescriptorPair(RudeEditKind.RenamingCapturedVariable,                  FeaturesResources.RenamingCapturedVariable) },
             { GetDescriptorPair(RudeEditKind.StackAllocUpdate,                          FeaturesResources.ModifyingAWhichContainsStackalloc) },
             { GetDescriptorPair(RudeEditKind.ExperimentalFeaturesEnabled,               FeaturesResources.ModifyingAFileWithExperimentalFeaturesEnabled) },
             { GetDescriptorPair(RudeEditKind.AwaitStatementUpdate,                      FeaturesResources.UpdatingAStatementContainingAwaitExpression) },
