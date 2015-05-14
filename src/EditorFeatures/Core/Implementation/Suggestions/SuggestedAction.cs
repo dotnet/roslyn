@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        ImageMoniker IconMoniker
+        public ImageMoniker IconMoniker
         {
             get
             {
