@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdateStaticLocal = 67,
 
         InsertConstructorToTypeWithInitializersWithLambdas = 68,
-
-        // 69 can be used
+        RenamingCapturedVariable = 69,
 
         InsertHandlesClause = 70,
         InsertFile = 71,

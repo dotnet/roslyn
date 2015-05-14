@@ -540,6 +540,9 @@
   <data name="InsertConstructorToTypeWithInitializersWithLambdas" xml:space="preserve">
     <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</value>
   </data>
+  <data name="RenamingCapturedVariable" xml:space="preserve">
+    <value>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</value>
+  </data>
   <data name="ModifyingACatchFinallyHandler" xml:space="preserve">
     <value>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</value>
   </data>

@@ -346,7 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     int parameterIndex = m.IsStatic ? 0 : 1;
                     foreach (var parameter in m.Parameters)
                     {
-                        if (!_hoistedParameterNames.Contains(parameter.Name))
+                        var parameterName = parameter.Name;
+                        if (!_hoistedParameterNames.Contains(parameterName) && GeneratedNames.GetKind(parameterName) == GeneratedNameKind.None)
                         {
                             AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex);
                         }
@@ -1122,6 +1123,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
+            foreach (var parameter in method.Parameters)
+            {
+                if (GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier)
+                {
+                    var instance = new DisplayClassInstanceFromParameter(parameter);
+                    displayClassTypes.Add(instance.Type);
+                    displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
+                }
+            }
+
             var containingType = method.ContainingType;
             bool isIteratorOrAsyncMethod = false;
             if (IsDisplayClassType(containingType))
@@ -1129,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 if (!method.IsStatic)
                 {
                     // Add "this" display class instance.
-                    var instance = new DisplayClassInstanceFromThis(method.ThisParameter);
+                    var instance = new DisplayClassInstanceFromParameter(method.ThisParameter);
                     displayClassTypes.Add(instance.Type);
                     displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
                 }
@@ -1247,6 +1258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var fieldType = field.Type;
                 var fieldKind = GeneratedNames.GetKind(field.Name);
                 if (fieldKind == GeneratedNameKind.DisplayClassLocalOrField ||
+                    fieldKind == GeneratedNameKind.TransparentIdentifier ||
+                    IsTransparentIdentifierFieldInAnonymousType(field) ||
                     (fieldKind == GeneratedNameKind.ThisProxyField && GeneratedNames.GetKind(fieldType.Name) == GeneratedNameKind.LambdaDisplayClass)) // Async lambda case.
                 {
                     Debug.Assert(!field.IsStatic);
@@ -1260,6 +1273,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
             return n;
+        }
+
+        private static bool IsTransparentIdentifierFieldInAnonymousType(FieldSymbol field)
+        {
+            string fieldName = field.Name;
+
+            if (GeneratedNames.GetKind(fieldName) != GeneratedNameKind.AnonymousTypeField)
+            {
+                return false;
+            }
+
+            GeneratedNameKind kind;
+            int openBracketOffset;
+            int closeBracketOffset;
+            if (!GeneratedNames.TryParseGeneratedName(fieldName, out kind, out openBracketOffset, out closeBracketOffset))
+            {
+                return false;
+            }
+
+            fieldName = fieldName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+
+            return GeneratedNames.GetKind(fieldName) == GeneratedNameKind.TransparentIdentifier;
         }
 
         private static void GetDisplayClassVariables(
@@ -1281,6 +1316,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
+                REPARSE:
+
                 DisplayClassVariableKind variableKind;
                 string variableName;
                 GeneratedNameKind fieldKind;
@@ -1290,6 +1327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 switch (fieldKind)
                 {
+                    case GeneratedNameKind.AnonymousTypeField:
+                        Debug.Assert(fieldName == field.Name); // This only happens once.
+                        fieldName = fieldName.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+                        goto REPARSE;
+                    case GeneratedNameKind.TransparentIdentifier:
+                        // A transparent identifier (field) in an anonymous type synthesized for a transparent identifier.
+                        Debug.Assert(!field.IsStatic);
+                        continue;
                     case GeneratedNameKind.DisplayClassLocalOrField:
                         // A local that is itself a display class instance.
                         Debug.Assert(!field.IsStatic);
@@ -1497,7 +1542,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             internal DisplayClassInstanceAndFields(DisplayClassInstance instance) :
                 this(instance, ConsList<FieldSymbol>.Empty)
             {
-                Debug.Assert(IsDisplayClassType(instance.Type));
+                Debug.Assert(IsDisplayClassType(instance.Type) ||
+                    GeneratedNames.GetKind(instance.Type.Name) == GeneratedNameKind.AnonymousType);
             }
 
             private DisplayClassInstanceAndFields(DisplayClassInstance instance, ConsList<FieldSymbol> fields)
@@ -1518,7 +1564,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
-                Debug.Assert(IsDisplayClassType((NamedTypeSymbol)field.Type));
+                Debug.Assert(IsDisplayClassType((NamedTypeSymbol)field.Type) ||
+                    GeneratedNames.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(this.Instance, this.Fields.Prepend(field));
             }
 

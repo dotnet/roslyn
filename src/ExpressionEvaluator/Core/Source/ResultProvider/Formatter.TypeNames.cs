@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 throw new ArgumentNullException(nameof(type));
             }
 
-            var dynamicFlags = new DynamicFlagsCustomTypeInfo(typeAndInfo.Info);
+            var dynamicFlags = DynamicFlagsCustomTypeInfo.Create(typeAndInfo.Info);
             var index = 0;
             var pooled = PooledStringBuilder.GetInstance();
             AppendQualifiedTypeName(pooled.Builder, type, dynamicFlags, ref index, escapeKeywordIdentifiers);

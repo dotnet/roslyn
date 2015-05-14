@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Debugger.Metadata;
@@ -9,8 +8,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class DynamicHelpers
     {
-        private static readonly bool[] TrueArray = new[] { true };
-
         public static DynamicFlagsCustomTypeInfo GetDynamicFlags(this IList<CustomAttributeData> attributes)
         {
             foreach (var attribute in attributes)
@@ -20,7 +17,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var arguments = attribute.ConstructorArguments;
                     if (arguments.Count == 0)
                     {
-                        return new DynamicFlagsCustomTypeInfo(TrueArray);
+                        var builder = ArrayBuilder<bool>.GetInstance(1);
+                        builder.Add(true);
+                        var result = DynamicFlagsCustomTypeInfo.Create(builder);
+                        builder.Free();
+                        return result;
                     }
                     else if (arguments.Count == 1)
                     {
@@ -36,7 +37,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             {
                                 builder.Add((bool)typedArg.Value);
                             }
-                            return new DynamicFlagsCustomTypeInfo(builder.ToArrayAndFree());
+                            var result = DynamicFlagsCustomTypeInfo.Create(builder);
+                            builder.Free();
+                            return result;
                         }
                     }
                 }

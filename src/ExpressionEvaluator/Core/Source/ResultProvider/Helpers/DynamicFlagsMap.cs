@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return Empty;
             }
 
-            var dynamicFlags = new DynamicFlagsCustomTypeInfo(typeAndInfo.Info);
+            var dynamicFlags = DynamicFlagsCustomTypeInfo.Create(typeAndInfo.Info);
             if (!dynamicFlags.Any())
             {
                 return Empty;
@@ -97,7 +97,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 f++;
             }
 
-            return new DynamicFlagsCustomTypeInfo(substitutedFlags.ToArrayAndFree());
+            var result = DynamicFlagsCustomTypeInfo.Create(substitutedFlags);
+            substitutedFlags.Free();
+            return result;
         }
 
         private void AppendFlagsFor(Type type, ArrayBuilder<bool> builder)

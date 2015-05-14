@@ -1636,6 +1636,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Renaming a captured variable, from &apos;{0}&apos; to &apos;{1}&apos; will prevent the debug session from continuing..
+        /// </summary>
+        internal static string RenamingCapturedVariable {
+            get {
+                return ResourceManager.GetString("RenamingCapturedVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Represents an object whose operations will be resolved at runtime..
         /// </summary>
         internal static string RepresentsAnObjectWhoseOperations {
