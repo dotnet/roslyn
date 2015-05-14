@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis
         private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
 
         // internal for testing
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
+            MessageId = "System.Xml.XmlReader.Create",
+            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
+XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
+However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
+So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         internal XmlException ParseInternal(string text)
         {
             _textReader.SetText(text);
