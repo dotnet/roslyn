@@ -267,6 +267,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                     if (!string.IsNullOrWhiteSpace(codeAnalysisRuleSetFileName))
                     {
                         string codeAnalysisRuleSetFullPath = FileUtilities.ResolveRelativePath(codeAnalysisRuleSetFileName, projectDirectoryFullPath);
+                        codeAnalysisRuleSetFullPath = FileUtilities.NormalizeAbsolutePath(codeAnalysisRuleSetFullPath);
+                        oldRuleSetFilePath = FileUtilities.NormalizeAbsolutePath(codeAnalysisRuleSetFullPath);
+
                         if (codeAnalysisRuleSetFullPath.Equals(oldRuleSetFilePath, StringComparison.OrdinalIgnoreCase))
                         {
                             string newRuleSetRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, newRuleSetFilePath);
