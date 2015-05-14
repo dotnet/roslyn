@@ -1056,9 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
-            LanguageVersion availableVersion = this.Options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            return availableVersion >= requiredVersion;
+            return this.Options.IsFeatureEnabled(feature);
         }
     }
 }
