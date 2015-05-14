@@ -5,31 +5,27 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TableControl;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     [Export(typeof(VisualStudioDiagnosticListTable))]
     internal class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
-        internal const string IdentifierString = "{30EE579B-4C9E-432A-9EBD-BF55D0EA47FF}";
-        internal static readonly Guid Identifier = new Guid(IdentifierString);
+        internal const string IdentifierString = nameof(VisualStudioDiagnosticListTable);
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListTable(
             SVsServiceProvider serviceProvider, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            base(serviceProvider, workspace, diagnosticService, Identifier, provider)
+            base(serviceProvider, workspace, diagnosticService, IdentifierString, provider)
         {
             ConnectWorkspaceEvents();
-
-            // create initial project rank map
-            this.Source.OnProjectDependencyChanged(workspace.CurrentSolution);
         }
 
         /// this is for test only
         internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            base(null, workspace, diagnosticService, Identifier, provider)
+            base(null, workspace, diagnosticService, IdentifierString, provider)
         {
         }
     }

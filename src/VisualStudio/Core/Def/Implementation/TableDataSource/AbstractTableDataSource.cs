@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -24,16 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
         }
 
-        public virtual void OnProjectDependencyChanged(Solution solution)
-        {
-            // base implementation does nothing.
-        }
-
         public abstract string DisplayName { get; }
 
-        public abstract Guid SourceTypeIdentifier { get; }
+        public abstract string SourceTypeIdentifier { get; }
 
-        public abstract Guid Identifier { get; }
+        public abstract string Identifier { get; }
 
         public void Refresh(AbstractTableEntriesFactory<TData> factory)
         {
@@ -180,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                _sink.FactoryUpdated(provider);
+                _sink.FactorySnapshotChanged(provider);
             }
 
             public void Remove(ITableEntriesSnapshotFactory factory)

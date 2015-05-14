@@ -15,8 +15,8 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TableControl;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -39,57 +39,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         };
 
         protected VisualStudioBaseDiagnosticListTable(
-            SVsServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, Guid identifier, ITableManagerProvider provider) :
+            SVsServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier, ITableManagerProvider provider) :
             base(workspace, provider, StandardTables.ErrorsTable, new TableDataSource(serviceProvider, workspace, diagnosticService, identifier))
         {
         }
 
         internal override IReadOnlyCollection<string> Columns { get { return s_columns; } }
 
-        protected override void SolutionOrProjectChanged(WorkspaceChangeEventArgs e)
-        {
-            if (e.ProjectId == null)
-            {
-                // solution level change
-                this.Source.OnProjectDependencyChanged(e.NewSolution);
-                return;
-            }
-
-            var oldProject = e.OldSolution.GetProject(e.ProjectId);
-            var newProject = e.NewSolution.GetProject(e.ProjectId);
-
-            if (oldProject == null || newProject == null)
-            {
-                // project added or removed
-                this.Source.OnProjectDependencyChanged(e.NewSolution);
-                return;
-            }
-
-            if (!object.ReferenceEquals(newProject.AllProjectReferences, oldProject.AllProjectReferences) &&
-                !newProject.ProjectReferences.SetEquals(oldProject.ProjectReferences))
-            {
-                // reference has changed
-                this.Source.OnProjectDependencyChanged(e.NewSolution);
-                return;
-            }
-        }
-
         private class TableDataSource : AbstractRoslynTableDataSource<DiagnosticsUpdatedArgs, DiagnosticData>
         {
-            private readonly Guid _identifier;
+            private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
             private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker _tracker;
 
-            private ImmutableDictionary<ProjectId, int> _projectRanks;
-
-            public TableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, Guid identifier)
+            public TableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier)
             {
                 _workspace = workspace;
                 _serviceProvider = serviceProvider;
                 _identifier = identifier;
-                _projectRanks = ImmutableDictionary<ProjectId, int>.Empty;
 
                 _tracker = new OpenDocumentTracker(_workspace);
 
@@ -97,25 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
                 ConnectToSolutionCrawlerService(_workspace);
-            }
-
-            public override void OnProjectDependencyChanged(Solution solution)
-            {
-                var rankList = solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(CancellationToken.None);
-                Contract.ThrowIfNull(rankList);
-
-                // rank is acsending order
-                var rank = 0;
-                var builder = ImmutableDictionary.CreateBuilder<ProjectId, int>();
-                foreach (var projectId in rankList)
-                {
-                    builder.Add(projectId, rank++);
-                }
-
-                _projectRanks = builder.ToImmutable();
-
-                // project rank has changed, refresh all factories.
-                this.RefreshAllFactories();
             }
 
             public override string DisplayName
@@ -126,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            public override Guid SourceTypeIdentifier
+            public override string SourceTypeIdentifier
             {
                 get
                 {
@@ -134,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            public override Guid Identifier
+            public override string Identifier
             {
                 get
                 {
@@ -213,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 protected override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
                     int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
-                    var snapshot = new TableEntriesSnapshot(this, version, GetProjectRank(_projectId), items, trackingPoints);
+                    var snapshot = new TableEntriesSnapshot(this, version, items, trackingPoints);
 
                     if (_documentId != null && !trackingPoints.IsDefaultOrEmpty)
                     {
@@ -224,41 +174,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return snapshot;
                 }
 
-                private int GetProjectRank(ProjectId projectId)
-                {
-                    var rank = 0;
-                    if (projectId != null && _source._projectRanks.TryGetValue(projectId, out rank))
-                    {
-                        return rank;
-                    }
-
-                    return _source._projectRanks.Count;
-                }
-
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>, IWpfTableEntriesSnapshot
                 {
                     private readonly TableEntriesFactory _factory;
-
-                    // TODO: remove this once we get new drop
-                    private readonly int _projectRank;
-
                     private FrameworkElement[] _descriptions;
 
                     public TableEntriesSnapshot(
-                        TableEntriesFactory factory, int version,
-                        int projectRank, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                        TableEntriesFactory factory, int version, ImmutableArray<DiagnosticData> items, ImmutableArray<ITrackingPoint> trackingPoints) :
                         base(version, GetProjectGuid(factory._workspace, factory._projectId), items, trackingPoints)
                     {
-                        _projectRank = projectRank;
                         _factory = factory;
-                    }
-
-                    public override object SnapshotIdentity
-                    {
-                        get
-                        {
-                            return _factory;
-                        }
                     }
 
                     public override bool TryGetValue(int index, string columnName, out object content)
@@ -274,9 +199,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         switch (columnName)
                         {
-                            case StandardTableKeyNames.ProjectRank:
-                                content = _projectRank;
-                                return true;
                             case StandardTableKeyNames.ErrorRank:
                                 content = GetErrorRank(item);
                                 return true;
@@ -316,10 +238,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case ProjectGuidKey:
                                 content = ProjectGuid;
                                 return ProjectGuid != Guid.Empty;
-                            case StandardTableKeyNames.Project:
-                                // TODO: remove this once we move to new drop
-                                content = GetHierarchy(_factory._workspace, _factory._projectId);
-                                return content != null;
                             default:
                                 content = null;
                                 return false;

@@ -4,8 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.TableControl;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -17,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected readonly AbstractRoslynTableDataSource<TArgs, TData> Source;
 
-        protected AbstractTable(Workspace workspace, ITableManagerProvider provider, Guid tableIdentifier, AbstractRoslynTableDataSource<TArgs, TData> source)
+        protected AbstractTable(Workspace workspace, ITableManagerProvider provider, string tableIdentifier, AbstractRoslynTableDataSource<TArgs, TData> source)
         {
             _workspace = workspace;
             _provider = provider;
@@ -40,20 +39,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case WorkspaceChangeKind.SolutionAdded:
                 case WorkspaceChangeKind.ProjectAdded:
                     AddTableSourceIfNecessary();
-                    SolutionOrProjectChanged(e);
                     break;
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.ProjectRemoved:
                     RemoveTableSourceIfNecessary();
-                    SolutionOrProjectChanged(e);
                     break;
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
-                    SolutionOrProjectChanged(e);
-                    break;
                 case WorkspaceChangeKind.DocumentAdded:
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
@@ -67,11 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     Contract.Fail("Can't reach here");
                     return;
             }
-        }
-
-        protected virtual void SolutionOrProjectChanged(WorkspaceChangeEventArgs e)
-        {
-            // do nothing in base implementation
         }
 
         private void AddTableSourceIfNecessary()

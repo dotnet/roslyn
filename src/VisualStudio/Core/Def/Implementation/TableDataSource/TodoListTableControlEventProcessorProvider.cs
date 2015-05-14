@@ -3,14 +3,14 @@
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.VisualStudio.TableControl;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     [Export(typeof(ITableControlEventProcessorProvider))]
-    [DataSourceType(StandardTableDataSources.CommentTableDataSourceString)]
+    [DataSourceType(StandardTableDataSources.CommentTableDataSource)]
     [DataSource(VisualStudioTodoListTable.IdentifierString)]
     [Name(Name)]
     [Order(Before = "default")]
