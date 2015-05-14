@@ -1506,5 +1506,57 @@ End Class
                 End If
             End Using
         End Sub
+
+        <Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
+        Public Sub TestGenericName()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+using System;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class MyClass
+    {   
+        private Nullable<int> myVar = 5;
+        void Method()
+        {
+
+        }
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            TestGenericNameCore(test, New CSharpGenericNameAnalyzer, "Message")
+        End Sub
+
+        Private Sub TestGenericNameCore(test As XElement, analyzer As DiagnosticAnalyzer, expectedMessage As String)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
+                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(1, diagnostics.Count())
+
+                Dim diagnostic = diagnostics.Single(Function(d) d.Id = analyzer.SupportedDiagnostics.Single().Id)
+                Assert.Equal(expectedMessage, diagnostic.Message)
+            End Using
+        End Sub
     End Class
 End Namespace

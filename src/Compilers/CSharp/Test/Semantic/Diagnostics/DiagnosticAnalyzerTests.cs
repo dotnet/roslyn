@@ -1050,5 +1050,32 @@ class C
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
                     expected: Diagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, "M").WithArguments("M").WithLocation(4, 17));
         }
+
+        [Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")]
+        public void TestGenericName()
+        {
+            var source = @"
+using System;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class MyClass
+    {   
+        private Nullable<int> myVar = 5;
+        void Method()
+        {
+
+        }
+    }
+}";
+
+            var analyzers = new DiagnosticAnalyzer[] { new CSharpGenericNameAnalyzer() };
+
+            // Verify, no duplicate diagnostics on generic name.
+            CreateCompilationWithMscorlib45(source)
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    expected: Diagnostic(CSharpGenericNameAnalyzer.DiagnosticId, @"Nullable<int>").WithLocation(9, 17));
+        }
     }
 }
