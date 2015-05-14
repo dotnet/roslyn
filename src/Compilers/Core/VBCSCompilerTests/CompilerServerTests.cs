@@ -127,11 +127,8 @@ End Module")
             s_systemCollectionsImmutableDllSrc,
             s_buildTaskDllSrc,
             ResolveAssemblyPath("System.Reflection.Metadata.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.Desktop.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.Desktop.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.VisualBasic.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.VisualBasic.Desktop.dll"),
             Path.Combine(s_clientExecutableBasePath, CompilerServerExeName + ".config"),
             Path.Combine(s_clientExecutableBasePath, "csc.rsp"),
             Path.Combine(s_clientExecutableBasePath, "vbc.rsp")
