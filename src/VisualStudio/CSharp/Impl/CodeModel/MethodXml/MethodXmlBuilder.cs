@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.MethodXml;
@@ -162,6 +161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
             switch (expression.Kind())
             {
                 case SyntaxKind.CharacterLiteralExpression:
+                    return TryGenerateCharLiteral(expression);
+
                 case SyntaxKind.UnaryMinusExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
@@ -261,10 +262,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
                         GenerateNumber(constantValue.Value, type);
                         return true;
 
-                    case SyntaxKind.CharacterLiteralExpression:
-                        GenerateChar((char)constantValue.Value);
-                        return true;
-
                     case SyntaxKind.StringLiteralExpression:
                         GenerateString((string)constantValue.Value);
                         return true;
@@ -277,6 +274,47 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
 
                 return false;
             }
+        }
+
+        private bool TryGenerateCharLiteral(ExpressionSyntax expression)
+        {
+            // For non-letters and digits, generate a cast of the numeric value to a char.
+            // Otherwise, we might end up generating invalid XML.
+            if (expression.Kind() != SyntaxKind.CharacterLiteralExpression)
+            {
+                return false;
+            }
+
+            var constantValue = SemanticModel.GetConstantValue(expression);
+            if (!constantValue.HasValue)
+            {
+                return false;
+            }
+
+            var ch = (char)constantValue.Value;
+
+            if (!char.IsLetterOrDigit(ch))
+            {
+                using (CastTag())
+                {
+                    GenerateType(SpecialType.System_Char);
+
+                    using (ExpressionTag())
+                    using (LiteralTag())
+                    {
+                        GenerateNumber((ushort)ch, SpecialType.System_UInt16);
+                    }
+                }
+            }
+            else
+            {
+                using (LiteralTag())
+                {
+                    GenerateChar(ch);
+                }
+            }
+
+            return true;
         }
 
         private bool TryGenerateParentheses(ParenthesizedExpressionSyntax parenthesizedExpression)

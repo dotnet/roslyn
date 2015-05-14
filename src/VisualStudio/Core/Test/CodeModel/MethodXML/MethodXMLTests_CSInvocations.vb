@@ -255,9 +255,14 @@ public class C
                 <Type>System.String</Type>
                 <Argument>
                     <Expression>
-                        <Literal>
-                            <Char>.</Char>
-                        </Literal>
+                        <Cast>
+                            <Type>System.Char</Type>
+                            <Expression>
+                                <Literal>
+                                    <Number type="System.UInt16">46</Number>
+                                </Literal>
+                            </Expression>
+                        </Cast>
                     </Expression>
                 </Argument>
                 <Argument>
