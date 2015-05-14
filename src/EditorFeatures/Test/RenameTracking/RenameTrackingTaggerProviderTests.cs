@@ -1090,5 +1090,109 @@ class C
                 state.AssertNoTag();
             }
         }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CannotRenameToVarInCSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        C$$ c;
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.InsertText("va");
+
+                state.AssertTag("C", "va");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("r");
+                state.AssertNoTag();
+                Assert.Empty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("p");
+                state.AssertTag("C", "varp");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+            }
+        }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CannotRenameFromVarInCSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var$$ c = new C();
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.AssertNoTag();
+                Assert.Empty(state.GetDocumentDiagnostics());
+            }
+        }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CanRenameToVarInVisualBasic()
+        {
+            var code = @"
+Class C
+    Sub M()
+        Dim x as C$$
+    End Sub
+End Class";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.InsertText("var");
+
+                state.AssertTag("C", "var");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+            }
+        }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CannotRenameToDynamicInCSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        C$$ c;
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.InsertText("dynami");
+
+                state.AssertTag("C", "dynami");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("c");
+                state.AssertNoTag();
+                Assert.Empty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("s");
+                state.AssertTag("C", "dynamics");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+            }
+        }
     }
 }

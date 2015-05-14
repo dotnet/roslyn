@@ -201,6 +201,7 @@
     <Compile Include="QuickInfo\SyntacticQuickInfoProvider.cs" />
     <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
+    <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProvider.cs" />
