@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // should be found by WithMethodTypeParametersBinder instead.
                 var parameter = (ParameterSymbol)symbols[i];
                 Debug.Assert(parameter.ContainingSymbol == _sourceBinder.ContainingMemberOrLambda);
+                Debug.Assert(GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.None);
                 symbols[i] = _targetParameters[parameter.Ordinal + _parameterOffset];
             }
         }
