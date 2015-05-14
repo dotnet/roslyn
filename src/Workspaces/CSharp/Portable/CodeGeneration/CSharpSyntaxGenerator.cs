@@ -2907,22 +2907,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var baseList = this.GetBaseList(declaration);
 
-            var newBaseList = (baseList != null)
-                ? baseList.WithTypes(baseList.Types.Insert(0, SyntaxFactory.SimpleBaseType((TypeSyntax)baseType)))
-                : SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)baseType)));
-
-            return this.WithBaseList(declaration, newBaseList);
+            if (baseList != null)
+            {
+                return this.WithBaseList(declaration, baseList.WithTypes(baseList.Types.Insert(0, SyntaxFactory.SimpleBaseType((TypeSyntax)baseType))));
+            }
+            else
+            {
+                return this.AddBaseList(declaration, SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)baseType))));
+            }
         }
 
         public override SyntaxNode AddInterfaceType(SyntaxNode declaration, SyntaxNode interfaceType)
         {
             var baseList = this.GetBaseList(declaration);
 
-            var newBaseList = (baseList != null)
-                ? baseList.WithTypes(baseList.Types.Insert(baseList.Types.Count, SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType)))
-                : SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType)));
+            if (baseList != null)
+            {
+                return this.WithBaseList(declaration, baseList.WithTypes(baseList.Types.Insert(baseList.Types.Count, SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType))));
+            }
+            else
+            {
+                return this.AddBaseList(declaration, SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType))));
+            }
+        }
 
-            return this.WithBaseList(declaration, newBaseList);
+        private SyntaxNode AddBaseList(SyntaxNode declaration, BaseListSyntax baseList)
+        {
+            var newDecl = this.WithBaseList(declaration, baseList);
+
+            // move trivia from type identifier to after base list
+            return this.ShiftTrivia(newDecl, this.GetBaseList(newDecl));
         }
 
         private BaseListSyntax GetBaseList(SyntaxNode declaration)
@@ -3236,6 +3250,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return base.RemoveNode(root, declaration);
+        }
+
+        /// <summary>
+        /// Moves the trailing trivia from the node's previous token to the end of the node
+        /// </summary>
+        private SyntaxNode ShiftTrivia(SyntaxNode root, SyntaxNode node)
+        {
+            var firstToken = node.GetFirstToken();
+            var previousToken = firstToken.GetPreviousToken();
+            if (previousToken != default(SyntaxToken) && root.Contains(previousToken.Parent))
+            {
+                var newNode = node.WithTrailingTrivia(node.GetTrailingTrivia().AddRange(previousToken.TrailingTrivia));
+                var newPreviousToken = previousToken.WithTrailingTrivia(default(SyntaxTriviaList));
+                return root.ReplaceSyntax(
+                    nodes: new[] { node }, computeReplacementNode: (o, r) => newNode,
+                    tokens: new[] { previousToken }, computeReplacementToken: (o, r) => newPreviousToken,
+                    trivia: null, computeReplacementTrivia: null);
+            }
+
+            return root;
         }
 #endregion
 
