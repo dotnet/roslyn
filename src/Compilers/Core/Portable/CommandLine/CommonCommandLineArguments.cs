@@ -115,6 +115,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }
 
+        /// <value>
+        /// Report additional information related to analyzers, such as analyzer execution time.
+        /// </value>
+        public bool ReportAnalyzer { get; internal set; }
+
         /// <summary>
         /// If true, prepend the command line header logo during 
         /// <see cref="CommonCompiler.Run"/>.
