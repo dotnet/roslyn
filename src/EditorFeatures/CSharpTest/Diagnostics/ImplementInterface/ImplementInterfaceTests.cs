@@ -1511,7 +1511,7 @@ interface I
 }
 class C : I
 {
-    public void Foo([DateTimeConstant(100), Optional]DateTime d1, [IUnknownConstant, Optional]object d2)
+    public void Foo([DateTimeConstant(100), Optional] DateTime d1, [IUnknownConstant, Optional] object d2)
     {
         throw new NotImplementedException();
     }

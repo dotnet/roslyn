@@ -88,6 +88,7 @@
     <Compile Include="Formatting\FormattingElasticTriviaTests.cs" />
     <Compile Include="Formatting\FormattingMultipleSpanTests.cs" />
     <Compile Include="Formatting\FormattingTests.cs" />
+    <Compile Include="Formatting\FormattingTreeEditTests.cs" />
     <Compile Include="Formatting\FormattingTriviaTests.cs" />
     <Compile Include="CodeGeneration\AddImportsTests.cs" />
   </ItemGroup>
