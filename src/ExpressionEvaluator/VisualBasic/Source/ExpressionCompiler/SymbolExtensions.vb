@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -69,6 +70,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             method.ContainingType.GetAllTypeParameters(builder)
             builder.AddRange(method.TypeParameters)
             Return builder.ToImmutableAndFree()
+        End Function
+
+        <Extension>
+        Friend Function IsAnonymousTypeField(field As FieldSymbol, <Out> ByRef unmangledName As String) As Boolean
+            If GeneratedNames.GetKind(field.ContainingType.Name) <> GeneratedNameKind.AnonymousType Then
+                unmangledName = Nothing
+                Return False
+            End If
+
+            unmangledName = field.Name
+            If unmangledName(0) = "$"c Then
+                unmangledName = unmangledName.Substring(1)
+            End If
+
+            Return True
         End Function
     End Module
 End Namespace
