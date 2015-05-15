@@ -1162,19 +1162,21 @@ OtherExpressions:
                 cur = cur + 1
 
                 ' Emit case statement sequence point
-                If _emitPdbSequencePoints Then
-                    Dim caseStatement = caseBlock.CaseStatement
-                    If Not caseStatement.WasCompilerGenerated Then
-                        Debug.Assert(caseStatement.Syntax IsNot Nothing)
+
+                Dim caseStatement = caseBlock.CaseStatement
+                If Not caseStatement.WasCompilerGenerated Then
+                    Debug.Assert(caseStatement.Syntax IsNot Nothing)
+
+                    If _emitPdbSequencePoints Then
                         EmitSequencePoint(caseStatement.Syntax)
                     End If
-                End If
 
-                If _optimizations = OptimizationLevel.Debug Then
-                    ' Emit nop for the case statement otherwise the above sequence point
-                    ' will get associated with the first statement in subsequent case block.
-                    ' This matches the native compiler codegen.
-                    _builder.EmitOpCode(ILOpCode.Nop)
+                    If _optimizations = OptimizationLevel.Debug Then
+                        ' Emit nop for the case statement otherwise the above sequence point
+                        ' will get associated with the first statement in subsequent case block.
+                        ' This matches the native compiler codegen.
+                        _builder.EmitOpCode(ILOpCode.Nop)
+                    End If
                 End If
 
                 ' Emit case block body

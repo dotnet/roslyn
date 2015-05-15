@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return new MSB.Evaluation.Project(
                 xml,
-                globalProperties,
+                properties,
                 toolsVersion: null,
                 projectCollection: collection);
         }

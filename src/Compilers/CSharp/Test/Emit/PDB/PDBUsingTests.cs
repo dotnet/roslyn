@@ -1454,6 +1454,9 @@ class C
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__2_0"" parameterNames=""x"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".ctor"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""-23"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""35"" endLine=""6"" endColumn=""36"" document=""0"" />
@@ -1464,6 +1467,9 @@ class C
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__3_0"" parameterNames=""x"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".ctor"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""-38"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
@@ -1509,6 +1515,9 @@ class C
         <using>
           <namespace usingCount=""1"" />
         </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""18"" endLine=""7"" endColumn=""19"" document=""0"" />
@@ -1549,6 +1558,9 @@ class C
     <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""get_P2"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""28"" document=""0"" />
@@ -1649,6 +1661,9 @@ class C : I1, I2
         <using>
           <namespace usingCount=""1"" />
         </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""18"" startColumn=""34"" endLine=""18"" endColumn=""35"" document=""0"" />

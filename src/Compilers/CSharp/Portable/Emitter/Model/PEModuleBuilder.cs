@@ -329,10 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// members, in particular for generic type arguments
         /// (e.g.: binding to internal types in the EE).
         /// </summary>
-        internal virtual bool IgnoreAccessibility
-        {
-            get { return false; }
-        }
+        internal virtual bool IgnoreAccessibility => false;
+
+        /// <summary>
+        /// Override the dynamic operation context type for all dynamic calls in the module.
+        /// </summary>
+        internal virtual NamedTypeSymbol DynamicOperationContextType => null;
 
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod)
         {

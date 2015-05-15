@@ -863,7 +863,6 @@
     </SyntaxDefinition>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />

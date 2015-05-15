@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
         {
             private static class CultureInfo
             {
-                internal static readonly Type Type = typeof(CultureInfo);
+                internal static readonly Type Type = typeof(System.Globalization.CultureInfo);
 
                 internal static readonly PropertyInfo CultureTypes = Type
                     .GetTypeInfo()

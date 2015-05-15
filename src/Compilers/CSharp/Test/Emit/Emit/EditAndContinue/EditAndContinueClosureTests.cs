@@ -54,7 +54,6 @@ class C
                 // Type: display class
                 CheckEncLogDefinitions(reader1,
                     Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                     Row(1, TableIndex.Field, EditAndContinueOperation.Default),
@@ -116,8 +115,7 @@ class C
 
             // Method updates
             CheckEncLogDefinitions(reader1,
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
@@ -225,8 +223,7 @@ class C
 
             // Method updates
             CheckEncLogDefinitions(reader1,
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
@@ -282,8 +279,7 @@ class C
 
             // Method updates
             CheckEncLogDefinitions(reader1,
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
@@ -357,8 +353,7 @@ class C : D
 
             // Method updates
             CheckEncLogDefinitions(reader1,
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -422,7 +417,6 @@ partial class C
 
             // Method updates
             CheckEncLogDefinitions(reader1,
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
@@ -484,10 +478,7 @@ class C
 
             // Method updates for lambdas:
             CheckEncLogDefinitions(reader1,
-                Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(12, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(17, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -569,12 +560,9 @@ class C
 
             // Method updates for lambdas:
             CheckEncLogDefinitions(reader1,
+                Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(12, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(13, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -656,7 +644,6 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -741,7 +728,6 @@ class C
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -826,7 +812,6 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -905,7 +890,6 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -994,32 +978,23 @@ class C
             // updated:
             diff1.VerifyIL("C.<>c.<F>b__1_0", @"
 {
-  // Code size        8 (0x8)
+  // Code size        4 (0x4)
   .maxstack  2
-  .locals init ([int] V_0,
-                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.2
   IL_0002:  add
-  IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.1
-  IL_0007:  ret
+  IL_0003:  ret
 }
 ");
             // added:
             diff1.VerifyIL("C.<>c.<F>b__1_1#1", @"
 {
-  // Code size        9 (0x9)
+  // Code size        5 (0x5)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.s   20
   IL_0003:  add
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0007
-  IL_0007:  ldloc.0
-  IL_0008:  ret
+  IL_0004:  ret
 }
 ");
 
@@ -1035,48 +1010,35 @@ class C
             // updated:
             diff2.VerifyIL("C.<>c.<F>b__1_0", @"
 {
-  // Code size        8 (0x8)
+  // Code size        4 (0x4)
   .maxstack  2
-  .locals init ([int] V_0,
-                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.3
   IL_0002:  add
-  IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.1
-  IL_0007:  ret
+  IL_0003:  ret
 }
 ");
             // updated:
             diff2.VerifyIL("C.<>c.<F>b__1_1#1", @"
 {
-  // Code size        9 (0x9)
+  // Code size        5 (0x5)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.s   30
   IL_0003:  add
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0007
-  IL_0007:  ldloc.0
-  IL_0008:  ret
+  IL_0004:  ret
 }
 ");
 
             // added:
             diff2.VerifyIL("C.<>c.<F>b__1_2#2", @"
 {
-  // Code size       12 (0xc)
+  // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4     0x300
   IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  br.s       IL_000a
-  IL_000a:  ldloc.0
-  IL_000b:  ret
+  IL_0007:  ret
 }
 ");
 
@@ -1091,48 +1053,35 @@ class C
             // updated:
             diff3.VerifyIL("C.<>c.<F>b__1_0", @"
 {
-  // Code size        8 (0x8)
+  // Code size        4 (0x4)
   .maxstack  2
-  .locals init ([int] V_0,
-                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.4
   IL_0002:  add
-  IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.1
-  IL_0007:  ret
+  IL_0003:  ret
 }
 ");
             // updated:
             diff3.VerifyIL("C.<>c.<F>b__1_1#1", @"
 {
-  // Code size        9 (0x9)
+  // Code size        5 (0x5)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.s   40
   IL_0003:  add
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0007
-  IL_0007:  ldloc.0
-  IL_0008:  ret
+  IL_0004:  ret
 }
 ");
 
             // updated:
             diff3.VerifyIL("C.<>c.<F>b__1_2#2", @"
 {
-  // Code size       12 (0xc)
+  // Code size        8 (0x8)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4     0x400
   IL_0006:  add
-  IL_0007:  stloc.0
-  IL_0008:  br.s       IL_000a
-  IL_000a:  ldloc.0
-  IL_000b:  ret
+  IL_0007:  ret
 }
 ");
         }
@@ -1701,8 +1650,7 @@ class C
             // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
             // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
             CheckEncLogDefinitions(reader1,
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
@@ -1776,61 +1724,41 @@ class C
 
             diff1.VerifyIL("C.<>c.<.ctor>b__2_0", @"
 {
-  // Code size        8 (0x8)
+  // Code size        4 (0x4)
   .maxstack  2
-  .locals init ([int] V_0,
-                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.2
   IL_0002:  sub
-  IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.1
-  IL_0007:  ret
+  IL_0003:  ret
 }");
 
             diff1.VerifyIL("C.<>c.<.ctor>b__2_1", @"
 {
-  // Code size        8 (0x8)
+  // Code size        4 (0x4)
   .maxstack  2
-  .locals init ([int] V_0,
-                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.3
   IL_0002:  sub
-  IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.1
-  IL_0007:  ret
+  IL_0003:  ret
 }");
 
             diff1.VerifyIL("C.<>c.<.ctor>b__3_0", @"
 {
-  // Code size        8 (0x8)
+  // Code size        4 (0x4)
   .maxstack  2
-  .locals init ([int] V_0,
-                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.4
   IL_0002:  sub
-  IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.1
-  IL_0007:  ret
+  IL_0003:  ret
 }");
             diff1.VerifyIL("C.<>c.<.ctor>b__3_1", @"
 {
-  // Code size        8 (0x8)
+  // Code size        4 (0x4)
   .maxstack  2
-  .locals init ([int] V_0,
-                int V_1)
   IL_0000:  ldarg.1
   IL_0001:  ldc.i4.1
   IL_0002:  sub
-  IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0006
-  IL_0006:  ldloc.1
-  IL_0007:  ret
+  IL_0003:  ret
 }");
         }
 
