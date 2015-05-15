@@ -70,22 +70,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
     End Class
-
-    ''' <summary>
-    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="Visit(SyntaxNode)"/> method.
-    ''' </summary>
-    Partial Public MustInherit Class VisualBasicSyntaxVisitor
-    End Class
-
-    ''' <summary>
-    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="Visit(SyntaxNode)"/> method and produces 
-    ''' a value of the type specified by the <typeparamref name="TResult"/> parameter.
-    ''' </summary>
-    ''' <typeparam name="TResult">
-    ''' The type of the return value this visitor's Visit method.
-    ''' </typeparam>
-    Partial Public MustInherit Class VisualBasicSyntaxVisitor(Of TResult)
-    End Class
 End Namespace
