@@ -53,8 +53,7 @@ using System;
 using System.IO;
 
 // This class violates the rule.
-public class NoDisposeClass
-: IDisposable
+public class NoDisposeClass : IDisposable
 {
     FileStream newFile;
 
@@ -132,8 +131,7 @@ using System;
 using System.IO;
 
 // This class violates the rule.
-public class NoDisposeClass
-: IDisposable
+public class NoDisposeClass : IDisposable
 {
     FileStream newFile;
 
@@ -166,8 +164,7 @@ using System;
 using System.IO;
 
 // This class violates the rule.
-public partial class NoDisposeClass
-: IDisposable
+public partial class NoDisposeClass : IDisposable
 {
     FileStream newFile;
 
