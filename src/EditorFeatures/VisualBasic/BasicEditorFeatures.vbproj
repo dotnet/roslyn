@@ -216,6 +216,7 @@
     <Compile Include="Outlining\VisualBasicOutliningService.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.vb" />
     <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.vb" />
+    <Compile Include="RenameTracking\BasicRenameTrackingLanguageHeuristicsService.vb" />
     <Compile Include="RenameTracking\RenameTrackingCodeFixProvider.vb" />
     <Compile Include="SignatureHelp\AbstractIntrinsicOperatorSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.vb" />
