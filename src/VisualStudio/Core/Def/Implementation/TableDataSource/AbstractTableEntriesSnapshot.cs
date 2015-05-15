@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -16,9 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract class AbstractTableEntriesSnapshot<TData> : ITableEntriesSnapshot
     {
-        // TODO: remove this once we have new drop
-        protected const string ProjectGuidKey = "projectguid";
-
         private readonly int _version;
         private readonly ImmutableArray<TData> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
