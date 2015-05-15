@@ -2022,5 +2022,15 @@ class Program
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("", result.Output);
         }
+
+        [Fact]
+        public void OnlyStartsOneServer()
+        {
+            var result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
+
+            result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
+        }
     }
 }
