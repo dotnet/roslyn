@@ -1947,6 +1947,33 @@ class C
             TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionDestructor, .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Sub
 
+        <WorkItem(1172038)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddFunction_AfterIncompleteMember()
+            Dim code =
+<Code>
+class $$C
+{
+    private void M1()
+    private void
+}
+</Code>
+
+            Dim expected =
+<Code>
+class C
+{
+    private void M1()
+    private void private void M2()
+    {
+
+    }
+}
+</Code>
+
+            TestAddFunction(code, expected, New FunctionData With {.Name = "M2", .Type = "void", .Position = -1, .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
+        End Sub
+
 #End Region
 
 #Region "AddImplementedInterface tests"

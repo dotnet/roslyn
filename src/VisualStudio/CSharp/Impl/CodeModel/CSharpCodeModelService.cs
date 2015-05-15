@@ -361,113 +361,112 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        private static bool HasMembers(SyntaxNode node)
+        private static bool IsContainerNode(SyntaxNode container)
         {
-            switch (node.Kind())
-            {
-                case SyntaxKind.CompilationUnit:
-                case SyntaxKind.NamespaceDeclaration:
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
+            return container is CompilationUnitSyntax
+                || container is NamespaceDeclarationSyntax
+                || container is TypeDeclarationSyntax
+                || container is EnumDeclarationSyntax;
         }
 
-        private static IEnumerable<SyntaxNode> GetFlattenedMembers(IEnumerable<MemberDeclarationSyntax> members)
+        private static IEnumerable<SyntaxNode> GetChildMemberNodes(SyntaxNode container)
         {
-            foreach (var member in members)
+            if (container is CompilationUnitSyntax)
             {
-                if (member is BaseFieldDeclarationSyntax)
+                foreach (var member in ((CompilationUnitSyntax)container).Members)
                 {
-                    foreach (var declarator in ((BaseFieldDeclarationSyntax)member).Declaration.Variables)
-                    {
-                        yield return declarator;
-                    }
-                }
-                else
-                {
-                    if (IsNameableNode(member))
-                    {
-                        yield return member;
-                    }
+                    yield return member;
                 }
             }
-        }
-
-        private static IEnumerable<SyntaxNode> GetFlattenedMembers(SyntaxNode node)
-        {
-            switch (node.Kind())
+            else if (container is NamespaceDeclarationSyntax)
             {
-                case SyntaxKind.CompilationUnit:
-                    return GetFlattenedMembers(((CompilationUnitSyntax)node).Members);
-
-                case SyntaxKind.NamespaceDeclaration:
-                    return GetFlattenedMembers(((NamespaceDeclarationSyntax)node).Members);
-
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
-                    return GetFlattenedMembers(((TypeDeclarationSyntax)node).Members);
-
-                case SyntaxKind.EnumDeclaration:
-                    return GetFlattenedMembers(((EnumDeclarationSyntax)node).Members);
-
-                default:
-                    return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+                foreach (var member in ((NamespaceDeclarationSyntax)container).Members)
+                {
+                    yield return member;
+                }
             }
-        }
-
-        private static IEnumerable<SyntaxNode> GetNodeAndFlattenedMembers(SyntaxNode node)
-        {
-            if (IsNameableNode(node))
+            else if (container is TypeDeclarationSyntax)
             {
-                yield return node;
+                foreach (var member in ((TypeDeclarationSyntax)container).Members)
+                {
+                    yield return member;
+                }
             }
-
-            if (HasMembers(node))
+            else if (container is EnumDeclarationSyntax)
             {
-                foreach (var member in GetFlattenedMembers(node).SelectMany(GetNodeAndFlattenedMembers))
+                foreach (var member in ((EnumDeclarationSyntax)container).Members)
                 {
                     yield return member;
                 }
             }
         }
 
-        protected override IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxTree syntaxTree)
+        private static bool NodeIsSupported(bool test, SyntaxNode node)
         {
-            return GetNodeAndFlattenedMembers((CompilationUnitSyntax)syntaxTree.GetRoot());
+            return !test || IsNameableNode(node);
         }
 
-        public override IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxNode node)
+        /// <summary>
+        /// Retrieves the members of a specified <paramref name="container"/> node. The members that are
+        /// returned can be controlled by passing various parameters.
+        /// </summary>
+        /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
+        /// <param name="includeSelf">If true, the container is returned as well.</param>
+        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// as immediate children. For example, a namespace would return the namespaces and types within.
+        /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
+        /// also be returned.</param>
+        /// <param name="logicalFields">If true, field declarations are broken into their respecitive declarators.
+        /// For example, the field "int x, y" would return two declarators, one for x and one for y in place
+        /// of the field.</param>
+        /// <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
+        public override IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes)
         {
-            return GetFlattenedMembers((CSharpSyntaxNode)node);
-        }
-
-        protected override IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container)
-        {
-            if (container is CompilationUnitSyntax)
+            if (!IsContainerNode(container))
             {
-                return ((CompilationUnitSyntax)container).Members;
-            }
-            else if (container is NamespaceDeclarationSyntax)
-            {
-                return ((NamespaceDeclarationSyntax)container).Members;
-            }
-            else if (container is TypeDeclarationSyntax)
-            {
-                return ((TypeDeclarationSyntax)container).Members;
-            }
-            else if (container is EnumDeclarationSyntax)
-            {
-                return ((EnumDeclarationSyntax)container).Members;
+                yield break;
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            if (includeSelf && NodeIsSupported(onlySupportedNodes, container))
+            {
+                yield return container;
+            }
+
+            foreach (var member in GetChildMemberNodes(container))
+            {
+                if (member is BaseFieldDeclarationSyntax)
+                {
+                    // For fields, the 'logical' and 'supported' flags are intrinsically tied.
+                    //   * If 'logical' is true, only declarators should be returned, regardless of the value of 'supported'.
+                    //   * If 'logical' is false, the field should only be returned if 'supported' is also false.
+
+                    if (logicalFields)
+                    {
+                        foreach (var declarator in ((BaseFieldDeclarationSyntax)member).Declaration.Variables)
+                        {
+                            // We know that variable declarators are supported, so there's no need to check them here.
+                            yield return declarator;
+                        }
+                    }
+                    else if (!onlySupportedNodes)
+                    {
+                        // Only return field declarations if the supported flag is false.
+                        yield return member;
+                    }
+                }
+                else if (NodeIsSupported(onlySupportedNodes, member))
+                {
+                    yield return member;
+                }
+
+                if (recursive && IsContainerNode(member))
+                {
+                    foreach (var innerMember in GetMemberNodes(member, includeSelf: false, recursive: true, logicalFields: logicalFields, onlySupportedNodes: onlySupportedNodes))
+                    {
+                        yield return innerMember;
+                    }
+                }
+            }
         }
 
         public override string Language
@@ -3103,7 +3102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override int GetMemberIndexInContainer(SyntaxNode containerNode, Func<SyntaxNode, bool> predicate)
         {
-            var members = GetFlattenedMemberNodes(containerNode).ToArray();
+            var members = GetLogicalMemberNodes(containerNode).ToArray();
 
             int index = 0;
             while (index < members.Length)

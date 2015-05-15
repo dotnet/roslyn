@@ -418,94 +418,95 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
         End Function
 
-        Private Shared Function HasMembers(node As SyntaxNode) As Boolean
-            Select Case node.Kind
-                Case SyntaxKind.CompilationUnit,
-                     SyntaxKind.NamespaceBlock,
-                     SyntaxKind.ClassBlock,
-                     SyntaxKind.StructureBlock,
-                     SyntaxKind.InterfaceBlock,
-                     SyntaxKind.ModuleBlock,
-                     SyntaxKind.EnumBlock
-
-                    Return True
-                Case Else
-                    Return False
-            End Select
+        Private Shared Function IsContainerNode(container As SyntaxNode) As Boolean
+            Return TypeOf container Is CompilationUnitSyntax OrElse
+                   TypeOf container Is NamespaceBlockSyntax OrElse
+                   TypeOf container Is TypeBlockSyntax OrElse
+                   TypeOf container Is EnumBlockSyntax
         End Function
 
-        Private Overloads Shared Iterator Function GetFlattenedMemberNodes(members As IEnumerable(Of StatementSyntax)) As IEnumerable(Of SyntaxNode)
-            For Each member In members
-                If TypeOf member Is DeclarationStatementSyntax Then
-                    If member.Kind = SyntaxKind.FieldDeclaration Then
+        Private Shared Iterator Function GetChildMemberNodes(container As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            If TypeOf container Is CompilationUnitSyntax Then
+                For Each member In DirectCast(container, CompilationUnitSyntax).Members
+                    Yield member
+                Next
+            ElseIf TypeOf container Is NamespaceBlockSyntax
+                For Each member In DirectCast(container, NamespaceBlockSyntax).Members
+                    Yield member
+                Next
+            ElseIf TypeOf container Is TypeBlockSyntax
+                For Each member In DirectCast(container, TypeBlockSyntax).Members
+                    Yield member
+                Next
+            ElseIf TypeOf container Is EnumBlockSyntax
+                For Each member In DirectCast(container, EnumBlockSyntax).Members
+                    Yield member
+                Next
+            End If
+        End Function
+
+        Private Shared Function NodeIsSupported(test As Boolean, node As SyntaxNode) As Boolean
+            Return Not test OrElse IsNameableNode(node)
+        End Function
+
+
+        ''' <summary>
+        ''' Retrieves the members of a specified <paramref name="container"/> node. The members that are
+        ''' returned can be controlled by passing various parameters.
+        ''' </summary>
+        ''' <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
+        ''' <param name="includeSelf">If true, the container Is returned as well.</param>
+        ''' <param name="recursive">If true, members are recursed to return descendent members as well
+        ''' as immediate children. For example, a namespace would return the namespaces And types within.
+        ''' However, if <paramref name="recursive"/> Is true, members with the namespaces And types would
+        ''' also be returned.</param>
+        ''' <param name="logicalFields">If true, field declarations are broken into their respecitive declarators.
+        ''' For example, the field "Dim x, y As Integer" would return two nodes, one for x And one for y in place
+        ''' of the field.</param>
+        ''' <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
+        Public Overrides Iterator Function GetMemberNodes(container As SyntaxNode, includeSelf As Boolean, recursive As Boolean, logicalFields As Boolean, onlySupportedNodes As Boolean) As IEnumerable(Of SyntaxNode)
+
+            If Not IsContainerNode(container) Then
+                Exit Function
+            End If
+
+            If includeSelf AndAlso NodeIsSupported(onlySupportedNodes, container) Then
+                Yield container
+            End If
+
+            For Each member In GetChildMemberNodes(container)
+
+                If member.Kind = SyntaxKind.FieldDeclaration Then
+                    ' For fields, the 'logical' and 'supported' flags are intrinsically tied.
+                    '   * If 'logical' is true, only declarators should be returned, regardless of the value of 'supported'.
+                    '   * If 'logical' is false, the field should only be returned if 'supported' is also false.
+
+                    If logicalFields Then
+
                         For Each declarator In DirectCast(member, FieldDeclarationSyntax).Declarators
+
+                            ' We know that declarators are supported, so there's no need to check them here.
                             For Each identifier In declarator.Names
                                 Yield identifier
                             Next
                         Next
-                    Else
-                        If IsNameableNode(member) Then
-                            Yield member
-                        End If
+
+                    ElseIf Not onlySupportedNodes
+                        ' Only return fields if the supported flag Is false.
+                        Yield member
                     End If
+
+                ElseIf NodeIsSupported(onlySupportedNodes, member)
+                    Yield member
+                End If
+
+                If recursive AndAlso IsContainerNode(member) Then
+                    For Each innerMember In GetMemberNodes(member, includeSelf:=False, recursive:=True, logicalFields:=logicalFields, onlySupportedNodes:=onlySupportedNodes)
+                        Yield innerMember
+                    Next
                 End If
             Next
         End Function
-
-        Private Overloads Shared Function GetFlattenedMemberNodesInternal(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
-            Select Case node.Kind
-                Case SyntaxKind.CompilationUnit
-                    Return GetFlattenedMemberNodes(DirectCast(node, CompilationUnitSyntax).Members)
-                Case SyntaxKind.NamespaceBlock
-                    Return GetFlattenedMemberNodes(DirectCast(node, NamespaceBlockSyntax).Members)
-                Case SyntaxKind.ClassBlock,
-                     SyntaxKind.StructureBlock,
-                     SyntaxKind.InterfaceBlock,
-                     SyntaxKind.ModuleBlock
-                    Return GetFlattenedMemberNodes(DirectCast(node, TypeBlockSyntax).Members)
-                Case SyntaxKind.EnumBlock
-                    Return GetFlattenedMemberNodes(DirectCast(node, EnumBlockSyntax).Members)
-                Case Else
-                    Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
-            End Select
-        End Function
-
-        Private Shared Function GetNodeAndFlattenedMembers(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
-            Dim list = New List(Of SyntaxNode)
-
-            If IsNameableNode(node) Then
-                list.Add(node)
-            End If
-
-            If HasMembers(node) Then
-                list.AddRange(GetFlattenedMemberNodesInternal(node).SelectMany(AddressOf GetNodeAndFlattenedMembers))
-            End If
-
-            Return list
-        End Function
-
-        Protected Overloads Overrides Function GetFlattenedMemberNodes(syntaxTree As SyntaxTree) As IEnumerable(Of SyntaxNode)
-            Return GetNodeAndFlattenedMembers(DirectCast(syntaxTree.GetRoot(), CompilationUnitSyntax))
-        End Function
-
-        Public Overloads Overrides Function GetFlattenedMemberNodes(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
-            Return GetFlattenedMemberNodesInternal(node)
-        End Function
-
-        Protected Overrides Function GetMemberNodes(container As SyntaxNode) As IEnumerable(Of SyntaxNode)
-            If TypeOf container Is CompilationUnitSyntax Then
-                Return DirectCast(container, CompilationUnitSyntax).Members
-            ElseIf TypeOf container Is NamespaceBlockSyntax Then
-                Return DirectCast(container, NamespaceBlockSyntax).Members
-            ElseIf TypeOf container Is TypeBlockSyntax Then
-                Return DirectCast(container, TypeBlockSyntax).Members
-            ElseIf TypeOf container Is EnumBlockSyntax Then
-                Return DirectCast(container, EnumBlockSyntax).Members
-            End If
-
-            Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
-        End Function
-
 
         Public Overrides ReadOnly Property Language As String
             Get
@@ -1575,7 +1576,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Protected Overrides Function GetMemberIndexInContainer(containerNode As SyntaxNode, predicate As Func(Of SyntaxNode, Boolean)) As Integer
-            Dim members = GetFlattenedMemberNodes(containerNode).ToArray()
+            Dim members = GetLogicalMemberNodes(containerNode).ToArray()
 
             Dim index = 0
             While index < members.Length
