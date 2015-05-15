@@ -27,6 +27,7 @@
     <Compile Include="..\..\..\Compilers\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="Implementation\AnalyzerDependencyResults.cs" />
     <Compile Include="IAnalyzerNodeSetup.cs" />
     <Compile Include="Implementation\AnalyzerDependencyChecker.cs" />
     <Compile Include="Implementation\AnalyzerDependencyCheckingService.cs" />
@@ -39,6 +40,7 @@
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
+    <Compile Include="Implementation\MissingAnalyzerDependency.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.AnalyzerReferenceChange.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.ProjectReferenceChange.cs" />
@@ -85,6 +87,11 @@
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="RoslynPackage.cs" />
+    <Compile Include="ServicesVSResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ServicesVSResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="SolutionEventMonitor.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
@@ -662,11 +669,6 @@
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Progression\GraphNodeCreation.cs" />
     <Compile Include="RoslynDocumentProvider.cs" />
-    <Compile Include="ServicesVSResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ServicesVSResources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Utilities\SpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

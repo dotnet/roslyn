@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly HostDiagnosticUpdateSource _updateSource;
 
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private Task<ImmutableArray<AnalyzerDependencyConflict>> _task = Task.FromResult(ImmutableArray<AnalyzerDependencyConflict>.Empty);
+        private Task<AnalyzerDependencyResults> _task = Task.FromResult((AnalyzerDependencyResults)null);
         private ImmutableHashSet<string> _analyzerPaths = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
 
         [ImportingConstructor]
@@ -39,46 +39,76 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public async void CheckForConflictsAsync()
         {
+            AnalyzerDependencyResults results = null;
             try
             {
-                ImmutableArray<AnalyzerDependencyConflict> conflicts = await GetConflictsAsync().ConfigureAwait(continueOnCapturedContext: true);
+                results = await GetConflictsAsync().ConfigureAwait(continueOnCapturedContext: true);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
 
-                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+            var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
 
-                foreach (var project in _workspace.ProjectTracker.Projects)
-                {
-                    builder.Clear();
+            var conflicts = results.Conflicts;
+            var missingDependencies = results.MissingDependencies;
 
-                    foreach (var conflict in conflicts)
-                    {
-                        if (project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath1) ||
-                            project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
-                        {
-                            builder.Add(CreateDiagnostic(project.Id, conflict));
-                        }
-                    }
-
-                    _updateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
-                }
+            foreach (var project in _workspace.ProjectTracker.Projects)
+            {
+                builder.Clear();
 
                 foreach (var conflict in conflicts)
                 {
-                    LogConflict(conflict);
+                    if (project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath1) ||
+                        project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
+                    {
+                        builder.Add(CreateDiagnostic(project.Id, conflict));
+                    }
                 }
+
+                foreach (var missingDependency in missingDependencies)
+                {
+                    if (project.CurrentProjectAnalyzersContains(missingDependency.AnalyzerPath))
+                    {
+                        builder.Add(CreateDiagnostic(project.Id, missingDependency));
+                    }
+                }
+
+                _updateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
             }
-            catch (OperationCanceledException) { }
+
+            foreach (var conflict in conflicts)
+            {
+                LogConflict(conflict);
+            }
+
+            foreach (var missingDependency in missingDependencies)
+            {
+                LogMissingDependency(missingDependency);
+            }
         }
 
         private void LogConflict(AnalyzerDependencyConflict conflict)
         {
             Logger.Log(
-                FunctionId.AnalyzerDependencyCheckingService_CheckForConflictsAsync,
+                FunctionId.AnalyzerDependencyCheckingService_LogConflict,
                 KeyValueLogMessage.Create(m =>
                 {
-                    m["Dependency1"] = Path.GetFileName(conflict.DependencyFilePath1);
-                    m["Dependency2"] = Path.GetFileName(conflict.DependencyFilePath2);
-                    m["Analyzer1"] = Path.GetFileName(conflict.AnalyzerFilePath1);
-                    m["Analyzer2"] = Path.GetFileName(conflict.AnalyzerFilePath2);
+                    m["Identity"] = conflict.Identity.ToString();
+                    m["Analyzer1"] = conflict.AnalyzerFilePath1;
+                    m["Analyzer2"] = conflict.AnalyzerFilePath2;
+                }));
+        }
+
+        private void LogMissingDependency(MissingAnalyzerDependency missingDependency)
+        {
+            Logger.Log(
+                FunctionId.AnalyzerDependencyCheckingService_LogMissingDependency,
+                KeyValueLogMessage.Create(m =>
+                {
+                    m["Analyzer"] = missingDependency.AnalyzerPath;
+                    m["Identity"] = missingDependency.DependencyIdentity;
                 }));
         }
 
@@ -88,10 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             string category = ServicesVSResources.ErrorCategory;
             string message = string.Format(
                 ServicesVSResources.WRN_AnalyzerDependencyConflictMessage,
-                conflict.DependencyFilePath1,
-                Path.GetFileNameWithoutExtension(conflict.AnalyzerFilePath1),
-                conflict.DependencyFilePath2,
-                Path.GetFileNameWithoutExtension(conflict.AnalyzerFilePath2));
+                conflict.AnalyzerFilePath1,
+                conflict.AnalyzerFilePath2,
+                conflict.Identity.ToString());
 
             DiagnosticData data = new DiagnosticData(
                 id,
@@ -110,7 +139,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return data;
         }
 
-        private Task<ImmutableArray<AnalyzerDependencyConflict>> GetConflictsAsync()
+        private DiagnosticData CreateDiagnostic(ProjectId projectId, MissingAnalyzerDependency missingDependency)
+        {
+            string id = ServicesVSResources.WRN_MissingAnalyzerReferenceId;
+            string category = ServicesVSResources.ErrorCategory;
+            string message = string.Format(
+                ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
+                missingDependency.AnalyzerPath,
+                missingDependency.DependencyIdentity.ToString());
+
+            DiagnosticData data = new DiagnosticData(
+                id,
+                category,
+                message,
+                ServicesVSResources.WRN_MissingAnalyzerReferenceMessage,
+                severity: DiagnosticSeverity.Warning,
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
+                workspace: _workspace,
+                projectId: projectId);
+
+            return data;
+        }
+
+        private Task<AnalyzerDependencyResults> GetConflictsAsync()
         {
             ImmutableHashSet<string> currentAnalyzerPaths = _workspace.CurrentSolution
                 .Projects
@@ -130,7 +185,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             _task = _task.SafeContinueWith(_ =>
             {
-                return new AnalyzerDependencyChecker(currentAnalyzerPaths).Run(_cancellationTokenSource.Token);
+                IEnumerable<AssemblyIdentity> loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
+                return new AnalyzerDependencyChecker(currentAnalyzerPaths, loadedAssemblies).Run(_cancellationTokenSource.Token);
             },
             TaskScheduler.Default);
 
