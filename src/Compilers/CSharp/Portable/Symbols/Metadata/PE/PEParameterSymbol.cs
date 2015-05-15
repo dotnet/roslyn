@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_flags & ParameterAttributes.HasDefault) != 0;
+                return (_flags & ParameterAttributes.HasDefault) != 0 && ExplicitDefaultConstantValue != null;
             }
         }
 

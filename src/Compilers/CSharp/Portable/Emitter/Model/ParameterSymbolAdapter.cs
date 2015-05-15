@@ -87,6 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                            diagnostics: context.Diagnostics);
         }
 
+        /// <summary>
+        /// Return the constant value as it should appear in/from metadata.
+        /// May return true only if ExplicitDefaultConstantValue returns a non-null value.
+        /// </summary>
         internal virtual bool HasMetadataConstantValue
         {
             get
