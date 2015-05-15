@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static string GetPipeName(string compilerExeDirectory)
         {
-            using (var sha = SHA1.Create())
+            using (var sha = SHA256.Create())
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
                 return BitConverter.ToString(bytes).Replace("-", string.Empty);
