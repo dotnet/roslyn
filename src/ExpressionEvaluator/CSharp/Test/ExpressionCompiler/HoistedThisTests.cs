@@ -35,8 +35,7 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<F>d__0.<>4__this""
   IL_0006:  ret
@@ -137,8 +136,7 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<F>d__0.<>4__this""
   IL_0006:  ret
@@ -248,8 +246,7 @@ class C<T>
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C<T> C<T>.<F>d__0<U>.<>4__this""
   IL_0006:  ret
@@ -337,8 +334,7 @@ class C : I
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<I-F>d__0.<>4__this""
   IL_0006:  ret
@@ -436,8 +432,7 @@ class C : I<int>
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<I<System-Int32>-F>d__0.<>4__this""
   IL_0006:  ret
@@ -866,7 +861,6 @@ class C
 {{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.{0}.<>4__this""
   IL_0006:  ret
@@ -1052,8 +1046,7 @@ class C
 {
   // Code size       12 (0xc)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<F>d__1.<>4__this""
   IL_0006:  ldfld      ""object C.x""
@@ -1165,8 +1158,7 @@ class Derived : Base
 {
   // Code size       12 (0xc)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""Derived Derived.<M>d__1.<>4__this""
   IL_0006:  ldfld      ""int Base.x""

@@ -5224,7 +5224,7 @@ M
 
             verifier.VerifyIL("C.<>c__DisplayClass0_0.<F1>b__0", @"
 {
-  // Code size       21 (0x15)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<>c__DisplayClass0_0.c""
@@ -5234,13 +5234,12 @@ M
   IL_000a:  br.s       IL_0012
   IL_000c:  call       ""void C.M()""
   IL_0011:  nop
-  IL_0012:  br.s       IL_0014
-  IL_0014:  ret
+  IL_0012:  ret
 }");
 
             verifier.VerifyIL("C.F2", @"
 {
-  // Code size       15 (0xf)
+  // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0005
@@ -5248,8 +5247,7 @@ M
   IL_0005:  ldarg.0
   IL_0006:  call       ""void C.M()""
   IL_000b:  nop
-  IL_000c:  br.s       IL_000e
-  IL_000e:  ret
+  IL_000c:  ret
 }");
         }
 
@@ -5353,7 +5351,7 @@ M
 
             verifier.VerifyIL("C<T>.<>c__DisplayClass0_0.<F1>b__0()", @"
 {
-  // Code size       21 (0x15)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C<T> C<T>.<>c__DisplayClass0_0.c""
@@ -5363,13 +5361,12 @@ M
   IL_000a:  br.s       IL_0012
   IL_000c:  call       ""T C<T>.M()""
   IL_0011:  pop
-  IL_0012:  br.s       IL_0014
-  IL_0014:  ret
+  IL_0012:  ret
 }");
 
             verifier.VerifyIL("C<T>.F2", @"
 {
-  // Code size       15 (0xf)
+  // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0005
@@ -5377,8 +5374,7 @@ M
   IL_0005:  ldarg.0
   IL_0006:  call       ""T C<T>.M()""
   IL_000b:  pop
-  IL_000c:  br.s       IL_000e
-  IL_000e:  ret
+  IL_000c:  ret
 }");
         }
 
@@ -5482,7 +5478,7 @@ M
 
             verifier.VerifyIL("C.<>c__DisplayClass0_0.<F1>b__0", @"
 {
-  // Code size       21 (0x15)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<>c__DisplayClass0_0.c""
@@ -5492,13 +5488,12 @@ M
   IL_000a:  br.s       IL_0012
   IL_000c:  call       ""void* C.M()""
   IL_0011:  pop
-  IL_0012:  br.s       IL_0014
-  IL_0014:  ret
+  IL_0012:  ret
 }");
 
             verifier.VerifyIL("C.F2", @"
 {
-  // Code size       15 (0xf)
+  // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0005
@@ -5506,8 +5501,7 @@ M
   IL_0005:  ldarg.0
   IL_0006:  call       ""void* C.M()""
   IL_000b:  pop
-  IL_000c:  br.s       IL_000e
-  IL_000e:  ret
+  IL_000c:  ret
 }");
         }
 

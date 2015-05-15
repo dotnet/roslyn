@@ -2792,10 +2792,9 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size      137 (0x89)
+  // Code size      131 (0x83)
   .maxstack  2
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -2806,65 +2805,61 @@ class C
   IL_000d:  ldc.i4.1
   IL_000e:  beq.s      IL_0014
   IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_001a
-  IL_0014:  br.s       IL_007e
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_007a
   IL_0016:  ldc.i4.0
-  IL_0017:  stloc.1
-  IL_0018:  ldloc.1
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0021:  nop
-  IL_0022:  ldarg.0
-  IL_0023:  ldarg.0
-  IL_0024:  ldfld      ""C C.<F>d__0.<>4__this""
-  IL_0029:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
-  IL_002e:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-  IL_0033:  ldarg.0
-  IL_0034:  ldc.i4.0
-  IL_0035:  stfld      ""bool C.<F>d__0.<>s__2""
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001f:  nop
+  IL_0020:  ldarg.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldfld      ""C C.<F>d__0.<>4__this""
+  IL_0027:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
+  IL_002c:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_0031:  ldarg.0
+  IL_0032:  ldc.i4.0
+  IL_0033:  stfld      ""bool C.<F>d__0.<>s__2""
   .try
   {
-    IL_003a:  ldarg.0
-    IL_003b:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-    IL_0040:  ldarg.0
-    IL_0041:  ldflda     ""bool C.<F>d__0.<>s__2""
-    IL_0046:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_003e:  ldarg.0
+    IL_003f:  ldflda     ""bool C.<F>d__0.<>s__2""
+    IL_0044:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0049:  nop
+    IL_004a:  nop
     IL_004b:  nop
-    IL_004c:  nop
-    IL_004d:  nop
-    IL_004e:  leave.s    IL_0065
+    IL_004c:  leave.s    IL_0063
   }
   finally
   {
-    IL_0050:  ldarg.0
-    IL_0051:  ldfld      ""bool C.<F>d__0.<>s__2""
-    IL_0056:  brfalse.s  IL_0064
-    IL_0058:  ldarg.0
-    IL_0059:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-    IL_005e:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_0063:  nop
-    IL_0064:  endfinally
+    IL_004e:  ldarg.0
+    IL_004f:  ldfld      ""bool C.<F>d__0.<>s__2""
+    IL_0054:  brfalse.s  IL_0062
+    IL_0056:  ldarg.0
+    IL_0057:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_005c:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0061:  nop
+    IL_0062:  endfinally
   }
-  IL_0065:  ldarg.0
-  IL_0066:  ldnull
-  IL_0067:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-  IL_006c:  ldarg.0
-  IL_006d:  ldc.i4.1
-  IL_006e:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0073:  ldarg.0
-  IL_0074:  ldc.i4.1
-  IL_0075:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_007a:  ldc.i4.1
-  IL_007b:  stloc.1
-  IL_007c:  br.s       IL_0018
-  IL_007e:  ldarg.0
-  IL_007f:  ldc.i4.m1
-  IL_0080:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0085:  ldc.i4.0
-  IL_0086:  stloc.1
-  IL_0087:  br.s       IL_0018
+  IL_0063:  ldarg.0
+  IL_0064:  ldnull
+  IL_0065:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_006a:  ldarg.0
+  IL_006b:  ldc.i4.1
+  IL_006c:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0071:  ldarg.0
+  IL_0072:  ldc.i4.1
+  IL_0073:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0078:  ldc.i4.1
+  IL_0079:  ret
+  IL_007a:  ldarg.0
+  IL_007b:  ldc.i4.m1
+  IL_007c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0081:  ldc.i4.0
+  IL_0082:  ret
 }");
 
 #if TODO 

@@ -98,8 +98,7 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
-                bool V_1,
-                int V_2)
+                int V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.{0}""
   IL_0006:  ret
