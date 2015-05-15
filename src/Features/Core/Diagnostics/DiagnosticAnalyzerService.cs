@@ -53,10 +53,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (projectOpt == null)
             {
-                return _hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
+                return ConvertReferenceIdentityToName(_hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference());
             }
 
-            return _hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
+            return ConvertReferenceIdentityToName(_hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt), projectOpt);
+        }
+
+        private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(
+            ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference, Project projectOpt = null)
+        {
+            var map = _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt);
+
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
+
+            foreach (var kv in descriptorsPerReference)
+            {
+                var id = kv.Key;
+                var descriptors = kv.Value;
+
+                AnalyzerReference reference;
+                if (map.TryGetValue(id, out reference) && reference != null)
+                {
+                    builder.Add(reference.Display, descriptors);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)

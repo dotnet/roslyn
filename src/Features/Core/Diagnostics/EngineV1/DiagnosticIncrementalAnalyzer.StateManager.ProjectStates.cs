@@ -139,7 +139,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 private void RaiseProjectAnalyzerReferenceChangedIfNeeded(
-                    Project project, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference, ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
+                    Project project, 
+                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference, 
+                    ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
                 {
                     Entry entry;
                     if (!_stateMap.TryGetValue(project.Id, out entry))
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 private ImmutableArray<StateSet> DiffStateSets(
                     IEnumerable<AnalyzerReference> references,
-                    ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> mapPerReference,
+                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReference,
                     ImmutableDictionary<DiagnosticAnalyzer, StateSet> map)
                 {
                     if (mapPerReference.Count == 0 || map.Count == 0)
@@ -220,12 +222,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 private struct Entry
                 {
                     public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
-                    public readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;
+                    public readonly ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;
                     public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> AnalyzerMap;
 
                     public Entry(
                         IReadOnlyList<AnalyzerReference> analyzerReferences,
-                        ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
+                        ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
                         ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
                     {
                         Contract.ThrowIfNull(analyzerReferences);
