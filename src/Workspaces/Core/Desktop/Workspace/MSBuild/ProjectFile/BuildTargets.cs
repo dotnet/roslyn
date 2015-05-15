@@ -32,6 +32,54 @@ namespace Microsoft.CodeAnalysis.MSBuild
             get { return _buildTargets.ToArray(); }
         }
 
+#if DEBUG
+        public string[] GetExecutedTargets()
+        {
+            return TopologicalSorter.TopologicalSort(this.Targets, t => GetTargetDependents(_project, t)).ToArray();
+        }
+
+        public string[] GetAllTargets()
+        {
+            return TopologicalSorter.TopologicalSort(GetTopLevelTargets(_project), t => GetTargetDependents(_project, t)).ToArray();
+        }
+
+        public string[] GetDependingTargets(string target)
+        {
+            var map = GetReverseTargetMap();
+
+            List<string> dependers;
+            if (map.TryGetValue(target, out dependers))
+            {
+                return dependers.ToArray();
+            }
+
+            return new string[0];
+        }
+
+        public Dictionary<string, List<string>> GetReverseTargetMap()
+        {
+            var targets = GetAllTargets();
+
+            var reverseMap = new Dictionary<string, List<string>>();
+            foreach (var t in targets)
+            {
+                foreach (var dependant in GetTargetDependents(_project, t))
+                {
+                    List<string> dependers;
+                    if (!reverseMap.TryGetValue(dependant, out dependers))
+                    {
+                        dependers = new List<string>();
+                        reverseMap.Add(dependant, dependers);
+                    }
+
+                    dependers.Add(t);
+                }
+            }
+
+            return reverseMap;
+        }
+#endif
+
         /// <summary>
         /// Remove the specified target from the build targets. 
         /// 
