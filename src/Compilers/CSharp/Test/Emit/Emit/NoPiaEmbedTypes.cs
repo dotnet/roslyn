@@ -1864,7 +1864,8 @@ class UsePia
 {
   // Code size       41 (0x29)
   .maxstack  2
-  .locals init (ITest28 V_0)
+  .locals init (ITest28 V_0,
+                ITest28 V_1)
   IL_0000:  nop
   IL_0001:  ldstr      ""00000000-0000-0000-0000-000000000000""
   IL_0006:  newobj     ""System.Guid..ctor(string)""
@@ -1877,9 +1878,9 @@ class UsePia
   IL_001d:  callvirt   ""void ITest28.P1.set""
   IL_0022:  nop
   IL_0023:  ldloc.0
-  IL_0024:  stloc.0
+  IL_0024:  stloc.1
   IL_0025:  br.s       IL_0027
-  IL_0027:  ldloc.0
+  IL_0027:  ldloc.1
   IL_0028:  ret
 }
 ";

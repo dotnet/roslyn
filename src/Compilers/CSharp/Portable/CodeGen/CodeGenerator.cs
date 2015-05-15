@@ -116,7 +116,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (result == null)
                 {
                     Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
-                    result = AllocateTemp(_method.ReturnType, _boundBody.Syntax);
+
+                    var bodySyntax = _methodBodySyntaxOpt;
+                    if (_optimizations == OptimizationLevel.Debug && bodySyntax != null)
+                    {
+                        int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
+                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+
+                        result = _builder.LocalSlotManager.DeclareLocal(
+                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
+                            symbol: localSymbol,
+                            name: null,
+                            kind: localSymbol.SynthesizedKind,
+                            id: new LocalDebugId(syntaxOffset, ordinal: 0),
+                            pdbAttributes: localSymbol.SynthesizedKind.PdbAttributes(),
+                            constraints: LocalSlotConstraints.None,
+                            isDynamic: false,
+                            dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
+                            isSlotReusable: localSymbol.SynthesizedKind.IsSlotReusable(_optimizations));
+                    }
+                    else
+                    {
+                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax);
+                    }
+
                     _returnTemp = result;
                 }
                 return result;

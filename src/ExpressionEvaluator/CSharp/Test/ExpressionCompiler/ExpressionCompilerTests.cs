@@ -4628,8 +4628,7 @@ struct S
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.x""
   IL_0006:  ret
@@ -4667,12 +4666,11 @@ struct S
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""T C<T>.<F>d__0.<t>5__1""
   IL_0006:  ret
-            }
+}
 ");
         }
 
@@ -5342,7 +5340,6 @@ class C
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -5379,7 +5376,6 @@ class C
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -5488,8 +5484,7 @@ class C
 {
   // Code size       11 (0xb)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldtoken    ""T""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ret
