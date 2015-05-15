@@ -54,8 +54,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected async Task<ProjectInstance> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
         {
-            // prepare for building
-            var buildTargets = new BuildTargets(_loadedProject, "Compile");
+            // Create a project instance to be executed by build engine.
+            // The executed project will hold the final model of the project after execution via msbuild.
+            var executedProject = _loadedProject.CreateProjectInstance();
+
+            // if the project doesn't have a Compile target, then its not really a vb or c# project.
+            if (!executedProject.Targets.ContainsKey("Compile"))
+            {
+                return executedProject;
+            }
+
+            // prepare for building  -- use CoreBuild to get xaml generated files
+            var buildTargets = new BuildTargets(_loadedProject, "CoreBuild");
 
             // Don't execute this one. It will build referenced projects.
             // Even when DesignTimeBuild is defined, it will still add the referenced project's output to the references list
@@ -66,22 +76,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // already done everything we need to compute compiler inputs by then.
             buildTargets.RemoveAfter("CoreCompile", includeTargetInRemoval: false);
 
-            // create a project instance to be executed by build engine.
-            // The executed project will hold the final model of the project after execution via msbuild.
-            var executedProject = _loadedProject.CreateProjectInstance();
-
-            if (!executedProject.Targets.ContainsKey("Compile"))
-            {
-                return executedProject;
-            }
-
             var hostServices = new Microsoft.Build.Execution.HostServices();
 
             // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
             hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
             var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
-
             var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, buildTargets.Targets, hostServices);
 
             var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
