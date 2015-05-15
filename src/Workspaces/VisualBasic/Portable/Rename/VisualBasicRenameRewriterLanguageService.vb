@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -118,8 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If lambdas.Count() <> 0 Then
                     For Each lambda In lambdas
                         If Me._conflictLocations.Any(Function(cf)
-                                                        Return cf.Contains(lambda.Span)
-                                                    End Function) Then
+                                                         Return cf.Contains(lambda.Span)
+                                                     End Function) Then
                             isInConflictLambdaBody = True
                             Exit For
                         End If
@@ -240,85 +241,86 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End Function
 
             Private Function RenameAndAnnotate(token As SyntaxToken, newToken As SyntaxToken, isRenameLocation As Boolean, isOldText As Boolean) As SyntaxToken
-                If Me._isProcessingComplexifiedSpans Then
-                    If isRenameLocation Then
-                        Dim annotation = Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).FirstOrDefault()
-                        If annotation IsNot Nothing Then
-                            newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix)
-                            AddModifiedSpan(annotation.OriginalSpan, New TextSpan(token.Span.Start, newToken.Span.Length))
-                        Else
-                            newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing)
+                Try
+                    If Me._isProcessingComplexifiedSpans Then
+                        If isRenameLocation Then
+                            Dim annotation = Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).FirstOrDefault()
+                            If annotation IsNot Nothing Then
+                                newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix)
+                                AddModifiedSpan(annotation.OriginalSpan, New TextSpan(token.Span.Start, newToken.Span.Length))
+                            Else
+                                newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing)
+                            End If
                         End If
+
+                        Return newToken
                     End If
 
-                    Return newToken
-                End If
+                    Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, Me._semanticModel, Me._solution.Workspace, Me._cancellationToken)
 
-                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, Me._semanticModel, Me._solution.Workspace, Me._cancellationToken)
+                    ' this is the compiler generated backing field of a non custom event. We need to store a "Event" suffix to properly rename it later on.
+                    Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
+                    Dim suffix As String = Nothing
 
-                ' this is the compiler generated backing field of a non custom event. We need to store a "Event" suffix to properly rename it later on.
-                Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
-                Dim suffix As String = Nothing
+                    If symbols.Count() = 1 Then
+                        Dim symbol = symbols.Single()
 
-                If symbols.Count() = 1 Then
-                    Dim symbol = symbols.Single()
+                        If symbol.IsConstructor() Then
+                            symbol = symbol.ContainingSymbol
+                        End If
 
-                    If symbol.IsConstructor() Then
-                        symbol = symbol.ContainingSymbol
-                    End If
+                        If symbol.Kind = SymbolKind.Field AndAlso symbol.IsImplicitlyDeclared Then
+                            Dim fieldSymbol = DirectCast(symbol, IFieldSymbol)
 
-                    If symbol.Kind = SymbolKind.Field AndAlso symbol.IsImplicitlyDeclared Then
-                        Dim fieldSymbol = DirectCast(symbol, IFieldSymbol)
-
-                        If fieldSymbol.Type.IsDelegateType AndAlso
+                            If fieldSymbol.Type.IsDelegateType AndAlso
                         fieldSymbol.Type.IsImplicitlyDeclared AndAlso
                         DirectCast(fieldSymbol.Type, INamedTypeSymbol).AssociatedSymbol IsNot Nothing Then
 
-                            suffix = "Event"
-                        End If
+                                suffix = "Event"
+                            End If
 
-                        If fieldSymbol.AssociatedSymbol IsNot Nothing AndAlso
+                            If fieldSymbol.AssociatedSymbol IsNot Nothing AndAlso
                            fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property) AndAlso
                            fieldSymbol.Name = "_" + fieldSymbol.AssociatedSymbol.Name Then
 
-                            prefix = "_"
-                        End If
+                                prefix = "_"
+                            End If
 
-                    ElseIf symbol.IsConstructor AndAlso
+                        ElseIf symbol.IsConstructor AndAlso
                      symbol.ContainingType.IsImplicitlyDeclared AndAlso
                      symbol.ContainingType.IsDelegateType AndAlso
                      symbol.ContainingType.AssociatedSymbol IsNot Nothing Then
 
-                        suffix = "EventHandler"
-                    ElseIf TypeOf symbol Is INamedTypeSymbol Then
-                        Dim namedTypeSymbol = DirectCast(symbol, INamedTypeSymbol)
-                        If namedTypeSymbol.IsImplicitlyDeclared AndAlso
+                            suffix = "EventHandler"
+                        ElseIf TypeOf symbol Is INamedTypeSymbol Then
+                            Dim namedTypeSymbol = DirectCast(symbol, INamedTypeSymbol)
+                            If namedTypeSymbol.IsImplicitlyDeclared AndAlso
                         namedTypeSymbol.IsDelegateType() AndAlso
                         namedTypeSymbol.AssociatedSymbol IsNot Nothing Then
-                            suffix = "EventHandler"
+                                suffix = "EventHandler"
+                            End If
+                        End If
+
+                        If Not isRenameLocation AndAlso TypeOf (symbol) Is INamespaceSymbol AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
+                            Return newToken
                         End If
                     End If
 
-                    If Not isRenameLocation AndAlso TypeOf (symbol) Is INamespaceSymbol AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
-                        Return newToken
+                    If isRenameLocation AndAlso Not Me.AnnotateForComplexification Then
+                        Dim oldSpan = token.Span
+                        newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix)
+                        AddModifiedSpan(oldSpan, newToken.Span)
                     End If
-                End If
 
-                If isRenameLocation AndAlso Not Me.AnnotateForComplexification Then
-                    Dim oldSpan = token.Span
-                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix)
-                    AddModifiedSpan(oldSpan, newToken.Span)
-                End If
-
-                Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
+                    Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
                     ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).WaitAndGetResult(_cancellationToken)
 
-                Dim isNamespaceDeclarationReference = False
-                If isRenameLocation AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
-                    isNamespaceDeclarationReference = True
-                End If
+                    Dim isNamespaceDeclarationReference = False
+                    If isRenameLocation AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
+                        isNamespaceDeclarationReference = True
+                    End If
 
-                Dim renameAnnotation = New RenameActionAnnotation(
+                    Dim renameAnnotation = New RenameActionAnnotation(
                                     token.Span,
                                     isRenameLocation,
                                     prefix,
@@ -328,13 +330,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                     isNamespaceDeclarationReference,
                                     isInvocationExpression:=False)
 
-                _annotatedIdentifierTokens.Add(token)
-                newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span})
-                If Me._renameRenamableSymbolDeclaration IsNot Nothing AndAlso _renamableDeclarationLocation = token.GetLocation() Then
-                    newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, Me._renameRenamableSymbolDeclaration)
-                End If
+                    _annotatedIdentifierTokens.Add(token)
+                    newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span})
+                    If Me._renameRenamableSymbolDeclaration IsNot Nothing AndAlso _renamableDeclarationLocation = token.GetLocation() Then
+                        newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, Me._renameRenamableSymbolDeclaration)
+                    End If
 
-                Return newToken
+                    Return newToken
+                Catch e As Exception When Not Renamer.isRunningInUnitTests AndAlso FatalError.ReportUnlessCanceled(e)
+                    Throw ExceptionUtilities.Unreachable
+                End Try
             End Function
 
             Private Function IsInRenameLocation(token As SyntaxToken) As Boolean
@@ -644,84 +649,88 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             reverseMappedLocations As IDictionary(Of Location, Location),
             cancellationToken As CancellationToken
         ) As Task(Of IEnumerable(Of Location)) Implements IRenameRewriterLanguageService.ComputeDeclarationConflictsAsync
-            Dim conflicts As New List(Of Location)
+            Try
+                Dim conflicts As New List(Of Location)
 
-            If renamedSymbol.Kind = SymbolKind.Parameter OrElse
+                If renamedSymbol.Kind = SymbolKind.Parameter OrElse
                renamedSymbol.Kind = SymbolKind.Local OrElse
                renamedSymbol.Kind = SymbolKind.RangeVariable Then
 
-                Dim token = renamedSymbol.Locations.Single().FindToken(cancellationToken)
+                    Dim token = renamedSymbol.Locations.Single().FindToken(cancellationToken)
 
-                ' Find the method block or field declaration that we're in. Note the LastOrDefault
-                ' so we find the uppermost one, since VariableDeclarators live in methods too.
-                Dim methodBase = token.Parent.AncestorsAndSelf.Where(Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse TypeOf s Is VariableDeclaratorSyntax) _
-                                                              .LastOrDefault()
+                    ' Find the method block or field declaration that we're in. Note the LastOrDefault
+                    ' so we find the uppermost one, since VariableDeclarators live in methods too.
+                    Dim methodBase = token.Parent.AncestorsAndSelf.Where(Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse TypeOf s Is VariableDeclaratorSyntax) _
+                                                                  .LastOrDefault()
 
-                Dim visitor As New LocalConflictVisitor(token, newSolution, cancellationToken)
-                visitor.Visit(methodBase)
+                    Dim visitor As New LocalConflictVisitor(token, newSolution, cancellationToken)
+                    visitor.Visit(methodBase)
 
-                conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
-                               .Select(Function(loc) reverseMappedLocations(loc)))
+                    conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
+                                   .Select(Function(loc) reverseMappedLocations(loc)))
 
-                ' in VB parameters of properties are not allowed to be the same as the containing property
-                If renamedSymbol.Kind = SymbolKind.Parameter AndAlso
-                    renamedSymbol.ContainingSymbol.Kind = SymbolKind.Property AndAlso
-                    CaseInsensitiveComparison.Equals(renamedSymbol.ContainingSymbol.Name, renamedSymbol.Name) Then
+                    ' in VB parameters of properties are not allowed to be the same as the containing property
+                    If renamedSymbol.Kind = SymbolKind.Parameter AndAlso
+                        renamedSymbol.ContainingSymbol.Kind = SymbolKind.Property AndAlso
+                        CaseInsensitiveComparison.Equals(renamedSymbol.ContainingSymbol.Name, renamedSymbol.Name) Then
 
-                    Dim propertySymbol = renamedSymbol.ContainingSymbol
+                        Dim propertySymbol = renamedSymbol.ContainingSymbol
 
-                    While propertySymbol IsNot Nothing
-                        conflicts.AddRange(renamedSymbol.ContainingSymbol.Locations _
-                                       .Select(Function(loc) reverseMappedLocations(loc)))
+                        While propertySymbol IsNot Nothing
+                            conflicts.AddRange(renamedSymbol.ContainingSymbol.Locations _
+                                           .Select(Function(loc) reverseMappedLocations(loc)))
 
-                        propertySymbol = propertySymbol.OverriddenMember
-                    End While
-                End If
+                            propertySymbol = propertySymbol.OverriddenMember
+                        End While
+                    End If
 
-            ElseIf renamedSymbol.Kind = SymbolKind.Label Then
-                Dim token = renamedSymbol.Locations.Single().FindToken(cancellationToken)
-                Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of SyntaxNode)(
-                    Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse
-                                TypeOf s Is LambdaExpressionSyntax)
+                ElseIf renamedSymbol.Kind = SymbolKind.Label Then
+                    Dim token = renamedSymbol.Locations.Single().FindToken(cancellationToken)
+                    Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of SyntaxNode)(
+                        Function(s) TypeOf s Is MethodBlockBaseSyntax OrElse
+                                    TypeOf s Is LambdaExpressionSyntax)
 
-                Dim visitor As New LabelConflictVisitor(token)
-                visitor.Visit(containingMethod)
-                conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
-                    .Select(Function(loc) reverseMappedLocations(loc)))
-
-            ElseIf renamedSymbol.Kind = SymbolKind.Method Then
-                conflicts.AddRange(
-                    DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IMethodSymbol), trimOptionalParameters:=True) _
+                    Dim visitor As New LabelConflictVisitor(token)
+                    visitor.Visit(containingMethod)
+                    conflicts.AddRange(visitor.ConflictingTokens.Select(Function(t) t.GetLocation()) _
                         .Select(Function(loc) reverseMappedLocations(loc)))
 
-            ElseIf renamedSymbol.Kind = SymbolKind.Property Then
-                ConflictResolver.AddConflictingParametersOfProperties(referencedSymbols.Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
-                                                 renamedSymbol.Name,
-                                                 conflicts)
+                ElseIf renamedSymbol.Kind = SymbolKind.Method Then
+                    conflicts.AddRange(
+                        DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IMethodSymbol), trimOptionalParameters:=True) _
+                            .Select(Function(loc) reverseMappedLocations(loc)))
 
-            ElseIf renamedSymbol.Kind = SymbolKind.TypeParameter Then
-                Dim Location = renamedSymbol.Locations.Single()
-                Dim token = renamedSymbol.Locations.Single().FindToken(cancellationToken)
-                Dim currentTypeParameter = token.Parent
+                ElseIf renamedSymbol.Kind = SymbolKind.Property Then
+                    ConflictResolver.AddConflictingParametersOfProperties(referencedSymbols.Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
+                                                     renamedSymbol.Name,
+                                                     conflicts)
 
-                For Each typeParameter In DirectCast(currentTypeParameter.Parent, TypeParameterListSyntax).Parameters
-                    If typeParameter IsNot currentTypeParameter AndAlso CaseInsensitiveComparison.Equals(token.ValueText, typeParameter.Identifier.ValueText) Then
-                        conflicts.Add(reverseMappedLocations(typeParameter.Identifier.GetLocation()))
-                    End If
-                Next
-            End If
+                ElseIf renamedSymbol.Kind = SymbolKind.TypeParameter Then
+                    Dim Location = renamedSymbol.Locations.Single()
+                    Dim token = renamedSymbol.Locations.Single().FindToken(cancellationToken)
+                    Dim currentTypeParameter = token.Parent
 
-            ' if the renamed symbol is a type member, it's name should not coflict with a type parameter
-            If renamedSymbol.ContainingType IsNot Nothing AndAlso renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol) Then
-                For Each typeParameter In renamedSymbol.ContainingType.TypeParameters
-                    If CaseInsensitiveComparison.Equals(typeParameter.Name, renamedSymbol.Name) Then
-                        Dim typeParameterToken = typeParameter.Locations.Single().FindToken(cancellationToken)
-                        conflicts.Add(reverseMappedLocations(typeParameterToken.GetLocation()))
-                    End If
-                Next
-            End If
+                    For Each typeParameter In DirectCast(currentTypeParameter.Parent, TypeParameterListSyntax).Parameters
+                        If typeParameter IsNot currentTypeParameter AndAlso CaseInsensitiveComparison.Equals(token.ValueText, typeParameter.Identifier.ValueText) Then
+                            conflicts.Add(reverseMappedLocations(typeParameter.Identifier.GetLocation()))
+                        End If
+                    Next
+                End If
 
-            Return Task.FromResult(Of IEnumerable(Of Location))(conflicts)
+                ' if the renamed symbol is a type member, it's name should not coflict with a type parameter
+                If renamedSymbol.ContainingType IsNot Nothing AndAlso renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol) Then
+                    For Each typeParameter In renamedSymbol.ContainingType.TypeParameters
+                        If CaseInsensitiveComparison.Equals(typeParameter.Name, renamedSymbol.Name) Then
+                            Dim typeParameterToken = typeParameter.Locations.Single().FindToken(cancellationToken)
+                            conflicts.Add(reverseMappedLocations(typeParameterToken.GetLocation()))
+                        End If
+                    Next
+                End If
+
+                Return Task.FromResult(Of IEnumerable(Of Location))(conflicts)
+            Catch e As Exception When Not Renamer.isRunningInUnitTests AndAlso FatalError.ReportUnlessCanceled(e)
+                Throw ExceptionUtilities.Unreachable
+            End Try
         End Function
 
         Public Function ComputeImplicitReferenceConflicts(renameSymbol As ISymbol, renamedSymbol As ISymbol, implicitReferenceLocations As IEnumerable(Of ReferenceLocation), cancellationToken As CancellationToken) As IEnumerable(Of Location) Implements IRenameRewriterLanguageService.ComputeImplicitReferenceConflicts

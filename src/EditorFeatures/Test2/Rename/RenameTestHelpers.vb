@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -106,6 +107,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspace,
                 exportProvider:=ExportProvider)
             testWorkspace.GetOpenDocumentIds().Select(Function(id) testWorkspace.GetTestDocument(id).GetTextView()).ToList()
+
+            Renamer.isRunningInUnitTests = True
+
             Return testWorkspace
         End Function
 
