@@ -734,12 +734,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var observed = GetObservedText(sol, did, text);
             StopObservingAndWaitForReferenceToGo(observed);
 
+            Persistence.TestTemporaryStorageService.TextStorage.s_DisposalCount = 0;
+
             // get it async and force it to recover from temporary storage
             var doc = sol.GetDocument(did);
             var docText = doc.GetTextAsync().Result;
 
             Assert.NotNull(docText);
             Assert.Equal(text, docText.ToString());
+
+            // Ensure that the temporary storage was disposed
+            Assert.Equal(1, Persistence.TestTemporaryStorageService.TextStorage.s_DisposalCount);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1068,7 +1073,9 @@ End Class";
             var observed2 = GetObservedSyntaxTreeRootAsync(doc2.Project.Solution, did);
             StopObservingAndWaitForReferenceToGo(observed2);
 
-            // access the tree & root again (recovert it)
+            Persistence.TestTemporaryStorageService.StreamStorage.s_DisposalCount = 0;
+
+            // access the tree & root again (recover it)
             var tree2 = doc2.GetSyntaxTreeAsync().Result;
 
             // this should cause deserialization
@@ -1076,6 +1083,9 @@ End Class";
 
             // prove that the new root is correctly associated with the tree
             Assert.Equal(tree2, root2.SyntaxTree);
+
+            // Ensure that the temporary storage was disposed
+            Assert.Equal(1, Persistence.TestTemporaryStorageService.StreamStorage.s_DisposalCount);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
