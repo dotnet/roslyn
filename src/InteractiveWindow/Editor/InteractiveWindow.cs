@@ -1844,13 +1844,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        private void FinishCurrentSubmissionInput() {
+        private void FinishCurrentSubmissionInput() 
+        {
             Debug.Assert(CheckAccess());
 
             AppendLineNoPromptInjection(_currentLanguageBuffer);
             ApplyProtection(_currentLanguageBuffer, regions: null);
 
-            if (_adornmentToMinimize) {
+            if (_adornmentToMinimize) 
+            {
                 // TODO (tomat): remember the index of the adornment(s) in the current output and minimize those instead of the last one 
                 InlineAdornmentProvider.MinimizeLastInlineAdornment(TextView);
                 _adornmentToMinimize = false;
@@ -1859,7 +1861,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             NewOutputBuffer();
         }
 
-        private void NewOutputBuffer() {
+        private void NewOutputBuffer()
+        {
             // Stop growing the current output projection span.
             Debug.Assert(_projectionSpans[_currentOutputProjectionSpan].Kind == ReplSpanKind.Output);
             var nonGrowingSpan = _projectionSpans[_currentOutputProjectionSpan].WithEndTrackingMode(PointTrackingMode.Negative);
@@ -2032,14 +2035,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return new Span(result, (text != null ? text.Length : 0) + LineBreak.Length);
         }
 
-        public Span WriteError(string text) {
+        public Span WriteError(string text)
+        {
             int result = _buffer.Write(text);
             var res = new Span(result, (text != null ? text.Length : 0));
             _errorOutputWriter.Spans.Add(res);
             return res;
         }
 
-        public Span WriteErrorLine(string text = null) {
+        public Span WriteErrorLine(string text = null)
+        {
             int result = _buffer.Write(text);
             _buffer.Write(LineBreak);
             var res = new Span(result, (text != null ? text.Length : 0) + LineBreak.Length);
