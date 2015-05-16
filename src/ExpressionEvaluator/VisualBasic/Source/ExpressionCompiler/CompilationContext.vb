@@ -1285,7 +1285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' The symbol of the method that is currently on top of the callstack, with
         ''' EE type parameters substituted in place of the original type parameters.
         ''' </param>
-        ''' <param name="hasDisplayClassMe">
+        ''' <param name="sourceMethodMustBeInstance">
         ''' True if "Me" is available via a display class in the current context
         ''' </param>
         ''' <returns>
@@ -1309,7 +1309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' </remarks>
         Friend Shared Function GetSubstitutedSourceMethod(
             candidateSubstitutedSourceMethod As MethodSymbol,
-            hasDisplayClassMe As Boolean) As MethodSymbol
+            sourceMethodMustBeInstance As Boolean) As MethodSymbol
 
             Dim candidateSubstitutedSourceType = candidateSubstitutedSourceMethod.ContainingType
             Dim candidateSourceTypeName = candidateSubstitutedSourceType.Name
@@ -1326,25 +1326,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(containing IsNot Nothing)
                     If containing.IsClosureType() Then
                         candidateSubstitutedSourceType = containing
-                        hasDisplayClassMe = candidateSubstitutedSourceType.MemberNames.Contains(StringConstants.HoistedMeName, StringComparer.Ordinal)
+                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Contains(StringConstants.HoistedMeName, StringComparer.Ordinal)
                     End If
                 End If
 
                 Dim desiredTypeParameters = candidateSubstitutedSourceType.OriginalDefinition.TypeParameters
 
-                ' We need to use a ThreeState, rather than a Boolean, because we can't distinguish between
-                ' a roslyn lambda that only captures "Me" and a dev12 lambda that captures nothing (neither
-                ' introduces a display class).  This is unnecessary in the state machine case, because then
-                ' "Me" is hoisted unconditionally.
-                Dim isDesiredMethodShared = If(hasDisplayClassMe,
-                    ThreeState.False,
-                    If(candidateSubstitutedSourceType.IsStateMachineType(), ThreeState.True, ThreeState.Unknown))
-
                 ' Type containing the original iterator, async, or lambda-containing method.
                 Dim substitutedSourceType = GetNonClosureOrStateMachineContainer(candidateSubstitutedSourceType)
 
                 For Each candidateMethod In substitutedSourceType.GetMembers().OfType(Of MethodSymbol)()
-                    If IsViableSourceMethod(candidateMethod, desiredMethodName, desiredTypeParameters, isDesiredMethodShared) Then
+                    If IsViableSourceMethod(candidateMethod, desiredMethodName, desiredTypeParameters, sourceMethodMustBeInstance) Then
                         Return If(desiredTypeParameters.Length = 0,
                             candidateMethod,
                             candidateMethod.Construct(candidateSubstitutedSourceType.TypeArguments))
@@ -1374,11 +1366,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             candidateMethod As MethodSymbol,
             desiredMethodName As String,
             desiredTypeParameters As ImmutableArray(Of TypeParameterSymbol),
-            desiredMethodIsShared As ThreeState) As Boolean
+            desiredMethodMustBeInstance As Boolean) As Boolean
 
             Return _
                 Not candidateMethod.IsMustOverride AndAlso
-                (desiredMethodIsShared = ThreeState.Unknown OrElse desiredMethodIsShared.Value() = candidateMethod.IsShared) AndAlso
+                (Not (desiredMethodMustBeInstance AndAlso candidateMethod.IsShared)) AndAlso
                 (desiredMethodName Is Nothing OrElse desiredMethodName = candidateMethod.Name) AndAlso
                 HasDesiredConstraints(candidateMethod, desiredTypeParameters)
         End Function
