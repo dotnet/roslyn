@@ -172,6 +172,44 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
+        <Fact>
+        Public Sub TestNameCollisionOnDisplayNames()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs">
+                                        class Foo { }
+                                    </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects(0)
+
+                Dim referenceName = "Test"
+
+                Dim hostAnalyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New ProjectDiagnosticAnalyzer(0)), display:=referenceName)
+
+                Dim projectAnalyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New ProjectDiagnosticAnalyzer(1)), display:=referenceName)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService(
+                    ImmutableArray.Create(Of AnalyzerReference)(hostAnalyzerReference))
+
+                project = project.WithAnalyzerReferences(ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference))
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+
+                ' two references in the map
+                Assert.Equal(2, descriptorsMap.Count)
+
+                Dim names = New HashSet(Of String)
+                names.UnionWith(descriptorsMap.Keys)
+
+                Assert.Equal(1, names.Where(Function(n) n = referenceName).Count())
+            End Using
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestRulesetBasedDiagnosticFiltering()
             Dim test = <Workspace>
