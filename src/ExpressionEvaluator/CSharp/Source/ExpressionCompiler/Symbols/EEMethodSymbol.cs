@@ -151,8 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var variable = pair.Value;
                 var oldDisplayClassInstance = variable.DisplayClassInstance;
 
-                // Note: the code path for DisplayClassInstanceFromLocal is equivalent to calling 
-                // oldDisplayClassInstance.ToOtherMethod, except that doing that would produce
+                // Note: we don't call ToOtherMethod in the local case because doing so would produce
                 // a new LocalSymbol that would not be ReferenceEquals to the one in this.LocalsForBinding.
                 var oldDisplayClassInstanceFromLocal = oldDisplayClassInstance as DisplayClassInstanceFromLocal;
                 var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null) ?
