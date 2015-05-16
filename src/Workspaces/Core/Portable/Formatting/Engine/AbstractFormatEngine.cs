@@ -443,18 +443,19 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // always create task 1 more than current processor count
                 var partitions = partitioner.GetPartitions(this.TaskExecutor == TaskExecutor.Synchronous ? 1 : Environment.ProcessorCount + 1);
 
-                var tasks = new List<Task>(
-                        partitions.Select(
-                            partition =>
-                                this.TaskExecutor.StartNew(
-                                    () =>
+                var tasks = new Task[partitions.Count];
+                for (int i = 0; i < partitions.Count; i++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    partition.Do(operationPair => ApplySpaceAndWrappingOperationsBody(context, tokenStream, operationPair, applier, cancellationToken));
-                },
-                                    cancellationToken)));
+                    var partition = partitions[i];
+                    tasks[i] = this.TaskExecutor.StartNew(() =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        partition.Do(operationPair => ApplySpaceAndWrappingOperationsBody(context, tokenStream, operationPair, applier, cancellationToken));
+                    },
+                    cancellationToken);
+                }
 
-                Task.WaitAll(tasks.ToArray(), cancellationToken);
+                Task.WaitAll(tasks, cancellationToken);
             }
         }
 
