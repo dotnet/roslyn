@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
         public static AnalyzerDriver Create(
-            Compilation compilation, 
+            Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers, 
             AnalyzerOptions options, 
             AnalyzerManager analyzerManager, 
@@ -160,21 +160,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
-            if (compilation == null)
-            {
-                throw new ArgumentNullException(nameof(compilation));
-            }
-
-            if (analyzers.IsDefaultOrEmpty)
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
-            }
-
-            if (analyzers.Any(a => a == null))
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
-            }
-
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = 
                 (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
 
