@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _hostAnalyzerReferencesMap;
             }
 
-            return CreateAnalyzerReferencesMap(projectOpt.AnalyzerReferences.Where(CheckAnalyzerReferenceIdentity));
+            return _hostAnalyzerReferencesMap.AddRange(CreateProjectAnalyzerReferencesMap(projectOpt));
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateProjectDiagnosticAnalyzersPerReference(Project project)
         {
-            return CreateDiagnosticAnalyzersPerReferenceMap(CreateAnalyzerReferencesMap(project), project.Language);
+            return CreateDiagnosticAnalyzersPerReferenceMap(CreateProjectAnalyzerReferencesMap(project), project.Language);
         }
 
         /// <summary>
@@ -247,6 +247,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return null;
+        }
+
+        private ImmutableDictionary<object, AnalyzerReference> CreateProjectAnalyzerReferencesMap(Project project)
+        {
+            return CreateAnalyzerReferencesMap(project.AnalyzerReferences.Where(CheckAnalyzerReferenceIdentity));
         }
 
         private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
