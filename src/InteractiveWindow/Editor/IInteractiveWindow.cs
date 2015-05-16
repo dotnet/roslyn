@@ -137,6 +137,32 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         Span Write(string text);
 
         /// <summary>
+        /// Writes string followed by a line break into the error buffer.
+        /// </summary>
+        /// <param name="text">Text to write. Might be null.</param>
+        /// <returns>
+        /// The offset in the output subject buffer where the text is inserted and the length of the inserted text including the line break.
+        /// </returns>
+        /// <remarks>
+        /// Note that the text might not be written to the editor buffer immediately but be buffered.
+        /// The returned offsets might thus be beyond the current length of the editor buffer.
+        /// </remarks>
+        Span WriteErrorLine(string text);
+
+        /// <summary>
+        /// Writes a line into the error buffer.
+        /// </summary>
+        /// <param name="text">Text to write. Might be null.</param>
+        /// <returns>
+        /// The offset in the output subject buffer where the text is inserted.
+        /// </returns>
+        /// <remarks>
+        /// Note that the text might not be written to the editor buffer immediately but be buffered.
+        /// The returned offset might thus be beyond the current length of the editor buffer.
+        /// </remarks>
+        Span WriteError(string text);
+
+        /// <summary>
         /// Writes a UI object to the REPL window.
         /// </summary>
         /// <remarks>
