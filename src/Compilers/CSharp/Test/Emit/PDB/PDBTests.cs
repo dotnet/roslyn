@@ -322,7 +322,8 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" document=""0"" />
+        <entry offset=""0xd"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""0"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1a"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
