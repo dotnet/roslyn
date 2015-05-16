@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveStack _directives;
         private readonly LexerCache _cache;
         private readonly bool _allowPreprocessorDirectives;
+        private DocumentationCommentParser _xmlParser;
+        private int _errorCount; // cumulative count of bad tokens produced
 
         internal struct TokenInfo
         {
@@ -870,7 +872,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    info.Text = TextWindow.GetText(intern: true);
+                    if (_errorCount++ > 100)
+                    {
+                        // If we get too many characters that we cannot make sense of, absorb the rest of the input.
+                        int position = TextWindow.Position - 1;
+                        int end = TextWindow.Text.Length;
+                        int width = end - position;
+                        info.Text = TextWindow.Text.ToString(new TextSpan(position, width));
+                        TextWindow.Reset(end);
+                    }
+                    else
+                    {
+                        info.Text = TextWindow.GetText(intern: true);
+                    }
 
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
                     break;
@@ -2728,8 +2742,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return trivia;
         }
-
-        private DocumentationCommentParser _xmlParser;
 
         private CSharpSyntaxNode LexXmlDocComment(XmlDocCommentStyle style)
         {
