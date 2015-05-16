@@ -10,11 +10,20 @@ using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal class DiagnosticAnalyzerDriver
     {
+        /// <summary>
+        /// Map containing unique gate objects per-analyzer instance.
+        /// We need to guard against concurrent callbacks into analyzers from different diagnostic clients.
+        /// Additionally, certain diagnostic clients, such as FixAll occurrences, may request diagnostics for multiple documents in parallel.
+        /// </summary>
+        private static readonly ConditionalWeakTable<DiagnosticAnalyzer, object> s_analyzerGateMap =
+            new ConditionalWeakTable<DiagnosticAnalyzer, object>();
+
         private readonly Document _document;
 
         // The root of the document.  May be null for documents without a root.
@@ -291,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private AnalyzerExecutor GetAnalyzerExecutor(DiagnosticAnalyzer analyzer, Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
-            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, cancellationToken: _cancellationToken);
+            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, s_analyzerGateMap.GetOrCreateValue, cancellationToken: _cancellationToken);
         }
 
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
