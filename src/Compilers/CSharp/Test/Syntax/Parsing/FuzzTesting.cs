@@ -78,5 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test);
         }
+
+        [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
+        [Fact(Skip = "The test input is not under version contol")]
+        public void TestBinary()
+        {
+            const string vsix = @"D:\Roslyn\Open\Binaries\Debug\Roslyn.VisualStudio.Setup.vsix";
+            var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(vsix));
+        }
     }
 }
