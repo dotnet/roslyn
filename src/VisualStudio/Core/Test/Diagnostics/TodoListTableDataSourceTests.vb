@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
-Imports Microsoft.VisualStudio.TableControl
-Imports Microsoft.VisualStudio.TableManager
+Imports Microsoft.VisualStudio.Shell.TableControl
+Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -205,7 +205,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim snapshot2 = factory.GetCurrentSnapshot()
 
-                Assert.Equal(0, snapshot1.TranslateTo(0, snapshot2))
+                Assert.Equal(0, snapshot1.IndexOf(0, snapshot2))
             End Using
         End Sub
 
@@ -238,7 +238,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim snapshot2 = factory.GetCurrentSnapshot()
-                Assert.Equal(1, snapshot1.TranslateTo(0, snapshot2))
+                Assert.Equal(1, snapshot1.IndexOf(0, snapshot2))
             End Using
         End Sub
 
@@ -271,7 +271,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim snapshot2 = factory.GetCurrentSnapshot()
-                Assert.Equal(-1, snapshot1.TranslateTo(0, snapshot2))
+                Assert.Equal(-1, snapshot1.IndexOf(0, snapshot2))
             End Using
         End Sub
 

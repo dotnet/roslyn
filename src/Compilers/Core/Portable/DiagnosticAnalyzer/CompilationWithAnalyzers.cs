@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -30,9 +31,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            VerifyAnalyzersArgument(analyzers);
+
             _cancellationToken = cancellationToken;
             _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
             _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, out _compilation, _cancellationToken);
+        }
+
+        private static void VerifyAnalyzersArgument(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            if (analyzers.IsDefaultOrEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
+            }
+
+            if (analyzers.Any(a => a == null))
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
+            }
         }
 
         private void AddExceptionDiagnostic(Diagnostic diagnostic)
@@ -123,6 +144,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance, CancellationToken.None);
 
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
+        }
+
+        /// <summary>
+        /// This method should be invoked when the analyzer host is disposing off the given <paramref name="analyzers"/>.
+        /// It clears the cached internal state (supported descriptors, registered actions, exception handlers, etc.) for analyzers.
+        /// </summary>
+        /// <param name="analyzers">Analyzers whose state needs to be cleared.</param>
+        public static void ClearAnalyzerState(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            VerifyAnalyzersArgument(analyzers);
+
+            AnalyzerManager.Instance.ClearAnalyzerState(analyzers);
         }
     }
 }

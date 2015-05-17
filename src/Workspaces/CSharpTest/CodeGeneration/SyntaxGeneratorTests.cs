@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -14,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
 {
     public class SyntaxGeneratorTests
     {
-        private readonly SyntaxGenerator _g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
+        private readonly Workspace _ws;
+        private readonly SyntaxGenerator _g;
 
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
                 references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
@@ -23,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
 
         public SyntaxGeneratorTests()
         {
+            _ws = new AdhocWorkspace();
+            _g = SyntaxGenerator.GetGenerator(_ws, LanguageNames.CSharp);
             _ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
         }
 
@@ -2867,6 +2871,32 @@ public void M()
 {
 }");
         }
-#endregion
+
+        [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void IntroduceBaseList()
+        {
+            var text = @"
+public class C
+{
+}
+";
+            var expected = @"
+public class C : IDisposable
+{
+}
+";
+
+            var root = SyntaxFactory.ParseCompilationUnit(text);
+            var decl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            var newDecl = _g.AddInterfaceType(decl, _g.IdentifierName("IDisposable"));
+            var newRoot = root.ReplaceNode(decl, newDecl);
+
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws).ToFullString();
+            Assert.Equal(expected, elasticOnlyFormatted);
+        }
+
+        #endregion
     }
 }
