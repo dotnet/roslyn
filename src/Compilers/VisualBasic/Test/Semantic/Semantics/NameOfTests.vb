@@ -1014,7 +1014,7 @@ BC32042: Too few type arguments to 'C2.cC3(Of U, V)'.
         End Sub
 
         <Fact>
-        Public Sub InacessibleNonGenericType_01()
+        Public Sub InaccessibleNonGenericType_01()
             Dim compilationDef =
 <compilation>
     <file name="a.vb">

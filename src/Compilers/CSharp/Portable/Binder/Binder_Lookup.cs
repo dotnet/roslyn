@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rolsyn reproduces Dev10 compiler behavior which doesn't report an error if one of the 
             // lookups is single viable and other lookup is ambiguous. If one of the lookup results 
             // (either with or without "Attribute" suffix) is single viable and is an attribute type we 
-            // use it  disregarding the second result which may be ambigous. 
+            // use it  disregarding the second result which may be ambiguous. 
 
             // Note: if both are single and attribute types, we still report ambiguity.
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!result.IsClear)
                 {
-                    if ((object)symbolWithoutSuffix != null) // was not ambigous, but not viable
+                    if ((object)symbolWithoutSuffix != null) // was not ambiguous, but not viable
                     {
                         result.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithoutSuffix, result.Error, diagnose));
                     }

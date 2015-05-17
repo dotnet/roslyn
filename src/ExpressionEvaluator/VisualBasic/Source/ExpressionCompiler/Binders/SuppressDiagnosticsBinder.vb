@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' and <see cref="T:Windows.Foundation.MetadataDeprecatedAttribute"/> 
     ''' to be suppressed.
     ''' </summary>
-    Friend NotInheritable Class SuppressObsoleteDiagnosticsBinder
+    Friend NotInheritable Class SuppressDiagnosticsBinder
 #Enable Warning RS0010
         Inherits Binder
 
@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return True
             End Get
         End Property
+
+        Friend Overrides Function BinderSpecificLookupOptions(options As LookupOptions) As LookupOptions
+            Return options Or LookupOptions.IgnoreCorLibraryDuplicatedTypes
+        End Function
     End Class
 
 End Namespace
