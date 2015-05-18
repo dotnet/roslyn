@@ -416,6 +416,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundBlock StateMachineScope(ImmutableArray<StateMachineFieldSymbol> hoistedLocals, BoundStatement statement)
+        {
+            return Block(new BoundStateMachineScope(Syntax, hoistedLocals, statement));
+        }
+
+        public bool TryUnwrapBoundStateMachineScope(ref BoundStatement statement, out ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        {
+            if (statement.Kind == BoundKind.Block)
+            {
+                var rewrittenBlock = (BoundBlock)statement;
+                var rewrittenStatements = rewrittenBlock.Statements;
+                if (rewrittenStatements.Length == 1 && rewrittenStatements[0].Kind == BoundKind.StateMachineScope)
+                {
+                    var stateMachineScope = (BoundStateMachineScope)rewrittenStatements[0];
+                    statement = stateMachineScope.Statement;
+                    hoistedLocals = stateMachineScope.Fields;
+                    return true;
+                }
+            }
+
+            hoistedLocals = ImmutableArray<StateMachineFieldSymbol>.Empty;
+            return false;
+        }
+
         public BoundReturnStatement Return(BoundExpression expression = null)
         {
             if (expression != null)
