@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _visitIntoStructuredTrivia; }
         }
 
-        private const int MaxUncheckedRecursionDepth = Syntax.InternalSyntax.LanguageParser.MaxUncheckedRecursionDepth;
         private int _recursionDepth;
 
         public override SyntaxNode Visit(SyntaxNode node)
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node != null)
             {
                 _recursionDepth++;
-                if (_recursionDepth > MaxUncheckedRecursionDepth)
+                if (_recursionDepth > Syntax.InternalSyntax.LanguageParser.MaxUncheckedRecursionDepth)
                 {
                     PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
                 }

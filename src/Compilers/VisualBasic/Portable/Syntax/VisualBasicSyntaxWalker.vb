@@ -18,6 +18,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.Depth = depth
         End Sub
 
+        Private _recursionDepth As Integer
+
+        Public Overrides Sub Visit(node As SyntaxNode)
+            If node IsNot Nothing Then
+                _recursionDepth += 1
+
+                If _recursionDepth > Syntax.InternalSyntax.Parser.MaxUncheckedRecursionDepth Then
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
+                End If
+
+                DirectCast(node, VisualBasicSyntaxNode).Accept(Me)
+
+                _recursionDepth -= 1
+            End If
+        End Sub
+
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
             Dim list = node.ChildNodesAndTokens()
             Dim childCnt = list.Count

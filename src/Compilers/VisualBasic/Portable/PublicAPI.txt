@@ -4697,6 +4697,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.OptionsCore()
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.TryGetRootCore(ByRef root As Microsoft.CodeAnalysis.SyntaxNode) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.WithChangedText(newText As Microsoft.CodeAnalysis.Text.SourceText) -> Microsoft.CodeAnalysis.SyntaxTree
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxWalker.DefaultVisit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxWalker.Visit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Void
 ReadOnly Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo.Select1 -> Microsoft.CodeAnalysis.SymbolInfo
 ReadOnly Microsoft.CodeAnalysis.VisualBasic.AggregateClauseSymbolInfo.Select2 -> Microsoft.CodeAnalysis.SymbolInfo
 ReadOnly Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.AsClauseConversion -> Microsoft.CodeAnalysis.SymbolInfo

@@ -29,14 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Const MaxUncheckedRecursionDepth As Integer = Syntax.InternalSyntax.Parser.MaxUncheckedRecursionDepth
         Private _recursionDepth As Integer
 
         Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
             If node IsNot Nothing Then
                 _recursionDepth += 1
 
-                If _recursionDepth > MaxUncheckedRecursionDepth Then
+                If _recursionDepth > Syntax.InternalSyntax.Parser.MaxUncheckedRecursionDepth Then
                     PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
                 End If
 

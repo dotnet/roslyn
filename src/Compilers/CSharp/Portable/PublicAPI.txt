@@ -2727,6 +2727,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.OptionsCore.get -> Micro
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.TryGetRootCore(out Microsoft.CodeAnalysis.SyntaxNode root) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.WithChangedText(Microsoft.CodeAnalysis.Text.SourceText newText) -> Microsoft.CodeAnalysis.SyntaxTree
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode node) -> void
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> void
 override Microsoft.CodeAnalysis.CSharp.Conversion.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.Conversion.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.Conversion.ToString() -> string
