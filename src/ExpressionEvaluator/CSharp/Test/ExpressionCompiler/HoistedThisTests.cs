@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -117,7 +116,7 @@ class C
   IL_0001:  ret
 }";
 
-            VerifyHasThis(source, "C.<M>b__0_0", "C", expectedIL);
+            VerifyHasThis(source, "C.<M>b__0_0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -142,7 +141,7 @@ class C
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -173,7 +172,7 @@ class C
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -200,7 +199,7 @@ class C
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [WorkItem(1067379)]
@@ -227,7 +226,7 @@ class C
   IL_0001:  ret
 }";
 
-            VerifyHasThis(source, "C.<M>b__1_0", "C", expectedIL);
+            VerifyHasThis(source, "C.<M>b__1_0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -252,7 +251,7 @@ class C<T>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -283,7 +282,7 @@ class C<T>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -310,7 +309,7 @@ class C<T>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C<T>", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C<T>", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -340,7 +339,7 @@ class C : I
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -376,7 +375,7 @@ class C : I
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -408,7 +407,7 @@ class C : I
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I.M>b__0", "C", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -438,7 +437,7 @@ class C : I<int>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -474,7 +473,7 @@ class C : I<int>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -506,7 +505,7 @@ class C : I<int>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [WorkItem(1066489)]
@@ -948,13 +947,33 @@ class C
             }
         }
 
-        private void VerifyHasThis(string source, string methodName, string expectedType, string expectedIL)
+        private void VerifyHasThis(string source, string methodName, string expectedType, string expectedIL, bool thisCanBeElided = true)
         {
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
+            var sourceCompilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(sourceCompilation);
             var context = CreateMethodContext(runtime, methodName);
 
             VerifyHasThis(context, expectedType, expectedIL);
+
+            // Now recompile and test CompileExpression with optimized code.
+            sourceCompilation = sourceCompilation.WithOptions(sourceCompilation.Options.WithOptimizationLevel(OptimizationLevel.Release));
+            runtime = CreateRuntimeInstance(sourceCompilation);
+            context = CreateMethodContext(runtime, methodName);
+            // In C#, "this" may be optimized away.
+            if (thisCanBeElided)
+            {
+                VerifyNoThis(context);
+            }
+            else
+            {
+                VerifyHasThis(context, expectedType, expectedIL: null);
+            }
+            // Verify that binding a trivial expression succeeds.
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("42", out error, testData);
+            Assert.Null(error);
+            Assert.Equal(1, testData.Methods.Count);
         }
 
         private static void VerifyHasThis(EvaluationContext context, string expectedType, string expectedIL)
@@ -966,14 +985,20 @@ class C
             Assert.NotNull(assembly);
             Assert.NotEqual(assembly.Count, 0);
             var localAndMethod = locals.Single(l => l.LocalName == "this");
-            VerifyMethodData(testData.Methods.Single(m => m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL);
+            if (expectedIL != null)
+            {
+                VerifyMethodData(testData.Methods.Single(m => m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL);
+            }
             locals.Free();
 
             string error;
             testData = new CompilationTestData();
             context.CompileExpression("this", out error, testData);
             Assert.Null(error);
-            VerifyMethodData(testData.Methods.Single(m => m.Key.Contains("<>m0")).Value, expectedType, expectedIL);
+            if (expectedIL != null)
+            {
+                VerifyMethodData(testData.Methods.Single(m => m.Key.Contains("<>m0")).Value, expectedType, expectedIL);
+            }
         }
 
         private static void VerifyMethodData(CompilationTestData.MethodData methodData, string expectedType, string expectedIL)
@@ -1435,7 +1460,7 @@ public class C
             var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNames.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
             var moveNextMethod = stateMachineType.GetMember<MethodSymbol>("MoveNext");
 
-            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, hasDisplayClassThis: true);
+            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, sourceMethodMustBeInstance: true);
             Assert.Equal(iteratorMethod, guessedIterator.OriginalDefinition);
         }
     }

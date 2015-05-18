@@ -853,6 +853,35 @@ End Class
                 End Sub)
         End Sub
 
+        <WorkItem(1172038)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddFunction_AfterIncompleteMember()
+            Dim code =
+<Code>
+Class $$C
+    Private Sub M1()
+    End Sub
+
+    Private Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Private Sub M1()
+    End Sub
+
+    Private Sub
+Private Sub M2()
+
+    End Sub
+End Class
+</Code>
+
+            TestAddFunction(code, expected, New FunctionData With {.Name = "M2", .Type = "void", .Position = -1, .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
+        End Sub
+
 #End Region
 
 #Region "AddProperty tests"

@@ -5062,7 +5062,8 @@
                                   diagnostics.
 /errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
                                   diagnostics.
-
+/reportanalyzer                   Report additional analyzer information, such as
+                                  execution time.
                                   - LANGUAGE -
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 

@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<string> features = new List<string>();
             string runtimeMetadataVersion = null;
             bool errorEndLocation = false;
+            bool reportAnalyzer = false;
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             var sqmSessionGuid = Guid.Empty;
@@ -892,6 +893,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorEndLocation = true;
                             continue;
 
+                        case "reportanalyzer":
+                            reportAnalyzer = true;
+                            continue;
+
                         case "nostdlib":
                         case "nostdlib+":
                             if (value != null)
@@ -1111,7 +1116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PrintFullPaths = printFullPaths,
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
-                SqmSessionGuid = sqmSessionGuid
+                SqmSessionGuid = sqmSessionGuid,
+                ReportAnalyzer = reportAnalyzer
             };
         }
         

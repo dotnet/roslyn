@@ -85,7 +85,7 @@ class C
         Foo {|Conflict:x|} = new Foo(FooMeth);
         int [|$$z|] = 1; // Rename z to x
         int y = {|Conflict:z|};
-        {|Conflict:x|}({|Conflict:z|}); // Renamed to x(x)
+        x({|Conflict:z|}); // Renamed to x(x)
     }
 }
                             </Document>
@@ -3136,6 +3136,65 @@ namespace N2 { }
                         </Document>
                     </Project>
                 </Workspace>, renameTo:="N2")
+            End Using
+        End Sub
+
+        <WorkItem(1729, "https://github.com/dotnet/roslyn/issues/1729")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestNoConflictWithParametersOrLocalsOfDelegateType()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+using System;
+class C
+{
+    void M1(Action [|callback$$|])
+    {
+        [|callback|]();
+    }
+
+    void M2(Func<bool> callback)
+    {
+        callback();
+    }
+
+    void M3()
+    {
+        Action callback = () => { };
+        callback();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="callback2")
+            End Using
+        End Sub
+
+        <WorkItem(1729, "https://github.com/dotnet/roslyn/issues/1729")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictWithLocalsOfDelegateTypeWhenBindingChangesToNonDelegateLocal()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+using System;
+class C
+{
+    void M()
+    {
+        int [|x$$|] = 7; // Rename x to a. "a()" will bind to the first definition of a.
+        Action {|conflict:a|} = () => { };
+        {|conflict:a|}();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="a")
+
+                result.AssertLabeledSpansAre("conflict", "a", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
     End Class

@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Host
 
             protected override async Task SaveAsync(TRoot root, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
+
                 // tree will be always held alive in memory, but nodes come and go. serialize nodes to storage
                 using (var stream = SerializableBytes.CreateWritableStream())
                 {
@@ -118,17 +120,27 @@ namespace Microsoft.CodeAnalysis.Host
 
             protected override async Task<TRoot> RecoverAsync(CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(_storage);
+
                 using (var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    return RecoverRoot(stream, cancellationToken);
+                    var retVal = RecoverRoot(stream, cancellationToken);
+                    _storage.Dispose();
+                    _storage = null;
+                    return retVal;
                 }
             }
 
             protected override TRoot Recover(CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(_storage);
+
                 using (var stream = _storage.ReadStream(cancellationToken))
                 {
-                    return RecoverRoot(stream, cancellationToken);
+                    var retVal = RecoverRoot(stream, cancellationToken);
+                    _storage.Dispose();
+                    _storage = null;
+                    return retVal;
                 }
             }
 
