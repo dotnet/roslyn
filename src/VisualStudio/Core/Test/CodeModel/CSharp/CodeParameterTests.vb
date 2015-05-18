@@ -25,7 +25,7 @@ class C
 <Code>
 class C
 {
-    void Foo([Out()]string s)
+    void Foo([Out()] string s)
     {
     }
 }

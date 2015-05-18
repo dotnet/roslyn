@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var assemblyNames = new string[]
             {
                 "Microsoft.CodeAnalysis.Workspaces.Desktop",
-                "Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop",
-                "Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop",
             };
 
             return MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames));

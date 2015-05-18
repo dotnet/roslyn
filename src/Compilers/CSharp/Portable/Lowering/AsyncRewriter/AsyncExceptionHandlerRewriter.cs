@@ -137,7 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var tryStatementSyntax = node.Syntax;
-            Debug.Assert(tryStatementSyntax.IsKind(SyntaxKind.TryStatement));
+            // If you add a syntax kind to the assertion below, please also ensure
+            // that the scenario has been tested with Edit-and-Continue.
+            Debug.Assert(
+                tryStatementSyntax.IsKind(SyntaxKind.TryStatement) ||
+                tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
+                tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement));
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;

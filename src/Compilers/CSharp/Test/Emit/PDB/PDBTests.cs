@@ -289,9 +289,9 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".cctor"" />
         <encLocalSlotMap>
-          <slot kind=""0"" offset=""29"" />
-          <slot kind=""0"" offset=""93"" />
-          <slot kind=""temp"" />
+          <slot kind=""0"" offset=""-118"" />
+          <slot kind=""0"" offset=""-54"" />
+          <slot kind=""21"" offset=""-147"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -318,15 +318,15 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".cctor"" />
         <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""temp"" />
+          <slot kind=""30"" offset=""-45"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" document=""0"" />
+        <entry offset=""0xd"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""0"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1e"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x1a"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
       </scope>
     </method>
   </methods>
@@ -458,6 +458,241 @@ class C2
         <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""51"" document=""0"" />
         <entry offset=""0x2a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""39"" document=""0"" />
       </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        #endregion
+
+        #region ReturnStatement
+
+        [Fact]
+        public void Return_Method1()
+        {
+            var source = @"
+class Program
+{
+    static int Main()
+    {
+        return 1;
+    }
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            // In order to place a breakpoint on the closing brace we need to save the return expression value to 
+            // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+ -IL_0005:  ldloc.0
+  IL_0006:  ret
+}", sequencePoints: "Program.Main");
+
+            v.VerifyPdb("Program.Main", @"
+<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x5"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void Return_Property1()
+        {
+            var source = @"
+class C
+{
+    static int P
+    {
+        get { return 1; }
+    }
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            // In order to place a breakpoint on the closing brace we need to save the return expression value to 
+            // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
+            v.VerifyIL("C.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+ -IL_0005:  ldloc.0
+  IL_0006:  ret
+}", sequencePoints: "C.get_P");
+
+            v.VerifyPdb("C.get_P", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""get_P"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""15"" endLine=""6"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x5"" startLine=""6"" startColumn=""25"" endLine=""6"" endColumn=""26"" document=""0"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void Return_Void1()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        return;
+    }
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  0
+ -IL_0000:  nop
+ -IL_0001:  br.s       IL_0003
+ -IL_0003:  ret
+}", sequencePoints: "Program.Main");
+        }
+
+        [Fact]
+        public void Return_ExpressionBodied1()
+        {
+            var source = @"
+class Program
+{
+    static int Main() => 1;
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+ -IL_0000:  ldc.i4.1
+  IL_0001:  ret
+}", sequencePoints: "Program.Main");
+        }
+
+        [Fact]
+        public void Return_FromExceptionHandler1()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static int Main() 
+    {
+        try
+        {
+            Console.WriteLine();
+            return 1;
+        }
+        catch (Exception)
+        {
+            return 2;
+        }
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (int V_0)
+ -IL_0000:  nop
+  .try
+  {
+   -IL_0001:  nop
+   -IL_0002:  call       ""void System.Console.WriteLine()""
+    IL_0007:  nop
+   -IL_0008:  ldc.i4.1
+    IL_0009:  stloc.0
+    IL_000a:  leave.s    IL_0012
+  }
+  catch System.Exception
+  {
+   -IL_000c:  pop
+   -IL_000d:  nop
+   -IL_000e:  ldc.i4.2
+    IL_000f:  stloc.0
+    IL_0010:  leave.s    IL_0012
+  }
+ -IL_0012:  ldloc.0
+  IL_0013:  ret
+}", sequencePoints: "Program.Main");
+
+            v.VerifyPdb("Program.Main", @"
+<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""33"" document=""0"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""22"" document=""0"" />
+        <entry offset=""0xc"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""26"" document=""0"" />
+        <entry offset=""0xd"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xe"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""22"" document=""0"" />
+        <entry offset=""0x12"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x14"">
+        <namespace name=""System"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
@@ -1517,7 +1752,7 @@ public class SeqPointForWhile
           <slot kind=""0"" offset=""29"" />
           <slot kind=""0"" offset=""56"" />
           <slot kind=""0"" offset=""126"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2122,7 +2357,7 @@ public class SeqPointAfterReturn
           <slot kind=""1"" offset=""138"" />
           <slot kind=""1"" offset=""238"" />
           <slot kind=""1"" offset=""330"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2184,7 +2419,7 @@ public class SeqPointAfterReturn
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""1"" offset=""42"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2257,7 +2492,7 @@ class Test
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""147"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>

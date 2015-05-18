@@ -36,6 +36,7 @@
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="CustomTypeInfo.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
+    <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="Placeholders.cs" />
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />

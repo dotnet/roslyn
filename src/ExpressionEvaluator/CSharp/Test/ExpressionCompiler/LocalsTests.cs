@@ -1297,8 +1297,7 @@ class C
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<F>d__2.<>4__this""
   IL_0006:  ret
@@ -1307,8 +1306,7 @@ class C
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<F>d__2.<o>5__3""
   IL_0006:  ret
@@ -1352,9 +1350,8 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
-                bool V_1,
-                int V_2,
-                bool V_3)
+                int V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""T[] C.<F>d__0<T>.o""
   IL_0006:  ret
@@ -1364,9 +1361,8 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
-                bool V_1,
-                int V_2,
-                bool V_3)
+                int V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0<T>.<i>5__1""
   IL_0006:  ret
@@ -1376,9 +1372,8 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
-                bool V_1,
-                int V_2,
-                bool V_3)
+                int V_1,
+                bool V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""T C.<F>d__0<T>.<t>5__2""
   IL_0006:  ret
@@ -2029,8 +2024,7 @@ static class C
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.x""
   IL_0006:  ret
@@ -2106,8 +2100,7 @@ class C
 {{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""{0} C.{1}.{2}""
   IL_0006:  ret
@@ -2116,22 +2109,22 @@ class C
             // M1(int, int)
             displayClassName = "<M1>d__0";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "int", displayClassName, "x"));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(ilTemplate, "int", displayClassName, "y"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(ilTemplate, "int", displayClassName, "y"));
             locals.Clear();
 
             // M1(int, float)
             displayClassName = "<M1>d__1";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "int", displayClassName, "x"));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(ilTemplate, "float", displayClassName, "y"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(ilTemplate, "float", displayClassName, "y"));
             locals.Clear();
 
             // M2(int, float)
             displayClassName = "<M2>d__2";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "int", displayClassName, "x"));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(ilTemplate, "float", displayClassName, "y"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(ilTemplate, "float", displayClassName, "y"));
             locals.Clear();
 
             // M2(int, T)
@@ -2139,15 +2132,15 @@ class C
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
             typeName += "<T>";
             displayClassName += "<T>";
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "int", displayClassName, "x"));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(ilTemplate, "T", displayClassName, "y"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(ilTemplate, "T", displayClassName, "y"));
             locals.Clear();
 
             // M2(int, int)
             displayClassName = "<M2>d__4";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "int", displayClassName, "x"));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(ilTemplate, "int", displayClassName, "y"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(ilTemplate, "int", displayClassName, "y"));
             locals.Clear();
 
             locals.Free();
@@ -2207,33 +2200,33 @@ class C
             // M1(int)
             displayClassName = "<M1>d__0";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "int", "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "int", "int", displayClassName, "x"));
             locals.Clear();
 
             // M1(int, float)
             displayClassName = "<M1>d__1";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "float", "int", displayClassName, "x"));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(ilTemplate, "float", "float", displayClassName, "y"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "float", "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(ilTemplate, "float", "float", displayClassName, "y"));
             locals.Clear();
 
             // M2(int, float)
             displayClassName = "<M2>d__2";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "float", "int", displayClassName, "x"));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(ilTemplate, "float", "float", displayClassName, "y"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "float", "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(ilTemplate, "float", "float", displayClassName, "y"));
             locals.Clear();
 
             // M2(T)
             displayClassName = "<M2>d__3";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "T", "T", displayClassName + "<T>", "x"));
+            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "T", "T", displayClassName + "<T>", "x"));
             locals.Clear();
 
             // M2(int)
             displayClassName = "<M2>d__4";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(ilTemplate, "int", "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(ilTemplate, "int", "int", displayClassName, "x"));
             locals.Clear();
 
             locals.Free();
@@ -2275,39 +2268,38 @@ class C
 {{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init ({0} V_0)
-  IL_0000:  ldarg.{1}
+  IL_0000:  ldarg.{0}
   IL_0001:  ret
 }}";
 
             // y => x.ToString()
             displayClassName = "<>c__DisplayClass0_0";
             GetLocals(runtime, "C." + displayClassName + ".<M1>b__0", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "y", expectedILOpt: String.Format(voidRetILTemplate, 1));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "y", expectedILOpt: string.Format(voidRetILTemplate, 1));
             locals.Clear();
 
             // z => x
             displayClassName = "<>c__DisplayClass0_0";
             GetLocals(runtime, "C." + displayClassName + ".<M1>b__1", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "z", expectedILOpt: String.Format(funcILTemplate, "int", 1));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "z", expectedILOpt: string.Format(funcILTemplate, 1));
             locals.Clear();
 
             // y => y.ToString()
             displayClassName = "<>c__1";
             GetLocals(runtime, "C." + displayClassName + ".<M2>b__1_0", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "y", expectedILOpt: String.Format(voidRetILTemplate, 1));
+            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "y", expectedILOpt: string.Format(voidRetILTemplate, 1));
             locals.Clear();
 
             // z => z
             displayClassName = "<>c__1";
             GetLocals(runtime, "C." + displayClassName + ".<M2>b__1_1", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "z", expectedILOpt: String.Format(funcILTemplate, "int", 1));
+            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "z", expectedILOpt: string.Format(funcILTemplate, 1));
             locals.Clear();
 
             // t => t
             displayClassName = "<>c__1";
             GetLocals(runtime, "C." + displayClassName + ".<M2>b__1_2", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "t", expectedILOpt: String.Format(funcILTemplate, "T", 1));
+            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "t", expectedILOpt: string.Format(funcILTemplate, 1));
             locals.Clear();
 
             locals.Free();
@@ -2378,32 +2370,32 @@ class C
 
             // M1(int, int)
             GetLocals(runtime, "C.M1(Int32,Int32)", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(voidRetILTemplate, "int", 1));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(voidRetILTemplate, "int", 2));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(voidRetILTemplate, "int", 1));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(voidRetILTemplate, "int", 2));
             locals.Clear();
 
             // M1(int, string)
             GetLocals(runtime, "C.M1(Int32,String)", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(funcILTemplate, "string", 1));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(funcILTemplate, "string", 2));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(funcILTemplate, "string", 1));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(funcILTemplate, "string", 2));
             locals.Clear();
 
             // M2(int, string)
             GetLocals(runtime, "C.M2(Int32,String)", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(voidRetILTemplate, "string", 0));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(voidRetILTemplate, "string", 1));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(voidRetILTemplate, "string", 0));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(voidRetILTemplate, "string", 1));
             locals.Clear();
 
             // M2(int, T)
             GetLocals(runtime, "C.M2(Int32,T)", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0<T>", "x", expectedILOpt: String.Format(funcILTemplate, "T", 0), expectedGeneric: true);
-            VerifyLocal(testData, typeName, locals[1], "<>m1<T>", "y", expectedILOpt: String.Format(funcILTemplate, "T", 1), expectedGeneric: true);
+            VerifyLocal(testData, typeName, locals[0], "<>m0<T>", "x", expectedILOpt: string.Format(funcILTemplate, "T", 0), expectedGeneric: true);
+            VerifyLocal(testData, typeName, locals[1], "<>m1<T>", "y", expectedILOpt: string.Format(funcILTemplate, "T", 1), expectedGeneric: true);
             locals.Clear();
 
             // M2(int, int)
             GetLocals(runtime, "C.M2(Int32,Int32)", argumentsOnly: true, locals: locals, count: 2, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: String.Format(funcILTemplate, "int", 0));
-            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: String.Format(refParamILTemplate, "int", 1));
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: string.Format(funcILTemplate, "int", 0));
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "y", expectedILOpt: string.Format(refParamILTemplate, "int", 1));
             locals.Clear();
 
             locals.Free();
@@ -2464,8 +2456,7 @@ class C<T>
 {{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init ({0} V_0,
-                bool V_1)
+  .locals init ({0} V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""{0} C<T>.{1}.{2}""
   IL_0006:  ret
@@ -2490,13 +2481,13 @@ class C<T>
             // M1(int)
             displayClassName = "<M1>d__1";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "x", expectedILOpt: String.Format(iteratorILTemplate, "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "x", expectedILOpt: string.Format(iteratorILTemplate, "int", displayClassName, "x"));
             locals.Clear();
 
             // M2(int)
             displayClassName = "<M2>d__2";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "x", expectedILOpt: String.Format(iteratorILTemplate, "int", displayClassName, "x"));
+            VerifyLocal(testData, typeName + "<T>", locals[0], "<>m0", "x", expectedILOpt: string.Format(iteratorILTemplate, "int", displayClassName, "x"));
             locals.Clear();
 
             // M2()
@@ -2512,13 +2503,13 @@ class C<T>
             // M3(int)
             displayClassName = "<M3>d__5";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T, T>", locals[0], "<>m0", "x", expectedILOpt: String.Format(asyncILTemplate, "T", displayClassName + "<T>", "x"));
+            VerifyLocal(testData, typeName + "<T, T>", locals[0], "<>m0", "x", expectedILOpt: string.Format(asyncILTemplate, "T", displayClassName + "<T>", "x"));
             locals.Clear();
 
             // M4(int)
             displayClassName = "<M4>d__6";
             GetLocals(runtime, "C." + displayClassName + ".MoveNext", argumentsOnly: true, locals: locals, count: 1, typeName: out typeName, testData: out testData);
-            VerifyLocal(testData, typeName + "<T, T>", locals[0], "<>m0", "x", expectedILOpt: String.Format(asyncILTemplate, "T", displayClassName + "<T>", "x"));
+            VerifyLocal(testData, typeName + "<T, T>", locals[0], "<>m0", "x", expectedILOpt: string.Format(asyncILTemplate, "T", displayClassName + "<T>", "x"));
             locals.Clear();
 
             // M4()
@@ -2632,8 +2623,7 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
-                bool V_1,
-                System.Exception V_2)
+                System.Exception V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.<o>5__1""
   IL_0006:  ret
@@ -2643,8 +2633,7 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
-                bool V_1,
-                System.Exception V_2)
+                System.Exception V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""System.Exception C.<M>d__1.<e>5__2""
   IL_0006:  ret
@@ -2758,6 +2747,192 @@ class C
   IL_000b:  ret
 }");
             locals.Free();
+        }
+
+        [WorkItem(1139013, "DevDiv")]
+        [Fact]
+        public void TransparentIdentifiers_FromParameter()
+        {
+            const string source = @"
+using System.Linq;
+
+class C
+{
+    void M(string[] args)
+    {
+        var concat = 
+            from x in args
+            let y = x.ToString()
+            let z = x.GetHashCode()
+            select x + y + z;
+    }
+}
+";
+
+            const string methodName = "C.<>c.<M>b__0_2";
+
+            const string zIL = @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
+  IL_0006:  ret
+}
+";
+            const string xIL = @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<x>i__Field""
+  IL_000b:  ret
+}
+";
+            const string yIL = @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<y>i__Field""
+  IL_000b:  ret
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+
+            string typeName;
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            CompilationTestData testData;
+            GetLocals(runtime, methodName, argumentsOnly: false, locals: locals, count: 3, typeName: out typeName, testData: out testData);
+
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "z", expectedILOpt: zIL);
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt: xIL);
+            VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedILOpt: yIL);
+            locals.Free();
+
+            var context = CreateMethodContext(runtime, methodName);
+            string error;
+
+            testData = new CompilationTestData();
+            context.CompileExpression("z", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(zIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("x", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(xIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("y", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
+        }
+
+        [WorkItem(1139013, "DevDiv")]
+        [Fact]
+        public void TransparentIdentifiers_FromDisplayClassField()
+        {
+            const string source = @"
+using System.Linq;
+
+class C
+{
+    void M(string[] args)
+    {
+        var concat = 
+            from x in args
+            let y = x.ToString()
+            let z = x.GetHashCode()
+            select x.Select(c => y + z);
+    }
+}
+";
+
+            const string methodName = "C.<>c__DisplayClass0_0.<M>b__3";
+
+            const string cIL = @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}
+";
+            const string zIL = @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
+  IL_0006:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
+  IL_000b:  ret
+}
+";
+            const string xIL = @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
+  IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_000b:  ldfld      ""string <>f__AnonymousType0<string, string>.<x>i__Field""
+  IL_0010:  ret
+}
+";
+            const string yIL = @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
+  IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
+  IL_000b:  ldfld      ""string <>f__AnonymousType0<string, string>.<y>i__Field""
+  IL_0010:  ret
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+
+            string typeName;
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            CompilationTestData testData;
+            GetLocals(runtime, methodName, argumentsOnly: false, locals: locals, count: 4, typeName: out typeName, testData: out testData);
+
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "c", expectedILOpt: cIL);
+            VerifyLocal(testData, typeName, locals[1], "<>m1", "z", expectedILOpt: zIL);
+            VerifyLocal(testData, typeName, locals[2], "<>m2", "x", expectedILOpt: xIL);
+            VerifyLocal(testData, typeName, locals[3], "<>m3", "y", expectedILOpt: yIL);
+
+            locals.Free();
+
+            var context = CreateMethodContext(runtime, methodName);
+            string error;
+
+            testData = new CompilationTestData();
+            context.CompileExpression("c", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(cIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("z", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(zIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("x", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(xIL);
+
+            testData = new CompilationTestData();
+            context.CompileExpression("y", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
         }
 
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)

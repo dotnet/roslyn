@@ -4594,6 +4594,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
+    <value>await in catch blocks and finally blocks</value>
+  </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>
   </data>

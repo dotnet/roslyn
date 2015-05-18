@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             nodesBuilder.AddRange(CodeModelService.GetOptionNodes(node));
             nodesBuilder.AddRange(CodeModelService.GetImportNodes(node));
             nodesBuilder.AddRange(CodeModelService.GetAttributeNodes(node));
-            nodesBuilder.AddRange(CodeModelService.GetFlattenedMemberNodes(node));
+            nodesBuilder.AddRange(CodeModelService.GetLogicalSupportedMemberNodes(node));
 
             return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, nodesBuilder.ToImmutable());
         }
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             currentIndex += attributeNodeCount;
 
             // Members
-            var memberNodes = CodeModelService.GetFlattenedMemberNodes(node);
+            var memberNodes = CodeModelService.GetLogicalSupportedMemberNodes(node);
             var memberNodeCount = memberNodes.Count();
             if (index < currentIndex + memberNodeCount)
             {
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             }
 
             // Members
-            foreach (var child in CodeModelService.GetFlattenedMemberNodes(node))
+            foreach (var child in CodeModelService.GetLogicalSupportedMemberNodes(node))
             {
                 var childName = CodeModelService.GetName(child);
                 if (childName == name)
@@ -231,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     CodeModelService.GetOptionNodes(node).Count() +
                     CodeModelService.GetImportNodes(node).Count() +
                     CodeModelService.GetAttributeNodes(node).Count() +
-                    CodeModelService.GetFlattenedMemberNodes(node).Count();
+                    CodeModelService.GetLogicalSupportedMemberNodes(node).Count();
             }
         }
     }

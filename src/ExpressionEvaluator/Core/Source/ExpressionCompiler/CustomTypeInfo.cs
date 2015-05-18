@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public DynamicFlagsCustomTypeInfo ToDynamicFlagsCustomTypeInfo()
         {
-            return new DynamicFlagsCustomTypeInfo(PayloadTypeId, Payload);
+            return DynamicFlagsCustomTypeInfo.Create(this);
         }
 
         public DkmClrCustomTypeInfo ToDkmClrCustomTypeInfo()

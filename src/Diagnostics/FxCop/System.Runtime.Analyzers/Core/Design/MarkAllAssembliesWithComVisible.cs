@@ -14,21 +14,34 @@ namespace System.Runtime.Analyzers
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAllAssembliesWithComVisible), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAllAssembliesWithComVisibleDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
-        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                                      s_localizableTitle,
-                                                                                      "{0}",
-                                                                                      DiagnosticCategory.Design,
-                                                                                      DiagnosticSeverity.Warning,
-                                                                                      isEnabledByDefault: false,
-                                                                                      description: s_localizableDescription,
-                                                                                      helpLinkUri: "http://msdn.microsoft.com/library/ms182157.aspx",
-                                                                                      customTags: WellKnownDiagnosticTags.Telemetry);
+        private static readonly LocalizableString s_localizableMessageA = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.ChangeAssemblyLevelComVisibleToFalse), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageB = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.AddAssemblyLevelComVisibleFalse), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+
+        internal static readonly DiagnosticDescriptor RuleA = new DiagnosticDescriptor(RuleId,
+                                                                                       s_localizableTitle,
+                                                                                       s_localizableMessageA,
+                                                                                       DiagnosticCategory.Design,
+                                                                                       DiagnosticSeverity.Warning,
+                                                                                       isEnabledByDefault: false,
+                                                                                       description: s_localizableDescription,
+                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182157.aspx",
+                                                                                       customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static readonly DiagnosticDescriptor RuleB = new DiagnosticDescriptor(RuleId,
+                                                                                       s_localizableTitle,
+                                                                                       s_localizableMessageB,
+                                                                                       DiagnosticCategory.Design,
+                                                                                       DiagnosticSeverity.Warning,
+                                                                                       isEnabledByDefault: false,
+                                                                                       description: s_localizableDescription,
+                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182157.aspx",
+                                                                                       customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(Rule);
+                return ImmutableArray.Create(RuleA, RuleB);
             }
         }
 
@@ -57,13 +70,13 @@ namespace System.Runtime.Analyzers
                         attributeInstance.ConstructorArguments[0].Value.Equals(true))
                     {
                         // Has the attribute, with the value 'true'.
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(SystemRuntimeAnalyzersResources.CA1017_AttributeTrue, context.Compilation.Assembly.Name)));
+                        context.ReportDiagnostic(Diagnostic.Create(RuleA, Location.None, context.Compilation.Assembly.Name));
                     }
                 }
                 else
                 {
                     // No ComVisible attribute at all.
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, Location.None, string.Format(SystemRuntimeAnalyzersResources.CA1017_NoAttribute, context.Compilation.Assembly.Name)));
+                    context.ReportDiagnostic(Diagnostic.Create(RuleB, Location.None, context.Compilation.Assembly.Name));
                 }
             }
 

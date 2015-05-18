@@ -624,6 +624,9 @@ namespace Microsoft.Cci
 
         private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string> declaredExternAliases)
         {
+            // no extern alias defined in scope at all -> error in compiler
+            Debug.Assert(declaredExternAliases != null);
+
             var allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
             foreach (AssemblyReferenceAlias alias in allAliases)
             {

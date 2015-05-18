@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static FieldSymbol SubstituteField(FieldSymbol field, TypeMap typeMap)
         {
             Debug.Assert(!field.IsStatic);
-            Debug.Assert(!field.IsReadOnly);
+            Debug.Assert(!field.IsReadOnly || GeneratedNames.GetKind(field.Name) == GeneratedNameKind.AnonymousTypeField);
             Debug.Assert(field.CustomModifiers.Length == 0);
             // CONSIDER: Instead of digging fields out of the unsubstituted type and then performing substitution
             // on each one individually, we could dig fields out of the substituted type.

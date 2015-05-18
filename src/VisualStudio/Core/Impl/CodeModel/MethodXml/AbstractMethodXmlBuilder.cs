@@ -447,6 +447,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
             }
         }
 
+        protected void GenerateType(SpecialType specialType)
+        {
+            GenerateType(SemanticModel.Compilation.GetSpecialType(specialType));
+        }
+
         protected void GenerateNullLiteral()
         {
             using (LiteralTag())
@@ -462,6 +467,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
                 // TODO(DustinCa): Add more unit tests to ensure that floats are correct.
                 EncodedText(Convert.ToString(value, CultureInfo.InvariantCulture));
             }
+        }
+
+        protected void GenerateNumber(object value, SpecialType specialType)
+        {
+            GenerateNumber(value, SemanticModel.Compilation.GetSpecialType(specialType));
         }
 
         protected void GenerateChar(char value)

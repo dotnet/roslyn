@@ -58,7 +58,7 @@ End Class
         <method containingType="C+_Closure$__" name="_Lambda$__2-0">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="13"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -128,9 +128,9 @@ End Module
         <method containingType="M1+C1`1+_Closure$__3-1`2" name="_Lambda$__0" parameterNames="lifted, notLifted">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="30" offset="-1"/>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="111"/>
+                    <slot kind="30" offset="57"/>
+                    <slot kind="0" offset="127"/>
+                    <slot kind="0" offset="234"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -206,8 +206,8 @@ End Module
         <method containingType="Module1+_Closure$__" name="_Lambda$__0-0">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
-                    <slot kind="0" offset="4"/>
+                    <slot kind="21" offset="8"/>
+                    <slot kind="0" offset="44"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -288,7 +288,7 @@ End Class
         <method containingType="C+_Closure$__" name="_Lambda$__0-0">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="-26"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -302,7 +302,7 @@ End Class
         <method containingType="C+_Closure$__" name="_Lambda$__0-1">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="-12"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -377,7 +377,7 @@ End Class
         <method containingType="C+_Closure$__" name="_Lambda$__0-0">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="-26"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -391,7 +391,7 @@ End Class
         <method containingType="C+_Closure$__" name="_Lambda$__0-1">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="-12"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -456,7 +456,7 @@ End Class
         <method containingType="C2+_Closure$__" name="_Lambda$__2-0">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="-12"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>

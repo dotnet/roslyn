@@ -196,6 +196,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool IsFeatureEnabled(MessageID feature)
+        {
+            LanguageVersion availableVersion = LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            return availableVersion >= requiredVersion;
+        }
+
         public override bool Equals(object obj)
         {
             return this.Equals(obj as CSharpParseOptions);

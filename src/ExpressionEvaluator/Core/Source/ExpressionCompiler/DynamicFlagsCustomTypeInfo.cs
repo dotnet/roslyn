@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct DynamicFlagsCustomTypeInfo
+    internal partial struct DynamicFlagsCustomTypeInfo
     {
         /// <remarks>Internal for testing.</remarks>
         internal static readonly Guid PayloadTypeId = new Guid("826D6EC1-DC4B-46AF-BE05-CD3F1A1FD4AC");
@@ -19,27 +19,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _bytes = bytes;
         }
 
-        public DynamicFlagsCustomTypeInfo(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
-            : this(payloadTypeId == PayloadTypeId ? payload : null)
+        private DynamicFlagsCustomTypeInfo(ArrayBuilder<bool> dynamicFlags, int startIndex)
         {
-        }
+            Debug.Assert(dynamicFlags != null);
+            Debug.Assert(startIndex >= 0);
 
-        public DynamicFlagsCustomTypeInfo(DkmClrCustomTypeInfo typeInfo)
-            : this(typeInfo != null && typeInfo.PayloadTypeId == PayloadTypeId ? typeInfo.Payload : null)
-        {
-        }
+            int numFlags = dynamicFlags.Count - startIndex;
+            Debug.Assert(numFlags > 0);
 
-        internal DynamicFlagsCustomTypeInfo(bool[] dynamicFlags)
-        {
-            if (dynamicFlags == null || dynamicFlags.Length == 0)
-            {
-                _bytes = null;
-                return;
-            }
-
-            int numFlags = dynamicFlags.Length;
-            int numBytes = ((numFlags - 1) / 8) + 1;
+            int numBytes = (numFlags + 7) / 8;
             byte[] bytes = new byte[numBytes];
+            bool seenTrue = false;
             for (int b = 0; b < numBytes; b++)
             {
                 for (int i = 0; i < 8; i++)
@@ -51,8 +41,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         goto ALL_FLAGS_READ;
                     }
 
-                    if (dynamicFlags[f])
+                    if (dynamicFlags[startIndex + f])
                     {
+                        seenTrue = true;
                         bytes[b] |= (byte)(1 << i);
                     }
                 }
@@ -60,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             ALL_FLAGS_READ:
 
-            _bytes = new ReadOnlyCollection<byte>(bytes);
+            _bytes = seenTrue ? new ReadOnlyCollection<byte>(bytes) : null;
         }
 
         public bool this[int i]
@@ -108,18 +99,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return this;
             }
 
-            var numBytes = _bytes.Count;
-            var newBytes = new byte[numBytes]; // CONSIDER: In some cases, we could shrink the array.
-            for (int b = 0; b < numBytes; b++)
-            {
-                newBytes[b] = (byte)(_bytes[b] >> 1);
-                if (b + 1 < numBytes && (_bytes[b + 1] & 1) != 0)
-                {
-                    newBytes[b] |= 1 << 7;
-                }
-            }
-
-            return new DynamicFlagsCustomTypeInfo(new ReadOnlyCollection<byte>(newBytes));
+            var builder = ArrayBuilder<bool>.GetInstance();
+            this.CopyTo(builder);
+            var result = new DynamicFlagsCustomTypeInfo(builder, startIndex: 1);
+            builder.Free();
+            return result;
         }
 
         public bool Any()

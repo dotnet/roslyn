@@ -449,6 +449,35 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
+        <Fact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs"/>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+                Dim analyzer = New CodeBlockStartedAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
+
+                Dim expected = Diagnostic.Create("test", "test", "test", DiagnosticSeverity.Error, DiagnosticSeverity.Error, True, 0)
+                Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
+
+                ' check reporting diagnostic to a project that doesnt exist
+                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, New ProjectId(Guid.NewGuid(), "dummy"))
+                Dim diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
+                Assert.Equal(0, diagnostics.Count())
+
+                ' check workspace diagnostic reporting
+                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, Nothing)
+                diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
+
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(expected.Id, diagnostics.First().Id)
+            End Using
+        End Sub
+
         <Fact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatelessCodeBlockEndedAnalyzer()
             Dim test = <Workspace>
@@ -1504,6 +1533,58 @@ End Class
                 If Not onlyStatelessAction Then
                     Assert.Equal("CodeBlock : M", stateFullDiagnostics.Single().Message)
                 End If
+            End Using
+        End Sub
+
+        <Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
+        Public Sub TestGenericName()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+using System;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class MyClass
+    {   
+        private Nullable<int> myVar = 5;
+        void Method()
+        {
+
+        }
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            TestGenericNameCore(test, New CSharpGenericNameAnalyzer, "Message")
+        End Sub
+
+        Private Sub TestGenericNameCore(test As XElement, analyzer As DiagnosticAnalyzer, expectedMessage As String)
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
+                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(1, diagnostics.Count())
+
+                Dim diagnostic = diagnostics.Single(Function(d) d.Id = analyzer.SupportedDiagnostics.Single().Id)
+                Assert.Equal(expectedMessage, diagnostic.Message)
             End Using
         End Sub
     End Class

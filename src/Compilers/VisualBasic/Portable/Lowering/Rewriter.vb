@@ -56,7 +56,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
 
             If lazyVariableSlotAllocator Is Nothing Then
-                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
+                ' synthesized lambda methods are handled in LambdaRewriter.RewriteLambdaAsMethod
+                Debug.Assert(TypeOf method IsNot SynthesizedLambdaMethod)
+                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method)
             End If
 
             ' Lowers lambda expressions into expressions that construct delegates.    

@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (declaredType.IsArray)
                 {
                     elementType = declaredType.GetElementType();
-                    elementTypeInfo = new DynamicFlagsCustomTypeInfo(declaredTypeAndInfo.Info).SkipOne().GetCustomTypeInfo();
+                    elementTypeInfo = DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).SkipOne().GetCustomTypeInfo();
                 }
                 else
                 {
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (declaredType.IsPointer)
             {
                 // If this ever happens, the element type info is just .SkipOne().
-                Debug.Assert(!new DynamicFlagsCustomTypeInfo(declaredTypeAndInfo.Info).Any());
+                Debug.Assert(!DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).Any());
                 var elementType = declaredType.GetElementType();
                 return value.IsNull || elementType.IsVoid()
                     ? null

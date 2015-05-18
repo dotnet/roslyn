@@ -519,8 +519,8 @@ End Class
     <method containingType=""C"" name=""_Lambda$__2-0"">
       <customDebugInfo>
         <encLocalSlotMap>
-          <slot kind=""21"" offset=""-1"" />
-          <slot kind=""4"" offset=""0"" />
+          <slot kind=""21"" offset=""48"" />
+          <slot kind=""4"" offset=""80"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -586,7 +586,7 @@ End Class
             Dim v0 = CompileAndVerify(compilation:=compilation0)
             v0.VerifyIL("C.VB$StateMachine_2_M.MoveNext()", "
 {
-  // Code size      198 (0xc6)
+  // Code size      192 (0xc0)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -596,108 +596,102 @@ End Class
   IL_0007:  ldloc.1
   IL_0008:  switch    (
         IL_001f,
-        IL_0022,
-        IL_0022,
-        IL_0025)
-  IL_001d:  br.s       IL_002b
-  IL_001f:  nop
-  IL_0020:  br.s       IL_002d
-  IL_0022:  nop
-  IL_0023:  br.s       IL_004a
-  IL_0025:  nop
-  IL_0026:  br         IL_00b9
-  IL_002b:  ldc.i4.0
-  IL_002c:  ret
-  IL_002d:  ldarg.0
-  IL_002e:  ldc.i4.m1
-  IL_002f:  dup
-  IL_0030:  stloc.1
-  IL_0031:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-  IL_0036:  nop
-  IL_0037:  nop
-  IL_0038:  nop
-  IL_0039:  ldarg.0
-  IL_003a:  ldarg.0
-  IL_003b:  ldfld      ""C.VB$StateMachine_2_M.$VB$Me As C""
-  IL_0040:  callvirt   ""Function C.F() As System.IDisposable""
-  IL_0045:  stfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-  IL_004a:  nop
+        IL_0021,
+        IL_0021,
+        IL_0023)
+  IL_001d:  br.s       IL_0028
+  IL_001f:  br.s       IL_002a
+  IL_0021:  br.s       IL_0046
+  IL_0023:  br         IL_00b3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+  IL_002a:  ldarg.0
+  IL_002b:  ldc.i4.m1
+  IL_002c:  dup
+  IL_002d:  stloc.1
+  IL_002e:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+  IL_0033:  nop
+  IL_0034:  nop
+  IL_0035:  ldarg.0
+  IL_0036:  ldarg.0
+  IL_0037:  ldfld      ""C.VB$StateMachine_2_M.$VB$Me As C""
+  IL_003c:  callvirt   ""Function C.F() As System.IDisposable""
+  IL_0041:  stfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+  IL_0046:  nop
   .try
   {
-    IL_004b:  ldloc.1
-    IL_004c:  ldc.i4.1
-    IL_004d:  beq.s      IL_0057
-    IL_004f:  br.s       IL_0051
-    IL_0051:  ldloc.1
-    IL_0052:  ldc.i4.2
-    IL_0053:  beq.s      IL_005a
-    IL_0055:  br.s       IL_005d
-    IL_0057:  nop
-    IL_0058:  br.s       IL_0080
-    IL_005a:  nop
-    IL_005b:  br.s       IL_005f
-    IL_005d:  br.s       IL_006c
-    IL_005f:  ldarg.0
-    IL_0060:  ldc.i4.m1
-    IL_0061:  dup
-    IL_0062:  stloc.1
-    IL_0063:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_0068:  ldc.i4.1
-    IL_0069:  stloc.0
-    IL_006a:  leave.s    IL_00c4
-    IL_006c:  ldarg.0
-    IL_006d:  ldc.i4.1
-    IL_006e:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
-    IL_0073:  ldarg.0
-    IL_0074:  ldc.i4.1
-    IL_0075:  dup
-    IL_0076:  stloc.1
-    IL_0077:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_007c:  ldc.i4.1
-    IL_007d:  stloc.0
-    IL_007e:  leave.s    IL_00c4
-    IL_0080:  ldarg.0
-    IL_0081:  ldc.i4.m1
-    IL_0082:  dup
-    IL_0083:  stloc.1
-    IL_0084:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_0089:  leave.s    IL_00a7
+    IL_0047:  ldloc.1
+    IL_0048:  ldc.i4.1
+    IL_0049:  beq.s      IL_0053
+    IL_004b:  br.s       IL_004d
+    IL_004d:  ldloc.1
+    IL_004e:  ldc.i4.2
+    IL_004f:  beq.s      IL_0055
+    IL_0051:  br.s       IL_0057
+    IL_0053:  br.s       IL_007a
+    IL_0055:  br.s       IL_0059
+    IL_0057:  br.s       IL_0066
+    IL_0059:  ldarg.0
+    IL_005a:  ldc.i4.m1
+    IL_005b:  dup
+    IL_005c:  stloc.1
+    IL_005d:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_0062:  ldc.i4.1
+    IL_0063:  stloc.0
+    IL_0064:  leave.s    IL_00be
+    IL_0066:  ldarg.0
+    IL_0067:  ldc.i4.1
+    IL_0068:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
+    IL_006d:  ldarg.0
+    IL_006e:  ldc.i4.1
+    IL_006f:  dup
+    IL_0070:  stloc.1
+    IL_0071:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_0076:  ldc.i4.1
+    IL_0077:  stloc.0
+    IL_0078:  leave.s    IL_00be
+    IL_007a:  ldarg.0
+    IL_007b:  ldc.i4.m1
+    IL_007c:  dup
+    IL_007d:  stloc.1
+    IL_007e:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_0083:  leave.s    IL_00a1
   }
   finally
   {
-    IL_008b:  ldloc.1
-    IL_008c:  ldc.i4.0
-    IL_008d:  bge.s      IL_00a6
-    IL_008f:  nop
-    IL_0090:  ldarg.0
-    IL_0091:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-    IL_0096:  brfalse.s  IL_00a4
-    IL_0098:  ldarg.0
-    IL_0099:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-    IL_009e:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_00a3:  nop
-    IL_00a4:  br.s       IL_00a6
-    IL_00a6:  endfinally
+    IL_0085:  ldloc.1
+    IL_0086:  ldc.i4.0
+    IL_0087:  bge.s      IL_00a0
+    IL_0089:  nop
+    IL_008a:  ldarg.0
+    IL_008b:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+    IL_0090:  brfalse.s  IL_009e
+    IL_0092:  ldarg.0
+    IL_0093:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+    IL_0098:  callvirt   ""Sub System.IDisposable.Dispose()""
+    IL_009d:  nop
+    IL_009e:  br.s       IL_00a0
+    IL_00a0:  endfinally
   }
-  IL_00a7:  ldarg.0
-  IL_00a8:  ldc.i4.2
-  IL_00a9:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
-  IL_00ae:  ldarg.0
-  IL_00af:  ldc.i4.3
-  IL_00b0:  dup
-  IL_00b1:  stloc.1
-  IL_00b2:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-  IL_00b7:  ldc.i4.1
-  IL_00b8:  ret
-  IL_00b9:  ldarg.0
-  IL_00ba:  ldc.i4.m1
-  IL_00bb:  dup
-  IL_00bc:  stloc.1
-  IL_00bd:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-  IL_00c2:  ldc.i4.0
-  IL_00c3:  ret
-  IL_00c4:  ldloc.0
-  IL_00c5:  ret
+  IL_00a1:  ldarg.0
+  IL_00a2:  ldc.i4.2
+  IL_00a3:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldc.i4.3
+  IL_00aa:  dup
+  IL_00ab:  stloc.1
+  IL_00ac:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+  IL_00b1:  ldc.i4.1
+  IL_00b2:  ret
+  IL_00b3:  ldarg.0
+  IL_00b4:  ldc.i4.m1
+  IL_00b5:  dup
+  IL_00b6:  stloc.1
+  IL_00b7:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+  IL_00bc:  ldc.i4.0
+  IL_00bd:  ret
+  IL_00be:  ldloc.0
+  IL_00bf:  ret
 }
 ")
             v0.VerifyPdb("C+VB$StateMachine_2_M.MoveNext", "
@@ -715,20 +709,19 @@ End Class
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x36"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""53"" document=""1"" />
-        <entry offset=""0x37"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""53"" document=""1"" />
-        <entry offset=""0x38"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
-        <entry offset=""0x4a"" hidden=""true"" document=""1"" />
-        <entry offset=""0x4b"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6c"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x89"" hidden=""true"" document=""1"" />
-        <entry offset=""0x8b"" hidden=""true"" document=""1"" />
-        <entry offset=""0x8f"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""18"" document=""1"" />
-        <entry offset=""0xa6"" hidden=""true"" document=""1"" />
-        <entry offset=""0xa7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""16"" document=""1"" />
-        <entry offset=""0xc2"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x33"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""53"" document=""1"" />
+        <entry offset=""0x34"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x46"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" hidden=""true"" document=""1"" />
+        <entry offset=""0x66"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x83"" hidden=""true"" document=""1"" />
+        <entry offset=""0x85"" hidden=""true"" document=""1"" />
+        <entry offset=""0x89"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""18"" document=""1"" />
+        <entry offset=""0xa0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa1"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""16"" document=""1"" />
+        <entry offset=""0xbc"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""17"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xc6"">
+      <scope startOffset=""0x0"" endOffset=""0xc0"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
     </method>
@@ -765,7 +758,7 @@ End Class
             Dim v0 = CompileAndVerify(compilation:=compilation0)
             v0.VerifyIL("C.VB$StateMachine_2_M.MoveNext()", "
 {
-  // Code size      235 (0xeb)
+  // Code size      234 (0xea)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -780,109 +773,108 @@ End Class
   {
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000f
-    IL_000c:  nop
-    IL_000d:  br.s       IL_007c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_007b
+    IL_000e:  nop
     IL_000f:  nop
-    IL_0010:  nop
+    IL_0010:  ldarg.0
     IL_0011:  ldarg.0
-    IL_0012:  ldarg.0
-    IL_0013:  ldfld      ""C.VB$StateMachine_2_M.$VB$Me As C""
-    IL_0018:  callvirt   ""Function C.F() As System.IDisposable""
-    IL_001d:  stfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+    IL_0012:  ldfld      ""C.VB$StateMachine_2_M.$VB$Me As C""
+    IL_0017:  callvirt   ""Function C.F() As System.IDisposable""
+    IL_001c:  stfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
     .try
     {
-      IL_0022:  leave.s    IL_0040
+      IL_0021:  leave.s    IL_003f
     }
     finally
     {
-      IL_0024:  ldloc.1
-      IL_0025:  ldc.i4.0
-      IL_0026:  bge.s      IL_003f
-      IL_0028:  nop
-      IL_0029:  ldarg.0
-      IL_002a:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-      IL_002f:  brfalse.s  IL_003d
-      IL_0031:  ldarg.0
-      IL_0032:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-      IL_0037:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_003c:  nop
-      IL_003d:  br.s       IL_003f
-      IL_003f:  endfinally
+      IL_0023:  ldloc.1
+      IL_0024:  ldc.i4.0
+      IL_0025:  bge.s      IL_003e
+      IL_0027:  nop
+      IL_0028:  ldarg.0
+      IL_0029:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+      IL_002e:  brfalse.s  IL_003c
+      IL_0030:  ldarg.0
+      IL_0031:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+      IL_0036:  callvirt   ""Sub System.IDisposable.Dispose()""
+      IL_003b:  nop
+      IL_003c:  br.s       IL_003e
+      IL_003e:  endfinally
     }
-    IL_0040:  nop
-    IL_0041:  ldc.i4.s   10
-    IL_0043:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0048:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_004d:  stloc.3
-    IL_004e:  ldloca.s   V_3
-    IL_0050:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0055:  brtrue.s   IL_009a
-    IL_0057:  ldarg.0
-    IL_0058:  ldc.i4.0
-    IL_0059:  dup
-    IL_005a:  stloc.1
-    IL_005b:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_0060:  ldarg.0
-    IL_0061:  ldloc.3
-    IL_0062:  stfld      ""C.VB$StateMachine_2_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0067:  ldarg.0
-    IL_0068:  ldflda     ""C.VB$StateMachine_2_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_006d:  ldloca.s   V_3
-    IL_006f:  ldarg.0
-    IL_0070:  stloc.s    V_4
-    IL_0072:  ldloca.s   V_4
-    IL_0074:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_2_M)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_2_M)""
-    IL_0079:  nop
-    IL_007a:  leave.s    IL_00ea
-    IL_007c:  ldarg.0
-    IL_007d:  ldc.i4.m1
-    IL_007e:  dup
-    IL_007f:  stloc.1
-    IL_0080:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_0085:  ldarg.0
-    IL_0086:  ldfld      ""C.VB$StateMachine_2_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_008b:  stloc.3
-    IL_008c:  ldarg.0
-    IL_008d:  ldflda     ""C.VB$StateMachine_2_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0092:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0098:  br.s       IL_009a
-    IL_009a:  ldloca.s   V_3
-    IL_009c:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_00a1:  pop
-    IL_00a2:  ldloca.s   V_3
-    IL_00a4:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_00aa:  ldc.i4.2
-    IL_00ab:  stloc.0
-    IL_00ac:  leave.s    IL_00d3
+    IL_003f:  nop
+    IL_0040:  ldc.i4.s   10
+    IL_0042:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0047:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_004c:  stloc.3
+    IL_004d:  ldloca.s   V_3
+    IL_004f:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0054:  brtrue.s   IL_0099
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.0
+    IL_0058:  dup
+    IL_0059:  stloc.1
+    IL_005a:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_005f:  ldarg.0
+    IL_0060:  ldloc.3
+    IL_0061:  stfld      ""C.VB$StateMachine_2_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0066:  ldarg.0
+    IL_0067:  ldflda     ""C.VB$StateMachine_2_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_006c:  ldloca.s   V_3
+    IL_006e:  ldarg.0
+    IL_006f:  stloc.s    V_4
+    IL_0071:  ldloca.s   V_4
+    IL_0073:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_2_M)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_2_M)""
+    IL_0078:  nop
+    IL_0079:  leave.s    IL_00e9
+    IL_007b:  ldarg.0
+    IL_007c:  ldc.i4.m1
+    IL_007d:  dup
+    IL_007e:  stloc.1
+    IL_007f:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_0084:  ldarg.0
+    IL_0085:  ldfld      ""C.VB$StateMachine_2_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_008a:  stloc.3
+    IL_008b:  ldarg.0
+    IL_008c:  ldflda     ""C.VB$StateMachine_2_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0091:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0097:  br.s       IL_0099
+    IL_0099:  ldloca.s   V_3
+    IL_009b:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_00a0:  pop
+    IL_00a1:  ldloca.s   V_3
+    IL_00a3:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00a9:  ldc.i4.2
+    IL_00aa:  stloc.0
+    IL_00ab:  leave.s    IL_00d2
   }
   catch System.Exception
   {
-    IL_00ae:  dup
-    IL_00af:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_00b4:  stloc.s    V_5
-    IL_00b6:  ldarg.0
-    IL_00b7:  ldc.i4.s   -2
-    IL_00b9:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_00be:  ldarg.0
-    IL_00bf:  ldflda     ""C.VB$StateMachine_2_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_00c4:  ldloc.s    V_5
-    IL_00c6:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_00cb:  nop
-    IL_00cc:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00d1:  leave.s    IL_00ea
+    IL_00ad:  dup
+    IL_00ae:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00b3:  stloc.s    V_5
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldc.i4.s   -2
+    IL_00b8:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_00bd:  ldarg.0
+    IL_00be:  ldflda     ""C.VB$StateMachine_2_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00c3:  ldloc.s    V_5
+    IL_00c5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_00ca:  nop
+    IL_00cb:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00d0:  leave.s    IL_00e9
   }
-  IL_00d3:  ldarg.0
-  IL_00d4:  ldc.i4.s   -2
-  IL_00d6:  dup
-  IL_00d7:  stloc.1
-  IL_00d8:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-  IL_00dd:  ldarg.0
-  IL_00de:  ldflda     ""C.VB$StateMachine_2_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00e3:  ldloc.0
-  IL_00e4:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00e9:  nop
-  IL_00ea:  ret
+  IL_00d2:  ldarg.0
+  IL_00d3:  ldc.i4.s   -2
+  IL_00d5:  dup
+  IL_00d6:  stloc.1
+  IL_00d7:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+  IL_00dc:  ldarg.0
+  IL_00dd:  ldflda     ""C.VB$StateMachine_2_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00e2:  ldloc.0
+  IL_00e3:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00e8:  nop
+  IL_00e9:  ret
 }
 ")
 
@@ -906,26 +898,26 @@ End Class
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""43"" document=""1"" />
-        <entry offset=""0x10"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""18"" document=""1"" />
-        <entry offset=""0x22"" hidden=""true"" document=""1"" />
-        <entry offset=""0x24"" hidden=""true"" document=""1"" />
-        <entry offset=""0x28"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
-        <entry offset=""0x3f"" hidden=""true"" document=""1"" />
-        <entry offset=""0x40"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""34"" document=""1"" />
-        <entry offset=""0x4e"" hidden=""true"" document=""1"" />
-        <entry offset=""0xaa"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""17"" document=""1"" />
-        <entry offset=""0xae"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb6"" hidden=""true"" document=""1"" />
-        <entry offset=""0xd3"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""17"" document=""1"" />
-        <entry offset=""0xdd"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""43"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x23"" hidden=""true"" document=""1"" />
+        <entry offset=""0x27"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x3e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x4d"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""17"" document=""1"" />
+        <entry offset=""0xad"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb5"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd2"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""17"" document=""1"" />
+        <entry offset=""0xdc"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xeb"">
+      <scope startOffset=""0x0"" endOffset=""0xea"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" />
-        <await yield=""0x60"" resume=""0x7c"" declaringType=""C+VB$StateMachine_2_M"" methodName=""MoveNext"" />
+        <await yield=""0x5f"" resume=""0x7b"" declaringType=""C+VB$StateMachine_2_M"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>

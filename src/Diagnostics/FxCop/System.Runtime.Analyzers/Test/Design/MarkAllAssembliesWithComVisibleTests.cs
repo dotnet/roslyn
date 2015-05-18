@@ -117,12 +117,12 @@ internal class C
 
         private static DiagnosticResult GetExposeIndividualTypesResult()
         {
-            return GetGlobalResult(MarkAllAssembliesWithComVisibleAnalyzer.RuleId, string.Format(SystemRuntimeAnalyzersResources.CA1017_AttributeTrue, "TestProject"));
+            return GetGlobalResult(MarkAllAssembliesWithComVisibleAnalyzer.RuleId, string.Format(SystemRuntimeAnalyzersResources.ChangeAssemblyLevelComVisibleToFalse, "TestProject"));
         }
 
         private static DiagnosticResult GetAddComVisibleFalseResult()
         {
-            return GetGlobalResult(MarkAllAssembliesWithComVisibleAnalyzer.RuleId, string.Format(SystemRuntimeAnalyzersResources.CA1017_NoAttribute, "TestProject"));
+            return GetGlobalResult(MarkAllAssembliesWithComVisibleAnalyzer.RuleId, string.Format(SystemRuntimeAnalyzersResources.AddAssemblyLevelComVisibleFalse, "TestProject"));
         }
     }
 }

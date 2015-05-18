@@ -127,11 +127,8 @@ End Module")
             s_systemCollectionsImmutableDllSrc,
             s_buildTaskDllSrc,
             ResolveAssemblyPath("System.Reflection.Metadata.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.Desktop.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.Desktop.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.VisualBasic.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.VisualBasic.Desktop.dll"),
             Path.Combine(s_clientExecutableBasePath, CompilerServerExeName + ".config"),
             Path.Combine(s_clientExecutableBasePath, "csc.rsp"),
             Path.Combine(s_clientExecutableBasePath, "vbc.rsp")
@@ -2024,6 +2021,16 @@ class Program
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("", result.Output);
+        }
+
+        [Fact]
+        public void OnlyStartsOneServer()
+        {
+            var result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
+
+            result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
         }
     }
 }

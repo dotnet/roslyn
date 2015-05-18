@@ -118,32 +118,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Report diagnostics if the await expression occurs in an unsafe context.
-        /// Errors for await in lock statement, finally block, or catch clause are detected
-        /// and reported in the warnings pass.
+        /// Report diagnostics if the await expression occurs in a context where it is not allowed.
         /// </summary>
         /// <returns>True if errors were found.</returns>
         private bool ReportBadAwaitContext(CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            bool hasErrors = false;
-
             if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
             {
                 Error(diagnostics, ErrorCode.ERR_AwaitInUnsafeContext, node);
-                hasErrors = true;
+                return true;
             }
             else if (this.Flags.Includes(BinderFlags.InLockBody))
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitInLock, node);
-                hasErrors = true;
+                return true;
             }
             else if (this.Flags.Includes(BinderFlags.InCatchFilter))
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitInCatchFilter, node);
-                hasErrors = true;
+                return true;
             }
-
-            return hasErrors;
+            else if (this.Flags.Includes(BinderFlags.InFinallyBlock) &&
+                (node.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInFinally, node);
+                return true;
+            }
+            else if (this.Flags.Includes(BinderFlags.InCatchBlock) &&
+                (node.SyntaxTree as CSharpSyntaxTree)?.Options?.IsFeatureEnabled(MessageID.IDS_AwaitInCatchAndFinally) == false)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadAwaitInCatch, node);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>
