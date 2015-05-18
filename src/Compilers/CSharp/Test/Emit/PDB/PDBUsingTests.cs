@@ -3,9 +3,13 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
@@ -2129,6 +2133,209 @@ class C
 
                 Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));
             });
+        }
+
+        [Fact]
+        public void EmittingPdbVsNot()
+        {
+            string source = @"
+using System;
+using X = System.IO.FileStream;
+
+class C
+{
+    int x = 1;
+    static int y = 1;
+
+    C()
+    {
+        Console.WriteLine();
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlib(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
+
+            var peStream1 = new MemoryStream();
+            var peStream2 = new MemoryStream();
+            var pdbStream = new MemoryStream();
+
+            var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
+            var emitResult2 = c.Emit(peStream: peStream2);
+
+            SharedCompilationUtils.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
+        }
+
+        [Fact]
+        public void ImportedNoPiaTypes()
+        {
+            var sourceLib = @"
+using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
+
+[assembly: Guid(""11111111-1111-1111-1111-111111111111"")]
+[assembly: ImportedFromTypeLib(""Foo"")]
+[assembly: TypeLibVersion(1, 0)]
+
+namespace N
+{
+    public enum E
+    {
+        Value1 = 1
+    }
+
+    public struct S1
+    {
+        public int A1;
+        public int A2;
+    }
+
+    public struct S2
+    {
+        public const int Value2 = 2;
+    }
+
+    public struct SBad
+    {
+        public int A3;
+        public const int Value3 = 3;
+    }
+
+    [ComImport, Guid(""22222222-2222-2222-2222-222222222222"")]
+    public interface I
+    {
+        void F();
+    }
+
+    public interface IBad
+    {
+        void F();
+    }
+}
+";
+            var source = @"
+using System;
+
+using static N.E;
+using static N.SBad;
+using Z1 = N.S1;
+using Z2 = N.S2;
+using ZBad = N.SBad;
+using NI = N.I;
+using NIBad = N.IBad;
+
+class C
+{
+    NI i;
+
+    void M()
+    {
+        Console.WriteLine(Value1);
+        Console.WriteLine(Z2.Value2);
+        Console.WriteLine(new Z1());
+    }
+}
+";
+            var libRef = CreateCompilationWithMscorlib(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
+            var compilation = CreateCompilationWithMscorlib(source, new[] { libRef });
+            var v = CompileAndVerify(compilation);
+
+            v.Diagnostics.Verify(
+                // (14,8): warning CS0169: The field 'C.i' is never used
+                //     NI i;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i"),
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using static N.SBad;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N.SBad;"),
+                // (10,1): hidden CS8019: Unnecessary using directive.
+                // using NIBad = N.IBad;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NIBad = N.IBad;"),
+                // (8,1): hidden CS8019: Unnecessary using directive.
+                // using ZBad = N.SBad;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ZBad = N.SBad;"));
+
+            // Usings of embedded types are currently ommitted:
+            v.VerifyPdb("C.M", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""35"" document=""0"" />
+        <entry offset=""0xb"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""38"" document=""0"" />
+        <entry offset=""0x11"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""37"" document=""0"" />
+        <entry offset=""0x24"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x25"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void ImportedTypeWithUnknownBase()
+        {
+            var sourceLib1 = @"
+namespace N
+{
+    public class A { }
+}
+";
+            var sourceLib2 = @"
+namespace N
+{
+    public class B : A { }
+}
+";
+            var source = @"
+using System;
+using X = N.B;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var libRef1 = CreateCompilationWithMscorlib(sourceLib1).EmitToImageReference();
+            var libRef2 = CreateCompilationWithMscorlib(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
+            var compilation = CreateCompilationWithMscorlib(source, new[] { libRef2 });
+            var v = CompileAndVerify(compilation, emitters: TestEmitters.CCI);
+
+            v.Diagnostics.Verify(
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using X = N.B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.B;"));
+
+            v.VerifyPdb("C.M", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x5"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x6"">
+        <namespace name=""System"" />
+        <alias name=""X"" target=""N.B, LibRef2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
         }
     }
 }

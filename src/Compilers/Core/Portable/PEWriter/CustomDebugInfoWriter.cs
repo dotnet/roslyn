@@ -34,7 +34,7 @@ namespace Microsoft.Cci
         /// </summary>
         public bool ShouldForwardNamespaceScopes(EmitContext context, IMethodBody methodBody, uint methodToken, out IMethodDefinition forwardToMethod)
         {
-            if (ShouldForwardToPreviousMethodWithUsingInfo(context, methodBody) || methodBody.ImportScope == null)
+            if (ShouldForwardToPreviousMethodWithUsingInfo(context, methodBody))
             {
                 // SerializeNamespaceScopeMetadata will do the actual forwarding in case this is a CSharp method.
                 // VB on the other hand adds a "@methodtoken" to the scopes instead.
@@ -351,7 +351,7 @@ namespace Microsoft.Cci
             BinaryWriter cmw = new BinaryWriter(customMetadata);
             for (IImportScope scope = methodBody.ImportScope; scope != null; scope = scope.Parent)
             {
-                usingCounts.Add((ushort)scope.GetUsedNamespaces(context).Length);
+                usingCounts.Add((ushort)scope.GetUsedNamespaces().Length);
             }
 
             // ACASEY: This originally wrote (uint)12, (ushort)1, (ushort)0 in the
@@ -414,7 +414,7 @@ namespace Microsoft.Cci
             var s2 = previousScopes;
             while (s1 != null && s2 != null)
             {
-                if (!s1.GetUsedNamespaces(context).SequenceEqual(s2.GetUsedNamespaces(context)))
+                if (!s1.GetUsedNamespaces().SequenceEqual(s2.GetUsedNamespaces()))
                 {
                     return false;
                 }

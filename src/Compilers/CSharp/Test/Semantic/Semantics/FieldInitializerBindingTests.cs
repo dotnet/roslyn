@@ -293,16 +293,9 @@ class C
                     scriptCtor: null,
                     initializers: initializers,
                     diagnostics: diagnostics,
-                    generateDebugInfo: false,
                     firstImportChain: out unused);
 
-                var filteredDiag = diagnostics.AsEnumerable();
-                foreach (var diagnostic in filteredDiag)
-                {
-                    Console.WriteLine(diagnostic);
-                }
-
-                Assert.True(filteredDiag.IsEmpty());
+                diagnostics.Verify();
 
                 return boundInitializers;
             }
