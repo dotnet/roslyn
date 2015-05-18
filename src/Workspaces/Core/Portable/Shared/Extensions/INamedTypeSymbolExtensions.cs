@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindTypesImmediatelyDerivedFromClassesAsync(
             this INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return FindDerivedClassesAsync(type, solution, null, cancellationToken);
+            return DependentTypeFinder.GetTypesImmediatelyDerivedFromClassesAsync(type, solution, cancellationToken);
         }
 
         public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return DependentTypeFinder.FindDerivedClassesAsync(type, solution, projects, cancellationToken);
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindTypesImmediatelyDerivedFromInterfacesAsync(
             this INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return FindDerivedInterfacesAsync(type, solution, null, cancellationToken);
+            return DependentTypeFinder.GetTypesImmediatelyDerivedFromInterfacesAsync(type, solution, cancellationToken);
         }
 
         public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedInterfacesAsync(

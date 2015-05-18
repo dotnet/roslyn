@@ -38,6 +38,10 @@ class Foo2 : Base, IBlah
         throw new NotImplementedException();
     }
 }
+
+class ReallyDerived : Foo // should not be shown as inherited by Base
+{
+}
                          </Document>
                         </Project>
                     </Workspace>)
@@ -74,9 +78,17 @@ using System;
 
 public interface $$I { }
 
+public class C : I { } // should appear as being derived from (implementing) I
+
+public class C2 : C { } // should not appear as being derived from (implementing ) I
+
 interface I2 : I, IComparable
 {
     void M();
+}
+
+interface I3 : I2 // should not be shown as inherited by I
+{
 }
                          </Document>
                         </Project>
@@ -89,10 +101,12 @@ interface I2 : I, IComparable
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsPublic="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Public" Label="C"/>
                             <Node Id="(@1 Type=I)" Category="CodeSchema_Interface" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsPublic="True" CommonLabel="I" Icon="Microsoft.VisualStudio.Interface.Public" Label="I"/>
                             <Node Id="(@1 Type=I2)" Category="CodeSchema_Interface" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="I2" Icon="Microsoft.VisualStudio.Interface.Internal" Label="I2"/>
                         </Nodes>
                         <Links>
+                            <Link Source="(@1 Type=C)" Target="(@1 Type=I)" Category="InheritsFrom"/>
                             <Link Source="(@1 Type=I2)" Target="(@1 Type=I)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
