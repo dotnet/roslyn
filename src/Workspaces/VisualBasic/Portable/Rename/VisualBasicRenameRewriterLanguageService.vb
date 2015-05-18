@@ -627,7 +627,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 #Region "Declaration Conflicts"
 
         Public Function LocalVariableConflict(
-            token As SyntaxToken
+            token As SyntaxToken,
+            newReferencedSymbols As IEnumerable(Of ISymbol)
             ) As Boolean Implements IRenameRewriterLanguageService.LocalVariableConflict
 
             ' This scenario is not present in VB and only in C#

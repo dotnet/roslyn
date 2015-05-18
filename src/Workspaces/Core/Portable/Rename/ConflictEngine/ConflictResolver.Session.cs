@@ -317,12 +317,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var conflictAnnotation = nodeAndAnnotation.Item2;
                         reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
                         var originalLocation = conflictAnnotation.OriginalSpan;
+                        IEnumerable<ISymbol> newReferencedSymbols = null;
 
                         var hasConflict = _renameAnnotations.HasAnnotation(tokenOrNode, RenameInvalidIdentifierAnnotation.Instance);
                         if (!hasConflict)
                         {
                             newDocumentSemanticModel = newDocumentSemanticModel ?? await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-                            var newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
+                            newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
 
                             // The semantic correctness, after rename, for each token of interest in the rename context is performed by getting the symbol pointed by
                             // each token and obtain the Symbol's First Ordered Location's  Span-Start and check to see if it is the same as before from the base solution.
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                         if (!hasConflict && !conflictAnnotation.IsInvocationExpression)
                         {
-                            hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument);
+                            hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument, newReferencedSymbols);
                         }
 
                         if (!hasConflict)

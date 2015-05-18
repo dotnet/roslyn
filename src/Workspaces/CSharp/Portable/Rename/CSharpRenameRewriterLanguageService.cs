@@ -709,7 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         #region "Declaration Conflicts"
 
         public bool LocalVariableConflict(
-            SyntaxToken token)
+            SyntaxToken token,
+            IEnumerable<ISymbol> newReferencedSymbols)
         {
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
@@ -723,7 +724,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var locals = enclosingMemberDeclaration.GetLocalDeclarationMap()[token.ValueText];
                     if (locals.Length > 0)
                     {
-                        return true;
+                        // This unqualified invocation name matches the name of an existing local
+                        // or parameter. Report a conflict if the matching local/parameter is not
+                        // a delegate type.
+
+                        var relevantLocals = newReferencedSymbols
+                            .Where(s => s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter) && s.Name == token.ValueText);
+
+                        if (relevantLocals.Count() != 1)
+                        {
+                            return true;
+                        }
+
+                        var matchingLocal = relevantLocals.Single();
+                        var invocationTargetsLocalOfDelegateType =
+                            (matchingLocal.IsKind(SymbolKind.Local) && ((ILocalSymbol)matchingLocal).Type.IsDelegateType()) ||
+                            (matchingLocal.IsKind(SymbolKind.Parameter) && ((IParameterSymbol)matchingLocal).Type.IsDelegateType());
+
+                        return !invocationTargetsLocalOfDelegateType;
                     }
                 }
             }
