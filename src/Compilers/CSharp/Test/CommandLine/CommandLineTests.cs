@@ -6564,6 +6564,32 @@ public class C { }
         }
 
         [Fact]
+        public void ReportAnalyzer()
+        {
+            var parsedArgs1 = DefaultParse(new[] { "a.cs", "/reportanalyzer" }, _baseDirectory);
+            Assert.True(parsedArgs1.ReportAnalyzer);
+
+            var parsedArgs2 = DefaultParse(new[] { "a.cs", "" }, _baseDirectory);
+            Assert.False(parsedArgs2.ReportAnalyzer);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, srcDirectory, new[] { "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         public void ErrorPathsFromLineDirectives()
         {
             string sampleProgram = @"

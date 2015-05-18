@@ -145,6 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sqmsessionguid As Guid = Nothing
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
+            Dim reportAnalyzer As Boolean = False
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -937,6 +938,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             UnimplementedSwitch(diagnostics, name)
                             Continue For
 
+                        Case "reportanalyzer"
+                            reportAnalyzer = True
+                            Continue For
+
                         Case "nostdlib"
                             If value IsNot Nothing Then
                                 Exit Select
@@ -1213,7 +1218,8 @@ lVbRuntimePlus:
                     .EmitPdb = emitPdb,
                     .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                     .PreferredUILang = preferredUILang,
-                    .SqmSessionGuid = sqmsessionguid
+                    .SqmSessionGuid = sqmsessionguid,
+                    .ReportAnalyzer = reportAnalyzer
                 }
         End Function
 
