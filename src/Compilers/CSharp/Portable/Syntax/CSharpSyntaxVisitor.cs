@@ -17,23 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </typeparam>
     public abstract partial class CSharpSyntaxVisitor<TResult>
     {
-        private const int MaxUncheckedRecursionDepth = Syntax.InternalSyntax.LanguageParser.MaxUncheckedRecursionDepth;
-        private int _recursionDepth;
-
         public virtual TResult Visit(SyntaxNode node)
         {
             if (node != null)
             {
-                _recursionDepth++;
-                if (_recursionDepth > MaxUncheckedRecursionDepth)
-                {
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
-                }
-
-                var result = ((CSharpSyntaxNode)node).Accept(this);
-
-                _recursionDepth--;
-                return result;
+                return ((CSharpSyntaxNode)node).Accept(this);
             }
 
             // should not come here too often so we will put this at the end of the method.
@@ -52,22 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public abstract partial class CSharpSyntaxVisitor
     {
-        private const int MaxUncheckedRecursionDepth = Syntax.InternalSyntax.LanguageParser.MaxUncheckedRecursionDepth;
-        private int _recursionDepth;
-
         public virtual void Visit(SyntaxNode node)
         {
             if (node != null)
             {
-                _recursionDepth++;
-                if (_recursionDepth > MaxUncheckedRecursionDepth)
-                {
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
-                }
-
                 ((CSharpSyntaxNode)node).Accept(this);
-
-                _recursionDepth--;
             }
         }
 

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -24,6 +25,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual bool VisitIntoStructuredTrivia
         {
             get { return _visitIntoStructuredTrivia; }
+        }
+
+        private const int MaxUncheckedRecursionDepth = Syntax.InternalSyntax.LanguageParser.MaxUncheckedRecursionDepth;
+        private int _recursionDepth;
+
+        public override SyntaxNode Visit(SyntaxNode node)
+        {
+            if (node != null)
+            {
+                _recursionDepth++;
+                if (_recursionDepth > MaxUncheckedRecursionDepth)
+                {
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
+                }
+
+                var result = ((CSharpSyntaxNode)node).Accept(this);
+
+                _recursionDepth--;
+                return result;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public virtual SyntaxToken VisitToken(SyntaxToken token)
