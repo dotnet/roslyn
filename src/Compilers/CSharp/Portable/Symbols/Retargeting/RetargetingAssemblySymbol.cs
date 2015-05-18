@@ -66,10 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<AssemblySymbol> _linkedReferencedAssemblies;
 
         /// <summary>
+        /// Backing field for the map from a local NoPia type to corresponding canonical type.
+        /// </summary>
+        private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> _noPiaUnificationMap;
+
+        /// <summary>
         /// A map from a local NoPia type to corresponding canonical type.
         /// </summary>
-        internal readonly ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> NoPiaUnificationMap =
-            new ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>();
+        internal ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> NoPiaUnificationMap =>
+            LazyInitializer.EnsureInitialized(ref _noPiaUnificationMap, () => new ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>(concurrencyLevel: 2, capacity: 0));
 
         /// <summary>
         /// Assembly is /l-ed by compilation that is using it as a reference.
