@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// <summary>
         /// Retargeting map from underlying module to this one.
         /// </summary>
-        private readonly ConcurrentDictionary<Symbol, Symbol> _symbolMap = new ConcurrentDictionary<Symbol, Symbol>();
+        private readonly ConcurrentDictionary<Symbol, Symbol> _symbolMap =
+            new ConcurrentDictionary<Symbol, Symbol>(concurrencyLevel: 2, capacity: 4);
 
         private readonly Func<Symbol, RetargetingMethodSymbol> _createRetargetingMethod;
         private readonly Func<Symbol, RetargetingNamespaceSymbol> _createRetargetingNamespace;
@@ -216,7 +217,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 // Retarget from one assembly to another
-                return PerformTypeRetargeting(ref destination, type);
+                type = PerformTypeRetargeting(ref destination, type);
+                this.RetargetingAssemblyMap[retargetFrom] = destination;
+                return type;
             }
 
             private NamedTypeSymbol RetargetNamedTypeDefinitionFromUnderlyingAssembly(NamedTypeSymbol type)
@@ -257,7 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 NamedTypeSymbol cached;
 
-                if (this.RetargetingAssembly.NoPiaUnificationMap.TryGetValue(type, out cached))
+                var map = this.RetargetingAssembly.NoPiaUnificationMap;
+                if (map.TryGetValue(type, out cached))
                 {
                     return cached;
                 }
@@ -336,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     result = new UnsupportedMetadataTypeSymbol();
                 }
 
-                cached = this.RetargetingAssembly.NoPiaUnificationMap.GetOrAdd(type, result);
+                cached = map.GetOrAdd(type, result);
 
                 return cached;
             }
