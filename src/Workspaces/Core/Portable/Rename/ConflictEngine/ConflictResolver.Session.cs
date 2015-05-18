@@ -413,6 +413,32 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     hasConflict = false;
                 }
+                else if (conflictAnnotation.IsMemberGroupReference)
+                {
+                    if (!conflictAnnotation.RenameDeclarationLocationReferences.Any())
+                    {
+                        hasConflict = false;
+                    }
+                    else
+                    {
+                        // Ensure newReferencedSymbols contains at least one of the original referenced
+                        // symbols, and allow any new symbols to be added to the set of references.
+
+                        hasConflict = true;
+
+                        var newLocationTasks = newReferencedSymbols.Select(async symbol => await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false));
+                        var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).Where(loc => loc != null && loc.IsInSource);
+                        foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
+                        {
+                            var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
+                            if (newLocations.Any(loc => loc.SourceSpan.Start == adjustedStartPosition))
+                            {
+                                hasConflict = false;
+                                break;
+                            }
+                        }
+                    }
+                }
                 else if (!conflictAnnotation.IsRenameLocation && conflictAnnotation.IsOriginalTextLocation && conflictAnnotation.RenameDeclarationLocationReferences.Length > 1 && newReferencedSymbols.Count() == 1)
                 {
                     // an ambiguous situation was resolved through rename in non reference locations

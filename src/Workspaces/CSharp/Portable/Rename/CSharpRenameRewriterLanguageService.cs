@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly bool _isRenamingInComments;
             private readonly ISet<TextSpan> _stringAndCommentTextSpans;
             private readonly ISimplificationService _simplificationService;
+            private readonly ISemanticFactsService _semanticFactsService;
             private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new HashSet<SyntaxToken>();
             private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new HashSet<InvocationExpressionSyntax>();
 
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isVerbatim = _replacementText.StartsWith("@", StringComparison.Ordinal);
 
                 _simplificationService = parameters.Document.Project.LanguageServices.GetService<ISimplificationService>();
+                _semanticFactsService = parameters.Document.Project.LanguageServices.GetService<ISemanticFactsService>();
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
@@ -376,6 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         isNamespaceDeclarationReference = true;
                     }
 
+                    var isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken);
+
                     var renameAnnotation =
                             new RenameActionAnnotation(
                                 token.Span,
@@ -385,7 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 renameDeclarationLocations: renameDeclarationLocations,
                                 isOriginalTextLocation: isOldText,
                                 isNamespaceDeclarationReference: isNamespaceDeclarationReference,
-                                isInvocationExpression: false);
+                                isInvocationExpression: false,
+                                isMemberGroupReference: isMemberGroupReference);
 
                     newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
 
@@ -465,7 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                                 renameDeclarationLocations: renameDeclarationLocations,
                                                 isOriginalTextLocation: false,
                                                 isNamespaceDeclarationReference: false,
-                                                isInvocationExpression: true);
+                                                isInvocationExpression: true,
+                                                isMemberGroupReference: false);
 
                     return renameAnnotation;
                 }
