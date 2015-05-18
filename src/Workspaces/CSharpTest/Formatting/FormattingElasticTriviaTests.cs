@@ -134,5 +134,61 @@ public class SomeAttribute : System.Attribute { }
             var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, ws).ToFullString();
             Assert.Equal(expected, annotationFormatted);
         }
+
+        [WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
+        {
+            var expected = @"class PropertyTest
+{
+    string MyProperty => ""42"";
+
+    string MyProperty => ""42"";
+}";
+            var property = SyntaxFactory.PropertyDeclaration(
+                attributeLists: default(SyntaxList<AttributeListSyntax>),
+                modifiers: SyntaxFactory.TokenList(),
+                type: SyntaxFactory.PredefinedType(
+                    SyntaxFactory.Token(
+                        SyntaxKind.StringKeyword)),
+                explicitInterfaceSpecifier: null,
+                identifier: SyntaxFactory.Identifier("MyProperty"),
+                accessorList: null,
+                expressionBody:
+                    SyntaxFactory.ArrowExpressionClause(
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal("42"))),
+                initializer: null,
+                semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+            var compilation = SyntaxFactory.CompilationUnit(
+                externs: default(SyntaxList<ExternAliasDirectiveSyntax>),
+                usings: default(SyntaxList<UsingDirectiveSyntax>),
+                attributeLists: default(SyntaxList<AttributeListSyntax>),
+                members: SyntaxFactory.List(
+                new MemberDeclarationSyntax[]
+                {
+                    SyntaxFactory.ClassDeclaration(
+                        attributeLists: default(SyntaxList<AttributeListSyntax>),
+                        modifiers: SyntaxFactory.TokenList(),
+                        identifier: SyntaxFactory.Identifier("PropertyTest"),
+                        typeParameterList: null,
+                        baseList: null,
+                        constraintClauses: default(SyntaxList<TypeParameterConstraintClauseSyntax>),
+                        members: SyntaxFactory.List(
+                            new MemberDeclarationSyntax[]
+                            {
+                                property,
+                                property
+                            }))
+                }));
+
+            Assert.NotNull(compilation);
+
+            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
+            Assert.Equal(expected, newCompilation.ToFullString());
+        }
     }
 }

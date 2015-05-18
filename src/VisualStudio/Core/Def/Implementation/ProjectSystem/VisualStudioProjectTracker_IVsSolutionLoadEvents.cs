@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -51,7 +52,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Also, all remaining project adds need to immediately pushed as well, since we're now "interactive"
             _solutionLoadComplete = true;
 
+            // Check that the set of analyzers is complete and consistent.
+            GetAnalyzerDependencyCheckingService()?.CheckForConflictsAsync();
+
             return VSConstants.S_OK;
+        }
+
+        private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
+        {
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+
+            return componentModel.GetService<AnalyzerDependencyCheckingService>();
         }
     }
 }

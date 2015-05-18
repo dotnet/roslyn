@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _compilation As VisualBasicCompilation
         Private ReadOnly _cancellationToken As CancellationToken
-        Private ReadOnly _generateDebugInfo As Boolean
+        Private ReadOnly _emittingPdb As Boolean
         Private ReadOnly _diagnostics As DiagnosticBag
         Private ReadOnly _hasDeclarationErrors As Boolean
         Private ReadOnly _namespaceScopeBuilder As NamespaceScopeBuilder
@@ -78,28 +78,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' moduleBeingBuilt can be Nothing in order to just analyze methods for errors.
         Private Sub New(compilation As VisualBasicCompilation,
                        moduleBeingBuiltOpt As PEModuleBuilder,
-                       generateDebugInfo As Boolean,
+                       emittingPdb As Boolean,
                        doEmitPhase As Boolean,
                        hasDeclarationErrors As Boolean,
                        diagnostics As DiagnosticBag,
                        filter As Predicate(Of Symbol),
                        cancellationToken As CancellationToken)
 
-            Me._compilation = compilation
-            Me._moduleBeingBuiltOpt = moduleBeingBuiltOpt
-            Me._diagnostics = diagnostics
-            Me._hasDeclarationErrors = hasDeclarationErrors
-            Me._cancellationToken = cancellationToken
-            Me._doEmitPhase = doEmitPhase
-            Me._generateDebugInfo = generateDebugInfo
-            Me._filterOpt = filter
+            _compilation = compilation
+            _moduleBeingBuiltOpt = moduleBeingBuiltOpt
+            _diagnostics = diagnostics
+            _hasDeclarationErrors = hasDeclarationErrors
+            _cancellationToken = cancellationToken
+            _doEmitPhase = doEmitPhase
+            _emittingPdb = emittingPdb
+            _filterOpt = filter
 
-            If generateDebugInfo Then
-                Me._debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
+            If emittingPdb Then
+                _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
             End If
 
             If compilation.Options.ConcurrentBuild Then
-                Me._compilerTasks = New ConcurrentStack(Of Task)()
+                _compilerTasks = New ConcurrentStack(Of Task)()
             End If
         End Sub
 
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim compiler = New MethodCompiler(compilation,
                                               moduleBeingBuiltOpt:=Nothing,
-                                              generateDebugInfo:=False,
+                                              emittingPdb:=False,
                                               doEmitPhase:=doEmitPhase,
                                               hasDeclarationErrors:=hasDeclarationErrors,
                                               diagnostics:=diagnostics,
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Sub CompileMethodBodies(compilation As VisualBasicCompilation,
                                               moduleBeingBuiltOpt As PEModuleBuilder,
-                                              generateDebugInfo As Boolean,
+                                              emittingPdb As Boolean,
                                               hasDeclarationErrors As Boolean,
                                               filter As Predicate(Of Symbol),
                                               diagnostics As DiagnosticBag,
@@ -208,13 +208,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
 
             Dim compiler = New MethodCompiler(compilation,
-                                                  moduleBeingBuiltOpt,
-                                                  generateDebugInfo,
-                                                  doEmitPhase:=True,
-                                                  hasDeclarationErrors:=hasDeclarationErrors,
-                                                  diagnostics:=diagnostics,
-                                                  filter:=filter,
-                                                  cancellationToken:=cancellationToken)
+                                              moduleBeingBuiltOpt,
+                                              emittingPdb,
+                                              doEmitPhase:=True,
+                                              hasDeclarationErrors:=hasDeclarationErrors,
+                                              diagnostics:=diagnostics,
+                                              filter:=filter,
+                                              cancellationToken:=cancellationToken)
 
             compilation.SourceModule.GlobalNamespace.Accept(compiler)
             compiler.WaitForWorkers()
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
                                                      diagnostics:=diagnostics,
-                                                     generateDebugInfo:=False)
+                                                     emittingPdb:=False)
 
                 moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody)
                 moduleBeingBuilt.AddSynthesizedDefinition(compilation.ScriptClass, scriptEntryPoint)
@@ -855,7 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
                                                      diagnostics:=diagnosticsThisMethod,
-                                                     generateDebugInfo:=False)
+                                                     emittingPdb:=False)
 
                 _diagnostics.AddRange(diagnosticsThisMethod)
                 diagnosticsThisMethod.Free()
@@ -919,7 +919,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              lazyVariableSlotAllocator,
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
-                                                             generateDebugInfo:=False)
+                                                             emittingPdb:=False)
                         End If
 
                         lambdaDebugInfoBuilder.Free()
@@ -968,7 +968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          variableSlotAllocatorOpt:=Nothing,
                                                          debugDocumentProvider:=_debugDocumentProvider,
                                                          diagnostics:=diagnosticsThisMethod,
-                                                         generateDebugInfo:=_generateDebugInfo AndAlso method.GenerateDebugInfo)
+                                                         emittingPdb:=_emittingPdb)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
                     diagnosticsThisMethod.Free()
@@ -1451,7 +1451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               lazyVariableSlotAllocator,
                                                               _debugDocumentProvider,
                                                               diagnostics,
-                                                              generateDebugInfo:=_generateDebugInfo AndAlso method.GenerateDebugInfo)
+                                                              emittingPdb:=_emittingPdb)
 
             If diagnostics IsNot diagsForCurrentMethod Then
                 DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics, diagsForCurrentMethod)
@@ -1474,10 +1474,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
                                                   debugDocumentProvider As DebugDocumentProvider,
                                                   diagnostics As DiagnosticBag,
-                                                  generateDebugInfo As Boolean) As MethodBody
+                                                  emittingPdb As Boolean) As MethodBody
 
             Dim compilation = moduleBuilder.Compilation
-            Dim localSlotManager = New localSlotManager(variableSlotAllocatorOpt)
+            Dim localSlotManager = New LocalSlotManager(variableSlotAllocatorOpt)
             Dim optimizations = compilation.Options.OptimizationLevel
 
             If method.IsEmbedded Then
@@ -1490,7 +1490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not diagnostics.HasAnyErrors)
 
                 Dim asyncDebugInfo As Cci.AsyncMethodBodyDebugInfo = Nothing
-                Dim codeGen = New codeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, generateDebugInfo)
+                Dim codeGen = New CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnostics, optimizations, emittingPdb)
 
                 ' We need to save additional debugging information for MoveNext of an async state machine.
                 Dim stateMachineMethod = TryCast(method, SynthesizedStateMachineMethod)
@@ -1523,6 +1523,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     codeGen.Generate()
                 End If
 
+                ' Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
+                ' and we don't want to emit different metadata depending on whether or we emit with PDB stream.
+                ' TODO (https://github.com/dotnet/roslyn/issues/2846): This will need to change for member initializers in partial class.
+                Dim importScopeOpt = If(method.Syntax IsNot Nothing AndAlso method.Syntax.SyntaxTree IsNot VisualBasicSyntaxTree.DummySyntaxTree.Dummy,
+                                        moduleBuilder.SourceModule.GetSourceFile(method.Syntax.SyntaxTree).Translate(moduleBuilder, diagnostics),
+                                        Nothing)
+
                 If diagnostics.HasAnyErrors() Then
                     Return Nothing
                 End If
@@ -1539,29 +1546,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), stateMachineHoistedLocalSlots, stateMachineAwaiterSlots)
                 End If
 
-                Dim namespaceScopes = If(generateDebugInfo, moduleBuilder.SourceModule.GetSourceFile(method.Syntax.SyntaxTree), Nothing)
-
-                ' edgeInclusive must be true as that is what VB EE expects.
-
-                '<PdbUtil.cpp>
-                'HRESULT()
-                'PdbUtil::IsScopeInOffset(
-                '    _In_ ISymUnmanagedScope* pScope,
-                '    _In_ DWORD offset,
-                '    _Out_ bool* inOffset)
-                '{
-                '    VerifyInPtr(pScope);
-                '    VerifyOutPtr(inOffset);
-
-                '    HRESULT hr;
-                '    ULONG32 start, end;
-
-                '    IfFailGo( pScope->GetStartOffset(&start) );
-                '    IfFailGo( pScope->GetEndOffset(&end) );
-                '    *inOffset = (end >= offset) && (offset >= start);      <====  HERE
-                'Error:
-                '    return hr;
-                '}
                 Dim localScopes = builder.GetAllScopes()
 
                 Return New MethodBody(builder.RealizedIL,
@@ -1574,7 +1558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       builder.RealizedExceptionHandlers,
                                       localScopes,
                                       hasDynamicLocalVariables:=False,
-                                      importScopeOpt:=namespaceScopes,
+                                      importScopeOpt:=importScopeOpt,
                                       lambdaDebugInfo:=lambdaDebugInfo,
                                       closureDebugInfo:=closureDebugInfo,
                                       stateMachineTypeNameOpt:=stateMachineTypeOpt?.Name, ' TODO: remove or update AddedOrChangedMethodInfo

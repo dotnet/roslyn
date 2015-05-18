@@ -5,13 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.ErrorLogger
+namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    interface IErrorLoggerService : IWorkspaceService
+    internal interface IBindingRedirectionService
     {
-        void LogException(object source, Exception exception);
-        bool TryLogException(object source, Exception exception);
+        AssemblyIdentity ApplyBindingRedirects(AssemblyIdentity originalIdentity);
     }
 }

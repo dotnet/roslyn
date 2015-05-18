@@ -2207,7 +2207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             moduleBuilder As CommonPEModuleBuilder,
             win32Resources As Stream,
             xmlDocStream As Stream,
-            generateDebugInfo As Boolean,
+            emittingPdb As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),
             cancellationToken As CancellationToken) As Boolean
@@ -2219,6 +2219,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
 
             Me.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(Me)
+
+            moduleBeingBuilt.TranslateImports(diagnostics)
 
             If moduleBeingBuilt.EmitOptions.EmitMetadataOnly Then
                 If hasDeclarationErrors Then
@@ -2233,12 +2235,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
-
                 ' start generating PDB checksums if we need to emit PDBs
-                If generateDebugInfo AndAlso moduleBeingBuilt IsNot Nothing Then
-                    If Not StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics) Then
-                        Return False
-                    End If
+                If emittingPdb AndAlso Not StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics) Then
+                    Return False
                 End If
 
                 ' Perform initial bind of method bodies in spite of earlier errors. This is the same
@@ -2250,12 +2249,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MethodCompiler.CompileMethodBodies(
                     Me,
                     moduleBeingBuilt,
-                    generateDebugInfo,
+                    emittingPdb,
                     hasDeclarationErrors,
                     filterOpt,
                     methodBodyDiagnosticBag,
                     cancellationToken)
-
 
                 Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
 

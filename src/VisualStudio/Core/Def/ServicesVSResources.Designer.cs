@@ -1111,11 +1111,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly &apos;{0}&apos; used by analyzer &apos;{1}&apos; and assembly &apos;{2}&apos; used by analyzer &apos;{3}&apos; have the same identity but different contents. These analyzers may not run correctly..
+        ///   Looks up a localized string similar to Analyzer assemblies &apos;{0}&apos; and &apos;{1}&apos; both have identity &apos;{2}&apos; but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly..
         /// </summary>
         internal static string WRN_AnalyzerDependencyConflictMessage {
             get {
                 return ResourceManager.GetString("WRN_AnalyzerDependencyConflictMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MissingAnalyzerReference.
+        /// </summary>
+        internal static string WRN_MissingAnalyzerReferenceId {
+            get {
+                return ResourceManager.GetString("WRN_MissingAnalyzerReferenceId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer assembly &apos;{0}&apos; depends on &apos;{1}&apos; but it was not found. Analyzers may not run correctly..
+        /// </summary>
+        internal static string WRN_MissingAnalyzerReferenceMessage {
+            get {
+                return ResourceManager.GetString("WRN_MissingAnalyzerReferenceMessage", resourceCulture);
             }
         }
         

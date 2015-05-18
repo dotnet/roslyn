@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 getHostDiagnostics: null,
                 cancellationToken: default(CancellationToken));
 
-            Assert.True(emitResult.Success, "Diagnostics:\r\n" + string.Join("\r\n, ", emitResult.Diagnostics.Select(d => d.ToString())));
+            Assert.True(emitResult.Success, "Diagnostics:\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(d => d.ToString())));
 
             if (expectedWarnings != null)
             {

@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 moduleBuilder,
                 win32Resources:=Nothing,
                 xmlDocStream:=Nothing,
-                generateDebugInfo:=False,
+                emittingPdb:=False,
                 diagnostics:=diagnostics,
                 filterOpt:=Nothing,
                 cancellationToken:=CancellationToken.None)
@@ -250,15 +250,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         ' "Me" for non-shared methods that are not display class methods
                         ' or display class methods where the display class contains "$VB$Me".
                         If Not m.IsShared AndAlso (Not m.ContainingType.IsClosureOrStateMachineType() OrElse _displayClassVariables.ContainsKey(GeneratedNames.MakeStateMachineCapturedMeName())) Then
-                                Dim methodName = GetNextMethodName(methodBuilder)
-                                Dim method = Me.GetMeMethod(container, methodName)
-                                localBuilder.Add(New VisualBasicLocalAndMethod("Me", "Me", methodName, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
-                                methodBuilder.Add(method)
-                            End If
+                            Dim methodName = GetNextMethodName(methodBuilder)
+                            Dim method = Me.GetMeMethod(container, methodName)
+                            localBuilder.Add(New VisualBasicLocalAndMethod("Me", "Me", methodName, DkmClrCompilationResultFlags.None)) ' NOTE: writable in Dev11.
+                            methodBuilder.Add(method)
                         End If
+                    End If
 
-                        ' Hoisted method parameters (represented as locals in the EE).
-                        If Not _hoistedParameterNames.IsEmpty Then
+                    ' Hoisted method parameters (represented as locals in the EE).
+                    If Not _hoistedParameterNames.IsEmpty Then
                         Dim localIndex As Integer = 0
 
                         For Each local In _localsForBinding
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 moduleBuilder,
                 win32Resources:=Nothing,
                 xmlDocStream:=Nothing,
-                generateDebugInfo:=False,
+                emittingPdb:=False,
                 diagnostics:=diagnostics,
                 filterOpt:=Nothing,
                 cancellationToken:=CancellationToken.None)

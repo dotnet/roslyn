@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken)
@@ -1270,7 +1270,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBuilder,
                     win32Resources,
                     xmlDocStream,
-                    generateDebugInfo,
+                    emittingPdb,
                     diagnostics,
                     filterOpt,
                     cancellationToken);
@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             win32Resources: null,
                             xmlDocStream: null,
-                            generateDebugInfo: false,
+                            emittingPdb: false,
                             diagnostics: discardedDiagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis
                 moduleBeingBuilt,
                 win32Resources,
                 xmlDocumentationStream,
-                generateDebugInfo: pdbStreamProvider != null,
+                emittingPdb: pdbStreamProvider != null,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: cancellationToken))

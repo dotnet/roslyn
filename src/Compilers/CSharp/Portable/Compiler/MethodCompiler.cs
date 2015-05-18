@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class MethodCompiler : CSharpSymbolVisitor<TypeCompilationState, object>
     {
         private readonly CSharpCompilation _compilation;
-        private readonly bool _generateDebugInfo;
+        private readonly bool _emittingPdb;
         private readonly CancellationToken _cancellationToken;
         private readonly DiagnosticBag _diagnostics;
         private readonly bool _hasDeclarationErrors;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Internal for testing only.
-        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool generateDebugInfo, bool hasDeclarationErrors,
+        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool hasDeclarationErrors,
             DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _compilation = compilation;
             _moduleBeingBuiltOpt = moduleBeingBuiltOpt;
-            _generateDebugInfo = generateDebugInfo;
+            _emittingPdb = emittingPdb;
             _cancellationToken = cancellationToken;
             _diagnostics = diagnostics;
             _filterOpt = filterOpt;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
-            if (generateDebugInfo)
+            if (emittingPdb)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
                     importChainOpt: null,
-                    generateDebugInfo: false);
+                    emittingPdb: false);
 
                 moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody);
                 moduleBeingBuilt.AddSynthesizedDefinition(compilation.ScriptClass, scriptEntryPoint);
@@ -376,10 +376,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)sourceTypeSymbol != null)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                Binder.BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.StaticInitializers, _generateDebugInfo, _diagnostics, ref processedStaticInitializers);
+                Binder.BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.StaticInitializers, _diagnostics, ref processedStaticInitializers);
 
                 _cancellationToken.ThrowIfCancellationRequested();
-                Binder.BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.InstanceInitializers, _generateDebugInfo, _diagnostics, ref processedInstanceInitializers);
+                Binder.BindFieldInitializers(sourceTypeSymbol, scriptCtor, sourceTypeSymbol.InstanceInitializers, _diagnostics, ref processedInstanceInitializers);
 
                 if (compilationState.Emitting)
                 {
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnosticsThisMethod,
                         _debugDocumentProvider,
                         methodWithBody.ImportChainOpt,
-                        generateDebugInfo: _generateDebugInfo && method.GenerateDebugInfo);
+                        emittingPdb: _emittingPdb);
                 }
 
                 _diagnostics.AddRange(diagnosticsThisMethod);
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnosticsThisMethod,
                         debugDocumentProvider: _debugDocumentProvider,
                         importChainOpt: null,
-                        generateDebugInfo: false);
+                        emittingPdb: false);
 
                     _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     includeInitializersInBody = !processedInitializers.BoundInitializers.IsDefaultOrEmpty &&
                                                 !HasThisConstructorInitializer(methodSymbol);
 
-                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, _generateDebugInfo, out importChain);
+                    body = BindMethodBody(methodSymbol, compilationState, diagsForCurrentMethod, out importChain);
 
                     // lower initializers just once. the lowered tree will be reused when emitting all constructors 
                     // with field initializers. Once lowered, these initializers will be stashed in processedInitializers.LoweredInitializers
@@ -869,22 +869,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-
 #if DEBUG
                 // If the method is a synthesized static or instance constructor, then debugImports will be null and we will use the value
                 // from the first field initializer.
-                if (_generateDebugInfo)
+                if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) &&
+                    methodSymbol.IsImplicitlyDeclared && body == null)
                 {
-                    if ((methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor) &&
-                        methodSymbol.IsImplicitlyDeclared && body == null)
-                    {
-                        // There was no body to bind, so we didn't get anything from BindMethodBody.
-                        Debug.Assert(importChain == null);
-                    }
-
-                    // Either there were no field initializers or we grabbed debug imports from the first one.
-                    Debug.Assert(processedInitializers.BoundInitializers.IsDefaultOrEmpty || processedInitializers.FirstImportChain != null);
+                    // There was no body to bind, so we didn't get anything from BindMethodBody.
+                    Debug.Assert(importChain == null);
                 }
+
+                // Either there were no field initializers or we grabbed debug imports from the first one.
+                Debug.Assert(processedInitializers.BoundInitializers.IsDefaultOrEmpty || processedInitializers.FirstImportChain != null);
 #endif
 
                 importChain = importChain ?? processedInitializers.FirstImportChain;
@@ -1082,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagsForCurrentMethod,
                             _debugDocumentProvider,
                             importChain,
-                            _generateDebugInfo && methodSymbol.GenerateDebugInfo);
+                            _emittingPdb);
 
                         _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
                     }
@@ -1242,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             ImportChain importChainOpt,
-            bool generateDebugInfo)
+            bool emittingPdb)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1257,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Cci.AsyncMethodBodyDebugInfo asyncDebugInfo = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, generateDebugInfo);
+                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
 
                 // We need to save additional debugging information for MoveNext of an async state machine.
                 var stateMachineMethod = method as SynthesizedStateMachineMethod;
@@ -1283,6 +1279,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     codeGen.Generate();
                 }
+
+                // Translate the imports even if we are not writing PDBs. The translation has an impact on generated metadata 
+                // and we don't want to emit different metadata depending on whether or we emit with PDB stream.
+                // TODO (https://github.com/dotnet/roslyn/issues/2846): This will need to change for member initializers in partial class.
+                var importScopeOpt = importChainOpt?.Translate(moduleBuilder, diagnosticsForThisMethod);
 
                 var localVariables = builder.LocalSlotManager.LocalsInOrder();
 
@@ -1329,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.RealizedExceptionHandlers,
                     builder.GetAllScopes(),
                     builder.HasDynamicLocal,
-                    importChainOpt,
+                    importScopeOpt,
                     lambdaDebugInfo,
                     closureDebugInfo,
                     stateMachineTypeOpt?.Name,
@@ -1395,11 +1396,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             ImportChain unused;
-            return BindMethodBody(method, compilationState, diagnostics, false, out unused);
+            return BindMethodBody(method, compilationState, diagnostics, out unused);
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, bool generateDebugInfo, out ImportChain importChain)
+        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, out ImportChain importChain)
         {
             importChain = null;
 
@@ -1457,10 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Binder binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
                     body = binder.BindBlock(blockSyntax, diagnostics);
-                    if (generateDebugInfo)
-                    {
-                        importChain = binder.ImportChain;
-                    }
+                    importChain = binder.ImportChain;
 
                     if (inMethodBinder.IsDirectlyInIterator)
                     {
