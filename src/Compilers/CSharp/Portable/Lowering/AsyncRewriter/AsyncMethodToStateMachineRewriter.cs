@@ -118,6 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement rewrittenBody = (BoundStatement)Visit(body);
 
+            ImmutableArray<StateMachineFieldSymbol> rootScopeHoistedLocals;
+            TryUnwrapBoundStateMachineScope(ref rewrittenBody, out rootScopeHoistedLocals);
+
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
             bodyBuilder.Add(F.HiddenSequencePoint());
@@ -187,18 +190,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Label(_exitLabel));
             bodyBuilder.Add(F.Return());
 
-            var newBody = bodyBuilder.ToImmutableAndFree();
+            var newStatements = bodyBuilder.ToImmutableAndFree();
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             locals.Add(cachedState);
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
-            F.CloseMethod(
+            var newBody =
                 F.SequencePoint(
-                    body.Syntax,
+                    body.Syntax, 
                     F.Block(
-                        locals.ToImmutableAndFree(),
-                        newBody)));
+                        locals.ToImmutableAndFree(), 
+                        newStatements));
+
+            if (rootScopeHoistedLocals.Length > 0)
+            {
+                newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
+            }
+            
+            F.CloseMethod(newBody);
         }
 
         protected override BoundStatement GenerateReturn(bool finished)

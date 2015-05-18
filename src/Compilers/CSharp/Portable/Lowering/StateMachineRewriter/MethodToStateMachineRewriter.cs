@@ -322,12 +322,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap the node in an iterator scope for debugging
             if (hoistedLocalsWithDebugScopes.Count != 0)
             {
-                translatedStatement = F.Block(new BoundStateMachineScope(F.Syntax, hoistedLocalsWithDebugScopes.ToImmutable(), translatedStatement));
+                translatedStatement = MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translatedStatement);
             }
 
             hoistedLocalsWithDebugScopes.Free();
 
             return translatedStatement;
+        }
+
+        /// <remarks>
+        /// Must remain in sync with <see cref="TryUnwrapBoundStateMachineScope"/>.
+        /// </remarks>
+        internal BoundBlock MakeStateMachineScope(ImmutableArray<StateMachineFieldSymbol> hoistedLocals, BoundStatement statement)
+        {
+            return F.Block(new BoundStateMachineScope(F.Syntax, hoistedLocals, statement));
+        }
+
+        /// <remarks>
+        /// Must remain in sync with <see cref="MakeStateMachineScope"/>.
+        /// </remarks>
+        internal bool TryUnwrapBoundStateMachineScope(ref BoundStatement statement, out ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        {
+            if (statement.Kind == BoundKind.Block)
+            {
+                var rewrittenBlock = (BoundBlock)statement;
+                var rewrittenStatements = rewrittenBlock.Statements;
+                if (rewrittenStatements.Length == 1 && rewrittenStatements[0].Kind == BoundKind.StateMachineScope)
+                {
+                    var stateMachineScope = (BoundStateMachineScope)rewrittenStatements[0];
+                    statement = stateMachineScope.Statement;
+                    hoistedLocals = stateMachineScope.Fields;
+                    return true;
+                }
+            }
+
+            hoistedLocals = ImmutableArray<StateMachineFieldSymbol>.Empty;
+            return false;
         }
 
         private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
