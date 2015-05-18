@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly IAsynchronousOperationListener _listener;
 
         private InprogressState _state = null;
+        private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
@@ -63,6 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+
+        public ImmutableArray<DiagnosticData> GetBuildErrors()
+        {
+            return _lastBuiltResult;
+        }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
@@ -132,6 +138,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     return;
                 }
+
+                _lastBuiltResult = inprogressState.GetBuildDiagnostics();
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
@@ -370,6 +378,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             private readonly Dictionary<ProjectId, HashSet<DiagnosticData>> _projectMap = new Dictionary<ProjectId, HashSet<DiagnosticData>>();
             private readonly Dictionary<DocumentId, HashSet<DiagnosticData>> _documentMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
 
+            public ImmutableArray<DiagnosticData> GetBuildDiagnostics()
+            {
+                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+
+                builder.AddRange(_projectMap.Values.SelectMany(d => d));
+                builder.AddRange(_documentMap.Values.SelectMany(d => d));
+
+                return builder.ToImmutable();
+            }
+
             public void Built(ProjectId projectId)
             {
                 _builtProjects.Add(projectId);
@@ -455,15 +473,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private class ArgumentKey : ErrorSourceId.Base<object>
+        private class ArgumentKey : BuildToolId.Base<object>
         {
             public ArgumentKey(object key) : base(key)
             {
             }
 
-            public override string ErrorSource
+            public override string BuildTool
             {
-                get { return PredefinedErrorSources.Build; }
+                get { return PredefinedBuildTools.Build; }
             }
 
             public override bool Equals(object obj)

@@ -97,6 +97,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C#/VB Build Table Data Source.
+        /// </summary>
+        internal static string BuildTableSourceName {
+            get {
+                return ResourceManager.GetString("BuildTableSourceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         internal static string Cancel {

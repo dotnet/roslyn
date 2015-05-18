@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
@@ -13,18 +12,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly Workspace _workspace;
         private readonly ITableManagerProvider _provider;
 
-        protected readonly AbstractRoslynTableDataSource<TArgs, TData> Source;
-
-        protected AbstractTable(Workspace workspace, ITableManagerProvider provider, string tableIdentifier, AbstractRoslynTableDataSource<TArgs, TData> source)
+        protected AbstractTable(Workspace workspace, ITableManagerProvider provider, string tableIdentifier)
         {
             _workspace = workspace;
             _provider = provider;
+
             this.TableManager = provider.GetTableManager(tableIdentifier);
-
-            this.Source = source;
-
-            AddInitialTableSource(workspace);
         }
+
+        protected Workspace Workspace => _workspace;
+
+        protected abstract void AddTableSourceIfNecessary(Solution solution);
+        protected abstract void RemoveTableSourceIfNecessary(Solution solution);
+        protected abstract void ShutdownSource();
 
         protected void ConnectWorkspaceEvents()
         {
@@ -37,11 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 case WorkspaceChangeKind.SolutionAdded:
                 case WorkspaceChangeKind.ProjectAdded:
-                    AddTableSourceIfNecessary();
+                    AddTableSourceIfNecessary(e.NewSolution);
                     break;
                 case WorkspaceChangeKind.SolutionRemoved:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    RemoveTableSourceIfNecessary();
+                    ShutdownSourceIfNecessary(e.NewSolution);
+                    RemoveTableSourceIfNecessary(e.NewSolution);
                     break;
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.SolutionCleared:
@@ -63,40 +64,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void AddTableSourceIfNecessary()
+        private void ShutdownSourceIfNecessary(Solution solution)
         {
-            if (_workspace.CurrentSolution.ProjectIds.Count == 0 || this.TableManager.Sources.Any(s => s == this.Source))
+            if (solution.ProjectIds.Count > 0)
             {
                 return;
             }
 
-            AddTableSource();
+            ShutdownSource();
         }
 
-        private void RemoveTableSourceIfNecessary()
+        protected void AddInitialTableSource(Solution solution, ITableDataSource source)
         {
-            if (_workspace.CurrentSolution.ProjectIds.Count > 0 || !this.TableManager.Sources.Any(s => s == this.Source))
+            if (solution.ProjectIds.Count == 0)
             {
                 return;
             }
 
-            this.Source.Shutdown();
-            this.TableManager.RemoveSource(this.Source);
+            AddTableSource(source);
         }
 
-        private void AddInitialTableSource(Workspace workspace)
+        protected void AddTableSource(ITableDataSource source)
         {
-            if (workspace.CurrentSolution.ProjectIds.Count == 0)
-            {
-                return;
-            }
-
-            AddTableSource();
-        }
-
-        protected void AddTableSource()
-        {
-            this.TableManager.AddSource(this.Source, Columns);
+            this.TableManager.AddSource(source, Columns);
         }
 
         internal ITableManager TableManager { get; private set; }

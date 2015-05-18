@@ -7,11 +7,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Support ErrorSource information.
     /// </summary>
-    internal abstract class ErrorSourceId
+    internal abstract class BuildToolId
     {
-        public abstract string ErrorSource { get; }
+        public abstract string BuildTool { get; }
 
-        internal abstract class Base<T> : ErrorSourceId
+        internal abstract class Base<T> : BuildToolId
         {
             protected readonly T _Field1;
 
