@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var map = _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt);
 
-            var nameCollisionMap = new Dictionary<string, int>();
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
 
             foreach (var kv in descriptorsPerReference)
@@ -73,33 +72,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var descriptors = kv.Value;
 
                 AnalyzerReference reference;
-                if (map.TryGetValue(id, out reference) && reference != null)
+                if (!map.TryGetValue(id, out reference) || reference == null)
                 {
-                    var displayName = GetDisplayName(nameCollisionMap, reference);
-                    builder.Add(displayName, descriptors);
+                    continue;
                 }
+
+                var displayName = GetDisplayName(reference);
+
+                // if there are duplicates, merge descriptors
+                ImmutableArray<DiagnosticDescriptor> existing;
+                if (builder.TryGetValue(displayName, out existing))
+                {
+                    builder[displayName] = existing.AddRange(descriptors);
+                    continue;
+                }
+
+                builder.Add(displayName, descriptors);
             }
 
             return builder.ToImmutable();
         }
 
-        private static string GetDisplayName(Dictionary<string, int> nameCollisionMap, AnalyzerReference reference)
+        private static string GetDisplayName(AnalyzerReference reference)
         {
-            var name = reference.Display ?? FeaturesResources.Unknown;
-            var count = GetNameCollisionCount(nameCollisionMap, name);
-            return count == 0 ? name : $"{name} [#{count}]";
-        }
-
-        private static int GetNameCollisionCount(Dictionary<string, int> nameCollisionMap, string name)
-        {
-            int count = 0;
-            if (nameCollisionMap.TryGetValue(name, out count))
-            {
-                count++;
-            }
-
-            nameCollisionMap[name] = count;
-            return count;
+            return reference.Display ?? FeaturesResources.Unknown;
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)

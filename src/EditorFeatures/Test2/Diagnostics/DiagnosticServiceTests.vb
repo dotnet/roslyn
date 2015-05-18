@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
 
                 ' two references in the map
-                Assert.Equal(2, descriptorsMap.Count)
+                Assert.Equal(1, descriptorsMap.Count)
 
                 Dim names = New HashSet(Of String)
                 names.UnionWith(descriptorsMap.Keys)
