@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var analyzer = new MyAnalyzer(descriptor);
             var exceptionDiagnostics = new List<Diagnostic>();
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance, CancellationToken.None);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
             var descriptors = AnalyzerManager.Instance.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
             Assert.Equal(1, descriptors.Length);

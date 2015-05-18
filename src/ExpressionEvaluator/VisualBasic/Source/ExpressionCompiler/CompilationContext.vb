@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             importRecordGroups As ImmutableArray(Of ImmutableArray(Of ImportRecord))) As Binder
 
             Dim binder = BackstopBinder
-            binder = New SuppressObsoleteDiagnosticsBinder(binder)
+            binder = New SuppressDiagnosticsBinder(binder)
             binder = New IgnoreAccessibilityBinder(binder)
             binder = New SourceModuleBinder(binder, DirectCast(compilation.Assembly.Modules(0), SourceModuleSymbol))
 
