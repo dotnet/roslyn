@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 module,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 module,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 module,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: CancellationToken.None);
