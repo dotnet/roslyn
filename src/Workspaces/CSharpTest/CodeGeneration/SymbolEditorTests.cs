@@ -816,8 +816,7 @@ class A
 }";
 
             var expected =
-@"class C
-: A
+@"class C : A
 {
 }
 

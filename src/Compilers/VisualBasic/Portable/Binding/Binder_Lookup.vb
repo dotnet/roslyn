@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim currentResult As SingleLookupResult = binder.CheckViability(sym, arity, options, Nothing, useSiteDiagnostics)
 
-                    lookupResult.MergeMembersOfTheSameNamespace(currentResult, sourceModule)
+                    lookupResult.MergeMembersOfTheSameNamespace(currentResult, sourceModule, options)
                 Next
             End Sub
 

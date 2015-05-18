@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
 
         // C# currently doesn't emit compilation level imports (TODO: scripting).
-        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports(EmitContext context) => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
+        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
 
         // C# doesn't allow to define default namespace for compilation.
         protected override string DefaultNamespace => null;

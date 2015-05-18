@@ -811,12 +811,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
             {
-                sb.Append(delta.Spaces.CreateIndentationString(useTabs, tabSize));
+                sb.AppendIndentationString(delta.Spaces, useTabs, tabSize);
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
             // space indicates space between two noisy trivia or tokens
-            sb.Append(GetSpaces(delta.Spaces));
+            sb.Append(' ', repeatCount: delta.Spaces);
             return StringBuilderPool.ReturnAndFree(sb);
         }
 

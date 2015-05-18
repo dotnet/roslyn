@@ -159,7 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         return TriggerIdentifierKind.NotRenamable;
                     }
 
-                    if (syntaxFactsService.IsIdentifier(token))
+                    var languageHeuristicsService = document.Project.LanguageServices.GetService<IRenameTrackingLanguageHeuristicsService>();
+                    if (syntaxFactsService.IsIdentifier(token) && languageHeuristicsService.IsIdentifierValidForRenameTracking(token.Text))
                     {
                         var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
                         var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
@@ -218,7 +219,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         : TriggerIdentifierKind.RenamableReference;
             }
 
-            internal bool CanInvokeRename(ISyntaxFactsService syntaxFactsService, bool isSmartTagCheck, bool waitForResult, CancellationToken cancellationToken)
+            internal bool CanInvokeRename(
+                ISyntaxFactsService syntaxFactsService,
+                IRenameTrackingLanguageHeuristicsService languageHeuristicsService,
+                bool isSmartTagCheck,
+                bool waitForResult,
+                CancellationToken cancellationToken)
             {
                 if (IsRenamableIdentifier(_isRenamableIdentifierTask, waitForResult, cancellationToken))
                 {
@@ -227,7 +233,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var comparison = isRenamingDeclaration || syntaxFactsService.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
                     if (!string.Equals(OriginalName, newName, comparison) &&
-                        syntaxFactsService.IsValidIdentifier(newName))
+                        syntaxFactsService.IsValidIdentifier(newName) &&
+                        languageHeuristicsService.IsIdentifierValidForRenameTracking(newName))
                     {
                         // At this point, we want to allow renaming if the user invoked Ctrl+. explicitly, but we
                         // want to avoid showing a smart tag if we're renaming a reference that binds to an existing

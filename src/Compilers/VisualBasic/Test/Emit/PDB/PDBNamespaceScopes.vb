@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -354,6 +355,207 @@ End Namespace
 </symbols>)
         End Sub
 
+        <Fact>
+        Public Sub EmittingPdbVsNot()
+            Dim source =
+<compilation name="EmittingPdbVsNot">
+    <file>
+Imports System
+Imports X = System.IO.FileStream
+
+Class C
+    Dim x As Integer = 1
+    Shared y As Integer = 1
+
+    Sub New()
+        Console.WriteLine()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
+
+            Dim peStream1 = New MemoryStream()
+            Dim peStream2 = New MemoryStream()
+            Dim pdbStream = New MemoryStream()
+
+            Dim emitResult1 = c.Emit(peStream:=peStream1, pdbStream:=pdbStream)
+            Dim emitResult2 = c.Emit(peStream:=peStream2)
+
+            SharedCompilationUtils.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
+        End Sub
+
+        <Fact>
+        Public Sub ImportedNoPiaTypes()
+            Dim sourceLib =
+<compilation name="ImportedNoPiaTypesAssemblyName">
+    <file><![CDATA[
+Imports System
+Imports System.Reflection
+Imports System.Runtime.InteropServices
+
+<Assembly:Guid("11111111-1111-1111-1111-111111111111")>
+<Assembly:ImportedFromTypeLib("Foo")>
+<Assembly:TypeLibVersion(1, 0)>
+
+Namespace N
+    Public Enum E
+        Value1 = 1
+    End Enum
+
+    Public Structure S1
+        Public A1 As Integer
+        Public A2 As Integer
+    End Structure
+
+    Public Structure S2
+        Public Const Value2 As Integer = 2
+    End Structure
+
+    Public Structure SBad
+        Public A3 As Integer
+        Public Const Value3 As Integer = 3
+    End Structure
+
+    <ComImport, Guid("22222222-2222-2222-2222-222222222222")>
+    Public Interface I
+        Sub F()
+    End Interface
+
+    Public Interface IBad
+        Sub F()
+    End Interface
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports N.E
+Imports N.SBad
+Imports Z1 = N.S1
+Imports Z2 = N.S2
+Imports ZBad = N.SBad
+Imports NI = N.I
+Imports NIBad = N.IBad
+
+Class C
+    Dim i As NI 
+
+    Sub M
+        Console.WriteLine(Value1)
+        Console.WriteLine(Z2.Value2)
+        Console.WriteLine(New Z1())
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim globalImports = GlobalImport.Parse(
+                "GlobalNIBad = N.IBad",
+                "GlobalZ1 = N.S1",
+                "GlobalZ2 = N.S2",
+                "GlobalZBad = N.SBad",
+                "GlobalNI = N.I")
+
+            Dim libRef = CreateCompilationWithMscorlib(sourceLib).EmitToImageReference(embedInteropTypes:=True)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef}, options:=TestOptions.DebugDll.WithGlobalImports(globalImports))
+            Dim v = CompileAndVerify(compilation)
+
+            v.Diagnostics.Verify(
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports N.SBad"),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports ZBad = N.SBad"),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports NIBad = N.IBad"))
+
+            ' Imports of embedded types are currently ommitted:
+            v.VerifyPdb("C.M",
+<symbols>
+    <methods>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="13" startColumn="5" endLine="13" endColumn="10" document="0"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="34" document="0"/>
+                <entry offset="0x8" startLine="15" startColumn="9" endLine="15" endColumn="37" document="0"/>
+                <entry offset="0xf" startLine="16" startColumn="9" endLine="16" endColumn="36" document="0"/>
+                <entry offset="0x23" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x24">
+                <namespace name="System" importlevel="file"/>
+                <defunct name="&amp;ImportedNoPiaTypesAssemblyName"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub ImportedTypeWithUnknownBase()
+            Dim sourceLib1 =
+<compilation>
+    <file>
+Namespace N
+    Public Class A
+    End Class
+End Namespace
+    </file>
+</compilation>
+
+            Dim sourceLib2 =
+<compilation name="LibRef2">
+    <file>
+Namespace N
+    Public Class B
+        Inherits A
+    End Class
+End Namespace
+    </file>
+</compilation>
+
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports X = N.B
+
+Class C
+    Sub M()
+        Console.WriteLine()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim libRef1 = CreateCompilationWithMscorlib(sourceLib1).EmitToImageReference()
+            Dim libRef2 = CreateCompilationWithMscorlibAndReferences(sourceLib2, {libRef1}).EmitToImageReference()
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef2})
+
+            Dim v = CompileAndVerify(compilation, emitters:=TestEmitters.CCI)
+
+            v.Diagnostics.Verify(
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports X = N.B"))
+
+            v.VerifyPdb("C.M",
+<symbols>
+    <methods>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="6" startColumn="9" endLine="6" endColumn="28" document="0"/>
+                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12" document="0"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x6">
+                <alias name="X" target="N.B" kind="namespace" importlevel="file"/>
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
     End Class
 End Namespace
 

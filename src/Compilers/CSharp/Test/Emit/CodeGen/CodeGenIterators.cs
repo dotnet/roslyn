@@ -1204,20 +1204,14 @@ class Program
 
             dbg.VerifyIL("Program.M", @"
 {
-  // Code size       18 (0x12)
-  .maxstack  2
-  .locals init (Program.<M>d__1 V_0,
-                System.Collections.Generic.IEnumerator<int> V_1)
+  // Code size       14 (0xe)
+  .maxstack  3
   IL_0000:  ldc.i4.0
   IL_0001:  newobj     ""Program.<M>d__1..ctor(int)""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldarg.0
-  IL_0009:  stfld      ""System.Collections.Generic.IEnumerable<int> Program.<M>d__1.items""
-  IL_000e:  ldloc.0
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  ret
+  IL_0006:  dup
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""System.Collections.Generic.IEnumerable<int> Program.<M>d__1.items""
+  IL_000d:  ret
 }");
         }
 

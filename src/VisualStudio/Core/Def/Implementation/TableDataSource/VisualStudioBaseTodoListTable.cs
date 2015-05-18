@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TableControl;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -27,11 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
-            StandardTableColumnDefinitions.Column,
-            StandardTableColumnDefinitions.TaskCategory
+            StandardTableColumnDefinitions.Column
         };
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, Guid identifier, ITableManagerProvider provider) :
+        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider) :
             base(workspace, provider, StandardTables.TasksTable, new TableDataSource(workspace, todoListProvider, identifier))
         {
         }
@@ -41,10 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
         {
             private readonly Workspace _workspace;
-            private readonly Guid _identifier;
+            private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, Guid identifier)
+            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -62,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            public override Guid SourceTypeIdentifier
+            public override string SourceTypeIdentifier
             {
                 get
                 {
@@ -70,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            public override Guid Identifier
+            public override string Identifier
             {
                 get
                 {
@@ -148,14 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         _factory = factory;
                     }
 
-                    public override object SnapshotIdentity
-                    {
-                        get
-                        {
-                            return _factory;
-                        }
-                    }
-
                     public override bool TryGetValue(int index, string columnName, out object content)
                     {
                         // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
@@ -187,13 +178,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
-                            case ProjectGuidKey:
+                            case StandardTableKeyNames.ProjectGuid:
                                 content = ProjectGuid;
                                 return ProjectGuid != Guid.Empty;
-                            case StandardTableKeyNames.Project:
-                                // TODO: remove this once moved to new drop
-                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId);
-                                return content != null;
                             case StandardTableKeyNames.TaskCategory:
                                 content = VSTASKCATEGORY.CAT_COMMENTS;
                                 return true;

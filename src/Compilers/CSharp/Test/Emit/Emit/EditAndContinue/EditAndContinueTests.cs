@@ -462,20 +462,22 @@ class B
                     CheckNames(readers, reader1.GetFieldDefNames());
                     CheckNames(readers, reader1.GetPropertyDefNames(), "R");
                     CheckNames(readers, reader1.GetMethodDefNames(), "get_R");
+
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                         Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+
                     CheckEncMap(reader1,
                         Handle(9, TableIndex.TypeRef),
                         Handle(5, TableIndex.MethodDef),
-                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(1, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.PropertyMap),
                         Handle(2, TableIndex.Property),
                         Handle(3, TableIndex.MethodSemantics),
@@ -504,7 +506,6 @@ class B
                             Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
@@ -545,7 +546,6 @@ class B
                             Handle(9, TableIndex.CustomAttribute),
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
-                            Handle(3, TableIndex.StandAloneSig),
                             Handle(3, TableIndex.Property),
                             Handle(4, TableIndex.Property),
                             Handle(4, TableIndex.MethodSemantics),
@@ -4801,32 +4801,34 @@ class B
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       37 (0x25)
+  // Code size       40 (0x28)
   .maxstack  3
   .locals init (C V_0, //c
                 [unchanged] V_1,
                 [int] V_2,
-                C V_3,
-                int V_4)
+                [int] V_3,
+                C V_4,
+                int V_5,
+                int V_6)
   IL_0000:  nop
   IL_0001:  newobj     ""C..ctor()""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  stloc.3
-  IL_0009:  ldloc.3
-  IL_000a:  callvirt   ""int C.P.get""
-  IL_000f:  stloc.s    V_4
-  IL_0011:  ldloc.3
-  IL_0012:  ldloc.s    V_4
-  IL_0014:  ldc.i4.1
-  IL_0015:  add
-  IL_0016:  callvirt   ""void C.P.set""
-  IL_001b:  nop
-  IL_001c:  ldloc.s    V_4
-  IL_001e:  stloc.s    V_4
-  IL_0020:  br.s       IL_0022
-  IL_0022:  ldloc.s    V_4
-  IL_0024:  ret
+  IL_0008:  stloc.s    V_4
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  callvirt   ""int C.P.get""
+  IL_0011:  stloc.s    V_5
+  IL_0013:  ldloc.s    V_4
+  IL_0015:  ldloc.s    V_5
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  callvirt   ""void C.P.set""
+  IL_001e:  nop
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  stloc.s    V_6
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.s    V_6
+  IL_0027:  ret
 }");
         }
 

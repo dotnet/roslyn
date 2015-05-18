@@ -67,7 +67,7 @@
   <ItemGroup>
     <Compile Include="Binders\EENamedTypeBinder.vb" />
     <Compile Include="Binders\ParametersAndLocalsBinder.vb" />
-    <Compile Include="Binders\SuppressObsoleteDiagnosticsBinder.vb" />
+    <Compile Include="Binders\SuppressDiagnosticsBinder.vb" />
     <Compile Include="CompilationContext.vb" />
     <Compile Include="CompilationExtensions.vb" />
     <Compile Include="VisualBasicInScopeHoistedLocalsByName.vb" />

@@ -7,8 +7,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -16,9 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract class AbstractTableEntriesSnapshot<TData> : ITableEntriesSnapshot
     {
-        // TODO: remove this once we have new drop
-        protected const string ProjectGuidKey = "projectguid";
-
         private readonly int _version;
         private readonly ImmutableArray<TData> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
@@ -34,7 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ProjectGuid = projectGuid;
         }
 
-        public abstract object SnapshotIdentity { get; }
         public abstract bool TryNavigateTo(int index, bool previewTab);
         public abstract bool TryGetValue(int index, string columnName, out object content);
         protected abstract bool IsEquivalent(TData item1, TData item2);
@@ -55,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public int TranslateTo(int index, ITableEntriesSnapshot newerSnapshot)
+        public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
             var item = GetItem(index);
             if (item == null)
@@ -215,23 +210,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             return project.Name;
-        }
-
-        // TODO: remove this once we moved to new drop
-        protected IVsHierarchy GetHierarchy(Workspace workspace, ProjectId projectId)
-        {
-            if (projectId == null)
-            {
-                return null;
-            }
-
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
-            {
-                return null;
-            }
-
-            return vsWorkspace.GetHierarchy(projectId);
         }
 
         protected static Guid GetProjectGuid(Workspace workspace, ProjectId projectId)

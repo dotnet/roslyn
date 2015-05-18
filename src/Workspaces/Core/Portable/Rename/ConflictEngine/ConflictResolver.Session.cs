@@ -317,12 +317,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var conflictAnnotation = nodeAndAnnotation.Item2;
                         reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
                         var originalLocation = conflictAnnotation.OriginalSpan;
+                        IEnumerable<ISymbol> newReferencedSymbols = null;
 
                         var hasConflict = _renameAnnotations.HasAnnotation(tokenOrNode, RenameInvalidIdentifierAnnotation.Instance);
                         if (!hasConflict)
                         {
                             newDocumentSemanticModel = newDocumentSemanticModel ?? await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-                            var newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
+                            newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
 
                             // The semantic correctness, after rename, for each token of interest in the rename context is performed by getting the symbol pointed by
                             // each token and obtain the Symbol's First Ordered Location's  Span-Start and check to see if it is the same as before from the base solution.
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                         if (!hasConflict && !conflictAnnotation.IsInvocationExpression)
                         {
-                            hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument);
+                            hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument, newReferencedSymbols);
                         }
 
                         if (!hasConflict)
@@ -411,6 +412,32 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 if (conflictAnnotation.IsNamespaceDeclarationReference)
                 {
                     hasConflict = false;
+                }
+                else if (conflictAnnotation.IsMemberGroupReference)
+                {
+                    if (!conflictAnnotation.RenameDeclarationLocationReferences.Any())
+                    {
+                        hasConflict = false;
+                    }
+                    else
+                    {
+                        // Ensure newReferencedSymbols contains at least one of the original referenced
+                        // symbols, and allow any new symbols to be added to the set of references.
+
+                        hasConflict = true;
+
+                        var newLocationTasks = newReferencedSymbols.Select(async symbol => await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false));
+                        var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).Where(loc => loc != null && loc.IsInSource);
+                        foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
+                        {
+                            var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
+                            if (newLocations.Any(loc => loc.SourceSpan.Start == adjustedStartPosition))
+                            {
+                                hasConflict = false;
+                                break;
+                            }
+                        }
+                    }
                 }
                 else if (!conflictAnnotation.IsRenameLocation && conflictAnnotation.IsOriginalTextLocation && conflictAnnotation.RenameDeclarationLocationReferences.Length > 1 && newReferencedSymbols.Count() == 1)
                 {

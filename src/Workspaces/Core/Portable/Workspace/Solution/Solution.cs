@@ -2127,7 +2127,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets an ProjectDependencyGraph that details the dependencies between projects for this solution.
+        /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
         {

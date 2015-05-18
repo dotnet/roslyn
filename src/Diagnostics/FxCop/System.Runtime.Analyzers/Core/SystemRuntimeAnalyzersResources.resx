@@ -207,10 +207,10 @@
   <data name="MarkAllAssembliesWithComVisibleDescription" xml:space="preserve">
     <value>The System.Runtime.InteropServices.ComVisible attribute indicates whether COM clients can use the library. Good design dictates that developers explicitly indicate COM visibility. The default value for this attribute is 'true'. However, the best design is to mark the assembly ComVisible false, and then mark types, interfaces, and individual members as ComVisible true, as appropriate.</value>
   </data>
-  <data name="CA1017_AttributeTrue" xml:space="preserve">
+  <data name="ChangeAssemblyLevelComVisibleToFalse" xml:space="preserve">
     <value>Consider changing the ComVisible attribute on {0} to false, and opting in at the type level.</value>
   </data>
-  <data name="CA1017_NoAttribute" xml:space="preserve">
+  <data name="AddAssemblyLevelComVisibleFalse" xml:space="preserve">
     <value>Because {0} exposes externally visible types, mark it with ComVisible(false) at the assembly level and then mark all types within the assembly that should be exposed to COM clients with ComVisible(true).</value>
   </data>
   <data name="AvoidUnsealedAttributes" xml:space="preserve">

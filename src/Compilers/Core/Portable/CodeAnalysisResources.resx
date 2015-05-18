@@ -457,4 +457,16 @@
   <data name="MissingKeepAlive" xml:space="preserve">
     <value>Missing argument for '/keepalive' option.</value>
   </data>
+  <data name="AnalyzerTotalExecutionTime" xml:space="preserve">
+    <value>Total analyzer execution time: {0} seconds.</value>
+  </data>
+  <data name="MultithreadedAnalyzerExecutionNote" xml:space="preserve">
+    <value>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</value>
+  </data>
+  <data name="AnalyzerExecutionTimeColumnHeader" xml:space="preserve">
+    <value>Time (s)</value>
+  </data>
+  <data name="AnalyzerNameColumnHeader" xml:space="preserve">
+    <value>Analyzer</value>
+  </data>
 </root>

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Finally, it initializes and starts the <see cref="_primaryTask"/> for the driver.
         /// </summary>
         /// <remarks>
-        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{Diagnostic}, out Compilation, CancellationToken)"/>.
+        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{Diagnostic}, Boolean, out Compilation, CancellationToken)"/>.
         /// </remarks>
         private void Initialize(Compilation comp, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
@@ -144,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
+        /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         /// <returns>A newly created analyzer driver</returns>
@@ -152,33 +153,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
         public static AnalyzerDriver Create(
-            Compilation compilation, 
+            Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers, 
             AnalyzerOptions options, 
             AnalyzerManager analyzerManager, 
-            Action<Diagnostic> addExceptionDiagnostic, 
+            Action<Diagnostic> addExceptionDiagnostic,
+            bool reportAnalyzer,
             out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
-            if (compilation == null)
-            {
-                throw new ArgumentNullException(nameof(compilation));
-            }
-
-            if (analyzers.IsDefaultOrEmpty)
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
-            }
-
-            if (analyzers.Any(a => a == null))
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
-            }
-
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = 
                 (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
 
-            return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, out newCompilation, cancellationToken: cancellationToken);
+            return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, reportAnalyzer, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
@@ -188,6 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options, 
             AnalyzerManager analyzerManager,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            bool reportAnalyzer,
             out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
@@ -213,8 +201,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Assume all analyzers are non-thread safe.
             var singleThreadedAnalyzerToGateMap = ImmutableDictionary.CreateRange(analyzers.Select(a => KeyValuePair.Create(a, new object())));
+            
+            if (reportAnalyzer)
+            {
+                // If we are reporting detailed analyzer performance numbers, then do a dummy invocation of Compilation.GetTypeByMetadataName API upfront.
+                // This API seems to cause a severe hit for the first analyzer invoking it and hence introduces lot of noise in the computed analyzer execution times.
+                var unused = newCompilation.GetTypeByMetadataName("System.Object");
+            }
 
-            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer, analyzerManager, singleThreadedAnalyzerToGateMap, cancellationToken);
+            var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer, analyzerManager, singleThreadedAnalyzerToGateMap, reportAnalyzer, cancellationToken);
             
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
 
@@ -273,6 +268,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Return a task that completes when the driver is done producing diagnostics.
         /// </summary>
         public Task WhenCompletedTask => _primaryTask;
+
+        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes => analyzerExecutor.AnalyzerExecutionTimes;
 
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>> MakeSymbolActionsByKind()
         {

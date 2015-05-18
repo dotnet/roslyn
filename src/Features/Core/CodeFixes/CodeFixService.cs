@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     if (fixAllProviderInfo != null)
                     {
-                        fixAllContext = new FixAllCodeActionContext(document, fixAllProviderInfo, codeFixProvider, diagnostics, this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
+                        fixAllContext = FixAllCodeActionContext.Create(document, fixAllProviderInfo, codeFixProvider, diagnostics, this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
                     }
                 }
 

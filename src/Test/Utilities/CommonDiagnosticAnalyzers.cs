@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -238,6 +240,33 @@ namespace Microsoft.CodeAnalysis
                         });
                     });
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class CSharpGenericNameAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "DiagnosticId";
+            public const string Title = "Title";
+            public const string Message = "Message";
+            public const string Category = "Category";
+            public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+
+            internal static DiagnosticDescriptor Rule =
+                new DiagnosticDescriptor(DiagnosticId, Title, Message,
+                                         Category, Severity, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+                 ImmutableArray.Create(Rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.GenericName);
+            }
+
+            private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
             }
         }
     }
