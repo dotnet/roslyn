@@ -936,6 +936,61 @@ BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multilin
 </errors>)
         End Sub
 
+        <Fact(), WorkItem(1173145, "DevDiv"), WorkItem(2862, "https://github.com/dotnet/roslyn/issues/2862")>
+        Public Sub CompoundAssignmentToAField()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Imports System.Collections 
+Imports System.Collections.Generic 
+
+Module Module1
+    Sub Main()
+        For Each x In New MyEnumerable(Of Integer)({100, 99, 98})
+            System.Console.WriteLine(x)
+        Next
+    End Sub
+End Module
+
+Public Class MyEnumerable(Of T)
+    Implements IEnumerable(Of T)
+
+    Private ReadOnly _items As T()
+    Private _count As Integer = 0
+
+    Public Sub New(items As T())
+        _items = items
+        _count = items.Length
+    End Sub
+
+    Public Iterator Function GetEnumerator() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
+        For Each item In _items
+            If _count = 0 Then Exit Function
+            _count -= 1
+            Yield item
+        Next
+    End Function
+
+    Public Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return GetEnumerator()
+    End Function
+End Class
+]]>
+                        </file>
+                    </compilation>, TestOptions.DebugExe)
+
+            Dim expected As Xml.Linq.XCData = <![CDATA[
+100
+99
+98
+]]>
+
+            CompileAndVerify(compilation, expected)
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expected)
+        End Sub
+
     End Class
 
 End Namespace

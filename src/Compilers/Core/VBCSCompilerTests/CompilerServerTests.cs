@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private const string CompilerServerExeName = "VBCSCompiler.exe";
         private const string CSharpClientExeName = "csc2.exe";
         private const string BasicClientExeName = "vbc2.exe";
-        private const string BuildTaskDllName = "Microsoft.Build.Tasks.Roslyn.dll";
+        private const string BuildTaskDllName = "Microsoft.Build.Tasks.CodeAnalysis.dll";
 
         private static string s_msbuildDirectory;
         private static string MSBuildDirectory
