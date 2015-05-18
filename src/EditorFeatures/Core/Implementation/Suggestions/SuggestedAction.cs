@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        ImageMoniker ISuggestedAction.IconMoniker
+        public ImageMoniker IconMoniker
         {
             get
             {
@@ -249,10 +250,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
         }
-        #endregion
 
-        #region IEquatable<ISuggestedAction>
-        public bool Equals(ISuggestedAction other)
+		public IEnumerable<SuggestedActionSet> ActionSets
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		public ImageSource IconSource
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+		#endregion
+
+		#region IEquatable<ISuggestedAction>
+		public bool Equals(ISuggestedAction other)
         {
             return Equals(other as SuggestedAction);
         }
@@ -297,6 +314,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             return Hash.Combine(Provider.GetHashCode(), CodeAction.EquivalenceKey.GetHashCode());
         }
-        #endregion
-    }
+
+		public object GetPreview(CancellationToken cancellationToken)
+		{
+			throw new NotImplementedException();
+		}
+		#endregion
+	}
 }
