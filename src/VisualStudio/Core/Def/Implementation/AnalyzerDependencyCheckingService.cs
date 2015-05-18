@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _updateSource;
+        private readonly BindingRedirectionService _bindingRedirectionService;
 
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private Task<AnalyzerDependencyResults> _task = Task.FromResult((AnalyzerDependencyResults)null);
@@ -35,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _workspace = workspace;
             _updateSource = updateSource;
+            _bindingRedirectionService = new BindingRedirectionService();
         }
 
         public async void CheckForConflictsAsync()
@@ -185,12 +187,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             _task = _task.SafeContinueWith(_ =>
             {
+
                 IEnumerable<AssemblyIdentity> loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
-                return new AnalyzerDependencyChecker(currentAnalyzerPaths, loadedAssemblies).Run(_cancellationTokenSource.Token);
+                return new AnalyzerDependencyChecker(currentAnalyzerPaths, loadedAssemblies, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
             },
             TaskScheduler.Default);
 
             return _task;
+        }
+
+        private class BindingRedirectionService : IBindingRedirectionService
+        {
+            public AssemblyIdentity ApplyBindingRedirects(AssemblyIdentity originalIdentity)
+            {
+                string redirectedAssemblyName = AppDomain.CurrentDomain.ApplyPolicy(originalIdentity.ToString());
+
+                AssemblyIdentity redirectedAssemblyIdentity;
+                if (AssemblyIdentity.TryParseDisplayName(redirectedAssemblyName, out redirectedAssemblyIdentity))
+                {
+                    return redirectedAssemblyIdentity;
+                }
+
+                return originalIdentity;
+            }
         }
     }
 }

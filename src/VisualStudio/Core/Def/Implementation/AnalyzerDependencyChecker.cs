@@ -20,14 +20,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly HashSet<string> _analyzerFilePaths;
         private readonly HashSet<AssemblyIdentity> _assemblyWhiteList;
+        private readonly IBindingRedirectionService _bindingRedirectionService;
 
-        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<AssemblyIdentity> assemblyWhiteList)
+        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<AssemblyIdentity> assemblyWhiteList, IBindingRedirectionService bindingRedirectionService = null)
         {
             Debug.Assert(analyzerFilePaths != null);
             Debug.Assert(assemblyWhiteList != null);
 
             _analyzerFilePaths = new HashSet<string>(analyzerFilePaths, StringComparer.OrdinalIgnoreCase);
             _assemblyWhiteList = new HashSet<AssemblyIdentity>(assemblyWhiteList);
+            _bindingRedirectionService = bindingRedirectionService;
         }
 
         public AnalyzerDependencyResults Run(CancellationToken cancellationToken = default(CancellationToken))
@@ -70,7 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!_assemblyWhiteList.Contains(reference))
+                    var redirectedReference = _bindingRedirectionService != null
+                        ? _bindingRedirectionService.ApplyBindingRedirects(reference)
+                        : reference;
+
+                    if (!_assemblyWhiteList.Contains(redirectedReference))
                     {
                         builder.Add(new MissingAnalyzerDependency(
                             analyzerInfo.Path,
