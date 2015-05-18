@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets an SyntaxReference for this syntax node. CommonSyntaxReferences can be used to
+        /// Gets a <see cref="SyntaxReference"/> for this syntax node. CommonSyntaxReferences can be used to
         /// regain access to a syntax node without keeping the entire tree and source text in
         /// memory.
         /// </summary>
