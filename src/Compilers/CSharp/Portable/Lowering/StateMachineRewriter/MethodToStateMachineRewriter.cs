@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap the node in an iterator scope for debugging
             if (hoistedLocalsWithDebugScopes.Count != 0)
             {
-                translatedStatement = F.Block(new BoundStateMachineScope(F.Syntax, hoistedLocalsWithDebugScopes.ToImmutable(), translatedStatement));
+                translatedStatement = F.StateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translatedStatement);
             }
 
             hoistedLocalsWithDebugScopes.Free();
