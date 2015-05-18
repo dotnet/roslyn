@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.SyntaxTree.GetDiagnostics(this);
         }
 
-        internal sealed override SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body)
+        internal sealed override SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body)
         {
-            return LambdaUtilities.GetCorrespondingLambdaBody(body, this);
+            return LambdaUtilities.TryGetCorrespondingLambdaBody(body, this);
         }
 
         internal override SyntaxNode GetLambda()

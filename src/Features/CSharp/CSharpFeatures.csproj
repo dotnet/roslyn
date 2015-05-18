@@ -77,12 +77,13 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />    
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />    
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
@@ -293,6 +294,7 @@
     <Compile Include="Diagnostics\CSharpSyntaxNodeAnalyzerService.cs" />
     <Compile Include="DocumentationCommentFormatting\CSharpDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
+    <Compile Include="EditAndContinue\BreakpointSpans.cs" />
     <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzer.cs" />
     <Compile Include="EditAndContinue\StatementSyntaxComparer.cs" />
     <Compile Include="EditAndContinue\SyntaxComparer.cs" />

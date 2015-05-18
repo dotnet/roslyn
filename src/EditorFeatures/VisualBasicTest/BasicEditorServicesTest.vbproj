@@ -239,6 +239,7 @@
     <Compile Include="DocumentationComments\XmlTagCompletionTests.vb" />
     <Compile Include="EditAndContinue\ActiveStatementTests.vb" />
     <Compile Include="EditAndContinue\ActiveStatementTrackingServiceTests.vb" />
+    <Compile Include="EditAndContinue\BreakpointSpansTests.vb" />
     <Compile Include="EditAndContinue\SyntaxComparerTests.vb" />
     <Compile Include="EditAndContinue\Helpers\Extensions.vb" />
     <Compile Include="EditAndContinue\Helpers\RudeEditTestBase.vb" />
