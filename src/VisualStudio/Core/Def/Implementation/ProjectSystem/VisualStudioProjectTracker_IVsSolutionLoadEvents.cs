@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _solutionLoadComplete = true;
 
             // Check that the set of analyzers is complete and consistent.
-            GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
+            GetAnalyzerDependencyCheckingService()?.CheckForConflictsAsync();
 
             return VSConstants.S_OK;
         }
