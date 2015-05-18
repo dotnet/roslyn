@@ -732,6 +732,7 @@
     <Compile Include="Syntax\CompilationUnitSyntax.cs" />
     <Compile Include="Syntax\CSharpLineDirectiveMap.cs" />
     <Compile Include="Syntax\CSharpPragmaWarningStateMap.cs" />
+    <Compile Include="Syntax\CSharpBottomUpSyntaxRewriter.cs" />
     <Compile Include="Syntax\CSharpSyntaxNode.cs" />
     <Compile Include="Syntax\CSharpSyntaxRewriter.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.cs" />
