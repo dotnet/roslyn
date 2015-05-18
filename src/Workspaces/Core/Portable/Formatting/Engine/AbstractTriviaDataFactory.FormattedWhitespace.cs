@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         builder.Append(newLine);
                     }
 
-                    builder.Append(this.Spaces.CreateIndentationString(this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language), this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language)));
+                    builder.AppendIndentationString(this.Spaces, this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language), this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language));
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 
