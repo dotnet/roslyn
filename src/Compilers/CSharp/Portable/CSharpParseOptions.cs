@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.PreprocessorSymbols = preprocessorSymbols;
         }
 
-        public new CSharpParseOptions WithKind(SourceCodeKind kind)
+        internal new CSharpParseOptions WithKind(SourceCodeKind kind)
         {
             if (kind == this.Kind)
             {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpParseOptions(this) { DocumentationMode = documentationMode };
         }
 
-        protected override ParseOptions CommonWithKind(SourceCodeKind kind)
+        internal override ParseOptions CommonWithKind(SourceCodeKind kind)
         {
             return WithKind(kind);
         }
