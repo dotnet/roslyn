@@ -97,11 +97,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ImmutableInterlocked.GetOrAdd(ref _lazyAnalyzersPerLanguage, language, CreateLanguageSpecificAnalyzers, this);
         }
 
-        private static ImmutableArray<DiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string langauge, AnalyzerFileReference reference)
+        private static ImmutableArray<DiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string language, AnalyzerFileReference reference)
         {
             // Get all analyzers in the assembly for the given language.
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, langauge);
+            reference.AddAnalyzers(builder, language);
             return builder.ToImmutable();
         }
 
