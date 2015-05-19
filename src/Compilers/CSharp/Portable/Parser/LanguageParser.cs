@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //  2. A modified version of the parser was run on the Roslyn source base and the maximum depth 
         //     discovered was 7.  Having 20 as a minimum seems reasonable in that context 
         //
-        private const int MaxUncheckedRecursionDepth = 20;
+        internal const int MaxUncheckedRecursionDepth = 20;
 
         // list pools - allocators for lists that are used to build sequences of nodes. The lists
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
