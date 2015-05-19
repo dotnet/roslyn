@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis
         /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
         /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
         /// </summary>
-        internal abstract SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body);
+        internal abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body);
 
         internal abstract SyntaxNode GetLambda();
 

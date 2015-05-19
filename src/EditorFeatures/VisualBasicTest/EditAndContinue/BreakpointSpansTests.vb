@@ -4,18 +4,11 @@ Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Debugging
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
-Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
+Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)>
-    Public Class BreakpointLocationValidatorTests
+    Public Class BreakpointSpansTests
 
 #Region "Helpers"
 
@@ -48,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
 
             Dim breakpointSpan As TextSpan
-            Dim hasBreakpoint = BreakpointGetter.TryGetBreakpointSpan(tree,
+            Dim hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(tree,
                                                                       position.Value,
                                                                       CancellationToken.None,
                                                                       breakpointSpan)
@@ -68,6 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                                           source.Substring(breakpointSpan.Start, breakpointSpan.Length)))
             End If
         End Sub
+
 
         Private Sub TestAll(markup As String)
             Dim position As Integer = Nothing
@@ -91,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim lastSpanEnd = 0
             While position < endPosition
                 Dim span As TextSpan = Nothing
-                If root.TryGetEnclosingBreakpointSpan(position, span) AndAlso span.End > lastSpanEnd Then
+                If BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, span) AndAlso span.End > lastSpanEnd Then
                     position = span.End
                     lastSpanEnd = span.End
                     Yield span
@@ -3115,48 +3109,5 @@ End Class
         End Sub
 
 #End Region
-
-        Public Sub TestSpanWithLength(markup As XElement, length As Integer)
-            Dim position As Integer? = Nothing
-            Dim expectedSpan As TextSpan? = Nothing
-            Dim source As String = Nothing
-            MarkupTestFile.GetPositionAndSpan(markup.NormalizedValue, source, position, expectedSpan)
-
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(source)
-                Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim result As BreakpointResolutionResult = BreakpointGetter.GetBreakpointAsync(document, position.Value, length, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                Assert.True(expectedSpan.Value = result.TextSpan,
-                            String.Format(vbCrLf & "Expected: {0} ""{1}""" & vbCrLf & "Actual: {2} ""{3}""",
-                                            expectedSpan.Value,
-                                            source.Substring(expectedSpan.Value.Start, expectedSpan.Value.Length),
-                                            result.TextSpan,
-                                            source.Substring(result.TextSpan.Start, result.TextSpan.Length)))
-            End Using
-        End Sub
-
-        <WorkItem(876520)>
-        <Fact>
-        Public Sub TestBreakpointSpansMultipleMethods()
-            ' Normal case: debugger passing BP spans "sub Foo() end sub"
-            TestSpanWithLength(<text>
-class C
-  [|$$sub Foo()|]
-  end sub
-
-  sub Bar()
-  end sub
-end class</text>, 20)
-
-            ' Rare case: debugger passing BP spans "sub Foo() end sub sub Bar() end sub"
-            TestSpanWithLength(<text>
-class C
-  $$sub Foo()
-  end sub
-
-  [|sub Bar()|]
-  end sub
-end class</text>, 35)
-        End Sub
-
     End Class
 End Namespace

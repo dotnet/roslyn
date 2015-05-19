@@ -137,7 +137,6 @@
     <Compile Include="Editing\VisualBasicImportAdder.vb" />
     <Compile Include="Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.vb" />
-    <Compile Include="Extensions\BreakpointSpans.vb" />
     <Compile Include="Extensions\CallStatementSyntaxExtensions.vb" />
     <Compile Include="Extensions\CastAnalyzer.vb" />
     <Compile Include="Extensions\CompilationUnitSyntaxExtensions.vb" />
