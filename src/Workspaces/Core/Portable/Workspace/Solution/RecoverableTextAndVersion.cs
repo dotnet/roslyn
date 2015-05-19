@@ -127,10 +127,7 @@ namespace Microsoft.CodeAnalysis
 
                 using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, _parent._filePath, cancellationToken))
                 {
-                    var retVal = await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
-                    _storage.Dispose();
-                    _storage = null;
-                    return retVal;
+                    return await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -140,10 +137,7 @@ namespace Microsoft.CodeAnalysis
 
                 using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, _parent._filePath, cancellationToken))
                 {
-                    var retVal = _storage.ReadText(cancellationToken);
-                    _storage.Dispose();
-                    _storage = null;
-                    return retVal;
+                    return _storage.ReadText(cancellationToken);
                 }
             }
 

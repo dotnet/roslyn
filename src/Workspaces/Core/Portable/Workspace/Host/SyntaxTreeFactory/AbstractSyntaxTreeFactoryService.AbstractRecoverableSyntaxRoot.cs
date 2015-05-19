@@ -124,10 +124,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 using (var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var retVal = RecoverRoot(stream, cancellationToken);
-                    _storage.Dispose();
-                    _storage = null;
-                    return retVal;
+                    return RecoverRoot(stream, cancellationToken);
                 }
             }
 
@@ -137,10 +134,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 using (var stream = _storage.ReadStream(cancellationToken))
                 {
-                    var retVal = RecoverRoot(stream, cancellationToken);
-                    _storage.Dispose();
-                    _storage = null;
-                    return retVal;
+                    return RecoverRoot(stream, cancellationToken);
                 }
             }
 
