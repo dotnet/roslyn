@@ -7677,36 +7677,6 @@ class C {
 
             CleanupAllGeneratedFiles(src.Path);
         }
-
-        /// <summary>
-        /// Script compilation should be internal only.
-        /// </summary>
-        [WorkItem(1979, "https://github.com/dotnet/roslyn/issues/1979")]
-        [Fact]
-        public void ScriptCompilationInternalOnly()
-        {
-            const string source = @"System.Console.WriteLine();";
-            var dir = Temp.CreateDirectory();
-            var file = dir.CreateFile("c.csx");
-            file.WriteAllText(source);
-
-            // Compiling script file with internal API should be supported.
-            var compilation = CreateCompilationWithMscorlib(
-                source,
-                sourceFileName: file.Path,
-                parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script),
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
-            compilation.VerifyDiagnostics();
-
-            // Compiling with command-line compiler, should not treat .csx as script.
-            var compiler = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", file.Path });
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = compiler.Run(outWriter);
-            Assert.Equal(1, exitCode);
-            Assert.True(outWriter.ToString().Contains("(1,25): error CS1022: Type or namespace definition, or end-of-file expected"));
-
-            CleanupAllGeneratedFiles(file.Path);
-        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
