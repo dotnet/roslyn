@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Computes one or more fixes for the specified <see cref="CodeFixContext"/>.
         /// </summary>
+        /// <param name="context">
+        /// A <see cref="CodeFixContext"/> containing context information about the diagnostics to fix.
+        /// The context must only contain diagnostics with an <see cref="Diagnostic.Id"/> included in the <see cref="FixableDiagnosticIds"/> for the current provider.
+        /// </param>
         public abstract Task RegisterCodeFixesAsync(CodeFixContext context);
 
         /// <summary>
