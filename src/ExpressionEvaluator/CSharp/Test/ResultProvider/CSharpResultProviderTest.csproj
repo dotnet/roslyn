@@ -72,6 +72,7 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Collections" />
     <Reference Include="System.Collections.Immutable">
@@ -96,6 +97,7 @@
     <Compile Include="CSharpResultProviderTestBase.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfoTests.cs" />
     <Compile Include="DynamicTests.cs" />
+    <Compile Include="DynamicViewTests.cs" />
     <Compile Include="ExpansionTests.cs" />
     <Compile Include="FormatSpecifierTests.cs" />
     <Compile Include="FullNameTests.cs" />
