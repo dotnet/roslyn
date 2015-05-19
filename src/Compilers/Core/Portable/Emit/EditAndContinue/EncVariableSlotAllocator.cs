@@ -248,7 +248,12 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousSyntax;
             if (isLambdaBody)
             {
-                previousSyntax = previousLambdaSyntax.GetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                previousSyntax = previousLambdaSyntax.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                if (previousSyntax == null)
+                {
+                    previousSyntaxOffset = 0;
+                    return false;
+                }
             }
             else
             {
