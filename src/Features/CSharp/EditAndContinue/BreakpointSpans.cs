@@ -1,16 +1,55 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    // TODO (tomat): Move to the compiler. Bug #764678.
     internal static class BreakpointSpans
     {
+        public static bool TryGetBreakpointSpan(SyntaxTree tree, int position, CancellationToken cancellationToken, out TextSpan breakpointSpan)
+        {
+            var source = tree.GetText(cancellationToken);
+
+            // If the line is entirely whitespace, then don't set any breakpoint there.
+            var line = source.Lines.GetLineFromPosition(position);
+            if (IsBlank(line))
+            {
+                breakpointSpan = default(TextSpan);
+                return false;
+            }
+
+            // If the user is asking for breakpoint in an inactive region, then just create a line
+            // breakpoint there.
+            if (tree.IsInInactiveRegion(position, cancellationToken))
+            {
+                breakpointSpan = default(TextSpan);
+                return true;
+            }
+
+            var root = tree.GetRoot(cancellationToken);
+            return TryGetClosestBreakpointSpan(root, position, out breakpointSpan);
+        }
+
+        private static bool IsBlank(TextLine line)
+        {
+            var text = line.ToString();
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (!SyntaxFacts.IsWhitespace(text[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Given a syntax token determines a text span delimited by the closest applicable sequence points 
         /// encompassing the token.
@@ -18,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <remarks>
         /// If the span exists it is possible to place a breakpoint at the given position.
         /// </remarks>
-        public static bool TryGetClosestBreakpointSpan(this SyntaxNode root, int position, out TextSpan span)
+        public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
         {
             SyntaxNode node = root.FindToken(position).Parent;
             while (node != null)
@@ -657,11 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     Debug.Assert(((ArrowExpressionClauseSyntax)parent).Expression == expression);
                     return true;
 
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    Debug.Assert(((AnonymousFunctionExpressionSyntax)parent).Body == expression);
-                    return true;
-
                 case SyntaxKind.ForStatement:
                     var forStatement = (ForStatementSyntax)parent;
                     return
@@ -673,51 +707,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var forEachStatement = (ForEachStatementSyntax)parent;
                     return forEachStatement.Expression == expression;
 
-                // Query clauses
-                case SyntaxKind.FromClause:
-                    var fromClause = (FromClauseSyntax)parent;
-
-                    // We can break on the expression in a from clause, except for the first clause in a
-                    // query. For example: 
-                    //   from c in LookupCustomers() // not here 
-                    //   from o in LookupBarOrders() + LookupBazOrders() // but here 
-                    //   group ... into y
-                    //   from d in SomeOtherExpression() // and after a continuation, too
-
-                    return fromClause.Expression == expression && fromClause.Parent is QueryBodySyntax;
-
-                case SyntaxKind.JoinClause:
-                    var joinClause = (JoinClauseSyntax)parent;
-
-                    // We can break on the inner and outer key expressions, but not the
-                    // initializer expression. For example:
-                    //
-                    //  join a in alpha /* no */ on beta /* yes */ equals gamma /* yes */
-                    return joinClause.LeftExpression == expression || joinClause.RightExpression == expression;
-
-                case SyntaxKind.LetClause:
-                    var letClause = (LetClauseSyntax)parent;
-                    return letClause.Expression == expression;
-
-                case SyntaxKind.WhereClause:
-                    var whereClause = (WhereClauseSyntax)parent;
-                    return whereClause.Condition == expression;
-
-                case SyntaxKind.AscendingOrdering:
-                case SyntaxKind.DescendingOrdering:
-                    var ordering = (OrderingSyntax)parent;
-                    return ordering.Expression == expression;
-
-                case SyntaxKind.SelectClause:
-                    var selectClause = (SelectClauseSyntax)parent;
-                    return selectClause.Expression == expression;
-
-                case SyntaxKind.GroupClause:
-                    var groupClause = (GroupClauseSyntax)parent;
-                    return groupClause.GroupExpression == expression || groupClause.ByExpression == expression;
+                default:
+                    return LambdaUtilities.IsLambdaBodyStatementOrExpression(expression);
             }
-
-            return false;
         }
 
         private static TextSpan? CreateSpanForAccessors(SyntaxList<AccessorDeclarationSyntax> accessors, int position)

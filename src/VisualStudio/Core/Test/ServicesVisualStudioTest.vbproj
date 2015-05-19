@@ -313,7 +313,6 @@
     <Compile Include="DebuggerIntelliSense\SignatureHelpWaiter.vb" />
     <Compile Include="DebuggerIntelliSense\TestState.vb" />
     <Compile Include="DebuggerIntelliSense\VisualBasicDebuggerIntelliSenseTests.vb" />
-    <Compile Include="Debugging\BreakpointLocationValidatorTests.vb" />
     <Compile Include="Debugging\DataTipInfoGetterTests.vb" />
     <Compile Include="Debugging\LocationInfoGetterTests.vb" />
     <Compile Include="Debugging\NameResolverTests.vb" />
@@ -325,6 +324,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Debugging\VisualBasicBreakpointResolutionServiceTests.vb" />
     <Compile Include="Diagnostics\DiagnosticTableDataSourceTests.vb" />
     <Compile Include="Diagnostics\ExternalDiagnosticUpdateSourceTests.vb" />
     <Compile Include="Diagnostics\MiscDiagnosticUpdateSourceTests.vb" />

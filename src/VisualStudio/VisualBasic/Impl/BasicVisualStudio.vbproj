@@ -107,7 +107,6 @@
     <Compile Include="CodeModel\VisualBasicCodeModelService_Prototype.vb" />
     <Compile Include="CodeModel\VisualBasicCodeModelServiceFactory.vb" />
     <Compile Include="CodeModel\VisualBasicProjectCodeModel.vb" />
-    <Compile Include="Debugging\BreakpointGetter.vb" />
     <Compile Include="Debugging\BreakpointResolver.vb" />
     <Compile Include="Debugging\DataTipInfoGetter.vb" />
     <Compile Include="Debugging\LocationInfoGetter.vb" />
