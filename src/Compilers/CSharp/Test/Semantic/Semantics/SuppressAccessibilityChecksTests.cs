@@ -204,14 +204,14 @@ class C : R
             var root = tree.GetCompilationUnitRoot();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
-            AccessorDeclarationSyntax accesorDecl = root.DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            AccessorDeclarationSyntax accessorDecl = root.DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
 
-            var speculatedMethod = accesorDecl.ReplaceNode(accesorDecl.Body, blockStatement);
+            var speculatedMethod = accessorDecl.ReplaceNode(accessorDecl.Body, blockStatement);
 
             SemanticModel speculativeModel;
             var success =
                 model.TryGetSpeculativeSemanticModelForMethodBody(
-                    accesorDecl.Body.Statements[0].SpanStart, speculatedMethod, out speculativeModel);
+                    accessorDecl.Body.Statements[0].SpanStart, speculatedMethod, out speculativeModel);
 
             Assert.True(success);
             Assert.NotNull(speculativeModel);

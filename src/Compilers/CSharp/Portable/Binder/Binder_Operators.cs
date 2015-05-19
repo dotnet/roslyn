@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (concatResult.IsBad)
                 {
-                    Error(diagnostics, ErrorCode.ERR_ContantStringTooLong, syntax);
+                    Error(diagnostics, ErrorCode.ERR_ConstantStringTooLong, syntax);
                 }
 
                 return concatResult;
