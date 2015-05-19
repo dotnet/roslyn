@@ -47,7 +47,7 @@ namespace Microsoft.Cci
                 this.Visit(module.GetResources(Context));
             }
 
-            VisitImports(module.GetImports(Context));
+            VisitImports(module.GetImports());
         }
 
         public void VisitMethodBodyReference(IReference reference)
@@ -101,7 +101,7 @@ namespace Microsoft.Cci
                     {
                         if (_alreadySeenScopes.Add(scope))
                         {
-                            VisitImports(scope.GetUsedNamespaces(Context));
+                            VisitImports(scope.GetUsedNamespaces());
                         }
                         else
                         {

@@ -266,6 +266,7 @@
     <Compile Include="EditAndContinue\ActiveStatementTests.cs" />
     <Compile Include="EditAndContinue\ActiveStatementTests.Methods.cs" />
     <Compile Include="EditAndContinue\ActiveStatementTrackingServiceTests.cs" />
+    <Compile Include="EditAndContinue\BreakpointSpansTests.cs" />
     <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzerTests.cs" />
     <Compile Include="EditAndContinue\Helpers\CSharpEditAndContinueTestHelpers.cs" />
     <Compile Include="EditAndContinue\Helpers\Extensions.cs" />

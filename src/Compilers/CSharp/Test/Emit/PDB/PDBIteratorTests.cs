@@ -132,64 +132,26 @@ class Program
 }
 ";
 
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll);
-
-            v.VerifyIL("Program.Foo", @"
-{
-  // Code size       15 (0xf)
-  .maxstack  3
-  IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""Program.<Foo>d__0..ctor(int)""
-  IL_0007:  dup
-  IL_0008:  ldarg.0
-  IL_0009:  stfld      ""Program Program.<Foo>d__0.<>4__this""
-  IL_000e:  ret
-}
-", sequencePoints: "Program.Foo");
-
-            v.VerifyIL("Program.<Foo>d__0.System.Collections.IEnumerator.MoveNext", @"
-{
-  // Code size       57 (0x39)
-  .maxstack  2
-  .locals init (int V_0)
- ~IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int Program.<Foo>d__0.<>1__state""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
-  IL_000a:  br.s       IL_000c
-  IL_000c:  ldloc.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0030
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int Program.<Foo>d__0.<>1__state""
- -IL_001f:  nop
- -IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  stfld      ""int Program.<Foo>d__0.<>2__current""
-  IL_0027:  ldarg.0
-  IL_0028:  ldc.i4.1
-  IL_0029:  stfld      ""int Program.<Foo>d__0.<>1__state""
-  IL_002e:  ldc.i4.1
-  IL_002f:  ret
- ~IL_0030:  ldarg.0
-  IL_0031:  ldc.i4.m1
-  IL_0032:  stfld      ""int Program.<Foo>d__0.<>1__state""
- -IL_0037:  ldc.i4.0
-  IL_0038:  ret
-}
-", 
-                sequencePoints: "Program+<Foo>d__0.MoveNext");
-
-            v.VerifyPdb("Program+<Foo>d__0.MoveNext", @"
+            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            c.VerifyPdb(@"
 <symbols>
   <methods>
+    <method containingType=""Program"" name=""Foo"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+      </customDebugInfo>
+    </method>
+    <method containingType=""Program"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" document=""0"" />
+      </sequencePoints>
+    </method>
     <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""F"" />
@@ -840,7 +802,7 @@ class C
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
- ~IL_0000:  ldarg.0
+  IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
@@ -857,13 +819,13 @@ class C
   IL_0018:  ldarg.0
   IL_0019:  ldc.i4.m1
   IL_001a:  stfld      ""int C.<F>d__1.<>1__state""
- -IL_001f:  nop
- -IL_0020:  call       ""bool C.B()""
+  IL_001f:  nop
+  IL_0020:  call       ""bool C.B()""
   IL_0025:  stloc.1
- ~IL_0026:  ldloc.1
+  IL_0026:  ldloc.1
   IL_0027:  brfalse.s  IL_0042
- -IL_0029:  nop
- -IL_002a:  ldarg.0
+  IL_0029:  nop
+  IL_002a:  ldarg.0
   IL_002b:  ldc.i4.1
   IL_002c:  stfld      ""int C.<F>d__1.<>2__current""
   IL_0031:  ldarg.0
@@ -871,14 +833,14 @@ class C
   IL_0033:  stfld      ""int C.<F>d__1.<>1__state""
   IL_0038:  ldc.i4.1
   IL_0039:  ret
- ~IL_003a:  ldarg.0
+  IL_003a:  ldarg.0
   IL_003b:  ldc.i4.m1
   IL_003c:  stfld      ""int C.<F>d__1.<>1__state""
- -IL_0041:  nop
- -IL_0042:  ldc.i4.0
+  IL_0041:  nop
+  IL_0042:  ldc.i4.0
   IL_0043:  ret
 }
-", sequencePoints: "C+<F>d__1.MoveNext");
+");
 
             v.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
@@ -1055,7 +1017,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x30"" endOffset=""0xe9"" />
+          <slot startOffset=""0x30"" endOffset=""0xea"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1063,16 +1025,17 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x30"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x3b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x47"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x53"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x5f"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
-        <entry offset=""0x76"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""35"" document=""0"" />
-        <entry offset=""0xa8"" hidden=""true"" document=""0"" />
-        <entry offset=""0xaf"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""35"" document=""0"" />
-        <entry offset=""0xe1"" hidden=""true"" document=""0"" />
-        <entry offset=""0xe8"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x30"" hidden=""true"" document=""0"" />
+        <entry offset=""0x3b"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x3c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x48"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x54"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x60"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
+        <entry offset=""0x77"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""35"" document=""0"" />
+        <entry offset=""0xa9"" hidden=""true"" document=""0"" />
+        <entry offset=""0xb0"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""35"" document=""0"" />
+        <entry offset=""0xe2"" hidden=""true"" document=""0"" />
+        <entry offset=""0xe9"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1174,7 +1137,7 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x17"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x17"" hidden=""true"" document=""0"" />
         <entry offset=""0x1c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
         <entry offset=""0x23"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
         <entry offset=""0x2a"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
@@ -1246,7 +1209,7 @@ class C
 
             v.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size      126 (0x7e)
+  // Code size      127 (0x7f)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -1260,7 +1223,7 @@ class C
   IL_000e:  beq.s      IL_0014
   IL_0010:  br.s       IL_0016
   IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0075
+  IL_0014:  br.s       IL_0076
   IL_0016:  ldc.i4.0
   IL_0017:  ret
   IL_0018:  ldarg.0
@@ -1269,37 +1232,38 @@ class C
   IL_001f:  ldarg.0
   IL_0020:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
   IL_0025:  stfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_002a:  ldarg.0
-  IL_002b:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_0030:  ldc.i4.1
-  IL_0031:  stfld      ""byte C.<>c__DisplayClass0_0.x1""
-  IL_0036:  ldarg.0
-  IL_0037:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_003c:  ldc.i4.1
-  IL_003d:  stfld      ""byte C.<>c__DisplayClass0_0.x2""
-  IL_0042:  ldarg.0
-  IL_0043:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_0048:  ldc.i4.1
-  IL_0049:  stfld      ""byte C.<>c__DisplayClass0_0.x3""
-  IL_004e:  ldarg.0
-  IL_004f:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_0054:  ldftn      ""void C.<>c__DisplayClass0_0.<M>b__0()""
-  IL_005a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_005f:  callvirt   ""void System.Action.Invoke()""
-  IL_0064:  nop
-  IL_0065:  ldarg.0
-  IL_0066:  ldc.i4.1
-  IL_0067:  stfld      ""int C.<M>d__0.<>2__current""
-  IL_006c:  ldarg.0
-  IL_006d:  ldc.i4.1
-  IL_006e:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_0073:  ldc.i4.1
-  IL_0074:  ret
-  IL_0075:  ldarg.0
-  IL_0076:  ldc.i4.m1
-  IL_0077:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_007c:  ldc.i4.0
-  IL_007d:  ret
+  IL_002a:  nop
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0031:  ldc.i4.1
+  IL_0032:  stfld      ""byte C.<>c__DisplayClass0_0.x1""
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_003d:  ldc.i4.1
+  IL_003e:  stfld      ""byte C.<>c__DisplayClass0_0.x2""
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0049:  ldc.i4.1
+  IL_004a:  stfld      ""byte C.<>c__DisplayClass0_0.x3""
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0055:  ldftn      ""void C.<>c__DisplayClass0_0.<M>b__0()""
+  IL_005b:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0060:  callvirt   ""void System.Action.Invoke()""
+  IL_0065:  nop
+  IL_0066:  ldarg.0
+  IL_0067:  ldc.i4.1
+  IL_0068:  stfld      ""int C.<M>d__0.<>2__current""
+  IL_006d:  ldarg.0
+  IL_006e:  ldc.i4.1
+  IL_006f:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0074:  ldc.i4.1
+  IL_0075:  ret
+  IL_0076:  ldarg.0
+  IL_0077:  ldc.i4.m1
+  IL_0078:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_007d:  ldc.i4.0
+  IL_007e:  ret
 }
 ");
 
@@ -1310,7 +1274,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x1f"" endOffset=""0x7d"" />
+          <slot startOffset=""0x1f"" endOffset=""0x7e"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1318,14 +1282,15 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x36"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x42"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x4e"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
-        <entry offset=""0x65"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x75"" hidden=""true"" document=""0"" />
-        <entry offset=""0x7c"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""0"" />
+        <entry offset=""0x2a"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x2b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x37"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x43"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x4f"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""0"" />
+        <entry offset=""0x66"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x76"" hidden=""true"" document=""0"" />
+        <entry offset=""0x7d"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
       </sequencePoints>
     </method>
   </methods>

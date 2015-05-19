@@ -350,6 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return true;
             }
+            else if (expressionToCastType.IsExplicit && expressionToCastType.IsReference)
+            {
+                // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
+                return false;
+            }
 
             if (parentIsOrAsExpression)
             {
@@ -491,16 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             !speculationAnalyzer.ReplacementChangesSemanticsOfUnchangedLambda(cast.Expression, speculationAnalyzer.ReplacedExpression);
                     }
 
-                    return true;
-                }
-
-                // case :
-                // 4. baseType x;
-                //    baseType y = (DerivedType)x;
-                if (expressionToOuterType.IsIdentity &&
-                    castToOuterType.IsImplicit &&
-                    castToOuterType.IsReference)
-                {
                     return true;
                 }
             }

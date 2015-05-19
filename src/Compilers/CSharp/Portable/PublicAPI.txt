@@ -2522,6 +2522,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ReplaceTriviaInListCore(
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SyntaxTreeCore.get -> Microsoft.CodeAnalysis.SyntaxTree
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAccessorDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAccessorList(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAliasQualifiedName(Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -2726,6 +2727,7 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.OptionsCore.get -> Micro
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.TryGetRootCore(out Microsoft.CodeAnalysis.SyntaxNode root) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.WithChangedText(Microsoft.CodeAnalysis.Text.SourceText newText) -> Microsoft.CodeAnalysis.SyntaxTree
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode node) -> void
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> void
 override Microsoft.CodeAnalysis.CSharp.Conversion.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.Conversion.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.Conversion.ToString() -> string

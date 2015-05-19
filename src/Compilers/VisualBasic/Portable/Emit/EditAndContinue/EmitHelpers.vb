@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    win32Resources:=Nothing,
                                    xmlDocStream:=Nothing,
-                                   generateDebugInfo:=True,
+                                   emittingPdb:=True,
                                    diagnostics:=diagnostics,
                                    filterOpt:=AddressOf changes.RequiresCompilation,
                                    cancellationToken:=cancellationToken) Then

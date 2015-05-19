@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// A factory for creating compilations instances.
         /// </summary>
-        public virtual ICompilationFactoryService CompilationFactory
+        internal virtual ICompilationFactoryService CompilationFactory
         {
             get { return this.GetService<ICompilationFactoryService>(); }
         }

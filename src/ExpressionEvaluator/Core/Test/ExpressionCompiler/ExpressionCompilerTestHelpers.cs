@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 fullImage,
                 metadataBytes,
                 symReader,
-                includeLocalSignatures);
+                includeLocalSignatures && (fullImage != null));
         }
 
         internal static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)

@@ -8,8 +8,11 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
@@ -1050,6 +1053,67 @@ namespace N
                 error: out error,
                 includeSymbols: false);
             Assert.Null(error);
+        }
+
+        [WorkItem(2441, "https://github.com/dotnet/roslyn/issues/2441")]
+        [Fact]
+        public void AssemblyQualifiedNameResolutionWithUnification()
+        {
+            var source1 = @"
+using SI = System.Int32;
+
+public class C1
+{
+    void M()
+    {
+    }
+}
+";
+
+            var source2 = @"
+public class C2 : C1
+{
+}
+";
+            ImmutableArray<MetadataReference> unused;
+
+            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20}, TestOptions.DebugDll, assemblyName: "A");
+            byte[] dllBytes1;
+            byte[] pdbBytes1;
+            comp1.EmitAndGetReferences(out dllBytes1, out pdbBytes1, out unused);
+            var ref1 = AssemblyMetadata.CreateFromImage(dllBytes1).GetReference(display: "A");
+
+            var comp2 = CreateCompilation(source2, new[] { MscorlibRef_v4_0_30316_17626, ref1 }, TestOptions.DebugDll, assemblyName: "B");
+            byte[] dllBytes2;
+            byte[] pdbBytes2;
+            comp2.EmitAndGetReferences(out dllBytes2, out pdbBytes2, out unused);
+            var ref2 = AssemblyMetadata.CreateFromImage(dllBytes2).GetReference(display: "B");
+
+            var modulesBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
+            modulesBuilder.Add(ref1.ToModuleInstance(dllBytes1, new SymReader(pdbBytes1, dllBytes1)));
+            modulesBuilder.Add(ref2.ToModuleInstance(dllBytes2, new SymReader(pdbBytes2, dllBytes2)));
+            modulesBuilder.Add(MscorlibRef_v4_0_30316_17626.ToModuleInstance(fullImage: null, symReader: null));
+            modulesBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
+
+            using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
+            {
+                var context = CreateMethodContext(runtime, "C1.M");
+
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("typeof(SI)", out error, testData);
+                Assert.Null(error);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""int""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
+            }
         }
     }
 

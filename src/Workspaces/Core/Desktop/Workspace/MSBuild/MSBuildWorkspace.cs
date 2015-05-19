@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 Encoding encoding = DetermineEncoding(text, document);
 
-                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? Encoding.UTF8);
+                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
         }

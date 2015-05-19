@@ -101,7 +101,7 @@ class C
     {
         Foo {|DeclConflict:x|} = new Foo(FooMeth);
         int [|$$z|] = 1; // Rename z to x
-        {|unresolve1:x|}({|unresolve2:z|});
+        x({|unresolve2:z|});
     }
 }
                             </Document>
@@ -109,7 +109,6 @@ class C
                     </Workspace>, renameTo:="x")
 
                 result.AssertLabeledSpansAre("DeclConflict", type:=RelatedLocationType.UnresolvedConflict)
-                result.AssertLabeledSpansAre("unresolve1", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("unresolve2", "x", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -6767,29 +6766,6 @@ class C
                         </Project>
                     </Workspace>, renameTo:="Mo", changedOptionSet:=renamingOptions)
 
-            End Using
-        End Sub
-
-        <WorkItem(446, "https://github.com/dotnet/roslyn/issues/446")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameWithNameOfInAttribute()
-            Using result = RenameEngineResult.Create(
-                   <Workspace>
-                       <Project Language="C#" CommonReferences="true">
-                           <Document>
-class C
-{
-    // Rename F to Fail
-    static void [|F|]$$(int x) { }
-
-    [System.Obsolete(nameof({|conflict:Fail|}))]
-    static void Fail() { }
-}
-                            </Document>
-                       </Project>
-                   </Workspace>, renameTo:="Fail")
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 #End Region

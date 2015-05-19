@@ -624,14 +624,21 @@ End Module
         End Sub
 
         Private Sub VerifyHasMe(source As String, moveNextMethodName As String, expectedType As String, expectedIL As String)
-            Dim comp = CreateCompilationWithReferences(
+            Dim sourceCompilation = CreateCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
+            Dim runtime = CreateRuntimeInstance(sourceCompilation)
             Dim context = CreateMethodContext(runtime, moveNextMethodName)
 
             VerifyHasMe(context, expectedType, expectedIL)
+
+            ' Now recompile and test CompileExpression with optimized code.
+            sourceCompilation = sourceCompilation.WithOptions(sourceCompilation.Options.WithOptimizationLevel(OptimizationLevel.Release))
+            runtime = CreateRuntimeInstance(sourceCompilation)
+            context = CreateMethodContext(runtime, moveNextMethodName)
+            ' In VB, "Me" is never optimized away.
+            VerifyHasMe(context, expectedType, expectedIL:=Nothing)
         End Sub
 
         Private Sub VerifyHasMe(context As EvaluationContext, expectedType As String, expectedIL As String)
@@ -642,14 +649,18 @@ End Module
             Assert.NotNull(assembly)
             Assert.NotEqual(0, assembly.Count)
             Dim localAndMethod = locals.Single(Function(l) l.LocalName = "Me")
-            VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
+            If expectedIL IsNot Nothing Then
+                VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
+            End If
             locals.Free()
 
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
             context.CompileExpression("Me", errorMessage, testData)
             Assert.Null(errorMessage)
-            VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
+            If expectedIL IsNot Nothing Then
+                VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
+            End If
         End Sub
 
         Private Shared Sub VerifyMethodData(methodData As CompilationTestData.MethodData, expectedType As String, expectedIL As String)
@@ -1150,7 +1161,7 @@ End Class
 
             Dim synthesizedMethod As MethodSymbol = getSynthesizedMethod(originalType)
 
-            Dim guessedMethod = CompilationContext.GetSubstitutedSourceMethod(synthesizedMethod, hasDisplayClassMe:=True)
+            Dim guessedMethod = CompilationContext.GetSubstitutedSourceMethod(synthesizedMethod, sourceMethodMustBeInstance:=True)
             Assert.Equal(desiredMethod, guessedMethod.OriginalDefinition)
         End Sub
 

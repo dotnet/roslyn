@@ -555,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Nothing
         End Function
 
-        Protected Overrides Function GetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
+        Protected Overrides Function TryGetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
             Return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
         End Function
 
@@ -726,11 +726,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return root.TryGetEnclosingBreakpointSpan(position, span)
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, span)
         End Function
 
         Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return node.TryGetEnclosingBreakpointSpan(node.SpanStart, span)
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, span)
         End Function
 
         Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of KeyValuePair(Of SyntaxNode, Integer))

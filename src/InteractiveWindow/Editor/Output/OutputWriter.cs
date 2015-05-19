@@ -26,6 +26,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             get { return _window; }
         }
 
+        public SortedSpans Spans
+        {
+            get 
+            {
+                return _spans;
+            }
+        }
+
         public override object InitializeLifetimeService()
         {
             return null;

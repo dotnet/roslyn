@@ -58,6 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Private ReadOnly _annotatedIdentifierTokens As New HashSet(Of SyntaxToken)
             Private ReadOnly _invocationExpressionsNeedingConflictChecks As New HashSet(Of InvocationExpressionSyntax)
             Private ReadOnly _syntaxFactsService As ISyntaxFactsService
+            Private ReadOnly _semanticFactsService As ISemanticFactsService
             Private ReadOnly _renameAnnotations As AnnotationTable(Of RenameAnnotation)
 
             Private ReadOnly Property AnnotateForComplexification As Boolean
@@ -104,6 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Me._renamableDeclarationLocation = Me._renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
                 Me._simplificationService = parameters.Document.Project.LanguageServices.GetService(Of ISimplificationService)()
                 Me._syntaxFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+                Me._semanticFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISemanticFactsService)()
                 Me._isVerbatim = Me._syntaxFactsService.IsVerbatimIdentifier(_replacementText)
                 Me._renameAnnotations = parameters.RenameAnnotations
             End Sub
@@ -318,6 +320,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     isNamespaceDeclarationReference = True
                 End If
 
+                Dim isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken)
+
                 Dim renameAnnotation = New RenameActionAnnotation(
                                     token.Span,
                                     isRenameLocation,
@@ -326,7 +330,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                     isOldText,
                                     renameDeclarationLocations,
                                     isNamespaceDeclarationReference,
-                                    isInvocationExpression:=False)
+                                    isInvocationExpression:=False,
+                                    isMemberGroupReference:=isMemberGroupReference)
 
                 _annotatedIdentifierTokens.Add(token)
                 newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span})
@@ -453,7 +458,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                             renameDeclarationLocations:=renameDeclarationLocations,
                                             isOriginalTextLocation:=False,
                                             isNamespaceDeclarationReference:=False,
-                                            isInvocationExpression:=True)
+                                            isInvocationExpression:=True,
+                                            isMemberGroupReference:=False)
 
                     Return renameAnnotation
                 End If
@@ -627,7 +633,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 #Region "Declaration Conflicts"
 
         Public Function LocalVariableConflict(
-            token As SyntaxToken
+            token As SyntaxToken,
+            newReferencedSymbols As IEnumerable(Of ISymbol)
             ) As Boolean Implements IRenameRewriterLanguageService.LocalVariableConflict
 
             ' This scenario is not present in VB and only in C#

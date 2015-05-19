@@ -585,8 +585,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/ruleset:", this.CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", this.ErrorLog);
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", this.SubsystemVersion);
-            // TODO: uncomment the below line once "/reportanalyzer" switch is added to compiler.
-            //commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
+            commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
             commandLine.AppendSwitchIfNotNull("/resource:", this.Resources, new string[] { "LogicalName", "Access" });
             commandLine.AppendSwitchIfNotNull("/target:", this.TargetType);

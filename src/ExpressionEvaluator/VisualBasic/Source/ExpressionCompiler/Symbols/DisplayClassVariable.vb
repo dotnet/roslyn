@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function SubstituteField(field As FieldSymbol, typeMap As TypeSubstitution) As FieldSymbol
             Debug.Assert(Not field.IsShared)
-            Debug.Assert(Not field.IsReadOnly)
+            Debug.Assert(Not field.IsReadOnly OrElse field.IsAnonymousTypeField(Nothing))
             Debug.Assert(field.CustomModifiers.Length = 0)
             Debug.Assert(Not field.HasConstantValue)
             Return New EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.Type), field.DeclaredAccessibility)

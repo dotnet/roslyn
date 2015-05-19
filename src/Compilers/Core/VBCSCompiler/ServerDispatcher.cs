@@ -284,7 +284,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (current.ConnectionTask.IsCompleted)
                 {
-                    Debug.Assert(current.ChangeKeepAliveTask == null);
+                    // https://github.com/dotnet/roslyn/issues/2866
+                    // Debug.Assert(current.ChangeKeepAliveTask == null);
 
                     if (current.ConnectionTask.Result == CompletionReason.ClientDisconnect)
                     {

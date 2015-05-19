@@ -7110,6 +7110,31 @@ out
             Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
+        <Fact>
+        Public Sub ReportAnalyzer()
+            Dim args1 = DefaultParse({"/reportanalyzer", "a.vb"}, _baseDirectory)
+            Assert.True(args1.ReportAnalyzer)
+
+            Dim args2 = DefaultParse({"", "a.vb"}, _baseDirectory)
+            Assert.False(args2.ReportAnalyzer)
+        End Sub
+
+        <Fact>
+        Public Sub ReportAnalyzerOutput()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, source})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

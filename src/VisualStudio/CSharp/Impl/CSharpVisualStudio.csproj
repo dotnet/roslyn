@@ -180,7 +180,6 @@
     <Compile Include="CodeModel\ParameterFlags.cs" />
     <Compile Include="CodeModel\ParameterFlagsExtensions.cs" />
     <Compile Include="CodeModel\SyntaxListExtensions.cs" />
-    <Compile Include="Debugging\BreakpointGetter.cs" />
     <Compile Include="Debugging\BreakpointResolver.cs" />
     <Compile Include="Debugging\CSharpBreakpointResolutionService.cs" />
     <Compile Include="Debugging\CSharpLanguageDebugInfoService.cs" />

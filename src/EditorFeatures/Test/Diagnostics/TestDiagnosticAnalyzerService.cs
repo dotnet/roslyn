@@ -68,11 +68,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public override string Id
+            public override string Display
             {
                 get
                 {
                     return nameof(TestAnalyzerReferenceByLanguage);
+                }
+            }
+
+            public override object Id
+            {
+                get
+                {
+                    return Display;
                 }
             }
 

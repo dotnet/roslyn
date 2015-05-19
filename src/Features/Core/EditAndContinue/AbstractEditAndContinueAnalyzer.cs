@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody);
 
-        protected abstract SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
+        protected abstract SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
 
         protected abstract Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit);
         protected abstract Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> knownMatches);
@@ -1130,8 +1130,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (TryGetLambdaBodies(oldLambda, out oldLambdaBody1, out oldLambdaBody2))
                     {
-                        Debug.Assert(IsLambda(newLambda));
-
                         if (lambdaBodyMatches == null)
                         {
                             lambdaBodyMatches = ArrayBuilder<Match<SyntaxNode>>.GetInstance();
@@ -1142,11 +1140,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             lazyActiveOrMatchedLambdas = new Dictionary<SyntaxNode, LambdaInfo>();
                         }
 
-                        lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+                        SyntaxNode newLambdaBody1 = TryGetPartnerLambdaBody(oldLambdaBody1, newLambda);
+                        if (newLambdaBody1 != null)
+                        {
+                            lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambdaBody1, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+                        }
 
                         if (oldLambdaBody2 != null)
                         {
-                            lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambda, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+                            SyntaxNode newLambdaBody2 = TryGetPartnerLambdaBody(oldLambdaBody2, newLambda);
+                            if (newLambdaBody2 != null)
+                            {
+                                lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambdaBody2, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+                            }
                         }
                     }
                 }
@@ -1194,16 +1200,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private Match<SyntaxNode> ComputeLambdaBodyMatch(
             SyntaxNode oldLambdaBody,
-            SyntaxNode newLambda,
+            SyntaxNode newLambdaBody,
             ActiveNode[] activeNodes,
-            [Out]Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
+            [Out]Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
             [Out]List<RudeEditDiagnostic> diagnostics)
         {
-            SyntaxNode newLambdaBody = GetPartnerLambdaBody(oldLambdaBody, newLambda);
-
             ActiveNode[] activeNodesInLambda;
             LambdaInfo info;
-            if (lazyActiveOrMatchedLambdas.TryGetValue(oldLambdaBody, out info))
+            if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out info))
             {
                 // Lambda may be matched but not be active.
                 activeNodesInLambda = info.ActiveNodeIndices?.Select(i => activeNodes[i]).ToArray();
@@ -1218,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             bool needsSyntaxMap;
             var lambdaBodyMatch = ComputeBodyMatch(oldLambdaBody, newLambdaBody, activeNodesInLambda ?? SpecializedCollections.EmptyArray<ActiveNode>(), diagnostics, out needsSyntaxMap);
 
-            lazyActiveOrMatchedLambdas[oldLambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
+            activeOrMatchedLambdas[oldLambdaBody] = info.WithMatch(lambdaBodyMatch, newLambdaBody);
 
             return lambdaBodyMatch;
         }
@@ -1948,19 +1952,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance);
 
-        private static bool MethodSignaturesEquivalent(IMethodSymbol oldMethod, IMethodSymbol newMethod)
+        protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
         {
-            return oldMethod.Parameters.SequenceEqual(newMethod.Parameters, s_assemblyEqualityComparer.ParameterEquivalenceComparer) &&
-                   s_assemblyEqualityComparer.ReturnTypeEquals(oldMethod, newMethod);
+            return oldParameters.SequenceEqual(newParameters, s_assemblyEqualityComparer.ParameterEquivalenceComparer) &&
+                   s_assemblyEqualityComparer.Equals(oldReturnType, newReturnType);
         }
 
-        private static bool PropertySignaturesEquivalent(IPropertySymbol oldProperty, IPropertySymbol newProperty)
-        {
-            return oldProperty.Parameters.SequenceEqual(newProperty.Parameters, s_assemblyEqualityComparer.ParameterEquivalenceComparer) &&
-                   s_assemblyEqualityComparer.Equals(oldProperty.Type, newProperty.Type);
-        }
-
-        protected static bool MemberSignaturesEquivalent(ISymbol oldMemberOpt, ISymbol newMemberOpt)
+        protected static bool MemberSignaturesEquivalent(
+            ISymbol oldMemberOpt, 
+            ISymbol newMemberOpt, 
+            Func<ImmutableArray<IParameterSymbol>, ITypeSymbol, ImmutableArray<IParameterSymbol>, ITypeSymbol, bool> signatureComparer = null)
         {
             if (oldMemberOpt == newMemberOpt)
             {
@@ -1972,16 +1973,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
+            if (signatureComparer == null)
+            {
+                signatureComparer = SignaturesEquivalent;
+            }
+
             switch (oldMemberOpt.Kind)
             {
                 case SymbolKind.Field:
-                    return s_assemblyEqualityComparer.Equals(((IFieldSymbol)oldMemberOpt).Type, ((IFieldSymbol)newMemberOpt).Type);
+                    var oldField = (IFieldSymbol)oldMemberOpt;
+                    var newField = (IFieldSymbol)newMemberOpt;
+                    return signatureComparer(ImmutableArray<IParameterSymbol>.Empty, oldField.Type, ImmutableArray<IParameterSymbol>.Empty, newField.Type);
 
                 case SymbolKind.Property:
-                    return PropertySignaturesEquivalent((IPropertySymbol)oldMemberOpt, (IPropertySymbol)newMemberOpt);
+                    var oldProperty = (IPropertySymbol)oldMemberOpt;
+                    var newProperty = (IPropertySymbol)newMemberOpt;
+                    return signatureComparer(oldProperty.Parameters, oldProperty.Type, newProperty.Parameters, newProperty.Type);
 
                 case SymbolKind.Method:
-                    return MethodSignaturesEquivalent((IMethodSymbol)oldMemberOpt, (IMethodSymbol)newMemberOpt);
+                    var oldMethod = (IMethodSymbol)oldMemberOpt;
+                    var newMethod = (IMethodSymbol)newMemberOpt;
+                    return signatureComparer(oldMethod.Parameters, oldMethod.ReturnType, newMethod.Parameters, newMethod.ReturnType);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(oldMemberOpt.Kind);

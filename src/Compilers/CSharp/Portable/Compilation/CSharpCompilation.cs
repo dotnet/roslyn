@@ -2322,7 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken)
@@ -2354,12 +2354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (generateDebugInfo && moduleBeingBuilt != null)
+                if (emittingPdb && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                 {
-                    if (!StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 // Perform initial bind of method bodies in spite of earlier errors. This is the same
@@ -2371,7 +2368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodCompiler.CompileMethodBodies(
                     this,
                     moduleBeingBuilt,
-                    generateDebugInfo,
+                    emittingPdb,
                     hasDeclarationErrors,
                     diagnostics: methodBodyDiagnosticBag,
                     filterOpt: filterOpt,

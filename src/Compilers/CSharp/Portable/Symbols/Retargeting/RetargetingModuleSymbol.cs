@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private struct DestinationData
         {
             public AssemblySymbol To;
-            public ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> SymbolMap;
+            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> _symbolMap;
+
+            public ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> SymbolMap => LazyInitializer.EnsureInitialized(ref _symbolMap);
         }
 
         internal readonly RetargetingSymbolTranslator RetargetingTranslator;
@@ -211,10 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     if (!_retargetingAssemblyMap.TryGetValue(underlyingBoundReferences[j], out destinationData))
                     {
-                        var symbolMap = new ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>();
-
                         _retargetingAssemblyMap.Add(underlyingBoundReferences[j],
-                            new DestinationData { To = referencedAssemblySymbols[i], SymbolMap = symbolMap });
+                            new DestinationData { To = referencedAssemblySymbols[i] });
                     }
                     else
                     {

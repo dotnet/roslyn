@@ -2820,7 +2820,6 @@ class C
             testData = new CompilationTestData();
             context.CompileExpression("z", out error, testData);
             Assert.Null(error);
-
             testData.GetMethodData("<>x.<>m0").VerifyIL(zIL);
 
             testData = new CompilationTestData();
@@ -2923,7 +2922,6 @@ class C
             testData = new CompilationTestData();
             context.CompileExpression("z", out error, testData);
             Assert.Null(error);
-
             testData.GetMethodData("<>x.<>m0").VerifyIL(zIL);
 
             testData = new CompilationTestData();

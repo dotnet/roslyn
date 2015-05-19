@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= _maxUncheckedRecursionDepth Then
+                If _recursionDepth >= MaxUncheckedRecursionDepth Then
                     PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
                 End If
 

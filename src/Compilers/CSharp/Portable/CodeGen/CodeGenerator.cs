@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             PEModuleBuilder moduleBuilder,
             DiagnosticBag diagnostics,
             OptimizationLevel optimizations,
-            bool emittingPdbs)
+            bool emittingPdb)
         {
             Debug.Assert((object)method != null);
             Debug.Assert(boundBody != null);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //   user code that can be stepped thru, or changed during EnC.
             // 
             // This setting only affects generating PDB sequence points, it shall not affect generated IL in any way.
-            _emitPdbSequencePoints = emittingPdbs && method.GenerateDebugInfo;
+            _emitPdbSequencePoints = emittingPdb && method.GenerateDebugInfo;
 
             if (_optimizations == OptimizationLevel.Release)
             {
