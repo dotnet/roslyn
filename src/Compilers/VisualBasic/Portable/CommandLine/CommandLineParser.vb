@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Public Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
+        Friend Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the standard Visual Basic source file extension
         ''' </summary>
         ''' <returns>A string representing the standard Visual Basic source file extension.</returns>
-        Protected Overrides ReadOnly Property RegularFileExtension As String
+        Friend Overrides ReadOnly Property RegularFileExtension As String
             Get
                 Return ".vb"
             End Get
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the standard Visual Basic script file extension.
         ''' </summary>
         ''' <returns>A string representing the standard Visual Basic script file extension.</returns>
-        Protected Overrides ReadOnly Property ScriptFileExtension As String
+        Friend Overrides ReadOnly Property ScriptFileExtension As String
             Get
                 Return ".vbx"
             End Get

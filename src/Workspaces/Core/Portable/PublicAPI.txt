@@ -522,7 +522,6 @@ Microsoft.CodeAnalysis.Project.GetLatestDocumentVersionAsync(System.Threading.Ca
 Microsoft.CodeAnalysis.Project.GetSemanticVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.VersionStamp>
 Microsoft.CodeAnalysis.Project.HasDocuments.get -> bool
 Microsoft.CodeAnalysis.Project.Id.get -> Microsoft.CodeAnalysis.ProjectId
-Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
 Microsoft.CodeAnalysis.Project.Language.get -> string
 Microsoft.CodeAnalysis.Project.LanguageServices.get -> Microsoft.CodeAnalysis.Host.HostLanguageServices
 Microsoft.CodeAnalysis.Project.MetadataReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference>
