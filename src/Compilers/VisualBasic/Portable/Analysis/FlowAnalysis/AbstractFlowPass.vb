@@ -2449,7 +2449,7 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitFieldOrPropertyInitializer(node As BoundFieldOrPropertyInitializer) As BoundNode
-            Visit(node.InitialValue)
+            VisitRvalue(node.InitialValue)
             Return Nothing
         End Function
 
