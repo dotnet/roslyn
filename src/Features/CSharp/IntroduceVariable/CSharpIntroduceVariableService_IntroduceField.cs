@@ -23,9 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             var oldTypeDeclaration = expression.GetAncestorOrThis<TypeDeclarationSyntax>();
 
+#if SCRIPTING
             var oldType = oldTypeDeclaration != null
                 ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken) as INamedTypeSymbol
                 : document.SemanticModel.Compilation.ScriptClass;
+#else
+            var oldType = document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken) as INamedTypeSymbol;
+#endif
             var newNameToken = (SyntaxToken)GenerateUniqueFieldName(document, expression, isConstant, cancellationToken);
 
             var newQualifiedName = oldTypeDeclaration != null
