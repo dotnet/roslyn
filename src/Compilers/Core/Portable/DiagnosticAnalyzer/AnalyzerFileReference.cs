@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message, e));
                 return;
             }
 
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
             if (builder.Count == initialCount && !reportedError)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
             }
         }
 
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message));
                 return;
             }
 
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
             if (builder.Count == initialCount && !reportedError)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
             }
         }
 
@@ -252,20 +253,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
             foreach (var typeName in analyzerTypeNames)
             {
-                DiagnosticAnalyzer analyzer = null;
+                Type type;
                 try
                 {
-                    var type = analyzerAssembly.GetType(typeName);
-                    if (DerivesFromDiagnosticAnalyzer(type))
-                    {
-                        analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type);
-                    }
+                    type = Type.GetType(typeName + ", " + analyzerAssembly.FullName, throwOnError: true);
                 }
                 catch (Exception e)
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e, typeName));
-                    analyzer = null;
+                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
                     reportedError = true;
+                    continue;
+                }
+
+                Debug.Assert(type != null);
+
+                DiagnosticAnalyzer analyzer;
+                try
+                {
+                    analyzer = Activator.CreateInstance(type) as DiagnosticAnalyzer;
+                }
+                catch (Exception e)
+                {
+                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                    reportedError = true;
+                    continue;
                 }
 
                 if (analyzer != null)
@@ -379,11 +390,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var declaringTypeDef = peModule.MetadataReader.GetTypeDefinition(declaringType);
                 return GetFullyQualifiedTypeName(declaringTypeDef, peModule) + "+" + peModule.MetadataReader.GetString(typeDef.Name);
             }
-        }
-
-        private static bool DerivesFromDiagnosticAnalyzer(Type type)
-        {
-            return type.GetTypeInfo().IsSubclassOf(typeof(DiagnosticAnalyzer));
         }
 
         public override bool Equals(object obj)
