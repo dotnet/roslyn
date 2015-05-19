@@ -63,7 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
         }
 
+        public event EventHandler<bool> BuildStarted;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+
+        public bool IsInProgress => _state != null;
 
         public ImmutableArray<DiagnosticData> GetBuildErrors()
         {
@@ -183,6 +186,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetDocumentAndErrors(solution)).ConfigureAwait(false);
                     await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetProjectAndErrors(solution)).ConfigureAwait(false);
+
+                    inprogressState.Done();
                 }
             }).CompletesAsyncOperation(asyncToken);
         }
@@ -346,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (_state == null)
             {
-                _state = new InprogressState();
+                _state = new InprogressState(this);
             }
 
             return _state;
@@ -354,12 +359,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void RaiseDiagnosticsUpdated(object id, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
         {
-            var diagnosticsUpdated = DiagnosticsUpdated;
-            if (diagnosticsUpdated != null)
-            {
-                diagnosticsUpdated(this, new DiagnosticsUpdatedArgs(
+            DiagnosticsUpdated?.Invoke(this, new DiagnosticsUpdatedArgs(
                    new ArgumentKey(id), _workspace, _workspace.CurrentSolution, projectId, documentId, items));
-            }
+        }
+
+        private void RaiseBuildStarted(bool started)
+        {
+            BuildStarted?.Invoke(this, started);
         }
 
         #region not supported
@@ -374,9 +380,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private class InprogressState
         {
+            private readonly ExternalErrorDiagnosticUpdateSource owner;
+
             private readonly HashSet<ProjectId> _builtProjects = new HashSet<ProjectId>();
             private readonly Dictionary<ProjectId, HashSet<DiagnosticData>> _projectMap = new Dictionary<ProjectId, HashSet<DiagnosticData>>();
             private readonly Dictionary<DocumentId, HashSet<DiagnosticData>> _documentMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
+
+            public InprogressState(ExternalErrorDiagnosticUpdateSource owner)
+            {
+                this.owner = owner;
+
+                // let people know build has started
+                // TODO: to be more accurate, it probably needs to be counted. but for now,
+                //       I think the way it is doing probably enough.
+                this.owner.RaiseBuildStarted(started: true);
+            }
+
+            public void Done()
+            {
+                this.owner.RaiseBuildStarted(started: false);
+            }
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()
             {

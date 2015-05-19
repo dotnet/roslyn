@@ -130,12 +130,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public BuildTableDataSource(Workspace workspce, ExternalErrorDiagnosticUpdateSource errorSource)
             {
                 _workspace = workspce;
-
                 _buildErrorSource = errorSource;
-                if (_buildErrorSource != null)
+
+                ConnectToBuildUpdateSource(errorSource);
+            }
+
+            private void ConnectToBuildUpdateSource(ExternalErrorDiagnosticUpdateSource errorSource)
+            {
+                if (errorSource == null)
                 {
-                    _buildErrorSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
+                    return;
                 }
+
+                IsStable = errorSource.IsInProgress;
+
+                errorSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
+                errorSource.BuildStarted += OnBuildStarted;
+            }
+
+            private void OnBuildStarted(object sender, bool started)
+            {
+                IsStable = !started;
+                ChangeStableState(IsStable);
             }
 
             public override string DisplayName => ServicesVSResources.BuildTableSourceName;
