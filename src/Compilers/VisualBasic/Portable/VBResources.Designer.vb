@@ -2369,6 +2369,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        '''</summary>
+        Friend ReadOnly Property ERR_ConstantStringTooLong() As String
+            Get
+                Return ResourceManager.GetString("ERR_ConstantStringTooLong", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Constants must have a value..
         '''</summary>
         Friend ReadOnly Property ERR_ConstantWithNoValue() As String
@@ -2492,15 +2501,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ConstructorNotFound1() As String
             Get
                 Return ResourceManager.GetString("ERR_ConstructorNotFound1", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
-        '''</summary>
-        Friend ReadOnly Property ERR_ContantStringTooLong() As String
-            Get
-                Return ResourceManager.GetString("ERR_ContantStringTooLong", resourceCulture)
             End Get
         End Property
         

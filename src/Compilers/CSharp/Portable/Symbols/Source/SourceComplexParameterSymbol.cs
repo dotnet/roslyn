@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the syntax list of custom attributes that declares atributes for this parameter symbol.
+        /// Gets the syntax list of custom attributes that declares attributes for this parameter symbol.
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {

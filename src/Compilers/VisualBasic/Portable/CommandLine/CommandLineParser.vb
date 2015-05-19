@@ -1404,8 +1404,8 @@ lVbRuntimePlus:
         End Function
 
         ' See ParseCommandLine in vbc.cpp.
-        Friend Overloads Shared Function ParseResourceDescription(name As String, resourceDesciptor As String, baseDirectory As String, diagnostics As IList(Of Diagnostic), embedded As Boolean) As ResourceDescription
-            If String.IsNullOrEmpty(resourceDesciptor) Then
+        Friend Overloads Shared Function ParseResourceDescription(name As String, resourceDescriptor As String, baseDirectory As String, diagnostics As IList(Of Diagnostic), embedded As Boolean) As ResourceDescription
+            If String.IsNullOrEmpty(resourceDescriptor) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<resinfo>")
                 Return Nothing
             End If
@@ -1418,7 +1418,7 @@ lVbRuntimePlus:
             Dim accessibility As String = Nothing
 
             ParseResourceDescription(
-                resourceDesciptor,
+                resourceDescriptor,
                 baseDirectory,
                 True,
                 filePath,

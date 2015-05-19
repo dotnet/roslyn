@@ -85,12 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
                     id = _language == LanguageNames.CSharp ? WRN_UnableToLoadAnalyzerIdCS : WRN_UnableToLoadAnalyzerIdVB;
                     messageFormat = ServicesVSResources.WRN_UnableToLoadAnalyzer;
-                    message = string.Format(ServicesVSResources.WRN_UnableToLoadAnalyzer, _fullPath, e.Exception.Message);
+                    message = string.Format(ServicesVSResources.WRN_UnableToLoadAnalyzer, _fullPath, e.Message);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = _language == LanguageNames.CSharp ? WRN_AnalyzerCannotBeCreatedIdCS : WRN_AnalyzerCannotBeCreatedIdVB;
                     messageFormat = ServicesVSResources.WRN_AnalyzerCannotBeCreated;
-                    message = string.Format(ServicesVSResources.WRN_AnalyzerCannotBeCreated, e.TypeName, _fullPath, e.Exception.Message);
+                    message = string.Format(ServicesVSResources.WRN_AnalyzerCannotBeCreated, e.TypeName, _fullPath, e.Message);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = _language == LanguageNames.CSharp ? WRN_NoAnalyzerInAssemblyIdCS : WRN_NoAnalyzerInAssemblyIdVB;

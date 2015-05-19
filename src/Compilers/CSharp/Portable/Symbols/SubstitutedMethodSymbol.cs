@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return selfIsDeclaration & otherIsDeclaration;
             }
 
-            // This checks if the type parameters on the method itself have been subsituted in the same way.
+            // This checks if the type parameters on the method itself have been substituted in the same way.
             int arity = this.Arity;
             for (int i = 0; i < arity; i++)
             {

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private Dictionary<TMethodSymbol, TNamedTypeSymbol> _lazyStateMachineTypes;
 
-        internal void SetStateMachineType(TMethodSymbol method, TNamedTypeSymbol stateMatchineClass)
+        internal void SetStateMachineType(TMethodSymbol method, TNamedTypeSymbol stateMachineClass)
         {
             Debug.Assert(!Frozen);
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
             lock (_lazyStateMachineTypes)
             {
-                _lazyStateMachineTypes.Add(method, stateMatchineClass);
+                _lazyStateMachineTypes.Add(method, stateMachineClass);
             }
         }
 

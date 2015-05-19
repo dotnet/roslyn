@@ -1497,5 +1497,59 @@ c""|]
 End Class"
             TestSmartTagText(code, String.Format(FeaturesResources.IntroduceLocalConstantFor, """a b c"""), index:=2)
         End Sub
+
+        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestNoConstantForInterpolatedStrings1()
+            Dim code =
+<File>
+Module Program
+    Sub Main()
+        Dim args As String() = Nothing
+        Console.WriteLine([|$"{DateTime.Now.ToString()}Text{args(0)}"|])
+    End Sub
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module Program
+    Sub Main()
+        Dim args As String() = Nothing
+        Dim {|Rename:v|} As String = $"{DateTime.Now.ToString()}Text{args(0)}"
+        Console.WriteLine(v)
+    End Sub
+End Module
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestNoConstantForInterpolatedStrings2()
+            Dim code =
+<File>
+Module Program
+    Sub Main()
+        Console.WriteLine([|$"Text{{s}}"|])
+        Console.WriteLine($"Text{{s}}")
+    End Sub
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module Program
+    Sub Main()
+        Dim {|Rename:v|} As String = $"Text{{s}}"
+        Console.WriteLine(v)
+        Console.WriteLine(v)
+    End Sub
+End Module
+</File>
+
+            Test(code, expected, index:=1, compareTokens:=False)
+        End Sub
     End Class
 End Namespace

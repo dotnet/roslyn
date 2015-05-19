@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="DynamicView" xml:space="preserve">
+    <value>Dynamic View</value>
+    <comment>IDynamicMetaObjectProvider and System.__ComObject expansion</comment>
+  </data>
+  <data name="DynamicViewNotDynamic" xml:space="preserve">
+    <value>Only COM or Dynamic objects can have Dynamic View</value>
+    <comment>Cannot use "dynamic" format specifier on a non-dynamic type</comment>
+  </data>
+  <data name="DynamicViewValueWarning" xml:space="preserve">
+    <value>Expanding the Dynamic View will get the dynamic members for the object</value>
+    <comment>Warning reported in Dynamic View value</comment>
+  </data>
   <data name="ErrorName" xml:space="preserve">
     <value>Error</value>
     <comment>Error result name</comment>
@@ -161,14 +173,14 @@
     <value>Expanding the Results View will enumerate the IEnumerable</value>
     <comment>Warning reported in Results View value</comment>
   </data>
-  <data name="SharedMembers" xml:space="preserve"> 
-    <value>Shared members</value> 
-    <comment>Shared type members (VB only)</comment> 
-  </data> 
-  <data name="StaticMembers" xml:space="preserve"> 
-    <value>Static members</value> 
-    <comment>Static type members (C# only)</comment> 
-  </data> 
+  <data name="SharedMembers" xml:space="preserve">
+    <value>Shared members</value>
+    <comment>Shared type members (VB only)</comment>
+  </data>
+  <data name="StaticMembers" xml:space="preserve">
+    <value>Static members</value>
+    <comment>Static type members (C# only)</comment>
+  </data>
   <data name="TypeVariablesName" xml:space="preserve">
     <value>Type variables</value>
     <comment>Type variables result name</comment>

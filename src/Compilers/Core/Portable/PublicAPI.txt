@@ -294,12 +294,16 @@ Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssembly() -> System
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.AnalyzerImageReference(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.AnalyzerLoadFailureEventArgs(Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode, System.Exception ex, string typeName) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.AnalyzerLoadFailureEventArgs(Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode, string message, System.Exception exceptionOpt = null, string typeNameOpt = null) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ErrorCode.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Exception.get -> System.Exception
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers = 3 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer = 2 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer = 1 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Message.get -> string
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.TypeName.get -> string
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText>
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalFiles) -> void
@@ -1988,9 +1992,6 @@ override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.ToString()
 override sealed Microsoft.CodeAnalysis.LocalizableString.Equals(object other) -> bool
 override sealed Microsoft.CodeAnalysis.LocalizableString.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.LocalizableString.ToString() -> string
-readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ErrorCode -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
-readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Exception -> System.Exception
-readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.TypeName -> string
 static Microsoft.CodeAnalysis.AnnotationExtensions.WithAdditionalAnnotations<TNode>(this TNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxAnnotation> annotations) -> TNode
 static Microsoft.CodeAnalysis.AnnotationExtensions.WithAdditionalAnnotations<TNode>(this TNode node, params Microsoft.CodeAnalysis.SyntaxAnnotation[] annotations) -> TNode
 static Microsoft.CodeAnalysis.AnnotationExtensions.WithoutAnnotations<TNode>(this TNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxAnnotation> annotations) -> TNode
