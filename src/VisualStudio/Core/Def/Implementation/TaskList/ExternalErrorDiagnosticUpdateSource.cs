@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly IAsynchronousOperationListener _listener;
 
         private InprogressState _state = null;
+        private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
@@ -62,7 +63,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
         }
 
+        public event EventHandler<bool> BuildStarted;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+
+        public bool IsInProgress => _state != null;
+
+        public ImmutableArray<DiagnosticData> GetBuildErrors()
+        {
+            return _lastBuiltResult;
+        }
+
+        public void ClearErrors(ProjectId projectId)
+        {
+            var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
+            _taskQueue.ScheduleTask(() =>
+            {
+                // record the project as built only if we are in build.
+                // otherwise (such as closing solution or removing project), no need to record it
+                _state?.Built(projectId);
+
+                ClearProjectErrors(projectId);
+            }).CompletesAsyncOperation(asyncToken);
+        }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
@@ -114,6 +136,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (e.Activated)
             {
+                // build just started, create the state and fire build in progress event.
+                var state = GetOrCreateInprogressState();
                 return;
             }
 
@@ -132,6 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     return;
                 }
+
+                _lastBuiltResult = inprogressState.GetBuildDiagnostics();
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
@@ -175,6 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetDocumentAndErrors(solution)).ConfigureAwait(false);
                     await SyncBuildErrorsAndReportAsync(solution, liveDiagnosticChecker, inprogressState.GetProjectAndErrors(solution)).ConfigureAwait(false);
+
+                    inprogressState.Done();
                 }
             }).CompletesAsyncOperation(asyncToken);
         }
@@ -274,18 +302,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return map;
         }
 
-        public void ClearErrors(ProjectId projectId)
-        {
-            var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
-            _taskQueue.ScheduleTask(() =>
-            {
-                var state = GetOrCreateInprogressState();
-                state.Built(projectId);
-
-                ClearProjectErrors(projectId);
-            }).CompletesAsyncOperation(asyncToken);
-        }
-
         private void ClearProjectErrors(ProjectId projectId, Solution solution = null)
         {
             // remove all project errors
@@ -338,7 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (_state == null)
             {
-                _state = new InprogressState();
+                _state = new InprogressState(this);
             }
 
             return _state;
@@ -346,12 +362,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void RaiseDiagnosticsUpdated(object id, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
         {
-            var diagnosticsUpdated = DiagnosticsUpdated;
-            if (diagnosticsUpdated != null)
-            {
-                diagnosticsUpdated(this, new DiagnosticsUpdatedArgs(
+            DiagnosticsUpdated?.Invoke(this, new DiagnosticsUpdatedArgs(
                    new ArgumentKey(id), _workspace, _workspace.CurrentSolution, projectId, documentId, items));
-            }
+        }
+
+        private void RaiseBuildStarted(bool started)
+        {
+            BuildStarted?.Invoke(this, started);
         }
 
         #region not supported
@@ -366,9 +383,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private class InprogressState
         {
+            private readonly ExternalErrorDiagnosticUpdateSource owner;
+
             private readonly HashSet<ProjectId> _builtProjects = new HashSet<ProjectId>();
             private readonly Dictionary<ProjectId, HashSet<DiagnosticData>> _projectMap = new Dictionary<ProjectId, HashSet<DiagnosticData>>();
             private readonly Dictionary<DocumentId, HashSet<DiagnosticData>> _documentMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
+
+            public InprogressState(ExternalErrorDiagnosticUpdateSource owner)
+            {
+                this.owner = owner;
+
+                // let people know build has started
+                // TODO: to be more accurate, it probably needs to be counted. but for now,
+                //       I think the way it is doing probably enough.
+                this.owner.RaiseBuildStarted(started: true);
+            }
+
+            public void Done()
+            {
+                this.owner.RaiseBuildStarted(started: false);
+            }
+
+            public ImmutableArray<DiagnosticData> GetBuildDiagnostics()
+            {
+                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+
+                builder.AddRange(_projectMap.Values.SelectMany(d => d));
+                builder.AddRange(_documentMap.Values.SelectMany(d => d));
+
+                return builder.ToImmutable();
+            }
 
             public void Built(ProjectId projectId)
             {
@@ -455,15 +499,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private class ArgumentKey : ErrorSourceId.Base<object>
+        private class ArgumentKey : BuildToolId.Base<object>
         {
             public ArgumentKey(object key) : base(key)
             {
             }
 
-            public override string ErrorSource
+            public override string BuildTool
             {
-                get { return PredefinedErrorSources.Build; }
+                get { return PredefinedBuildTools.Build; }
             }
 
             public override bool Equals(object obj)

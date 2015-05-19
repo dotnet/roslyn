@@ -68,6 +68,7 @@
     <Compile Include="Implementation\ProjectInfo\DefaultProjectInfoServiceFactory.cs" />
     <Compile Include="Implementation\TableDataSource\MiscTodoListTableControlEventProcessorProvider.cs" />
     <Compile Include="Implementation\TableDataSource\UriNavigator.cs" />
+    <Compile Include="Implementation\TableDataSource\VisualStudioBaseDiagnosticListTable.LiveTableDataSource.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioTodoListTable.cs" />
     <Compile Include="Implementation\Utilities\BrowserHelper.cs" />

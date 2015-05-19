@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -15,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected readonly object Gate;
         protected readonly Dictionary<object, AbstractTableEntriesFactory<TData>> Map;
 
+        protected bool IsStable;
         protected ImmutableArray<SubscriptionWithoutLock> Subscriptions;
 
         public AbstractTableDataSource()
@@ -22,6 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Gate = new object();
             Map = new Dictionary<object, AbstractTableEntriesFactory<TData>>();
             Subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
+
+            IsStable = true;
         }
 
         public abstract string DisplayName { get; }
@@ -57,28 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        protected void ConnectToSolutionCrawlerService(Workspace workspace)
-        {
-            var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
-            var reporter = crawlerService.GetProgressReporter(workspace);
-
-            // set initial value
-            ChangeStableState(stable: !reporter.InProgress);
-
-            reporter.Started += OnSolutionCrawlerStarted;
-            reporter.Stopped += OnSolutionCrawlerStopped;
-        }
-
-        private void OnSolutionCrawlerStarted(object sender, EventArgs e)
-        {
-            ChangeStableState(stable: false);
-        }
-
-        private void OnSolutionCrawlerStopped(object sender, EventArgs e)
-        {
-            ChangeStableState(stable: true);
-        }
-
         protected void OnDataRemoved(object key)
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
@@ -106,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void ChangeStableState(bool stable)
+        protected void ChangeStableState(bool stable)
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
 
@@ -217,6 +196,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     AddOrUpdate(provider, newFactory: true);
                 }
+
+                IsStable = _source.IsStable;
             }
 
             private void Register()
