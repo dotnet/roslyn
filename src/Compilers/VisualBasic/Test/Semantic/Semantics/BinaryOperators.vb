@@ -1436,7 +1436,7 @@ Module M
 
             Dim err = compilation.GetDiagnostics().Single()
 
-            Assert.Equal(ERRID.ERR_ContantStringTooLong, err.Code)
+            Assert.Equal(ERRID.ERR_ConstantStringTooLong, err.Code)
             Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         End Sub
 

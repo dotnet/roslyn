@@ -4635,7 +4635,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AlignmentMagnitude_Title" xml:space="preserve">
     <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
-  <data name="ERR_ContantStringTooLong" xml:space="preserve">
+  <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
 </root>

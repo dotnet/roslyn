@@ -2789,6 +2789,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        /// </summary>
+        internal static string ERR_ConstantStringTooLong {
+            get {
+                return ResourceManager.GetString("ERR_ConstantStringTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Constant value &apos;{0}&apos; cannot be converted to a &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_ConstOutOfRange {
@@ -2848,15 +2857,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ConstValueRequired {
             get {
                 return ResourceManager.GetString("ERR_ConstValueRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
-        /// </summary>
-        internal static string ERR_ContantStringTooLong {
-            get {
-                return ResourceManager.GetString("ERR_ContantStringTooLong", resourceCulture);
             }
         }
         
