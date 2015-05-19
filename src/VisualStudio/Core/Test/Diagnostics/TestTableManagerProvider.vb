@@ -140,10 +140,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Public Property IsStable As Boolean Implements ITableDataSink.IsStable
                     Get
-                        Throw New NotImplementedException()
+                        Return True
                     End Get
                     Set(value As Boolean)
-                        Throw New NotImplementedException()
                     End Set
                 End Property
             End Class
