@@ -560,10 +560,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitAssignmentOperator(node As BoundAssignmentOperator) As BoundNode
-                Dim isIndirectAssignment As Boolean = isIndirectAssignment(node)
+                Dim isIndirect As Boolean = IsIndirectAssignment(node)
 
                 Dim left As BoundExpression = VisitExpression(node.Left,
-                                                              If(isIndirectAssignment,
+                                                              If(isIndirect,
                                                                  ExprContext.Address,
                                                                  ExprContext.AssignmentTarget))
 
@@ -623,7 +623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(node.Left.Type.IsSameTypeIgnoringCustomModifiers(node.Right.Type),
                                  "cannot use stack when assignment involves implicit coercion of the value")
 
-                    Debug.Assert(Not isIndirectAssignment, "indirect assignment is a read, not a write")
+                    Debug.Assert(Not isIndirect, "indirect assignment is a read, not a write")
 
                     RecordVarWrite(storedAssignmentLocal.LocalSymbol)
                 End If
