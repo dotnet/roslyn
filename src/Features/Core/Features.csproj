@@ -180,7 +180,7 @@
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
-    <Compile Include="Diagnostics\PredefinedErrorSources.cs" />
+    <Compile Include="Diagnostics\PredefinedBuildTools.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_BuildSynchronization.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.ProjectAnalyzerReferenceChangedEventArgs.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateManager.cs" />
@@ -189,7 +189,7 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.StateSet.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_BuildSynchronization.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetLatestDiagnosticsForSpan.cs" />
-    <Compile Include="Diagnostics\ErrorSourceId.cs" />
+    <Compile Include="Diagnostics\BuildToolId.cs" />
     <Compile Include="Diagnostics\HostAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
     <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />

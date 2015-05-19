@@ -1510,6 +1510,29 @@ BC30203: Identifier expected.
 </errors>)
         End Sub
 
+        <Fact(), WorkItem(2896, "https://github.com/dotnet/roslyn/issues/2896")>
+        Public Sub Issue2896()
+            Dim program = <compilation>
+                              <file name="a.b"><![CDATA[
+Public Class Test
+
+    Private _f1 As Boolean = Not Me.DaysTimesInputEnable
+    Private _f2 As Boolean = Me.DaysTimesInputEnable
+
+    Public ReadOnly Property DaysTimesInputEnable As Boolean
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+                            ]]></file>
+                          </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(program)
+
+            CompilationUtils.AssertTheseDiagnostics(comp)
+        End Sub
+
     End Class
 
 End Namespace

@@ -148,6 +148,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
+        public void ValidAnalyzerReference_Id()
+        {
+            var directory = Temp.CreateDirectory();
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+
+            AssemblyIdentity expectedIdentity = null;
+            AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedIdentity);
+
+            Assert.Equal(expected: expectedIdentity, actual: reference.Id);
+        }
+
+        [Fact]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
+        public void BadAnalyzerReference_Id()
+        {
+            var directory = Temp.CreateDirectory();
+            var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
+
+            Assert.Equal(expected: "Foo", actual: reference.Id);
+        }
+
+        [Fact]
         [WorkItem(1032909)]
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {

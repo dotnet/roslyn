@@ -117,6 +117,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim rewrittenBody As BoundStatement = DirectCast(Visit(body), BoundStatement)
 
+                Dim rootScopeHoistedLocals As ImmutableArray(Of FieldSymbol) = Nothing
+                TryUnwrapBoundStateMachineScope(rewrittenBody, rootScopeHoistedLocals)
+
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
 
                 ' NOTE: We don't need to create/use any label after Dispatch inside Try block below 
@@ -201,14 +204,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 bodyBuilder.Add(Me.F.Label(Me._exitLabel))
                 bodyBuilder.Add(Me.F.Return())
 
-                Dim newBody As ImmutableArray(Of BoundStatement) = bodyBuilder.ToImmutableAndFree()
-
-                Me._owner.CloseMethod(
-                    Me.F.Block(
+                Dim newStatements As ImmutableArray(Of BoundStatement) = bodyBuilder.ToImmutableAndFree()
+                Dim newBody = Me.F.Block(
                         If(Me._exprRetValue IsNot Nothing,
                            ImmutableArray.Create(Me._exprRetValue, Me.CachedState),
                            ImmutableArray.Create(Me.CachedState)),
-                       newBody))
+                       newStatements)
+
+                If rootScopeHoistedLocals.Length > 0 Then
+                    newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody)
+                End If
+
+                Me._owner.CloseMethod(newBody)
             End Sub
 
             Protected Overrides ReadOnly Property ResumeLabelName As String

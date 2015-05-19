@@ -2774,15 +2774,15 @@ class C : Interface<int>
             Assert.False(implementingNormalEvent.IsWindowsRuntimeEvent);
             Assert.True(implementingWinRTEvent.IsWindowsRuntimeEvent);
 
-            var subsitutedNormalEvent = implementingNormalEvent.ExplicitInterfaceImplementations.Single();
-            var subsitutedWinRTEvent = implementingWinRTEvent.ExplicitInterfaceImplementations.Single();
+            var substitutedNormalEvent = implementingNormalEvent.ExplicitInterfaceImplementations.Single();
+            var substitutedWinRTEvent = implementingWinRTEvent.ExplicitInterfaceImplementations.Single();
 
-            Assert.IsType<SubstitutedEventSymbol>(subsitutedNormalEvent);
-            Assert.IsType<SubstitutedEventSymbol>(subsitutedWinRTEvent);
+            Assert.IsType<SubstitutedEventSymbol>(substitutedNormalEvent);
+            Assert.IsType<SubstitutedEventSymbol>(substitutedWinRTEvent);
 
             // Based on original definition.
-            Assert.False(subsitutedNormalEvent.IsWindowsRuntimeEvent);
-            Assert.True(subsitutedWinRTEvent.IsWindowsRuntimeEvent);
+            Assert.False(substitutedNormalEvent.IsWindowsRuntimeEvent);
+            Assert.True(substitutedWinRTEvent.IsWindowsRuntimeEvent);
 
             var retargetingAssembly = new RetargetingAssemblySymbol((SourceAssemblySymbol)comp.Assembly, isLinked: false);
             retargetingAssembly.SetCorLibrary(comp.Assembly.CorLibrary);

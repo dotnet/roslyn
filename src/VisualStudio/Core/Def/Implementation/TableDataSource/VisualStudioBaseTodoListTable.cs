@@ -30,12 +30,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.Column
         };
 
+        private readonly TableDataSource _source;
+
         protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.TasksTable, new TableDataSource(workspace, todoListProvider, identifier))
+            base(workspace, provider, StandardTables.TasksTable)
         {
+            _source = new TableDataSource(workspace, todoListProvider, identifier);
+            AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
-        internal override IReadOnlyCollection<string> Columns { get { return s_columns; } }
+        internal override IReadOnlyCollection<string> Columns => s_columns;
+
+        protected override void AddTableSourceIfNecessary(Solution solution)
+        {
+            if (solution.ProjectIds.Count == 0 || this.TableManager.Sources.Any(s => s == _source))
+            {
+                return;
+            }
+
+            AddTableSource(_source);
+        }
+
+        protected override void RemoveTableSourceIfNecessary(Solution solution)
+        {
+            if (solution.ProjectIds.Count > 0 || !this.TableManager.Sources.Any(s => s == _source))
+            {
+                return;
+            }
+
+            this.TableManager.RemoveSource(_source);
+        }
+
+        protected override void ShutdownSource()
+        {
+            _source.Shutdown();
+        }
 
         private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
         {
@@ -53,29 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ConnectToSolutionCrawlerService(_workspace);
             }
 
-            public override string DisplayName
-            {
-                get
-                {
-                    return ServicesVSResources.TodoTableSourceName;
-                }
-            }
-
-            public override string SourceTypeIdentifier
-            {
-                get
-                {
-                    return StandardTableDataSources.CommentTableDataSource;
-                }
-            }
-
-            public override string Identifier
-            {
-                get
-                {
-                    return _identifier;
-                }
-            }
+            public override string DisplayName => ServicesVSResources.TodoTableSourceName;
+            public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
+            public override string Identifier => _identifier;
 
             private void OnTodoListUpdated(object sender, TaskListEventArgs e)
             {

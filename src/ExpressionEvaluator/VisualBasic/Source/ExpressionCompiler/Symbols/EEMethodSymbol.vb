@@ -95,14 +95,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim parameterBuilder = ArrayBuilder(Of ParameterSymbol).GetInstance()
 
             Dim substitutedSourceMeParameter = Me.SubstitutedSourceMethod.MeParameter
-            Dim subsitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
-            If subsitutedSourceHasMeParameter Then
+            Dim substitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
+            If substitutedSourceHasMeParameter Then
                 _meParameter = MakeParameterSymbol(0, GeneratedNames.MakeStateMachineCapturedMeName(), substitutedSourceMeParameter) ' NOTE: Name doesn't actually matter.
                 Debug.Assert(_meParameter.Type = Me.SubstitutedSourceMethod.ContainingType)
                 parameterBuilder.Add(_meParameter)
             End If
 
-            Dim ordinalOffset = If(subsitutedSourceHasMeParameter, 1, 0)
+            Dim ordinalOffset = If(substitutedSourceHasMeParameter, 1, 0)
             For Each substitutedSourceParameter In Me.SubstitutedSourceMethod.Parameters
                 Dim ordinal = substitutedSourceParameter.Ordinal + ordinalOffset
                 Debug.Assert(ordinal = parameterBuilder.Count)

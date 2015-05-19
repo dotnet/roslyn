@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -18,6 +19,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected CSharpSyntaxWalker(SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node)
         {
             this.Depth = depth;
+        }
+
+        private int _recursionDepth;
+
+        public override void Visit(SyntaxNode node)
+        {
+            if (node != null)
+            {
+                _recursionDepth++;
+                if (_recursionDepth > Syntax.InternalSyntax.LanguageParser.MaxUncheckedRecursionDepth)
+                {
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
+                }
+
+                ((CSharpSyntaxNode)node).Accept(this);
+
+                _recursionDepth--;
+            }
         }
 
         public override void DefaultVisit(SyntaxNode node)

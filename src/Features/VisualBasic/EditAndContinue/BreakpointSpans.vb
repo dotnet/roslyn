@@ -1,17 +1,46 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
-Imports System.Runtime.CompilerServices
+Imports System.Threading
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    ' TODO (tomat): move to the compiler. Bug #764678.
+Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend Module BreakpointSpans
+        Friend Function TryGetBreakpointSpan(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken, <Out> ByRef breakpointSpan As TextSpan) As Boolean
+            Dim source = tree.GetText(cancellationToken)
+
+            ' If the line is entirely whitespace, then don't set any breakpoint there.
+            Dim line = source.Lines.GetLineFromPosition(position)
+            If IsBlank(line) Then
+                breakpointSpan = Nothing
+                Return False
+            End If
+
+            ' If the user is asking for breakpoint in an inactive region, then just create a line
+            ' breakpoint there.
+            If tree.IsInInactiveRegion(position, cancellationToken) Then
+                breakpointSpan = Nothing
+                Return True
+            End If
+
+            Dim root = tree.GetRoot(cancellationToken)
+            Return TryGetEnclosingBreakpointSpan(root, position, breakpointSpan)
+        End Function
+
+        Private Function IsBlank(line As TextLine) As Boolean
+            Dim text = line.ToString()
+
+            For i = 0 To text.Length - 1
+                If Not SyntaxFacts.IsWhitespace(text(i)) Then
+                    Return False
+                End If
+            Next
+
+            Return True
+        End Function
+
         ''' <summary>
         ''' Given a syntax token determines a text span delimited by the closest applicable sequence points 
         ''' encompassing the token.
@@ -19,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <remarks>
         ''' If the span exists it Is possible To place a breakpoint at the given position.
         ''' </remarks>
-        <Extension>
         Public Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
             Dim node = root.FindToken(position).Parent
 

@@ -2749,6 +2749,34 @@ class C
             locals.Free();
         }
 
+        [WorkItem(2336, "https://github.com/dotnet/roslyn/issues/2336")]
+        [Fact]
+        public void LocalsOnAsyncMethodClosingBrace()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    async void M()
+    {
+        string s = null;
+#line 999
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(compilation);
+            var context = CreateMethodContext(runtime, "C.<M>d__0.MoveNext()", atLineNumber: 999);
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            string typeName;
+            var testData = new CompilationTestData();
+            context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+            Assert.Equal(locals.Count, 2);
+            VerifyLocal(testData, "<>x", locals[0], "<>m0", "this");
+            VerifyLocal(testData, "<>x", locals[1], "<>m1", "s");
+            locals.Free();
+        }
+
         [WorkItem(1139013, "DevDiv")]
         [Fact]
         public void TransparentIdentifiers_FromParameter()

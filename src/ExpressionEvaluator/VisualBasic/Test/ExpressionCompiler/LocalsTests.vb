@@ -2729,6 +2729,37 @@ End Class"
             locals.Free()
         End Sub
 
+        <WorkItem(2336, "https://github.com/dotnet/roslyn/issues/2336")>
+        <Fact>
+        Public Sub LocalsOnAsyncEndSub()
+            Const source = "
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Async Sub M()
+        Dim s As String = Nothing
+#ExternalSource(""test"", 999)
+    End Sub
+#End ExternalSource
+End Class
+"
+            Dim comp = CreateCompilationWithReferences(
+                MakeSources(source),
+                {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
+                TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_1_M.MoveNext", atLineNumber:=999)
+            Dim testData As New CompilationTestData()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            Assert.Equal(2, locals.Count)
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "Me")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "s")
+            locals.Free()
+        End Sub
+
         <WorkItem(1139013, "DevDiv")>
         <Fact>
         Public Sub TransparentIdentifiers_FromParameter()

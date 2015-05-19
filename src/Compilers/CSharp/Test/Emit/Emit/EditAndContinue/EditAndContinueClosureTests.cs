@@ -2042,5 +2042,491 @@ class C
                 "C: {<> c}",
                 "C.<>c: {<>9__2_0#1, <>9__2_0, <>9__2_2#1, <.ctor>b__2_0#1, <.ctor>b__2_0, <.ctor>b__2_2#1}");
         }
+
+        [Fact]
+        public void Queries_Select_Reduced1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>where a > 0</N:1>
+                          <N:2>select a</N:2></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>where a > 0</N:1>
+                          <N:2>select a + 1</N:2></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // new lambda for Select(a => a + 1)
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
+
+            diff1.VerifyIL("C.<>c.<F>b__0_1#1", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  ret
+}
+");
+            // old query:
+            v0.VerifyIL("C.F", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+  IL_002b:  stloc.0
+  IL_002c:  ret
+}
+");
+            // new query:
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       81 (0x51)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+  IL_0030:  dup
+  IL_0031:  brtrue.s   IL_004a
+  IL_0033:  pop
+  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0039:  ldftn      ""int C.<>c.<F>b__0_1#1(int)""
+  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0044:  dup
+  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+  IL_004a:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_004f:  stloc.0
+  IL_0050:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Queries_Select_Reduced2()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>where a > 0</N:1>
+                          <N:2>select a + 1</N:2></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>where a > 0</N:1>
+                          <N:2>select a</N:2></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // lambda for Select(a => a + 1) is gone
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <F>b__0_0}");
+
+            // old query:
+            v0.VerifyIL("C.F", @"
+{
+  // Code size       81 (0x51)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_0030:  dup
+  IL_0031:  brtrue.s   IL_004a
+  IL_0033:  pop
+  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0039:  ldftn      ""int C.<>c.<F>b__0_1(int)""
+  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0044:  dup
+  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_004a:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_004f:  stloc.0
+  IL_0050:  ret
+}
+");
+            // new query:
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
+  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+  IL_002b:  stloc.0
+  IL_002c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>group a by a</N:1></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>group a + 1 by a</N:1></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // new lambda for GroupBy(..., a => a + 1)
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
+
+            diff1.VerifyIL("C.<>c.<F>b__0_1#1", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  ret
+}
+");
+            // old query:
+            v0.VerifyIL("C.F", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_0026:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_002b:  stloc.0
+  IL_002c:  ret
+}
+");
+            // new query:
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_0026:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0045
+  IL_002e:  pop
+  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0034:  ldftn      ""int C.<>c.<F>b__0_1#1(int)""
+  IL_003a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_003f:  dup
+  IL_0040:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+  IL_0045:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
+  IL_004a:  stloc.0
+  IL_004b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced2()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>group a + 1 by a</N:1></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var <N:0>result = from a in array
+                          <N:1>group a by a</N:1></N:0>;
+    }
+
+    int[] array = null;
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // lambda for GroupBy(..., a => a + 1) is gone
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <F>b__0_0}");
+
+            // old query:
+            v0.VerifyIL("C.F", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_0026:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0045
+  IL_002e:  pop
+  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0034:  ldftn      ""int C.<>c.<F>b__0_1(int)""
+  IL_003a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_003f:  dup
+  IL_0040:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_0045:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
+  IL_004a:  stloc.0
+  IL_004b:  ret
+}
+");
+            // new query:
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int[] C.array""
+  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0026
+  IL_000f:  pop
+  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
+  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_0026:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_002b:  stloc.0
+  IL_002c:  ret
+}
+");
+        }
     }
 }

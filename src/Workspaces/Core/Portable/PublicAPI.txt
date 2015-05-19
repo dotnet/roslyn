@@ -406,12 +406,6 @@ Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetRequiredService<TWorkspaceS
 Microsoft.CodeAnalysis.Host.HostWorkspaceServices.MetadataFilter
 Microsoft.CodeAnalysis.Host.IAnalyzerService
 Microsoft.CodeAnalysis.Host.IAnalyzerService.GetLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
-Microsoft.CodeAnalysis.Host.ICompilationFactoryService
-Microsoft.CodeAnalysis.Host.ICompilationFactoryService.CreateCompilation(string assemblyName, Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Host.ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, Microsoft.CodeAnalysis.CompilationOptions options, System.Type hostObjectType) -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Host.ICompilationFactoryService.GetCompilationFromCompilationReference(Microsoft.CodeAnalysis.MetadataReference reference) -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Host.ICompilationFactoryService.GetDefaultCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
-Microsoft.CodeAnalysis.Host.ICompilationFactoryService.IsCompilationReference(Microsoft.CodeAnalysis.MetadataReference reference) -> bool
 Microsoft.CodeAnalysis.Host.ILanguageService
 Microsoft.CodeAnalysis.Host.IPersistentStorage
 Microsoft.CodeAnalysis.Host.IPersistentStorage.ReadStreamAsync(Microsoft.CodeAnalysis.Document document, string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.IO.Stream>
@@ -528,7 +522,6 @@ Microsoft.CodeAnalysis.Project.GetLatestDocumentVersionAsync(System.Threading.Ca
 Microsoft.CodeAnalysis.Project.GetSemanticVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.VersionStamp>
 Microsoft.CodeAnalysis.Project.HasDocuments.get -> bool
 Microsoft.CodeAnalysis.Project.Id.get -> Microsoft.CodeAnalysis.ProjectId
-Microsoft.CodeAnalysis.Project.IsSubmission.get -> bool
 Microsoft.CodeAnalysis.Project.Language.get -> string
 Microsoft.CodeAnalysis.Project.LanguageServices.get -> Microsoft.CodeAnalysis.Host.HostLanguageServices
 Microsoft.CodeAnalysis.Project.MetadataReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.MetadataReference>
@@ -1266,7 +1259,6 @@ virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertNodesAfter(Microsof
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertNodesBefore(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> newDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ReplaceNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxNode newDeclaration) -> Microsoft.CodeAnalysis.SyntaxNode
-virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.CompilationFactory.get -> Microsoft.CodeAnalysis.Host.ICompilationFactoryService
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetLanguageServices(string languageName) -> Microsoft.CodeAnalysis.Host.HostLanguageServices
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.IsSupported(string languageName) -> bool
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.PersistentStorage.get -> Microsoft.CodeAnalysis.Host.IPersistentStorageService

@@ -482,10 +482,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
                 Assert.Equal(1, snapshot.Count)
 
-                Dim errorSource As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ErrorSource, errorSource))
+                Dim buildTool As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.BuildTool, buildTool))
 
-                Assert.Equal("ErrorSource", errorSource.ToString())
+                Assert.Equal("BuildTool", buildTool.ToString())
             End Using
         End Sub
 
@@ -554,15 +554,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Sub
 
             Private Class ErrorId
-                Inherits ErrorSourceId.Base(Of TestDiagnosticService, Object)
+                Inherits BuildToolId.Base(Of TestDiagnosticService, Object)
 
                 Public Sub New(service As TestDiagnosticService, id As Object)
                     MyBase.New(service, id)
                 End Sub
 
-                Public Overrides ReadOnly Property ErrorSource As String
+                Public Overrides ReadOnly Property BuildTool As String
                     Get
-                        Return "ErrorSource"
+                        Return "BuildTool"
                     End Get
                 End Property
             End Class

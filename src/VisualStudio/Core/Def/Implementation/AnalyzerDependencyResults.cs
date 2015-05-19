@@ -7,6 +7,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal sealed class AnalyzerDependencyResults
     {
+        public static readonly AnalyzerDependencyResults Empty = new AnalyzerDependencyResults(ImmutableArray<AnalyzerDependencyConflict>.Empty, ImmutableArray<MissingAnalyzerDependency>.Empty);
+
         public AnalyzerDependencyResults(ImmutableArray<AnalyzerDependencyConflict> conflicts, ImmutableArray<MissingAnalyzerDependency> missingDependencies)
         {
             Debug.Assert(conflicts != default(ImmutableArray<AnalyzerDependencyConflict>));

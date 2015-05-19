@@ -653,7 +653,7 @@
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="VBCSCompiler" />
-    <InternalsVisibleTo Include="Microsoft.Build.Tasks.Roslyn" />
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
@@ -712,6 +712,7 @@
       <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
   </ItemGroup>
+<!-- Support for deterministic PDB (workitem 926)
   <ItemGroup>
     <Content Include="..\..\..\..\packages\Microsoft.DiaSymReader.Native.1.0.0-rc2\lib\any~windows\x86\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -720,6 +721,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+-->
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

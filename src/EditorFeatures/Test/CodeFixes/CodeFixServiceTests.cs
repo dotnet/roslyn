@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 }
             }
 
-            public override string Id
+            public override object Id
             {
                 get
                 {

@@ -3598,10 +3598,11 @@ namespace ConsoleApplication23
         }
 
         [WorkItem(844482)]
+        [WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public void RemoveCastFromDerivedToBaseWithImplicitRefernce()
+        public void DontRemoveCastFromBaseToDerivedWithExplicitReference()
         {
-            Test(
+            TestMissing(
 @"class Program
 {
     static void Main(string[] args)
@@ -3620,29 +3621,7 @@ class C
 class D : C
 {
 
-}",
-
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        C x = null;
-        C y = null;
-        y = x;
-    }
-}
-
-class C
-{
-
-}
-
-class D : C
-{
-
-}",
-            index: 0,
-            compareTokens: false);
+}");
         }
     }
 }

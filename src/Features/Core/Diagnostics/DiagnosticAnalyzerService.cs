@@ -53,10 +53,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (projectOpt == null)
             {
-                return _hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference();
+                return ConvertReferenceIdentityToName(_hostAnalyzerManager.GetHostDiagnosticDescriptorsPerReference());
             }
 
-            return _hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt);
+            return ConvertReferenceIdentityToName(_hostAnalyzerManager.CreateDiagnosticDescriptorsPerReference(projectOpt), projectOpt);
+        }
+
+        private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(
+            ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference, Project projectOpt = null)
+        {
+            var map = _hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt);
+
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
+
+            foreach (var kv in descriptorsPerReference)
+            {
+                var id = kv.Key;
+                var descriptors = kv.Value;
+
+                AnalyzerReference reference;
+                if (!map.TryGetValue(id, out reference) || reference == null)
+                {
+                    continue;
+                }
+
+                var displayName = GetDisplayName(reference);
+
+                // if there are duplicates, merge descriptors
+                ImmutableArray<DiagnosticDescriptor> existing;
+                if (builder.TryGetValue(displayName, out existing))
+                {
+                    builder[displayName] = existing.AddRange(descriptors);
+                    continue;
+                }
+
+                builder.Add(displayName, descriptors);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private static string GetDisplayName(AnalyzerReference reference)
+        {
+            return reference.Display ?? FeaturesResources.Unknown;
         }
 
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)

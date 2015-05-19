@@ -1150,13 +1150,13 @@ class Test
 ");
             var ctrlFlowAnalysis = analysis.Item1;
 
-            var reacbable = new bool[] { false, true, true, false };
+            var reachable = new bool[] { false, true, true, false };
             var bkcount = new int[] { 1, 0, 0, 1 };
             int idx = 0;
 
             foreach (var ctrlFlow in ctrlFlowAnalysis)
             {
-                if (reacbable[idx])
+                if (reachable[idx])
                     Assert.True(ctrlFlow.EndPointIsReachable);
                 else
                     Assert.False(ctrlFlow.EndPointIsReachable);

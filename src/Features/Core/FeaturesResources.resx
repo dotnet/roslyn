@@ -759,14 +759,14 @@ Do you want to continue?</value>
   <data name="ModifyingAWhichContainsStaticLocal" xml:space="preserve">
     <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
   </data>
-  <data name="ErrorSourceBuild" xml:space="preserve">
-    <value>Build</value>
+  <data name="BuildToolBuild" xml:space="preserve">
+    <value>Compiler</value>
   </data>
-  <data name="ErrorSourceEnC" xml:space="preserve">
+  <data name="BuildToolEnC" xml:space="preserve">
     <value>Edit And Continue</value>
   </data>
-  <data name="ErrorSourceIntelliSense" xml:space="preserve">
-    <value>IntelliSense Build</value>
+  <data name="BuildToolLive" xml:space="preserve">
+    <value>Live</value>
   </data>
   <data name="Namespace" xml:space="preserve">
     <value>namespace</value>
@@ -774,30 +774,27 @@ Do you want to continue?</value>
   </data>
   <data name="Class" xml:space="preserve">
     <value>class</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="Interface" xml:space="preserve">
     <value>interface</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="Enum" xml:space="preserve">
     <value>enum</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="EnumValue" xml:space="preserve">
     <value>enum value</value>
-    <comment>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</comment>  
+    <comment>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</comment>
   </data>
   <data name="Delegate" xml:space="preserve">
     <value>delegate</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="ConstField" xml:space="preserve">
     <value>const field</value>
     <comment>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</comment>
-  </data>
-  <data name="Field" xml:space="preserve">
-    <value>field</value>
   </data>
   <data name="Method" xml:space="preserve">
     <value>method</value>
@@ -816,19 +813,16 @@ Do you want to continue?</value>
   </data>
   <data name="Event" xml:space="preserve">
     <value>event</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="EventAccessor" xml:space="preserve">
-    <value>event accessor</value> 
+    <value>event accessor</value>
   </data>
   <data name="TypeConstraint" xml:space="preserve">
     <value>type constraint</value>
   </data>
   <data name="TypeParameter" xml:space="preserve">
     <value>type parameter</value>
-  </data>
-  <data name="Parameter" xml:space="preserve">
-    <value>parameter</value>
   </data>
   <data name="Attribute" xml:space="preserve">
     <value>attribute</value>

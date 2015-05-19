@@ -160,7 +160,6 @@
     <Compile Include="CodeModel\MockTextManagerAdapter.cs" />
     <Compile Include="CodeModel\MockTextManagerAdapter.TextPoint.cs" />
     <Compile Include="CodeModel\VisualStudioTestExportProvider.cs" />
-    <Compile Include="Debugging\BreakpointLocationValidatorTests.cs" />
     <Compile Include="Debugging\DataTipInfoGetterTests.cs" />
     <Compile Include="Debugging\LocationInfoGetterTests.cs" />
     <Compile Include="Debugging\NameResolverTests.cs" />

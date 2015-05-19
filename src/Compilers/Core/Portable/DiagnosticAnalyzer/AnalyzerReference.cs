@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// have a path, but it always has an ID. Further, two analyzer references with different paths may
         /// represent two copies of the same analyzer, in which case the IDs should also be the same.
         /// </remarks>
-        public abstract string Id { get; }
+        public abstract object Id { get; }
 
         /// <summary>
         /// Gets all the diagnostic analyzers defined in this assembly reference, irrespective of the language supported by the analyzer.
