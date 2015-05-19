@@ -799,7 +799,7 @@ End Structure")
         NewLines("<[|Global.Module|]> ' Simplify \n Class Module \n Inherits Attribute \n End Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestAlisedType()
             Dim source =
         NewLines("Class Program \n Sub Foo() \n Dim x As New [|Global.Program|] \n End Sub \n End Class")

@@ -771,8 +771,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
+        private CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
         {
+#if SCRIPTING
             string extension = PathUtilities.GetExtension(resolvedPath);
 
             bool isScriptFile;
@@ -786,6 +787,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new CommandLineSourceFile(resolvedPath, isScriptFile);
+#else
+            return new CommandLineSourceFile(resolvedPath, isScript: false);
+#endif
         }
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)

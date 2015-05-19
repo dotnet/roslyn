@@ -402,7 +402,7 @@ NewLines("Class Program \n Implements IFoo \n Public Function Bip(i As Integer) 
         End Sub
 
         <WorkItem(537929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestInScript1()
             Test(
 NewLines("Imports System \n Shared Sub Main ( args As String() ) \n [|Foo|] ( ) \n End Sub"),

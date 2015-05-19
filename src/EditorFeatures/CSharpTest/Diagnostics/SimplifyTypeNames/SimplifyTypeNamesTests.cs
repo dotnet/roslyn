@@ -1412,7 +1412,7 @@ index: 0);
         }
 
         [WorkItem(541748)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public void TestOnErrorInInteractive()
         {
             TestMissing(
@@ -2027,7 +2027,7 @@ class A
 @"using N ; namespace N { class Color { public static void Foo ( ) { } public void Bar ( ) { } } } class Program { Color Color ; void Main ( ) { [|Color . Foo |]( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public void TestAliasQualifiedType()
         {
             var source =

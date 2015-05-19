@@ -164,7 +164,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, absent: false, options: options);
+#if SCRIPTING
             VerifyWorker(text, absent: false, options: scriptOptions ?? Options.Script);
+#endif
         }
 
         protected void VerifyKeyword(SourceCodeKind kind, string text)
@@ -174,12 +176,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 case SourceCodeKind.Regular:
                     VerifyWorker(text, absent: false);
                     break;
+#if SCRIPTING
                 case SourceCodeKind.Script:
                     VerifyWorker(text, absent: false, options: Options.Script);
                     break;
                 case SourceCodeKind.Interactive:
                     VerifyWorker(text, absent: false, options: Options.Interactive);
                     break;
+#endif
             }
         }
 
@@ -187,7 +191,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, absent: true, options: options);
+#if SCRIPTING
             VerifyWorker(text, absent: true, options: scriptOptions ?? Options.Script);
+#endif
         }
 
         protected void VerifyAbsence(SourceCodeKind kind, string text)
@@ -197,12 +203,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 case SourceCodeKind.Regular:
                     VerifyWorker(text, absent: true);
                     break;
+#if SCRIPTING
                 case SourceCodeKind.Script:
                     VerifyWorker(text, absent: true, options: Options.Script);
                     break;
                 case SourceCodeKind.Interactive:
                     VerifyWorker(text, absent: true, options: Options.Interactive);
                     break;
+#endif
             }
         }
 

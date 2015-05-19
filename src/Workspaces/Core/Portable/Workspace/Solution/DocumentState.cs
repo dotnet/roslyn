@@ -247,7 +247,11 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
+#if SCRIPTING
             return this.SetParseOptions(this.ParseOptions.WithKind(kind));
+#else
+            throw new NotSupportedException(kind.ToString());
+#endif
         }
 
         public DocumentState UpdateFolders(IList<string> folders)

@@ -749,7 +749,7 @@ class C
                 Class("C"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.Classification)]
         public void InteractiveNAQSameFileClass()
         {
             var code = @"class C { static void M() { global::Script.C.M(); } }";
@@ -990,7 +990,7 @@ class ObsoleteAttribute : Attribute { }",
                 Class("Program"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.Classification)]
         public void InteractiveNestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias()
         {
             var code = @"class Program

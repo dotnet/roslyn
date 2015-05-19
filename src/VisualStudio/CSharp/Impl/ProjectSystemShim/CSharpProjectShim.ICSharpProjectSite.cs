@@ -63,9 +63,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 return;
             }
 
+#if SCRIPTING
             var sourceCodeKind = extension.Equals(".csx", StringComparison.OrdinalIgnoreCase)
                 ? SourceCodeKind.Script
                 : SourceCodeKind.Regular;
+#else
+            var sourceCodeKind = SourceCodeKind.Regular;
+#endif
 
             IVsHierarchy foundHierarchy;
             uint itemId;

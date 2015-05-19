@@ -655,7 +655,7 @@ index: 1);
         }
 
         [WorkItem(539738)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public void TestGenerateIntoScript()
         {
             Test(
@@ -1074,7 +1074,7 @@ compareTokens: false);
         }
 
         [WorkItem(540595)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public void TestGeneratePropertyInScript()
         {
             Test(

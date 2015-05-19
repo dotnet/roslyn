@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub MembersContainedInCSharpScriptDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>

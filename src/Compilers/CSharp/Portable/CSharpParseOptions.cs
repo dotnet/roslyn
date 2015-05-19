@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException(nameof(kind));
             }
 
+#if !SCRIPTING
+            if (kind != SourceCodeKind.Regular)
+            {
+                throw new NotSupportedException(kind.ToString());
+            }
+#endif
+
             if (preprocessorSymbols != null)
             {
                 foreach (var preprocessorSymbol in preprocessorSymbols)
@@ -83,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.PreprocessorSymbols = preprocessorSymbols;
         }
 
-        public new CSharpParseOptions WithKind(SourceCodeKind kind)
+        internal new CSharpParseOptions WithKind(SourceCodeKind kind)
         {
             if (kind == this.Kind)
             {
@@ -153,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpParseOptions(this) { DocumentationMode = documentationMode };
         }
 
-        protected override ParseOptions CommonWithKind(SourceCodeKind kind)
+        internal override ParseOptions CommonWithKind(SourceCodeKind kind)
         {
             return WithKind(kind);
         }
