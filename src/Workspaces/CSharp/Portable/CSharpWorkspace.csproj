@@ -126,7 +126,6 @@
     <Compile Include="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseParameterListSyntaxExtensions.cs" />
-    <Compile Include="Extensions\BreakpointSpans.cs" />
     <Compile Include="Extensions\CastExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="Extensions\ContextQuery\CSharpSyntaxContext.cs" />

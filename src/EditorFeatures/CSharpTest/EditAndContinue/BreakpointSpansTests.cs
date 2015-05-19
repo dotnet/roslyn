@@ -5,16 +5,15 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 {
     [Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
-    public class BreakpointLocationValidatorTests
+    public class BreakpointSpansTests
     {
         #region Helpers 
 
@@ -42,8 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var tree = SyntaxFactory.ParseSyntaxTree(source, options);
 
             TextSpan breakpointSpan;
-            bool hasBreakpoint = BreakpointGetter.TryGetBreakpointSpan(
-                tree, position.Value, CancellationToken.None, out breakpointSpan);
+            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(tree, position.Value, CancellationToken.None, out breakpointSpan);
 
             if (isLine)
             {
@@ -85,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             while (position < endPosition)
             {
                 TextSpan span;
-                if (root.TryGetClosestBreakpointSpan(position, out span) && span.End > lastSpanEnd)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span) && span.End > lastSpanEnd)
                 {
                     position = lastSpanEnd = span.End;
                     yield return span;
@@ -251,33 +249,7 @@ class C
         }
 
         [Fact]
-        public void TestSimpleLambdaBody()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    Func<string> f = s => [|F$$oo()|];
-  }
-}");
-        }
-
-        [Fact]
-        public void TestParenthesizedLambdaBody()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    Func<string> f = (s, i) => [|F$$oo()|];
-  }
-}");
-        }
-
-        [Fact]
-        public void TestForStatementInitializer1a()
+        public void ForStatementInitializer1a()
         {
             TestSpan(
 @"class C
@@ -292,7 +264,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
         }
 
         [Fact]
-        public void TestForStatementInitializer1b()
+        public void ForStatementInitializer1b()
         {
             TestSpan(
 @"class C
@@ -307,7 +279,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
         }
 
         [Fact]
-        public void TestForStatementInitializer1c()
+        public void ForStatementInitializer1c()
         {
             TestSpan(
 @"class C
@@ -322,7 +294,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
         }
 
         [Fact]
-        public void TestForStatementInitializer1d()
+        public void ForStatementInitializer1d()
         {
             TestSpan(
 @"class C
@@ -339,7 +311,7 @@ $$    (
         }
 
         [Fact]
-        public void TestForStatementInitializer2()
+        public void ForStatementInitializer2()
         {
             TestSpan(
 @"class C
@@ -354,13 +326,13 @@ $$    (
         }
 
         [Fact]
-        public void TestForStatementInitializer3()
+        public void ForStatementInitializer3()
         {
             TestSpan("class C { void M() { for([|i = 0$$|]; ; }; }");
         }
 
         [Fact]
-        public void TestForStatementCondition()
+        public void ForStatementCondition()
         {
             TestSpan(
 @"class C
@@ -375,7 +347,7 @@ $$    (
         }
 
         [Fact]
-        public void TestForStatementIncrementor1()
+        public void ForStatementIncrementor1()
         {
             TestSpan(
 @"class C
@@ -390,7 +362,7 @@ $$    (
         }
 
         [Fact]
-        public void TestForStatementIncrementor2()
+        public void ForStatementIncrementor2()
         {
             TestSpan(
 @"class C
@@ -405,7 +377,7 @@ $$    (
         }
 
         [Fact]
-        public void TestForEachStatementExpression()
+        public void ForEachStatementExpression()
         {
             TestSpan(
 @"class C
@@ -419,8 +391,66 @@ $$    (
 }");
         }
 
+        #region Lambdas
+
         [Fact]
-        public void TestFirstFromClauseExpression()
+        public void SimpleLambdaBody()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    Func<string> f = s => [|F$$oo()|];
+  }
+}");
+        }
+
+        [Fact]
+        public void ParenthesizedLambdaBody()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    Func<string> f = (s, i) => [|F$$oo()|];
+  }
+}");
+        }
+
+        [Fact]
+        public void AnonymousMethod1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    Func<int> f = delegate [|$${|] return 1; };
+  }
+}");
+        }
+
+        [Fact]
+        public void AnonymousMethod2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    Func<int> f = delegate { [|$$return 1;|] };
+  }
+}");
+        }
+
+        #endregion
+
+        #region Queries
+
+        [Fact]
+        public void FirstFromClauseExpression()
         {
             TestSpan(
 @"class C
@@ -435,7 +465,7 @@ $$    (
         }
 
         [Fact]
-        public void TestSecondFromClauseExpression()
+        public void SecondFromClauseExpression()
         {
             TestSpan(
 @"class C
@@ -450,7 +480,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFromInQueryContinuation1()
+        public void FromInQueryContinuation1()
         {
             TestSpan(
 @"class C
@@ -467,7 +497,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFromInQueryContinuation2()
+        public void FromInQueryContinuation2()
         {
             TestSpan(
 @"class C
@@ -484,7 +514,7 @@ $$    (
         }
 
         [Fact]
-        public void TestJoinClauseLeftExpression()
+        public void JoinClauseLeftExpression()
         {
             TestSpan(
 @"class C
@@ -499,7 +529,7 @@ $$    (
         }
 
         [Fact]
-        public void TestJoinClauseRightExpression()
+        public void JoinClauseRightExpression()
         {
             TestSpan(
 @"class C
@@ -514,7 +544,7 @@ $$    (
         }
 
         [Fact]
-        public void TestLetClauseExpression()
+        public void LetClauseExpression()
         {
             TestSpan(
 @"class C
@@ -530,7 +560,7 @@ $$    (
         }
 
         [Fact]
-        public void TestWhereClauseExpression()
+        public void WhereClauseExpression()
         {
             TestSpan(
 @"class C
@@ -546,7 +576,7 @@ $$    (
         }
 
         [Fact]
-        public void TestWhereClauseKeyword()
+        public void WhereClauseKeyword()
         {
             TestSpan(
 @"class C
@@ -561,7 +591,7 @@ $$    (
         }
 
         [Fact]
-        public void TestSimpleOrdering1()
+        public void SimpleOrdering1()
         {
             TestSpan(
 @"class C
@@ -577,7 +607,7 @@ $$    (
         }
 
         [Fact]
-        public void TestSimpleOrdering2()
+        public void SimpleOrdering2()
         {
             TestSpan(
 @"class C
@@ -593,7 +623,7 @@ $$    (
         }
 
         [Fact]
-        public void TestAscendingOrdering1()
+        public void AscendingOrdering1()
         {
             TestSpan(
 @"class C
@@ -609,7 +639,7 @@ $$    (
         }
 
         [Fact]
-        public void TestAscendingOrdering2()
+        public void AscendingOrdering2()
         {
             TestSpan(
 @"class C
@@ -625,7 +655,7 @@ $$    (
         }
 
         [Fact]
-        public void TestDescendingOrdering1()
+        public void DescendingOrdering1()
         {
             TestSpan(
 @"class C
@@ -641,7 +671,7 @@ $$    (
         }
 
         [Fact]
-        public void TestDescendingOrdering2()
+        public void DescendingOrdering2()
         {
             TestSpan(
 @"class C
@@ -657,19 +687,19 @@ $$    (
         }
 
         [Fact]
-        public void TestOrderByKeyword()
+        public void OrderByKeyword()
         {
             TestSpan("class C { void M() { from string s in null ord$$erby [|s.A|] ascending } }");
         }
 
         [Fact]
-        public void TestAscendingKeyword()
+        public void AscendingKeyword()
         {
             TestSpan("class C { void M() { from string s in null orderby [|s.A|] $$ascending } }");
         }
 
         [Fact]
-        public void TestSelectExpression()
+        public void SelectExpression()
         {
             TestSpan(
 @"class C
@@ -685,12 +715,12 @@ $$    (
         }
 
         [Fact]
-        public void TestAnonymousTypeAfterSelect()
+        public void AnonymousTypeAfterSelect()
         {
             TestSpan(
 @"class C
 {
-    public void Test()
+    public void ()
     {
         var q =
             from c in categories
@@ -701,7 +731,7 @@ $$    (
         }
 
         [Fact]
-        public void TestGroupExpression()
+        public void GroupExpression()
         {
             TestSpan(
 @"class C
@@ -718,7 +748,7 @@ $$    (
         }
 
         [Fact]
-        public void TestGroupByKeyword()
+        public void GroupByKeyword()
         {
             TestSpan(
 @"class C
@@ -735,7 +765,7 @@ $$    (
         }
 
         [Fact]
-        public void TestGroupByExpression()
+        public void GroupByExpression()
         {
             TestSpan(
 @"class C
@@ -752,7 +782,224 @@ $$    (
         }
 
         [Fact]
-        public void TestFieldDeclarator_WithoutInitializer1()
+        public void InFrontOfFirstFromClause()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|var q =
+    $$   from x in blah()
+        from y in zap()
+        let m = quux()
+        join a in alpha on left().expr() equals right.expr()
+        orderby foo, expr().expr() descending
+        group bar().foo() by blah().zap() into g
+        select y.blah();|]
+  }
+}");
+        }
+
+        [Fact]
+        public void InFrontOfSecondFromClause()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    var q =
+        from x in blah()
+    $$   from y in [|zap()|]
+        let m = quux()
+        join a in alpha on left().expr() equals right.expr()
+        orderby foo, expr().expr() descending
+        group bar().foo() by blah().zap() into g
+        select y.blah();
+  }
+}");
+        }
+
+        [Fact]
+        public void InFrontOfLetClause()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    var q =
+        from x in blah()
+        from y in zap()
+    $$   let m = [|quux()|]
+        join a in alpha on left().expr() equals right.expr()
+        orderby foo, expr().expr() descending
+        group bar().foo() by blah().zap() into g
+        select y.blah();
+  }
+}");
+        }
+
+        [Fact]
+        public void InFrontOfJoinClause()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    var q =
+        from x in blah()
+        from y in zap()
+        let m = quux()
+    $$   join a in alpha on [|left().expr()|] equals right.expr()
+        orderby foo, expr().expr() descending
+        group bar().foo() by blah().zap() into g
+        select y.blah();
+  }
+}");
+        }
+
+        [Fact]
+        public void InFrontOfOrderByClause()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    var q =
+        from x in blah()
+        from y in zap()
+        let m = quux()
+        join a in alpha on left().expr() equals right.expr()
+    $$   orderby [|foo|], expr().expr() descending
+        group bar().foo() by blah().zap() into g
+        select y.blah();
+  }
+}");
+        }
+
+        [Fact]
+        public void InFrontOfGroupByClause()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    var q =
+        from x in blah()
+        from y in zap()
+        let m = quux()
+        join a in alpha on left().expr() equals right.expr()
+        orderby foo, expr().expr() descending
+    $$   group [|bar().foo()|] by blah().zap() into g
+        select y.blah();
+  }");
+        }
+
+        [Fact]
+        public void InFrontOfSelectClause()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    var q =
+        from x in blah()
+        from y in zap()
+        let m = quux()
+        join a in alpha on left().expr() equals right.expr()
+        orderby foo, expr().expr() descending
+        group bar().foo() by blah().zap() into g
+    $$   select [|y.blah()|];
+  }");
+        }
+
+        [Fact]
+        public void Select1()
+        {
+            TestSpan(
+@"class C
+{
+  IEnumerable<int> Foo() => from x in new[] { 1 } select [|$$x|];
+}
+");
+        }
+
+        [Fact]
+        public void Select_NoLambda1()
+        {
+            TestSpan(
+@"class C
+{
+  IEnumerable<int> Foo() => [|from x in new[] { 1 } where x > 0 select $$x|];
+}
+");
+        }
+
+        [Fact]
+        public void Select_NoLambda2()
+        {
+            TestSpan(
+@"class C
+{
+  IEnumerable<int> Foo() => [|from x in new[] { 1 } select x into y orderby y select $$y|];
+}
+");
+        }
+
+        [Fact]
+        public void GroupBy1()
+        {
+            TestSpan(
+@"class C
+{
+  IEnumerable<int> Foo() => from x in new[] { 1 } group x by [|$$x|];
+}
+");
+        }
+
+        [Fact]
+        public void GroupBy_NoLambda1()
+        {
+            TestSpan(
+@"class C
+{
+  IEnumerable<int> Foo() => [|from x in new[] { 1 } group $$x by x|];
+}
+");
+        }
+
+        [Fact]
+        public void GroupBy_NoLambda2()
+        {
+            TestSpan(
+@"class C
+{
+  IEnumerable<int> Foo() => [|from x in new[] { 1 } group $$x by x + 1 into y group y by y.Key + 2|];
+}
+");
+        }
+
+        [Fact]
+        public void GroupBy_NoLambda3()
+        {
+            TestSpan(
+@"class C
+{
+  IEnumerable<int> Foo() => [|from x in new[] { 1 } group x by x + 1 into y group $$y by y.Key + 2|];
+}
+");
+        }
+
+        #endregion
+
+        [Fact]
+        public void FieldDeclarator_WithoutInitializer1()
         {
             TestMissing(
 @"class C
@@ -762,7 +1009,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFieldDeclarator_WithoutInitializer2()
+        public void FieldDeclarator_WithoutInitializer2()
         {
             TestMissing(
 @"class C
@@ -772,7 +1019,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFieldDeclarator1()
+        public void FieldDeclarator1()
         {
             TestSpan(
 @"class C
@@ -782,7 +1029,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFieldDeclarator2()
+        public void FieldDeclarator2()
         {
             TestSpan(
 @"class C
@@ -792,7 +1039,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFieldDeclarator3()
+        public void FieldDeclarator3()
         {
             TestSpan(
 @"class C
@@ -803,7 +1050,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFieldDeclarator4()
+        public void FieldDeclarator4()
         {
             TestSpan(
 @"class C
@@ -813,7 +1060,7 @@ $$    (
         }
 
         [Fact]
-        public void TestFieldDeclarator5()
+        public void FieldDeclarator5()
         {
             TestSpan(
 @"class C
@@ -823,50 +1070,50 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestConstVariableDeclarator0()
+        public void ConstVariableDeclarator0()
         {
             TestMissing("class C { void Foo() { const int a = $$1; } }");
         }
 
         [Fact]
-        public void TestConstVariableDeclarator1()
+        public void ConstVariableDeclarator1()
         {
             TestMissing("class C { void Foo() { const $$int a = 1; } }");
         }
 
         [Fact]
-        public void TestConstVariableDeclarator2()
+        public void ConstVariableDeclarator2()
         {
             TestMissing("class C { void Foo() { $$const int a = 1; } }");
         }
 
         [Fact]
-        public void TestConstFieldVariableDeclarator0()
+        public void ConstFieldVariableDeclarator0()
         {
             TestMissing("class C { const int a = $$1; }");
         }
 
         [Fact]
-        public void TestConstFieldVariableDeclarator1()
+        public void ConstFieldVariableDeclarator1()
         {
             TestMissing("class C { const $$int a = 1; }");
         }
 
         [Fact]
-        public void TestConstFieldVariableDeclarator2()
+        public void ConstFieldVariableDeclarator2()
         {
             TestMissing("class C { $$const int a = 1; }");
         }
 
         [Fact]
         [WorkItem(538777)]
-        public void TestVariableDeclarator0()
+        public void VariableDeclarator0()
         {
             TestMissing("class C { void Foo() { int$$ } }");
         }
 
         [Fact]
-        public void TestVariableDeclarator1()
+        public void VariableDeclarator1()
         {
             TestMissing(
 @"class C
@@ -879,7 +1126,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator2a()
+        public void VariableDeclarator2a()
         {
             TestSpan(
 @"class C
@@ -892,7 +1139,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator2b()
+        public void VariableDeclarator2b()
         {
             TestSpan(
 @"class C
@@ -905,7 +1152,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator2c()
+        public void VariableDeclarator2c()
         {
             TestSpan(
 @"class C
@@ -918,7 +1165,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator3a()
+        public void VariableDeclarator3a()
         {
             TestSpan(
 @"class C
@@ -931,7 +1178,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
-        public void TestVariableDeclarator3b()
+        public void VariableDeclarator3b()
         {
             TestSpan(
 @"class C
@@ -944,7 +1191,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
-        public void TestVariableDeclarator3c()
+        public void VariableDeclarator3c()
         {
             TestSpan(
 @"class C
@@ -957,7 +1204,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator4()
+        public void VariableDeclarator4()
         {
             TestSpan(
 @"class C
@@ -970,7 +1217,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator5()
+        public void VariableDeclarator5()
         {
             TestSpan(
 @"class C
@@ -980,7 +1227,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator6()
+        public void VariableDeclarator6()
         {
             TestSpan(
 @"class C
@@ -990,7 +1237,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator7()
+        public void VariableDeclarator7()
         {
             TestSpan(
 @"class C
@@ -1000,7 +1247,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator8()
+        public void VariableDeclarator8()
         {
             TestSpan(
 @"class C
@@ -1010,7 +1257,7 @@ $$    [|private int i = 3;|]
         }
 
         [Fact]
-        public void TestVariableDeclarator9()
+        public void VariableDeclarator9()
         {
             TestSpan(
 @"class C
@@ -1020,13 +1267,13 @@ $$  [|private int i = 0|], j = 1;
         }
 
         [Fact]
-        public void TestVariableDeclarator10()
+        public void VariableDeclarator10()
         {
             TestSpan("class C { void M() { [|int i = 0$$;|] } }");
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators0()
+        public void VariableDeclarator_Separators0()
         {
             TestSpan(
 @"class C
@@ -1039,7 +1286,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators1()
+        public void VariableDeclarator_Separators1()
         {
             TestSpan(
 @"class C
@@ -1052,7 +1299,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators2()
+        public void VariableDeclarator_Separators2()
         {
             TestSpan(
 @"class C
@@ -1065,7 +1312,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators3()
+        public void VariableDeclarator_Separators3()
         {
             TestSpan(
 @"class C
@@ -1078,7 +1325,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators4()
+        public void VariableDeclarator_Separators4()
         {
             TestSpan(
 @"class C
@@ -1091,7 +1338,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators5()
+        public void VariableDeclarator_Separators5()
         {
             TestSpan(
 @"class C
@@ -1104,7 +1351,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators6()
+        public void VariableDeclarator_Separators6()
         {
             TestSpan(
 @"class C
@@ -1117,7 +1364,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators7()
+        public void VariableDeclarator_Separators7()
         {
             TestSpan(
 @"class C
@@ -1130,7 +1377,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators8()
+        public void VariableDeclarator_Separators8()
         {
             TestSpan(
 @"class C
@@ -1143,7 +1390,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestVariableDeclarator_Separators9()
+        public void VariableDeclarator_Separators9()
         {
             TestSpan(
 @"class C
@@ -1156,7 +1403,7 @@ $$    [|int i = 0|], j = 1, k = 2;
         }
 
         [Fact]
-        public void TestEventFieldDeclarator1()
+        public void EventFieldDeclarator1()
         {
             TestSpan(
 @"class C
@@ -1166,7 +1413,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventFieldDeclarator2()
+        public void EventFieldDeclarator2()
         {
             TestSpan(
 @"class C
@@ -1176,7 +1423,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventFieldDeclarator3()
+        public void EventFieldDeclarator3()
         {
             TestSpan(
 @"class C
@@ -1186,7 +1433,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventFieldDeclarator4()
+        public void EventFieldDeclarator4()
         {
             TestSpan(
 @"class C
@@ -1196,7 +1443,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventFieldDeclarator5()
+        public void EventFieldDeclarator5()
         {
             TestSpan(
 @"class C
@@ -1206,7 +1453,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventFieldDeclarator6()
+        public void EventFieldDeclarator6()
         {
             TestSpan(
 @"class C
@@ -1216,7 +1463,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventFieldDeclarator7()
+        public void EventFieldDeclarator7()
         {
             TestSpan(
 @"class C
@@ -1226,7 +1473,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventFieldDeclarator8()
+        public void EventFieldDeclarator8()
         {
             TestSpan(
 @"class C
@@ -1236,25 +1483,25 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEventAccessorAdd()
+        public void EventAccessorAdd()
         {
             TestSpan("class C { eve$$nt Action Foo { add [|{|] } remove { } } }");
         }
 
         [Fact]
-        public void TestEventAccessorAdd2()
+        public void EventAccessorAdd2()
         {
             TestSpan("class C { event Action Foo { ad$$d [|{|] } remove { } } }");
         }
 
         [Fact]
-        public void TestEventAccessorRemove()
+        public void EventAccessorRemove()
         {
             TestSpan("class C { event Action Foo { add { } $$remove [|{|] } } }");
         }
 
         [Fact]
-        public void TestElseClauseWithBlock()
+        public void ElseClauseWithBlock()
         {
             TestSpan(
 @"class C
@@ -1272,7 +1519,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestElseClauseWithStatement()
+        public void ElseClauseWithStatement()
         {
             TestSpan(
 @"class C
@@ -1289,7 +1536,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestElseIf()
+        public void ElseIf()
         {
             TestSpan(
 @"class C
@@ -1306,7 +1553,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestEmptyCatch()
+        public void EmptyCatch()
         {
             TestSpan(
 @"class C
@@ -1324,7 +1571,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestCatchWithType()
+        public void CatchWithType()
         {
             TestSpan(
 @"class C
@@ -1342,7 +1589,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestCatchWithTypeInType()
+        public void CatchWithTypeInType()
         {
             TestSpan(
 @"class C
@@ -1360,7 +1607,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestCatchWithTypeAndNameInType()
+        public void CatchWithTypeAndNameInType()
         {
             TestSpan(
 @"class C
@@ -1378,7 +1625,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestCatchWithTypeAndNameInName()
+        public void CatchWithTypeAndNameInName()
         {
             TestSpan(
 @"class C
@@ -1396,7 +1643,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestFilter1()
+        public void Filter1()
         {
             TestSpan(
 @"class C
@@ -1414,7 +1661,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestFilter3()
+        public void Filter3()
         {
             TestSpan(
 @"class C
@@ -1432,7 +1679,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestFilter4()
+        public void Filter4()
         {
             TestSpan(
 @"class C
@@ -1450,7 +1697,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestFilter5()
+        public void Filter5()
         {
             TestSpan(
 @"class C
@@ -1468,7 +1715,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestSimpleFinally()
+        public void SimpleFinally()
         {
             TestSpan(
 @"class C
@@ -1486,7 +1733,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestFinallyWithCatch()
+        public void FinallyWithCatch()
         {
             TestSpan(
 @"class C
@@ -1507,7 +1754,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestSwitchLabelWithBlock()
+        public void SwitchLabelWithBlock()
         {
             TestSpan(
 @"class C
@@ -1525,7 +1772,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestSwitchLabelWithStatement()
+        public void SwitchLabelWithStatement()
         {
             TestSpan(
 @"class C
@@ -1542,7 +1789,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestSwitchLabelWithStatement2()
+        public void SwitchLabelWithStatement2()
         {
             TestSpan(
 @"class C
@@ -1560,13 +1807,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestSwitchLabelWithoutStatement()
+        public void SwitchLabelWithoutStatement()
         {
             TestSpan("class C { void M() { [|switch |]{ case 1$$: } } }");
         }
 
         [Fact]
-        public void TestMultipleLabelsOnFirstLabel()
+        public void MultipleLabelsOnFirstLabel()
         {
             TestSpan(
 @"class C
@@ -1588,7 +1835,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestMultipleLabelsOnSecondLabel()
+        public void MultipleLabelsOnSecondLabel()
         {
             TestSpan(
 @"class C
@@ -1610,7 +1857,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestMultipleLabelsOnLabelWithDefault()
+        public void MultipleLabelsOnLabelWithDefault()
         {
             TestSpan(
 @"class C
@@ -1632,7 +1879,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestMultipleLabelsOnDefault()
+        public void MultipleLabelsOnDefault()
         {
             TestSpan(
 @"class C
@@ -1654,7 +1901,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockBeforeStartToken()
+        public void BlockBeforeStartToken()
         {
             TestSpan(
 @"class C
@@ -1667,7 +1914,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockBeforeStartToken2()
+        public void BlockBeforeStartToken2()
         {
             TestSpan(
 @"class C
@@ -1680,7 +1927,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockAfterStartToken()
+        public void BlockAfterStartToken()
         {
             TestSpan(
 @"class C
@@ -1693,7 +1940,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockAfterStartToken2()
+        public void BlockAfterStartToken2()
         {
             TestSpan(
 @"class C
@@ -1706,7 +1953,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockBeforeEndToken1()
+        public void BlockBeforeEndToken1()
         {
             TestSpan(
 @"class C
@@ -1718,7 +1965,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockBeforeEndToken2()
+        public void BlockBeforeEndToken2()
         {
             TestSpan(
 @"class C
@@ -1730,7 +1977,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockAfterEndToken1()
+        public void BlockAfterEndToken1()
         {
             TestSpan(
 @"class C
@@ -1742,7 +1989,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestBlockAfterEndToken2()
+        public void BlockAfterEndToken2()
         {
             TestSpan(
 @"class C
@@ -1754,7 +2001,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestSingleDeclarationOnType()
+        public void SingleDeclarationOnType()
         {
             TestMissing(
 @"class C
@@ -1767,7 +2014,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestMutlipleDeclarationsOnType()
+        public void MutlipleDeclarationsOnType()
         {
             TestSpan(
 @"class C
@@ -1780,7 +2027,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestLabel()
+        public void Label()
         {
             TestSpan(
 @"class C
@@ -1794,7 +2041,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestWhileInWhile()
+        public void WhileInWhile()
         {
             TestSpan(
 @"class C
@@ -1809,7 +2056,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestWhileInExpr()
+        public void WhileInExpr()
         {
             TestSpan(
 @"class C
@@ -1824,7 +2071,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnWhileBlock()
+        public void OnWhileBlock()
         {
             TestSpan(
 @"class C
@@ -1839,7 +2086,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnDoKeyword()
+        public void OnDoKeyword()
         {
             TestSpan(
 @"class C
@@ -1855,7 +2102,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnDoBlock()
+        public void OnDoBlock()
         {
             TestSpan(
 @"class C
@@ -1871,7 +2118,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnDoWhile()
+        public void OnDoWhile()
         {
             TestSpan(
 @"class C
@@ -1887,7 +2134,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnDoWhile_MissingSemicolon()
+        public void OnDoWhile_MissingSemicolon()
         {
             TestSpan(
 @"class C
@@ -1903,7 +2150,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnDoExpression()
+        public void OnDoExpression()
         {
             TestSpan(
 @"class C
@@ -1919,7 +2166,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnForWithDeclaration1()
+        public void OnForWithDeclaration1()
         {
             TestSpan(
 @"class C
@@ -1934,7 +2181,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnForWithDeclaration2()
+        public void OnForWithDeclaration2()
         {
             TestSpan(
 @"class C
@@ -1949,7 +2196,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnForWithCondition()
+        public void OnForWithCondition()
         {
             TestSpan(
 @"class C
@@ -1964,7 +2211,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnForWithIncrementor1()
+        public void OnForWithIncrementor1()
         {
             TestSpan(
 @"class C
@@ -1979,7 +2226,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnForWithIncrementor2()
+        public void OnForWithIncrementor2()
         {
             TestSpan(
 @"class C
@@ -1994,7 +2241,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnEmptyFor()
+        public void OnEmptyFor()
         {
             TestSpan(
 @"class C
@@ -2009,7 +2256,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void TestOnForEachKeyword1()
+        public void OnForEachKeyword1()
         {
             TestSpan(
 @"class C
@@ -2024,7 +2271,7 @@ $$    [|foreach|] (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachKeyword2()
+        public void OnForEachKeyword2()
         {
             TestSpan(
 @"class C
@@ -2039,7 +2286,7 @@ $$    [|foreach|] (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachKeyword3()
+        public void OnForEachKeyword3()
         {
             TestSpan(
 @"class C
@@ -2055,7 +2302,7 @@ $$    [|foreach|] (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachKeyword4()
+        public void OnForEachKeyword4()
         {
             TestSpan(
 @"class C
@@ -2071,7 +2318,7 @@ $$         (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachKeyword5()
+        public void OnForEachKeyword5()
         {
             TestSpan(
 @"class C
@@ -2086,7 +2333,7 @@ $$         (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachType1()
+        public void OnForEachType1()
         {
             TestSpan(
 @"class C
@@ -2102,7 +2349,7 @@ $$         (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachType2()
+        public void OnForEachType2()
         {
             TestSpan(
 @"class C
@@ -2117,7 +2364,7 @@ $$         (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachIdentifier()
+        public void OnForEachIdentifier()
         {
             TestSpan(
 @"class C
@@ -2132,7 +2379,7 @@ $$         (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachIn1()
+        public void OnForEachIn1()
         {
             TestSpan(
 @"class C
@@ -2147,7 +2394,7 @@ $$         (var v in expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachIn2()
+        public void OnForEachIn2()
         {
             TestSpan(
 @"class C
@@ -2163,7 +2410,7 @@ $$         [|in|] expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachIn3()
+        public void OnForEachIn3()
         {
             TestSpan(
 @"class C
@@ -2180,7 +2427,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachExpr1()
+        public void OnForEachExpr1()
         {
             TestSpan(
 @"class C
@@ -2195,7 +2442,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachExpr2()
+        public void OnForEachExpr2()
         {
             TestSpan(
 @"class C
@@ -2211,7 +2458,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachExpr3()
+        public void OnForEachExpr3()
         {
             TestSpan(
 @"class C
@@ -2228,7 +2475,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachStatement()
+        public void OnForEachStatement()
         {
             TestSpan(
 @"class C
@@ -2243,7 +2490,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnForEachBlock1()
+        public void OnForEachBlock1()
         {
             TestSpan(
 @"class C
@@ -2258,7 +2505,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnUsingWithDecl1()
+        public void OnUsingWithDecl1()
         {
             TestSpan(
 @"class C
@@ -2273,7 +2520,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnUsingWithDecl2()
+        public void OnUsingWithDecl2()
         {
             TestSpan(
 @"class C
@@ -2288,7 +2535,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnUsingWithDeclType()
+        public void OnUsingWithDeclType()
         {
             TestSpan(
 @"class C
@@ -2303,7 +2550,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnUsingWithDeclIdentifier1()
+        public void OnUsingWithDeclIdentifier1()
         {
             TestSpan(
 @"class C
@@ -2318,7 +2565,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnUsingWithDeclIdentifier2()
+        public void OnUsingWithDeclIdentifier2()
         {
             TestSpan(
 @"class C
@@ -2333,7 +2580,7 @@ expr().blah())
         }
 
         [Fact]
-        public void TestOnUsingWithDeclIdentifier3()
+        public void OnUsingWithDeclIdentifier3()
         {
             TestSpan(
 @"class C
@@ -2348,7 +2595,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnUsingWithDeclExpression()
+        public void OnUsingWithDeclExpression()
         {
             TestSpan(
 @"class C
@@ -2363,7 +2610,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnUsingWithExpression1()
+        public void OnUsingWithExpression1()
         {
             TestSpan(
 @"class C
@@ -2378,7 +2625,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnUsingWithExpression2()
+        public void OnUsingWithExpression2()
         {
             TestSpan(
 @"class C
@@ -2393,7 +2640,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnFixed1()
+        public void OnFixed1()
         {
             TestSpan(
 @"class C
@@ -2408,7 +2655,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnFixed2()
+        public void OnFixed2()
         {
             TestSpan(
 @"class C
@@ -2423,7 +2670,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnFixed3()
+        public void OnFixed3()
         {
             TestSpan(
 @"class C
@@ -2438,7 +2685,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnFixed4()
+        public void OnFixed4()
         {
             TestSpan(
 @"class C
@@ -2453,7 +2700,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnFixed5()
+        public void OnFixed5()
         {
             TestSpan(
 @"class C
@@ -2468,7 +2715,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnFixed6()
+        public void OnFixed6()
         {
             TestSpan(
 @"class C
@@ -2483,7 +2730,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnChecked1()
+        public void OnChecked1()
         {
             TestSpan(
 @"class C
@@ -2498,7 +2745,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnUnchecked1()
+        public void OnUnchecked1()
         {
             TestSpan(
 @"class C
@@ -2513,7 +2760,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnUnsafe1()
+        public void OnUnsafe1()
         {
             TestSpan(
 @"class C
@@ -2528,7 +2775,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnLock1()
+        public void OnLock1()
         {
             TestSpan(
 @"class C
@@ -2543,7 +2790,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnLock2()
+        public void OnLock2()
         {
             TestSpan(
 @"class C
@@ -2558,7 +2805,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIf1()
+        public void OnIf1()
         {
             TestSpan(
 @"class C
@@ -2573,7 +2820,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIf2()
+        public void OnIf2()
         {
             TestSpan(
 @"class C
@@ -2588,7 +2835,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIfBlock()
+        public void OnIfBlock()
         {
             TestSpan(
 @"class C
@@ -2603,7 +2850,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnSwitch1()
+        public void OnSwitch1()
         {
             TestSpan(
 @"class C
@@ -2620,7 +2867,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnSwitch2()
+        public void OnSwitch2()
         {
             TestSpan(
 @"class C
@@ -2637,7 +2884,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnSwitch3()
+        public void OnSwitch3()
         {
             TestSpan(
 @"class C
@@ -2654,7 +2901,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnSwitch4()
+        public void OnSwitch4()
         {
             TestSpan(
 @"class C
@@ -2671,7 +2918,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnTry1()
+        public void OnTry1()
         {
             TestSpan(
 @"class C
@@ -2689,7 +2936,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnTry2()
+        public void OnTry2()
         {
             TestSpan(
 @"class C
@@ -2707,7 +2954,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnGotoStatement1()
+        public void OnGotoStatement1()
         {
             TestSpan(
 @"class C
@@ -2720,7 +2967,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnGotoStatement2()
+        public void OnGotoStatement2()
         {
             TestSpan(
 @"class C
@@ -2733,7 +2980,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnGotoCaseStatement1()
+        public void OnGotoCaseStatement1()
         {
             TestSpan(
 @"class C
@@ -2750,7 +2997,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnGotoCaseStatement2()
+        public void OnGotoCaseStatement2()
         {
             TestSpan(
 @"class C
@@ -2767,7 +3014,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnGotoCaseStatement3()
+        public void OnGotoCaseStatement3()
         {
             TestSpan(
 @"class C
@@ -2784,7 +3031,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnGotoDefault1()
+        public void OnGotoDefault1()
         {
             TestSpan(
 @"class C
@@ -2801,7 +3048,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnGotoDefault2()
+        public void OnGotoDefault2()
         {
             TestSpan(
 @"class C
@@ -2818,7 +3065,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnBreak1()
+        public void OnBreak1()
         {
             TestSpan(
 @"class C
@@ -2834,7 +3081,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnContinue1()
+        public void OnContinue1()
         {
             TestSpan(
 @"class C
@@ -2850,7 +3097,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnReturn1()
+        public void OnReturn1()
         {
             TestSpan(
 @"class C
@@ -2863,7 +3110,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnReturn2()
+        public void OnReturn2()
         {
             TestSpan(
 @"class C
@@ -2876,7 +3123,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnReturn3()
+        public void OnReturn3()
         {
             TestSpan(
 @"class C
@@ -2889,7 +3136,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnYieldReturn1()
+        public void OnYieldReturn1()
         {
             TestSpan(
 @"class C
@@ -2902,7 +3149,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnYieldReturn2()
+        public void OnYieldReturn2()
         {
             TestSpan(
 @"class C
@@ -2915,7 +3162,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnYieldReturn3()
+        public void OnYieldReturn3()
         {
             TestSpan(
 @"class C
@@ -2928,7 +3175,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnYieldBreak1()
+        public void OnYieldBreak1()
         {
             TestSpan(
 @"class C
@@ -2941,7 +3188,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnYieldBreak2()
+        public void OnYieldBreak2()
         {
             TestSpan(
 @"class C
@@ -2954,7 +3201,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnThrow1()
+        public void OnThrow1()
         {
             TestSpan(
 @"class C
@@ -2967,7 +3214,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnThrow2()
+        public void OnThrow2()
         {
             TestSpan(
 @"class C
@@ -2980,7 +3227,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnThrow3()
+        public void OnThrow3()
         {
             TestSpan(
 @"class C
@@ -2993,7 +3240,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnThrow4()
+        public void OnThrow4()
         {
             TestSpan(
 @"class C
@@ -3006,7 +3253,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnExpressionStatement1()
+        public void OnExpressionStatement1()
         {
             TestSpan(
 @"class C
@@ -3019,7 +3266,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnEmptyStatement1()
+        public void OnEmptyStatement1()
         {
             TestSpan(
 @"class C
@@ -3032,7 +3279,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnEmptyStatement2()
+        public void OnEmptyStatement2()
         {
             TestSpan(
 @"class C
@@ -3048,7 +3295,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyAccessor1()
+        public void OnPropertyAccessor1()
         {
             TestSpan(
 @"class C
@@ -3063,7 +3310,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyAccessor2()
+        public void OnPropertyAccessor2()
         {
             TestSpan(
 @"class C
@@ -3076,7 +3323,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyAccessor3()
+        public void OnPropertyAccessor3()
         {
             TestSpan(
 @"class C
@@ -3095,7 +3342,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyAccessor4()
+        public void OnPropertyAccessor4()
         {
             TestSpan(
 @"class C
@@ -3108,7 +3355,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnProperty1()
+        public void OnProperty1()
         {
             TestSpan(
 @"class C
@@ -3127,7 +3374,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnProperty2()
+        public void OnProperty2()
         {
             TestSpan(
 @"class C
@@ -3142,7 +3389,7 @@ $$    using ([|var vv = foo()|])
 
         [WorkItem(932711)]
         [Fact]
-        public void TestOnPropertyWithInitializer()
+        public void OnPropertyWithInitializer()
         {
             TestSpan(
 @"class C
@@ -3176,7 +3423,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyExpressionBody1()
+        public void OnPropertyExpressionBody1()
         {
             TestSpan(
 @"class C
@@ -3186,7 +3433,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyExpressionBody2()
+        public void OnPropertyExpressionBody2()
         {
             TestSpan(
 @"class C
@@ -3196,7 +3443,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyExpressionBody3()
+        public void OnPropertyExpressionBody3()
         {
             TestSpan(
 @"class C
@@ -3206,7 +3453,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnPropertyExpressionBody4()
+        public void OnPropertyExpressionBody4()
         {
             TestSpan(
 @"class C
@@ -3216,7 +3463,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIndexerExpressionBody1()
+        public void OnIndexerExpressionBody1()
         {
             TestSpan(
 @"class C
@@ -3226,7 +3473,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIndexer1()
+        public void OnIndexer1()
         {
             TestSpan(
 @"class C
@@ -3245,7 +3492,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIndexer2()
+        public void OnIndexer2()
         {
             TestSpan(
 @"class C
@@ -3259,7 +3506,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIndexerExpressionBody2()
+        public void OnIndexerExpressionBody2()
         {
             TestSpan(
 @"class C
@@ -3269,7 +3516,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIndexerExpressionBody3()
+        public void OnIndexerExpressionBody3()
         {
             TestSpan(
 @"class C
@@ -3279,7 +3526,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIndexerExpressionBody4()
+        public void OnIndexerExpressionBody4()
         {
             TestSpan(
 @"class C
@@ -3289,7 +3536,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnIndexerExpressionBody5()
+        public void OnIndexerExpressionBody5()
         {
             TestSpan(
 @"class C
@@ -3299,7 +3546,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethod1()
+        public void OnMethod1()
         {
             TestSpan(
 @"class C
@@ -3311,7 +3558,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethod2()
+        public void OnMethod2()
         {
             TestSpan(
 @"class C
@@ -3323,7 +3570,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethod3()
+        public void OnMethod3()
         {
             TestSpan(
 @"class C
@@ -3335,7 +3582,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethod4()
+        public void OnMethod4()
         {
             TestSpan(
 @"class C
@@ -3347,7 +3594,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethod5()
+        public void OnMethod5()
         {
             TestSpan(
 @"class C
@@ -3359,7 +3606,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethodWithExpressionBody1()
+        public void OnMethodWithExpressionBody1()
         {
             TestSpan(
 @"class C
@@ -3369,7 +3616,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethodWithExpressionBody2()
+        public void OnMethodWithExpressionBody2()
         {
             TestSpan(
 @"class C
@@ -3379,7 +3626,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethodWithExpressionBody3()
+        public void OnMethodWithExpressionBody3()
         {
             TestSpan(
 @"class C
@@ -3389,7 +3636,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnMethodWithExpressionBody4()
+        public void OnMethodWithExpressionBody4()
         {
             TestSpan(
 @"class C
@@ -3399,7 +3646,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestMissingOnMethod()
+        public void MissingOnMethod()
         {
             TestMissing(
 @"class C
@@ -3493,7 +3740,7 @@ $$    using ([|var vv = foo()|])
 
         [WorkItem(543968)]
         [Fact]
-        public void TestConstructorInitializer()
+        public void ConstructorInitializer()
         {
             // a sequence point for base constructor call
             TestSpan(
@@ -3508,7 +3755,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnStaticConstructor()
+        public void OnStaticConstructor()
         {
             TestSpan(
 @"class C
@@ -3520,7 +3767,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnDestructor()
+        public void OnDestructor()
         {
             TestSpan(
 @"class C
@@ -3532,7 +3779,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnOperator()
+        public void OnOperator()
         {
             TestSpan(
 @"class C
@@ -3544,7 +3791,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnOperatorWithExpressionBody1()
+        public void OnOperatorWithExpressionBody1()
         {
             TestSpan(
 @"class C
@@ -3554,7 +3801,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnOperatorWithExpressionBody2()
+        public void OnOperatorWithExpressionBody2()
         {
             TestSpan(
 @"class C
@@ -3564,7 +3811,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnOperatorWithExpressionBody3()
+        public void OnOperatorWithExpressionBody3()
         {
             TestSpan(
 @"class C
@@ -3574,7 +3821,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnOperatorWithExpressionBody4()
+        public void OnOperatorWithExpressionBody4()
         {
             TestSpan(
 @"class C
@@ -3584,7 +3831,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnConversionOperator()
+        public void OnConversionOperator()
         {
             TestSpan(
 @"class C
@@ -3596,7 +3843,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnConversionOperatorWithExpressionBody1()
+        public void OnConversionOperatorWithExpressionBody1()
         {
             TestSpan(
 @"class C
@@ -3606,7 +3853,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnConversionOperatorWithExpressionBody2()
+        public void OnConversionOperatorWithExpressionBody2()
         {
             TestSpan(
 @"class C
@@ -3616,7 +3863,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnConversionOperatorWithExpressionBody3()
+        public void OnConversionOperatorWithExpressionBody3()
         {
             TestSpan(
 @"class C
@@ -3626,7 +3873,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [Fact]
-        public void TestOnConversionOperatorWithExpressionBody4()
+        public void OnConversionOperatorWithExpressionBody4()
         {
             TestSpan(
 @"class C
@@ -3635,147 +3882,9 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
-        public void TestInFrontOfFirstFromClause()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    [|var q =
-    $$   from x in blah()
-        from y in zap()
-        let m = quux()
-        join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
-        select y.blah();|]
-  }
-}");
-        }
-
-        [Fact]
-        public void TestInFrontOfSecondFromClause()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    var q =
-        from x in blah()
-    $$   from y in [|zap()|]
-        let m = quux()
-        join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
-        select y.blah();
-  }
-}");
-        }
-
-        [Fact]
-        public void TestInFrontOfLetClause()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    var q =
-        from x in blah()
-        from y in zap()
-    $$   let m = [|quux()|]
-        join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
-        select y.blah();
-  }
-}");
-        }
-
-        [Fact]
-        public void TestInFrontOfJoinClause()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    var q =
-        from x in blah()
-        from y in zap()
-        let m = quux()
-    $$   join a in alpha on [|left().expr()|] equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
-        select y.blah();
-  }
-}");
-        }
-
-        [Fact]
-        public void TestInFrontOfOrderByClause()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    var q =
-        from x in blah()
-        from y in zap()
-        let m = quux()
-        join a in alpha on left().expr() equals right.expr()
-    $$   orderby [|foo|], expr().expr() descending
-        group bar().foo() by blah().zap() into g
-        select y.blah();
-  }
-}");
-        }
-
-        [Fact]
-        public void TestInFrontOfGroupByClause()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    var q =
-        from x in blah()
-        from y in zap()
-        let m = quux()
-        join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-    $$   group [|bar().foo()|] by blah().zap() into g
-        select y.blah();
-  }");
-        }
-
-        [Fact]
-        public void TestInFrontOfSelectClause()
-        {
-            TestSpan(
-@"class C
-{
-  void Foo()
-  {
-    var q =
-        from x in blah()
-        from y in zap()
-        let m = quux()
-        join a in alpha on left().expr() equals right.expr()
-        orderby foo, expr().expr() descending
-        group bar().foo() by blah().zap() into g
-    $$   select [|y.blah()|];
-  }");
-        }
-
         [WorkItem(3557, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public void TestInFrontOfAttribute()
+        public void InFrontOfAttribute()
         {
             TestSpan(
 @"class C
@@ -3789,7 +3898,7 @@ $$ [method: Obsolete]
 
         [WorkItem(538058)]
         [Fact]
-        public void TestInInactivePPRegion()
+        public void InInactivePPRegion()
         {
             TestLine(
 @"
@@ -3801,7 +3910,7 @@ $$fooby
 
         [WorkItem(538777)]
         [Fact]
-        public void TestWithIncompleteDeclaration()
+        public void WithIncompleteDeclaration()
         {
             TestMissing(
 @"
@@ -3816,7 +3925,7 @@ $$        int
 
         [WorkItem(937290)]
         [Fact]
-        public void TestOnGetter()
+        public void OnGetter()
         {
             TestSpan(
 @"class C
@@ -3845,7 +3954,7 @@ $$        int
 
         [WorkItem(937290)]
         [Fact]
-        public void TestOnSetter()
+        public void OnSetter()
         {
             TestSpan(
 @"class C

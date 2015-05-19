@@ -1613,7 +1613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' 
             ' * Post-storage: If we stashed away the duplicated value in the temporary, we need to restore it back to the stack.
 
-            Dim lhsUsesStack As Boolean = Me.EmitAssignmentPreamble(assignmentOperator)
+            Dim lhsUsesStack As Boolean = Me.EmitAssignmentPreamble(assignmentOperator.Left)
             Me.EmitExpression(assignmentOperator.Right, used:=True)
             Dim temp As LocalDefinition = Me.EmitAssignmentDuplication(assignmentOperator, used, lhsUsesStack)
             Me.EmitStore(assignmentOperator.Left)
@@ -1732,8 +1732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return False
         End Function
 
-        Private Function EmitAssignmentPreamble(assignment As BoundAssignmentOperator) As Boolean
-            Dim assignmentTarget = assignment.Left
+        Private Function EmitAssignmentPreamble(assignmentTarget As BoundExpression) As Boolean
             Dim lhsUsesStack = False
 
             Select Case assignmentTarget.Kind
@@ -1769,10 +1768,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         lhsUsesStack = True
                     End If
 
-                Case BoundKind.PropertyAccess
-                    ' Property access should have been rewritten.
-                    Throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind)
-
                 Case BoundKind.ArrayAccess
                     Dim left = DirectCast(assignmentTarget, BoundArrayAccess)
                     EmitExpression(left.Expression, True)
@@ -1792,6 +1787,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.PseudoVariable
                     EmitPseudoVariableAddress(DirectCast(assignmentTarget, BoundPseudoVariable))
                     lhsUsesStack = True
+
+                Case BoundKind.Sequence
+                    Dim sequence = DirectCast(assignmentTarget, BoundSequence)
+
+                    If Not sequence.Locals.IsEmpty Then
+                        _builder.OpenLocalScope()
+
+                        For Each local In sequence.Locals
+                            Me.DefineLocal(local, sequence.Syntax)
+                        Next
+                    End If
+
+                    Me.EmitSideEffects(sequence.SideEffects)
+                    lhsUsesStack = EmitAssignmentPreamble(sequence.ValueOpt)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind)
 
             End Select
 
@@ -1874,6 +1886,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.Parameter
                     EmitParameterStore(DirectCast(expression, BoundParameter))
+
+                Case BoundKind.Sequence
+                    Dim sequence = DirectCast(expression, BoundSequence)
+                    EmitStore(sequence.ValueOpt)
+
+                    If Not sequence.Locals.IsEmpty Then
+                        _builder.CloseLocalScope()
+
+                        For Each local In sequence.Locals
+                            Me.FreeLocal(local)
+                        Next
+                    End If
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(expression.Kind)

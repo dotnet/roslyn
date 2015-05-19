@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly BindingRedirectionService _bindingRedirectionService;
 
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private Task<AnalyzerDependencyResults> _task = Task.FromResult((AnalyzerDependencyResults)null);
+        private Task<AnalyzerDependencyResults> _task = Task.FromResult(AnalyzerDependencyResults.Empty);
         private ImmutableHashSet<string> _analyzerPaths = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
 
         [ImportingConstructor]
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 results = await GetConflictsAsync().ConfigureAwait(continueOnCapturedContext: true);
             }
-            catch (OperationCanceledException)
+            catch
             {
                 return;
             }

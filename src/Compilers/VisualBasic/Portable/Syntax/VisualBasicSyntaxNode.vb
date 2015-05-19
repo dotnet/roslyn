@@ -677,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
 
-        Friend Overrides Function GetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
+        Friend Overrides Function TryGetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
             Return LambdaUtilities.GetCorrespondingLambdaBody(body, Me)
         End Function
 

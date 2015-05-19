@@ -18,7 +18,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(analyzerOptions != null);
 
                 Analyzer = analyzer;
-                _analyzerOptions = analyzerOptions;
+                // _analyzerOptions is used only as a key for equality testing, and only the properties
+                // declared by AnalyzerOptions are appropriate for use in the comparison. (For example,
+                // two AnalyzersAndOptions that differ only by Workspace ought to be treated as equal.)
+                // If the supplied analyzerOptions is an instance of a derived type, holding on to that object
+                // can introduce a memory leak, as well as causing false negatives in comparison. Avoid these
+                // issues by creating a new object with only the desired properties. 
+                _analyzerOptions = new AnalyzerOptions(analyzerOptions.AdditionalFiles);
             }
 
             public bool Equals(AnalyzerAndOptions other)

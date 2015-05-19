@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Enum
 
         ' Keep this value in sync with C# LanguageParser
-        Private Const _maxUncheckedRecursionDepth As Integer = 30
+        Friend Const MaxUncheckedRecursionDepth As Integer = 20
 
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
@@ -856,7 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= _maxUncheckedRecursionDepth Then
+                If _recursionDepth >= MaxUncheckedRecursionDepth Then
                     PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
                 End If
 

@@ -34,5 +34,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 fullNameWithoutFormatSpecifiers,
                 formatter.GetTypeName(new TypeAndCustomInfo(value.Type)));
         }
+
+        internal static DkmClrValue GetMemberValue(this DkmClrValue value, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)
+        {
+            // Note: GetMemberValue() may return special value when func-eval of properties is disabled.
+            return value.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
+        }
     }
 }

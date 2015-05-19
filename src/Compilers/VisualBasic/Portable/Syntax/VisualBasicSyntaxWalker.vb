@@ -18,6 +18,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.Depth = depth
         End Sub
 
+        Private _recursionDepth As Integer
+
+        Public Overrides Sub Visit(node As SyntaxNode)
+            If node IsNot Nothing Then
+                _recursionDepth += 1
+
+                If _recursionDepth > Syntax.InternalSyntax.Parser.MaxUncheckedRecursionDepth Then
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
+                End If
+
+                DirectCast(node, VisualBasicSyntaxNode).Accept(Me)
+
+                _recursionDepth -= 1
+            End If
+        End Sub
+
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
             Dim list = node.ChildNodesAndTokens()
             Dim childCnt = list.Count
@@ -69,23 +85,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Visit(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode))
             End If
         End Sub
-    End Class
-
-    ''' <summary>
-    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="Visit(SyntaxNode)"/> method.
-    ''' </summary>
-    Partial Public MustInherit Class VisualBasicSyntaxVisitor
-    End Class
-
-    ''' <summary>
-    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="Visit(SyntaxNode)"/> method and produces 
-    ''' a value of the type specified by the <typeparamref name="TResult"/> parameter.
-    ''' </summary>
-    ''' <typeparam name="TResult">
-    ''' The type of the return value this visitor's Visit method.
-    ''' </typeparam>
-    Partial Public MustInherit Class VisualBasicSyntaxVisitor(Of TResult)
     End Class
 End Namespace
