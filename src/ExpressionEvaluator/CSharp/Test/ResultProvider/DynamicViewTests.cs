@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -231,6 +232,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EvalResult(expression, Resources.DynamicViewValueWarning, "", fullName, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             Verify(GetChildren(result),
                 EvalFailedResult(Resources.ErrorName, "Function evaluation timed out"));
+        }
+
+        [Fact]
+        public void DynamicMetaObjectProviderDebugViewItemsException()
+        {
+            var expression = "o";
+            var fullName = expression + ", dynamic";
+            dynamic o = new ExpandoObject();
+            o.Answer = 42;
+
+            DkmClrRuntimeInstance runtime = null;
+            Func<DkmClrValue> getExceptionValue = () => CreateDkmClrValue(new NotImplementedException(), evalFlags: DkmEvaluationResultFlags.ExceptionThrown);
+            runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(), getMemberValue: (_, m) => (m == "Items") ? getExceptionValue() : null);
+            var type = new DkmClrType(runtime, (TypeImpl)o.GetType());
+            var value = CreateDkmClrValue((object)o, type);
+
+            var result = FormatResult(expression, fullName, value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.DynamicView));
+            Verify(result,
+                EvalResult(expression, Resources.DynamicViewValueWarning, "", fullName, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+            var members = GetChildren(result);
+            Assert.Equal(32, members.Length);
+            Verify(members[1],
+                EvalResult("HResult", "-2147467263", "int", null, category: DkmEvaluationResultCategory.Property, access: DkmEvaluationResultAccessType.Public));
+
+            getExceptionValue = () => CreateDkmClrValue(new NotImplementedException());
+            result = FormatResult(expression, fullName, value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.DynamicView));
+            Verify(result,
+                EvalResult(expression, Resources.DynamicViewValueWarning, "", fullName, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+            members = GetChildren(result);
+            Assert.Equal(32, members.Length);
+            Verify(members[1],
+                EvalResult("HResult", "-2147467263", "int", "((System.Exception)new Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView(o).Items).HResult", category: DkmEvaluationResultCategory.Property, access: DkmEvaluationResultAccessType.Public));
         }
 
         [Fact]
