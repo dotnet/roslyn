@@ -3,7 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
-                    var derivedTypes = await namedType.FindTypesImmediatelyDerivedFromClassesAsync(solution, cancellationToken).ConfigureAwait(false);
+                    var derivedTypes = await DependentTypeFinder.GetTypesImmediatelyDerivedFromClassesAsync(namedType, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeForSymbolAsync(derivedType, relatedNode: node).ConfigureAwait(false);
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
                 else if (namedType.TypeKind == TypeKind.Interface)
                 {
-                    var derivedTypes = await namedType.FindTypesImmediatelyDerivedFromInterfacesAsync(solution, cancellationToken).ConfigureAwait(false);
+                    var derivedTypes = await DependentTypeFinder.GetTypesImmediatelyDerivedFromInterfacesAsync(namedType, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeForSymbolAsync(derivedType, relatedNode: node).ConfigureAwait(false);

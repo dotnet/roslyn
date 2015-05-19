@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
-        internal static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
-        internal static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
