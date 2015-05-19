@@ -51,6 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return;
             }
 
+            if (results == null)
+            {
+                return;
+            }
+
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
 
             var conflicts = results.Conflicts;

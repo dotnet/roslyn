@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // set initial value
             IsStable = !reporter.InProgress;
 
-            ChangeStableState(stable: !reporter.InProgress);
+            ChangeStableState(stable: IsStable);
 
             reporter.Started += OnSolutionCrawlerStarted;
             reporter.Stopped += OnSolutionCrawlerStopped;

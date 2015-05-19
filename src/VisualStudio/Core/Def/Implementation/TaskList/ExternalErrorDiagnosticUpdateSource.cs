@@ -73,6 +73,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return _lastBuiltResult;
         }
 
+        public void ClearErrors(ProjectId projectId)
+        {
+            var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
+            _taskQueue.ScheduleTask(() =>
+            {
+                // record the project as built only if we are in build.
+                // otherwise (such as closing solution or removing project), no need to record it
+                _state?.Built(projectId);
+
+                ClearProjectErrors(projectId);
+            }).CompletesAsyncOperation(asyncToken);
+        }
+
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
             switch (e.Kind)
@@ -123,6 +136,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (e.Activated)
             {
+                // build just started, create the state and fire build in progress event.
+                var state = GetOrCreateInprogressState();
                 return;
             }
 
@@ -285,18 +300,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             return map;
-        }
-
-        public void ClearErrors(ProjectId projectId)
-        {
-            var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
-            _taskQueue.ScheduleTask(() =>
-            {
-                var state = GetOrCreateInprogressState();
-                state.Built(projectId);
-
-                ClearProjectErrors(projectId);
-            }).CompletesAsyncOperation(asyncToken);
         }
 
         private void ClearProjectErrors(ProjectId projectId, Solution solution = null)

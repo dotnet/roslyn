@@ -142,13 +142,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                IsStable = errorSource.IsInProgress;
+                SetStableState(errorSource.IsInProgress);
 
                 errorSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
                 errorSource.BuildStarted += OnBuildStarted;
             }
 
             private void OnBuildStarted(object sender, bool started)
+            {
+                SetStableState(started);
+            }
+
+            private void SetStableState(bool started)
             {
                 IsStable = !started;
                 ChangeStableState(IsStable);
