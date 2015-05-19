@@ -171,7 +171,8 @@ class C { }
 [assembly: System.Reflection.AssemblyCompany("Microsoft")]
 [assembly: System.CLSCompliant(true)]
 
-class C { }</Code>
+class C { }
+</Code>
 
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Sub
@@ -192,9 +193,28 @@ class C { }
 [assembly: System.Reflection.AssemblyCopyright("2012")]
 [assembly: System.CLSCompliant(true)]
 
-class C { }</Code>
+class C { }
+</Code>
 
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute6()
+            Dim code =
+<Code>
+/// &lt;summary&gt;&lt;/summary&gt;
+class $$C { }
+</Code>
+
+            Dim expected =
+<Code>
+[assembly: System.CLSCompliant(true)]
+/// &lt;summary&gt;&lt;/summary&gt;
+class C { }
+</Code>
+
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region

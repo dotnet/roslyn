@@ -307,6 +307,27 @@ End Class</Code>
             TestAddAttributeWithSimplification(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "True", .Position = -1}, "System.CLSCompliant", "CLSCompliant")
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute6()
+            Dim code =
+<Code>
+''' &lt;summary&gt;&lt;/summary&gt;
+Class $$C
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+&lt;Assembly: CLSCompliant(True)&gt;
+
+''' &lt;summary&gt;&lt;/summary&gt;
+Class C
+End Class
+</Code>
+
+            TestAddAttributeWithSimplification(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "True"}, "System.CLSCompliant", "CLSCompliant")
+        End Sub
+
 #End Region
 
 #Region "AddClass tests"

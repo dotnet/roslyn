@@ -838,6 +838,7 @@ End Class
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
@@ -887,9 +888,36 @@ End Class
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Sub
 
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code><![CDATA[
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Dim $$foo As Integer
+End Class
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    <CLSCompliant(True)>
+    Dim foo As Integer
+End Class
+]]></Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
+        End Sub
+
 #End Region
 
 #Region "Set Access tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetEnumAccess1()
             Dim code =

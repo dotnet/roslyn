@@ -83,13 +83,14 @@ End Interface
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
 <Code>
 Imports System
 
-Interface $$C
+Interface $$I
 End Interface
 </Code>
 
@@ -98,7 +99,7 @@ End Interface
 Imports System
 
 &lt;Serializable()&gt;
-Interface C
+Interface I
 End Interface
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
@@ -111,7 +112,7 @@ End Interface
 Imports System
 
 &lt;Serializable&gt;
-Interface $$C
+Interface $$I
 End Interface
 </Code>
 
@@ -121,10 +122,34 @@ Imports System
 
 &lt;Serializable&gt;
 &lt;CLSCompliant(True)&gt;
-Interface C
+Interface I
 End Interface
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+Interface $$I
+End Interface
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+&lt;CLSCompliant(True)&gt;
+Interface I
+End Interface
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
         End Sub
 
 #End Region
@@ -250,6 +275,7 @@ End Interface
 #End Region
 
 #Region "Set Name tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetName1()
             Dim code =
