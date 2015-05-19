@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly string _fullPath;
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
-        private string _lazyDisplayName;
-        private string _lazyId;
+        private string _lazyDisplay;
+        private object _lazyIdentity;
         private ImmutableArray<DiagnosticAnalyzer> _lazyAllAnalyzers;
         private ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _lazyAnalyzersPerLanguage;
         private Assembly _lazyAssembly;
@@ -118,12 +118,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (_lazyDisplayName == null)
+                if (_lazyDisplay == null)
                 {
-                    _lazyDisplayName = Path.GetFileNameWithoutExtension(this.FullPath);
+                    InitializeDisplayAndId();
                 }
 
-                return _lazyDisplayName;
+                return _lazyDisplay;
             }
         }
 
@@ -131,12 +131,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (_lazyId == null)
+                if (_lazyIdentity == null)
                 {
-                    _lazyId = Path.GetFileName(this.FullPath).ToLower();
+                    InitializeDisplayAndId();
                 }
-                
-                return _lazyId;
+
+                return _lazyIdentity;
+            }
+        }
+
+        private void InitializeDisplayAndId()
+        {
+            try
+            {
+                // AssemblyName.GetAssemblyName(path) is not available on CoreCLR.
+                // Use our metadata reader to do the equivalent thing.
+                using (var reader = new PEReader(FileUtilities.OpenRead(_fullPath)))
+                {
+                    var metadataReader = reader.GetMetadataReader();
+                    var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
+                    _lazyDisplay = assemblyIdentity.Name;
+                    _lazyIdentity = assemblyIdentity;
+                }
+            }
+            catch
+            {
+                _lazyDisplay = Path.GetFileNameWithoutExtension(_fullPath);
+                _lazyIdentity = _lazyDisplay;
             }
         }
 
