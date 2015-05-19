@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -217,8 +217,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 using (var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null))
                 {
-                    var oldText = buffer.CurrentSnapshot.AsText();
+                    var oldSnapshot = buffer.CurrentSnapshot;
+                    var oldText = oldSnapshot.AsText();
                     var changes = newText.GetTextChanges(oldText);
+
+                    Workspace workspace = null;
+                    if (Workspace.TryGetWorkspace(oldText.Container, out workspace))
+                    {
+                        var undoService = workspace.Services.GetService<ISourceTextUndoService>();
+                        undoService.BeginUndoTransaction(oldSnapshot);
+                    }
 
                     foreach (var change in changes)
                     {
