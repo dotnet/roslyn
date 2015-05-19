@@ -4354,8 +4354,6 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.CompilationOptionsCore() -> Microsoft.CodeAnalysis.CompilationOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.ParseOptionsCore() -> Microsoft.CodeAnalysis.ParseOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.RegularFileExtension() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.ScriptFileExtension() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.AppendDefaultVersionResource(resourceStream As System.IO.Stream) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonAddSyntaxTrees(trees As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree)) -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonAssembly() -> Microsoft.CodeAnalysis.IAssemblySymbol
@@ -4370,21 +4368,17 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetEnt
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetMetadataReference(_assemblySymbol As Microsoft.CodeAnalysis.IAssemblySymbol) -> Microsoft.CodeAnalysis.MetadataReference
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetSemanticModel(syntaxTree As Microsoft.CodeAnalysis.SyntaxTree, ignoreAccessibility As Boolean) -> Microsoft.CodeAnalysis.SemanticModel
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetSpecialType(specialType As Microsoft.CodeAnalysis.SpecialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetSubmissionResultType(ByRef hasValue As Boolean) -> Microsoft.CodeAnalysis.ITypeSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetTypeByMetadataName(metadataName As String) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGlobalNamespace() -> Microsoft.CodeAnalysis.INamespaceSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonObjectType() -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonOptions() -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonPreviousSubmission() -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonRemoveAllSyntaxTrees() -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonRemoveSyntaxTrees(trees As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree)) -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonReplaceSyntaxTree(oldTree As Microsoft.CodeAnalysis.SyntaxTree, newTree As Microsoft.CodeAnalysis.SyntaxTree) -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonScriptClass() -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonSourceModule() -> Microsoft.CodeAnalysis.IModuleSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonSyntaxTrees() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonWithAssemblyName(assemblyName As String) -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonWithOptions(options As Microsoft.CodeAnalysis.CompilationOptions) -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonWithPreviousSubmission(newPreviousSubmission As Microsoft.CodeAnalysis.Compilation) -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonWithReferences(newReferences As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.MetadataReference)) -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSymbolsWithName(predicate As System.Func(Of String, Boolean), filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateErrorTypeSymbol(container As Microsoft.CodeAnalysis.INamespaceOrTypeSymbol, name As String, arity As Integer) -> Microsoft.CodeAnalysis.INamedTypeSymbol
@@ -5905,7 +5899,6 @@ Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.MakeHalfWidthIdentifier(te
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.VarianceKindFromToken(token As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VarianceKind
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(symbolList As String, ByRef diagnostics As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.Diagnostic), symbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> System.Collections.Generic.IReadOnlyDictionary(Of String, Object)
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.Create(assemblyName As String, syntaxTrees As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree) = Nothing, references As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.MetadataReference) = Nothing, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
-Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateSubmission(assemblyName As String, syntaxTree As Microsoft.CodeAnalysis.SyntaxTree = Nothing, references As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.MetadataReference) = Nothing, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions = Nothing, previousSubmission As Microsoft.CodeAnalysis.Compilation = Nothing, returnType As System.Type = Nothing, hostObjectType As System.Type = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.DeserializeFrom(stream As System.IO.Stream, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxNode
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.Create(root As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", encoding As System.Text.Encoding = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
 Shared Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(text As Microsoft.CodeAnalysis.Text.SourceText, options As Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions = Nothing, path As String = "", cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SyntaxTree
@@ -5923,6 +5916,5 @@ Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Space -> Micros
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.Tab -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.EqualityComparer -> System.Collections.Generic.IEqualityComparer(Of Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Default -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
-Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Interactive -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter.Instance -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFormatter
 Shared ReadOnly Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
