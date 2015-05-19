@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return false;
         }
-
+        
         private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics, LookupResultKind resultKind, bool isError)
         {
             // Events are handled later as we don't know yet if we are binding to the event or it's backing field.

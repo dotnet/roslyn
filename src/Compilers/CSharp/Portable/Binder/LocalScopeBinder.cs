@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class LocalScopeBinder : Binder
     {
         private ImmutableArray<LocalSymbol> _locals;
+        private ImmutableArray<LocalFunctionMethodSymbol> _localFunctions;
         private ImmutableArray<LabelSymbol> _labels;
 
         internal LocalScopeBinder(Binder next)
@@ -40,6 +41,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual ImmutableArray<LocalSymbol> BuildLocals()
         {
             return ImmutableArray<LocalSymbol>.Empty;
+        }
+        
+        internal sealed override ImmutableArray<LocalFunctionMethodSymbol> LocalFunctions
+        {
+            get
+            {
+                if (_localFunctions.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _localFunctions, BuildLocalFunctions(), default(ImmutableArray<LocalFunctionMethodSymbol>));
+                }
+
+                return _localFunctions;
+            }
+        }
+
+        protected virtual ImmutableArray<LocalFunctionMethodSymbol> BuildLocalFunctions()
+        {
+            return ImmutableArray<LocalFunctionMethodSymbol>.Empty;
         }
 
         internal sealed override ImmutableArray<LabelSymbol> Labels
@@ -71,6 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return _lazyLocalsMap;
+            }
+        }
+
+        private SmallDictionary<string, LocalFunctionMethodSymbol> _lazyLocalFunctionsMap;
+        private SmallDictionary<string, LocalFunctionMethodSymbol> LocalFunctionsMap
+        {
+            get
+            {
+                if (_lazyLocalFunctionsMap == null && this.LocalFunctions.Length > 0)
+                {
+                    _lazyLocalFunctionsMap = BuildMap(this.LocalFunctions);
+                }
+
+                return _lazyLocalFunctionsMap;
             }
         }
 
@@ -145,6 +178,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
+
+        protected ImmutableArray<LocalFunctionMethodSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
+        {
+            ArrayBuilder<LocalFunctionMethodSymbol> locals = null;
+            foreach (var statement in statements)
+            {
+                var innerStatement = statement;
+
+                // drill into any LabeledStatements -- atomic LabelStatements have been bound into
+                // wrapped LabeledStatements by this point
+                while (innerStatement.Kind() == SyntaxKind.LabeledStatement)
+                {
+                    innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;
+                }
+                
+                if (innerStatement.Kind() == SyntaxKind.LocalFunctionStatement)
+                {
+                    var decl = (LocalFunctionStatementSyntax)innerStatement;
+                    if (locals == null)
+                    {
+                        locals = ArrayBuilder<LocalFunctionMethodSymbol>.GetInstance();
+                    }
+
+                    var localSymbol = MakeLocalFunction(decl);
+                    locals.Add(localSymbol);
+                }
+            }
+
+            if (locals != null)
+            {
+                return locals.ToImmutableAndFree();
+            }
+
+            return ImmutableArray<LocalFunctionMethodSymbol>.Empty;
+        }
+
         protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
         {
             return SourceLocalSymbol.MakeLocal(
@@ -154,6 +223,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarator.Identifier,
                 kind,
                 declarator.Initializer);
+        }
+
+        protected LocalFunctionMethodSymbol MakeLocalFunction(LocalFunctionStatementSyntax declaration)
+        {
+            return new LocalFunctionMethodSymbol(
+                this,
+                this.ContainingType, // TODO fzoo
+                declaration,
+                declaration.Location);
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
@@ -201,6 +279,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.LookupLocal(nameToken);
         }
 
+        protected override LocalFunctionMethodSymbol LookupLocalFunction(SyntaxToken nameToken)
+        {
+            LocalFunctionMethodSymbol result = null;
+            if (LocalFunctionsMap != null && LocalFunctionsMap.TryGetValue(nameToken.ValueText, out result))
+            {
+                if (result.NameToken == nameToken) return result;
+
+                // in error cases we might have more than one declaration of the same name in the same scope
+                foreach (var local in this.LocalFunctions)
+                {
+                    if (local.NameToken == nameToken)
+                    {
+                        return local;
+                    }
+                }
+            }
+
+            return base.LookupLocalFunction(nameToken);
+        }
+
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -226,6 +324,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LocalSymbol localSymbol;
                 if (localsMap.TryGetValue(name, out localSymbol))
+                {
+                    result.MergeEqual(originalBinder.CheckViability(localSymbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                }
+            }
+
+            var localFunctionsMap = this.LocalFunctionsMap;
+            if (localFunctionsMap != null && (options & LookupOptions.NamespaceAliasesOnly) == 0)
+            {
+                LocalFunctionMethodSymbol localSymbol;
+                if (localFunctionsMap.TryGetValue(name, out localSymbol))
                 {
                     result.MergeEqual(originalBinder.CheckViability(localSymbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
                 }

@@ -1400,6 +1400,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            return node; // TODO (search keyword: fzoo)
+        }
+
         public override BoundNode VisitSequence(BoundSequence node)
         {
             DeclareVariables(node.Locals);

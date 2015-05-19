@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = declarationSyntax.Identifier.ValueText;
             return GetDeclaredNamedType(declarationSyntax, name);
         }
-
+        
         private NamedTypeSymbol GetDeclaredNamedType(CSharpSyntaxNode declarationSyntax, string name)
         {
             Debug.Assert(declarationSyntax != null);
@@ -1192,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return GetDeclaredType(delegateDeclarationSyntax);
             }
-
+            
             return null;
         }
 

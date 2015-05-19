@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
             Debug.Assert(options.AreValid());
-
+            
             for (var scope = this; scope != null && !result.IsMultiViable; scope = scope.Next)
             {
                 if (!result.IsClear)

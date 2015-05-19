@@ -712,6 +712,7 @@ Microsoft.CodeAnalysis.MethodKind.EventRaise = 6 -> Microsoft.CodeAnalysis.Metho
 Microsoft.CodeAnalysis.MethodKind.EventRemove = 7 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.MethodKind.ExplicitInterfaceImplementation = 8 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.MethodKind.LambdaMethod = 0 -> Microsoft.CodeAnalysis.MethodKind
+Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.MethodKind.Ordinary = 10 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.MethodKind.PropertyGet = 11 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.MethodKind.PropertySet = 12 -> Microsoft.CodeAnalysis.MethodKind

@@ -7899,8 +7899,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _syntaxFactory.LabeledStatement(label, colon, statement);
         }
 
-        private LocalDeclarationStatementSyntax ParseLocalDeclarationStatement()
+        private StatementSyntax ParseLocalDeclarationStatement()
         {
+            LocalFunctionStatementSyntax syntax;
+            if (ParseLocalFunctionStatement(out syntax))
+                return syntax;
+
             TypeSyntax type;
             var mods = _pool.Allocate();
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
@@ -7977,6 +7981,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private bool ParseLocalFunctionStatement(out LocalFunctionStatementSyntax decl)
+        {
+            ResetPoint resetPoint = this.GetResetPoint();
+            TypeSyntax type = this.ParseType(false);
+            SyntaxToken identifier = this.EatToken(SyntaxKind.IdentifierToken);
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+                decl = null;
+                return false;
+            }
+            this.Release(ref resetPoint);
+            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: false);
+
+            BlockSyntax blockBody;
+            ArrowExpressionClauseSyntax expressionBody;
+            SyntaxToken semicolon;
+            this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
+
+            decl = _syntaxFactory.LocalFunctionStatement(
+                 type,
+                 identifier,
+                 paramList,
+                 blockBody,
+                 expressionBody,
+                 semicolon);
+
+            decl = CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
+            return true;
         }
 
         private ExpressionStatementSyntax ParseExpressionStatement()

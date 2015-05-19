@@ -315,5 +315,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            return node; // TODO (search keyword: fzoo)
+        }
     }
 }

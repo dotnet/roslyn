@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LocalDeclarationStatement:
                     result = BindDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
+                case SyntaxKind.LocalFunctionStatement:
+                    result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
+                    break;
                 case SyntaxKind.ExpressionStatement:
                     result = BindExpressionStatement((ExpressionStatementSyntax)node, diagnostics);
                     break;
@@ -404,6 +407,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
+        }
+
+        private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            // TODO (search keyword: fzoo)
+
+            var localSymbol = this.LookupLocalFunction(node.Identifier);
+            
+            //SourceLocalSymbol localSymbol = this.LookupLocal(node.Identifier);
+            //
+            //AliasSymbol alias;
+            //var type = this.BindType(node.Type, diagnostics, out alias);
+            //BoundTypeExpression boundType = new BoundTypeExpression(node.Type, alias, type);
+            //
+            //InMethodBinder methodBinder = new InMethodBinder(null, this);
+            //
+            //var parameterBuilder = ArrayBuilder<BoundParameter>.GetInstance();
+            //
+            //foreach (var parameter in node.ParameterList.Parameters)
+            //{
+            //    // TODO
+            //}
+            //
+            //var parameterArray = parameterBuilder.ToImmutableAndFree();
+            //
+            //BoundBlock block;
+            //if (node.Body != null)
+            //{
+            //    // TODO: GetBinder(node.Body)
+            //    block = this.BindBlock(node.Body, diagnostics);
+            //}
+            //else if (node.ExpressionBody != null)
+            //{
+            //    block = this.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+            //}
+            //else
+            //{
+            //    block = null;
+            //}
+            //
+            //return new BoundLocalFunctionDeclaration(node, localSymbol, boundType, parameterArray, block);
+            return new BoundLocalFunctionStatement(node);
         }
 
         public BoundExpressionStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
@@ -846,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax)
         {
-            SourceLocalSymbol localSymbol = this.LookupLocal(declarator.Identifier);
+            SourceLocalSymbol localSymbol = (SourceLocalSymbol)this.LookupLocal(declarator.Identifier);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
@@ -2053,6 +2098,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocal(nameToken);
         }
 
+        protected virtual LocalFunctionMethodSymbol LookupLocalFunction(SyntaxToken nameToken)
+        {
+            return Next.LookupLocalFunction(nameToken);
+        }
+
         public BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             var blockBinder = this.GetBinder(node);
@@ -3245,6 +3295,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Next.Locals;
+            }
+        }
+
+        internal virtual ImmutableArray<LocalFunctionMethodSymbol> LocalFunctions
+        {
+            get
+            {
+                return this.Next.LocalFunctions;
             }
         }
 
