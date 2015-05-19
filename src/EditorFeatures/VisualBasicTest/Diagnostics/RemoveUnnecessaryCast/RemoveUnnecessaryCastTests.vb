@@ -2636,5 +2636,27 @@ End Module
             Test(markup, expected, compareTokens:=False)
         End Sub
 
+        <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub DontRemoveCastFromBaseToDerivedWithNarrowingReference()
+            Dim markup =
+<File>
+Module Module1
+    Private Function NewMethod(base As Base) As Base
+        Return If([|TryCast(base, Derived1)|], New Derived1())
+    End Function
+End Module
+
+Class Base
+End Class
+
+Class Derived1 : Inherits Base
+End Class
+
+Class Derived2 : Inherits Base
+End Class
+</File>
+            TestMissing(markup)
+        End Sub
     End Class
 End Namespace
