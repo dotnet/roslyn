@@ -7194,6 +7194,128 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "join", CSharpFeaturesResources.SelectClause));
         }
 
+        [Fact]
+        public void Queries_Select_Reduced1()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from a in array
+                where a > 0
+                select <AS:0>a + 1</AS:0>;
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from a in array
+                where a > 0
+                <AS:0>select</AS:0> a;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "select", CSharpFeaturesResources.SelectClause ));
+        }
+
+        [Fact]
+        public void Queries_Select_Reduced2()
+        {
+            string src1 = @"
+class C
+{
+    static int F(IEnumerbale<int> e) => <AS:0>1</AS:0>;
+
+    static void Main()
+    {
+        <AS:1>F(from a in array where a > 0 select a + 1);</AS:1>
+    }
+}";
+            string src2 = @"
+class C
+{
+    static int F(IEnumerbale<int> e) => <AS:0>1</AS:0>;
+   
+    static void Main()
+    {
+        <AS:1>F(from a in array where a > 0 select a);</AS:1>
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "F(from a in array where a > 0 select a);"));
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced1()
+        {
+            string src1 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from a in array
+                group <AS:0>a + 1</AS:0> by a;
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main()
+    {
+        var q = from a in array
+                <AS:0>group</AS:0> a by a;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "group", CSharpFeaturesResources.GroupByClause));
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced2()
+        {
+            string src1 = @"
+class C
+{
+    static int F(IEnumerbale<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
+
+    static void Main()
+    {
+        <AS:1>F(from a in array group a by a);</AS:1>
+    }
+}";
+            string src2 = @"
+class C
+{
+    static int F(IEnumerbale<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
+   
+    static void Main()
+    {
+        <AS:1>F(from a in array group a + 1 by a);</AS:1>
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "F(from a in array group a + 1 by a);"));
+        }
+
         #endregion
 
         #region State Machines

@@ -469,4 +469,7 @@
   <data name="AnalyzerNameColumnHeader" xml:space="preserve">
     <value>Analyzer</value>
   </data>
+  <data name="NoAnalyzersFound" xml:space="preserve">
+    <value>No analyzers found</value>
+  </data>
 </root>

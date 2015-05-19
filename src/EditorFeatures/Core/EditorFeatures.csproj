@@ -653,6 +653,10 @@
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Undo\DefaultSourceTextUndoService.cs" />
+    <Compile Include="Undo\EditorSourceTextUndoService.cs" />
+    <Compile Include="Undo\ISourceTextUndoTransaction.cs" />
+    <Compile Include="Undo\ISourceTextUndoService.cs" />
     <Compile Include="MetadataAsSourceFile.cs" />
     <Compile Include="Implementation\Intellisense\IController.cs" />
     <Compile Include="Options\BraceCompletionOptions.cs" />

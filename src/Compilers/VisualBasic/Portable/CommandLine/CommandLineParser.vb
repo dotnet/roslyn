@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Public Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
+        Friend Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the standard Visual Basic source file extension
         ''' </summary>
         ''' <returns>A string representing the standard Visual Basic source file extension.</returns>
-        Protected Overrides ReadOnly Property RegularFileExtension As String
+        Friend Overrides ReadOnly Property RegularFileExtension As String
             Get
                 Return ".vb"
             End Get
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the standard Visual Basic script file extension.
         ''' </summary>
         ''' <returns>A string representing the standard Visual Basic script file extension.</returns>
-        Protected Overrides ReadOnly Property ScriptFileExtension As String
+        Friend Overrides ReadOnly Property ScriptFileExtension As String
             Get
                 Return ".vbx"
             End Get
@@ -1404,8 +1404,8 @@ lVbRuntimePlus:
         End Function
 
         ' See ParseCommandLine in vbc.cpp.
-        Friend Overloads Shared Function ParseResourceDescription(name As String, resourceDesciptor As String, baseDirectory As String, diagnostics As IList(Of Diagnostic), embedded As Boolean) As ResourceDescription
-            If String.IsNullOrEmpty(resourceDesciptor) Then
+        Friend Overloads Shared Function ParseResourceDescription(name As String, resourceDescriptor As String, baseDirectory As String, diagnostics As IList(Of Diagnostic), embedded As Boolean) As ResourceDescription
+            If String.IsNullOrEmpty(resourceDescriptor) Then
                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<resinfo>")
                 Return Nothing
             End If
@@ -1418,7 +1418,7 @@ lVbRuntimePlus:
             Dim accessibility As String = Nothing
 
             ParseResourceDescription(
-                resourceDesciptor,
+                resourceDescriptor,
                 baseDirectory,
                 True,
                 filePath,

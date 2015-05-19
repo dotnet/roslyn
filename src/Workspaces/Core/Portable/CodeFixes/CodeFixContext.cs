@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Diagnostics to fix.
-        /// NOTE: All the diagnostics in this collection have the same span <see ref="CodeFixContext.Span"/>.
+        /// NOTE: All the diagnostics in this collection have the same <see cref="CodeFixContext.Span"/>.
         /// </summary>
         public ImmutableArray<Diagnostic> Diagnostics { get { return _diagnostics; } }
 
@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="document">Document to fix.</param>
         /// <param name="span">Text span within the <paramref name="document"/> to fix.</param>
-        /// <param name="diagnostics">Diagnostics to fix. All the diagnostics should have the same span <paramref name="span"/>.</param>
+        /// <param name="diagnostics">
+        /// Diagnostics to fix.
+        /// All the diagnostics must have the same <paramref name="span"/>.
+        /// Additionally, the <see cref="Diagnostic.Id"/> of each diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+        /// </param>
         /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
@@ -70,7 +74,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
         /// </summary>
         /// <param name="document">Document to fix.</param>
-        /// <param name="diagnostic">Diagnostic to fix.</param>
+        /// <param name="diagnostic">
+        /// Diagnostic to fix.
+        /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+        /// </param>
         /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>

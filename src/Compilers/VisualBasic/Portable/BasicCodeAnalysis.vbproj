@@ -930,6 +930,7 @@
     <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
+    <Compile Include="Syntax\VisualBasicSyntaxVisitor.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />
     <Compile Include="Syntax\VisualBasicLineDirectiveMap.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxNode.vb" />

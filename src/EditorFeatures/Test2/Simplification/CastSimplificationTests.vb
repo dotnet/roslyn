@@ -1969,8 +1969,10 @@ class C
         End Sub
 
         <WorkItem(530083)>
+        <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub Csharp_Remove_InsideThrowStatement2()
+        Public Sub CSharp_Remove_InsideThrowStatement2()
+            ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1998,7 +2000,7 @@ class C
 	public static void Main()
 	{
 		Exception ex = new ArgumentException();
-		throw ex;
+		throw (ArgumentException)ex;
 	}
 }
 </code>
@@ -4528,8 +4530,10 @@ End Class
         End Sub
 
         <WorkItem(530083)>
+        <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_Remove_InsideThrowStatement2()
+        Public Sub VisualBasic_DontRemove_InsideThrowStatement2()
+            ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -4551,7 +4555,7 @@ Imports System
 Class C
     Shared Sub Main()
         Dim ex As Exception = New ArgumentException()
-        Throw ex
+        Throw DirectCast(ex, ArgumentException)
     End Sub
 End Class
 </code>

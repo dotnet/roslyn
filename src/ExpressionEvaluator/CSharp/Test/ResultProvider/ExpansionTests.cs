@@ -1302,7 +1302,7 @@ class C
                 evalFlags: DkmEvaluationResultFlags.None);
             var evalResult = FormatResult("c", value);
             Verify(evalResult,
-                EvalResult("c", "\"Length = 3\"", "System.Collections.Immutable.ImmutableArray<int>", "c", DkmEvaluationResultFlags.Expandable));
+                EvalResult("c", "Length = 3", "System.Collections.Immutable.ImmutableArray<int>", "c", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("[0]", "1", "int", "c.array[0]"),

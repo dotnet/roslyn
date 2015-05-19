@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly string _fullPath;
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
-        private string _lazyDisplayName;
-        private string _lazyId;
+        private string _lazyDisplay;
+        private object _lazyIdentity;
         private ImmutableArray<DiagnosticAnalyzer> _lazyAllAnalyzers;
         private ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _lazyAnalyzersPerLanguage;
         private Assembly _lazyAssembly;
@@ -97,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ImmutableInterlocked.GetOrAdd(ref _lazyAnalyzersPerLanguage, language, CreateLanguageSpecificAnalyzers, this);
         }
 
-        private static ImmutableArray<DiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string langauge, AnalyzerFileReference reference)
+        private static ImmutableArray<DiagnosticAnalyzer> CreateLanguageSpecificAnalyzers(string language, AnalyzerFileReference reference)
         {
             // Get all analyzers in the assembly for the given language.
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, langauge);
+            reference.AddAnalyzers(builder, language);
             return builder.ToImmutable();
         }
 
@@ -117,12 +118,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (_lazyDisplayName == null)
+                if (_lazyDisplay == null)
                 {
-                    _lazyDisplayName = Path.GetFileNameWithoutExtension(this.FullPath);
+                    InitializeDisplayAndId();
                 }
 
-                return _lazyDisplayName;
+                return _lazyDisplay;
             }
         }
 
@@ -130,12 +131,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (_lazyId == null)
+                if (_lazyIdentity == null)
                 {
-                    _lazyId = Path.GetFileName(this.FullPath).ToLower();
+                    InitializeDisplayAndId();
                 }
-                
-                return _lazyId;
+
+                return _lazyIdentity;
+            }
+        }
+
+        private void InitializeDisplayAndId()
+        {
+            try
+            {
+                // AssemblyName.GetAssemblyName(path) is not available on CoreCLR.
+                // Use our metadata reader to do the equivalent thing.
+                using (var reader = new PEReader(FileUtilities.OpenRead(_fullPath)))
+                {
+                    var metadataReader = reader.GetMetadataReader();
+                    var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
+                    _lazyDisplay = assemblyIdentity.Name;
+                    _lazyIdentity = assemblyIdentity;
+                }
+            }
+            catch
+            {
+                _lazyDisplay = Path.GetFileNameWithoutExtension(_fullPath);
+                _lazyIdentity = _lazyDisplay;
             }
         }
 
@@ -160,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message, e));
                 return;
             }
 
@@ -183,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
             if (builder.Count == initialCount && !reportedError)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
             }
         }
 
@@ -209,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception e)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message));
                 return;
             }
 
@@ -224,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
             if (builder.Count == initialCount && !reportedError)
             {
-                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
+                this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
             }
         }
 
@@ -252,20 +274,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
             foreach (var typeName in analyzerTypeNames)
             {
-                DiagnosticAnalyzer analyzer = null;
+                Type type;
                 try
                 {
-                    var type = analyzerAssembly.GetType(typeName);
-                    if (DerivesFromDiagnosticAnalyzer(type))
-                    {
-                        analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type);
-                    }
+                    type = Type.GetType(typeName + ", " + analyzerAssembly.FullName, throwOnError: true);
                 }
                 catch (Exception e)
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e, typeName));
-                    analyzer = null;
+                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
                     reportedError = true;
+                    continue;
+                }
+
+                Debug.Assert(type != null);
+
+                DiagnosticAnalyzer analyzer;
+                try
+                {
+                    analyzer = Activator.CreateInstance(type) as DiagnosticAnalyzer;
+                }
+                catch (Exception e)
+                {
+                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                    reportedError = true;
+                    continue;
                 }
 
                 if (analyzer != null)
@@ -379,11 +411,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var declaringTypeDef = peModule.MetadataReader.GetTypeDefinition(declaringType);
                 return GetFullyQualifiedTypeName(declaringTypeDef, peModule) + "+" + peModule.MetadataReader.GetString(typeDef.Name);
             }
-        }
-
-        private static bool DerivesFromDiagnosticAnalyzer(Type type)
-        {
-            return type.GetTypeInfo().IsSubclassOf(typeof(DiagnosticAnalyzer));
         }
 
         public override bool Equals(object obj)

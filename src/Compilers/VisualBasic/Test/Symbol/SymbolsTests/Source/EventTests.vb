@@ -479,7 +479,7 @@ End Class
                                                Assert.Equal(1, attrs.Length)
                                                Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                               ' additional synthetic members (field, accesors and such) should not
+                                               ' additional synthetic members (field, accessors and such) should not
                                                member = type.GetMember("RegularEventEvent")
                                                attrs = member.GetAttributes()
                                                Assert.Equal(0, attrs.Length)
@@ -502,7 +502,7 @@ End Class
                                                Assert.Equal(1, attrs.Length)
                                                Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                               ' additional synthetic members (field, accesors and such) should not
+                                               ' additional synthetic members (field, accessors and such) should not
                                                member = type.GetMember("add_CustomEvent")
                                                attrs = member.GetAttributes()
                                                Assert.Equal(0, attrs.Length)
@@ -527,7 +527,7 @@ End Class
                                                  Assert.Equal(1, attrs.Length)
                                                  Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                                 ' additional synthetic members (field, accesors and such) should not
+                                                 ' additional synthetic members (field, accessors and such) should not
                                                  'member = type.GetMember("RegularEventEvent")
                                                  'attrs = member.GetAttributes()
                                                  'Assert.Equal(0, attrs.Count)
@@ -552,7 +552,7 @@ End Class
                                                  Assert.Equal(1, attrs.Length)
                                                  Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                                 ' additional synthetic members (field, accesors and such) should not
+                                                 ' additional synthetic members (field, accessors and such) should not
                                                  member = type.GetMember("add_CustomEvent")
                                                  attrs = member.GetAttributes()
                                                  Assert.Equal(0, attrs.Length)

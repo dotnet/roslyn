@@ -11,8 +11,8 @@
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
     using System;
     using System.Reflection;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -58,6 +58,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dynamic View.
+        /// </summary>
+        internal static string DynamicView {
+            get {
+                return ResourceManager.GetString("DynamicView", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only COM or Dynamic objects can have Dynamic View.
+        /// </summary>
+        internal static string DynamicViewNotDynamic {
+            get {
+                return ResourceManager.GetString("DynamicViewNotDynamic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expanding the Dynamic View will get the dynamic members for the object.
+        /// </summary>
+        internal static string DynamicViewValueWarning {
+            get {
+                return ResourceManager.GetString("DynamicViewValueWarning", resourceCulture);
             }
         }
         
@@ -161,7 +188,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Shared Members.
+        ///   Looks up a localized string similar to Shared members.
         /// </summary>
         internal static string SharedMembers {
             get {
@@ -170,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Static Members.
+        ///   Looks up a localized string similar to Static members.
         /// </summary>
         internal static string StaticMembers {
             get {

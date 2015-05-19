@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ZeroDivide))
                     ElseIf compoundLengthOutOfLimit
                         Debug.Assert(value.IsBad)
-                        ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ContantStringTooLong))
+                        ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstantStringTooLong))
                     ElseIf (value.IsBad OrElse integerOverflow) Then
                         ' Overflows are reported regardless of the value of OptionRemoveIntegerOverflowChecks, Dev10 behavior.
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ExpressionOverflow1, operatorResultType))

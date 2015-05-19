@@ -6131,7 +6131,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         End Function
 
         Private Shared Function VerifyOutput(sourceDir As TempDirectory, sourceFile As TempFile,
-                                             Optional includeCurrentAssemblyAsAnalyzerReferecne As Boolean = True,
+                                             Optional includeCurrentAssemblyAsAnalyzerReference As Boolean = True,
                                              Optional additionalFlags As String() = Nothing,
                                              Optional expectedInfoCount As Integer = 0,
                                              Optional expectedWarningCount As Integer = 0,
@@ -6140,7 +6140,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
                             "/nologo", "/preferreduilang:en", "/t:library",
                             sourceFile.Path
                        }
-            If includeCurrentAssemblyAsAnalyzerReferecne Then
+            If includeCurrentAssemblyAsAnalyzerReference Then
                 args = args.Append("/a:" + Assembly.GetExecutingAssembly().Location)
             End If
             If additionalFlags IsNot Nothing Then
@@ -6458,7 +6458,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
         Private Function GetOutput(name As String,
                                    source As String,
-                          Optional includeCurrentAssemblyAsAnalyzerReferecne As Boolean = True,
+                          Optional includeCurrentAssemblyAsAnalyzerReference As Boolean = True,
                           Optional additionalFlags As String() = Nothing,
                           Optional expectedInfoCount As Integer = 0,
                           Optional expectedWarningCount As Integer = 0,
@@ -6466,7 +6466,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim dir = Temp.CreateDirectory()
             Dim file = dir.CreateFile(name)
             file.WriteAllText(source)
-            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount)
+            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount)
             CleanupAllGeneratedFiles(file.Path)
             Return output
         End Function
@@ -6779,50 +6779,50 @@ End Module"
             Dim file = dir.CreateFile("a.vb")
             file.WriteAllText(source)
 
-            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, expectedErrorCount:=1)
+            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:BC30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:BC30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:bc30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:bc30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens when using /warnaserror[+/-] when compiler error BC30311 is present.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens if someone passes BC30311 to /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror:30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror:30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:BC30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror+:BC30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:bc30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror+:bc30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-:30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:BC30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-:BC30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:bc30311"}, expectedErrorCount:=1)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-:bc30311"}, expectedErrorCount:=1)
             Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)

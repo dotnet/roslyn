@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static ResultsViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType enumerableType, Formatter formatter)
         {
             var proxyValue = value.InstantiateResultsViewProxy(inspectionContext, enumerableType);
-            // InstantiateResultsViewProxy may return null
-            // (if assembly is missing for instance).
+            // InstantiateResultsViewProxy may return null (if required assembly is missing, for instance).
             if (proxyValue == null)
             {
                 return null;
@@ -258,7 +257,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 declaredTypeAndInfo: declaredTypeAndInfo,
                 parent: null,
                 value: value,
-                displayValue: name,
+                displayValue: null,
                 expansion: new IndirectExpansion(_proxyValue, _proxyMembers),
                 childShouldParenthesize: false,
                 fullName: fullName,
