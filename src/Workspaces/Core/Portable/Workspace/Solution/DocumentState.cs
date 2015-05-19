@@ -242,16 +242,12 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentState UpdateSourceCodeKind(SourceCodeKind kind)
         {
-#if SCRIPTING
             if (this.ParseOptions == null || kind == this.SourceCodeKind)
             {
                 return this;
             }
 
             return this.SetParseOptions(this.ParseOptions.WithKind(kind));
-#else
-            return this;
-#endif
         }
 
         public DocumentState UpdateFolders(IList<string> folders)

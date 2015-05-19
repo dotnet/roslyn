@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="kind">The parser source code kind.</param>
         ''' <returns>A new instance of VisualBasicParseOptions if source code kind is different; otherwise current instance.</returns>
-        Friend Shadows Function WithKind(kind As SourceCodeKind) As VisualBasicParseOptions
+        Public Shadows Function WithKind(kind As SourceCodeKind) As VisualBasicParseOptions
             If kind = Me.Kind Then
                 Return Me
             End If
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="kind">The parser source code kind.</param>
         ''' <returns>A new instance of ParseOptions.</returns>
-        Friend Overrides Function CommonWithKind(kind As SourceCodeKind) As ParseOptions
+        Public Overrides Function CommonWithKind(kind As SourceCodeKind) As ParseOptions
             Return WithKind(kind)
         End Function
 
