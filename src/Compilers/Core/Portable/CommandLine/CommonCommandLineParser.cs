@@ -771,21 +771,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
+        private CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
         {
-            string extension = PathUtilities.GetExtension(resolvedPath);
-
-            bool isScriptFile;
-            if (IsInteractive)
-            {
-                isScriptFile = !string.Equals(extension, RegularFileExtension, StringComparison.OrdinalIgnoreCase);
-            }
-            else
-            {
-                isScriptFile = string.Equals(extension, ScriptFileExtension, StringComparison.OrdinalIgnoreCase);
-            }
-
-            return new CommandLineSourceFile(resolvedPath, isScriptFile);
+            return new CommandLineSourceFile(resolvedPath, isScript: false);
         }
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
