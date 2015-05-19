@@ -186,7 +186,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var compilationFactory = languageServices.GetService<ICompilationFactoryService>();
                 var compilationOptions = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
-                var parseOptions = syntaxFactory.GetDefaultParseOptions().WithKind(SourceCodeKind.Interactive);
+                var parseOptions = syntaxFactory.GetDefaultParseOptions();
+#if SCRIPTING
+                parseOptions = parseOptions.WithKind(SourceCodeKind.Interactive);
+#else
+                parseOptions = (ParseOptions)typeof(ParseOptions).GetMethod("WithKind", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(parseOptions, new object[] { SourceCodeKind.Interactive });
+#endif
 
                 var references = CreateCommonReferences(workspace, submissionElement);
 
