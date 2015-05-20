@@ -2980,10 +2980,10 @@ Module M
 End Module
     </file>
 </compilation>
-            Dim assembyPath = TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray
+            Dim assemblyPath = TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray
 
             CompileAndVerify(source,
-                        additionalRefs:={assembyPath},
+                        additionalRefs:={assemblyPath},
                          expectedOutput:=<![CDATA[
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 True

@@ -619,10 +619,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' This was Semantics::ExtractAnonTypeMemberName in Dev 10
         <Extension()>
         Friend Function ExtractAnonymousTypeMemberName(input As ExpressionSyntax,
-                                           ByRef isNameDictinaryAccess As Boolean,
+                                           ByRef isNameDictionaryAccess As Boolean,
                                            ByRef isRejectedXmlName As Boolean) As SyntaxToken
             Dim conditionalAccessStack As ArrayBuilder(Of ConditionalAccessExpressionSyntax) = Nothing
-            Dim result As SyntaxToken = ExtractAnonymousTypeMemberName(conditionalAccessStack, input, isNameDictinaryAccess, isRejectedXmlName)
+            Dim result As SyntaxToken = ExtractAnonymousTypeMemberName(conditionalAccessStack, input, isNameDictionaryAccess, isRejectedXmlName)
 
             If conditionalAccessStack IsNot Nothing Then
                 conditionalAccessStack.Free()
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ExtractAnonymousTypeMemberName(
             ByRef conditionalAccessStack As ArrayBuilder(Of ConditionalAccessExpressionSyntax),
             input As ExpressionSyntax,
-            ByRef isNameDictinaryAccess As Boolean,
+            ByRef isNameDictionaryAccess As Boolean,
             ByRef isRejectedXmlName As Boolean
         ) As SyntaxToken
 TryAgain:
@@ -679,7 +679,7 @@ TryAgain:
 
                     ClearConditionalAccessStack(conditionalAccessStack)
 
-                    isNameDictinaryAccess = input.Kind = SyntaxKind.DictionaryAccessExpression
+                    isNameDictionaryAccess = input.Kind = SyntaxKind.DictionaryAccessExpression
                     input = memberAccess.Name
                     GoTo TryAgain
 
@@ -695,14 +695,14 @@ TryAgain:
 
                 Case SyntaxKind.InvocationExpression
                     Dim invocation = DirectCast(input, InvocationExpressionSyntax)
-                    Dim terget As ExpressionSyntax = If(invocation.Expression, PopAndGetConditionalAccessReceiver(conditionalAccessStack))
+                    Dim target As ExpressionSyntax = If(invocation.Expression, PopAndGetConditionalAccessReceiver(conditionalAccessStack))
 
-                    If terget Is Nothing Then
+                    If target Is Nothing Then
                         Exit Select
                     End If
 
                     If invocation.ArgumentList Is Nothing OrElse invocation.ArgumentList.Arguments.Count = 0 Then
-                        input = terget
+                        input = target
                         GoTo TryAgain
                     End If
 
@@ -710,10 +710,10 @@ TryAgain:
 
                     If invocation.ArgumentList.Arguments.Count = 1 Then
                         ' See if this is an indexed XmlElementAccessExpression or XmlDescendantAccessExpression
-                        Select Case terget.Kind
+                        Select Case target.Kind
                             Case SyntaxKind.XmlElementAccessExpression,
                                 SyntaxKind.XmlDescendantAccessExpression
-                                input = terget
+                                input = target
                                 GoTo TryAgain
                         End Select
                     End If

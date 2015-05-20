@@ -179,23 +179,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.MarkLabel(doneLabel)
         End Sub
 
-        Private Sub EmitConditionalAccess(conditinal As BoundLoweredConditionalAccess, used As Boolean)
+        Private Sub EmitConditionalAccess(conditional As BoundLoweredConditionalAccess, used As Boolean)
 
-            Debug.Assert(conditinal.WhenNullOpt IsNot Nothing OrElse Not used)
+            Debug.Assert(conditional.WhenNullOpt IsNot Nothing OrElse Not used)
 
-            If conditinal.ReceiverOrCondition.Type.IsBooleanType() Then
+            If conditional.ReceiverOrCondition.Type.IsBooleanType() Then
                 ' This is a trivial case 
-                Debug.Assert(Not conditinal.CaptureReceiver)
-                Debug.Assert(conditinal.PlaceholderId = 0)
+                Debug.Assert(Not conditional.CaptureReceiver)
+                Debug.Assert(conditional.PlaceholderId = 0)
 
                 Dim doneLabel = New Object()
 
                 Dim consequenceLabel = New Object()
 
-                EmitCondBranch(conditinal.ReceiverOrCondition, consequenceLabel, sense:=True)
+                EmitCondBranch(conditional.ReceiverOrCondition, consequenceLabel, sense:=True)
 
-                If conditinal.WhenNullOpt IsNot Nothing Then
-                    EmitExpression(conditinal.WhenNullOpt, used)
+                If conditional.WhenNullOpt IsNot Nothing Then
+                    EmitExpression(conditional.WhenNullOpt, used)
                 Else
                     Debug.Assert(Not used)
                 End If
@@ -207,11 +207,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 End If
 
                 _builder.MarkLabel(consequenceLabel)
-                EmitExpression(conditinal.WhenNotNull, used)
+                EmitExpression(conditional.WhenNotNull, used)
 
                 _builder.MarkLabel(doneLabel)
             Else
-                Debug.Assert(Not conditinal.ReceiverOrCondition.Type.IsValueType)
+                Debug.Assert(Not conditional.ReceiverOrCondition.Type.IsValueType)
 
                 Dim receiverTemp As LocalDefinition = Nothing
                 Dim temp As LocalDefinition = Nothing
@@ -222,9 +222,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' we need a copy if we deal with nonlocal value (to capture the value)
                 ' Or if we have a ref-constrained T (to do box just once)
-                Dim receiver As BoundExpression = conditinal.ReceiverOrCondition
+                Dim receiver As BoundExpression = conditional.ReceiverOrCondition
                 Dim receiverType As TypeSymbol = receiver.Type
-                Dim nullCheckOnCopy = conditinal.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
+                Dim nullCheckOnCopy = conditional.CaptureReceiver OrElse (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter)
 
                 If nullCheckOnCopy Then
                     EmitReceiverRef(receiver, isAccessConstrained:=Not receiverType.IsReferenceType, addressKind:=AddressKind.ReadOnly)
@@ -276,8 +276,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     _builder.EmitOpCode(ILOpCode.Pop)
                 End If
 
-                If conditinal.WhenNullOpt IsNot Nothing Then
-                    EmitExpression(conditinal.WhenNullOpt, used)
+                If conditional.WhenNullOpt IsNot Nothing Then
+                    EmitExpression(conditional.WhenNullOpt, used)
                 Else
                     Debug.Assert(Not used)
                 End If
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(receiverTemp Is Nothing)
                 End If
 
-                EmitExpression(conditinal.WhenNotNull, used)
+                EmitExpression(conditional.WhenNotNull, used)
                 _builder.MarkLabel(doneLabel)
 
                 If temp IsNot Nothing Then

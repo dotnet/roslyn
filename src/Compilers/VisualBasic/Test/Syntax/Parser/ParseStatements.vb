@@ -4001,7 +4001,7 @@ End Namespace
                     end synclock
 
                     '
-                    ' test this case in the else part of the single line if statment
+                    ' test this case in the else part of the single line if statement
 
                     If True Then else try : 
                     finally

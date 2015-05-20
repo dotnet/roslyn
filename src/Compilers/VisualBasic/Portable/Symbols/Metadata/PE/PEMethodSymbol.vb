@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End Get
             End Property
 
-            Public ReadOnly Property IsUseSiteDiagnoticPopulated As Boolean
+            Public ReadOnly Property IsUseSiteDiagnosticPopulated As Boolean
                 Get
                     Return (_bits And s_isUseSiteDiagnosticPopulatedBit) <> 0
                 End Get
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
             End If
 
-            If Not _packedFlags.IsUseSiteDiagnoticPopulated Then
+            If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 retVal._lazyUseSiteErrorInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
             End If
 
@@ -1072,7 +1072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If Not _packedFlags.IsUseSiteDiagnoticPopulated Then
+            If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
                 EnsureTypeParametersAreLoaded(errorInfo)
                 Return InitializeUseSiteErrorInfo(errorInfo)
