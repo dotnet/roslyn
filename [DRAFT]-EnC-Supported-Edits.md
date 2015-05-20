@@ -8,19 +8,23 @@
 * **Leaf active debug statement** is a debug statement that contains an IP (instruction pointer) of any thread.
 
 
+### Supported Edits
+| Edit operation | Status  | Additional Info |
+| ------------------- |-----------| --------------------|
+| Add methods, fields, constructors, properties, events, indexers, field and property initializers, nested types and top-level types (including delegates, enums, interfaces, abstract and generic types, and anonymous types) to an existing type  | Supported | The existing type cannot be a generic or an interface. <br/> <br/> Adding or modifying [enum members](https://msdn.microsoft.com/en-us/library/sbbt4032.aspx) within an existing enum is not supported. |
+| Add any member to an existing type is supported if it is added within the same edit     | Supported |  - | 
+| Add and modify iterators  | Supported   |  - |
+| Add and modify async/await expressions  | Supported |  -  | Modifying await expressions wrapped inside other expressions (e.g. ```G(await F());```) |
+| Add and modify operations with dynamic objects | Supported   | - |
+| Add and modify C# 6.0 language features like string interpolation and null-conditional operators | Supported   | - |
+| Add lambda expressions | Partially supported | Lambda expressions can only be added if they are static and access the “this” reference that has already been captured or access captured variables from a single scope |
+| Modify lambda expressions | Partially supported | Lambda signatures cannot be modified (this includes names, types, ref-ness of parameters, and return types) <br/> <br/>The set of variables captured by the lambda expression cannot be modified (a variable that has not been captured before cannot be captured after modification and vice versa)  <br/> <br/> The scope of captured variables cannot be modified  <br/> <br/> The set of captured variables accessed by the lambda expression cannot be modified <br/> <br/> These rules guarantee that the structure of the emitted closure tree will not change--thus ensuring that lambdas in the new body are mapped to the corresponding generated CLR methods that implemented their previous versions. |
+| Add LINQ expressions | Partially supported |  LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
+| Modify lambda expressions | Partially supported |  LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
 
+### Not Supported Edits
 | Edit operation | Status | Planned? | Additional Info |
 | ------------------- |-----------| --------------| --------------------|
-| Add methods, fields, constructors, properties, events, indexers, field and property initializers, nested types and top-level types (including delegates, enums, interfaces, abstract and generic types, and anonymous types) to an existing type     | Supported | - | The existing type cannot be a generic or an interface. <br/> <br/> Adding or modifying [enum members](https://msdn.microsoft.com/en-us/library/sbbt4032.aspx) within an existing enum is not supported. |
-| Add any member to an existing type is supported if it is added within the same edit     | Supported | - | - | 
-| Add and modify iterators  | Supported   | - | - |
-| Add and modify async/await expressions  | Supported |  -  | Modifying await expressions wrapped inside other expressions (e.g. ```G(await F());```) |
-| Add and modify operations with dynamic objects | Supported   | - | - |
-| Add and modify C# 6.0 language features like string interpolation and null-conditional operators | Supported   | - | - |
-| Add lambda expressions | Partially supported | - | Lambda expressions can only be added if they are static and access the “this” reference that has already been captured or access captured variables from a single scope |
-| Modify lambda expressions | Partially supported | - | Lambda signatures cannot be modified (this includes names, types, ref-ness of parameters, and return types) <br/> <br/>The set of variables captured by the lambda expression cannot be modified (a variable that has not been captured before cannot be captured after modification and vice versa)  <br/> <br/> The scope of captured variables cannot be modified  <br/> <br/> The set of captured variables accessed by the lambda expression cannot be modified <br/> <br/> These rules guarantee that the structure of the emitted closure tree will not change--thus ensuring that lambdas in the new body are mapped to the corresponding generated CLR methods that implemented their previous versions. |
-| Add LINQ expressions | Partially supported | - | LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
-| Modify lambda expressions | Partially supported | - | LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
 | Modify [method signatures](https://msdn.microsoft.com/en-us/library/ms173114.aspx) | Not supported | - | - |
 | Add or modify [generics](https://msdn.microsoft.com/en-us/library/512aeb7t.aspx) | Not supported | - | - |
 | Add or modify interfaces | Not supported | - | - |
