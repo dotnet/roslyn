@@ -4850,7 +4850,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression is too long or complex to compile..
+        ///   Looks up a localized string similar to An expression is too long or complex to compile.
         /// </summary>
         internal static string ERR_InsufficientStack {
             get {
@@ -8563,15 +8563,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_WinRtEventPassedByRef {
             get {
                 return ResourceManager.GetString("ERR_WinRtEventPassedByRef", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The source does not appear to be valid C# code..
-        /// </summary>
-        internal static string ERR_WrongLanguage {
-            get {
-                return ResourceManager.GetString("ERR_WrongLanguage", resourceCulture);
             }
         }
         
