@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly LexerCache _cache;
         private readonly bool _allowPreprocessorDirectives;
         private DocumentationCommentParser _xmlParser;
-        private int _errorCount; // cumulative count of bad tokens produced
+        private int _badTokenCount; // cumulative count of bad tokens produced
 
         internal struct TokenInfo
         {
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    if (_errorCount++ > 100)
+                    if (_badTokenCount++ > 200)
                     {
                         // If we get too many characters that we cannot make sense of, absorb the rest of the input.
                         int position = TextWindow.Position - 1;
