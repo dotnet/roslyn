@@ -54,11 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             If previousToken.Kind = SyntaxKind.GreaterThanToken AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
 
-                ' If the attribute is followed by another attribute then there is no line operation
-                'If currentToken.Kind = SyntaxKind.LessThanToken AndAlso currentToken.Parent IsNot Nothing AndAlso TypeOf currentToken.Parent Is AttributeListSyntax Then
-                'Return Nothing
-                'End If
-
                 ' This AttributeList is the last applied attribute
                 ' If this AttributeList belongs to a parameter then apply no line operation
                 If previousToken.Parent.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent.Parent Is ParameterSyntax Then
