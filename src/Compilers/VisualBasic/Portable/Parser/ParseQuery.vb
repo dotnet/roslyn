@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim varName As ModifiedIdentifierSyntax = Nothing
                 Dim Equals As PunctuationSyntax = Nothing
 
-                ' // Parse form: <IdentiferOrKeyword> '=' <Expression>
+                ' // Parse form: <IdentifierOrKeyword> '=' <Expression>
                 varName = ParseSimpleIdentifierAsModifiedIdentifier()
 
                 ' NOTE: do not need to resync here. we should land on "="
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                  OrElse
                 (PeekToken(1).Kind = SyntaxKind.QuestionToken AndAlso PeekToken(2).Kind = SyntaxKind.EqualsToken)) Then
 
-                ' // Parse form: <IdentiferOrKeyword> '=' <Expression>
+                ' // Parse form: <IdentifierOrKeyword> '=' <Expression>
                 varName = ParseSimpleIdentifierAsModifiedIdentifier()
 
                 ' NOTE: do not need to resync here. we should land on "="
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim RangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
 
             Do
-                Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifer()
+                Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
 
                 If varName.ContainsDiagnostics Then
                     ' // If we see As or In before other query operators, then assume that
@@ -407,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim RangeVariables = Me._pool.AllocateSeparated(Of CollectionRangeVariableSyntax)()
 
             Do
-                Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifer()
+                Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
 
                 If varName.ContainsDiagnostics Then
                     ' // If we see As or In before other query operators, then assume that
@@ -759,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseJoinControlVar() As CollectionRangeVariableSyntax
 
-            Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifer()
+            Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
             If varName.ContainsDiagnostics Then
                 ' // If we see As or In before other query operators, then assume that
                 ' // we are still on the Control Variable Declaration.

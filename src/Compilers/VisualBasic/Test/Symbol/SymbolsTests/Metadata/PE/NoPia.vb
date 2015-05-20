@@ -1162,7 +1162,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim i3Comilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
+            Dim i3Compilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[
@@ -1230,9 +1230,9 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
-                             dependencies:={New ModuleData(i3Comilation.Assembly.Identity,
+                             dependencies:={New ModuleData(i3Compilation.Assembly.Identity,
                                                             OutputKind.DynamicallyLinkedLibrary,
-                                                            i3Comilation.EmitToArray(),
+                                                            i3Compilation.EmitToArray(),
                                                             Nothing,
                                                             False)},
                              expectedOutput:=

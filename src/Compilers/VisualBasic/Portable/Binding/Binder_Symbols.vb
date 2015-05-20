@@ -826,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       diagBag,
                                                                       suppressUseSiteError:=suppressUseSiteError,
                                                                       inGetTypeContext:=inGetTypeContext)
-                Return SingleLookupResult.Good(Binder.ApplyArrayRankSpecifersToType(elementType, arrayTypeSyntax.RankSpecifiers, diagBag))
+                Return SingleLookupResult.Good(binder.ApplyArrayRankSpecifiersToType(elementType, arrayTypeSyntax.RankSpecifiers, diagBag))
             End Function
 
             ''' <summary>

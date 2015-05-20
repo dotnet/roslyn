@@ -894,8 +894,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                     Dim declarator = DirectCast(declaration.Parent, VariableDeclaratorSyntax)
 
-                    Dim identitifer = DirectCast(declaration, ModifiedIdentifierSyntax)
-                    Return identitifer.ArrayBounds IsNot Nothing OrElse
+                    Dim identifier = DirectCast(declaration, ModifiedIdentifierSyntax)
+                    Return identifier.ArrayBounds IsNot Nothing OrElse
                            GetInitializerExpression(declarator.Initializer, declarator.AsClause) IsNot Nothing
 
                 Case SyntaxKind.PropertyStatement
