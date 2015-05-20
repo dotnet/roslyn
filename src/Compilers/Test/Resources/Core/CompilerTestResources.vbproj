@@ -257,12 +257,8 @@
     <Content Include="SymbolsTests\MultiModule\MultiModule.dll" />
     <Content Include="SymbolsTests\MultiModule\MultiModule.vb" />
     <Content Include="SymbolsTests\MultiTargeting\c1.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c1.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c3.dll" />
     <Content Include="SymbolsTests\MultiTargeting\c3.dll" />
     <Content Include="SymbolsTests\MultiTargeting\c4.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c4.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c7.dll" />
     <Content Include="SymbolsTests\MultiTargeting\c7.dll" />
     <Content Include="SymbolsTests\MultiTargeting\Source1.vb" />
     <Content Include="SymbolsTests\MultiTargeting\Source1Module.netmodule" />
@@ -339,7 +335,6 @@
     <Content Include="SymbolsTests\snPublicKey.snk" />
     <Content Include="SymbolsTests\snPublicKey2.snk" />
     <Content Include="SymbolsTests\TypeForwarders\Forwarded.netmodule" />
-    <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.vb" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder1.cs" />
