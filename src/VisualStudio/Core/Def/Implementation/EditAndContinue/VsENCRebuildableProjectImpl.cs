@@ -775,12 +775,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     //    pENC2->ExitBreakState();
                     //    >>> hr = GetCodeContextOfPosition(pTextPos, &pCodeContext, &pProgram, true, true);
                     //    pENC2->EnterBreakState(m_pSession, GetEncBreakReason());
+                    //
+                    // The debugger seem to expect ENC_NOT_MODIFIED in these cases, otherwise errors occur.
 
-                    if (_changesApplied)
+                    if (_changesApplied || _encService.EditSession == null)
                     {
                         _lastEditSessionSummary = ProjectAnalysisSummary.NoChanges;
                     }
-                    else if (_encService.EditSession != null)
+                    else
                     {
                         // Fetch the latest snapshot of the project and get an analysis summary for any changes 
                         // made since the break mode was entered.
@@ -799,6 +801,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                             _projectBeingEmitted = currentProject;
                             _lastEditSessionSummary = GetProjectAnalysisSummary(_projectBeingEmitted);
                         }
+
                         _encService.EditSession.LogBuildState(_lastEditSessionSummary);
                     }
 
