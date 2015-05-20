@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis
         {
             var nodesWithSeps = this.GetWithSeparators();
             var index = nodesWithSeps.IndexOf(separatorToken);
-            if (index < 0 || index >= this.Count)
+            if (index < 0)
             {
                 throw new ArgumentException("separatorToken");
             }
