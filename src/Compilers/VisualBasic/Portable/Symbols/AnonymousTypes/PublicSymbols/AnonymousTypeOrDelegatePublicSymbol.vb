@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return Me.Manager.ContainingModule.RootNamespace
+                    Return Me.Manager.ContainingModule.GlobalNamespace
                 End Get
             End Property
 
