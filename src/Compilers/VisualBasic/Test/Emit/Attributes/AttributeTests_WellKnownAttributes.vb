@@ -1718,23 +1718,23 @@ BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
             implFlags As MethodImplAttributes()
         )
             Dim m = assembly.Modules(0)
-            Dim dissableOptDef As TypeDefinitionHandle = Nothing
+            Dim disableOptDef As TypeDefinitionHandle = Nothing
             Dim name As String = Nothing
 
             For Each typeDef In m.GetMetadataReader().TypeDefinitions
                 name = m.GetTypeDefNameOrThrow(typeDef)
 
                 If name.Equals("DisableJITOptimization") Then
-                    dissableOptDef = typeDef
+                    disableOptDef = typeDef
                     Exit For
                 End If
             Next
 
-            Assert.NotEqual(Nothing, dissableOptDef)
+            Assert.NotEqual(Nothing, disableOptDef)
 
             Dim map As New Dictionary(Of String, MethodDefinitionHandle)()
 
-            For Each methodDef In m.GetMethodsOfTypeOrThrow(dissableOptDef)
+            For Each methodDef In m.GetMethodsOfTypeOrThrow(disableOptDef)
                 map.Add(m.GetMethodDefNameOrThrow(methodDef), methodDef)
             Next
 

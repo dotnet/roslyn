@@ -427,7 +427,7 @@ Public Module VerificationHelpers
     <Extension()>
     Public Function VerifyNoAdjacentTriviaHaveSameKind(tree As SyntaxTree) As SyntaxTree
         For Each child In tree.GetRoot().ChildNodesAndTokens()
-            InternalVerifyNoAdjcentTriviaHaveSameKind(child)
+            InternalVerifyNoAdjacentTriviaHaveSameKind(child)
         Next
         Return tree
     End Function
@@ -790,16 +790,16 @@ Public Module VerificationHelpers
         End If
     End Sub
 
-    Private Sub InternalVerifyNoAdjcentTriviaHaveSameKind(node As SyntaxNodeOrToken)
+    Private Sub InternalVerifyNoAdjacentTriviaHaveSameKind(node As SyntaxNodeOrToken)
         If node.IsNode Then
             For Each child In node.AsNode.ChildNodesAndTokens()
-                InternalVerifyNoAdjcentTriviaHaveSameKind(child)
+                InternalVerifyNoAdjacentTriviaHaveSameKind(child)
             Next
         Else
             Dim prev As SyntaxTrivia? = Nothing
             For Each tr In node.AsToken.LeadingTrivia
                 If tr.HasStructure Then
-                    InternalVerifyNoAdjcentTriviaHaveSameKind(tr.GetStructure)
+                    InternalVerifyNoAdjacentTriviaHaveSameKind(tr.GetStructure)
                 End If
                 If prev IsNot Nothing Then
                     Assert.True(prev.Value.Kind <> tr.Kind,
@@ -811,7 +811,7 @@ Public Module VerificationHelpers
             prev = Nothing
             For Each tr In node.AsToken.LeadingTrivia
                 If tr.HasStructure Then
-                    InternalVerifyNoAdjcentTriviaHaveSameKind(tr.GetStructure)
+                    InternalVerifyNoAdjacentTriviaHaveSameKind(tr.GetStructure)
                 End If
                 If prev IsNot Nothing Then
                     Assert.True(prev.Value.Kind <> tr.Kind,

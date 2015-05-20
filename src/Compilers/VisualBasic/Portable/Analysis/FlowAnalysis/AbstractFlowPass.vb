@@ -1880,7 +1880,7 @@ lUnsplitAndFinish:
             VisitRvalue(node.StepValue)
         End Sub
 
-        Protected Overridable Sub VisitForStatementVariableDeclation(node As BoundForStatement)
+        Protected Overridable Sub VisitForStatementVariableDeclaration(node As BoundForStatement)
         End Sub
 
         Public Overrides Function VisitForEachStatement(node As BoundForEachStatement) As BoundNode
@@ -1890,7 +1890,7 @@ lUnsplitAndFinish:
             ' For example the following statement should give a warning:
             '          For each i As Object in Me.GetSomeCollection(i)        ' <- use of uninitialized i
 
-            VisitForStatementVariableDeclation(node)
+            VisitForStatementVariableDeclaration(node)
 
             VisitRvalue(node.Collection)
 
@@ -1940,7 +1940,7 @@ lUnsplitAndFinish:
             ' For example the following statement should give a warning:
             '          For i As Object = 0 To i        ' <- use of uninitialized i
 
-            VisitForStatementVariableDeclation(node)
+            VisitForStatementVariableDeclaration(node)
 
             VisitForInitValues(node)
 

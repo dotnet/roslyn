@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim candidates = Me.GetSimpleNonTypeMembers(Name)
 
                 For Each member In candidates
-                    appendThrough.AddMemeberIfExtension(methods, member)
+                    appendThrough.AddMemberIfExtension(methods, member)
                 Next
             End If
         End Sub
@@ -853,7 +853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             'NOTE: we can be at race with another thread here.
             ' the worst thing that can happen though, is that error on same cycle may be reported twice
-            ' if two threads analyse the same cycle at the same time but start from different ends.
+            ' if two threads analyze the same cycle at the same time but start from different ends.
             '
             ' For now we decided that this is something we can live with.
 

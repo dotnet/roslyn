@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
+        private CommandLineSourceFile ToCommandLineSourceFile(string resolvedPath)
         {
             string extension = PathUtilities.GetExtension(resolvedPath);
 

@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the corresponding symbol for a specified identifier.
         ''' </summary>
         ''' <param name="semanticModel">A source semantic model.</param>
-        ''' <param name="identifierSyntax">A IdentiferSyntax object.</param>
+        ''' <param name="identifierSyntax">A IdentifierSyntax object.</param>
         ''' <param name="cancellationToken">A cancellation token.</param>
         ''' <returns>A symbol, for the specified identifier; otherwise Null if semantic model is Null. </returns>
         <Extension>
