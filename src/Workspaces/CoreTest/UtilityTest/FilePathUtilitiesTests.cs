@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"Doc.txt", actual: result, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: @"Doc.txt", actual: result);
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"Delta\Doc.txt", actual: result, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: @"Delta\Doc.txt", actual: result);
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"Delta\Epsilon\Doc.txt", actual: result, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: @"Delta\Epsilon\Doc.txt", actual: result);
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"..\Doc.txt", actual: result, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: @"..\Doc.txt", actual: result);
         }
 
         [Fact]
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"..\..\Doc.txt", actual: result, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: @"..\..\Doc.txt", actual: result);
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"..\..\Phi\Omega\Doc.txt", actual: result, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: @"..\..\Phi\Omega\Doc.txt", actual: result);
         }
 
         [Fact]
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string result = FilePathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"D:\Alpha\Beta\Gamma\Doc.txt", actual: result, comparer: StringComparer.OrdinalIgnoreCase);
+            Assert.Equal(expected: @"D:\Alpha\Beta\Gamma\Doc.txt", actual: result);
         }
     }
 }
