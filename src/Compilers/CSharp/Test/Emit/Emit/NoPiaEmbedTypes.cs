@@ -5608,7 +5608,18 @@ class B : IA
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(csharp, new MetadataReference[] { piaReference }).VerifyEmitDiagnostics();
+            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module => {
+                var b = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+                var ia = b.Interfaces[0];
+                var m = (MethodSymbol)ia.GetMember("M");
+                var p = m.Parameters[0];
+                Assert.False(p.HasExplicitDefaultValue);
+                Assert.Throws(typeof(InvalidOperationException), delegate
+                {
+                    var tmp = p.ExplicitDefaultValue;
+                });
+            })
+            .Compilation.VerifyEmitDiagnostics();
         }
     }
 }

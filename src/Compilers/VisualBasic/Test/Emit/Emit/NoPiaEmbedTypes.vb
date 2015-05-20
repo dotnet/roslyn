@@ -4165,9 +4165,19 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></file>
                            </compilation>
             Dim reference1 = CompileIL(sources1, appendDefaultHeader:=False, embedInteropTypes:=True)
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources2, additionalRefs:={reference1})
-            VerifyEmitDiagnostics(compilation2, <errors>
-                                                </errors>)
+            Dim compilation3 = CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+                                                Sub([module] As ModuleSymbol)
+                                                    Dim b = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("B")
+                                                    Dim ia = b.Interfaces(0)
+                                                    Dim m = CType(ia.GetMember("M"), MethodSymbol)
+                                                    Dim p = m.Parameters(0)
+                                                    Assert.False(p.HasExplicitDefaultValue)
+                                                    Assert.Throws(GetType(InvalidOperationException), Sub()
+                                                                                                          Dim tmp = p.ExplicitDefaultValue
+                                                                                                      End Sub)
+                                                End Sub).VerifyDiagnostics().Compilation
+            VerifyEmitDiagnostics(CType(compilation3, VisualBasicCompilation), <errors>
+                                                                               </errors>)
         End Sub
 
     End Class
