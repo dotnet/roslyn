@@ -166,6 +166,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            if (type != null && type.TypeKind == TypeKind.Class)
+            {
+                return GetDependentTypesAsync(
+                    type,
+                    solution,
+                    null,
+                    (t1, t2) => t1.BaseType == t2,
+                    s_derivedClassesCache,
+                    cancellationToken);
+            }
+
+            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+        }
+
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            if (type != null && type.TypeKind == TypeKind.Interface)
+            {
+                type = type.OriginalDefinition;
+                return GetDependentTypesAsync(
+                    type,
+                    solution,
+                    null,
+                    (i1, i2) => i1.Interfaces.Contains(i2),
+                    s_derivedInterfacesCache,
+                    cancellationToken);
+            }
+
+            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+        }
+
         private static async Task<IEnumerable<INamedTypeSymbol>> GetDependentTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
