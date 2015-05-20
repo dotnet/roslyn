@@ -2,7 +2,7 @@
 
 **Definitions**
 * [Variable Capturing](http://blogs.msdn.com/b/matt/archive/2008/03/01/understanding-variable-capturing-in-c.aspx): the mechanism in which the lambda/delegate which is defined inline is able to hold on to any variables within its lexical scope
-* [Scope](https://msdn.microsoft.com/en-us/library/ms973875.aspx): The scope of a variable, sometimes referred to as accessibility of a variable, refers to where the variable can be read from and/or written to, and the variable's lifetime, or how long it stays in memory
+* **Scope**: the region of program text within which it is possible to refer to the entity declared by the name without qualification of the name
 * **Debug statement** is a span of instructions delimited by subsequent sequence points. Usually a debug statement corresponds to a language statement, but it might correspond to just a part of a language statement (e.g. an opening brace of a block statement), an expression (e.g. lambda body) or other contiguous syntax (base constructor call).
 * **Internal active statement** is a debug statement that contains a return address of a stack frame.
 * **Leaf active debug statement** is a debug statement that contains an IP (instruction pointer) of any thread.
