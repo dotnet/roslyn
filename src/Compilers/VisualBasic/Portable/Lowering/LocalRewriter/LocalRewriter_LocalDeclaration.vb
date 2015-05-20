@@ -129,8 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return rewrittenStatement
             End If
 
-            Dim modifiedIdentitifer = DirectCast(syntax, ModifiedIdentifierSyntax)
-            If modifiedIdentitifer.ArrayBounds IsNot Nothing Then
+            Dim modifiedIdentifier = DirectCast(syntax, ModifiedIdentifierSyntax)
+            If modifiedIdentifier.ArrayBounds IsNot Nothing Then
                 ' Dim [|a(1)|], b(1) As Integer
                 Return New BoundSequencePoint(syntax, rewrittenStatement)
             End If

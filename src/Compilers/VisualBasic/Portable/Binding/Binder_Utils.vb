@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Possible create the array version of type, given the element type and the array modifier syntax.
         ''' </summary>
-        Public Function ApplyArrayRankSpecifersToType(elementType As TypeSymbol,
+        Public Function ApplyArrayRankSpecifiersToType(elementType As TypeSymbol,
                                       arrayModifierSyntax As SyntaxList(Of ArrayRankSpecifierSyntax),
                                       diagnostics As DiagnosticBag) As TypeSymbol
 
@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim currentType As TypeSymbol = elementType
 
             ' Array modifiers must be handled in reverse order, that's the language syntax.
-            currentType = ApplyArrayRankSpecifersToType(elementType, arrayModifierSyntax, diagnostics)
+            currentType = ApplyArrayRankSpecifiersToType(elementType, arrayModifierSyntax, diagnostics)
 
             ' Array bounds must be handled in reverse order, that's the language syntax.
             If arrayBoundsOpt IsNot Nothing Then

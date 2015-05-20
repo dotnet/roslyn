@@ -4313,7 +4313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, isEvent: true);
 
-            // If we got an explicitInterfaceOpt but not an identifer, then we're in the special
+            // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
             if (explicitInterfaceOpt != null && identifierOrThisOpt == null)
             {
@@ -5708,7 +5708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         //   event EventDelegate Parent.E; //(or anything else where the next token isn't open brace
                         //
                         // To recover: rollback to before the name of the field was parsed (just the part after the last
-                        // dot), insert a missing identifer for the field name, insert missing accessors, and then treat
+                        // dot), insert a missing identifier for the field name, insert missing accessors, and then treat
                         // the event name that's actually there as the beginning of a new member. e.g.
                         //
                         //   event EventDelegate Parent./*Missing nodes here*/

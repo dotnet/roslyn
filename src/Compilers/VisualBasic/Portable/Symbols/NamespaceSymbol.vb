@@ -519,7 +519,7 @@ Done:
             Return result
         End Function
 
-        Friend Sub AddMemeberIfExtension(bucket As ArrayBuilder(Of MethodSymbol), member As Symbol)
+        Friend Sub AddMemberIfExtension(bucket As ArrayBuilder(Of MethodSymbol), member As Symbol)
             If member.Kind = SymbolKind.Method Then
                 Dim method = DirectCast(member, MethodSymbol)
 

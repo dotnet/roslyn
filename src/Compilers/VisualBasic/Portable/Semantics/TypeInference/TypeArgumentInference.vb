@@ -1166,7 +1166,7 @@ HandleAsAGeneralExpression:
 
                     If invoke IsNot Nothing AndAlso invoke.GetUseSiteErrorInfo() Is Nothing AndAlso delegateType.IsGenericType Then
 
-                        Dim delegateParemeters As ImmutableArray(Of ParameterSymbol) = invoke.Parameters
+                        Dim delegateParameters As ImmutableArray(Of ParameterSymbol) = invoke.Parameters
                         Dim lambdaParameters As ImmutableArray(Of ParameterSymbol)
 
                         Select Case argNode.Expression.Kind
@@ -1182,7 +1182,7 @@ HandleAsAGeneralExpression:
 
                         Dim haveSeenTypeParameters = BitVector.Create(_typeParameterNodes.Length)
 
-                        For i As Integer = 0 To Math.Min(delegateParemeters.Length, lambdaParameters.Length) - 1 Step 1
+                        For i As Integer = 0 To Math.Min(delegateParameters.Length, lambdaParameters.Length) - 1 Step 1
                             If lambdaParameters(i).Type IsNot Nothing Then
                                 ' Prepopulate the hint from the lambda's parameter.
                                 ' !!! Unlike Dev10, we are using MatchArgumentToBaseOfGenericParameter because a value of generic 
@@ -1192,13 +1192,13 @@ HandleAsAGeneralExpression:
                                     argNode.Expression.Syntax,
                                     lambdaParameters(i).Type,
                                     argumentTypeByAssumption:=False,
-                                    parameterType:=delegateParemeters(i).Type,
-                                    param:=delegateParemeters(i),
+                                    parameterType:=delegateParameters(i).Type,
+                                    param:=delegateParameters(i),
                                     digThroughToBasesAndImplements:=MatchGenericArgumentToParameter.MatchArgumentToBaseOfGenericParameter,
                                     inferenceRestrictions:=RequiredConversion.Any)
                             End If
 
-                            AddTypeToGraph(delegateParemeters(i).Type, argNode, isOutgoingEdge:=False, haveSeenTypeParameters:=haveSeenTypeParameters)
+                            AddTypeToGraph(delegateParameters(i).Type, argNode, isOutgoingEdge:=False, haveSeenTypeParameters:=haveSeenTypeParameters)
                         Next
 
                         haveSeenTypeParameters.Clear()

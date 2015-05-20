@@ -241,15 +241,15 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     string name = formatString.Substring(openPos + 1, i - openPos - 1);
                     openPos = -1;
 
-                    var formatSpecifers = Formatter.NoFormatSpecifiers;
+                    var formatSpecifiers = Formatter.NoFormatSpecifiers;
                     int commaIndex = name.IndexOf(',');
                     if (commaIndex >= 0)
                     {
                         var rawFormatSpecifiers = name.Substring(commaIndex + 1).Split(',');
                         var trimmedFormatSpecifiers = ArrayBuilder<string>.GetInstance(rawFormatSpecifiers.Length);
                         trimmedFormatSpecifiers.AddRange(rawFormatSpecifiers.Select(fs => fs.Trim()));
-                        formatSpecifers = trimmedFormatSpecifiers.ToImmutableAndFree();
-                        foreach (var formatSpecifier in formatSpecifers)
+                        formatSpecifiers = trimmedFormatSpecifiers.ToImmutableAndFree();
+                        foreach (var formatSpecifier in formatSpecifiers)
                         {
                             if (formatSpecifier == "nq")
                             {
@@ -338,7 +338,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         }
                     }
 
-                    builder.Append(exprValue.GetValueString(inspectionContext, formatSpecifers)); // Re-enter the formatter.
+                    builder.Append(exprValue.GetValueString(inspectionContext, formatSpecifiers)); // Re-enter the formatter.
                 }
                 else if (openPos < 0)
                 {
