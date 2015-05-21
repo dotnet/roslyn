@@ -2121,6 +2121,30 @@ public class Source
                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"NativeApp.exe", CodeAnalysisResources.PEImageDoesntContainManagedMetadata));
         }
 
+        [Fact, WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
+        public void EmptyReference()
+        {
+            var source = "class C { public static void Main() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, new[] { AssemblyMetadata.CreateFromImage(new byte[0]).GetReference(display: "Empty.dll") });
+            c.VerifyDiagnostics(
+                Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"Empty.dll", CodeAnalysisResources.PEImageDoesntContainManagedMetadata));
+        }
+
+        [Fact, WorkItem(2992, "https://github.com/dotnet/roslyn/issues/2992")]
+        public void MetadataDisposed()
+        {
+            var md = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib);
+            var compilation = CSharpCompilation.Create("test", references: new[] { md.GetReference() });
+
+            // Use the Compilation once to force lazy initialization of the underlying MetadataReader
+            compilation.GetTypeByMetadataName("System.Int32").GetMembers();
+
+            md.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => compilation.GetTypeByMetadataName("System.Int64").GetMembers());
+        }
+
         [WorkItem(43)]
         [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void ReusingCorLibManager()

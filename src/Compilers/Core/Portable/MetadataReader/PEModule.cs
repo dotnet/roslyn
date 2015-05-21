@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Roslyn.Utilities;
@@ -139,35 +140,55 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal unsafe MetadataReader MetadataReader
+        internal MetadataReader MetadataReader
         {
             get
             {
                 if (_lazyMetadataReader == null)
                 {
-                    MetadataReader newReader;
+                    InitializeMetadataReader();
+                }
 
-                    // PEModule is either created with metadata memory block or a PE reader.
-                    if (_metadataPointerOpt != IntPtr.Zero)
-                    {
-                        newReader = new MetadataReader((byte*)_metadataPointerOpt, _metadataSizeOpt, MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
-                    }
-                    else
-                    {
-                        Debug.Assert(_peReaderOpt != null);
-                        if (!_peReaderOpt.HasMetadata)
-                        {
-                            throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
-                        }
-
-                        newReader = _peReaderOpt.GetMetadataReader(MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyMetadataReader, newReader, null);
+                if (_isDisposed)
+                {
+                    // Without locking, which might be expensive, we can't guarantee that the underlying memory 
+                    // won't be accessed after the metadata object is disposed. However we can do a cheap check here that 
+                    // handles most cases.
+                    ThrowMetadataDisposed();
                 }
 
                 return _lazyMetadataReader;
             }
+        }
+
+        private unsafe void InitializeMetadataReader()
+        {
+            MetadataReader newReader;
+
+            // PEModule is either created with metadata memory block or a PE reader.
+            if (_metadataPointerOpt != IntPtr.Zero)
+            {
+                newReader = new MetadataReader((byte*)_metadataPointerOpt, _metadataSizeOpt, MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
+            }
+            else
+            {
+                Debug.Assert(_peReaderOpt != null);
+
+                // Checking for an empty image is a workaround for https://github.com/dotnet/corefx/issues/1815: 
+                if (_peReaderOpt.GetEntireImage().Length == 0 || !_peReaderOpt.HasMetadata)
+                {
+                    throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
+                }
+
+                newReader = _peReaderOpt.GetMetadataReader(MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
+            }
+
+            Interlocked.CompareExchange(ref _lazyMetadataReader, newReader, null);
+        }
+
+        private static void ThrowMetadataDisposed()
+        {
+            throw new ObjectDisposedException(nameof(ModuleMetadata));
         }
 
         #region Module level properties and methods
