@@ -2156,5 +2156,35 @@ public class D { }
 
             Test(input)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(1174256)>
+        Public Sub TestFarWithInternalsVisibleToNull()
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
+        <Document><![CDATA[
+        [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(null)]
+        internal class A
+        {
+        }]]>
+        </Document>
+    </Project>
+
+    <Project Language="C#" AssemblyName="ClassLibrary2" CommonReferences="true">
+        <ProjectReference>ClassLibrary1</ProjectReference>
+        <Document><![CDATA[
+        public class B
+        {
+            [$$A] _a;
+        }]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(input)
+
+        End Sub
+
     End Class
 End Namespace
