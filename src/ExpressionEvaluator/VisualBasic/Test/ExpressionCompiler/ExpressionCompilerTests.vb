@@ -1784,7 +1784,7 @@ End Class"
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 allReferences,
                 exeBytes,
-                Nothing)
+                New SymReader(pdbBytes, exeBytes)) ' Need SymReader to find root namespace.
             Dim context = CreateMethodContext(runtime, "Root.C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
@@ -1799,7 +1799,7 @@ End Class"
   IL_0001:  ldstr      ""a""
   IL_0006:  ldstr      """"
   IL_000b:  call       ""Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName""
-  IL_0010:  call       ""Function My.InternalXmlHelper.get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) As String""
+  IL_0010:  call       ""Function Root.My.InternalXmlHelper.get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) As String""
   IL_0015:  ret
 }")
         End Sub
