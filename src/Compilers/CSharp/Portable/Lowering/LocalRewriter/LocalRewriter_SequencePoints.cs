@@ -195,14 +195,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement)
         {
-            if (condition == null || !_compilation.Options.EnableEditAndContinue || containingStatement.WasCompilerGenerated)
+            return AddConditionSequencePoint(condition, containingStatement.Syntax, containingStatement.WasCompilerGenerated);
+        }
+
+        internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundCatchBlock containingCatchWithFilter)
+        {
+            Debug.Assert(containingCatchWithFilter.ExceptionFilterOpt.Syntax.IsKind(SyntaxKind.CatchFilterClause));
+            return AddConditionSequencePoint(condition, containingCatchWithFilter.ExceptionFilterOpt.Syntax, containingCatchWithFilter.WasCompilerGenerated);
+        }
+
+        private BoundExpression AddConditionSequencePoint(BoundExpression condition, SyntaxNode synthesizedVariableSyntax, bool wasGenerated)
+        {
+            if (condition == null || !_compilation.Options.EnableEditAndContinue || wasGenerated)
             {
                 return condition;
             }
 
-            // The local has to be associated with the syntax of the statement containing the condition since 
-            // EnC source mapping only operates on statements.
-            var local = _factory.SynthesizedLocal(condition.Type, containingStatement.Syntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
+            // The local has to be associated with a syntax that is tracked by EnC source mapping.
+            // At most one ConditionalBranchDiscriminator variable shall be associated with any given EnC tracked syntax node.
+            var local = _factory.SynthesizedLocal(condition.Type, synthesizedVariableSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
 
             // Add hidden sequence point unless the condition is a constant expression.
             // Constant expression must stay a const to not invalidate results of control flow analysis.
