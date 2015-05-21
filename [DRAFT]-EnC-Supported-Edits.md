@@ -1,8 +1,8 @@
 # Supported Edits in Edit & Continue (EnC)
 
 **Definitions**
-* [Variable Capturing](http://blogs.msdn.com/b/matt/archive/2008/03/01/understanding-variable-capturing-in-c.aspx): the mechanism in which the lambda/delegate which is defined inline is able to hold on to any variables within its lexical scope
-* **Scope**: the region of program text within which it is possible to refer to the entity declared by the name without qualification of the name
+* [Variable Capturing](http://blogs.msdn.com/b/matt/archive/2008/03/01/understanding-variable-capturing-in-c.aspx) is the mechanism in which the lambda/delegate which is defined inline is able to hold on to any variables within its lexical scope
+* **Scope** is the region of program text within which it is possible to refer to the entity declared by the name without qualification of the name
 * **Debug statement** is a span of instructions delimited by subsequent sequence points. Usually a debug statement corresponds to a language statement, but it might correspond to just a part of a language statement (e.g. an opening brace of a block statement), an expression (e.g. lambda body) or other contiguous syntax (base constructor call).
 * **Internal active statement** is a debug statement that contains a return address of a stack frame.
 * **Leaf active debug statement** is a debug statement that contains an IP (instruction pointer) of any thread.
@@ -14,7 +14,7 @@
 | Add methods, fields, constructors, properties, events, indexers, field and property initializers, nested types and top-level types (including delegates, enums, interfaces, abstract and generic types, and anonymous types) to an existing type  | The existing type cannot be a generic or an interface. <br/> <br/> Adding or modifying [enum members](https://msdn.microsoft.com/en-us/library/sbbt4032.aspx) within an existing enum is not supported. |
 | Add any member to an existing type is supported if it is added within the same edit | - | 
 | Add and modify iterators  | - |
-| Add and modify async/await expressions  |  Modifying await expressions wrapped inside other expressions (e.g. ```G(await F());```) |
+| Add and modify async/await expressions  |  Modifying await expressions wrapped inside other expressions (e.g. ```G(await F());```) is not supported |
 | Add and modify operations with dynamic objects | - |
 | Add and modify C# 6.0 language features like string interpolation and null-conditional operators | - |
 | Add lambda expressions | Lambda expressions can only be added if they are static and access the “this” reference that has already been captured or access captured variables from a single scope |
