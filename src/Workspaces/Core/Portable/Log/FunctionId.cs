@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_ApplyChanges,
         Workspace_TryGetDocument,
         Workspace_TryGetDocumentFromInProgressSolution,
-        Workspace_Solution_LinkedFileDiffMergingSession,
+        Workspace_Solution_LinkedFileDiffMergingSession, // Not in use
         Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup,
 
         EndConstruct_DoStatement,
@@ -304,5 +304,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Extension_Exception,
 
         WorkCoordinator_WaitForHigherPriorityOperationsAsync,
+
+        Workspace_Solution_LinkedFileDiffMergingCounts
     }
 }
