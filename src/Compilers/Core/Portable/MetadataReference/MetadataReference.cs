@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis
         /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data accross these references.
         /// </para>
         /// </remarks>
-        public static MetadataReference CreateFromAssembly(Assembly assembly)
+        internal static MetadataReference CreateFromAssembly(Assembly assembly)
         {
             return CreateFromAssembly(assembly, default(MetadataReferenceProperties));
         }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis
         /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data accross these references.
         /// </para>
         /// </remarks>
-        public static MetadataReference CreateFromAssembly(
+        internal static MetadataReference CreateFromAssembly(
             Assembly assembly,
             MetadataReferenceProperties properties,
             DocumentationProvider documentation = null)
