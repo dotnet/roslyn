@@ -2165,7 +2165,7 @@ public class D { }
     <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
         <Document><![CDATA[
         [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(null)]
-        internal class A
+        internal class {|Definition:$$A|}
         {
         }]]>
         </Document>
@@ -2174,9 +2174,8 @@ public class D { }
     <Project Language="C#" AssemblyName="ClassLibrary2" CommonReferences="true">
         <ProjectReference>ClassLibrary1</ProjectReference>
         <Document><![CDATA[
-        public class B
+        public class B : A
         {
-            [$$A] _a;
         }]]>
         </Document>
     </Project>
