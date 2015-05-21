@@ -1943,6 +1943,132 @@ unsafe class C
 ");
         }
 
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
+        [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void DontRemoveNecessaryCastBeforePointerDereference3()
+        {
+            // Conservatively disable cast simplifications for casts involving pointer conversions.
+            // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
+
+            TestMissing(
+            @"
+class C
+{
+    public unsafe float ReadSingle(byte* ptr)
+    {
+        return *[|(float*)ptr|];
+    }
+}
+");
+        }
+
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
+        [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void DontRemoveNumericCastInUncheckedExpression()
+        {
+            // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
+            // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
+
+            TestMissing(
+            @"
+class C
+{
+    private unsafe readonly byte* _endPointer;
+    private unsafe byte* _currentPointer;
+
+    private unsafe void CheckBounds(int byteCount)
+    {
+        if (unchecked([|(uint)byteCount)|] > (_endPointer - _currentPointer))
+        {
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
+        [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void DontRemoveNumericCastInUncheckedStatement()
+        {
+            // Conservatively disable cast simplifications within explicit checked/unchecked statements.
+            // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
+
+            TestMissing(
+            @"
+class C
+{
+    private unsafe readonly byte* _endPointer;
+    private unsafe byte* _currentPointer;
+
+    private unsafe void CheckBounds(int byteCount)
+    {
+        unchecked
+        {
+            if (([|(uint)byteCount)|] > (_endPointer - _currentPointer))
+            {
+            }
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
+        [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void DontRemoveNumericCastInCheckedExpression()
+        {
+            // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
+            // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
+
+            TestMissing(
+            @"
+class C
+{
+    private unsafe readonly byte* _endPointer;
+    private unsafe byte* _currentPointer;
+
+    private unsafe void CheckBounds(int byteCount)
+    {
+        if (checked([|(uint)byteCount)|] > (_endPointer - _currentPointer))
+        {
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
+        [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void DontRemoveNumericCastInCheckedStatement()
+        {
+            // Conservatively disable cast simplifications within explicit checked/unchecked statements.
+            // https://github.com/dotnet/roslyn/issues/2987 tracks improving cast simplification for this scenario.
+
+            TestMissing(
+            @"
+class C
+{
+    private unsafe readonly byte* _endPointer;
+    private unsafe byte* _currentPointer;
+
+    private unsafe void CheckBounds(int byteCount)
+    {
+        checked
+        {
+            if (([|(uint)byteCount)|] > (_endPointer - _currentPointer))
+            {
+            }
+        }
+    }
+}
+");
+        }
+
         [WorkItem(545894)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInAttribute()
