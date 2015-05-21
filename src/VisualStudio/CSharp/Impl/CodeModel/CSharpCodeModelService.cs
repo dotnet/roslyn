@@ -1710,9 +1710,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode GetEffectiveParentForAttribute(SyntaxNode node)
         {
-            if (node.HasAncestor<FieldDeclarationSyntax>())
+            if (node.HasAncestor<BaseFieldDeclarationSyntax>())
             {
-                return node.GetAncestor<FieldDeclarationSyntax>().Declaration.Variables.FirstOrDefault();
+                return node.GetAncestor<BaseFieldDeclarationSyntax>().Declaration.Variables.FirstOrDefault();
             }
             else if (node.HasAncestor<ParameterSyntax>())
             {
@@ -3296,15 +3296,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 if (argumentList == null)
                 {
                     newArgumentList = SyntaxFactory.AttributeArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList<AttributeArgumentSyntax>(
+                                        SyntaxFactory.SingletonSeparatedList(
                                             (AttributeArgumentSyntax)attributeArgument));
                 }
                 else
                 {
-                    SeparatedSyntaxList<AttributeArgumentSyntax> newArguments;
-
-                    newArguments = argumentList.Arguments.Insert(index, (AttributeArgumentSyntax)attributeArgument);
-
+                    var newArguments = argumentList.Arguments.Insert(index, (AttributeArgumentSyntax)attributeArgument);
                     newArgumentList = argumentList.WithArguments(newArguments);
                 }
 
@@ -3316,113 +3313,127 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override SyntaxNode InsertAttributeListIntoContainer(int index, SyntaxNode list, SyntaxNode container)
         {
+            // If the attribute list is being inserted at the first index and the container is not the compilation unit, copy leading trivia
+            // to the list that is being inserted.
+            if (index == 0 && !(container is CompilationUnitSyntax))
+            {
+                var firstToken = container.GetFirstToken();
+                if (firstToken.HasLeadingTrivia)
+                {
+                    var trivia = firstToken.LeadingTrivia;
+
+                    container = container.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
+                    list = list.WithLeadingTrivia(trivia);
+                }
+            }
+
             if (container is CompilationUnitSyntax)
             {
                 var compilationUnit = (CompilationUnitSyntax)container;
-                var attributeLists = compilationUnit.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return compilationUnit.WithAttributeLists(attributeLists);
+                var newAttributeLists = compilationUnit.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return compilationUnit.WithAttributeLists(newAttributeLists);
             }
             else if (container is EnumDeclarationSyntax)
             {
                 var enumDeclaration = (EnumDeclarationSyntax)container;
-                var attributeLists = enumDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return enumDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = enumDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return enumDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is ClassDeclarationSyntax)
             {
                 var classDeclaration = (ClassDeclarationSyntax)container;
-                var attributeLists = classDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return classDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = classDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return classDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is StructDeclarationSyntax)
             {
                 var structDeclaration = (StructDeclarationSyntax)container;
-                var attributeLists = structDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return structDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = structDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return structDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is InterfaceDeclarationSyntax)
             {
                 var interfaceDeclaration = (InterfaceDeclarationSyntax)container;
-                var attributeLists = interfaceDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return interfaceDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = interfaceDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return interfaceDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is MethodDeclarationSyntax)
             {
                 var method = (MethodDeclarationSyntax)container;
-                var attributeLists = method.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return method.WithAttributeLists(attributeLists);
+                var newAttributeLists = method.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return method.WithAttributeLists(newAttributeLists);
             }
             else if (container is OperatorDeclarationSyntax)
             {
                 var operationDeclaration = (OperatorDeclarationSyntax)container;
-                var attributeLists = operationDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return operationDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = operationDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return operationDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is ConversionOperatorDeclarationSyntax)
             {
                 var conversion = (ConversionOperatorDeclarationSyntax)container;
-                var attributeLists = conversion.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return conversion.WithAttributeLists(attributeLists);
+                var newAttributeLists = conversion.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return conversion.WithAttributeLists(newAttributeLists);
             }
             else if (container is ConstructorDeclarationSyntax)
             {
                 var constructor = (ConstructorDeclarationSyntax)container;
-                var attributeLists = constructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return constructor.WithAttributeLists(attributeLists);
+                var newAttributeLists = constructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return constructor.WithAttributeLists(newAttributeLists);
             }
             else if (container is DestructorDeclarationSyntax)
             {
                 var destructor = (DestructorDeclarationSyntax)container;
-                var attributeLists = destructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return destructor.WithAttributeLists(attributeLists);
+                var newAttributeLists = destructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return destructor.WithAttributeLists(newAttributeLists);
             }
             else if (container is PropertyDeclarationSyntax)
             {
                 var property = (PropertyDeclarationSyntax)container;
-                var attributeLists = property.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return property.WithAttributeLists(attributeLists);
+                var newAttributeLists = property.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return property.WithAttributeLists(newAttributeLists);
             }
             else if (container is EventDeclarationSyntax)
             {
                 var eventDeclaration = (EventDeclarationSyntax)container;
-                var attributeLists = eventDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return eventDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = eventDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return eventDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is IndexerDeclarationSyntax)
             {
                 var indexer = (IndexerDeclarationSyntax)container;
-                var attributeLists = indexer.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return indexer.WithAttributeLists(attributeLists);
+                var newAttributeLists = indexer.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return indexer.WithAttributeLists(newAttributeLists);
             }
             else if (container is FieldDeclarationSyntax)
             {
                 var field = (FieldDeclarationSyntax)container;
-                var attributeLists = field.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return field.WithAttributeLists(attributeLists);
+                var newAttributeLists = field.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return field.WithAttributeLists(newAttributeLists);
             }
             else if (container is EventFieldDeclarationSyntax)
             {
                 var eventFieldDeclaration = (EventFieldDeclarationSyntax)container;
-                var attributeLists = eventFieldDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return eventFieldDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = eventFieldDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return eventFieldDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is DelegateDeclarationSyntax)
             {
                 var delegateDeclaration = (DelegateDeclarationSyntax)container;
-                var attributeLists = delegateDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return delegateDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = delegateDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return delegateDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is EnumMemberDeclarationSyntax)
             {
                 var member = (EnumMemberDeclarationSyntax)container;
-                var attributeLists = member.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return member.WithAttributeLists(attributeLists);
+                var newAttributeLists = member.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return member.WithAttributeLists(newAttributeLists);
             }
             else if (container is ParameterSyntax)
             {
                 var parameter = (ParameterSyntax)container;
-                var attributeLists = parameter.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return parameter.WithAttributeLists(attributeLists);
+                var newAttributeLists = parameter.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return parameter.WithAttributeLists(newAttributeLists);
             }
             else if (container is VariableDeclaratorSyntax ||
                      container is VariableDeclarationSyntax)

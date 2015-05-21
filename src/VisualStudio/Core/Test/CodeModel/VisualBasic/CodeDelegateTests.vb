@@ -521,6 +521,72 @@ Delegate Sub $$D([integer] as Integer, [string] as String)
 
 #End Region
 
+#Region "AddAttribute tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute1()
+            Dim code =
+<Code>
+Imports System
+
+Delegate Sub $$M()
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+&lt;Serializable()&gt;
+Delegate Sub M()
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute2()
+            Dim code =
+<Code>
+Imports System
+
+&lt;Serializable&gt;
+Delegate Sub $$M()
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+&lt;Serializable&gt;
+&lt;CLSCompliant(true)&gt;
+Delegate Sub M()
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+Delegate Sub $$M()
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+&lt;CLSCompliant(true)&gt;
+Delegate Sub M()
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+#End Region
+
         Private Function GetGenericExtender(codeElement As EnvDTE80.CodeDelegate2) As IVBGenericExtender
             Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function

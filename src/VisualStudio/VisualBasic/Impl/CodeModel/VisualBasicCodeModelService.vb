@@ -3696,13 +3696,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 If argumentList Is Nothing Then
                     newArgumentList = SyntaxFactory.ArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(Of ArgumentSyntax)(
+                                        SyntaxFactory.SingletonSeparatedList(
                                             DirectCast(attributeArgument, ArgumentSyntax)))
                 Else
-                    Dim newArguments As SeparatedSyntaxList(Of ArgumentSyntax)
-
-                    newArguments = argumentList.Arguments.Insert(index, DirectCast(attributeArgument, ArgumentSyntax))
-
+                    Dim newArguments = argumentList.Arguments.Insert(index, DirectCast(attributeArgument, ArgumentSyntax))
                     newArgumentList = argumentList.WithArguments(newArguments)
                 End If
 
@@ -3728,6 +3725,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Protected Overrides Function InsertAttributeListIntoContainer(index As Integer, list As SyntaxNode, container As SyntaxNode) As SyntaxNode
+            ' If the attribute is being inserted at the first index and the container is not the compilation unit, copy leading trivia
+            ' to the attribute that is being inserted.
+            If index = 0 AndAlso TypeOf container IsNot CompilationUnitSyntax Then
+                Dim firstToken = container.GetFirstToken()
+                If firstToken.HasLeadingTrivia Then
+                    Dim trivia = firstToken.LeadingTrivia
+
+                    container = container.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty))
+                    list = list.WithLeadingTrivia(trivia)
+                End If
+            End If
+
+            ' If the attribute to be inserted does not have a trailing line break, add one (unless this is a parameter).
+            If TypeOf container IsNot ParameterSyntax AndAlso
+               (Not list.HasTrailingTrivia OrElse Not list.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia)) Then
+
+                list = list.WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed)
+            End If
+
             Dim attributeList = DirectCast(list, AttributeListSyntax)
 
             If TypeOf container Is CompilationUnitSyntax Then
@@ -3757,9 +3773,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim attributeLists = enumBlock.EnumStatement.AttributeLists.Insert(index, attributeList)
                 Return enumBlock.WithEnumStatement(enumBlock.EnumStatement.WithAttributeLists(attributeLists))
             ElseIf TypeOf container Is EnumMemberDeclarationSyntax Then
-                Dim member = DirectCast(container, EnumMemberDeclarationSyntax)
-                Dim attributeLists = member.AttributeLists.Insert(index, attributeList)
-                Return member.WithAttributeLists(attributeLists)
+                Dim enumMember = DirectCast(container, EnumMemberDeclarationSyntax)
+                Dim attributeLists = enumMember.AttributeLists.Insert(index, attributeList)
+                Return enumMember.WithAttributeLists(attributeLists)
+            ElseIf TypeOf container Is DelegateStatementSyntax
+                Dim delegateStatement = DirectCast(container, DelegateStatementSyntax)
+                Dim attributeLists = delegateStatement.AttributeLists.Insert(index, attributeList)
+                Return delegateStatement.WithAttributeLists(attributeLists)
             ElseIf TypeOf container Is DeclareStatementSyntax Then
                 Dim declareStatement = DirectCast(container, DeclareStatementSyntax)
                 Dim attributeLists = declareStatement.AttributeLists.Insert(index, attributeList)
