@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
                 _primaryTask = Task.Run(async () =>
-                {
-                    await initializeTask.ConfigureAwait(false);
+                    {
+                        await initializeTask.ConfigureAwait(false);
 
-                    await ProcessCompilationEventsAsync(cancellationToken).ConfigureAwait(false);
-                }, cancellationToken)
+                        await ProcessCompilationEventsAsync(cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken)
                     .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
             finally
@@ -335,13 +335,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             for (int i = 0; i < _workerCount; i++)
             {
                 workerTasks[i] = Task.Run(async () =>
-                {
-                    var result = await ProcessCompilationEventsCoreAsync(cancellationToken).ConfigureAwait(false);
-                    if (result != null)
                     {
-                        completedEvent = result;
-                    }
-                }, cancellationToken);
+                        var result = await ProcessCompilationEventsCoreAsync(cancellationToken).ConfigureAwait(false);
+                        if (result != null)
+                        {
+                            completedEvent = result;
+                        }
+                    }, cancellationToken);
             }
 
             // Kick off tasks to execute syntax tree actions.
@@ -634,7 +634,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor))
                     {
                         var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
+                        if (analyzerActions != null)
+                        {
+                            allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
+                        }
                     }
                 }
 
