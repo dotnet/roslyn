@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     var value = (string)typeNameConstant.Value;
-                    if (string.IsNullOrWhiteSpace(value))
+                    if (value == null)
                     {
                         continue;
                     }
