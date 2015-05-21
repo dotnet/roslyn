@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
 
                     private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
-                    private readonly ConcurrentDictionary<DocumentId, bool> _higherPriorityDocumentsNotProcessed;
+                    private readonly ConcurrentDictionary<DocumentId, IDisposable> _higherPriorityDocumentsNotProcessed;
 
                     private readonly HashSet<ProjectId> _currentSnapshotVersionTrackingSet;
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _running = SpecializedTasks.EmptyTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
-                        _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, bool>(concurrencyLevel: 2, capacity: 20);
+                        _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
                         _currentProjectProcessing = default(ProjectId);
                         _processingSolution = null;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void AddHigherPriorityDocument(DocumentId id)
                     {
-                        _higherPriorityDocumentsNotProcessed[id] = true;
+                        _higherPriorityDocumentsNotProcessed[id] = Processor.EnableCaching(id.ProjectId);
 
                         SolutionCrawlerLogger.LogHigherPriority(this.Processor._logAggregator, id.Id);
                     }
@@ -106,11 +106,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (!_workItemQueue.HasAnyWork)
                         {
-                            if (_projectCache != null)
-                            {
-                                _projectCache.Dispose();
-                                _projectCache = null;
-                            }
+                            DisposeProjectCache();
                         }
 
                         return _workItemQueue.WaitAsync(cancellationToken);
@@ -210,22 +206,37 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void SetProjectProcessing(ProjectId currentProject)
                     {
-                        if (currentProject != _currentProjectProcessing)
-                        {
-                            if (_projectCache != null)
-                            {
-                                _projectCache.Dispose();
-                                _projectCache = null;
-                            }
-
-                            var projectCacheService = _processingSolution.Workspace.Services.GetService<IProjectCacheService>();
-                            if (projectCacheService != null)
-                            {
-                                _projectCache = projectCacheService.EnableCaching(currentProject);
-                            }
-                        }
+                        EnableProjectCacheIfNecessary(currentProject);
 
                         _currentProjectProcessing = currentProject;
+                    }
+
+                    private void EnableProjectCacheIfNecessary(ProjectId currentProject)
+                    {
+                        if (_projectCache != null && currentProject == _currentProjectProcessing)
+                        {
+                            return;
+                        }
+
+                        DisposeProjectCache();
+
+                        _projectCache = Processor.EnableCaching(currentProject);
+                    }
+
+                    private static void DisposeProjectCache(IDisposable projectCache)
+                    {
+                        if (projectCache == null)
+                        {
+                            return;
+                        }
+
+                        projectCache.Dispose();
+                    }
+
+                    private void DisposeProjectCache()
+                    {
+                        DisposeProjectCache(_projectCache);
+                        _projectCache = null;
                     }
 
                     private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
@@ -284,8 +295,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 await ProcessDocumentAsync(this.Analyzers, workItem, documentCancellation).ConfigureAwait(false);
 
                                 // remove opened document processed
-                                bool dummy;
-                                _higherPriorityDocumentsNotProcessed.TryRemove(documentId, out dummy);
+                                IDisposable projectCache;
+                                _higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache);
+
+                                DisposeProjectCache(projectCache);
+
                                 return true;
                             }
 
