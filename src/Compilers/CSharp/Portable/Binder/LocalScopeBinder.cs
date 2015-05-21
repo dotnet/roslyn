@@ -229,9 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new LocalFunctionMethodSymbol(
                 this,
-                this.ContainingType, // TODO fzoo
+                this.ContainingType,
                 declaration,
-                declaration.Location);
+                declaration.Identifier.GetLocation());
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ReportConflictWithLocal(LocalSymbol local, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private bool ReportConflictWithLocal(Symbol local, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
             // Quirk of the way we represent lambda parameters.                
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
@@ -376,6 +376,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (newSymbolKind == SymbolKind.Local)
             {
                 if (this.Locals.Contains((LocalSymbol)newSymbol) && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
+                {
+                    // A local variable named '{0}' is already defined in this scope
+                    diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
+                    return true;
+                }
+            }
+
+            if (newSymbolKind == SymbolKind.Method)
+            {
+                if (this.LocalFunctions.Contains((LocalFunctionMethodSymbol)newSymbol) && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
                 {
                     // A local variable named '{0}' is already defined in this scope
                     diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
@@ -396,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
                 return true;
             }
-
+            
             Debug.Assert(false, "what else can be declared inside a local scope?");
             return false;
         }
@@ -405,8 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal virtual bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {
             LocalSymbol existingLocal;
-            var map = this.LocalsMap;
-            if (map != null && map.TryGetValue(name, out existingLocal))
+            var localsMap = this.LocalsMap;
+            if (localsMap != null && localsMap.TryGetValue(name, out existingLocal))
             {
                 if (symbol == existingLocal)
                 {
@@ -415,6 +425,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return ReportConflictWithLocal(existingLocal, symbol, name, location, diagnostics);
+            }
+
+            LocalFunctionMethodSymbol existingLocalFunction;
+            var localFunctionsMap = this.LocalFunctionsMap;
+            if (localFunctionsMap != null && localFunctionsMap.TryGetValue(name, out existingLocalFunction))
+            {
+                if (symbol == existingLocalFunction)
+                {
+                    // reference to same symbol, by far the most common case.
+                    return false;
+                }
+
+                return ReportConflictWithLocal(existingLocalFunction, symbol, name, location, diagnostics);
             }
 
             return false;

@@ -120,6 +120,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+        {
+            BlockSyntax body = node.Body;
+            if (body != null)
+            {
+                VisitBlock(body);
+            }
+        }
+
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
         {
             // Do nothing, expressions do not need special binders.
@@ -147,7 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Visit all the statements inside this block
             foreach (StatementSyntax statement in node.Statements)
             {
+                bool oldSawYield = _sawYield;
                 Visit(statement, blockBinder);
+                if (statement is LocalFunctionStatementSyntax)
+                {
+                    // do not make the parent method an iterator if a local function has a yield
+                    _sawYield = oldSawYield;
+                }
             }
         }
 

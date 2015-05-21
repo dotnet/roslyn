@@ -150,6 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                // Do not recurse into nested lambdas; we don't want their returns.
+                return null;
+            }
+
             public override BoundNode VisitReturnStatement(BoundReturnStatement node)
             {
                 var expression = node.ExpressionOpt;

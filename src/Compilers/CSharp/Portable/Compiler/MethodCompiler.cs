@@ -593,23 +593,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = methodWithBody.Method;
 
                 var lambda = method as SynthesizedLambdaMethod;
-                var variableSlotAllocatorOpt = ((object)lambda != null) ? 
+                var variableSlotAllocatorOpt = ((object)lambda != null) ?
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
-
+                
                 // We make sure that an asynchronous mutation to the diagnostic bag does not 
                 // confuse the method body generator by making a fresh bag and then loading
                 // any diagnostics emitted into it back into the main diagnostic bag.
                 var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
-                AsyncStateMachine stateMachineType;
-
                 // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
                 // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
                 // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                 const int methodOrdinal = -1;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
-
+                ArrayBuilder<LambdaDebugInfo> lambdaDebugInfo = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+                ArrayBuilder<ClosureDebugInfo> closureDebugInfo = ArrayBuilder<ClosureDebugInfo>.GetInstance();
+                StateMachineTypeSymbol stateMachineType;
+                // Use full lowering on synthesized methods. Previously this was just an async lowering,
+                // but with local functions, more lowering types need to be allowed (e.g. iterators)
+                var loweredBody = LowerBodyOrInitializer(method, methodOrdinal, methodWithBody.Body, null, compilationState, diagnosticsThisMethod, ref variableSlotAllocatorOpt, lambdaDebugInfo, closureDebugInfo, out stateMachineType);
+                
                 MethodBody emittedBody = null;
                 if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                 {
@@ -617,9 +620,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _moduleBeingBuiltOpt,
                         method,
                         methodOrdinal,
-                        bodyWithoutAsync,
-                        ImmutableArray<LambdaDebugInfo>.Empty,
-                        ImmutableArray<ClosureDebugInfo>.Empty,
+                        loweredBody,
+                        lambdaDebugInfo.ToImmutableAndFree(),
+                        closureDebugInfo.ToImmutableAndFree(),
                         stateMachineType,
                         variableSlotAllocatorOpt,
                         diagnosticsThisMethod,
@@ -1142,6 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool sawLambdas;
+            bool sawLocalFunctions;
             bool sawAwaitInExceptionHandler;
             var loweredBody = LocalRewriter.Rewrite(
                 method.DeclaringCompilation,
@@ -1154,6 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowOmissionOfConditionalCalls: true,
                 diagnostics: diagnostics,
                 sawLambdas: out sawLambdas,
+                sawLocalFunctions: out sawLocalFunctions,
                 sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
             if (loweredBody.HasErrors)
@@ -1209,8 +1214,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bodyWithoutLambdas;
             }
 
+            BoundStatement bodyWithoutLocalFunctions = bodyWithoutLambdas;
+            if (sawLocalFunctions)
+            {
+                bodyWithoutLocalFunctions = LocalFunctionRewriter.Rewrite(
+                    bodyWithoutLocalFunctions,
+                    method.ContainingType,
+                    method.ThisParameter,
+                    method,
+                    methodOrdinal,
+                    compilationState,
+                    diagnostics);
+            }
+
+            if (bodyWithoutLocalFunctions.HasErrors)
+            {
+                return bodyWithoutLocalFunctions;
+            }
+
             IteratorStateMachine iteratorStateMachine;
-            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
+            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLocalFunctions, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
 
             if (bodyWithoutIterators.HasErrors)
             {

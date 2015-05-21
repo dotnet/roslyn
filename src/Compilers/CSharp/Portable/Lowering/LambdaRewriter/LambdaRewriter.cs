@@ -1239,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-#endregion
+        #endregion
 
 #if CHECK_LOCALS
         /// <summary>

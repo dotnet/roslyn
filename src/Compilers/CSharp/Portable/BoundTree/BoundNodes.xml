@@ -595,12 +595,8 @@
     void Foo() { }
   -->
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
-    <!--
-    <Field Name="LocalSymbol" Type="LocalSymbol"/>
-    <Field Name="ReturnType" Type="BoundTypeExpression"/>
-    <Field Name="Parameters" Type="ImmutableArray&lt;BoundParameter&gt;"/>
+    <Field Name="LocalSymbol" Type="LocalFunctionMethodSymbol"/>
     <Field Name="Body" Type="BoundBlock" Null="allow"/>
-    -->
   </Node>
  
   <!-- 

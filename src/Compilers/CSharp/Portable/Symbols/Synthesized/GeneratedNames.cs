@@ -120,13 +120,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>n__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal static string MakeLocalFunctionName(string methodName, int methodOrdinal, int methodGeneration, string localName, int localOrdinal, int localGeneration)
+        {
+            Debug.Assert(methodOrdinal >= -1);
+            Debug.Assert(methodGeneration >= 0);
+            Debug.Assert(localOrdinal >= -1);
+            Debug.Assert(localGeneration >= 0);
+            
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LocalFunction, methodOrdinal, methodGeneration, methodName, localName, entityOrdinal: localOrdinal, entityGeneration: localGeneration);
+        }
+
         internal static string MakeLambdaMethodName(string methodName, int methodOrdinal, int methodGeneration, int lambdaOrdinal, int lambdaGeneration)
         {
             Debug.Assert(methodOrdinal >= -1);
             Debug.Assert(methodGeneration >= 0);
             Debug.Assert(lambdaOrdinal >= 0);
             Debug.Assert(lambdaGeneration >= 0);
-
+            
             // The EE displays the containing method name and unique id in the stack trace,
             // and uses it to find the original binding context.
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaMethod, methodOrdinal, methodGeneration, methodName, entityOrdinal: lambdaOrdinal, entityGeneration: lambdaGeneration);

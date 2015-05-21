@@ -488,6 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(!body.HasErrors);
 
             bool sawLambdas;
+            bool sawLocalFunctions;
             bool sawAwaitInExceptionHandler;
             body = LocalRewriter.Rewrite(
                 compilation: this.DeclaringCompilation,
@@ -500,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 allowOmissionOfConditionalCalls: false,
                 diagnostics: diagnostics,
                 sawLambdas: out sawLambdas,
+                sawLocalFunctions: out sawLocalFunctions,
                 sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
             Debug.Assert(!sawAwaitInExceptionHandler);
@@ -575,6 +577,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // we don't need this information:
                 closureDebugInfoBuilder.Free();
                 lambdaDebugInfoBuilder.Free();
+            }
+
+            if (sawLocalFunctions)
+            {
+                body = LocalFunctionRewriter.Rewrite(
+                    body,
+                    this.SubstitutedSourceMethod.ContainingType,
+                    _thisParameter,
+                    this,
+                    _methodOrdinal,
+                    compilationState,
+                    diagnostics);
             }
 
             // Insert locals from the original method,

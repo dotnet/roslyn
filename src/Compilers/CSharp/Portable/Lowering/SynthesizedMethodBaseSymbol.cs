@@ -136,5 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+
+        internal override TypeSymbol IteratorElementType
+        {
+            get { return BaseMethod.IteratorElementType; }
+            set { BaseMethod.IteratorElementType = value; }
+        }
     }
 }

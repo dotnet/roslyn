@@ -411,46 +411,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
         {
-            // TODO (search keyword: fzoo)
-
+            // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
-            
-            //SourceLocalSymbol localSymbol = this.LookupLocal(node.Identifier);
-            //
-            //AliasSymbol alias;
-            //var type = this.BindType(node.Type, diagnostics, out alias);
-            //BoundTypeExpression boundType = new BoundTypeExpression(node.Type, alias, type);
-            //
-            //InMethodBinder methodBinder = new InMethodBinder(null, this);
-            //
-            //var parameterBuilder = ArrayBuilder<BoundParameter>.GetInstance();
-            //
-            //foreach (var parameter in node.ParameterList.Parameters)
-            //{
-            //    // TODO
-            //}
-            //
-            //var parameterArray = parameterBuilder.ToImmutableAndFree();
-            //
-            //BoundBlock block;
-            //if (node.Body != null)
-            //{
-            //    // TODO: GetBinder(node.Body)
-            //    block = this.BindBlock(node.Body, diagnostics);
-            //}
-            //else if (node.ExpressionBody != null)
-            //{
-            //    block = this.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
-            //}
-            //else
-            //{
-            //    block = null;
-            //}
-            //
-            //return new BoundLocalFunctionDeclaration(node, localSymbol, boundType, parameterArray, block);
-            return new BoundLocalFunctionStatement(node);
-        }
 
+            var hasErrors = false;
+
+            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+
+            var inMethodBinder = new InMethodBinder(localSymbol, this);
+            var blockBinder = new ExecutableCodeBinder(node, localSymbol, inMethodBinder);
+            
+            BoundBlock block;
+            if (node.Body != null)
+            {
+                block = blockBinder.BindBlock(node.Body, diagnostics);
+            }
+            else if (node.ExpressionBody != null)
+            {
+                block = blockBinder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+            }
+            else
+            {
+                block = null;
+                // TODO: add a message for this?
+                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, node.Location);
+            }
+            
+            return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
+        }
+        
         public BoundExpressionStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
         {
             return BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics);

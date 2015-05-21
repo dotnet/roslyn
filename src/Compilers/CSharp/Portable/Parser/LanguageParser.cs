@@ -7986,7 +7986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ParseLocalFunctionStatement(out LocalFunctionStatementSyntax decl)
         {
             ResetPoint resetPoint = this.GetResetPoint();
-            TypeSyntax type = this.ParseType(false);
+            TypeSyntax type = this.ParseReturnType();
             SyntaxToken identifier = this.EatToken(SyntaxKind.IdentifierToken);
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
             {
@@ -7996,7 +7996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
             this.Release(ref resetPoint);
-            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: false);
+            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
 
             BlockSyntax blockBody;
             ArrowExpressionClauseSyntax expressionBody;

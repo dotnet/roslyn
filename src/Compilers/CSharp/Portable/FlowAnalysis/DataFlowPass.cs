@@ -1399,12 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
-
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-        {
-            return node; // TODO (search keyword: fzoo)
-        }
-
+        
         public override BoundNode VisitSequence(BoundSequence node)
         {
             DeclareVariables(node.Locals);
@@ -1506,6 +1501,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // ensure out parameters are definitely assigned at each return
                     LeaveParameters(node.Symbol.Parameters, pending.Branch.Syntax, null);
+                }
+                else
+                {
+                    // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
+                }
+
+                IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
+            }
+
+            this.State = finalState;
+
+            this.currentMethodOrLambda = oldMethodOrLambda;
+            return null;
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            var oldMethodOrLambda = this.currentMethodOrLambda;
+            this.currentMethodOrLambda = node.LocalSymbol;
+
+            var oldPending = SavePending(); // we do not support branches into a lambda
+            LocalState finalState = this.State;
+            this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
+            if (!node.WasCompilerGenerated) EnterParameters(node.LocalSymbol.Parameters);
+            var oldPending2 = SavePending();
+            VisitAlways(node.Body);
+            RestorePending(oldPending2); // process any forward branches within the lambda body
+            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+            RestorePending(oldPending);
+            LeaveParameters(node.LocalSymbol.Parameters, node.Syntax, null);
+            IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
+            foreach (PendingBranch pending in pendingReturns)
+            {
+                this.State = pending.State;
+                if (pending.Branch.Kind == BoundKind.ReturnStatement)
+                {
+                    // ensure out parameters are definitely assigned at each return
+                    LeaveParameters(node.LocalSymbol.Parameters, pending.Branch.Syntax, null);
                 }
                 else
                 {
