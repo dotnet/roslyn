@@ -1597,15 +1597,15 @@ namespace ConsoleApplication1
                            </Project>
                        </Workspace>
 
-            TestGenericNameCore(test, New CSharpGenericNameAnalyzer, "Message")
+            TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New CSharpGenericNameAnalyzer)
         End Sub
 
-        Private Sub TestGenericNameCore(test As XElement, analyzer As DiagnosticAnalyzer, expectedMessage As String)
+        Private Sub TestGenericNameCore(test As XElement, expectedMessage As String, expectedId As String, ParamArray analyzers As DiagnosticAnalyzer())
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
-                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                Dim analyzerReference = New AnalyzerImageReference(analyzers.ToImmutableArray())
                 project = project.AddAnalyzerReference(analyzerReference)
 
                 Dim diagnosticService = New TestDiagnosticAnalyzerService()
@@ -1621,9 +1621,37 @@ namespace ConsoleApplication1
                                                                         CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
 
-                Dim diagnostic = diagnostics.Single(Function(d) d.Id = analyzer.SupportedDiagnostics.Single().Id)
+                Dim diagnostic = diagnostics.Single(Function(d) d.Id = expectedId)
                 Assert.Equal(expectedMessage, diagnostic.Message)
             End Using
+        End Sub
+
+        <Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")>
+        Public Sub TestAnalyzerWithNoActions()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+using System;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class MyClass
+    {   
+        private Nullable<int> myVar = 5;
+        void Method()
+        {
+
+        }
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            ' Ensure that adding a dummy analyzer with no actions doesn't bring down entire analysis.
+            ' See https//github.com/dotnet/roslyn/issues/2980 for details.
+            TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New AnalyzerWithNoActions, New CSharpGenericNameAnalyzer)
         End Sub
     End Class
 End Namespace

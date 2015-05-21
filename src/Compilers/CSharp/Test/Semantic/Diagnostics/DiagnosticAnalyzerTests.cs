@@ -1070,12 +1070,39 @@ namespace ConsoleApplication1
     }
 }";
 
-            var analyzers = new DiagnosticAnalyzer[] { new CSharpGenericNameAnalyzer() };
+            TestGenericNameCore(source, new CSharpGenericNameAnalyzer());
+        }
 
+        private void TestGenericNameCore(string source, params DiagnosticAnalyzer[] analyzers)
+        {
             // Verify, no duplicate diagnostics on generic name.
             CreateCompilationWithMscorlib45(source)
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
                     expected: Diagnostic(CSharpGenericNameAnalyzer.DiagnosticId, @"Nullable<int>").WithLocation(9, 17));
+        }
+
+        [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]
+        public void TestAnalyzerWithNoActions()
+        {
+            var source = @"
+using System;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class MyClass
+    {   
+        private Nullable<int> myVar = 5;
+        void Method()
+        {
+
+        }
+    }
+}";
+
+            // Ensure that adding a dummy analyzer with no actions doesn't bring down entire analysis.
+            // See https://github.com/dotnet/roslyn/issues/2980 for details.
+            TestGenericNameCore(source, new AnalyzerWithNoActions(), new CSharpGenericNameAnalyzer());
         }
     }
 }
