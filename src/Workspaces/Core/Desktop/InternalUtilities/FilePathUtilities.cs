@@ -73,7 +73,7 @@ namespace Roslyn.Utilities
                 string directorySeparator = Path.DirectorySeparatorChar.ToString();
                 for (int i = 0; i < remainingParts; i++)
                 {
-                    relativePath += relativePath + ".." + directorySeparator;
+                    relativePath = relativePath + ".." + directorySeparator;
                 }
             }
 
