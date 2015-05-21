@@ -225,12 +225,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private static void DisposeProjectCache(IDisposable projectCache)
                     {
-                        if (projectCache == null)
-                        {
-                            return;
-                        }
-
-                        projectCache.Dispose();
+                        projectCache?.Dispose();
                     }
 
                     private void DisposeProjectCache()
@@ -296,9 +291,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                 // remove opened document processed
                                 IDisposable projectCache;
-                                _higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache);
-
-                                DisposeProjectCache(projectCache);
+                                if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache))
+                                {
+                                    DisposeProjectCache(projectCache);
+                                }
 
                                 return true;
                             }
