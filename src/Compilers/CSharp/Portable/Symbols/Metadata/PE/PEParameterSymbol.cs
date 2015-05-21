@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <remarks>
         /// Internal for testing.  Non-test code should use <see cref="ExplicitDefaultConstantValue"/>.
         /// </remarks>
-        internal ConstantValue ImportConstantValue()
+        internal ConstantValue ImportConstantValue(bool ignoreAttributes = false)
         {
             Debug.Assert(!_handle.IsNil);
 
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 value = _moduleSymbol.Module.GetParamDefaultValue(_handle);
             }
 
-            if (value == null)
+            if (value == null && !ignoreAttributes)
             {
                 value = GetDefaultDecimalOrDateTimeValue();
             }
@@ -324,16 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // From the C# point of view, there is no need to import a parameter's default value
-                // if the language isn't going to treat it as optional.
-                // NOTE: This disrupts round-tripping, but the trade-off seems acceptable.
-                if (!IsMetadataOptional)
-                    return null;
-
                 // The HasDefault flag has to be set, it doesn't suffice to mark the parameter with DefaultParameterValueAttribute.
                 if (_lazyDefaultValue == ConstantValue.Unset)
                 {
-                    ConstantValue value = ImportConstantValue();
+                    // From the C# point of view, there is no need to import a parameter's default value
+                    // if the language isn't going to treat it as optional. However, we might need metadata constant value for NoPia.
+                    // NOTE: Ignoring attributes for non-Optional parameters disrupts round-tripping, but the trade-off seems acceptable.
+                    ConstantValue value = ImportConstantValue(ignoreAttributes: !IsMetadataOptional);
                     Interlocked.CompareExchange(ref _lazyDefaultValue, value, ConstantValue.Unset);
                 }
 
