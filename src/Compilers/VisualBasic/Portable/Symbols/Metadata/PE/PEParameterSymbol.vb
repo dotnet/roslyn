@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property HasMetadataConstantValue As Boolean
             Get
-                Return (_flags And ParameterAttributes.HasDefault) <> 0
+                Return (_flags And ParameterAttributes.HasDefault) <> 0 AndAlso ExplicitDefaultConstantValue IsNot Nothing
             End Get
         End Property
 
