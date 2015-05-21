@@ -149,12 +149,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private IDisposable EnableCaching(ProjectId projectId)
                 {
-                    if (_cacheService == null)
-                    {
-                        return NullDisposable.Instance;
-                    }
-
-                    return _cacheService.EnableCaching(projectId);
+                    return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
                 }
 
                 private ProjectDependencyGraph DependencyGraph
