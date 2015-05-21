@@ -122,21 +122,21 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\FxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{36755424-5267-478C-9434-37A507E22711}</Project>
-      <Name>FxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\AnalyzerPowerPack.Common.csproj">
+      <Project>{cbcd620c-ff07-4ba4-abc9-2f23c73760db}</Project>
+      <Name>AnalyzerPowerPack.Common</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\CSharpFxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{3BA13187-2A3B-4B08-9199-C11FDA1D5AD0}</Project>
-      <Name>CSharpFxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\AnalyzerPowerPack.CSharp.csproj">
+      <Project>{d212bf08-95d5-4664-ad47-af9bfe7c48d0}</Project>
+      <Name>AnalyzerPowerPack.CSharp</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\BasicFxCopRulesDiagnosticAnalyzers.vbproj">
-      <Project>{2FCCB9BE-DD4E-48F2-B678-80E6FB196948}</Project>
-      <Name>BasicFxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\AnalyzerPowerPack.VisualBasic.vbproj">
+      <Project>{45854ff7-a6d5-4b28-87a1-0b75390125c0}</Project>
+      <Name>AnalyzerPowerPack.VisualBasic</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>

@@ -3,9 +3,10 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.Design
 {
     /// <summary>
     /// CA1024: Use properties where appropriate
@@ -16,14 +17,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public abstract class CA1024DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         internal const string RuleId = "CA1024";
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.UsePropertiesWhereAppropriate), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.ChangeToAPropertyIfAppropriate), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.UsePropertiesWhereAppropriateDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.UsePropertiesWhereAppropriate), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.ChangeToAPropertyIfAppropriate), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.UsePropertiesWhereAppropriateDescription), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitle,
                                                                          s_localizableMessage,
-                                                                         FxCopDiagnosticCategory.Design,
+                                                                         AnalyzerPowerPackDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
                                                                          description: s_localizableDescription,
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         return;
                     }
 
-                    // Fxcop has a few additional checks to reduce the noise for this diagnostic:
+                    // A few additional checks to reduce the noise for this diagnostic:
                     // Ensure that the method is non-generic, non-virtual/override, has no overloads and doesn't have special names: 'GetHashCode' or 'GetEnumerator'.
                     // Also avoid generating this diagnostic if the method body has any invocation expressions.
                     if (methodSymbol.IsGenericMethod ||
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                // We are analyzing an invocation expression node. This method is suffiently complex to suppress the diagnostic.
+                // We are analyzing an invocation expression node. This method is sufficiently complex to suppress the diagnostic.
                 suppress = true;
             }
 
