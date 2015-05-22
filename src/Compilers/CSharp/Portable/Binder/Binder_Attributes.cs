@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, DiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
-            ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
+            ConstantValue defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
 
             TypedConstantKind kind;
             object defaultValue = null;
