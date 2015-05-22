@@ -2281,8 +2281,8 @@ public class Test
             CompileAndVerify(CreateCompilation(
                 text,
                 references: new[] {
-                    MetadataReference.CreateFromAssembly(typeof(object).Assembly),
-                    MetadataReference.CreateFromAssembly(typeof(System.Linq.Enumerable).Assembly)
+                    MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly),
+                    MetadataReference.CreateFromAssemblyInternal(typeof(System.Linq.Enumerable).Assembly)
                 },
                 options: TestOptions.ReleaseExe),
                 expectedOutput: TrimExpectedOutput(expectedOutput));
