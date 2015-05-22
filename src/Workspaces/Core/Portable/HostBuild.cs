@@ -10,43 +10,37 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class HostBuildOptions
+    internal interface IHostBuildOptions
     {
-        public string ProjectDirectory { get; set; }
-        public string OutputDirectory { get; set; }
-        public string DefineConstants { get; set; }
-        public string DocumentationFile { get; set; }
-        public string LanguageVersion { get; set; }
-        public string PlatformWith32BitPreference { get; set; }
-        public string ApplicationConfiguration { get; set; }
-        public string KeyContainer { get; set; }
-        public string KeyFile { get; set; }
-        public string MainEntryPoint { get; set; }
-        public string ModuleAssemblyName { get; set; }
-        public string Platform { get; set; }
-        public string RuleSetFile { get; set; }
-        public string OptionCompare { get; set; }
-        public string OptionStrict { get; set; }
-        public string RootNamespace { get; set; }
-        public string VBRuntime { get; set; }
-        public bool? AllowUnsafeBlocks { get; set; }
-        public bool? CheckForOverflowUnderflow { get; set; }
-        public bool? Optimize { get; set; }
-        public bool? WarningsAsErrors { get; set; }
-        public bool? NoWarnings { get; set; }
-        public bool? OptionExplicit { get; set; }
-        public bool? OptionInfer { get; set; }
-        public int? WarningLevel { get; set; }
-        public OutputKind? OutputKind { get; set; }
-        public Tuple<bool, bool> DelaySign { get; set; }
-        public List<string> GlobalImports { get; set; }
-        public Dictionary<string, ReportDiagnostic> Warnings { get; set; }
-
-        internal HostBuildOptions()
-        {
-            Warnings = new Dictionary<string, ReportDiagnostic>();
-            GlobalImports = new List<string>();
-        }
+        string ProjectDirectory { get; set; }
+        string OutputDirectory { get; set; }
+        string DefineConstants { get; set; }
+        string DocumentationFile { get; set; }
+        string LanguageVersion { get; set; }
+        string PlatformWith32BitPreference { get; set; }
+        string ApplicationConfiguration { get; set; }
+        string KeyContainer { get; set; }
+        string KeyFile { get; set; }
+        string MainEntryPoint { get; set; }
+        string ModuleAssemblyName { get; set; }
+        string Platform { get; set; }
+        string RuleSetFile { get; set; }
+        string OptionCompare { get; set; }
+        string OptionStrict { get; set; }
+        string RootNamespace { get; set; }
+        string VBRuntime { get; set; }
+        bool? AllowUnsafeBlocks { get; set; }
+        bool? CheckForOverflowUnderflow { get; set; }
+        bool? Optimize { get; set; }
+        bool? WarningsAsErrors { get; set; }
+        bool? NoWarnings { get; set; }
+        bool? OptionExplicit { get; set; }
+        bool? OptionInfer { get; set; }
+        int? WarningLevel { get; set; }
+        OutputKind? OutputKind { get; set; }
+        Tuple<bool, bool> DelaySign { get; set; }
+        List<string> GlobalImports { get; set; }
+        Dictionary<string, ReportDiagnostic> Warnings { get; set; }
     }
 
     internal sealed class HostBuildData
@@ -64,6 +58,6 @@ namespace Microsoft.CodeAnalysis
 
     internal interface IHostBuildDataFactory : ILanguageService
     {
-        HostBuildData Create(HostBuildOptions options);
+        HostBuildData Create(IHostBuildOptions options);
     }
 }

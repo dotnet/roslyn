@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicHostBuildDataFactory
         Implements IHostBuildDataFactory
 
-        Public Function Create(options As HostBuildOptions) As HostBuildData Implements IHostBuildDataFactory.Create
+        Public Function Create(options As IHostBuildOptions) As HostBuildData Implements IHostBuildDataFactory.Create
 
             Dim parseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse)
             Dim compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,

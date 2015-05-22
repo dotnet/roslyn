@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -638,8 +639,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
-            var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+            var props = new Dictionary<string, string>(_properties);
+            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, props).ToTask(cancellationToken).ConfigureAwait(false);
+            var projectFileInfo = await projectFile.GetProjectFileInfoAsync().ToTask(cancellationToken).ConfigureAwait(false);
 
             VersionStamp version;
             if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
@@ -691,12 +693,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     docFileInfo.IsGenerated));
             }
 
+            var buildOptionsFactoryService = this.Services.GetLanguageServices(loader.Language).GetService<IHostBuildDataFactory>();
+            var options = buildOptionsFactoryService.Create(projectFileInfo.BuildOptions);
+
+            IEnumerable<MetadataReference> metadataReferences;
+            IEnumerable<AnalyzerReference> analyzerReferences;
+            this.GetReferences(projectFilePath, loader.Language, projectFileInfo, out metadataReferences, out analyzerReferences);
+
             // project references
             var resolvedReferences = await this.ResolveProjectReferencesAsync(
                 projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
-            var metadataReferences = projectFileInfo.MetadataReferences
-                .Concat(resolvedReferences.MetadataReferences);
+            metadataReferences = metadataReferences.Concat(resolvedReferences.MetadataReferences);
 
             var outputFilePath = projectFileInfo.OutputFilePath;
             var assemblyName = projectFileInfo.AssemblyName;
@@ -722,17 +730,46 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     loader.Language,
                     projectFilePath,
                     outputFilePath,
-                    projectFileInfo.CompilationOptions,
-                    projectFileInfo.ParseOptions,
+                    options.CompilationOptions,
+                    options.ParseOptions,
                     docs,
                     resolvedReferences.ProjectReferences,
                     metadataReferences,
-                    analyzerReferences: projectFileInfo.AnalyzerReferences,
+                    analyzerReferences: analyzerReferences,
                     additionalDocuments: additonalDocs,
                     isSubmission: false,
                     hostObjectType: null));
 
             return projectId;
+        }
+
+        private void GetReferences(
+            string projectFilePath, 
+            string language, 
+            ProjectFileInfo info,
+            out IEnumerable<MetadataReference> metadataReferences,
+            out IEnumerable<AnalyzerReference> analyzerReferences)
+        {
+            var commandLineArgumentsFactoryService = this.Services.GetLanguageServices(language).GetService<ICommandLineArgumentsFactoryService>();
+
+            var commandLineArgs = commandLineArgumentsFactoryService.CreateCommandLineArguments(
+                info.CommandLineArgs, 
+                PathUtilities.GetDirectoryName(projectFilePath), 
+                isInteractive: false, 
+                sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
+
+            var metadataService = this.Services.GetService<IMetadataService>();
+            var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
+            metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, metadataService.GetProvider()));
+
+            var analyzerService = this.Services.GetService<IAnalyzerService>();
+            var analyzerLoader = analyzerService.GetLoader();
+            foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
+            {
+                analyzerLoader.AddDependencyLocation(path);
+            }
+
+            analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
         }
 
         private static Encoding GetDefaultEncoding(int codePage)
@@ -819,7 +856,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var existingProjectId = this.GetProjectId(fullPath);
                     if (existingProjectId != null)
                     {
-                        resolvedReferences.ProjectReferences.Add(new ProjectReference(existingProjectId, projectFileReference.Aliases));
+                        resolvedReferences.ProjectReferences.Add(new ProjectReference(existingProjectId, projectFileReference.Aliases.ToImmutableArray()));
                         continue;
                     }
 
@@ -829,7 +866,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     // get metadata if preferred or if loader is unknown
                     if (preferMetadata || loader == null)
                     {
-                        var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
+                        var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases.ToImmutableArray(), _properties, cancellationToken).ConfigureAwait(false);
                         if (projectMetadata != null)
                         {
                             resolvedReferences.MetadataReferences.Add(projectMetadata);
@@ -842,7 +879,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         // load the project
                         var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-                        resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
+                        resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases.ToImmutableArray()));
                         continue;
                     }
                 }
@@ -853,7 +890,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 // cannot find metadata and project cannot be loaded, so leave a project reference to a non-existent project.
                 var id = this.GetOrCreateProjectId(fullPath);
-                resolvedReferences.ProjectReferences.Add(new ProjectReference(id, projectFileReference.Aliases));
+                resolvedReferences.ProjectReferences.Add(new ProjectReference(id, projectFileReference.Aliases.ToImmutableArray()));
             }
 
             return resolvedReferences;
@@ -869,7 +906,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             try
             {
-                outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
+                var properties = new Dictionary<string, string>(globalProperties);
+                outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, properties, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -959,7 +997,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         try
                         {
-                            _applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, _properties, CancellationToken.None).Result;
+                            var properties = new Dictionary<string, string>(_properties);
+                            _applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, properties).GetResult();
                         }
                         catch (System.IO.IOException exception)
                         {
@@ -1130,17 +1169,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected override void ApplyMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
             Debug.Assert(_applyChangesProjectFile != null);
-            var identity = GetAssemblyIdentity(projectId, metadataReference);
-            _applyChangesProjectFile.AddMetadataReference(metadataReference, identity);
-            this.OnMetadataReferenceAdded(projectId, metadataReference);
+            var peFile = metadataReference as PortableExecutableReference;
+            if (peFile != null)
+            {
+                var identity = GetAssemblyIdentity(projectId, metadataReference);
+                _applyChangesProjectFile.AddMetadataReference(CreateProjectMetadataReference(peFile), identity.GetDisplayName());
+                this.OnMetadataReferenceAdded(projectId, metadataReference);
+            }
         }
 
         protected override void ApplyMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
             Debug.Assert(_applyChangesProjectFile != null);
-            var identity = GetAssemblyIdentity(projectId, metadataReference);
-            _applyChangesProjectFile.RemoveMetadataReference(metadataReference, identity);
-            this.OnMetadataReferenceRemoved(projectId, metadataReference);
+            var peFile = metadataReference as PortableExecutableReference;
+            if (peFile != null)
+            {
+                var identity = GetAssemblyIdentity(projectId, metadataReference);
+                _applyChangesProjectFile.RemoveMetadataReference(CreateProjectMetadataReference(peFile), identity.ToAssemblyName().FullName);
+                this.OnMetadataReferenceRemoved(projectId, metadataReference);
+            }
+        }
+
+        private ProjectMetadataReference CreateProjectMetadataReference(PortableExecutableReference pefile)
+        {
+            return new ProjectMetadataReference(pefile.FilePath, pefile.Properties.Aliases.IsDefault ? new List<string>() : pefile.Properties.Aliases.ToList(), pefile.Properties.EmbedInteropTypes);
         }
 
         private AssemblyIdentity GetAssemblyIdentity(ProjectId projectId, MetadataReference metadataReference)
@@ -1185,15 +1237,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             Debug.Assert(_applyChangesProjectFile != null);
-            _applyChangesProjectFile.AddAnalyzerReference(analyzerReference);
-            this.OnAnalyzerReferenceAdded(projectId, analyzerReference);
+            var file = analyzerReference as AnalyzerFileReference;
+            if (file != null)
+            {
+                _applyChangesProjectFile.AddAnalyzerReference(CreateProjectAnalyzerReference(file));
+                this.OnAnalyzerReferenceAdded(projectId, analyzerReference);
+            }
         }
 
         protected override void ApplyAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             Debug.Assert(_applyChangesProjectFile != null);
-            _applyChangesProjectFile.RemoveAnalyzerReference(analyzerReference);
-            this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
+            var file = analyzerReference as AnalyzerFileReference;
+            if (file != null)
+            {
+                _applyChangesProjectFile.RemoveAnalyzerReference(CreateProjectAnalyzerReference(file));
+                this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
+            }
+        }
+
+        private ProjectAnalyzerReference CreateProjectAnalyzerReference(AnalyzerFileReference file)
+        {
+            return new ProjectAnalyzerReference(file.FullPath, file.Display);
         }
     }
     #endregion

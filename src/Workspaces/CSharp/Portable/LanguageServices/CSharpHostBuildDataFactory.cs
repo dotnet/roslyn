@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(IHostBuildDataFactory), LanguageNames.CSharp), Shared]
     internal sealed class CSharpHostBuildDataFactory : IHostBuildDataFactory
     {
-        public HostBuildData Create(HostBuildOptions options)
+        public HostBuildData Create(IHostBuildOptions options)
         {
             var parseOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, documentationMode: DocumentationMode.Parse);
             var compilationOptions = new CSharpCompilationOptions(

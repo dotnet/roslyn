@@ -14,23 +14,26 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal abstract class ProjectFileLoader : IProjectFileLoader
+    internal abstract class ProjectFileLoader : MarshalByRefObject, IProjectFileLoader
     {
         public abstract string Language { get; }
 
         protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject);
 
-        public async Task<IProjectFile> LoadProjectFileAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        public IRemoteTask<IProjectFile> LoadProjectFileAsync(string path, Dictionary<string, string> globalProperties)
         {
             if (path == null)
             {
                 throw new ArgumentNullException(nameof(path));
             }
 
-            // load project file async
-            var loadedProject = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+            return new RemoteTask<IProjectFile>(async (c) =>
+            {
+                // load project file async
+                var loadedProject = await LoadProjectAsync(path, globalProperties, c).ConfigureAwait(false);
 
-            return this.CreateProjectFile(loadedProject);
+                return this.CreateProjectFile(loadedProject);
+            });
         }
 
         private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
@@ -39,9 +42,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             XmlResolver = null
         };
 
-        private static async Task<MSB.Evaluation.Project> LoadProjectAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        private static async Task<MSB.Evaluation.Project> LoadProjectAsync(string path, Dictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
-            var properties = new Dictionary<string, string>(globalProperties ?? ImmutableDictionary<string, string>.Empty);
+            var properties = new Dictionary<string, string>();
+            if (globalProperties != null)
+            {
+                properties.AddRange(globalProperties);
+            }
+
             properties["DesignTimeBuild"] = "true"; // this will tell msbuild to not build the dependent projects
             properties["BuildingInsideVisualStudio"] = "true"; // this will force CoreCompile task to execute even if all inputs and outputs are up to date
 
@@ -60,7 +68,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectCollection: collection);
         }
 
-        public static async Task<string> GetOutputFilePathAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        public static async Task<string> GetOutputFilePathAsync(string path, Dictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             var project = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
             return project.GetPropertyValue("TargetPath");

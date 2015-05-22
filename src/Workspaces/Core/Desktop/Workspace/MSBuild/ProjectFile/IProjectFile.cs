@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Gets the project file info asynchronously.
         /// </summary>
-        Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
+        IRemoteTask<ProjectFileInfo> GetProjectFileInfoAsync();
 
         /// <summary>
         /// Get the kind of source found in the specified file. 
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         ///  Add a metadata reference to a project file.
         /// </summary>
-        void AddMetadataReference(MetadataReference reference, AssemblyIdentity identity);
+        void AddMetadataReference(ProjectMetadataReference metadata, string assemblyDisplayName);
 
         /// <summary>
         /// Remove a metadata reference from a project file.
         /// </summary>
-        void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity);
+        void RemoveMetadataReference(ProjectMetadataReference metadata, string assemblyFullName);
 
         /// <summary>
         /// Add a reference to another project to a project file.
@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Add an analyzer reference to the project file.
         /// </summary>
-        void AddAnalyzerReference(AnalyzerReference reference);
+        void AddAnalyzerReference(ProjectAnalyzerReference reference);
 
         /// <summary>
         /// Remove an analyzer reference from the project file.
         /// </summary>
-        void RemoveAnalyzerReference(AnalyzerReference reference);
+        void RemoveAnalyzerReference(ProjectAnalyzerReference reference);
 
         /// <summary>
         /// Save the current state of the project file to disk.

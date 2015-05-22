@@ -457,7 +457,7 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [Fact(Skip = "707107"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
