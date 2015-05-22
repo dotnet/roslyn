@@ -1351,6 +1351,21 @@ namespace Microsoft.Cci
             }
         }
 
+        [Conditional("DEBUG")]
+        // Used to catch cases where file2definitions contain nonwriteable definitions early
+        // If left unfixed, such scenarios will lead to crashes if happen in winmdobj projects
+        public void AssertAllDefinitionsHaveTokens(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
+        {
+            foreach (var kvp in file2definitions)
+            {
+                foreach (var definition in kvp.Value)
+                {
+                    uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                    Debug.Assert(token != 0);
+                }
+            }
+        }
+
         // Note: only used for WinMD
         public void WriteDefinitionLocations(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {
@@ -1359,7 +1374,7 @@ namespace Microsoft.Cci
             if ((object)writer5 != null)
             {
                 // NOTE: ISymUnmanagedWriter5 reports HRESULT = 0x806D000E in case we open and close 
-                //       the map without writing any resords with MapTokenToSourceSpan(...)
+                //       the map without writing any records with MapTokenToSourceSpan(...)
                 bool open = false;
 
                 foreach (var kvp in file2definitions)
