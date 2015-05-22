@@ -107,6 +107,33 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action..
+        /// </summary>
+        internal static string CodeActionNeedsEquivalenceKeyDescription {
+            get {
+                return ResourceManager.GetString("CodeActionNeedsEquivalenceKeyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provide an explicit argument for optional parameter &apos;{0}&apos;, which is non-null and unique across all code actions created by this fixer..
+        /// </summary>
+        internal static string CreateCodeActionWithEquivalenceKeyMessage {
+            get {
+                return ResourceManager.GetString("CreateCodeActionWithEquivalenceKeyMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create code actions should have a unique EquivalenceKey for FixAll occurrences support..
+        /// </summary>
+        internal static string CreateCodeActionWithEquivalenceKeyTitle {
+            get {
+                return ResourceManager.GetString("CreateCodeActionWithEquivalenceKeyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiatied in a compilation start action, registered using &apos;{0}.{1}&apos; API. An instance of this type will be created per-compilation and it won&apos;t outlive compilation&apos;s lifetime, hence avoiding memory leaks..
         /// </summary>
         internal static string DoNotStorePerCompilationDataOntoFieldsDescription {
@@ -152,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;Only internal implementations of this interface are allowed.&quot;.
+        ///   Looks up a localized string similar to Only internal implementations of this interface are allowed..
         /// </summary>
         internal static string InternalImplementationOnlyTitle {
             get {
@@ -313,6 +340,24 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         internal static string StatefulAnalyzerRegisterActionsDescription {
             get {
                 return ResourceManager.GetString("StatefulAnalyzerRegisterActionsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; has the default value of &apos;null&apos; for property &apos;{1}&apos;. Either override this property on &apos;{0}&apos; to return a non-null and unique value across all code actions per-fixer or use such an existing code action..
+        /// </summary>
+        internal static string OverrideCodeActionEquivalenceKeyMessage {
+            get {
+                return ResourceManager.GetString("OverrideCodeActionEquivalenceKeyMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use code actions that have a unique EquivalenceKey for FixAll occurrences support..
+        /// </summary>
+        internal static string OverrideCodeActionEquivalenceKeyTitle {
+            get {
+                return ResourceManager.GetString("OverrideCodeActionEquivalenceKeyTitle", resourceCulture);
             }
         }
         

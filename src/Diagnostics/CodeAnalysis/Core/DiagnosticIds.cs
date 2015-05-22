@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string UseLocalizableStringsInDescriptorRuleId = "RS1007";
         public const string DoNotStorePerCompilationDataOntoFieldsRuleId = "RS1008";
         public const string InternalImplementationOnlyRuleId = "RS1009";
+        public const string CreateCodeActionWithEquivalenceKeyRuleId = "RS1010";
+        public const string OverrideCodeActionEquivalenceKeyRuleId = "RS1011";
         public const string StartActionWithNoRegisteredActionsRuleId = "RS1012";
         public const string StartActionWithOnlyEndActionRuleId = "RS1013";
     }
