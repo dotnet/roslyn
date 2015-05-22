@@ -416,25 +416,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var hasErrors = false;
 
-            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
-
-            var inMethodBinder = new InMethodBinder(localSymbol, this);
-            var blockBinder = new ExecutableCodeBinder(node, localSymbol, inMethodBinder);
-            
-            BoundBlock block;
-            if (node.Body != null)
+            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
+            // This occurs through the semantic model.  In that case concoct a plausible result.
+            if (localSymbol == null)
             {
-                block = blockBinder.BindBlock(node.Body, diagnostics);
+                localSymbol = new LocalFunctionMethodSymbol(this, this.ContainingType, node, node.Identifier.GetLocation());
             }
-            else if (node.ExpressionBody != null)
+            else
             {
-                block = blockBinder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+                hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            }
+
+            var binder = this.GetBinder(node);
+
+            // Binder could be null in error scenarios (as above)
+            BoundBlock block;
+            if (binder != null)
+            {
+                if (node.Body != null)
+                {
+                    block = binder.BindBlock(node.Body, diagnostics);
+                }
+                else if (node.ExpressionBody != null)
+                {
+                    block = binder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+                }
+                else
+                {
+                    block = null;
+                    hasErrors = true;
+                    // TODO: add a message for this?
+                    diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, node.Location, localSymbol);
+                }
             }
             else
             {
                 block = null;
-                // TODO: add a message for this?
-                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, node.Location);
+                hasErrors = true;
             }
             
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);

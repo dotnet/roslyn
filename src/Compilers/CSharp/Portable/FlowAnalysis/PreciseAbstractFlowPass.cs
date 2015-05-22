@@ -2043,7 +2043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSequencePoint(BoundSequencePoint node)
         {
-            VisitStatement(node.StatementOpt);
+            if (node.StatementOpt != null)
+                VisitStatement(node.StatementOpt);
             return null;
         }
 
@@ -2055,7 +2056,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSequencePointWithSpan(BoundSequencePointWithSpan node)
         {
-            VisitStatement(node.StatementOpt);
+            if (node.StatementOpt != null)
+                VisitStatement(node.StatementOpt);
             return null;
         }
 

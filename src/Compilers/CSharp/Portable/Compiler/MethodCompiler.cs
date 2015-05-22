@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variableSlotAllocatorOpt = ((object)lambda != null) ?
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
-                
+
                 // We make sure that an asynchronous mutation to the diagnostic bag does not 
                 // confuse the method body generator by making a fresh bag and then loading
                 // any diagnostics emitted into it back into the main diagnostic bag.
@@ -606,13 +606,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
                 // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                 const int methodOrdinal = -1;
-                ArrayBuilder<LambdaDebugInfo> lambdaDebugInfo = ArrayBuilder<LambdaDebugInfo>.GetInstance();
-                ArrayBuilder<ClosureDebugInfo> closureDebugInfo = ArrayBuilder<ClosureDebugInfo>.GetInstance();
-                StateMachineTypeSymbol stateMachineType;
-                // Use full lowering on synthesized methods. Previously this was just an async lowering,
-                // but with local functions, more lowering types need to be allowed (e.g. iterators)
-                var loweredBody = LowerBodyOrInitializer(method, methodOrdinal, methodWithBody.Body, null, compilationState, diagnosticsThisMethod, ref variableSlotAllocatorOpt, lambdaDebugInfo, closureDebugInfo, out stateMachineType);
-                
+
+                // Previously this was just an async lowering, but local functions can also be iterators, so we need to lower those
+                IteratorStateMachine iteratorStateMachine;
+                BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+                StateMachineTypeSymbol stateMachine = iteratorStateMachine;
+
+                if (!loweredBody.HasErrors)
+                {
+                    AsyncStateMachine asyncStateMachine;
+                    loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+
+                    Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+                    stateMachine = stateMachine ?? asyncStateMachine;
+                }
+
                 MethodBody emittedBody = null;
                 if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                 {
@@ -621,9 +629,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         method,
                         methodOrdinal,
                         loweredBody,
-                        lambdaDebugInfo.ToImmutableAndFree(),
-                        closureDebugInfo.ToImmutableAndFree(),
-                        stateMachineType,
+                        ImmutableArray<LambdaDebugInfo>.Empty,
+                        ImmutableArray<ClosureDebugInfo>.Empty,
+                        stateMachine,
                         variableSlotAllocatorOpt,
                         diagnosticsThisMethod,
                         _debugDocumentProvider,
@@ -1479,13 +1487,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var inMethodBinder = factory.GetBinder(blockSyntax);
 
-                    Binder binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
+                    var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
                     body = binder.BindBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
 
-                    if (inMethodBinder.IsDirectlyInIterator)
+                    foreach (var iterator in binder.MethodSymbolsWithYield)
                     {
-                        foreach (var parameter in method.Parameters)
+                        foreach (var parameter in iterator.Parameters)
                         {
                             if (parameter.RefKind != RefKind.None)
                             {
@@ -1497,15 +1505,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if (sourceMethod.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
+                        var sourceIterator = iterator as SourceMethodSymbol;
+                        if (sourceIterator != null)
                         {
-                            diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceMethod.Locations[0]);
-                        }
+                            if (sourceIterator.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
+                            {
+                                diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceIterator.Locations[0]);
+                            }
 
-                        if (sourceMethod.IsVararg)
-                        {
-                            // error CS1636: __arglist is not allowed in the parameter list of iterators
-                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceMethod.Locations[0]);
+                            if (sourceIterator.IsVararg)
+                            {
+                                // error CS1636: __arglist is not allowed in the parameter list of iterators
+                                diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceIterator.Locations[0]);
+                            }
                         }
                     }
                 }

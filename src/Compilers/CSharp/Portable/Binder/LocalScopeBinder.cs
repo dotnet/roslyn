@@ -354,13 +354,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (this.LocalsMap != null && options.CanConsiderLocals())
+            if (options.CanConsiderLocals())
             {
-                foreach (var local in this.LocalsMap)
+                if (this.LocalsMap != null)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, null))
+                    foreach (var local in this.LocalsMap)
                     {
-                        result.AddSymbol(local.Value, local.Key, 0);
+                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, null))
+                        {
+                            result.AddSymbol(local.Value, local.Key, 0);
+                        }
+                    }
+                }
+                if (this.LocalFunctionsMap != null)
+                {
+                    foreach (var local in this.LocalFunctionsMap)
+                    {
+                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, null))
+                        {
+                            result.AddSymbol(local.Value, local.Key, 0);
+                        }
                     }
                 }
             }
@@ -381,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
                     return true;
                 }
+                return false;
             }
 
             if (newSymbolKind == SymbolKind.Method)
@@ -391,6 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
                     return true;
                 }
+                return false;
             }
 
             if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter)

@@ -46,12 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
+            var topLevelDebugId = new DebugId(_methodOrdinal, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+            var localFunctionDebugId = new DebugId(-1, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+            var synth = new SynthesizedLocalFunction(_method.ContainingType, _method, topLevelDebugId, node, localFunctionDebugId);
+
+            _loweringTranslation.Add(node.LocalSymbol, synth);
+            var translatedBody = (BoundStatement)base.Visit(node.Body);
+
             // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
             // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
             // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
-            var endIsReachable = ControlFlowPass.Analyze(node.LocalSymbol.DeclaringCompilation, node.LocalSymbol, node, _diagnostics);
+            var endIsReachable = ControlFlowPass.Analyze(node.LocalSymbol.DeclaringCompilation, node.LocalSymbol, translatedBody, _diagnostics);
 
-            var flowAnalyzed = node.Body;
+            var flowAnalyzed = translatedBody;
             if (endIsReachable)
             {
                 if (ImplicitReturnIsOkay(node.LocalSymbol))
@@ -64,13 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var topLevelDebugId = new DebugId(_methodOrdinal, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
-            var localFunctionDebugId = new DebugId(-1, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
-            var synth = new SynthesizedLocalFunction(_method.ContainingType, _method, topLevelDebugId, node, localFunctionDebugId);
             _compilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_method.ContainingType, synth);
             _compilationState.AddSynthesizedMethod(synth, flowAnalyzed);
-
-            _loweringTranslation.Add(node.LocalSymbol, synth);
 
             return new BoundNoOpStatement(node.Syntax, NoOpStatementFlavor.Default);
         }
@@ -104,7 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                        localFunction.SyntaxTree.GetReference(localFunction.Body.Syntax),
                        localFunction.Syntax.GetLocation(),
                        MakeName(topLevelMethod.Name, topLevelMethodId, localFunction.LocalSymbol.Name, localFunctionId),
-                       DeclarationModifiers.Private | DeclarationModifiers.Static)
+                       DeclarationModifiers.Private | DeclarationModifiers.Static |
+                       (localFunction.LocalSymbol.IsAsync ? DeclarationModifiers.Async : 0))
             {
                 _topLevelMethod = topLevelMethod;
 

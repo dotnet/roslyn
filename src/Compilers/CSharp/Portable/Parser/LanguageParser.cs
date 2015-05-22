@@ -7986,6 +7986,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ParseLocalFunctionStatement(out LocalFunctionStatementSyntax decl)
         {
             ResetPoint resetPoint = this.GetResetPoint();
+            var modifiers = _pool.Allocate();
+            this.ParseModifiers(modifiers);
             TypeSyntax type = this.ParseReturnType();
             SyntaxToken identifier = this.EatToken(SyntaxKind.IdentifierToken);
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
@@ -7996,6 +7998,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
             this.Release(ref resetPoint);
+
+            bool parentScopeIsInAsync = IsInAsync;
+            IsInAsync = false;
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                switch (modifiers[i].Kind)
+                {
+                    case SyntaxKind.AsyncKeyword:
+                        IsInAsync = true;
+                        break;
+                    default:
+                        modifiers[i] = this.AddError(modifiers[i], ErrorCode.ERR_BadMemberFlag, ((SyntaxToken)modifiers[i]).Text);
+                        break;
+                }
+            }
+
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
 
             BlockSyntax blockBody;
@@ -8004,14 +8022,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
             decl = _syntaxFactory.LocalFunctionStatement(
-                 type,
-                 identifier,
-                 paramList,
-                 blockBody,
-                 expressionBody,
-                 semicolon);
+                modifiers.ToTokenList(),
+                type,
+                identifier,
+                paramList,
+                blockBody,
+                expressionBody,
+                semicolon);
 
             decl = CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
+            IsInAsync = parentScopeIsInAsync;
             return true;
         }
 

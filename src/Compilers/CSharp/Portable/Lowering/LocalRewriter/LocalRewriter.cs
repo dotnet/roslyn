@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddSequencePoint(BoundStatement node)
         {
+            if (node == null)
+            {
+                return node;
+            }
+
             if (this.GenerateDebugInfo && !node.WasCompilerGenerated)
             {
                 node = new BoundSequencePoint(node.Syntax, node);

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(
                 MethodKind.LocalFunction,
-                DeclarationModifiers.Static, // TODO: Will change when we allow local captures (also change in LocalFunctionRewriter)
+                DeclarationModifiers.Static | syntax.Modifiers.ToDeclarationModifiers(), // TODO: Will change when we allow local captures (also change in LocalFunctionRewriter)
                 returnsVoid: false, // will be fixed in MethodChecks
                 isExtensionMethod: isExtensionMethod);
         }
