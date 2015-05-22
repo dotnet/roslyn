@@ -866,6 +866,43 @@ Console.WriteLine(1)/*4*/;
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void MatchExceptionHandlers()
+        {
+            var src1 = @"
+try { throw new InvalidOperationException(1); }
+catch (IOException e) when (filter(e)) { Console.WriteLine(2); }
+catch (Exception e) when (filter(e)) { Console.WriteLine(3); }
+";
+            var src2 = @"
+try { throw new InvalidOperationException(10); }
+catch (IOException e) when (filter(e)) { Console.WriteLine(20); }
+catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "try { throw new InvalidOperationException(1); } catch (IOException e) when (filter(e)) { Console.WriteLine(2); } catch (Exception e) when (filter(e)) { Console.WriteLine(3); }", "try { throw new InvalidOperationException(10); } catch (IOException e) when (filter(e)) { Console.WriteLine(20); } catch (Exception e) when (filter(e)) { Console.WriteLine(30); }" },
+                { "{ throw new InvalidOperationException(1); }", "{ throw new InvalidOperationException(10); }" },
+                { "throw new InvalidOperationException(1);", "throw new InvalidOperationException(10);" },
+                { "catch (IOException e) when (filter(e)) { Console.WriteLine(2); }", "catch (IOException e) when (filter(e)) { Console.WriteLine(20); }" },
+                { "(IOException e)", "(IOException e)" },
+                { "when (filter(e))", "when (filter(e))" },
+                { "{ Console.WriteLine(2); }", "{ Console.WriteLine(20); }" },
+                { "Console.WriteLine(2);", "Console.WriteLine(20);" },
+                { "catch (Exception e) when (filter(e)) { Console.WriteLine(3); }", "catch (Exception e) when (filter(e)) { Console.WriteLine(30); }" },
+                { "(Exception e)", "(Exception e)" },
+                { "when (filter(e))", "when (filter(e))" },
+                { "{ Console.WriteLine(3); }", "{ Console.WriteLine(30); }" },
+                { "Console.WriteLine(3);", "Console.WriteLine(30);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region Variable Declaration

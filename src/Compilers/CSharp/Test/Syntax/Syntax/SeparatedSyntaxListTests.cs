@@ -285,5 +285,28 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause));
             Assert.False(list.Any(SyntaxKind.WhereClause));
         }
+
+        [Fact]
+        [WorkItem(2630, "https://github.com/dotnet/roslyn/issues/2630")]
+        public void ReplaceSeparator()
+        {
+            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+                new[] {
+                    SyntaxFactory.IdentifierName("A"),
+                    SyntaxFactory.IdentifierName("B"),
+                    SyntaxFactory.IdentifierName("C"),
+                });
+
+            var newComma = SyntaxFactory.Token(
+                SyntaxFactory.TriviaList(SyntaxFactory.Space),
+                SyntaxKind.CommaToken,
+                SyntaxFactory.TriviaList());
+            var newList = list.ReplaceSeparator(
+                list.GetSeparator(1),
+                newComma);
+            Assert.Equal(3, newList.Count);
+            Assert.Equal(2, newList.SeparatorCount);
+            Assert.Equal(1, newList.GetSeparator(1).GetLeadingTrivia().Count);
     }
+}
 }
