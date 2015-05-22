@@ -302,5 +302,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         AnalyzerDependencyCheckingService_LogMissingDependency,
         VirtualMemory_MemoryLow,
         Extension_Exception,
+
+        WorkCoordinator_WaitForHigherPriorityOperationsAsync,
     }
 }
