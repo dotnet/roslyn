@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public class CA1052Tests : DiagnosticAnalyzerTestBase
     {
@@ -24,12 +25,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static DiagnosticResult CSharpResult(int line, int column, string objectName)
         {
-            return GetCSharpResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId, string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, objectName));
+            return GetCSharpResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId, string.Format(AnalyzerPowerPackRulesResources.StaticHolderTypeIsNotStatic, objectName));
         }
 
         private static DiagnosticResult BasicResult(int line, int column, string objectName)
         {
-            return GetBasicResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId, string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, objectName));
+            return GetBasicResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId, string.Format(AnalyzerPowerPackRulesResources.StaticHolderTypeIsNotStatic, objectName));
         }
 
         #endregion

@@ -6,10 +6,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.Design
 {
     /// <summary>
     /// CA1008: Enums should have zero value
@@ -35,41 +36,41 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             Enum.ToString() returns incorrect results for members that are not zero. 
         */
 
-        internal const string RuleId = "CA1008";
-        internal const string RuleRenameCustomTag = "RuleRename";
-        internal const string RuleMultipleZeroCustomTag = "RuleMultipleZero";
-        internal const string RuleNoZeroCustomTag = "RuleNoZero";
+        public const string RuleId = "CA1008";
+        public const string RuleRenameCustomTag = "RuleRename";
+        public const string RuleMultipleZeroCustomTag = "RuleMultipleZero";
+        public const string RuleNoZeroCustomTag = "RuleNoZero";
 
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValueDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.EnumsShouldHaveZeroValue), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.EnumsShouldHaveZeroValueDescription), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
 
-        private static readonly LocalizableString s_localizableMessageRuleRename = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsRename), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageRuleRename = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
         internal static DiagnosticDescriptor RuleRename = new DiagnosticDescriptor(RuleId,
                                                                        s_localizableTitle,
                                                                        s_localizableMessageRuleRename,
-                                                                       FxCopDiagnosticCategory.Design,
+                                                                       AnalyzerPowerPackDiagnosticCategory.Design,
                                                                        DiagnosticSeverity.Warning,
                                                                        isEnabledByDefault: false,
                                                                        description: s_localizableDescription,
                                                                        helpLinkUri: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                        customTags: DiagnosticCustomTags.Microsoft.Concat(RuleRenameCustomTag).ToArray());
 
-        private static readonly LocalizableString s_localizableMessageRuleMultipleZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageRuleMultipleZero = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
                                                                s_localizableTitle,
                                                                s_localizableMessageRuleMultipleZero,
-                                                               FxCopDiagnosticCategory.Design,
+                                                               AnalyzerPowerPackDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: false,
                                                                description: s_localizableDescription,
                                                                helpLinkUri: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleMultipleZeroCustomTag).ToArray());
 
-        private static readonly LocalizableString s_localizableMessageRuleNoZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageRuleNoZero = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
                                                                s_localizableTitle,
                                                                s_localizableMessageRuleNoZero,
-                                                               FxCopDiagnosticCategory.Design,
+                                                               AnalyzerPowerPackDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: false,
                                                                description: s_localizableDescription,

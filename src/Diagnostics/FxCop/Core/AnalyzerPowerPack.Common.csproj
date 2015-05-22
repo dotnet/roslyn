@@ -9,7 +9,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{36755424-5267-478C-9434-37A507E22711}</ProjectGuid>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{CBCD620C-FF07-4BA4-ABC9-2F23C73760DB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <FileUpgradeFlags>
@@ -18,11 +19,13 @@
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
     <AnalyzerProject>true</AnalyzerProject>
-    <RootNamespace>Microsoft.CodeAnalysis.FxCopAnalyzers</RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.FxCopAnalyzers</AssemblyName>
+    <RootNamespace>Microsoft.AnalyzerPowerPack</RootNamespace>
+    <AssemblyName>Microsoft.AnalyzerPowerPack.Common</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
@@ -114,15 +117,15 @@
     <Compile Include="DiagnosticKind.cs" />
     <Compile Include="DocumentChangeAction.cs" />
     <Compile Include="FxCopDiagnosticCategory.cs" />
-    <Compile Include="FxCopFixersResources.Designer.cs">
+    <Compile Include="AnalyzerPowerPackFixersResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>FxCopFixersResources.resx</DependentUpon>
+      <DependentUpon>AnalyzerPowerPackFixersResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="FxCopRulesResources.Designer.cs">
+    <Compile Include="AnalyzerPowerPackRulesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>FxCopRulesResources.resx</DependentUpon>
+      <DependentUpon>AnalyzerPowerPackRulesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="MultipleCodeFixProviderBase.cs" />
     <Compile Include="Naming\CA1708DiagnosticAnalyzer.cs" />
@@ -150,15 +153,15 @@
     <Compile Include="Usage\SerializationRulesDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="FxCopFixersResources.resx">
+    <EmbeddedResource Include="AnalyzerPowerPackFixersResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
-      <LastGenOutput>FxCopFixersResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>AnalyzerPowerPackFixersResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="FxCopRulesResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+    <EmbeddedResource Include="AnalyzerPowerPackRulesResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
-      <LastGenOutput>FxCopRulesResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>AnalyzerPowerPackRulesResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
