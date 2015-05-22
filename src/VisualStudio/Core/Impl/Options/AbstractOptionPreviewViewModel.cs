@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -125,11 +124,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     "System.Core"
                 };
 
-            var metadataService  = workspace.Services.GetService<IMetadataService>();
-
             var referenceAssemblies = Thread.GetDomain().GetAssemblies()
                 .Where(x => references.Contains(x.GetName(true).Name, StringComparer.OrdinalIgnoreCase))
-                .Select(a => metadataService.GetReference(a.Location, MetadataReferenceProperties.Assembly));
+                .Select(MetadataReference.CreateFromAssembly);
 
             project = project.WithMetadataReferences(referenceAssemblies);
 
