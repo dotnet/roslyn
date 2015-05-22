@@ -2,10 +2,11 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.Design
 {
     /// <summary>
     /// CA1033: Interface methods should be callable by child types
@@ -24,14 +25,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     {
         internal const string RuleId = "CA1033";
 
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceMethodsShouldBeCallableByChildTypesTitle), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceMethodsShouldBeCallableByChildTypesMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceMethodsShouldBeCallableByChildTypesDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.InterfaceMethodsShouldBeCallableByChildTypesTitle), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.InterfaceMethodsShouldBeCallableByChildTypesMessage), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.InterfaceMethodsShouldBeCallableByChildTypesDescription), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
 
-        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
+        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                           s_localizableTitle,
                                                                           s_localizableMessage,
-                                                                          FxCopDiagnosticCategory.Design,
+                                                                          AnalyzerPowerPackDiagnosticCategory.Design,
                                                                           DiagnosticSeverity.Warning,
                                                                           isEnabledByDefault: false,
                                                                           description: s_localizableDescription,
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
             var method = (IMethodSymbol)context.OwningSymbol;
 
-            // We are only intereseted in private explicit interface implementations within a public non-sealed type.
+            // We are only interested in private explicit interface implementations within a public non-sealed type.
             if (method.ExplicitInterfaceImplementations.Length == 0 ||
                 method.GetResultantVisibility() != SymbolVisibility.Private ||
                 method.ContainingType.IsSealed ||

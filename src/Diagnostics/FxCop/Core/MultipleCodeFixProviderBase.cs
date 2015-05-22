@@ -3,10 +3,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers
+namespace Microsoft.AnalyzerPowerPack
 {
     public abstract class MultipleCodeFixProviderBase : CodeFixProvider
     {
