@@ -31,19 +31,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
+            Dim localDiagnostics = DiagnosticBag.GetInstance()
 
             Dim loweredBody = LocalRewriter.Rewrite(body,
                                                     method,
                                                     compilationState,
                                                     previousSubmissionFields,
-                                                    diagnostics,
+                                                    localDiagnostics,
                                                     rewrittenNodes,
                                                     sawLambdas,
                                                     symbolsCapturedWithoutCopyCtor,
                                                     flags,
                                                     currentMethod:=Nothing)
 
-            If loweredBody.HasErrors Then
+            If loweredBody.HasErrors OrElse localDiagnostics.HasAnyErrors Then
+                diagnostics.AddRangeAndFree(localDiagnostics)
                 Return loweredBody
             End If
 
@@ -73,14 +75,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             lazyVariableSlotAllocator,
                                                             compilationState,
                                                             If(symbolsCapturedWithoutCopyCtor, SpecializedCollections.EmptySet(Of Symbol)),
-                                                            diagnostics,
+                                                            localDiagnostics,
                                                             rewrittenNodes)
             End If
 
-            If bodyWithoutLambdas.HasErrors Then
+            If bodyWithoutLambdas.HasErrors OrElse localDiagnostics.HasAnyErrors Then
+                diagnostics.AddRangeAndFree(localDiagnostics)
                 Return bodyWithoutLambdas
             End If
 
+            diagnostics.AddRangeAndFree(localDiagnostics)
             Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, lazyVariableSlotAllocator, stateMachineTypeOpt)
         End Function
 
