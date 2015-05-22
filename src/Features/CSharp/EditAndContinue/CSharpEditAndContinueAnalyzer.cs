@@ -825,9 +825,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return memberDeclaration.Parent.FirstAncestorOrSelf<TypeDeclarationSyntax>();
         }
 
-        internal override bool HasBackingField(SyntaxNode propertyDeclaration)
+        internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
         {
-            return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyDeclaration);
+            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) && 
+                   SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyOrIndexerDeclaration);
         }
 
         internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
