@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
 {
     internal static class Options
     {
-        internal static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script);
-        internal static readonly CSharpParseOptions Interactive = new CSharpParseOptions(kind: SourceCodeKind.Interactive);
-        internal static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular);
+        internal static CSharpParseOptions Script { get { return new CSharpParseOptions(kind: SourceCodeKind.Script); } }
+        internal static CSharpParseOptions Interactive { get { return new CSharpParseOptions(kind: SourceCodeKind.Interactive); } }
+        internal static CSharpParseOptions Regular { get { return new CSharpParseOptions(kind: SourceCodeKind.Regular); } }
     }
 }

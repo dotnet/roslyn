@@ -236,10 +236,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var parseOptions = languageInformation.ParseOptions;
 
+#if SCRIPTING
                 if (Path.GetExtension(moniker) == languageInformation.ScriptExtension)
                 {
                     parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
                 }
+#endif
 
                 // First, create the project
                 var hostProject = new HostProject(this, CurrentSolution.Id, languageInformation.LanguageName, parseOptions, _metadataReferences);

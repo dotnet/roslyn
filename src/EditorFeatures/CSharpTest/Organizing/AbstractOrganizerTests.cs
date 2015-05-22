@@ -17,13 +17,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         protected void Check(string initial, string final)
         {
             CheckResult(initial, final);
+#if SCRIPTING
             CheckResult(initial, final, Options.Script);
+#endif
         }
 
         protected void Check(string initial, string final, bool specialCaseSystem)
         {
             CheckResult(initial, final, specialCaseSystem);
+#if SCRIPTING
             CheckResult(initial, final, specialCaseSystem, Options.Script);
+#endif
         }
 
         protected void CheckResult(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)

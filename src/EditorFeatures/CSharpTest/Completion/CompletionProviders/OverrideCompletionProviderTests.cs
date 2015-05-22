@@ -698,7 +698,9 @@ public class SomeClass : Base
             MarkupTestFile.GetPosition(markup, out code, out position);
 
             BaseVerifyWorker(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null);
+#if SCRIPTING
             BaseVerifyWorker(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null);
+#endif
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -719,7 +721,9 @@ public class SomeClass : Base
             MarkupTestFile.GetPosition(markup, out code, out position);
 
             BaseVerifyWorker(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null);
+#if SCRIPTING
             BaseVerifyWorker(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null);
+#endif
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -791,9 +795,9 @@ class Derived<X> : CFoo
             VerifyItemIsAbsent(markup, "Something<X>(X arg)");
         }
 
-        #endregion
+#endregion
 
-        #region "Commit tests"
+#region "Commit tests"
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInEmptyClass()
@@ -2152,9 +2156,9 @@ End Class
             }
         }
 
-        #endregion
+#endregion
 
-        #region "Commit: With Trivia"
+#region "Commit: With Trivia"
 
         [WorkItem(529199)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2201,8 +2205,8 @@ class Derived : Base
 class Derived : Base
 {
 override $$
-    #if true
-    #endif
+#if true
+#endif
 }";
 
             var expectedCodeAfterCommit = @"class Base
@@ -2471,9 +2475,9 @@ int bar;
             }
         }
 
-        #endregion
+#endregion
 
-        #region "EditorBrowsable should be ignored"
+#region "EditorBrowsable should be ignored"
 
         [Fact]
         [WorkItem(545678)]
@@ -2501,7 +2505,7 @@ public class B
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        #endregion
+#endregion
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DuplicateMember()

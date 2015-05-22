@@ -306,7 +306,7 @@ index: 1);
         }
 
         [WorkItem(539853)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void BugFix5950()
         {
             Test(

@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new options instance with the specified source code kind.
         /// </summary>
-        public ParseOptions WithKind(SourceCodeKind kind)
+        internal ParseOptions WithKind(SourceCodeKind kind)
         {
             return CommonWithKind(kind);
         }
 
-        protected abstract ParseOptions CommonWithKind(SourceCodeKind kind);
+        internal abstract ParseOptions CommonWithKind(SourceCodeKind kind);
 
         /// <summary>
         /// Creates a new options instance with the specified documentation mode.

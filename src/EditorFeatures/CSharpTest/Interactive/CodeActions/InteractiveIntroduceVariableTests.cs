@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 
         protected void Test(string initial, string expected, int index = 0, bool compareTokens = true)
         {
+#if SCRIPTING
             Test(initial, expected, Options.Script, index, compareTokens);
+#endif
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]

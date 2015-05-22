@@ -101,6 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private void Verify(string markup, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
         {
+#if !SCRIPTING
+            if (sourceCodeKind != SourceCodeKind.Regular)
+            {
+                return;
+            }
+#endif
+
             string code;
             int position;
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out code, out position);
@@ -122,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 VerifyCustomCommitProviderWorker(code, position, itemToCommit, expectedCodeAfterCommit, SourceCodeKind.Regular, commitChar);
                 VerifyCustomCommitProviderWorker(code, position, itemToCommit, expectedCodeAfterCommit, SourceCodeKind.Script, commitChar);
-            }
         }
+    }
 
         protected void VerifyProviderCommit(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit,
             char? commitChar, string textTypedSoFar, SourceCodeKind? sourceCodeKind = null)
@@ -251,6 +258,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual void VerifyCustomCommitProviderWorker(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
+#if !SCRIPTING
+            if (sourceCodeKind != SourceCodeKind.Regular)
+            {
+                return;
+            }
+#endif
+
             var document1 = workspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             VerifyCustomCommitProviderCheckResults(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
@@ -317,6 +331,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected virtual void VerifyProviderCommitWorker(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit,
             char? commitChar, string textTypedSoFar, SourceCodeKind sourceCodeKind)
         {
+#if !SCRIPTING
+            if (sourceCodeKind != SourceCodeKind.Regular)
+            {
+                return;
+            }
+#endif
+
             var document1 = workspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             VerifyProviderCommitCheckResults(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar, textTypedSoFar);
 

@@ -898,7 +898,7 @@ index: 0);
         }
 
         [WorkItem(537929)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void TestInScript1()
         {
             Test(

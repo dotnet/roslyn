@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
            Tuple<string, string>[] expected,
            CSharpParseOptions options = null)
         {
+#if SCRIPTING
+            if ((options != null) && (options.Kind != SourceCodeKind.Script))
+            {
+                return;
+            }
+#endif
             var start = allCode.IndexOf(code, StringComparison.Ordinal);
             var length = code.Length;
             var span = new TextSpan(start, length);
@@ -88,7 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             params Tuple<string, string>[] expected)
         {
             Test(code, code, expected);
+#if SCRIPTING
             Test(code, code, expected, Options.Script);
+#endif
         }
 
         protected void Test(
@@ -107,7 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             var allCode = "namespace N {\r\n" + code + "\r\n}";
             Test(code, allCode, expected);
+#if SCRIPTING
             Test(code, allCode, expected, Options.Script);
+#endif
         }
 
         protected void TestInClass(
@@ -118,7 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             var allCode = "class " + className + " {\r\n    " +
                 code + "\r\n}";
             Test(code, allCode, expected);
+#if SCRIPTING
             Test(code, allCode, expected, Options.Script);
+#endif
         }
 
         protected void TestInClass(
@@ -137,7 +149,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             var allCode = "class " + className + " {\r\n    void " + methodName + "() {\r\n        " +
                 code + "\r\n    \r\n}\r\n}";
             Test(code, allCode, expected);
+#if SCRIPTING
             Test(code, allCode, expected, Options.Script);
+#endif
         }
 
         protected void TestInMethod(
@@ -185,7 +199,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             var allCode = "class C {\r\n    void M() {\r\n        var q = \r\n        " +
                 code + "\r\n    ;\r\n    }\r\n}";
             Test(code, allCode, expected);
+#if SCRIPTING
             Test(code, allCode, expected, Options.Script);
+#endif
         }
     }
 }

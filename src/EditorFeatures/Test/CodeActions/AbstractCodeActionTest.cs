@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Func<dynamic, dynamic> nodeLocator = null)
         {
             TestMissing(initial, null, nodeLocator);
+#if SCRIPTING
             TestMissing(initial, GetScriptOptions(), nodeLocator);
+#endif
         }
 
         protected virtual void TestMissing(
@@ -65,7 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IDictionary<OptionKey, object> options = null)
         {
             Test(initial, expected, null, index, compareTokens, nodeLocator, options);
+#if SCRIPTING
             Test(initial, expected, GetScriptOptions(), index, compareTokens, nodeLocator, options);
+#endif
         }
 
         protected void Test(
@@ -361,7 +365,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             bool compareTokens = true)
         {
             TestAddDocument(initial, expected, index, expectedContainers, expectedDocumentName, null, null, compareTokens);
+#if SCRIPTING
             TestAddDocument(initial, expected, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens);
+#endif
         }
 
         private void TestAddDocument(

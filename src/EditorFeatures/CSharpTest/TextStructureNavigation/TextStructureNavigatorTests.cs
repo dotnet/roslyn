@@ -347,7 +347,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         private static void AssertExtent(string code, int pos, bool isSignificant, int start, int length)
         {
             AssertExtent(code, pos, isSignificant, start, length, null);
+#if SCRIPTING
             AssertExtent(code, pos, isSignificant, start, length, Options.Script);
+#endif
         }
 
         private static void AssertExtent(string code, int pos, bool isSignificant, int start, int length, CSharpParseOptions options)
@@ -380,7 +382,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             int endLength)
         {
             TestNavigator(code, func, startPosition, startLength, endPosition, endLength, null);
+#if SCRIPTING
             TestNavigator(code, func, startPosition, startLength, endPosition, endLength, Options.Script);
+#endif
         }
 
         private static void TestNavigator(

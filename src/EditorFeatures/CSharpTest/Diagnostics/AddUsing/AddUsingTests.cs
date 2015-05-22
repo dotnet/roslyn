@@ -477,7 +477,7 @@ compareTokens: false);
         }
 
         [WorkItem(539853)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void BugFix5950()
         {
             Test(
@@ -698,7 +698,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestWithReferenceDirective()
         {
             // TODO: avoid using real file
