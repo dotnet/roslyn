@@ -2593,7 +2593,7 @@ class C { }";
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
                 var project = solution.Projects.First();
 
-                var mref = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlObjectReader).Assembly.Location);
+                var mref = MetadataReference.CreateFromAssembly(typeof(System.Xaml.XamlObjectReader).Assembly);
 
                 // add reference to System.Xaml
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);

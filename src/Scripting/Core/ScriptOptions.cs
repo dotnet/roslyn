@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             else
             {
-                return WithReferences(assemblies.Select(MetadataReference.CreateFromAssemblyInternal));
+                return WithReferences(assemblies.Select(MetadataReference.CreateFromAssembly));
             }
         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             else
             {
-                return AddReferences(assemblies.Select(MetadataReference.CreateFromAssemblyInternal));
+                return AddReferences(assemblies.Select(MetadataReference.CreateFromAssembly));
             }
         }
 
