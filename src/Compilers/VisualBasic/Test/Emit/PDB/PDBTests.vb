@@ -364,10 +364,10 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub TryCatchWhen()
+        Public Sub TryCatchWhen_Debug()
             Dim source =
 <compilation>
-    <file><![CDATA[
+    <file>
 Option Strict On
 Imports System
 
@@ -393,14 +393,93 @@ label2:
 
     End Sub
 End Module
-]]></file>
+</file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe))
 
-            compilation.VerifyPdb("M1.Main",
+            v.VerifyIL("M1.Main", "
+{
+  // Code size      104 (0x68)
+  .maxstack  2
+  .locals init (Integer V_0, //x
+                String V_1, //y
+                System.Exception V_2, //ex
+                Boolean V_3,
+                String V_4, //z
+                String V_5) //q
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  .try
+  {
+    .try
+    {
+     -IL_0003:  nop
+     -IL_0004:  ldstr      ""y""
+      IL_0009:  stloc.1
+     -IL_000a:  nop
+     -IL_000b:  nop
+     -IL_000c:  ldloc.0
+      IL_000d:  ldloc.0
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave.s    IL_004d
+    }
+    filter
+    {
+     ~IL_0012:  isinst     ""System.Exception""
+      IL_0017:  dup
+      IL_0018:  brtrue.s   IL_001e
+      IL_001a:  pop
+      IL_001b:  ldc.i4.0
+      IL_001c:  br.s       IL_0033
+      IL_001e:  dup
+      IL_001f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+      IL_0024:  stloc.2
+     -IL_0025:  ldloc.2
+      IL_0026:  callvirt   ""Function System.Exception.get_Message() As String""
+      IL_002b:  ldnull
+      IL_002c:  cgt.un
+      IL_002e:  stloc.3
+     ~IL_002f:  ldloc.3
+      IL_0030:  ldc.i4.0
+      IL_0031:  cgt.un
+      IL_0033:  endfilter
+    }  // end filter
+    {  // handler
+     ~IL_0035:  pop
+     -IL_0036:  ldstr      ""z""
+      IL_003b:  stloc.s    V_4
+     -IL_003d:  ldloc.0
+      IL_003e:  call       ""Sub System.Console.WriteLine(Integer)""
+      IL_0043:  nop
+     -IL_0044:  ldc.i4.1
+      IL_0045:  stloc.0
+     -IL_0046:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+      IL_004b:  leave.s    IL_000a
+    }
+   ~IL_004d:  leave.s    IL_005f
+  }
+  finally
+  {
+   -IL_004f:  nop
+   -IL_0050:  ldstr      ""q""
+    IL_0055:  stloc.s    V_5
+   -IL_0057:  ldloc.0
+    IL_0058:  call       ""Sub System.Console.WriteLine(Integer)""
+    IL_005d:  nop
+    IL_005e:  endfinally
+  }
+ -IL_005f:  nop
+ -IL_0060:  ldloc.0
+  IL_0061:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0066:  nop
+ -IL_0067:  ret
+}
+", sequencePoints:="M1.Main")
+
+            v.VerifyPdb("M1.Main",
 <symbols>
     <entryPoint declaringType="M1" methodName="Main"/>
     <methods>
@@ -410,6 +489,7 @@ End Module
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="51"/>
                     <slot kind="0" offset="119"/>
+                    <slot kind="1" offset="141"/>
                     <slot kind="0" offset="188"/>
                     <slot kind="0" offset="318"/>
                 </encLocalSlotMap>
@@ -424,39 +504,132 @@ End Module
                 <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="22" document="0"/>
                 <entry offset="0x12" hidden="true" document="0"/>
                 <entry offset="0x25" startLine="12" startColumn="9" endLine="12" endColumn="60" document="0"/>
-                <entry offset="0x33" hidden="true" document="0"/>
-                <entry offset="0x34" startLine="13" startColumn="17" endLine="13" endColumn="34" document="0"/>
-                <entry offset="0x3a" startLine="14" startColumn="13" endLine="14" endColumn="33" document="0"/>
-                <entry offset="0x41" startLine="15" startColumn="13" endLine="15" endColumn="18" document="0"/>
-                <entry offset="0x43" startLine="16" startColumn="13" endLine="16" endColumn="24" document="0"/>
-                <entry offset="0x4a" hidden="true" document="0"/>
-                <entry offset="0x4c" startLine="17" startColumn="9" endLine="17" endColumn="16" document="0"/>
-                <entry offset="0x4d" startLine="18" startColumn="17" endLine="18" endColumn="34" document="0"/>
-                <entry offset="0x54" startLine="19" startColumn="13" endLine="19" endColumn="33" document="0"/>
-                <entry offset="0x5c" startLine="20" startColumn="9" endLine="20" endColumn="16" document="0"/>
-                <entry offset="0x5d" startLine="22" startColumn="9" endLine="22" endColumn="29" document="0"/>
-                <entry offset="0x64" startLine="24" startColumn="5" endLine="24" endColumn="12" document="0"/>
+                <entry offset="0x2f" hidden="true" document="0"/>
+                <entry offset="0x35" hidden="true" document="0"/>
+                <entry offset="0x36" startLine="13" startColumn="17" endLine="13" endColumn="34" document="0"/>
+                <entry offset="0x3d" startLine="14" startColumn="13" endLine="14" endColumn="33" document="0"/>
+                <entry offset="0x44" startLine="15" startColumn="13" endLine="15" endColumn="18" document="0"/>
+                <entry offset="0x46" startLine="16" startColumn="13" endLine="16" endColumn="24" document="0"/>
+                <entry offset="0x4d" hidden="true" document="0"/>
+                <entry offset="0x4f" startLine="17" startColumn="9" endLine="17" endColumn="16" document="0"/>
+                <entry offset="0x50" startLine="18" startColumn="17" endLine="18" endColumn="34" document="0"/>
+                <entry offset="0x57" startLine="19" startColumn="13" endLine="19" endColumn="33" document="0"/>
+                <entry offset="0x5f" startLine="20" startColumn="9" endLine="20" endColumn="16" document="0"/>
+                <entry offset="0x60" startLine="22" startColumn="9" endLine="22" endColumn="29" document="0"/>
+                <entry offset="0x67" startLine="24" startColumn="5" endLine="24" endColumn="12" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x65">
+            <scope startOffset="0x0" endOffset="0x68">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x65" attributes="0"/>
+                <local name="x" il_index="0" il_start="0x0" il_end="0x68" attributes="0"/>
                 <scope startOffset="0x4" endOffset="0xf">
                     <local name="y" il_index="1" il_start="0x4" il_end="0xf" attributes="0"/>
                 </scope>
-                <scope startOffset="0x12" endOffset="0x49">
-                    <local name="ex" il_index="2" il_start="0x12" il_end="0x49" attributes="0"/>
-                    <scope startOffset="0x34" endOffset="0x49">
-                        <local name="z" il_index="3" il_start="0x34" il_end="0x49" attributes="0"/>
+                <scope startOffset="0x12" endOffset="0x4c">
+                    <local name="ex" il_index="2" il_start="0x12" il_end="0x4c" attributes="0"/>
+                    <scope startOffset="0x36" endOffset="0x4c">
+                        <local name="z" il_index="4" il_start="0x36" il_end="0x4c" attributes="0"/>
                     </scope>
                 </scope>
-                <scope startOffset="0x4d" endOffset="0x5a">
-                    <local name="q" il_index="4" il_start="0x4d" il_end="0x5a" attributes="0"/>
+                <scope startOffset="0x50" endOffset="0x5d">
+                    <local name="q" il_index="5" il_start="0x50" il_end="0x5d" attributes="0"/>
                 </scope>
             </scope>
         </method>
     </methods>
 </symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub TryCatchWhen_Release()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.IO
+
+Module M1
+    Function filter(e As Exception)
+        Return True
+    End Function
+
+    Public Sub Main()
+        Try
+            Throw New InvalidOperationException()
+        Catch e As IOException When filter(e)
+            Console.WriteLine()
+        Catch e As Exception When filter(e)
+            Console.WriteLine()
+        End Try
+    End Sub
+End Module
+</file>
+</compilation>
+
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe))
+
+            v.VerifyIL("M1.Main", "
+{
+  // Code size      103 (0x67)
+  .maxstack  2
+  .locals init (System.IO.IOException V_0, //e
+                System.Exception V_1) //e
+  .try
+  {
+   -IL_0000:  newobj     ""Sub System.InvalidOperationException..ctor()""
+    IL_0005:  throw
+  }
+  filter
+  {
+   ~IL_0006:  isinst     ""System.IO.IOException""
+    IL_000b:  dup
+    IL_000c:  brtrue.s   IL_0012
+    IL_000e:  pop
+    IL_000f:  ldc.i4.0
+    IL_0010:  br.s       IL_0027
+    IL_0012:  dup
+    IL_0013:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0018:  stloc.0
+   -IL_0019:  ldloc.0
+    IL_001a:  call       ""Function M1.filter(System.Exception) As Object""
+    IL_001f:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
+    IL_0024:  ldc.i4.0
+    IL_0025:  cgt.un
+    IL_0027:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_0029:  pop
+   -IL_002a:  call       ""Sub System.Console.WriteLine()""
+    IL_002f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0034:  leave.s    IL_0066
+  }
+  filter
+  {
+   ~IL_0036:  isinst     ""System.Exception""
+    IL_003b:  dup
+    IL_003c:  brtrue.s   IL_0042
+    IL_003e:  pop
+    IL_003f:  ldc.i4.0
+    IL_0040:  br.s       IL_0057
+    IL_0042:  dup
+    IL_0043:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0048:  stloc.1
+   -IL_0049:  ldloc.1
+    IL_004a:  call       ""Function M1.filter(System.Exception) As Object""
+    IL_004f:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
+    IL_0054:  ldc.i4.0
+    IL_0055:  cgt.un
+    IL_0057:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_0059:  pop
+   -IL_005a:  call       ""Sub System.Console.WriteLine()""
+    IL_005f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0064:  leave.s    IL_0066
+  }
+ -IL_0066:  ret
+}
+", sequencePoints:="M1.Main")
         End Sub
 
         <Fact()>

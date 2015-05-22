@@ -436,6 +436,7 @@ End Class
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
@@ -475,6 +476,29 @@ End Class
 ]]></Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Foo"})
         End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute3()
+            Dim code =
+<Code><![CDATA[
+Class C
+    Sub Foo(s As String, ' Comment after implicit line continuation
+            $$i As Integer)
+    End Sub
+End Class
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+Class C
+    Sub Foo(s As String, ' Comment after implicit line continuation
+            <Out()> i As Integer)
+    End Sub
+End Class
+]]></Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Out"})
+        End Sub
+
 #End Region
 
 #Region "FullName tests"
@@ -702,6 +726,7 @@ End Class
 #End Region
 
 #Region "Parent tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Parent()
             Dim code =
@@ -714,6 +739,7 @@ End Class
 
             TestParent(code, IsElement("M", kind:=EnvDTE.vsCMElement.vsCMElementFunction))
         End Sub
+
 #End Region
 
 #Region "Type tests"
@@ -757,6 +783,7 @@ End Class
 #End Region
 
 #Region "DefaultValue tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub DefaultValue()
             Dim code =
@@ -769,9 +796,11 @@ End Class
 
             TestDefaultValue(code, """Foo""")
         End Sub
+
 #End Region
 
 #Region "Set ParameterKind tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetParameterKind_In()
             Dim code =

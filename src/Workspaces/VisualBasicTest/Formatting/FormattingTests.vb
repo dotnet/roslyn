@@ -1335,7 +1335,7 @@ End Namespace]]></Code>
 
             Dim expected = <Code><![CDATA[Namespace SomeNamespace
     <SomeAttribute()>
-                <SomeAttribute2()>
+    <SomeAttribute2()>
     Class Foo
     End Class
 End Namespace]]></Code>

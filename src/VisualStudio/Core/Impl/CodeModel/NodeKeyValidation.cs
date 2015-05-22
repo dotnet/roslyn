@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public void AddProject(AbstractProject project)
         {
             var provider = (IProjectCodeModelProvider)project;
-            IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> fcms = provider.ProjectCodeModel.GetFileCodeModelInstances();
+            var fcms = provider.ProjectCodeModel.GetCachedFileCodeModelInstances();
 
             foreach (var fcm in fcms)
             {

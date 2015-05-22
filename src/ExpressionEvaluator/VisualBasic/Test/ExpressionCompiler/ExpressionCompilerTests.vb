@@ -1720,8 +1720,8 @@ End Class
             Assert.Equal(DkmEvaluationResultStorageType.None, resultProperties.StorageType)
         End Sub
 
-        <WorkItem(964, "GitHub")>
-        <Fact(Skip:="964")>
+        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
+        <Fact>
         Public Sub EvaluateXmlMemberAccess()
             Dim source =
 "Class C
@@ -1753,6 +1753,96 @@ End Class"
   // Code size       22 (0x16)
   .maxstack  3
   .locals init (String V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""a""
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName""
+  IL_0010:  call       ""Function My.InternalXmlHelper.get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) As String""
+  IL_0015:  ret
+}")
+        End Sub
+
+        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
+        <Fact>
+        Public Sub InternalXmlHelper_RootNamespace()
+            Dim source =
+"Class C
+    Shared Sub M(x As System.Xml.Linq.XElement)
+        Dim y = x.@<y>
+    End Sub
+End Class"
+            Dim allReferences = GetAllXmlReferences()
+            Dim comp = CreateCompilationWithReferences(
+                MakeSources(source),
+                options:=TestOptions.DebugDll.WithRootNamespace("Root"),
+                references:=allReferences)
+            Dim exeBytes As Byte() = Nothing
+            Dim pdbBytes As Byte() = Nothing
+            Dim references As ImmutableArray(Of MetadataReference) = Nothing
+            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
+            Dim runtime = CreateRuntimeInstance(
+                ExpressionCompilerUtilities.GenerateUniqueName(),
+                allReferences,
+                exeBytes,
+                Nothing)
+            Dim context = CreateMethodContext(runtime, "Root.C.M")
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            Dim result = context.CompileExpression("x.@a", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (String V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""a""
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName""
+  IL_0010:  call       ""Function My.InternalXmlHelper.get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) As String""
+  IL_0015:  ret
+}")
+        End Sub
+
+        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
+        <Fact>
+        Public Sub InternalXmlHelper_AddedModules()
+            Dim sourceTemplate =
+"Class C{0}
+    Shared Sub M(x As System.Xml.Linq.XElement)
+        Dim y = x.@<y>
+    End Sub
+End Class"
+            Dim xmlReferences = GetAllXmlReferences()
+            Dim moduleOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Debug).WithExtendedCustomDebugInformation(True)
+
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1))
+            Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2))
+            Dim ref1 = CreateCompilationWithReferences(tree1, xmlReferences, moduleOptions, assemblyName:="Module1").EmitToImageReference()
+            Dim ref2 = CreateCompilationWithReferences(tree2, xmlReferences, moduleOptions, assemblyName:="Module2").EmitToImageReference()
+
+            Dim tree = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, ""))
+            Dim compReferences = xmlReferences.Concat(ImmutableArray.Create(ref1, ref2))
+            Dim comp = CreateCompilationWithReferences(tree, compReferences, TestOptions.DebugDll, assemblyName:="Test")
+
+            Dim exeBytes As Byte() = Nothing
+            Dim pdbBytes As Byte() = Nothing
+            Dim references As ImmutableArray(Of MetadataReference) = Nothing
+            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
+            Dim runtime = CreateRuntimeInstance(
+                ExpressionCompilerUtilities.GenerateUniqueName(),
+                compReferences,
+                exeBytes,
+                Nothing)
+            Dim context = CreateMethodContext(runtime, "C1.M") ' In Module1
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            Dim result = context.CompileExpression("x.@a", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       22 (0x16)
+  .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldstr      ""a""
   IL_0006:  ldstr      """"
@@ -3177,8 +3267,8 @@ End Module
         End Sub
 
         <WorkItem(1042918)>
-        <WorkItem(964, "GitHub")>
-        <Fact(Skip:="964")>
+        <WorkItem(964, "https://github.com/dotnet/roslyn/issues/964")>
+        <Fact>
         Public Sub ConditionalAccessExpressionType()
             Dim source =
 "Class C
@@ -3190,6 +3280,7 @@ End Module
     End Function
     Private X As System.Xml.Linq.XElement
     Sub M()
+        Dim dummy = Me?.X.@a ' Ensure InternalXmlHelper is emitted.
     End Sub
 End Class"
             Dim allReferences = GetAllXmlReferences()
@@ -3217,12 +3308,13 @@ End Class"
 "{
   // Code size       25 (0x19)
   .maxstack  1
-  .locals init (Integer? V_0)
+  .locals init (String V_0,
+                Integer? V_1)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000d
-  IL_0003:  ldloca.s   V_0
+  IL_0003:  ldloca.s   V_1
   IL_0005:  initobj    ""Integer?""
-  IL_000b:  ldloc.0
+  IL_000b:  ldloc.1
   IL_000c:  ret
   IL_000d:  ldarg.0
   IL_000e:  call       ""Function C.F() As Integer""
@@ -3244,6 +3336,7 @@ End Class"
 "{
   // Code size       32 (0x20)
   .maxstack  3
+  .locals init (String V_0)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_0005
   IL_0003:  ldnull
@@ -3275,6 +3368,7 @@ End Class"
 "{
   // Code size       17 (0x11)
   .maxstack  2
+  .locals init (String V_0)
   IL_0000:  ldarg.0
   IL_0001:  callvirt   ""Function C.G() As C""
   IL_0006:  dup
