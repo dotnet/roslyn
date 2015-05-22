@@ -79,6 +79,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     parent = parent.Parent
                 End If
 
+                If TypeOf parent Is MemberAccessExpressionSyntax Then
+                    Dim awaitExpression = parent.GetAncestor(Of AwaitExpressionSyntax)
+                    Dim lambdaExpression = parent.GetAncestor(Of LambdaExpressionSyntax)
+                    If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
+                        parent = awaitExpression
+                    End If
+                End If
+
                 Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),
                     Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), argument),
@@ -173,6 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
+                    Function(objectCreation As ObjectCreationExpressionSyntax) InferTypesWorker(objectCreation),
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda, token),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary, token),

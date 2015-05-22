@@ -288,7 +288,7 @@ End Class
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAtributeAttribute()
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -323,7 +323,7 @@ end class
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAtributeAttributeNoConflict1()
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeNoConflict1()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -359,7 +359,7 @@ end class
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAtributeAttributeWithConflict1()
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithConflict1()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">

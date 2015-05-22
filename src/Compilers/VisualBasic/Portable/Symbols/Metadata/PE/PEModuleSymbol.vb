@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             If _lazyCustomAttributes.IsDefault Then
                 'TODO - Create a Module.Token to return token similar to Assembly.Token
-                Me.LoadCustomAttributes(Handle.ModuleDefinition, _lazyCustomAttributes)
+                Me.LoadCustomAttributes(EntityHandle.ModuleDefinition, _lazyCustomAttributes)
             End If
             Return _lazyCustomAttributes
         End Function
@@ -144,11 +144,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim moduleAssemblyAttributesBuilder As ArrayBuilder(Of VisualBasicAttributeData) = Nothing
 
                 Dim corlibName As String = ContainingAssembly.CorLibrary.Name
-                Dim assemblyMSCorLib As Handle = [Module].GetAssemblyRef(corlibName)
+                Dim assemblyMSCorLib As EntityHandle = [Module].GetAssemblyRef(corlibName)
 
                 If Not assemblyMSCorLib.IsNil Then
                     For Each qualifier In Cci.MetadataWriter.dummyAssemblyAttributeParentQualifier
-                        Dim typerefAssemblyAttributesGoHere As Handle =
+                        Dim typerefAssemblyAttributesGoHere As EntityHandle =
                             [Module].GetTypeRef(
                                 assemblyMSCorLib,
                                 Cci.MetadataWriter.dummyAssemblyAttributeParentNamespace,
@@ -177,11 +177,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyAssemblyAttributes
         End Function
 
-        Friend Function GetCustomAttributesForToken(token As Handle) As ImmutableArray(Of VisualBasicAttributeData)
+        Friend Function GetCustomAttributesForToken(token As EntityHandle) As ImmutableArray(Of VisualBasicAttributeData)
             Return GetCustomAttributesForToken(token, Nothing, filterOut1:=Nothing)
         End Function
 
-        Friend Function GetCustomAttributesForToken(token As Handle,
+        Friend Function GetCustomAttributesForToken(token As EntityHandle,
                                                     <Out()> ByRef filteredOutAttribute1 As CustomAttributeHandle,
                                                     filterOut1 As AttributeDescription,
                                                     <Out()> Optional ByRef filteredOutAttribute2 As CustomAttributeHandle = Nothing,
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return ImmutableArray(Of VisualBasicAttributeData).Empty
         End Function
 
-        Friend Sub LoadCustomAttributes(token As Handle, ByRef lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData))
+        Friend Sub LoadCustomAttributes(token As EntityHandle, ByRef lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData))
             Dim attributes As ImmutableArray(Of VisualBasicAttributeData) = GetCustomAttributesForToken(token)
 
             ImmutableInterlocked.InterlockedCompareExchange(Of VisualBasicAttributeData)(
@@ -443,16 +443,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Iterator Function GetForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
-            For Each forwareder As KeyValuePair(Of String, AssemblyReferenceHandle) In Me.Module.GetForwardedTypes()
+            For Each forwarder As KeyValuePair(Of String, AssemblyReferenceHandle) In Me.Module.GetForwardedTypes()
                 Dim assembly As AssemblySymbol
 
                 Try
-                    assembly = Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(forwareder.Value))
+                    assembly = Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value))
                 Catch ex As BadImageFormatException
                     Continue For
                 End Try
 
-                Dim name = MetadataTypeName.FromFullName(forwareder.Key)
+                Dim name = MetadataTypeName.FromFullName(forwarder.Key)
                 Yield assembly.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
             Next
         End Function

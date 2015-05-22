@@ -793,9 +793,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         private string GetWhitespaceString(LineColumn lineColumn, LineColumnDelta delta)
         {
             var sb = StringBuilderPool.Allocate();
+
+            var newLine = this.OptionSet.GetOption(FormattingOptions.NewLine, this.Language);
             for (int i = 0; i < delta.Lines; i++)
             {
-                sb.AppendLine();
+                sb.Append(newLine);
             }
 
             if (delta.Spaces == 0)
@@ -809,12 +811,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
             {
-                sb.Append(delta.Spaces.CreateIndentationString(useTabs, tabSize));
+                sb.AppendIndentationString(delta.Spaces, useTabs, tabSize);
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
             // space indicates space between two noisy trivia or tokens
-            sb.Append(GetSpaces(delta.Spaces));
+            sb.Append(' ', repeatCount: delta.Spaces);
             return StringBuilderPool.ReturnAndFree(sb);
         }
 

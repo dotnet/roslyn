@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if this is a submission project.
         /// </summary>
-        public bool IsSubmission
+        internal bool IsSubmission
         {
             get
             {
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (oldProject == null)
             {
-                throw new ArgumentNullException("oldProject");
+                throw new ArgumentNullException(nameof(oldProject));
             }
 
             return new ProjectChanges(this, oldProject);

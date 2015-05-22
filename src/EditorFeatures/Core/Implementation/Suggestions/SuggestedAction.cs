@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Underscores will become an accelerator in the VS smart tag.  So we double all
                 // underscores so they actually get represented as an underscore in the UI.
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-                var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, string.Empty);
+                var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, defaultValue: string.Empty);
                 return text.Replace("_", "__");
             }
         }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // 'null' / empty collection from within GetPreviewAsync().
 
                 return true;
-        }
+            }
         }
 
         public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
-            }).ConfigureAwait(true);
+            }, defaultValue: null).ConfigureAwait(true);
 
             var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
             if (previewPaneService == null)
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 return false;
             }
-            }
+        }
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {

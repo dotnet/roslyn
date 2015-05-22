@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             return fullPath;
         }
 
-        private static char[] s_pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        private static readonly char[] s_pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         public static string GetRelativePath(string baseDirectory, string fullPath)
         {
@@ -73,7 +73,7 @@ namespace Roslyn.Utilities
                 string directorySeparator = Path.DirectorySeparatorChar.ToString();
                 for (int i = 0; i < remainingParts; i++)
                 {
-                    relativePath += relativePath + ".." + directorySeparator;
+                    relativePath = relativePath + ".." + directorySeparator;
                 }
             }
 

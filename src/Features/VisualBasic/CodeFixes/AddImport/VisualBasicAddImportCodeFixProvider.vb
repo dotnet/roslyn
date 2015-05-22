@@ -32,6 +32,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         Friend Const BC30456 = "BC30456"
 
         ''' <summary>
+        ''' 'X' has no parameters and its return type cannot be indexed
+        ''' </summary>
+        Friend Const BC32016 = "BC32016"
+
+        ''' <summary>
         ''' Too few type arguments
         ''' </summary>
         Friend Const BC32042 = "BC32042"
@@ -88,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC36610, BC36719, BC30512, BC30390, BC42309, BC30182)
+                Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC32016, BC36610, BC36719, BC30512, BC30390, BC42309, BC30182)
             End Get
         End Property
 
@@ -129,6 +134,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                     End If
 
                     Return False
+                Case BC32016
+                    Dim memberAccessName = TryCast(node, MemberAccessExpressionSyntax)?.Name
+                    Dim conditionalAccessName = TryCast(TryCast(TryCast(node, ConditionalAccessExpressionSyntax)?.WhenNotNull, InvocationExpressionSyntax)?.Expression, MemberAccessExpressionSyntax)?.Name
+
+                    If memberAccessName Is Nothing AndAlso conditionalAccessName Is Nothing Then
+                        Return False
+                    End If
+
+                    node = If(memberAccessName Is Nothing, conditionalAccessName, memberAccessName)
+                    Exit Select
                 Case Else
                     Return False
             End Select

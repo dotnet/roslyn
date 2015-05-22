@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Partial Friend Class Worker
         Private Class XmlClassifier
-            Private _worker As Worker
+            Private ReadOnly _worker As Worker
 
             Public Sub New(worker As Worker)
                 _worker = worker
@@ -22,7 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Friend Sub ClassifyNode(node As SyntaxNode)
-                If Not _worker._textSpan.OverlapsWith(node.Span) Then
+                ' Note: Use FullSpan in case we need to classify trivia around the span of the node.
+                If Not _worker._textSpan.OverlapsWith(node.FullSpan) Then
                     Return
                 End If
 

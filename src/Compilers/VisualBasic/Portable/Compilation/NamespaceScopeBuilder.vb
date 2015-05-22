@@ -11,10 +11,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Shared Function BuildNamespaceScope(
-            context As EmitContext,
+            moduleBuilder As Emit.PEModuleBuilder,
             xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition),
             aliasImports As IEnumerable(Of AliasAndImportsClausePosition),
-            memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition)
+            memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
+            diagnostics As DiagnosticBag
         ) As ImmutableArray(Of Cci.UsedNamespaceOrType)
             Dim scopeBuilder = ArrayBuilder(Of Cci.UsedNamespaceOrType).GetInstance
 
@@ -31,8 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim target = aliasImport.Alias.Target
                     If target.IsNamespace Then
                         scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol), aliasOpt:=aliasImport.Alias.Name))
-                    Else
-                        Dim typeRef = GetTypeReference(context, DirectCast(target, NamedTypeSymbol))
+                    ElseIf Not target.ContainingAssembly.IsLinked
+                        ' We skip alias imports of embedded types to avoid breaking existing code that
+                        ' imports types that can't be embedded but doesn't use them anywhere else in the code.
+                        Dim typeRef = GetTypeReference(DirectCast(target, NamedTypeSymbol), moduleBuilder, diagnostics)
                         scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, aliasOpt:=aliasImport.Alias.Name))
                     End If
                 Next
@@ -44,8 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim target = import.NamespaceOrType
                     If target.IsNamespace Then
                         scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateNamespace(DirectCast(target, NamespaceSymbol)))
-                    Else
-                        Dim typeRef = GetTypeReference(context, DirectCast(target, NamedTypeSymbol))
+                    ElseIf Not target.ContainingAssembly.IsLinked
+                        ' We skip imports of embedded types to avoid breaking existing code that
+                        ' imports types that can't be embedded but doesn't use them anywhere else in the code.
+                        Dim typeRef = GetTypeReference(DirectCast(target, NamedTypeSymbol), moduleBuilder, diagnostics)
                         scopeBuilder.Add(Cci.UsedNamespaceOrType.CreateType(typeRef))
                     End If
                 Next
@@ -54,8 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return scopeBuilder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetTypeReference(context As EmitContext, type As TypeSymbol) As Cci.ITypeReference
-            Return context.ModuleBuilder.Translate(type, context.SyntaxNodeOpt, context.Diagnostics)
+        Private Shared Function GetTypeReference(type As TypeSymbol, moduleBuilder As CommonPEModuleBuilder, diagnostics As DiagnosticBag) As Cci.ITypeReference
+            Return moduleBuilder.Translate(type, Nothing, diagnostics)
         End Function
     End Class
 End Namespace

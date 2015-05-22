@@ -59,7 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private static bool TryStartBrowser(IVsWebBrowsingService service, Uri uri)
         {
-            return ErrorHandler.Succeeded(service.CreateExternalWebBrowser((uint)__VSCREATEWEBBROWSER.VSCWB_ForceNew, VSPREVIEWRESOLUTION.PR_Default, uri.AbsoluteUri));
+            IVsWindowFrame unused;
+            return ErrorHandler.Succeeded(service.Navigate(uri.AbsoluteUri, 0, out unused));
         }
 
         private static void StartBrowser(Uri uri)

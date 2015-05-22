@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Metadata;
+using Microsoft.VisualStudio.Debugger.Symbols;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
@@ -77,7 +78,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             if (RawValue == null)
@@ -141,7 +142,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             // The real version does some sort of dynamic dispatch that ultimately calls this method.
@@ -152,7 +153,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             return _formatter.HasUnderlyingString(this, inspectionContext);
@@ -162,7 +163,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             return _formatter.GetUnderlyingString(this, inspectionContext);
@@ -172,7 +173,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             // This is a rough approximation of the real functionality.  Basically,
@@ -211,7 +212,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var pooled = PooledStringBuilder.GetInstance();
@@ -240,18 +241,31 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     string name = formatString.Substring(openPos + 1, i - openPos - 1);
                     openPos = -1;
 
-                    // Ignore any format specifiers.
+                    var formatSpecifiers = Formatter.NoFormatSpecifiers;
                     int commaIndex = name.IndexOf(',');
                     if (commaIndex >= 0)
                     {
+                        var rawFormatSpecifiers = name.Substring(commaIndex + 1).Split(',');
+                        var trimmedFormatSpecifiers = ArrayBuilder<string>.GetInstance(rawFormatSpecifiers.Length);
+                        trimmedFormatSpecifiers.AddRange(rawFormatSpecifiers.Select(fs => fs.Trim()));
+                        formatSpecifiers = trimmedFormatSpecifiers.ToImmutableAndFree();
+                        foreach (var formatSpecifier in formatSpecifiers)
+                        {
+                            if (formatSpecifier == "nq")
+                            {
+                                inspectionContext = new DkmInspectionContext(_formatter, inspectionContext.EvaluationFlags | DkmEvaluationFlags.NoQuotes, inspectionContext.Radix, inspectionContext.RuntimeInstance);
+                            }
+                            // If we need to support additional format specifiers, add them here...
+                        }
+
                         name = name.Substring(0, commaIndex);
                     }
 
                     var type = ((TypeImpl)this.Type.GetLmrType()).Type;
-                    const System.Reflection.BindingFlags bindingFlags = 
-                        System.Reflection.BindingFlags.Public | 
-                        System.Reflection.BindingFlags.NonPublic | 
-                        System.Reflection.BindingFlags.Instance | 
+                    const System.Reflection.BindingFlags bindingFlags =
+                        System.Reflection.BindingFlags.Public |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Instance |
                         System.Reflection.BindingFlags.Static;
 
                     DkmClrValue exprValue;
@@ -324,7 +338,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                         }
                     }
 
-                    builder.Append(exprValue.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers)); // Re-enter the formatter.
+                    builder.Append(exprValue.GetValueString(inspectionContext, formatSpecifiers)); // Re-enter the formatter.
                 }
                 else if (openPos < 0)
                 {
@@ -344,7 +358,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (InspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(InspectionContext));
             }
 
             if (this.IsError())
@@ -525,7 +539,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var array = (System.Array)RawValue;
@@ -585,7 +599,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var lmrType = proxyType.GetLmrType();
@@ -607,6 +621,24 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 valueFlags: DkmClrValueFlags.None);
         }
 
+        private static readonly ReadOnlyCollection<DkmClrType> s_noArguments = ArrayBuilder<DkmClrType>.GetInstance(0).ToImmutableAndFree();
+        public DkmClrValue InstantiateDynamicViewProxy(DkmInspectionContext inspectionContext)
+        {
+            if (inspectionContext == null)
+            {
+                throw new ArgumentNullException("inspectionContext");
+            }
+
+            var module = new DkmClrModuleInstance(
+                this.Type.AppDomain.RuntimeInstance,
+                typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly,
+                new DkmModule("Microsoft.CSharp.dll"));
+            var proxyType = module.ResolveTypeName(
+                "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView",
+                s_noArguments);
+            return this.InstantiateProxyType(inspectionContext, proxyType);
+        }
+
         public DkmClrValue InstantiateResultsViewProxy(DkmInspectionContext inspectionContext, DkmClrType enumerableType)
         {
             if (EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown))
@@ -616,7 +648,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var appDomain = enumerableType.AppDomain;
@@ -648,7 +680,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         private static DkmClrModuleInstance GetModule(DkmClrAppDomain appDomain, string moduleName)
         {
             var modules = appDomain.GetClrModuleInstances();
-            Debug.Assert(modules.Length > 0);
             foreach (var module in modules)
             {
                 if (string.Equals(module.Name, moduleName, StringComparison.OrdinalIgnoreCase))

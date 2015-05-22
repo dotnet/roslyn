@@ -1031,5 +1031,56 @@ class C
             Test(definition, expected)
         End Sub
 
+        <WorkItem(1126037)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub CSAssignments_ControlChar()
+            Dim definition =
+    <Workspace>
+        <Project Language="C#" CommonReferences="true">
+            <Document>
+class C
+{
+    public char Char { get; set; }
+
+    void $$M()
+    {
+        Char = '\u0011';
+    }
+}
+            </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block>
+    <ExpressionStatement line="7">
+        <Expression>
+            <Assignment>
+                <Expression>
+                    <NameRef variablekind="property">
+                        <Expression>
+                            <ThisReference/>
+                        </Expression>
+                        <Name>Char</Name>
+                    </NameRef>
+                </Expression>
+                <Expression>
+                    <Cast>
+                        <Type>System.Char</Type>
+                        <Expression>
+                            <Literal>
+                                <Number type="System.UInt16">17</Number>
+                            </Literal>
+                        </Expression>
+                    </Cast>
+                </Expression>
+            </Assignment>
+        </Expression>
+    </ExpressionStatement>
+</Block>
+
+            Test(definition, expected)
+        End Sub
+
     End Class
 End Namespace

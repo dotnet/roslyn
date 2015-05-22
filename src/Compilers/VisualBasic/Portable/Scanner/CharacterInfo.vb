@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O))
         End Function
 
-        Private Shared s_isIDChar As Boolean() =
+        Private Shared ReadOnly s_isIDChar As Boolean() =
         {
             False, False, False, False, False, False, False, False, False, False,
             False, False, False, False, False, False, False, False, False, False,

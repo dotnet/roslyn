@@ -192,10 +192,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await AddNonSubmissionDependentProjectsAsync(symbol.ContainingAssembly, solution, sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
             }
 
+#if SCRIPTING
             // submission projects are special here. The fields generated inside the Script object
             // is private, but further submissions can bind to them.
             await AddSubmissionDependentProjectsAsync(solution, sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
-
+#endif
             return dependentProjects;
         }
 
@@ -217,6 +218,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return GetProjects(solution, projectIds);
         }
 
+#if SCRIPTING
         private static async Task AddSubmissionDependentProjectsAsync(Solution solution, Project sourceProject, HashSet<DependentProject> dependentProjects, CancellationToken cancellationToken)
         {
             var isSubmission = sourceProject != null && sourceProject.IsSubmission;
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
-
+#endif
         private static bool IsInternalsVisibleToAttribute(AttributeData attr)
         {
             var attrType = attr.AttributeClass;
@@ -362,6 +364,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     var value = (string)typeNameConstant.Value;
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
                     var commaIndex = value.IndexOf(',');
                     var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
 
@@ -377,12 +384,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (containingAssembly == null)
             {
-                throw new ArgumentNullException("containingAssembly");
+                throw new ArgumentNullException(nameof(containingAssembly));
             }
 
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             if (sourceProject != null)

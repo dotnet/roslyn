@@ -515,6 +515,104 @@ End Interface
 
 #End Region
 
+#Region "Attribute Tests"
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithNoSet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithNoGet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        $$Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithGet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        Get
+            Return 0
+        End Get
+        &lt;Obsolete&gt;
+        $$Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithSet()
+            Dim code =
+<Code>
+Public Class Class1
+    Public Property Property1 As Integer
+        &lt;Obsolete&gt;
+        $$Get
+            Return 0
+        End Get
+        &lt;Obsolete&gt;
+        Set(value As Integer)
+
+        End Set
+    End Property
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attribute_1()
+            Dim code =
+<Code>
+Class Program
+    &lt;Obsolete&gt;
+    Sub F$$()
+
+    End Sub
+End Class
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+#End Region
+
 #Region "CanOverride tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -928,6 +1026,49 @@ End Class
             TestName(code, "*")
         End Sub
 
+#End Region
+
+#Region "Kind tests"
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DeclareSubKind()
+            Dim code =
+<Code>
+Public Class Class1 
+Public Declare Sub $$f1 Lib "MyLib.dll" () 
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DeclareFunctionKind()
+            Dim code =
+<Code>
+Public Class Class1 
+Public Declare Function f2$$ Lib "MyLib.dll" () As Integer 
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
+
+        <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SubKind()
+            Dim code =
+<Code>
+Public Class Class1 
+    Public Sub F1$$()
+    End Sub
+End Class 
+</Code>
+
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementFunction)
+        End Sub
 #End Region
 
 #Region "OverrideKind tests"
@@ -1387,6 +1528,250 @@ End Class
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
 
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Sub_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Sub $$M()
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Sub M()
+    End Sub
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Function_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Function $$M() As integer
+    End Function
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Function M() As integer
+    End Function
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Sub_MustOverride_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+MustInherit Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    MustOverride Sub $$M()
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+MustInherit Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    MustOverride Sub M()
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Function_MustOverride_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+MustInherit Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    MustOverride Function $$M() As integer
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+MustInherit Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    MustOverride Function M() As integer
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_DeclareSub_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Declare Sub $$M() Lib "MyDll.dll"
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Declare Sub M() Lib "MyDll.dll"
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_DeclareFunction_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Declare Function $$M() Lib "MyDll.dll" As Integer
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Declare Function M() Lib "MyDll.dll" As Integer
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Constructor_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Sub $$New()
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Sub New()
+    End Sub
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Operator_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Public Shared Operator $$+(x As C, y As C) As C
+    End Operator
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Public Shared Operator +(x As C, y As C) As C
+    End Operator
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_Conversion_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Public Shared Operator Widening $$CType(x As Integer) As C
+    End Operator
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Public Shared Operator Widening CType(x As Integer) As C
+    End Operator
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
 #End Region
 
 #Region "AddParameter tests"
@@ -1472,6 +1857,42 @@ Class C
 End Class
 </Code>
 
+            TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddParameter_DeclareFunction()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" (a As Integer) As String
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Function getUserName Lib "My1.dll" (a As Integer, b As String) As String
+End Class
+</Code>
+            TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddParameter_DeclareSub()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Sub $$getUserName Lib "My1.dll" (a As Integer)
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Sub getUserName Lib "My1.dll" (a As Integer, b As String)
+End Class
+</Code>
             TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Sub
 
@@ -2174,6 +2595,63 @@ Class C
     End Operator
 End Class
 </Code>
+
+            TestSetTypeProp(code, expected, "System.Int32")
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SetType_DeclareFunction()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" (a As Integer) As String
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Function getUserName Lib "My1.dll" (a As Integer) As Integer
+End Class
+</Code>
+            TestSetTypeProp(code, expected, "System.Int32")
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SetType_DeclareFunctionToSub()
+            Dim code =
+            <Code>
+Public Class C1
+    Declare Function $$getUserName Lib "My1.dll" (a As Integer) As String
+End Class
+</Code>
+            Dim expected =
+<Code>
+Public Class C1
+    Declare Sub getUserName Lib "My1.dll" (a As Integer)
+End Class
+</Code>
+
+            TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+        End Sub
+
+        <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub SetType_DeclareSubToFunction()
+            Dim code =
+<Code>
+Public Class C1
+    Declare Sub $$getUserName Lib "My1.dll" (a As Integer)
+End Class
+</Code>
+            Dim expected =
+            <Code>
+Public Class C1
+    Declare Function getUserName Lib "My1.dll" (a As Integer) As Integer
+End Class
+</Code>
+
 
             TestSetTypeProp(code, expected, "System.Int32")
         End Sub

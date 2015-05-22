@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Debugger.Metadata;
@@ -9,8 +8,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class DynamicHelpers
     {
-        private static readonly BitArray TrueArray = new BitArray(new[] { true });
-
         public static DynamicFlagsCustomTypeInfo GetDynamicFlags(this IList<CustomAttributeData> attributes)
         {
             foreach (var attribute in attributes)
@@ -20,7 +17,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var arguments = attribute.ConstructorArguments;
                     if (arguments.Count == 0)
                     {
-                        return new DynamicFlagsCustomTypeInfo(TrueArray);
+                        var builder = ArrayBuilder<bool>.GetInstance(1);
+                        builder.Add(true);
+                        var result = DynamicFlagsCustomTypeInfo.Create(builder);
+                        builder.Free();
+                        return result;
                     }
                     else if (arguments.Count == 1)
                     {
@@ -31,12 +32,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             // if ArgumentType indicates an array, then Value will actually be a ReadOnlyCollection.
                             var collection = (ReadOnlyCollection<CustomAttributeTypedArgument>)arguments[0].Value;
                             var numFlags = collection.Count;
-                            var array = new BitArray(numFlags);
-                            for (int i = 0; i < numFlags; i++)
+                            var builder = ArrayBuilder<bool>.GetInstance(numFlags);
+                            foreach (var typedArg in collection)
                             {
-                                array[i] = (bool)collection[i].Value;
+                                builder.Add((bool)typedArg.Value);
                             }
-                            return new DynamicFlagsCustomTypeInfo(array);
+                            var result = DynamicFlagsCustomTypeInfo.Create(builder);
+                            builder.Free();
+                            return result;
                         }
                     }
                 }

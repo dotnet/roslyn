@@ -24,9 +24,6 @@
     <Reference Include="Microsoft.CodeAnalysis.CSharp">
       <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Desktop">
-      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic">
       <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
     </Reference>

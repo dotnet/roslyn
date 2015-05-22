@@ -18,9 +18,11 @@ namespace System
     public struct IntPtr { }
     public struct UIntPtr { }
 
-// LEAVE THIS CLASS INTACT
-// IT IS DESIGNED TO MIMIC A VERSION OF MSCORLIB
-// WHICH IS MISSING THE CHARS PROPERTY
+    // LEAVE THIS CLASS INTACT
+    // IT IS DESIGNED TO MIMIC A VERSION OF MSCORLIB
+    // WHICH:
+    //  - IS MISSING THE CHARS PROPERTY
+    //  - HAS A SETTER FOR THE ARRAY.LENGTH PROPERTY
 
     public class String {
 
@@ -44,7 +46,9 @@ namespace System
 }
     public class Delegate {}
     public class MulticastDelegate {}
-    public class Array {}
+    public class Array {
+        public int Length { get; set; }
+    }
     public class Exception {}
     public class Type {}
     public class ValueType {}

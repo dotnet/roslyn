@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -87,13 +88,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     return;
                 }
 
-                var fileCodeModel = codeModelProvider.ProjectCodeModel.GetFileCodeModelInstance(filename);
-                if (fileCodeModel == null)
+                ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle;
+                if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out fileCodeModelHandle))
                 {
                     return;
                 }
 
-                var codeModel = fileCodeModel.Value.Object;
+                var codeModel = fileCodeModelHandle.Object;
                 _notificationService.RegisterNotification(() => codeModel.FireEvents(), _listener.BeginAsyncOperation("CodeModelEvent"), cancellationToken);
             }
 
@@ -104,6 +105,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }

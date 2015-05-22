@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Base type of a type that is used as <see cref="DiagnosticsUpdatedArgs.Id"/> for live diagnostic
     /// </summary>
-    internal class AnalyzerUpdateArgsId : ErrorSourceId.Base<DiagnosticAnalyzer>, ISupportLiveUpdate
+    internal class AnalyzerUpdateArgsId : BuildToolId.Base<DiagnosticAnalyzer>, ISupportLiveUpdate
     {
         public DiagnosticAnalyzer Analyzer => _Field1;
 
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public override string ErrorSource
+        public override string BuildTool
         {
             get
             {

@@ -321,6 +321,10 @@
     <Compile Include="CodeGen\Optimizer\StackScheduler.LocalDefUseSpan.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.Rewriter.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.vb" />
+    <Compile Include="CommandLine\CommandLineArguments.vb" />
+    <Compile Include="CommandLine\CommandLineDiagnosticFormatter.vb" />
+    <Compile Include="CommandLine\CommandLineParser.vb" />
+    <Compile Include="CommandLine\VisualBasicCompiler.vb" />
     <Compile Include="Compilation\AwaitExpressionInfo.vb" />
     <Compile Include="Compilation\BoundNodeSummary.vb" />
     <Compile Include="Compilation\ClsComplianceChecker.vb" />
@@ -512,6 +516,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_RedimClause.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Return.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SelectCase.vb" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SyncLock.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Throw.vb" />
@@ -925,6 +930,7 @@
     <Compile Include="Syntax\LambdaUtilities.vb" />
     <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
+    <Compile Include="Syntax\VisualBasicSyntaxVisitor.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />
     <Compile Include="Syntax\VisualBasicLineDirectiveMap.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxNode.vb" />
@@ -946,6 +952,7 @@
     </Compile>
     <Compile Include="VisualBasicCompilationOptions.vb" />
     <Compile Include="VisualBasicExtensions.vb" />
+    <Compile Include="VisualBasicFileSystemExtensions.vb" />
     <Compile Include="VisualBasicParseOptions.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
@@ -981,7 +988,6 @@
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="vbc" />

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal override BuildProtocolConstants.RequestLanguage Language
             => BuildProtocolConstants.RequestLanguage.CSharpCompile;
 
-        private static string[] s_separators = { "\r\n" };
+        private static readonly string[] s_separators = { "\r\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                return "csc2.exe";
+                return "csc.exe";
             }
         }
 
@@ -486,13 +486,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (analyzerHostObject != null)
                 {
                     param = "Analyzers"; this.CheckHostObjectSupport(param, analyzerHostObject.SetAnalyzers(this.Analyzers));
-                }
-
-                // For host objects which support it, pass the list of analyzer dependencies.
-                IAnalyzerDependencyHostObject analyzerDependencyHostObject = cscHostObject as IAnalyzerDependencyHostObject;
-                if (analyzerDependencyHostObject != null)
-                {
-                    param = "AnalyzerDependencies"; this.CheckHostObjectSupport(param, analyzerDependencyHostObject.SetAnalyzerDependencies(this.AnalyzerDependencies));
                 }
             }
             catch (Exception e) when (!Utilities.IsCriticalException(e))

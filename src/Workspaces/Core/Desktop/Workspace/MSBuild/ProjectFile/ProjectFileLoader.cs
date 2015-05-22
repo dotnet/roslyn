@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             // load project file async
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return new MSB.Evaluation.Project(
                 xml,
-                globalProperties,
+                properties,
                 toolsVersion: null,
                 projectCollection: collection);
         }

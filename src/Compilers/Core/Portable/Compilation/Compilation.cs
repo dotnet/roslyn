@@ -346,32 +346,32 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="hasValue"/> is false in the former case and true
         /// in the latter.
         /// </remarks>
-        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
+        internal ITypeSymbol GetSubmissionResultType(out bool hasValue)
         {
             return CommonGetSubmissionResultType(out hasValue);
         }
 
-        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
+        internal abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
 
         /// <summary>
         /// The previous submission compilation, or null if either this
         /// compilation doesn't represent a submission or the submission is the
         /// first submission in a submission chain.
         /// </summary>
-        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
+        internal Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
 
-        protected abstract Compilation CommonPreviousSubmission { get; }
+        internal abstract Compilation CommonPreviousSubmission { get; }
 
         /// <summary>
         /// Returns a new compilation with the given compilation set as the
         /// previous submission.
         /// </summary>
-        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
+        internal Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return CommonWithPreviousSubmission(newPreviousSubmission);
         }
 
-        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        internal abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
 
         #endregion
 
@@ -808,8 +808,8 @@ namespace Microsoft.CodeAnalysis
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
-        public INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
-        protected abstract INamedTypeSymbol CommonScriptClass { get; }
+        internal INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
+        internal abstract INamedTypeSymbol CommonScriptClass { get; }
 
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken)
@@ -1270,7 +1270,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBuilder,
                     win32Resources,
                     xmlDocStream,
-                    generateDebugInfo,
+                    emittingPdb,
                     diagnostics,
                     filterOpt,
                     cancellationToken);
@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             win32Resources: null,
                             xmlDocStream: null,
-                            generateDebugInfo: false,
+                            emittingPdb: false,
                             diagnostics: discardedDiagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis
                 moduleBeingBuilt,
                 win32Resources,
                 xmlDocumentationStream,
-                generateDebugInfo: pdbStreamProvider != null,
+                emittingPdb: pdbStreamProvider != null,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: cancellationToken))
@@ -1642,7 +1642,7 @@ namespace Microsoft.CodeAnalysis
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
-                    nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory);
+                    nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory, deterministic);
                 }
 
                 Func<Stream> getPortablePdbStream;
@@ -1823,7 +1823,8 @@ namespace Microsoft.CodeAnalysis
         {
             using (var pdbWriter = new Cci.PdbWriter(
                 moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
-                testSymWriterFactory))
+                testSymWriterFactory,
+                deterministic: false))
             {
                 var context = new EmitContext((Cci.IModule)moduleBeingBuilt, null, diagnostics);
                 var encId = Guid.NewGuid();

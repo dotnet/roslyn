@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly bool _logSessionInfo;
 
-        private Solution _oldSolution;
-        private Solution _newSolution;
+        private readonly Solution _oldSolution;
+        private readonly Solution _newSolution;
         private SolutionChanges _solutionChanges;
 
         public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges, bool logSessionInfo)

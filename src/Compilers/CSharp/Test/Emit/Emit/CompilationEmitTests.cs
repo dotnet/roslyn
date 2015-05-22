@@ -1779,7 +1779,7 @@ public sealed class ContentType
                 var reader = block.MetadataReader;
                 foreach (var typeRef in reader.TypeReferences)
                 {
-                    Handle scope = reader.GetTypeReference(typeRef).ResolutionScope;
+                    EntityHandle scope = reader.GetTypeReference(typeRef).ResolutionScope;
                     if (scope.Kind == HandleKind.TypeReference)
                     {
                         Assert.InRange(reader.GetRowNumber(scope), 1, reader.GetRowNumber(typeRef) - 1);

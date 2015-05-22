@@ -4294,7 +4294,7 @@ End Class
         End Sub
 #End Region
 #Region "Properties calls"
-        Private _propertiesCallBaseSource As XElement =
+        Private ReadOnly _propertiesCallBaseSource As XElement =
             <compilation>
                 <file name="a.vb">
 Module Program

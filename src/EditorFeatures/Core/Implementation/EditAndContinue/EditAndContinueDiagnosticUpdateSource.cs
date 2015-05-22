@@ -111,16 +111,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        private class EnCId : ErrorSourceId.Base<DebuggingSession, object>
+        private class EnCId : BuildToolId.Base<DebuggingSession, object>
         {
             public EnCId(DebuggingSession session, object errorId) :
                 base(session, errorId)
             {
             }
 
-            public override string ErrorSource
+            public override string BuildTool
             {
-                get { return PredefinedErrorSources.EnC; }
+                get { return PredefinedBuildTools.EnC; }
             }
         }
     }

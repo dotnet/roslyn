@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Me._containingType = containingType
 
             Dim [module] = moduleSymbol.Module
-            Dim eventType As Handle
+            Dim eventType As EntityHandle
 
             Try
                 [module].GetEventDefPropsOrThrow(handle, Me._name, Me._flags, eventType)

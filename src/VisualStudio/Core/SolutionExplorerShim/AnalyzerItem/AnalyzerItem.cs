@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_analyzerReference.IsUnresolved)
+                if (_analyzerReference is UnresolvedAnalyzerReference)
                 {
                     return KnownMonikers.OverlayWarning;
                 }
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private static string GetNameText(AnalyzerReference analyzerReference)
         {
-            if (analyzerReference.IsUnresolved)
+            if (analyzerReference is UnresolvedAnalyzerReference)
             {
                 return analyzerReference.FullPath;
             }

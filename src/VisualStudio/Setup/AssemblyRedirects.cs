@@ -3,14 +3,6 @@
 using Microsoft.VisualStudio.Shell;
 
 [assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.CodeAnalysis.CSharp.Desktop",
-    OldVersionLowerBound = Constants.OldVersionLowerBound,
-    OldVersionUpperBound = Constants.OldVersionUpperBound,
-    NewVersion = Constants.NewVersion,
-    PublicKeyToken = Constants.PublicKeyToken,
-    GenerateCodeBase = false)]
-
-[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.CSharp",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
     OldVersionUpperBound = Constants.OldVersionUpperBound,
@@ -35,23 +27,7 @@ using Microsoft.VisualStudio.Shell;
     GenerateCodeBase = false)]
 
 [assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop",
-    OldVersionLowerBound = Constants.OldVersionLowerBound,
-    OldVersionUpperBound = Constants.OldVersionUpperBound,
-    NewVersion = Constants.NewVersion,
-    PublicKeyToken = Constants.PublicKeyToken,
-    GenerateCodeBase = false)]
-
-[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.CSharp.Workspaces",
-    OldVersionLowerBound = Constants.OldVersionLowerBound,
-    OldVersionUpperBound = Constants.OldVersionUpperBound,
-    NewVersion = Constants.NewVersion,
-    PublicKeyToken = Constants.PublicKeyToken,
-    GenerateCodeBase = false)]
-
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.CodeAnalysis.Desktop",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
     OldVersionUpperBound = Constants.OldVersionUpperBound,
     NewVersion = Constants.NewVersion,
@@ -91,14 +67,6 @@ using Microsoft.VisualStudio.Shell;
     GenerateCodeBase = false)]
 
 [assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.CodeAnalysis.VisualBasic.Desktop",
-    OldVersionLowerBound = Constants.OldVersionLowerBound,
-    OldVersionUpperBound = Constants.OldVersionUpperBound,
-    NewVersion = Constants.NewVersion,
-    PublicKeyToken = Constants.PublicKeyToken,
-    GenerateCodeBase = false)]
-
-[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.VisualBasic",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
     OldVersionUpperBound = Constants.OldVersionUpperBound,
@@ -116,14 +84,6 @@ using Microsoft.VisualStudio.Shell;
 
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.VisualBasic.Features",
-    OldVersionLowerBound = Constants.OldVersionLowerBound,
-    OldVersionUpperBound = Constants.OldVersionUpperBound,
-    NewVersion = Constants.NewVersion,
-    PublicKeyToken = Constants.PublicKeyToken,
-    GenerateCodeBase = false)]
-
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
     OldVersionUpperBound = Constants.OldVersionUpperBound,
     NewVersion = Constants.NewVersion,

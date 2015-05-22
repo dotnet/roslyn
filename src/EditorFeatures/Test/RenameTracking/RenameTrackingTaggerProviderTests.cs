@@ -835,56 +835,6 @@ End Enum";
             }
         }
 
-        [Fact, WorkItem(978099)]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public void RenameTrackingPreviewChanges()
-        {
-            var code = @"
-class C$$
-{
-}";
-
-            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
-            {
-                var mockPreview = state.Workspace.Services.GetService<IPreviewDialogService>() as MockPreviewDialogService;
-                mockPreview.Called = false;
-                mockPreview.ReturnsNull = false;
-                state.EditorOperations.InsertText("at");
-                state.AssertTag("C", "Cat", invokeAction: true, actionIndex: 1);
-                Assert.True(mockPreview.Called);
-                Assert.Equal(string.Format(EditorFeaturesResources.RenameToTitle, "C", "Cat"), mockPreview.Description);
-                Assert.Equal(string.Format(EditorFeaturesResources.PreviewChangesOf, EditorFeaturesResources.Rename), mockPreview.Title);
-                Assert.Equal("C", mockPreview.TopLevelName);
-                Assert.Equal(Glyph.ClassInternal, mockPreview.TopLevelGlyph);
-            }
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
-        public void RenameTrackingCancelPreviewChanges()
-        {
-            var code = @"
-class C$$
-{
-}";
-
-            var expected = @"
-class Cat
-{
-}";
-            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
-            {
-                var mockPreview = state.Workspace.Services.GetService<IPreviewDialogService>() as MockPreviewDialogService;
-                mockPreview.Called = false;
-                mockPreview.ReturnsNull = true;
-                state.EditorOperations.InsertText("at");
-                state.AssertTag("C", "Cat", invokeAction: true, actionIndex: 1);
-                Assert.True(mockPreview.Called);
-                Assert.Equal(expected, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
-                state.AssertTag("C", "Cat");
-            }
-        }
-
         [Fact, WorkItem(1028072)]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotThrowAggregateException()
@@ -1138,6 +1088,110 @@ class C
             {
                 state.EditorOperations.Backspace();
                 state.AssertNoTag();
+            }
+        }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CannotRenameToVarInCSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        C$$ c;
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.InsertText("va");
+
+                state.AssertTag("C", "va");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("r");
+                state.AssertNoTag();
+                Assert.Empty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("p");
+                state.AssertTag("C", "varp");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+            }
+        }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CannotRenameFromVarInCSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var$$ c = new C();
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.AssertNoTag();
+                Assert.Empty(state.GetDocumentDiagnostics());
+            }
+        }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CanRenameToVarInVisualBasic()
+        {
+            var code = @"
+Class C
+    Sub M()
+        Dim x as C$$
+    End Sub
+End Class";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.VisualBasic))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.InsertText("var");
+
+                state.AssertTag("C", "var");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+            }
+        }
+
+        [Fact]
+        [WorkItem(2605, "https://github.com/dotnet/roslyn/issues/2605")]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public void RenameTracking_CannotRenameToDynamicInCSharp()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        C$$ c;
+    }
+}";
+            using (var state = new RenameTrackingTestState(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.Backspace();
+                state.EditorOperations.InsertText("dynami");
+
+                state.AssertTag("C", "dynami");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("c");
+                state.AssertNoTag();
+                Assert.Empty(state.GetDocumentDiagnostics());
+
+                state.EditorOperations.InsertText("s");
+                state.AssertTag("C", "dynamics");
+                Assert.NotEmpty(state.GetDocumentDiagnostics());
             }
         }
     }

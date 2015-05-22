@@ -19,7 +19,7 @@ namespace System.Runtime.Analyzers
     {
         internal const string RuleId = "CA2213";
         internal const string Dispose = "Dispose";
-        private static LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DisposableFieldsShouldBeDisposed), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DisposableFieldsShouldBeDisposed), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableMessageAndTitle,
@@ -58,7 +58,7 @@ namespace System.Runtime.Analyzers
         protected abstract class AbstractAnalyzer
         {
             protected INamedTypeSymbol _disposableType;
-            private ConcurrentDictionary<IFieldSymbol, bool> _fieldDisposedMap = new ConcurrentDictionary<IFieldSymbol, bool>();
+            private readonly ConcurrentDictionary<IFieldSymbol, bool> _fieldDisposedMap = new ConcurrentDictionary<IFieldSymbol, bool>();
 
             public AbstractAnalyzer(INamedTypeSymbol disposableType)
             {

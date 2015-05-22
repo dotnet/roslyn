@@ -20,5 +20,12 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<DocumentId> GetVisibleDocuments();
 
         event EventHandler<DocumentId> ActiveDocumentChanged;
+
+        /// <summary>
+        /// Events for Non Roslyn text buffer changes.
+        /// 
+        /// It raises events for buffers opened in a view in host.
+        /// </summary>
+        event EventHandler<EventArgs> NonRoslynBufferTextChanged;
     }
 }

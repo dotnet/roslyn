@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
                 moduleBeingBuilt,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: cancellationToken))

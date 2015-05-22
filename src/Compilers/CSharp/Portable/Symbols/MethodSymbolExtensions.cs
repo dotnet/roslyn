@@ -73,12 +73,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            int firstNullInTypeArgs = -1;
+
+            // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
+            // This prevents constraint checking from failing for corresponding type parameters. 
+            var typeArgsForConstraintsCheck = typeArgs;
+            for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
+            {
+                if ((object)typeArgsForConstraintsCheck[i] == null)
+                {
+                    firstNullInTypeArgs = i;
+                    var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                    builder.AddRange(typeArgs, firstNullInTypeArgs);
+
+                    for (; i < typeArgsForConstraintsCheck.Length; i++)
+                    {
+                        builder.Add(typeArgsForConstraintsCheck[i] ?? ErrorTypeSymbol.UnknownResultType);
+                    }
+
+                    typeArgsForConstraintsCheck = builder.ToImmutableAndFree();
+                    break;
+                }
+            }
+
             // Check constraints.
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var typeParams = method.TypeParameters;
-            var substitution = new TypeMap(typeParams, typeArgs);
+            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(conversions, substitution, method.TypeParameters, typeArgs, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
             diagnosticsBuilder.Free();
 
             if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
@@ -99,7 +122,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return method.Construct(typeArgs);
+            // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
+            var typeArgsForConstruct = typeArgs;
+            if (firstNullInTypeArgs != -1)
+            {
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                builder.AddRange(typeArgs, firstNullInTypeArgs);
+
+                for (int i = firstNullInTypeArgs; i < typeArgsForConstruct.Length; i++)
+                {
+                    builder.Add(typeArgsForConstruct[i] ?? typeParams[i]);
+                }
+
+                typeArgsForConstruct = builder.ToImmutableAndFree();
+            }
+
+            return method.Construct(typeArgsForConstruct);
         }
 
         internal static bool IsSynthesizedLambda(this MethodSymbol method)

@@ -1362,7 +1362,7 @@ ulong.MinValue --> 0";
                 OfType<BoundExpression>().
                 Where(node => node.ConstantValue != null).
                 Select(node => node.Syntax.ToFullString().Trim() + " --> " + ExtractValue(node.ConstantValue));
-            var result = string.Join("\r\n", constants);
+            var result = string.Join(Environment.NewLine, constants);
             return result;
         }
 
@@ -1755,7 +1755,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "-Int64.MinValue"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void FoldingRemDivOperators()
         {
             var source = @"

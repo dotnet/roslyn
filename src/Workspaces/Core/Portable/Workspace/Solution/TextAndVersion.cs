@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (text == null)
             {
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             }
 
             return new TextAndVersion(text, version, filePath);

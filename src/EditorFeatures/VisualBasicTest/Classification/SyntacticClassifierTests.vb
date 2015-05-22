@@ -3830,5 +3830,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Module"))
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WorkItem(2126, "https://github.com/dotnet/roslyn/issues/2126")>
+        Public Sub CommentBeforeXmlAccessExpression()
+            TestInMethod("C",
+                         "M",
+                         " ' Comment
+                           x.@Name = ""Text""",
+                         "' Comment",
+                         Comment("' Comment"))
+        End Sub
+
     End Class
 End Namespace

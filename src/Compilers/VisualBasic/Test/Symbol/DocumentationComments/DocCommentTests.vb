@@ -10015,9 +10015,9 @@ AssemblyName
         End Sub
 
         Private Structure NameSyntaxInfo
-            Public Syntax As String
-            Public Symbols As String()
-            Public Types As String()
+            Public ReadOnly Syntax As String
+            Public ReadOnly Symbols As String()
+            Public ReadOnly Types As String()
 
             Public Sub New(syntax As String, symbols As String(), types As String())
                 Me.Syntax = syntax
@@ -11839,8 +11839,8 @@ xmlDoc)
 #Region "Helpers"
 
         Private Structure AliasInfo
-            Public Name As String
-            Public Target As String
+            Public ReadOnly Name As String
+            Public ReadOnly Target As String
 
             Public Sub New(name As String, target As String)
                 Me.Name = name
@@ -12280,6 +12280,52 @@ EmptyCref
             Dim symbolInfo = model.GetSymbolInfo(node)
 
             Assert.Equal("?", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1115058, "DevDiv")>
+        Public Sub UnterminatedElement()
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Module Module1
+    '''<summary>
+    ''' Something
+    '''<summary>
+    Sub Main()
+        System.Console.WriteLine("Here")
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                sources,
+                options:=TestOptions.ReleaseExe,
+                parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            ' Compilation should succeeed with warnings
+            AssertTheseDiagnostics(CompileAndVerify(compilation, expectedOutput:="Here").Diagnostics, <![CDATA[
+BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
+    '''<summary>
+       ~~~~~~~~~
+BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
+    '''<summary>
+       ~~~~~~~~~
+BC42304: XML documentation parse error: '>' expected. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: '>' expected. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. XML comment will be ignored.
+    '''<summary>
+                ~
+]]>)
         End Sub
 
     End Class

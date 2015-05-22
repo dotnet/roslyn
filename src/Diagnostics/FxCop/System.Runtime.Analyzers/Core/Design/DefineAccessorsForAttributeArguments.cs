@@ -22,22 +22,44 @@ namespace System.Runtime.Analyzers
         internal const string AddAccessorCase = "AddAccessor";
         internal const string MakePublicCase = "MakePublic";
         internal const string RemoveSetterCase = "RemoveSetter";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         s_localizableTitle,
-                                                                         "{0}",
-                                                                         DiagnosticCategory.Design,
-                                                                         DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: false,
-                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182136.aspx",
-                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArguments), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_defaultRuleMessage = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsDefault), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_increaseVisiblityMessage = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_removeSetterMessage = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsRemoveSetter), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+
+        internal static DiagnosticDescriptor DefaultRule = new DiagnosticDescriptor(RuleId,
+                                                                                    s_localizableTitle,
+                                                                                    s_defaultRuleMessage,
+                                                                                    DiagnosticCategory.Design,
+                                                                                    DiagnosticSeverity.Warning,
+                                                                                    isEnabledByDefault: false,
+                                                                                    helpLinkUri: "http://msdn.microsoft.com/library/ms182136.aspx",
+                                                                                    customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static DiagnosticDescriptor IncreaseVisibilityRule = new DiagnosticDescriptor(RuleId,
+                                                                                               s_localizableTitle,
+                                                                                               s_increaseVisiblityMessage,
+                                                                                               DiagnosticCategory.Design,
+                                                                                               DiagnosticSeverity.Warning,
+                                                                                               isEnabledByDefault: false,
+                                                                                               helpLinkUri: "http://msdn.microsoft.com/library/ms182136.aspx",
+                                                                                               customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static DiagnosticDescriptor RemoveSetterRule = new DiagnosticDescriptor(RuleId,
+                                                                                         s_localizableTitle,
+                                                                                         s_removeSetterMessage,
+                                                                                         DiagnosticCategory.Design,
+                                                                                         DiagnosticSeverity.Warning,
+                                                                                         isEnabledByDefault: false,
+                                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182136.aspx",
+                                                                                         customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(Rule);
+                return ImmutableArray.Create(DefaultRule, IncreaseVisibilityRule, RemoveSetterRule);
             }
         }
 
@@ -169,22 +191,19 @@ namespace System.Runtime.Analyzers
         private static Diagnostic GetDefaultDiagnostic(IParameterSymbol parameter, INamedTypeSymbol attributeType)
         {
             // Add a public read-only property accessor for positional argument '{0}' of attribute '{1}'.
-            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsDefault, parameter.Name, attributeType.Name);
-            return parameter.Locations.CreateDiagnostic(Rule, new Dictionary<string, string> { { "case", AddAccessorCase } }.ToImmutableDictionary(), message);
+            return parameter.Locations.CreateDiagnostic(DefaultRule, new Dictionary<string, string> { { "case", AddAccessorCase } }.ToImmutableDictionary(), parameter.Name, attributeType.Name);
         }
 
         private static Diagnostic GetIncreaseVisibilityDiagnostic(IParameterSymbol parameter, IPropertySymbol property)
         {
             // If '{0}' is the property accessor for positional argument '{1}', make it public.
-            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsIncreaseVisibility, property.Name, parameter.Name);
-            return property.GetMethod.Locations.CreateDiagnostic(Rule, new Dictionary<string, string> { { "case", MakePublicCase } }.ToImmutableDictionary(), message);
+            return property.GetMethod.Locations.CreateDiagnostic(IncreaseVisibilityRule, new Dictionary<string, string> { { "case", MakePublicCase } }.ToImmutableDictionary(), property.Name, parameter.Name);
         }
 
         private static Diagnostic GetRemoveSetterDiagnostic(IParameterSymbol parameter, IPropertySymbol property)
         {
             // Remove the property setter from '{0}' or reduce its accessibility because it corresponds to positional argument '{1}'.
-            var message = string.Format(SystemRuntimeAnalyzersResources.DefineAccessorsForAttributeArgumentsRemoveSetter, property.Name, parameter.Name);
-            return property.SetMethod.Locations.CreateDiagnostic(Rule, new Dictionary<string, string> { { "case", RemoveSetterCase } }.ToImmutableDictionary(), message);
+            return property.SetMethod.Locations.CreateDiagnostic(RemoveSetterRule, new Dictionary<string, string> { { "case", RemoveSetterCase } }.ToImmutableDictionary(), property.Name, parameter.Name);
         }
     }
 }

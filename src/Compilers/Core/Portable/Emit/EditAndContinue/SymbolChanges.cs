@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 var generator = synthesizedDef.Method;
                 var synthesizedSymbol = (ISymbol)synthesizedDef;
 
-                switch (GetChange(generator))
+                switch (GetChange((IDefinition)generator))
                 {
                     case SymbolChange.Updated:
                         // The generator has been updated. Some synthesized members should be reused, others updated or added.

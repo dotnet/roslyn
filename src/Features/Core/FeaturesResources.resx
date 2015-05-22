@@ -537,6 +537,12 @@
   <data name="ModifyingTheInitializerInPartialType" xml:space="preserve">
     <value>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</value>
   </data>
+  <data name="InsertConstructorToTypeWithInitializersWithLambdas" xml:space="preserve">
+    <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</value>
+  </data>
+  <data name="RenamingCapturedVariable" xml:space="preserve">
+    <value>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</value>
+  </data>
   <data name="ModifyingACatchFinallyHandler" xml:space="preserve">
     <value>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</value>
   </data>
@@ -551,15 +557,6 @@
   </data>
   <data name="ModifyingAWhichContainsOnErrorResume" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsAnonymousMethod" xml:space="preserve">
-    <value>Modifying '{0}' which contains an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsLambda" xml:space="preserve">
-    <value>Modifying '{0}' which contains a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsQuery" xml:space="preserve">
-    <value>Modifying '{0}' which contains a query expression will prevent the debug session from continuing.</value>
   </data>
   <data name="ModifyingAWhichContainsComplexQuery" xml:space="preserve">
     <value>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</value>
@@ -762,14 +759,14 @@ Do you want to continue?</value>
   <data name="ModifyingAWhichContainsStaticLocal" xml:space="preserve">
     <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
   </data>
-  <data name="ErrorSourceBuild" xml:space="preserve">
-    <value>Build</value>
+  <data name="BuildToolBuild" xml:space="preserve">
+    <value>Compiler</value>
   </data>
-  <data name="ErrorSourceEnC" xml:space="preserve">
+  <data name="BuildToolEnC" xml:space="preserve">
     <value>Edit And Continue</value>
   </data>
-  <data name="ErrorSourceIntelliSense" xml:space="preserve">
-    <value>IntelliSense Build</value>
+  <data name="BuildToolLive" xml:space="preserve">
+    <value>Live</value>
   </data>
   <data name="Namespace" xml:space="preserve">
     <value>namespace</value>
@@ -777,28 +774,27 @@ Do you want to continue?</value>
   </data>
   <data name="Class" xml:space="preserve">
     <value>class</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="Interface" xml:space="preserve">
     <value>interface</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="Enum" xml:space="preserve">
     <value>enum</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="EnumValue" xml:space="preserve">
     <value>enum value</value>
+    <comment>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</comment>
   </data>
   <data name="Delegate" xml:space="preserve">
     <value>delegate</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="ConstField" xml:space="preserve">
     <value>const field</value>
-  </data>
-  <data name="Field" xml:space="preserve">
-    <value>field</value>
+    <comment>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</comment>
   </data>
   <data name="Method" xml:space="preserve">
     <value>method</value>
@@ -817,7 +813,7 @@ Do you want to continue?</value>
   </data>
   <data name="Event" xml:space="preserve">
     <value>event</value>
-    <comment>{Locked}</comment>    
+    <comment>{Locked}</comment>
   </data>
   <data name="EventAccessor" xml:space="preserve">
     <value>event accessor</value>
@@ -827,9 +823,6 @@ Do you want to continue?</value>
   </data>
   <data name="TypeParameter" xml:space="preserve">
     <value>type parameter</value>
-  </data>
-  <data name="Parameter" xml:space="preserve">
-    <value>parameter</value>
   </data>
   <data name="Attribute" xml:space="preserve">
     <value>attribute</value>

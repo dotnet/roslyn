@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private ReadOnly _getExceptionMethodName As String
 
-        Friend Sub New(method As MethodSymbol, name As String, type As TypeSymbol, getExceptionMethodName As String)
-            MyBase.New(method, name, type)
+        Friend Sub New(method As MethodSymbol, name As String, displayName As String, type As TypeSymbol, getExceptionMethodName As String)
+            MyBase.New(method, name, displayName, type)
             _getExceptionMethodName = getExceptionMethodName
         End Sub
 

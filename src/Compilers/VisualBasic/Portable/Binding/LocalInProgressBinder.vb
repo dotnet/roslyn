@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' forward local. However, just to make sure, we also keep track of every
         ' local whose type we are attempting to infer. (This might be necessary for
         ' "script class" scenarios where local vars are actually fields.)
-        Private _symbols As ConsList(Of LocalSymbol)
+        Private ReadOnly _symbols As ConsList(Of LocalSymbol)
 
         Public Sub New(containingBinder As Binder, symbol As LocalSymbol)
             MyBase.New(containingBinder)

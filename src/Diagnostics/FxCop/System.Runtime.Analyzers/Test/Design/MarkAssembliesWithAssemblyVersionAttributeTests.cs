@@ -151,8 +151,8 @@ using System.Reflection;
 ");
         }
 
-        private static string s_number = "CA1016";
-        private static string s_message = "Assemblies should be marked with AssemblyVersionAttribute";
+        private static readonly string s_number = "CA1016";
+        private static readonly string s_message = "Assemblies should be marked with AssemblyVersionAttribute";
 
         private static DiagnosticResult s_diagnostic = new DiagnosticResult
         {

@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 try
                 {
                     var moduleSymbol = ContainingPEModule;
-                    Handle token = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(_handle);
+                    EntityHandle token = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(_handle);
 
                     if (!token.IsNil)
                     {
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     int i = 0;
                     foreach (var interfaceImpl in interfaceImpls)
                     {
-                        Handle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
+                        EntityHandle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol;

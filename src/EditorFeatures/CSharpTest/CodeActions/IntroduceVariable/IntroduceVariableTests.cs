@@ -613,13 +613,12 @@ class M
         }
 
         [WorkItem(544577)]
+        [WorkItem(909152)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestExpressionTLambda()
         {
-            Test(
-@"using System ; using System . Linq . Expressions ; class Program { static Expression < Func < int ? , char ? > > e1 = c => [|null|] ; } ",
-@"using System ; using System . Linq . Expressions ; class Program { private const char ? {|Rename:P|} = null ; static Expression < Func < int ? , char ? > > e1 = c => P ; } ",
-index: 1);
+            TestMissing(
+@"using System ; using System . Linq . Expressions ; class Program { static Expression < Func < int ? , char ? > > e1 = c => [|null|] ; } ");
         }
 
         [WorkItem(544915)]
@@ -1415,6 +1414,37 @@ compareTokens: false,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
+        [WorkItem(854662)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestInNestedCollectionInitializers()
+        {
+            Test(
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    public Dictionary<int, int> A { get; private set; }
+    static int Main(string[] args)
+    {
+        int a = 0;
+        return new Program { A = { { [|a + 2|], 0 } } }.A.Count;
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    public Dictionary<int, int> A { get; private set; }
+    static int Main(string[] args)
+    {
+        int a = 0;
+        var {|Rename:v|} = a + 2;
+        return new Program { A = { { v, 0 } } }.A.Count;
+    }
+}",
+compareTokens: false);
+        }
+
         [WorkItem(884961)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestInArrayInitializer()
@@ -2142,7 +2172,8 @@ class T
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -2170,7 +2201,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
             var code =
@@ -2191,7 +2223,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
             var code =
@@ -2244,7 +2277,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
         {
             var code =
@@ -2297,7 +2331,8 @@ class TestClass
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
-        [Fact(Skip = "http://github.com/dotnet/roslyn/issues/971"), Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(971, "http://github.com/dotnet/roslyn/issues/971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestIntroduceLocalInExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
             var code =
@@ -2322,6 +2357,82 @@ class TestClass
 }";
 
             Test(code, expected, index: 2, compareTokens: false);
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestNoConstantForInterpolatedStrings1()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""{DateTime.Now.ToString()}Text{args[0]}""|]);
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:v|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        Console.WriteLine(v);
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestNoConstantForInterpolatedStrings2()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""Text{{s}}""|]);
+        Console.WriteLine($""Text{{s}}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:v|} = $""Text{{s}}"";
+        Console.WriteLine(v);
+        Console.WriteLine(v);
+    }
+}";
+
+            Test(code, expected, index: 1, compareTokens: false);
+        }
+
+        [WorkItem(909152)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestMissingOnNullLiteral()
+        {
+            TestMissing(
+@"class C1 { }
+class C2 { }
+class Test
+{
+    void M()
+    {
+        C1 c1 = [|null|];
+        C2 c2 = null;
+    }
+}
+");
         }
     }
 }

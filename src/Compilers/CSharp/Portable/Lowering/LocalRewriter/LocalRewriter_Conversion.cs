@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const bool y = true;
         private const bool n = false;
 
-        private static bool[,] s_needsChecked =
+        private static readonly bool[,] s_needsChecked =
             {   //         chri08u08i16u16i32u32i64u64
                 /* chr */
                           { n, y, y, y, n, n, n, n, n },

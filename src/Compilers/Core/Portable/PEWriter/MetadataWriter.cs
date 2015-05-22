@@ -426,7 +426,7 @@ namespace Microsoft.Cci
 
         protected readonly MetadataHeapsBuilder heaps;
         private readonly MetadataHeapsBuilder debugHeapsOpt;
-        private readonly Dictionary<ICustomAttribute, uint> _customAtributeSignatureIndex = new Dictionary<ICustomAttribute, uint>();
+        private readonly Dictionary<ICustomAttribute, uint> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, uint>();
         private readonly Dictionary<ITypeReference, uint> _typeSpecSignatureIndex = new Dictionary<ITypeReference, uint>();
         private readonly Dictionary<ITypeReference, uint> _exportedTypeIndex;
         private readonly List<ITypeReference> _exportedTypeList;
@@ -765,7 +765,7 @@ namespace Microsoft.Cci
         private uint GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
         {
             uint result;
-            if (_customAtributeSignatureIndex.TryGetValue(customAttribute, out result))
+            if (_customAttributeSignatureIndex.TryGetValue(customAttribute, out result))
             {
                 return result;
             }
@@ -774,7 +774,7 @@ namespace Microsoft.Cci
             BinaryWriter writer = new BinaryWriter(sig);
             this.SerializeCustomAttributeSignature(customAttribute, false, writer);
             result = heaps.GetBlobIndex(sig);
-            _customAtributeSignatureIndex.Add(customAttribute, result);
+            _customAttributeSignatureIndex.Add(customAttribute, result);
             return result;
         }
 

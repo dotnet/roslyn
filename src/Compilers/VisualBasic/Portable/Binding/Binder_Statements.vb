@@ -994,7 +994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
                     For i = 0 To names.Count - 1
                         Debug.Assert(locals(i).InitializedByAsNew)
-                        Debug.Assert(locals(i).InitializerOpt Is Nothing)
+                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression)
                     Next
 #End If
 
@@ -1170,7 +1170,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If name.ArrayBounds IsNot Nothing Then
                 ' It is an error to have both array bounds and an initializer expression
                 If valueExpression IsNot Nothing Then
-                    ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
+                    If Not isInitializedByAsNew Then
+                        ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
+                    Else
+                        ' Must have reported ERR_AsNewArray already.
+                        Debug.Assert(valueExpression.Kind = BoundKind.BadExpression)
+                    End If
                 Else
                     valueExpression = New BoundArrayCreation(name, boundArrayBounds, Nothing, type)
                 End If
@@ -4143,7 +4148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Checks if a given symbol is a function that takes no parameters.
         ''' </summary>
-        Private Shared s_isFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
+        Private Shared ReadOnly s_isFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
                                                                                       If sym.Kind = SymbolKind.Method Then
                                                                                           Dim method = DirectCast(sym, MethodSymbol)
                                                                                           Return Not method.IsSub() AndAlso
@@ -4156,7 +4161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Checks if a given symbol is a property that is readable.
         ''' </summary>
-        Private Shared s_isReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
+        Private Shared ReadOnly s_isReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
                                                                                               If sym.Kind = SymbolKind.Property Then
                                                                                                   Dim prop = DirectCast(sym, PropertySymbol)
                                                                                                   Return prop.IsReadable AndAlso

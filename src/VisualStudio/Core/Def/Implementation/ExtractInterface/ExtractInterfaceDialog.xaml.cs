@@ -45,17 +45,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             DataContext = viewModel;
 
             Loaded += ExtractInterfaceDialog_Loaded;
+            IsVisibleChanged += ExtractInterfaceDialog_IsVisibleChanged;
         }
 
         private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
         {
             interfaceNameTextBox.Focus();
             interfaceNameTextBox.SelectAll();
+        }
 
-            var handler = TEST_DialogLoaded;
-            if (handler != null)
+        private void ExtractInterfaceDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if ((bool)e.NewValue)
             {
-                handler();
+                IsVisibleChanged -= ExtractInterfaceDialog_IsVisibleChanged;
+                TEST_DialogLoaded?.Invoke();
             }
         }
 

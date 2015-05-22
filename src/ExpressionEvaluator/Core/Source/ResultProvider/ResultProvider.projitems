@@ -9,9 +9,11 @@
     <Import_RootNamespace>ResultProvider</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\RootHiddenExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.TypeNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatter.Values.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeAndCustomInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicFlagsMap.cs" />
@@ -20,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\AggregateExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\ArrayExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\DebuggerTypeProxyExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\DynamicViewExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\Expansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\MemberExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\NativeViewExpansion.cs" />

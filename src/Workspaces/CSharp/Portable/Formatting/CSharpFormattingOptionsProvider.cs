@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [ExportOptionProvider, Shared]
     internal class CSharpFormattingOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> _options = new List<IOption>
+        private readonly IEnumerable<IOption> _options = new List<IOption>
             {
                 CSharpFormattingOptions.SpacingAfterMethodDeclarationName,
                 CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis,

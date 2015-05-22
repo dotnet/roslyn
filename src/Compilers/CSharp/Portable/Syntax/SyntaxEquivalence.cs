@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 // If we're only checking top level equivalence, then we don't have to go down into
                 // the initializer for a field. However, we can't put that optimization for all
-                // fields. For example, fields that are 'const' do need their initalizers checked as
+                // fields. For example, fields that are 'const' do need their initializers checked as
                 // changing them can affect binding results.
                 if ((SyntaxKind)before.RawKind == SyntaxKind.FieldDeclaration)
                 {

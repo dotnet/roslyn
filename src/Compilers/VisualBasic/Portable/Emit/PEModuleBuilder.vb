@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _metadataName As String
 
         Private _lazyExportedTypes As ImmutableArray(Of TypeExport(Of NamedTypeSymbol))
-        Private _lazyImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
+        Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
 
         ' These fields will only be set when running tests.  They allow realized IL for a given method to be looked up by method display name.
@@ -99,15 +99,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Protected NotOverridable Overrides Function GetImports(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType)
-            If _lazyImports.IsDefault Then
-                ImmutableInterlocked.InterlockedInitialize(
-                    _lazyImports,
-                    NamespaceScopeBuilder.BuildNamespaceScope(context, SourceModule.XmlNamespaces, SourceModule.AliasImports, SourceModule.MemberImports))
-            End If
-
-            Return _lazyImports
+        Protected NotOverridable Overrides Function GetImports() As ImmutableArray(Of Cci.UsedNamespaceOrType)
+            ' Imports should have been translated in code gen phase.
+            Debug.Assert(Not _lazyTranslatedImports.IsDefault)
+            Return _lazyTranslatedImports
         End Function
+
+        Public Sub TranslateImports(diagnostics As DiagnosticBag)
+            If _lazyTranslatedImports.IsDefault Then
+                ImmutableInterlocked.InterlockedInitialize(
+                    _lazyTranslatedImports,
+                    NamespaceScopeBuilder.BuildNamespaceScope(Me, SourceModule.XmlNamespaces, SourceModule.AliasImports, SourceModule.MemberImports, diagnostics))
+            End If
+        End Sub
 
         Protected NotOverridable Overrides ReadOnly Property DefaultNamespace As String
             Get
@@ -311,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol) As VariableSlotAllocator
+        Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
             Return Nothing
         End Function
 

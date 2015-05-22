@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             if (!stream.CanWrite)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             if (!stream.CanRead)
@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.SyntaxTree.GetDiagnostics(this);
         }
 
-        internal sealed override SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body)
+        internal sealed override SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body)
         {
-            return LambdaUtilities.GetCorrespondingLambdaBody(body, this);
+            return LambdaUtilities.TryGetCorrespondingLambdaBody(body, this);
         }
 
         internal override SyntaxNode GetLambda()
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!FullSpan.Contains(position))
             {
-                throw new ArgumentOutOfRangeException("position");
+                throw new ArgumentOutOfRangeException(nameof(position));
             }
 
             SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.FullSpan.Contains(position))
             {
-                throw new ArgumentOutOfRangeException("position");
+                throw new ArgumentOutOfRangeException(nameof(position));
             }
 
             return this.FindTokenInternal(position);

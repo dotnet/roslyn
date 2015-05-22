@@ -2713,7 +2713,7 @@ End Namespace
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1), path:="a.vb")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2), path:="b.vb")
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, options:=TestOptions.ReleaseDll)
 
             ' Two copies of each diagnostic - one from each file.
             comp.AssertTheseDiagnostics(<errors><![CDATA[

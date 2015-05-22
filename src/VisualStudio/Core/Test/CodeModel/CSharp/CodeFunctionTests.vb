@@ -28,6 +28,30 @@ class D
                 Part(EnvDTE.vsCMPart.vsCMPartBody,
                      TextPoint(line:=5, lineOffset:=1, absoluteOffset:=65, lineLength:=23)))
         End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPointExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=8, lineOffset:=5, absoluteOffset:=67, lineLength:=15)))
+        End Sub
 #End Region
 
 #Region "Get End Point"
@@ -48,6 +72,30 @@ class D
             TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartBody,
                      TextPoint(line:=6, lineOffset:=1, absoluteOffset:=89, lineLength:=5)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPointExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=11, lineOffset:=6, absoluteOffset:=108, lineLength:=5)))
         End Sub
 #End Region
 
@@ -146,6 +194,119 @@ interface I
 
 #End Region
 
+#Region "Attribute Tests"
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithNoSet()
+            Dim code =
+<Code>
+public class Class1
+{
+    public int Property1
+    {
+        [Obsolete]
+        $$get
+        {
+            return 0;
+        }
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithNoGet()
+            Dim code =
+<Code>
+public class Class1
+{
+    public int Property1
+    {
+        [Obsolete]
+        $$set
+        {
+        }
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertyGetAttribute_WithSet()
+            Dim code =
+<Code>
+public class Class1
+{
+    public int Property1
+    {
+        [Obsolete]
+        $$get
+        {
+            return 0;
+        }
+
+        [Obsolete]
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub PropertySetAttribute_WithGet()
+            Dim code =
+<Code>
+public class Class1
+{
+    public int Property1
+    {
+        [Obsolete]
+        get
+        {
+            return 0;
+        }
+
+        [Obsolete]
+        $$set
+        {
+        }
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+
+        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Attribute_1()
+            Dim code =
+<Code>
+class Class2
+{
+    [Obsolete]
+    void $$F()
+    {
+
+    }
+}
+</Code>
+
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
+#End Region
+
 #Region "CanOverride tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -238,6 +399,28 @@ class C
 </Code>
 
             TestFullName(code, "C.~C")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.f1")
         End Sub
 
 #End Region
@@ -404,6 +587,28 @@ class C : B
 #End Region
 
 #Region "Name tests"
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedMethod()
+            Dim code =
+<Code>
+public interface I1
+{
+    int f1();
+}
+
+public class C1 : I1
+{
+    int I1.f1$$()
+    {
+        return 0;
+    }
+}
+</Code>
+
+            TestName(code, "I1.f1")
+        End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Name_Destructor()
@@ -2230,6 +2435,89 @@ public class C
 }
 </Code>
             TestAllParameterNames(code, "@int", "@string")
+        End Sub
+
+#End Region
+
+#Region "AddAttribute tests"
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute1()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    void $$M() { }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable()]
+    void M() { }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute2()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    void $$M() { }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    [CLSCompliant(true)]
+    void M() { }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    void $$M() { }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    [CLSCompliant(true)]
+    void M() { }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region

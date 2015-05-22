@@ -4,8 +4,6 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.OrganizeImports
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.EditorUtilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeImportsTests
@@ -199,6 +197,7 @@ end namespace</content>
             Check(initial, final, True)
         End Sub
 
+        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoTouchCommentsAtBeginningOfFile1()
             Dim initial =
@@ -211,9 +210,9 @@ namespace A { }
 namespace B { }</content>
 
             Dim final =
-<content>' I like namespace A
+<content>' Copyright (c) Microsoft Corporation.  All rights reserved.
+' I like namespace A
 Imports A
-' Copyright (c) Microsoft Corporation.  All rights reserved.
 Imports B
 
 namespace A { }
@@ -222,6 +221,7 @@ namespace B { }</content>
             Check(initial, final, True)
         End Sub
 
+        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoTouchCommentsAtBeginningOfFile2()
             Dim initial =
@@ -234,9 +234,9 @@ namespace A { }
 namespace B { }</content>
 
             Dim final =
-<content>'' I like namespace A */
+<content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
+'' I like namespace A */
 Imports A
-'' Copyright (c) Microsoft Corporation.  All rights reserved. */
 Imports B
 
 namespace A { }
@@ -245,6 +245,7 @@ namespace B { }</content>
             Check(initial, final, True)
         End Sub
 
+        <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoTouchCommentsAtBeginningOfFile3()
             Dim initial =

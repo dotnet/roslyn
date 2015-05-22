@@ -1511,7 +1511,7 @@ interface I
 }
 class C : I
 {
-    public void Foo([DateTimeConstant(100), Optional]DateTime d1, [IUnknownConstant, Optional]object d2)
+    public void Foo([DateTimeConstant(100), Optional] DateTime d1, [IUnknownConstant, Optional] object d2)
     {
         throw new NotImplementedException();
     }
@@ -2640,6 +2640,51 @@ partial class C
         // GC.SuppressFinalize(this);
     }}
     #endregion";
+        }
+
+        [WorkItem(1132014)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public void TestInaccesibleAttributes()
+        {
+            Test(
+@"using System;
+
+public class Foo : [|Holder.SomeInterface|]
+{
+}
+
+public class Holder
+{
+    public interface SomeInterface
+    {
+        void Something([SomeAttribute] string helloWorld);
+    }
+
+    private class SomeAttribute : Attribute
+    {
+    }
+}",
+@"using System;
+
+public class Foo : Holder.SomeInterface
+{
+    public void Something(string helloWorld)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class Holder
+{
+    public interface SomeInterface
+    {
+        void Something([SomeAttribute] string helloWorld);
+    }
+
+    private class SomeAttribute : Attribute
+    {
+    }
+}");
         }
     }
 }

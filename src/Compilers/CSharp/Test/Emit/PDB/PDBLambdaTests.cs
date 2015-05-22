@@ -107,7 +107,7 @@ class Test
         </using>
         <encLocalSlotMap>
           <slot kind=""1"" offset=""12"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -128,7 +128,7 @@ class Test
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""0"" offset=""26"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>1</methodOrdinal>
@@ -154,9 +154,9 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" />
         <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""54"" />
-          <slot kind=""temp"" />
+          <slot kind=""30"" offset=""56"" />
+          <slot kind=""0"" offset=""110"" />
+          <slot kind=""21"" offset=""56"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -175,6 +175,9 @@ class Test
     <method containingType=""Test+&lt;&gt;c__DisplayClass1_1"" name=""&lt;M&gt;b__1"" parameterNames=""y"">
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""136"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""14"" document=""0"" />
@@ -281,7 +284,7 @@ class Test
         </using>
         <encLocalSlotMap>
           <slot kind=""1"" offset=""11"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -302,7 +305,7 @@ class Test
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""0"" offset=""26"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>1</methodOrdinal>
@@ -328,9 +331,9 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" />
         <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""54"" />
-          <slot kind=""temp"" />
+          <slot kind=""30"" offset=""56"" />
+          <slot kind=""0"" offset=""110"" />
+          <slot kind=""21"" offset=""56"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -349,6 +352,9 @@ class Test
     <method containingType=""Test+&lt;&gt;c__DisplayClass1_1"" name=""&lt;M&gt;b__1"" parameterNames=""y"">
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""122"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""17"" startColumn=""40"" endLine=""17"" endColumn=""41"" document=""0"" />

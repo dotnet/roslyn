@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Dim moduleSymbol = containingType.ContainingPEModule
-            Dim constraints() As Handle
+            Dim constraints() As EntityHandle
 
             Try
                 constraints = moduleSymbol.Module.GetGenericParamConstraintsOrThrow(_handle)

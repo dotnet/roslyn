@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<ISymbol> _captured;
         private ImmutableArray<ISymbol> _unsafeAddressTaken;
         private HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
-        private bool? _succeeded = null;
+        private bool? _succeeded;
 
         internal CSharpDataFlowAnalysis(RegionAnalysisContext context)
         {

@@ -503,7 +503,7 @@ F()
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void RefParametersIndexers()
         {
             var source1 =

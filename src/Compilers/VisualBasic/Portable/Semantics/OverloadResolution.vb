@@ -2398,15 +2398,15 @@ BreakTheTie:
                                         Dim lost As Boolean = False
 
                                         If (conv.Key And ConversionKind.UserDefined) = 0 Then
-                                            If IsUnwrappinNullable(conv.Key, arguments(j).Type, current.Candidate.Parameters(j).Type) Then
+                                            If IsUnwrappingNullable(conv.Key, arguments(j).Type, current.Candidate.Parameters(j).Type) Then
                                                 lost = True
                                             End If
                                         Else
                                             ' Lifted user-defined conversions don't unwrap nullables, they are marked with Nullable bit.
                                             If (conv.Key And ConversionKind.Nullable) = 0 Then
-                                                If IsUnwrappinNullable(arguments(j).Type, conv.Value.Parameters(0).Type, useSiteDiagnostics) Then
+                                                If IsUnwrappingNullable(arguments(j).Type, conv.Value.Parameters(0).Type, useSiteDiagnostics) Then
                                                     lost = True
-                                                ElseIf IsUnwrappinNullable(conv.Value.ReturnType, current.Candidate.Parameters(j).Type, useSiteDiagnostics) Then
+                                                ElseIf IsUnwrappingNullable(conv.Value.ReturnType, current.Candidate.Parameters(j).Type, useSiteDiagnostics) Then
                                                     lost = True
                                                 End If
                                             End If
@@ -2437,7 +2437,7 @@ Next_i:
 
             If lateBindingIsAllowed Then
                 ' Are there all narrowing from object candidates?
-                Dim haveAllNarrowingFromObject As Boolean = HaveNarrorwingOnlyFromObjectCandidates(candidates)
+                Dim haveAllNarrowingFromObject As Boolean = HaveNarrowingOnlyFromObjectCandidates(candidates)
 
                 If haveAllNarrowingFromObject AndAlso Not appliedTieBreakingRules Then
                     ' Apply shadowing rules, Dev10 compiler does that for narrowing candidates too.
@@ -2448,7 +2448,7 @@ Next_i:
                         Return applicableCandidates
                     End If
 
-                    haveAllNarrowingFromObject = HaveNarrorwingOnlyFromObjectCandidates(candidates)
+                    haveAllNarrowingFromObject = HaveNarrowingOnlyFromObjectCandidates(candidates)
                 End If
 
                 If haveAllNarrowingFromObject Then
@@ -2527,7 +2527,7 @@ Done:
             Return applicableCandidates
         End Function
 
-        Private Shared Function IsUnwrappinNullable(
+        Private Shared Function IsUnwrappingNullable(
             conv As ConversionKind,
             sourceType As TypeSymbol,
             targetType As TypeSymbol
@@ -2539,16 +2539,16 @@ Done:
                    Not targetType.IsNullableType()
         End Function
 
-        Private Shared Function IsUnwrappinNullable(
+        Private Shared Function IsUnwrappingNullable(
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As Boolean
             Return sourceType IsNot Nothing AndAlso
-                   IsUnwrappinNullable(Conversions.ClassifyPredefinedConversion(sourceType, targetType, useSiteDiagnostics), sourceType, targetType)
+                   IsUnwrappingNullable(Conversions.ClassifyPredefinedConversion(sourceType, targetType, useSiteDiagnostics), sourceType, targetType)
         End Function
 
-        Private Shared Function HaveNarrorwingOnlyFromObjectCandidates(
+        Private Shared Function HaveNarrowingOnlyFromObjectCandidates(
             candidates As ArrayBuilder(Of CandidateAnalysisResult)
         ) As Boolean
             Dim haveAllNarrowingFromObject As Boolean = False

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class OptionalArgumentsTests
         Inherits BasicTestBase
 
-        Private _librarySource As XElement =
+        Private ReadOnly _librarySource As XElement =
             <compilation>
                 <file name="library.vb">
                     <![CDATA[
@@ -154,7 +154,7 @@ End Module
 ]]></file>
             </compilation>
 
-        Private _classLibrary As MetadataReference = CreateHelperLibrary(_librarySource.Value)
+        Private ReadOnly _classLibrary As MetadataReference = CreateHelperLibrary(_librarySource.Value)
 
         Public Function CreateHelperLibrary(source As String) As MetadataReference
             Dim libraryCompilation = VisualBasicCompilation.Create("library",

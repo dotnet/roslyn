@@ -5660,5 +5660,48 @@ M1 is called for item 'Bar'
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(1173166, "DevDiv"), WorkItem(2878, "https://github.com/dotnet/roslyn/issues/2878")>
+        Public Sub CompoundAssignment()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class Test
+    Private _field As UInteger
+
+    Shared Sub Main()
+        Dim t as New Test()
+        System.Console.WriteLine(t._field)
+        t.EventHandler(-1).Wait()
+        System.Console.WriteLine(t._field)
+    End Sub
+
+    Private Async Function EventHandler(args As Integer) As System.Threading.Tasks.Task
+        Await RunAsync(Async Function()
+                                   System.Console.WriteLine(args)
+                                   _field += CUInt(1)
+                       End Function)
+    End Function
+
+    Private Async Function RunAsync(x As System.Func(Of System.Threading.Tasks.Task)) As System.Threading.Tasks.Task
+        Await x()
+    End Function
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
+
+            Dim expected As Xml.Linq.XCData = <![CDATA[
+0
+-1
+1
+]]>
+            CompileAndVerify(compilation, expected)
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expected)
+        End Sub
+
     End Class
 End Namespace

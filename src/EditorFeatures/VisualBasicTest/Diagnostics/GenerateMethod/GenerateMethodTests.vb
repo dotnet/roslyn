@@ -1313,40 +1313,6 @@ End Module
 
         <WorkItem(939941)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestGenerateMethodFunctionStrictDisallowsLateBinding()
-            Test(
-<text>Option Strict On
-Module Module1
-    Dim bol As Boolean
-    Class C1
-    End Class
-    Sub foo()
-        Dim Obj As Object = New C1()
-        bol = [|Obj(1)|]
-    End Sub
-End Module
-</text>.Value.Replace(vbLf, vbCrLf),
-<text>Option Strict On
-Imports System
-
-Module Module1
-    Dim bol As Boolean
-    Class C1
-    End Class
-    Sub foo()
-        Dim Obj As Object = New C1()
-        bol = Obj(1)
-    End Sub
-
-    Private Function Obj(v As Integer) As Boolean
-        Throw New NotImplementedException()
-    End Function
-End Module
-</text>.Value.Replace(vbLf, vbCrLf), compareTokens:=False)
-        End Sub
-
-        <WorkItem(939941)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestGenerateMethodNoCallableOverloadCandidates2()
             Test(
 <text>Class M1
@@ -2173,6 +2139,48 @@ NewLines("Imports System \n Module C \n Sub Test() \n If TypeOf B Is String Then
             Test(
 NewLines("Module C \n Sub Test() \n If TypeOf [|B|]() Is String Then \n End If \n End Sub \n End Module"),
 NewLines("Imports System \n Module C \n Sub Test() \n If TypeOf B() Is String Then \n End If \n End Sub \n Private Function B() As String \n Throw New NotImplementedException() \n End Function \n End Module"))
+        End Sub
+
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestGenerateMethodConfigureAwaitFalse()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Async Sub Main(args As String()) \n Dim x As Boolean = Await [|Foo|]().ConfigureAwait(False) \n End Sub \n End Module"),
+NewLines("Imports System\nImports System.Collections.Generic\nImports System.Linq\nImports System.Threading.Tasks\n\nModule Program\n    Async Sub Main(args As String())\n        Dim x As Boolean = Await Foo().ConfigureAwait(False)\n    End Sub\n\n    Private Function Foo() As Task(Of Boolean)\n        Throw New NotImplementedException()\n    End Function\nEnd Module"))
+        End Sub
+
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGeneratePropertyConfigureAwaitFalse()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Async Sub Main(args As String()) \n Dim x As Boolean = Await [|Foo|]().ConfigureAwait(False) \n End Sub \n End Module"),
+NewLines("Imports System\nImports System.Collections.Generic\nImports System.Linq\nImports System.Threading.Tasks\n\nModule Program\n    Async Sub Main(args As String())\n        Dim x As Boolean = Await Foo().ConfigureAwait(False)\n    End Sub\n\n    Private ReadOnly Property Foo As Task(Of Boolean)\n        Get\n            Throw New NotImplementedException()\n        End Get\n    End Property\nEnd Module"),
+index:=1)
+        End Sub
+
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestGenerateMethodWithMethodChaining()
+            Test(
+NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
+NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private Function F() As Task(Of Boolean)\n        Throw New NotImplementedException()\n    End Function\nEnd Module"))
+        End Sub
+
+        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestGenerateMethodWithMethodChaining2()
+            Test(
+NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
+NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private ReadOnly Property F As Task(Of Boolean)\n        Get\n            Throw New NotImplementedException()\n        End Get\n    End Property\nEnd Module"),
+index:=1)
+        End Sub
+
+        <WorkItem(1130960)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestGenerateMethodInTypeOfIsNot()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf [|Prop|] IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n Private Function Prop() As TypeOfIsNotDerived \n Throw New NotImplementedException() \n End Function \n End Module"))
         End Sub
 
         Public Class GenerateConversionTests

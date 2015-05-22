@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -11,6 +12,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
     Public Class VisualBasicFormattingTestBase
         Inherits FormattingTestBase
+
+        Protected Shared ReadOnly DefaultWorkspace As Workspace = New AdhocWorkspace()
 
         Protected Overrides Function ParseCompilation(text As String, parseOptions As ParseOptions) As SyntaxNode
             Return SyntaxFactory.ParseCompilationUnit(text, options:=DirectCast(parseOptions, VisualBasicParseOptions))

@@ -581,7 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Private Class SymbolComparer
                 Implements IEqualityComparer(Of Symbol)
 
-                Private _matcher As MatchSymbols
+                Private ReadOnly _matcher As MatchSymbols
 
                 Public Sub New(matcher As MatchSymbols)
                     Me._matcher = matcher

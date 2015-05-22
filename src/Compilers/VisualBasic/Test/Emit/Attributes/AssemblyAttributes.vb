@@ -1024,7 +1024,7 @@ Imports System.Reflection
 
 #Region "Helpers"
 
-    Private Shared s_defaultNetModuleSourceHeader As String = <![CDATA[
+    Private Shared ReadOnly s_defaultNetModuleSourceHeader As String = <![CDATA[
 Imports System
 Imports System.Reflection
 Imports System.Security.Permissions
@@ -1035,7 +1035,7 @@ Imports System.Security.Permissions
 <Assembly: UserDefinedAssemblyAttrAllowMultiple("UserDefinedAssemblyAttrAllowMultiple")>
 ]]>.Value
 
-    Private Shared s_defaultNetModuleSourceBody As String = <![CDATA[
+    Private Shared ReadOnly s_defaultNetModuleSourceBody As String = <![CDATA[
 Public Class NetModuleClass
 End Class
 
@@ -1136,7 +1136,7 @@ End Class
         Assert.Equal(18, metadataReader.CustomAttributes.Count)
         Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
 
-        Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
         Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
         Dim consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {netModuleWithAssemblyAttributes.GetReference()})
@@ -1734,7 +1734,7 @@ End Class
         Dim metadataReader = metadata.GetMetadataReader()
 
 
-        Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
+        Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
         Assert.False(token.IsNil())   'could the type ref be located? If not then the attribute's not there.
 
         Dim attributes = m.GetCustomAttributesForToken(token)

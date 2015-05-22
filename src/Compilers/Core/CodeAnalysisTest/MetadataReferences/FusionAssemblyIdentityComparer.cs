@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             NonEquivalentPartialVersion = 11
         }
 
-        private static object s_assemblyIdentityGate = new object();
+        private static readonly object s_assemblyIdentityGate = new object();
 
         internal static AssemblyIdentityComparer.ComparisonResult CompareAssemblyIdentity(string fullName1, string fullName2, bool ignoreVersion, FusionAssemblyPortabilityPolicy policy, out bool unificationApplied)
         {

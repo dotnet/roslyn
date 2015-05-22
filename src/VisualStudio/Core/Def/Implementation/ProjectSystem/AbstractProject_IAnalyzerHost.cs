@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class AbstractProject : IAnalyzerHost, IAnalyzerDependencyHost
+    internal partial class AbstractProject : IAnalyzerHost
     {
         private AnalyzerFileWatcherService _analyzerFileWatcherService = null;
         private AnalyzerDependencyCheckingService _dependencyCheckingService = null;
@@ -24,8 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
+            var analyzerLoader = _visualStudioWorkspaceOpt.Services.GetRequiredService<IAnalyzerService>().GetLoader();
+            analyzerLoader.AddDependencyLocation(analyzerAssemblyFullPath);
+
             var fileChangeService = (IVsFileChangeEx)this.ServiceProvider.GetService(typeof(SVsFileChangeEx));
-            var analyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, this.Language);
+            var analyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, analyzerLoader, this.Language);
             _analyzers[analyzerAssemblyFullPath] = analyzer;
 
             if (_pushingChangesToWorkspaceHosts)
@@ -36,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
 
+            GetAnalyzerFileWatcherService().AddPath(analyzerAssemblyFullPath);
             GetAnalyzerFileWatcherService().ErrorIfAnalyzerAlreadyLoaded(_id, analyzerAssemblyFullPath);
         }
 
@@ -107,15 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             RemoveAdditionalDocument(document);
-        }
-
-
-        public void AddAnalyzerDependency(string analyzerDependencyFullPath)
-        {
-        }
-
-        public void RemoveAnalyzerDependency(string analyzerDependencyFullPath)
-        {
         }
 
         private void ResetAnalyzerRuleSet(string ruleSetFileFullPath)

@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     internal class MockCsi : CSharpCompiler
     {
         public MockCsi(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null)
+            : base(CSharpCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null, new SimpleAnalyzerAssemblyLoader())
         {
-        }
-
-        public override Assembly LoadAssembly(string fullPath)
-        {
-            throw new NotImplementedException();
         }
 
         protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)

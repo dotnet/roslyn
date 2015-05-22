@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -814,8 +816,7 @@ class A
 }";
 
             var expected =
-@"class C
-: A
+@"class C : A
 {
 }
 
@@ -998,6 +999,47 @@ interface I
 
             var actual = GetActual(editor.GetChangedDocuments().First());
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(2650, "https://github.com/dotnet/roslyn/issues/2650")]
+        public void TestEditExplicitInterfaceIndexer()
+        {
+            var code =
+@"public interface I
+{
+    int this[int item] { get; }
+}
+
+public class C  : I
+{
+    int I.this[int item]
+    {
+        get
+        {
+            return item;
+        }
+    }
+}";
+
+            var solution = GetSolution(code);
+            var typeC = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+            var property = typeC.GetMembers().First(m => m.Kind == SymbolKind.Property);
+
+            var editor = SymbolEditor.Create(solution);
+
+            var newProperty = editor.EditOneDeclarationAsync(property, (e, d) =>
+            {
+                // nothing
+            });
+
+            var typeI = (INamedTypeSymbol)GetSymbols(solution, "I").First();
+            var iproperty = typeI.GetMembers().First(m => m.Kind == SymbolKind.Property);
+
+            var newIProperty = editor.EditOneDeclarationAsync(iproperty, (e, d) =>
+            {
+                // nothing;
+            });
         }
     }
 }

@@ -82,15 +82,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdateCatchHandlerAroundActiveStatement = 66,
         UpdateStaticLocal = 67,
 
-        // 68-69 can be used
+        InsertConstructorToTypeWithInitializersWithLambdas = 68,
+        RenamingCapturedVariable = 69,
 
         InsertHandlesClause = 70,
         InsertFile = 71,
 
         // TODO: remove values below
-        RUDE_EDIT_ANON_METHOD = 0x100,
-        RUDE_EDIT_LAMBDA_EXPRESSION = 0x101,
-        RUDE_EDIT_QUERY_EXPRESSION = 0x102,
         RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
     }
 }

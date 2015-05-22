@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private class ConnectionData
         {
-            public Task<CompletionReason> ConnectionTask;
+            public readonly Task<CompletionReason> ConnectionTask;
             public Task<TimeSpan?> ChangeKeepAliveTask;
 
             internal ConnectionData(Task<CompletionReason> connectionTask, Task<TimeSpan?> changeKeepAliveTask)
@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             dispatcher.ListenAndDispatchConnections(
                 pipeName,
-                keepAliveTimeout,
-                watchAnalyzerFiles: true);
+                keepAliveTimeout);
             return CommonCompiler.Succeeded;
         }
 
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", 
             MessageId = "System.GC.Collect", 
             Justification ="We intentionally call GC.Collect when anticipate long period on inactivity.")]
-        public void ListenAndDispatchConnections(string pipeName, TimeSpan? keepAlive, bool watchAnalyzerFiles, CancellationToken cancellationToken = default(CancellationToken))
+        public void ListenAndDispatchConnections(string pipeName, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
             Debug.Assert(SynchronizationContext.Current == null);
 
@@ -168,10 +167,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Task timeoutTask = null;
             Task<NamedPipeServerStream> listenTask = null;
             CancellationTokenSource listenCancellationTokenSource = null;
-
-            // If we aren't being asked to watch analyzer files then simple create a Task which never 
-            // completes.  This is the behavior of AnalyzerWatcher when files don't change on disk.
-            Task analyzerTask = watchAnalyzerFiles ? AnalyzerWatcher.CreateWatchFilesTask() : new TaskCompletionSource<bool>().Task;
 
             do
             {
@@ -192,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     timeoutTask = Task.Delay(keepAlive.Value);
                 }
 
-                WaitForAnyCompletion(connectionList, new[] { listenTask, timeoutTask, gcTask, analyzerTask }, cancellationToken);
+                WaitForAnyCompletion(connectionList, new[] { listenTask, timeoutTask, gcTask }, cancellationToken);
 
                 // If there is a connection event that has highest priority. 
                 if (listenTask.IsCompleted && !cancellationToken.IsCancellationRequested)
@@ -207,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     continue;
                 }
 
-                if ((timeoutTask != null && timeoutTask.IsCompleted) || analyzerTask.IsCompleted || cancellationToken.IsCancellationRequested)
+                if ((timeoutTask != null && timeoutTask.IsCompleted) || cancellationToken.IsCancellationRequested)
                 {
                     listenCancellationTokenSource.Cancel();
                     break;
@@ -289,7 +284,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (current.ConnectionTask.IsCompleted)
                 {
-                    Debug.Assert(current.ChangeKeepAliveTask == null);
+                    // https://github.com/dotnet/roslyn/issues/2866
+                    // Debug.Assert(current.ChangeKeepAliveTask == null);
 
                     if (current.ConnectionTask.Result == CompletionReason.ClientDisconnect)
                     {

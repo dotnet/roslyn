@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Diagnostics_DocumentOpen,
         Diagnostics_RemoveDocument,
         Diagnostics_RemoveProject,
+        Diagnostics_DocumentClose,
 
         // add new values after this
         Run_Environment,
@@ -297,8 +298,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Tagger_Diagnostics_Updated,
         SuggestedActions_HasSuggestedActionsAsync,
         SuggestedActions_GetSuggestedActions,
-        AnalyzerDependencyCheckingService_CheckForConflictsAsync,
+        AnalyzerDependencyCheckingService_LogConflict,
+        AnalyzerDependencyCheckingService_LogMissingDependency,
         VirtualMemory_MemoryLow,
         Extension_Exception,
+
+        WorkCoordinator_WaitForHigherPriorityOperationsAsync,
     }
 }

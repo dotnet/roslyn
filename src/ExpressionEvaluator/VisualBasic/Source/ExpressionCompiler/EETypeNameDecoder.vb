@@ -18,15 +18,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Protected Overrides Function GetIndexOfReferencedAssembly(identity As AssemblyIdentity) As Integer
-            Dim assemblies = GetAssemblies()
+            Dim assemblyIdentities = Me.Module.GetReferencedAssemblies()
             ' Find assembly matching identity.
-            Dim index = assemblies.IndexOf(Function(assembly, id) id.Equals(assembly.Identity), identity)
+            Dim index = assemblyIdentities.IndexOf(identity)
             If index >= 0 Then
                 Return index
             End If
             If identity.IsWindowsComponent() Then
                 ' Find placeholder Windows.winmd assembly (created
                 ' in MetadataUtilities.MakeAssemblyReferences).
+                Dim assemblies = Me.Module.GetReferencedAssemblySymbols()
                 index = assemblies.IndexOf(Function(assembly, unused) assembly.Identity.IsWindowsRuntime(), DirectCast(Nothing, Object))
                 If index >= 0 Then
                     ' Find module in Windows.winmd matching identity.
@@ -49,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Protected Overrides Function LookupTopLevelTypeDefSymbol(referencedAssemblyIndex As Integer, ByRef emittedName As MetadataTypeName) As TypeSymbol
-            Dim assembly = GetAssemblies()(referencedAssemblyIndex)
+            Dim assembly = Me.Module.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
             Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
         End Function
 
@@ -57,13 +58,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return moduleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
         End Function
 
-        Private Function GetAssemblies() As ImmutableArray(Of AssemblySymbol)
-            Return _compilation.Assembly.Modules.Single().GetReferencedAssemblySymbols()
-        End Function
-
         Private Shared Function GetComponentAssemblyIdentity([module] As ModuleSymbol) As AssemblyIdentity
             Return DirectCast([module], PEModuleSymbol).Module.ReadAssemblyIdentityOrThrow()
         End Function
+
+        Private ReadOnly Property [Module] As ModuleSymbol
+            Get
+                Return _compilation.Assembly.Modules.Single()
+            End Get
+        End Property
 
     End Class
 

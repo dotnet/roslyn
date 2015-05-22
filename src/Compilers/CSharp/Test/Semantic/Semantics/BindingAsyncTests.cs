@@ -890,7 +890,15 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (20,17): error CS1984: Cannot await in the body of a finally clause
+                //                 await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_BadAwaitInFinally, "await Task.Factory.StartNew(() => { })").WithLocation(20, 17),
+                // (30,17): error CS1984: Cannot await in the body of a finally clause
+                //                 await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_BadAwaitInFinally, "await Task.Factory.StartNew(() => { })").WithLocation(30, 17)
+                );
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -914,7 +922,12 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (12,13): error CS1985: Cannot await in a catch clause
+                //             await Task.Factory.StartNew(() => { });
+                Diagnostic(ErrorCode.ERR_BadAwaitInCatch, "await Task.Factory.StartNew(() => { })").WithLocation(12, 13)
+                );
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics();
         }
 
         [Fact]

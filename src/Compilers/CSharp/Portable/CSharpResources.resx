@@ -4407,6 +4407,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                diagnostics.
  /errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
                                diagnostics.
+ /reportanalyzer               Report additional analyzer information, such as
+                               execution time.
  
                         - LANGUAGE -
  /checked[+|-]                 Generate overflow checks
@@ -4594,6 +4596,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
+    <value>await in catch blocks and finally blocks</value>
+  </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>
   </data>
@@ -4630,7 +4635,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AlignmentMagnitude_Title" xml:space="preserve">
     <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
-  <data name="ERR_ContantStringTooLong" xml:space="preserve">
+  <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
 </root>

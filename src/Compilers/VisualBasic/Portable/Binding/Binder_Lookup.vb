@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' attribute
-            If Me.Compilation.SourceModule IsNot unwrappedSym.ContainingModule AndAlso unwrappedSym.IsHiddenByEmbeddedAttribute() Then
+            If unwrappedSym.ContainingModule IsNot Me.ContainingModule AndAlso unwrappedSym.IsHiddenByEmbeddedAttribute() Then
                 Return SingleLookupResult.Empty
             End If
 
@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim currentResult As SingleLookupResult = binder.CheckViability(sym, arity, options, Nothing, useSiteDiagnostics)
 
-                    lookupResult.MergeMembersOfTheSameNamespace(currentResult, sourceModule)
+                    lookupResult.MergeMembersOfTheSameNamespace(currentResult, sourceModule, options)
                 Next
             End Sub
 
@@ -1197,7 +1197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                Dim symbol = compilation.GetWellKnownTypeMember(WellKnownMember.My_InternalXmlHelper__Value)
+                Dim symbol = binder.GetInternalXmlHelperValueExtensionProperty()
                 Dim singleResult As SingleLookupResult
                 If symbol Is Nothing Then
                     ' Match the native compiler which reports ERR_XmlFeaturesNotAvailable in this case.

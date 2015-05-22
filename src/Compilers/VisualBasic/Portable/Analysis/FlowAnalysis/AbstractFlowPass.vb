@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' performance in unlikely but possible code such as this: "int x; if (cond) goto l1; x =
         ''' 3; l5: print x; l4: goto l5; l3: goto l4; l2: goto l3; l1: goto l2;"
         ''' </summary>
-        Private _labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
+        Private ReadOnly _labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
 
         ''' <summary> All of the labels seen so far in this forward scan of the body </summary>
         Private _labelsSeen As New HashSet(Of LabelSymbol)
@@ -1880,7 +1880,7 @@ lUnsplitAndFinish:
             VisitRvalue(node.StepValue)
         End Sub
 
-        Protected Overridable Sub VisitForStatementVariableDeclation(node As BoundForStatement)
+        Protected Overridable Sub VisitForStatementVariableDeclaration(node As BoundForStatement)
         End Sub
 
         Public Overrides Function VisitForEachStatement(node As BoundForEachStatement) As BoundNode
@@ -1890,7 +1890,7 @@ lUnsplitAndFinish:
             ' For example the following statement should give a warning:
             '          For each i As Object in Me.GetSomeCollection(i)        ' <- use of uninitialized i
 
-            VisitForStatementVariableDeclation(node)
+            VisitForStatementVariableDeclaration(node)
 
             VisitRvalue(node.Collection)
 
@@ -1940,7 +1940,7 @@ lUnsplitAndFinish:
             ' For example the following statement should give a warning:
             '          For i As Object = 0 To i        ' <- use of uninitialized i
 
-            VisitForStatementVariableDeclation(node)
+            VisitForStatementVariableDeclaration(node)
 
             VisitForInitValues(node)
 
@@ -2449,7 +2449,7 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitFieldOrPropertyInitializer(node As BoundFieldOrPropertyInitializer) As BoundNode
-            Visit(node.InitialValue)
+            VisitRvalue(node.InitialValue)
             Return Nothing
         End Function
 

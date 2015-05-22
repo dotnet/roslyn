@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (optionSet == null)
             {
-                throw new ArgumentNullException("OptionSet");
+                throw new ArgumentNullException(nameof(optionSet));
             }
 
             var changedOptions = new List<OptionChangedEventArgs>();

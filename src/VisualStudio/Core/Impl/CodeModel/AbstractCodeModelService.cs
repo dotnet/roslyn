@@ -110,8 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return TextSpan.FromBounds(startPosition, endPosition);
         }
 
-        protected abstract IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxTree syntaxTree);
-
         private IBidirectionalMap<SyntaxNodeKey, SyntaxNode> BuildNodeKeyMap(SyntaxTree syntaxTree)
         {
             var nameOrdinalMap = new Dictionary<string, int>();
@@ -194,8 +192,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract IEnumerable<SyntaxNode> GetInheritsNodes(SyntaxNode parent);
         public abstract IEnumerable<SyntaxNode> GetImplementsNodes(SyntaxNode parent);
         public abstract IEnumerable<SyntaxNode> GetParameterNodes(SyntaxNode parent);
-        public abstract IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxNode node);
-        protected abstract IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container);
+
+        protected IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxTree syntaxTree)
+        {
+            return GetMemberNodes(syntaxTree.GetRoot(), includeSelf: true, recursive: true, logicalFields: true, onlySupportedNodes: true);
+        }
+
+        protected IEnumerable<SyntaxNode> GetLogicalMemberNodes(SyntaxNode container)
+        {
+            return GetMemberNodes(container, includeSelf: false, recursive: false, logicalFields: true, onlySupportedNodes: false);
+        }
+
+        public IEnumerable<SyntaxNode> GetLogicalSupportedMemberNodes(SyntaxNode container)
+        {
+            return GetMemberNodes(container, includeSelf: false, recursive: false, logicalFields: true, onlySupportedNodes: true);
+        }
+
+        /// <summary>
+        /// Retrieves the members of a specified <paramref name="container"/> node. The members that are
+        /// returned can be controlled by passing various parameters.
+        /// </summary>
+        /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
+        /// <param name="includeSelf">If true, the container is returned as well.</param>
+        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// as immediate children. For example, a namespace would return the namespaces and types within.
+        /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
+        /// also be returned.</param>
+        /// <param name="logicalFields">If true, field declarations are broken into their respecitive declarators.
+        /// For example, the field "int x, y" would return two declarators, one for x and one for y in place
+        /// of the field.</param>
+        /// <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
+        public abstract IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes);
 
         public abstract string Language { get; }
         public abstract string AssemblyAttributeString { get; }
@@ -921,7 +948,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 containerNode,
                 fileCodeModel,
                 GetMemberIndexInContainer,
-                GetMemberNodes);
+                n => GetMemberNodes(n, includeSelf: false, recursive: false, logicalFields: false, onlySupportedNodes: false));
         }
 
         private int PositionVariantToInsertionIndex(
@@ -985,7 +1012,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             out TSyntaxNode insertAfterNode)
             where TSyntaxNode : SyntaxNode
         {
-            var childNodes = GetFlattenedMemberNodes(containerNode).ToArray();
+            var childNodes = GetLogicalMemberNodes(containerNode).ToArray();
 
             // Note: childIndexToInsertAfter is 1-based but can be 0, meaning insert before any other members.
             // If it isn't 0, it means to insert the member node *after* the node at the 1-based index.
@@ -1024,7 +1051,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private int GetMemberInsertionIndex(SyntaxNode container, int insertionIndex)
         {
-            var childNodes = GetFlattenedMemberNodes(container).ToArray();
+            var childNodes = GetLogicalMemberNodes(container).ToArray();
 
             // Note: childIndexToInsertAfter is 1-based but can be 0, meaning insert before any other members.
             // If it isn't 0, it means to insert the member node *after* the node at the 1-based index.
@@ -1037,7 +1064,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             else
             {
                 var nodeAtIndex = GetFieldFromVariableNode(childNodes[insertionIndex - 1]);
-                return GetMemberNodes(container).ToList().IndexOf(nodeAtIndex) + 1;
+                return GetMemberNodes(container, includeSelf: false, recursive: false, logicalFields: false, onlySupportedNodes: false).ToList().IndexOf(nodeAtIndex) + 1;
             }
         }
 

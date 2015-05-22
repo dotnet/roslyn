@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -14,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
 {
     public class SyntaxGeneratorTests
     {
-        private readonly SyntaxGenerator _g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
+        private readonly Workspace _ws;
+        private readonly SyntaxGenerator _g;
 
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
                 references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
@@ -23,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
 
         public SyntaxGeneratorTests()
         {
+            _ws = new AdhocWorkspace();
+            _g = SyntaxGenerator.GetGenerator(_ws, LanguageNames.CSharp);
             _ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
         }
 
@@ -104,6 +108,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
 
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(true), "true");
             VerifySyntax<LiteralExpressionSyntax>(_g.LiteralExpression(false), "false");
+        }
+
+        [Fact]
+        public void TestAttributeData()
+        {
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { }",
+@"[MyAttribute]")),
+@"[global::MyAttribute]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(object value) { } }",
+@"[MyAttribute(null)]")),
+@"[global::MyAttribute(null)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(int value) { } }",
+@"[MyAttribute(123)]")),
+@"[global::MyAttribute(123)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(double value) { } }",
+@"[MyAttribute(12.3)]")),
+@"[global::MyAttribute(12.3)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(string value) { } }",
+@"[MyAttribute(""value"")]")),
+@"[global::MyAttribute(""value"")]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public enum E { A, B, C }
+public class MyAttribute : Attribute { public MyAttribute(E value) { } }",
+@"[MyAttribute(E.A)]")),
+@"[global::MyAttribute(global::E.A)]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
+@"[MyAttribute(typeof(MyAttribute))]")),
+@"[global::MyAttribute(typeof (global::MyAttribute))]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
+@"[MyAttribute(new [] {1, 2, 3})]")),
+@"[global::MyAttribute(new[]{1, 2, 3})]");
+
+            VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
+@"using System; 
+public class MyAttribute : Attribute { public int Value {get; set;} }",
+@"[MyAttribute(Value = 123)]")),
+@"[global::MyAttribute(Value = 123)]");
+
+        }
+
+        private AttributeData GetAttributeData(string decl, string use)
+        {
+            var compilation = Compile(decl + "\r\n" + use + "\r\nclass C { }");
+            var typeC = compilation.GlobalNamespace.GetMembers("C").First() as INamedTypeSymbol;
+            return typeC.GetAttributes().First();
         }
 
         [Fact]
@@ -296,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         {
             VerifySyntax<BinaryExpressionSyntax>(_g.IsTypeExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) is y");
             VerifySyntax<BinaryExpressionSyntax>(_g.TryCastExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) as y");
+            VerifySyntax<TypeOfExpressionSyntax>(_g.TypeOfExpression(_g.IdentifierName("x")), "typeof (x)");
         }
 
         [Fact]
@@ -566,9 +638,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                 _g.VoidReturningLambdaExpression(new[] { _g.LambdaParameter("x", _g.IdentifierName("y")), _g.LambdaParameter("a", _g.IdentifierName("b")) }, _g.IdentifierName("z")),
                 "(y x, b a) => z");
         }
-        #endregion
+#endregion
 
-        #region Declarations
+#region Declarations
         [Fact]
         public void TestFieldDeclarations()
         {
@@ -799,6 +871,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                     _g.IndexerDeclaration(parameters: new[] { _g.ParameterDeclaration("p", _g.IdentifierName("a")) }, type: _g.IdentifierName("t"), accessibility: Accessibility.Internal, modifiers: DeclarationModifiers.Abstract),
                     _g.IdentifierName("i")),
                 "public t this[a p]\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n}");
+
+            // convert private to public
+            var pim = _g.AsPrivateInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType: _g.IdentifierName("t"), accessibility: Accessibility.Private, modifiers: DeclarationModifiers.Abstract),
+                    _g.IdentifierName("i"));
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2")),
+                "public t m()\r\n{\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+                "public t m2()\r\n{\r\n}");
         }
 
         [Fact]
@@ -827,6 +912,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
                     _g.CustomEventDeclaration("ep", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract),
                     _g.IdentifierName("i")),
                 "event t i.ep\r\n{\r\n    add\r\n    {\r\n    }\r\n\r\n    remove\r\n    {\r\n    }\r\n}");
+
+            // convert public to private
+            var pim = _g.AsPublicInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType: _g.IdentifierName("t"), accessibility: Accessibility.Private, modifiers: DeclarationModifiers.Abstract),
+                    _g.IdentifierName("i"));
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2")),
+                "t i2.m()\r\n{\r\n}");
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+                "t i2.m2()\r\n{\r\n}");
         }
 
         [Fact]
@@ -1224,10 +1322,6 @@ public class C { } // end").Members[0];
 
             var attrWithComment = _g.GetAttributes(added).First();
             VerifySyntax<AttributeListSyntax>(attrWithComment, "// comment\r\n[a]");
-
-            // added attributes are stripped of trivia
-            var added2 = _g.AddAttributes(cls, attrWithComment);
-            VerifySyntax<ClassDeclarationSyntax>(added2, "// comment\r\n[a]\r\npublic class C\r\n{\r\n} // end\r\n");
         }
 
         [Fact]
@@ -1400,9 +1494,9 @@ public class C { } // end").Members[0];
     }
 }");
         }
-        #endregion
+#endregion
 
-        #region Add/Insert/Remove/Get declarations & members/elements
+#region Add/Insert/Remove/Get declarations & members/elements
 
         private void AssertNamesEqual(string[] expectedNames, IEnumerable<SyntaxNode> actualNodes)
         {
@@ -2777,6 +2871,32 @@ public void M()
 {
 }");
         }
+
+        [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void IntroduceBaseList()
+        {
+            var text = @"
+public class C
+{
+}
+";
+            var expected = @"
+public class C : IDisposable
+{
+}
+";
+
+            var root = SyntaxFactory.ParseCompilationUnit(text);
+            var decl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            var newDecl = _g.AddInterfaceType(decl, _g.IdentifierName("IDisposable"));
+            var newRoot = root.ReplaceNode(decl, newDecl);
+
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws).ToFullString();
+            Assert.Equal(expected, elasticOnlyFormatted);
+        }
+
         #endregion
     }
 }

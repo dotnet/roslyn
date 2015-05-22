@@ -80,6 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private bool _pushingChangesToWorkspaceHosts;
 
+        /// <summary>
+        /// Guid of the _hierarchy
+        /// 
+        /// it is not readonly since it can be changed while loading project
+        /// </summary>
+        private Guid _guid;
+
         // PERF: Create these event handlers once to be shared amongst all documents (the sender arg identifies which document and project)
         private static readonly EventHandler<bool> s_documentOpenedEventHandler = OnDocumentOpened;
         private static readonly EventHandler<bool> s_documentClosingEventHandler = OnDocumentClosing;
@@ -101,18 +108,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Contract.ThrowIfNull(projectSystemName);
 
-            _language = language;
             this.ServiceProvider = serviceProvider;
+
+            _language = language;
             _hierarchy = hierarchy;
 
+            // get project id guid
+            _guid = GetProjectIDGuid(hierarchy);
+
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-
             _contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
-            this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
 
-            this.DisplayName = _projectSystemName;
-            _projectSystemName = projectSystemName;
+            this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            this.DisplayName = projectSystemName;
             this.ProjectTracker = projectTracker;
+
+            _projectSystemName = projectSystemName;
             _miscellaneousFilesWorkspaceOpt = miscellaneousFilesWorkspaceOpt;
             _visualStudioWorkspaceOpt = visualStudioWorkspaceOpt;
             _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSourceOpt;
@@ -137,6 +148,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ConnectHierarchyEvents();
 
             SetIsWebstite(hierarchy);
+        }
+
+        private Guid GetProjectIDGuid(IVsHierarchy hierarchy)
+        {
+            Guid guid;
+            if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out guid))
+            {
+                return guid;
+            }
+
+            return Guid.Empty;
         }
 
         private void SetIsWebstite(IVsHierarchy hierarchy)
@@ -178,53 +200,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// A full path to the project obj output binary, or null if the project doesn't have an obj output binary.
         /// </summary>
-        internal string TryGetObjOutputPath()
-        {
-            return _objOutputPathOpt;
-        }
+        internal string TryGetObjOutputPath() => _objOutputPathOpt;
 
         /// <summary>
         /// A full path to the project bin output binary, or null if the project doesn't have an bin output binary.
         /// </summary>
-        internal string TryGetBinOutputPath()
-        {
-            return _binOutputPathOpt;
-        }
+        internal string TryGetBinOutputPath() => _binOutputPathOpt;
 
-        internal VisualStudioWorkspaceImpl VisualStudioWorkspace
-        {
-            get { return _visualStudioWorkspaceOpt; }
-        }
+        internal VisualStudioWorkspaceImpl VisualStudioWorkspace => _visualStudioWorkspaceOpt;
 
-        internal IRuleSetFile RuleSetFile
-        {
-            get { return this.ruleSet; }
-        }
+        internal IRuleSetFile RuleSetFile => this.ruleSet;
 
-        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource
-        {
-            get { return _hostDiagnosticUpdateSourceOpt; }
-        }
+        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource => _hostDiagnosticUpdateSourceOpt;
 
-        public ProjectId Id
-        {
-            get { return _id; }
-        }
+        public ProjectId Id => _id;
 
-        public string Language
-        {
-            get { return _language; }
-        }
+        public string Language => _language;
 
-        public IVsHierarchy Hierarchy
-        {
-            get { return _hierarchy; }
-        }
+        public IVsHierarchy Hierarchy => _hierarchy;
 
-        public Workspace Workspace
-        {
-            get { return (Workspace)_visualStudioWorkspaceOpt ?? _miscellaneousFilesWorkspaceOpt; }
-        }
+        public Guid Guid => _guid;
+
+        public Workspace Workspace => (Workspace)_visualStudioWorkspaceOpt ?? _miscellaneousFilesWorkspaceOpt;
+
+        public VersionStamp Version => _version;
 
         /// <summary>
         /// The containing directory of the project. Null if none exists (consider Venus.)
@@ -242,11 +241,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
             }
-        }
-
-        public VersionStamp Version
-        {
-            get { return _version; }
         }
 
         /// <summary>
@@ -420,9 +414,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (ProjectTracker.TryGetProjectByBinPath(filePath, out project))
             {
                 var projectReference = new ProjectReference(project.Id, properties.Aliases, properties.EmbedInteropTypes);
-                AddProjectReference(projectReference);
-                _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
-                return VSConstants.S_OK;
+                if (CanAddProjectReference(projectReference))
+                {
+                    AddProjectReference(projectReference);
+                    _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
+                    return VSConstants.S_OK;
+                }
             }
 
             if (!File.Exists(filePath))
@@ -518,7 +515,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected void AddProjectReference(ProjectReference projectReference)
         {
             // dev11 is sometimes calling us multiple times for the same data
-            if (_projectReferences.Contains(projectReference))
+            if (!CanAddProjectReference(projectReference))
             {
                 return;
             }
@@ -535,6 +532,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectReferenceAdded(this.Id, projectReference));
             }
+        }
+
+        protected bool CanAddProjectReference(ProjectReference projectReference)
+        {
+            if (projectReference.ProjectId == this.Id)
+            {
+                // cannot self reference
+                return false;
+            }
+
+            if (_projectReferences.Contains(projectReference))
+            {
+                // already have this reference
+                return false;
+            }
+
+            var project = this.ProjectTracker.GetProject(projectReference.ProjectId);
+            if (project != null)
+            {
+                // cannot add a reference to a project that references us (it would make a cycle)
+                return !project.TransitivelyReferences(this.Id);
+            }
+
+            return true;
+        }
+
+        private bool TransitivelyReferences(ProjectId projectId)
+        {
+            return TransitivelyReferencesWorker(projectId, new HashSet<ProjectId>());
+        }
+
+        private bool TransitivelyReferencesWorker(ProjectId projectId, HashSet<ProjectId> visited)
+        {
+            visited.Add(this.Id);
+
+            foreach (var pr in this._projectReferences)
+            {
+                if (projectId == pr.ProjectId)
+                {
+                    return true;
+                }
+
+                if (!visited.Contains(pr.ProjectId))
+                {
+                    var project = this.ProjectTracker.GetProject(pr.ProjectId);
+                    if (project != null)
+                    {
+                        if (project.TransitivelyReferencesWorker(projectId, visited))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected void RemoveProjectReference(ProjectReference projectReference)
@@ -809,10 +862,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     metadataReference.Properties.Aliases,
                     metadataReference.Properties.EmbedInteropTypes);
 
-                RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
-                AddProjectReference(projectReference);
+                if (CanAddProjectReference(projectReference))
+                {
+                    RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
+                    AddProjectReference(projectReference);
 
-                _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                    _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
+                }
             }
         }
 

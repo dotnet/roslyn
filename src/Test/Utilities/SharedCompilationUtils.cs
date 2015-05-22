@@ -8,12 +8,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using PDB::Roslyn.Test.MetadataUtilities;
 using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return methodData;
         }
-
+        
         internal static void VerifyIL(
             this CompilationTestData.MethodData method,
             string expectedIL,
@@ -311,6 +313,39 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(0, reader.ReadByte());
         }
 
+        public static void VerifyMetadataEqualModuloMvid(Stream peStream1, Stream peStream2)
+        {
+            peStream1.Position = 0;
+            peStream2.Position = 0;
+
+            var peReader1 = new PEReader(peStream1);
+            var peReader2 = new PEReader(peStream2);
+
+            var md1 = peReader1.GetMetadata().GetContent();
+            var md2 = peReader2.GetMetadata().GetContent();
+
+            var mdReader1 = peReader1.GetMetadataReader();
+            var mdReader2 = peReader2.GetMetadataReader();
+
+            var mvidIndex1 = mdReader1.GetModuleDefinition().Mvid;
+            var mvidIndex2 = mdReader2.GetModuleDefinition().Mvid;
+
+            var mvidOffset1 = mdReader1.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex1) - 1);
+            var mvidOffset2 = mdReader2.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex2) - 1);
+
+            if (!md1.RemoveRange(mvidOffset1, 16).SequenceEqual(md1.RemoveRange(mvidOffset2, 16)))
+            {
+                var mdw1 = new StringWriter();
+                var mdw2 = new StringWriter();
+                new MetadataVisualizer(mdReader1, mdw1).Visualize();
+                new MetadataVisualizer(mdReader2, mdw2).Visualize();
+                mdw1.Flush();
+                mdw2.Flush();
+
+                AssertEx.AssertResultsEqual(mdw1.ToString(), mdw2.ToString());
+            }
+        }
+
         internal static string GetMethodIL(this CompilationTestData.MethodData method)
         {
             return ILBuilderVisualizer.ILBuilderToString(method.ILBuilder);
@@ -343,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, out string assemblyPath, out string pdbPath)
         {
-            if (declarations == null) throw new ArgumentNullException("declarations");
+            if (declarations == null) throw new ArgumentNullException(nameof(declarations));
 
             using (var sourceFile = new DisposableFile(extension: ".il"))
             {
@@ -385,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     sourceFile.Path,
                     assemblyPath);
 
-                if (includePdb)
+                if (includePdb && !CLRHelpers.IsRunningOnMono())
                 {
                     pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
                     arguments += string.Format(" /PDB=\"{0}\"", pdbPath);
@@ -395,13 +430,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     pdbPath = null;
                 }
 
-                var result = ProcessLauncher.Run(ilasmPath, arguments);
+                var program = ilasmPath;
+                if (CLRHelpers.IsRunningOnMono())
+                {
+                    arguments = string.Format("{0} {1}", ilasmPath, arguments);
+                    arguments = arguments.Replace("\"", "");
+                    arguments = arguments.Replace("=", ":");
+                    program = "mono";
+                }
+
+                var result = ProcessLauncher.Run(program, arguments);
 
                 if (result.ContainsErrors)
                 {
                     throw new ArgumentException(
                         "The provided IL cannot be compiled." + Environment.NewLine +
-                        ilasmPath + " " + arguments + Environment.NewLine +
+                        program + " " + arguments + Environment.NewLine +
                         result,
                         "declarations");
                 }
@@ -417,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </returns>
         public static string RunPEVerify(byte[] assembly)
         {
-            if (assembly == null) throw new ArgumentNullException("assembly");
+            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
             var pathToPEVerify = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),

@@ -127,13 +127,13 @@
     <value>Insert Snippet</value>
   </data>
   <data name="FormatOnCloseBraceCheckBox" xml:space="preserve">
-    <value>Automatically format completed _block on }</value>
+    <value>Automatically format _block on }</value>
   </data>
   <data name="FormatOnPasteCheckBox" xml:space="preserve">
     <value>Automatically format on _paste</value>
   </data>
   <data name="FormatOnSemicolonCheckBox" xml:space="preserve">
-    <value>Automatically format completed _statement on ;</value>
+    <value>Automatically format _statement on ;</value>
   </data>
   <data name="NewLineForMembersInAnonymousTypes" xml:space="preserve">
     <value>Place members in anonymous types on new line</value>
@@ -398,5 +398,8 @@
   </data>
   <data name="Option_SelectionInCompletionList" xml:space="preserve">
     <value>Selection In Completion List</value>
+  </data>
+  <data name="Option_RenameTrackingPreview" xml:space="preserve">
+    <value>Show preview for _rename tracking</value>
   </data>
 </root>

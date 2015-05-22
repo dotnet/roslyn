@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private int _nextTransparentIdentifierNumber = 0;
+            private int _nextTransparentIdentifierNumber;
 
             internal string TransparentRangeVariableName()
             {

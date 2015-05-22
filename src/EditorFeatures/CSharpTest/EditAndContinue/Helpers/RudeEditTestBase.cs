@@ -2,17 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -21,11 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         internal static readonly CSharpEditAndContinueAnalyzer Analyzer = new CSharpEditAndContinueAnalyzer();
 
-        internal enum StateMachineKind
+        internal enum MethodKind
         {
-            None,
+            Regular,
             Async,
             Iterator,
+            ConstructorWithParameters
         }
 
         internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
@@ -63,24 +60,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return match.GetTreeEdits();
         }
 
-        internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, ParseOptions options = null, StateMachineKind stateMachine = StateMachineKind.None)
+        internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
         {
-            var match = GetMethodMatch(src1, src2, options, stateMachine);
+            var match = GetMethodMatch(src1, src2, options, kind);
             return match.GetTreeEdits();
         }
 
-        internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, ParseOptions options = null, StateMachineKind stateMachine = StateMachineKind.None)
+        internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
         {
-            var m1 = MakeMethodBody(src1, options, stateMachine);
-            var m2 = MakeMethodBody(src2, options, stateMachine);
+            var m1 = MakeMethodBody(src1, options, kind);
+            var m2 = MakeMethodBody(src2, options, kind);
 
             var diagnostics = new List<RudeEditDiagnostic>();
             bool needsSyntaxMap;
             var match = Analyzer.ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out needsSyntaxMap);
 
-            Assert.Equal(stateMachine != StateMachineKind.None, needsSyntaxMap);
+            Assert.Equal(kind != MethodKind.Regular && kind != MethodKind.ConstructorWithParameters, needsSyntaxMap);
 
-            if (stateMachine == StateMachineKind.None)
+            if (kind == MethodKind.Regular || kind == MethodKind.ConstructorWithParameters)
             {
                 Assert.Empty(diagnostics);
             }
@@ -88,9 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return match;
         }
 
-        internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, ParseOptions options = null, StateMachineKind stateMachine = StateMachineKind.None)
+        internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
         {
-            var methodMatch = GetMethodMatch(src1, src2, options, stateMachine);
+            var methodMatch = GetMethodMatch(src1, src2, options, kind);
             return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch);
         }
 
@@ -107,17 +104,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static BlockSyntax MakeMethodBody(
             string bodySource,
             ParseOptions options = null,
-            StateMachineKind stateMachine = StateMachineKind.None)
+            MethodKind kind = MethodKind.Regular)
         {
             string source;
-            switch (stateMachine)
+            switch (kind)
             {
-                case StateMachineKind.Iterator:
+                case MethodKind.Iterator:
                     source = "class C { IEnumerable<int> F() { " + bodySource + " } }";
                     break;
 
-                case StateMachineKind.Async:
+                case MethodKind.Async:
                     source = "class C { async Task<int> F() { " + bodySource + " } }";
+                    break;
+
+                case MethodKind.ConstructorWithParameters:
+                    source = "class C { C" + bodySource + " }";
                     break;
 
                 default:
@@ -130,13 +131,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             tree.GetDiagnostics().Verify();
 
-            var declaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)root).Members[0]).Members[0];
+            var declaration = (BaseMethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)root).Members[0]).Members[0];
 
             // We need to preserve the parent node to allow detection of state machine methods in the analyzer.
             // If we are not testing a state machine method we only use the body to avoid updating positions in all existing tests.
-            if (stateMachine != StateMachineKind.None)
+            if (kind != MethodKind.Regular)
             {
-                return ((MethodDeclarationSyntax)SyntaxFactory.SyntaxTree(declaration).GetRoot()).Body;
+                return ((BaseMethodDeclarationSyntax)SyntaxFactory.SyntaxTree(declaration).GetRoot()).Body;
             }
 
             return (BlockSyntax)SyntaxFactory.SyntaxTree(declaration.Body).GetRoot();

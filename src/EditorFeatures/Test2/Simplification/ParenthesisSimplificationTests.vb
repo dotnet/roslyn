@@ -1003,8 +1003,82 @@ class Program
             Test(input, expected)
 
         End Sub
-
 #End Region
 
+        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var x = new List&lt;int&gt;();
+        int i = {|Simplify:({|Simplify:(int?)x?.Count|})|}.GetValueOrDefault();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var x = new List&lt;int&gt;();
+        int i = (x?.Count).GetValueOrDefault();
+    }
+}
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim x = New List(Of Integer)
+        Dim i = {|Simplify:({|Simplify:CType(x?.Count, Integer?)|})|}.GetValueOrDefault()
+    End Sub
+End Module
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim x = New List(Of Integer)
+        Dim i = (x?.Count).GetValueOrDefault()
+    End Sub
+End Module
+</code>
+
+            Test(input, expected)
+        End Sub
     End Class
 End Namespace

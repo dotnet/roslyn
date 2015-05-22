@@ -1072,7 +1072,7 @@ End Class";
                 var expected = @"Friend Partial NotInheritable Class C ' Comment 1
     ' Comment 2
 End Class";
-                var eol = VB.SyntaxFactory.EndOfLine(@"", elastic: false);
+                var eol = VB.SyntaxFactory.EndOfLine(@"");
                 var newModifiers = new[] { VB.SyntaxFactory.Token(VB.SyntaxKind.FriendKeyword).WithLeadingTrivia(eol) }.Concat(
                     CreateModifierTokens(new DeclarationModifiers(isSealed: true, isPartial: true), LanguageNames.VisualBasic));
 

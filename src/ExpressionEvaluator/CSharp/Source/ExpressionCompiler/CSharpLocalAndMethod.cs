@@ -11,13 +11,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
 
-        public CSharpLocalAndMethod(string localName, MethodSymbol method, DkmClrCompilationResultFlags flags)
-            : base(localName, method.Name, flags)
+        public CSharpLocalAndMethod(string name, string displayName, MethodSymbol method, DkmClrCompilationResultFlags flags)
+            : base(name, displayName, method.Name, flags)
         {
             Debug.Assert(method is EEMethodSymbol); // Expected but not required.
             _method = method;
         }
 
+        /// <remarks>
+        /// The custom type info payload depends on the return type, which is not available when
+        /// <see cref="CSharpLocalAndMethod"/> is created.
+        /// </remarks>
         public override CustomTypeInfo GetCustomTypeInfo() =>
             new CustomTypeInfo(DynamicFlagsCustomTypeInfo.PayloadTypeId, _method.GetCustomTypeInfoPayload());
     }

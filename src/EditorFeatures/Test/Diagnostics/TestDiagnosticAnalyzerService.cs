@@ -68,6 +68,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            public override string Display
+            {
+                get
+                {
+                    return nameof(TestAnalyzerReferenceByLanguage);
+                }
+            }
+
+            public override object Id
+            {
+                get
+                {
+                    return Display;
+                }
+            }
+
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
             {
                 return _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();

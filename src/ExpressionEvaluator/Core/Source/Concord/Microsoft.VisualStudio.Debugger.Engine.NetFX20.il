@@ -3310,6 +3310,7 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmEventCode' 'TaskProviderCreate' = int32(0x00000020)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmEventCode' 'ThreadCreate' = int32(0x00000021)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmEventCode' 'ThreadExit' = int32(0x00000022)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmEventCode' 'ThreadNameChange' = int32(0x00000029)
 	}
 	.class public 'DkmEventDescriptor'
 		extends ['mscorlib']'System'.'Object'
@@ -4887,6 +4888,16 @@
 			ret
 		}
 		.method public hidebysig 
+			instance void 'RemoveExceptionTrigger'(valuetype ['mscorlib']'System'.'Guid' 'SourceId', class 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmExceptionTrigger' 'Trigger')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance void 'RemoveExceptionTrigger'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', valuetype ['mscorlib']'System'.'Guid' 'SourceId', class 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmExceptionTrigger' 'Trigger', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmRemoveExceptionTriggerAsyncResult'> 'CompletionRoutine')
+		{
+			ret
+		}
+		.method public hidebysig 
 			instance void 'QueryPerformanceCounters'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger'.'DkmPerformanceCountersAsyncResult'> 'CompletionRoutine')
 		{
 			ret
@@ -5820,6 +5831,11 @@
 		}
 		.method public hidebysig 
 			instance uint64 'GetThreadCurrentWinRtErrorInfo'()
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance void 'OnThreadNameChange'()
 		{
 			ret
 		}
@@ -9267,6 +9283,80 @@
 }
 .namespace 'Microsoft.VisualStudio.Debugger.Clr'
 {
+	.class public 'DkmClrAlias'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 30 34 61 30 62 32 34 63 2D 30 38 66 66 2D 31 34 63 32 2D 66 31 33 31 2D 39 65 63 30 31 62 63 31 64 61 65 31 00 00)
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'get_Kind'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_Name'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_FullName'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_Type'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance valuetype ['mscorlib']'System'.'Guid' 'get_CustomTypeInfoPayloadTypeId'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'get_CustomTypeInfoPayload'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'Kind', string 'Name', string 'FullName', string 'Type', valuetype ['mscorlib']'System'.'Guid' 'CustomTypeInfoPayloadTypeId', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'CustomTypeInfoPayload')
+		{
+			ret
+		}
+		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'CustomTypeInfoPayload'()
+		{
+			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'::'get_CustomTypeInfoPayload'()
+		}
+		.property instance valuetype ['mscorlib']'System'.'Guid' 'CustomTypeInfoPayloadTypeId'()
+		{
+			.get instance valuetype ['mscorlib']'System'.'Guid' 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'::'get_CustomTypeInfoPayloadTypeId'()
+		}
+		.property instance string 'FullName'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'::'get_FullName'()
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'Kind'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'::'get_Kind'()
+		}
+		.property instance string 'Name'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'::'get_Name'()
+		}
+		.property instance string 'Type'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'::'get_Type'()
+		}
+	}
+	.class public sealed 'DkmClrAliasKind'
+		extends ['mscorlib']'System'.'Enum'
+	{
+		.field public rtspecialname specialname int32 'value__'
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'Exception' = int32(0x00000000)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'ObjectId' = int32(0x00000004)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'ReturnValue' = int32(0x00000002)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'StowedException' = int32(0x00000001)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAliasKind' 'Variable' = int32(0x00000003)
+	}
 	.class public 'DkmClrAppDomain'
 		extends 'Microsoft.VisualStudio.Debugger'.'DkmDataContainer'
 		implements ['mscorlib']'System'.'IDisposable'
@@ -10077,7 +10167,7 @@
 			ret
 		}
 		.method public hidebysig 
-			instance string 'GetObjectTypeByAlias'(string 'Alias')
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'> 'GetAliases'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'InspectionContext')
 		{
 			ret
 		}
@@ -11748,27 +11838,7 @@
 		{
 		}
 		.method public virtual hidebysig newslot abstract 
-			instance class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext' 'EnumClrDebuggerGeneratedLocals'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'inspectionContext', class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'stackFrame')
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance void 'GetItemsForLocalsEnum'(class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext' 'clrDebuggerGeneratedLocalEnumContext', class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'workList', int32 'startIndex', int32 'count', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalsAsyncResult'> 'completionRoutine')
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string 'GetClrReturnValueType'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'inspectionContext', int32 'index')
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string 'GetObjectTypeByAlias'(class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrRuntimeInstance' 'clrRuntimeInstance', string 'alias')
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string 'GetClrExceptionType'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'inspectionContext', class 'Microsoft.VisualStudio.Debugger'.'DkmThread' 'thread')
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
-			instance string 'GetClrStowedExceptionType'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'inspectionContext')
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAlias'> 'GetAliases'(class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrRuntimeInstance' 'clrRuntimeInstance', class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'inspectionContext')
 		{
 		}
 	}
@@ -12247,6 +12317,13 @@
 		}
 		.method public virtual hidebysig newslot abstract 
 			instance void 'ClearExceptionTriggers'(class 'Microsoft.VisualStudio.Debugger'.'DkmProcess' 'process', valuetype ['mscorlib']'System'.'Guid' 'sourceId')
+		{
+		}
+	}
+	.class public interface abstract 'IDkmExceptionManager140'
+	{
+		.method public virtual hidebysig newslot abstract 
+			instance void 'RemoveExceptionTrigger'(class 'Microsoft.VisualStudio.Debugger'.'DkmProcess' 'process', valuetype ['mscorlib']'System'.'Guid' 'sourceId', class 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmExceptionTrigger' 'trigger')
 		{
 		}
 	}
@@ -13995,6 +14072,13 @@
 	{
 		.method public virtual hidebysig newslot abstract 
 			instance void 'GetCurrentLocation'(class 'Microsoft.VisualStudio.Debugger'.'DkmThread' 'thread', class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'workList', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmGetCurrentLocationAsyncResult'> 'completionRoutine')
+		{
+		}
+	}
+	.class public interface abstract 'IDkmThreadNameChangeNotification'
+	{
+		.method public virtual hidebysig newslot abstract 
+			instance void 'OnThreadNameChange'(class 'Microsoft.VisualStudio.Debugger'.'DkmThread' 'thread', class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'workList', class 'Microsoft.VisualStudio.Debugger'.'DkmEventDescriptor' 'eventDescriptor')
 		{
 		}
 	}
@@ -17251,26 +17335,6 @@
 			ret
 		}
 		.method public hidebysig 
-			instance class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext' 'EnumClrDebuggerGeneratedLocals'(class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'StackFrame')
-		{
-			ret
-		}
-		.method public hidebysig 
-			instance string 'GetClrReturnValueType'(int32 'Index')
-		{
-			ret
-		}
-		.method public hidebysig 
-			instance string 'GetClrExceptionType'(class 'Microsoft.VisualStudio.Debugger'.'DkmThread' 'Thread')
-		{
-			ret
-		}
-		.method public hidebysig 
-			instance string 'GetClrStowedExceptionType'()
-		{
-			ret
-		}
-		.method public hidebysig 
 			instance void 'EvaluateReturnValue2'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'StackFrame', class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmRawReturnValueContainer' 'RawReturnValue', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluateReturnValueAsyncResult2'> 'CompletionRoutine')
 		{
 			ret
@@ -18445,122 +18509,6 @@
 			.get instance string 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerDisplayAttribute'::'get_Value'()
 		}
 	}
-	.class public 'DkmClrDebuggerGeneratedLocalEnumContext'
-		extends 'Microsoft.VisualStudio.Debugger'.'DkmDataContainer'
-		implements ['mscorlib']'System'.'IDisposable'
-	{
-		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 37 64 36 65 62 34 61 34 2D 38 31 35 35 2D 33 62 39 62 2D 34 36 37 65 2D 34 61 31 31 64 36 30 63 37 30 32 31 00 00)
-		.method private final virtual hidebysig newslot 
-			instance void 'System.IDisposable.Dispose'()
-		{
-			.override ['mscorlib']'System'.'IDisposable'::'Dispose'
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'get_InspectionContext'()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'get_StackFrame'()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance int32 'get_Count'()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance valuetype ['mscorlib']'System'.'Guid' 'get_UniqueId'()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionSession' 'get_InspectionSession'()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstance' 'get_RuntimeInstance'()
-		{
-			ret
-		}
-		.method public hidebysig 
-			instance void 'Close'()
-		{
-			ret
-		}
-		.method public static hidebysig 
-			class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext' 'Create'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'InspectionContext', class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'StackFrame', int32 'Count', class 'Microsoft.VisualStudio.Debugger'.'DkmDataItem' 'DataItem')
-		{
-			ret
-		}
-		.method public hidebysig 
-			instance void 'GetItems'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', int32 'StartIndex', int32 'Count', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalsAsyncResult'> 'CompletionRoutine')
-		{
-			ret
-		}
-		.property instance int32 'Count'()
-		{
-			.get instance int32 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext'::'get_Count'()
-		}
-		.property instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'InspectionContext'()
-		{
-			.get instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext'::'get_InspectionContext'()
-		}
-		.property instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionSession' 'InspectionSession'()
-		{
-			.get instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionSession' 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext'::'get_InspectionSession'()
-		}
-		.property instance class 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstance' 'RuntimeInstance'()
-		{
-			.get instance class 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstance' 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext'::'get_RuntimeInstance'()
-		}
-		.property instance class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'StackFrame'()
-		{
-			.get instance class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext'::'get_StackFrame'()
-		}
-		.property instance valuetype ['mscorlib']'System'.'Guid' 'UniqueId'()
-		{
-			.get instance valuetype ['mscorlib']'System'.'Guid' 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalEnumContext'::'get_UniqueId'()
-		}
-	}
-	.class public sealed 'DkmClrDebuggerGeneratedLocalsAsyncResult'
-		extends ['mscorlib']'System'.'ValueType'
-	{
-		.method public static hidebysig 
-			valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalsAsyncResult' 'CreateErrorResult'(class ['mscorlib']'System'.'Exception' 'exception')
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance int32 'get_ErrorCode'()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResult'[] 'get_Items'()
-		{
-			ret
-		}
-		.method public hidebysig specialname 
-			instance void '.ctor'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResult'[] 'Items')
-		{
-			ret
-		}
-
-		//This private field was generated by ASMMETA as a placeholder and does not exist in the actual assembly.
-		.field private int32 __Asmmeta_Private_Field
-		.property instance int32 'ErrorCode'()
-		{
-			.get instance int32 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalsAsyncResult'::'get_ErrorCode'()
-		}
-		.property instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResult'[] 'Items'()
-		{
-			.get instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResult'[] 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrDebuggerGeneratedLocalsAsyncResult'::'get_Items'()
-		}
-	}
 	.class public 'DkmClrDebuggerTypeProxyAttribute'
 		extends 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrEvalAttribute'
 	{
@@ -18704,6 +18652,11 @@
 			ret
 		}
 		.method public hidebysig specialname 
+			instance string 'get_FullName'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
 			instance string 'get_MethodName'()
 		{
 			ret
@@ -18724,7 +18677,7 @@
 			ret
 		}
 		.method public static hidebysig 
-			class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrLocalVariableInfo' 'Create'(string 'VariableName', string 'MethodName', valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCompilationResultFlags' 'CompilationFlags', valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResultCategory' 'ResultCategory', class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo' 'CustomTypeInfo')
+			class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrLocalVariableInfo' 'Create'(string 'VariableName', string 'FullName', string 'MethodName', valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCompilationResultFlags' 'CompilationFlags', valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResultCategory' 'ResultCategory', class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo' 'CustomTypeInfo')
 		{
 			ret
 		}
@@ -18735,6 +18688,10 @@
 		.property instance class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo' 'CustomTypeInfo'()
 		{
 			.get instance class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo' 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrLocalVariableInfo'::'get_CustomTypeInfo'()
+		}
+		.property instance string 'FullName'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrLocalVariableInfo'::'get_FullName'()
 		}
 		.property instance string 'MethodName'()
 		{
@@ -21760,6 +21717,27 @@
 		.property instance class 'Microsoft.VisualStudio.Debugger'.'DkmThread' 'Thread'()
 		{
 			.get instance class 'Microsoft.VisualStudio.Debugger'.'DkmThread' 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmExceptionTriggerHit'::'get_Thread'()
+		}
+	}
+	.class public sequential sealed 'DkmRemoveExceptionTriggerAsyncResult'
+		extends ['mscorlib']'System'.'ValueType'
+	{
+		.method public static hidebysig 
+			valuetype 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmRemoveExceptionTriggerAsyncResult' 'CreateErrorResult'(class ['mscorlib']'System'.'Exception' 'exception')
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance int32 'get_ErrorCode'()
+		{
+			ret
+		}
+
+		//This private field was generated by ASMMETA as a placeholder and does not exist in the actual assembly.
+		.field private int32 __Asmmeta_Private_Field
+		.property instance int32 'ErrorCode'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmRemoveExceptionTriggerAsyncResult'::'get_ErrorCode'()
 		}
 	}
 	.class public 'DkmStowedExceptionInformation'

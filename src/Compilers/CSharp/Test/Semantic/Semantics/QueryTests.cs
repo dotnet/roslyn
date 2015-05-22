@@ -1593,7 +1593,7 @@ public class QueryExpressionTest
         }
 
         [WorkItem(543787, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void GetSymbolInfoOfSelectNodeWhenTypeOfRangeVariableIsErrorType()
         {
             string source = @"

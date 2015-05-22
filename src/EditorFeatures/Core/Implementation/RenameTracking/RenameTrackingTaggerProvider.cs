@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     /// </summary>
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(RenameTrackingTag))]
+    [TagType(typeof(IErrorTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
@@ -137,18 +138,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             Diagnostic diagnostic,
             IWaitIndicator waitIndicator,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            bool showPreview)
+            ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             // This can run on a background thread.
 
-            var renameToResourceString = showPreview ? EditorFeaturesResources.RenameToWithPreview : EditorFeaturesResources.RenameTo;
             var message = string.Format(
-                renameToResourceString,
+                EditorFeaturesResources.RenameTo,
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
 
-            return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry, showPreview);
+            return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry);
         }
 
         internal static bool IsRenamableIdentifier(Task<TriggerIdentifierKind> isRenamableIdentifierTask, bool waitForResult, CancellationToken cancellationToken)
@@ -199,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             textBuffer = text.Container.TryGetTextBuffer();
             return textBuffer != null &&
-                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine) && 
+                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine) &&
                 stateMachine.CanInvokeRename(out unused);
         }
     }

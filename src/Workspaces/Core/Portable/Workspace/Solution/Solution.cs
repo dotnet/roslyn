@@ -588,13 +588,13 @@ namespace Microsoft.CodeAnalysis
             var language = projectInfo.Language;
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             var displayName = projectInfo.Name;
             if (displayName == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             CheckNotContainsProject(projectId);
@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 name: name,
                 folders: folders,
-                sourceCodeKind: project.ParseOptions.Kind,
+                sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
                 filePath: filePath,
                 isGenerated: isGenerated);
@@ -1189,6 +1189,11 @@ namespace Microsoft.CodeAnalysis
                 _solutionServices);
 
             return this.AddDocument(doc);
+        }
+
+        private static SourceCodeKind GetSourceCodeKind(ProjectState project)
+        {
+            return project.ParseOptions != null ? project.ParseOptions.Kind : SourceCodeKind.Regular;
         }
 
         /// <summary>
@@ -1230,7 +1235,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 name: name,
                 folders: folders,
-                sourceCodeKind: project.ParseOptions.Kind,
+                sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader);
 
             return this.AddDocument(info);
@@ -1316,7 +1321,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 name: name,
                 folders: folders,
-                sourceCodeKind: project.ParseOptions.Kind,
+                sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
                 filePath: filePath);
 
@@ -2122,7 +2127,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets an ProjectDependencyGraph that details the dependencies between projects for this solution.
+        /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
         {

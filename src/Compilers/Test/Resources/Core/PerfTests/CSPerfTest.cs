@@ -3047,7 +3047,7 @@ namespace ns1
                 d32(1, 0, null);
                 d42((a, b, c) => null, (a, b, c) => null, (a, b, c) => { uu.Equals(vv); });
 
-                // Delegate Relaxation, Compound Assignement
+                // Delegate Relaxation, Compound Assignment
                 Del1 d1 = foo; d1 += foo<T, U>;
                 Del3<InvalidCastException, ArgumentNullException, NullReferenceException, Exception> d33 = foo<int, long>;
                 d33 -= foo<int, long>; d33 += foo<int, double>;

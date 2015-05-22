@@ -1,41 +1,43 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CSharpCompilerServer : CSharpCompiler
     {
-        internal CSharpCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory)
-            : base(CSharpCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory)
+        internal CSharpCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(CSharpCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader)
         {
         }
 
-        public static int RunCompiler(
+        public static BuildResponse RunCompiler(
             string clientDirectory,
             string[] args,
             string baseDirectory,
             string sdkDirectory,
             string libDirectory,
-            TextWriter output,
-            CancellationToken cancellationToken,
-            out bool utf8output)
+            IAnalyzerAssemblyLoader analyzerLoader,
+            CancellationToken cancellationToken)
         {
-            var compiler = new CSharpCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory);
-            utf8output = compiler.Arguments.Utf8Output;
-            return compiler.Run(output, cancellationToken);
-        }
+            var compiler = new CSharpCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
+            bool utf8output = compiler.Arguments.Utf8Output;
 
-        public override Assembly LoadAssembly(string fullPath)
-        {
-            return InMemoryAssemblyProvider.GetAssembly(fullPath);
+            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            int returnCode = compiler.Run(output, cancellationToken);
+
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
         }
 
         public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))

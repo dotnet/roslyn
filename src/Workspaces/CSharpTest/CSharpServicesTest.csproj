@@ -18,10 +18,6 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -45,10 +41,6 @@
     <ProjectReference Include="..\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CSharp\Desktop\CSharpWorkspace.Desktop.csproj">
-      <Project>{687daffd-9bd9-4331-96b7-483b941edeaa}</Project>
-      <Name>CSharpWorkspace.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\Portable\CSharpWorkspace.csproj">
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
@@ -96,6 +88,7 @@
     <Compile Include="Formatting\FormattingElasticTriviaTests.cs" />
     <Compile Include="Formatting\FormattingMultipleSpanTests.cs" />
     <Compile Include="Formatting\FormattingTests.cs" />
+    <Compile Include="Formatting\FormattingTreeEditTests.cs" />
     <Compile Include="Formatting\FormattingTriviaTests.cs" />
     <Compile Include="CodeGeneration\AddImportsTests.cs" />
   </ItemGroup>

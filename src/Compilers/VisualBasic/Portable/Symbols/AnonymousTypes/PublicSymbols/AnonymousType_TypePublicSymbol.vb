@@ -113,9 +113,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return method
             End Function
 
-            Private Function CreateIEquatableEqualsMethod(iEquitableEquals As MethodSymbol) As MethodSymbol
+            Private Function CreateIEquatableEqualsMethod(iEquatableEquals As MethodSymbol) As MethodSymbol
                 Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectEquals, Me.Manager.System_Boolean,
-                                                                interfaceMethod:=iEquitableEquals,
+                                                                interfaceMethod:=iEquatableEquals,
                                                                 isOverloads:=True)
 
                 method.SetParameters(ImmutableArray.Create(Of ParameterSymbol)(

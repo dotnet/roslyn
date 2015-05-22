@@ -3328,5 +3328,40 @@ After 12";
 
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(2567, "https://github.com/dotnet/roslyn/issues/2567")]
+        public void AwaitInUsingAndForeach()
+        {
+            var source = @"
+using System.Threading.Tasks;
+using System;
+
+class Program
+{
+    System.Collections.Generic.IEnumerable<int> ien = null;
+    async Task<int> Test(IDisposable id, Task<int> task)
+    {
+        try
+        {
+            foreach (var i in ien)
+            {
+                return await task;
+            }
+            using (id)
+            {
+                return await task;
+            }
+        }
+        catch (Exception)
+        {
+            return await task;
+        }
+    }
+    public static void Main() {}
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp);
+            CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
     }
 }

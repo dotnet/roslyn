@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     [ExportOptionProvider, Shared]
     internal class CSharpCodeStyleOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> _options = new List<IOption>
+        private readonly IEnumerable<IOption> _options = new List<IOption>
             {
                 CSharpCodeStyleOptions.UseVarWhenDeclaringLocals
             }.ToImmutableArray();

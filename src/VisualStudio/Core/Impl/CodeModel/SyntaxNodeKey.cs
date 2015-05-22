@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 // Note: An ordinal value of -1 is special -- it means that this is the node
                 // key for an "unknown" code model element.
-                throw new ArgumentOutOfRangeException("ordinal");
+                throw new ArgumentOutOfRangeException(nameof(ordinal));
             }
 
             _name = name;

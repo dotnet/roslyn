@@ -25,10 +25,6 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
       <Name>VBCSCompiler</Name>
@@ -45,12 +41,8 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
       <Name>BasicCompilerTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Desktop\BasicCodeAnalysis.Desktop.vbproj">
-      <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
-      <Name>BasicCodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\vbc\vbc.csproj">
-      <Project>{2AC2755D-9437-4271-BBDE-1A3795A0C320}</Project>
+      <Project>{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}</Project>
       <Name>vbc</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">

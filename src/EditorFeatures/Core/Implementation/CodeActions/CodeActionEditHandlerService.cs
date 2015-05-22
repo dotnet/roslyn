@@ -119,12 +119,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (updatedSolution == oldSolution)
                 {
                     updatedSolution = applyChanges.ChangedSolution;
+                    var projectChanges = updatedSolution.GetChanges(oldSolution).GetProjectChanges();
+                    var changedDocuments = projectChanges.SelectMany(pd => pd.GetChangedDocuments());
+                    var changedAddiionalDocuments = projectChanges.SelectMany(pd => pd.GetChangedAdditionalDocuments());
+                    var changedFiles = changedDocuments.Concat(changedAddiionalDocuments);
 
-                    // check whether it contains only 1 or 0 changed documents
-                    if (!updatedSolution.GetChanges(oldSolution).GetProjectChanges().SelectMany(pd => pd.GetChangedDocuments()).Skip(1).Any())
+                    // 0 file changes
+                    if (!changedFiles.Any())
                     {
                         operation.Apply(workspace, cancellationToken);
                         continue;
+                    }
+
+                    // 1 file change
+                    SourceText text = null;
+                    if (!changedFiles.Skip(1).Any())
+                    {
+                        if (changedDocuments.Any())
+                        {
+                            text = oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        }
+                        else if (changedAddiionalDocuments.Any())
+                        {
+                            text = oldSolution.GetAdditionalDocument(changedAddiionalDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        }
+                    }
+
+                    if (text != null)
+                    {
+                        using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
+                        {
+                            operation.Apply(workspace, cancellationToken);
+                            continue;
+                        }
                     }
 
                     // multiple file changes
@@ -167,6 +194,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             foreach (var documentId in changedDocuments)
             {
                 var document = newSolution.GetDocument(documentId);
+                if (!document.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
                 var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var renameTokenOpt = root.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind)

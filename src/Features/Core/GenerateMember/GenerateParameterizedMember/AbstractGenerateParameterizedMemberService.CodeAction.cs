@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -20,6 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private readonly State _state;
             private readonly bool _isAbstract;
             private readonly bool _generateProperty;
+            private readonly string _equivalenceKey;
 
             public GenerateParameterizedMemberCodeAction(
                 TService service,
@@ -33,6 +32,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 _state = state;
                 _isAbstract = isAbstract;
                 _generateProperty = generateProperty;
+                _equivalenceKey = Title;
             }
 
             private string GetDisplayText(
@@ -99,6 +99,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 get
                 {
                     return GetDisplayText(_state, _isAbstract, _generateProperty);
+                }
+            }
+
+            public override string EquivalenceKey
+            {
+                get
+                {
+                    return _equivalenceKey;
                 }
             }
         }

@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.Shared
         {
             if (left == null)
             {
-                throw new ArgumentNullException("left");
+                throw new ArgumentNullException(nameof(left));
             }
 
             if (right == null)
             {
-                throw new ArgumentNullException("right");
+                throw new ArgumentNullException(nameof(right));
             }
 
             if (left.Count == 0)
@@ -135,12 +135,12 @@ namespace Microsoft.CodeAnalysis.Shared
         {
             if (left == null)
             {
-                throw new ArgumentNullException("left");
+                throw new ArgumentNullException(nameof(left));
             }
 
             if (right == null)
             {
-                throw new ArgumentNullException("right");
+                throw new ArgumentNullException(nameof(right));
             }
 
             if (left.Count == 0)
@@ -195,12 +195,12 @@ namespace Microsoft.CodeAnalysis.Shared
         {
             if (left == null)
             {
-                throw new ArgumentNullException("left");
+                throw new ArgumentNullException(nameof(left));
             }
 
             if (right == null)
             {
-                throw new ArgumentNullException("right");
+                throw new ArgumentNullException(nameof(right));
             }
 
             if (left.Count == 0)
@@ -253,12 +253,12 @@ namespace Microsoft.CodeAnalysis.Shared
         {
             if (left == null)
             {
-                throw new ArgumentNullException("left");
+                throw new ArgumentNullException(nameof(left));
             }
 
             if (right == null)
             {
-                throw new ArgumentNullException("right");
+                throw new ArgumentNullException(nameof(right));
             }
 
             if (left.Count == 0)
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Shared
         {
             if (set == null)
             {
-                throw new ArgumentNullException("set");
+                throw new ArgumentNullException(nameof(set));
             }
 
             for (int index1 = 0, index2 = 0; (index1 < this.Count) && (index2 < set.Count);)
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Shared
         {
             if (set == null)
             {
-                throw new ArgumentNullException("set");
+                throw new ArgumentNullException(nameof(set));
             }
 
             for (int index1 = 0, index2 = 0; (index1 < this.Count) && (index2 < set.Count);)
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Shared
         {
             if (spans == null)
             {
-                throw new ArgumentNullException("spans");
+                throw new ArgumentNullException(nameof(spans));
             }
 
             List<TextSpan> sorted = new List<TextSpan>(spans);

@@ -1809,13 +1809,11 @@ ProduceBoundNode:
             queryMode As Boolean,
             callerInfoOpt As VisualBasicSyntaxNode
         )
-            Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance(candidates.Count)
+            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableArray(Of Diagnostic))).GetInstance(candidates.Count)
 
             If arguments.IsDefault Then
                 arguments = ImmutableArray(Of BoundExpression).Empty
             End If
-
-            ' TODO: Collapse the same errors reported for all candidates (see Semantics::ReportOverloadResolutionFailure in Dev10).
 
             For i As Integer = 0 To candidates.Count - 1 Step 1
 
@@ -1846,56 +1844,106 @@ ProduceBoundNode:
                                                          callerInfoOpt:=callerInfoOpt,
                                                          representCandidateInDiagnosticsOpt:=Nothing)
 
-                Dim symbol = candidates(i).Candidate.UnderlyingSymbol
-                Dim isExtension As Boolean = symbol.IsReducedExtensionMethod()
+                diagnosticPerSymbol.Add(KeyValuePair.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
 
-                Dim sealedCandidateDiagnostics = candidateDiagnostics.ToReadOnlyAndFree()
-
-                ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
-                ' errors there are per candidate.
-                ' One narrowing error will be shown like:
-                '     'Public Sub foo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
-                ' More than one narrowing issues in the parameters are abbreviated with:
-                '     'Public Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
-
-                If delegateSymbol Is Nothing OrElse Not sealedCandidateDiagnostics.Skip(1).Any() Then
-                    If isExtension Then
-                        For Each iDiagnostic In sealedCandidateDiagnostics
-                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
-                                                                       symbol, symbol.ContainingType, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
-                        Next
-                    Else
-                        For Each iDiagnostic In sealedCandidateDiagnostics
-                            Dim msg = VisualBasicDiagnosticFormatter.Instance.Format(iDiagnostic.WithLocation(Location.None))
-                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, symbol, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
-                        Next
-                    End If
-                Else
-                    If isExtension Then
-                        diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
-                                                                   symbol, symbol.ContainingType,
-                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
-                    Else
-                        diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2,
-                                                                   symbol,
-                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
-                    End If
-                End If
             Next
 
-            Dim diagnosticCoumpoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
-            If delegateSymbol Is Nothing Then
-                ReportDiagnostic(diagnostics, diagnosticLocation,
+            ' See if there are errors that are reported for each candidate at the same location within a lambda argument.  
+            ' Report them and don't report remaining diagnostics for each symbol separately.
+            If Not ReportCommonErrorsFromLambdas(diagnosticPerSymbol, arguments, diagnostics) Then
+                Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance(candidates.Count)
+
+                For i As Integer = 0 To diagnosticPerSymbol.Count - 1
+                    Dim symbol = diagnosticPerSymbol(i).Key
+                    Dim isExtension As Boolean = symbol.IsReducedExtensionMethod()
+
+                    Dim sealedCandidateDiagnostics = diagnosticPerSymbol(i).Value
+
+                    ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
+                    ' errors there are per candidate.
+                    ' One narrowing error will be shown like:
+                    '     'Public Sub foo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
+                    ' More than one narrowing issues in the parameters are abbreviated with:
+                    '     'Public Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
+
+                    If delegateSymbol Is Nothing OrElse Not sealedCandidateDiagnostics.Skip(1).Any() Then
+                        If isExtension Then
+                            For Each iDiagnostic In sealedCandidateDiagnostics
+                                diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
+                                                                       symbol, symbol.ContainingType, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
+                            Next
+                        Else
+                            For Each iDiagnostic In sealedCandidateDiagnostics
+                                Dim msg = VisualBasicDiagnosticFormatter.Instance.Format(iDiagnostic.WithLocation(Location.None))
+                                diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, symbol, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
+                            Next
+                        End If
+                    Else
+                        If isExtension Then
+                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
+                                                                   symbol, symbol.ContainingType,
+                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
+                        Else
+                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2,
+                                                                   symbol,
+                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
+                        End If
+                    End If
+                Next
+
+                Dim diagnosticCoumpoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
+                If delegateSymbol Is Nothing Then
+                    ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
                                                         New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
-            Else
-                ReportDiagnostic(diagnostics, diagnosticLocation,
+                Else
+                    ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
                                                         CustomSymbolDisplayFormatter.DelegateSignature(delegateSymbol),
                                                         New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
+                End If
             End If
+
+            diagnosticPerSymbol.Free()
         End Sub
 
+        Private Shared Function ReportCommonErrorsFromLambdas(
+            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableArray(Of Diagnostic))),
+            arguments As ImmutableArray(Of BoundExpression),
+            diagnostics As DiagnosticBag
+        ) As Boolean
+            Dim haveCommonErrors As Boolean = False
+
+            For Each diagnostic In diagnosticPerSymbol(0).Value
+                If diagnostic.Severity <> DiagnosticSeverity.Error Then
+                    Continue For
+                End If
+
+                For Each argument In arguments
+                    If argument.Syntax.SyntaxTree Is diagnostic.Location.SourceTree AndAlso
+                       argument.Kind = BoundKind.UnboundLambda Then
+                        If argument.Syntax.Span.Contains(diagnostic.Location.SourceSpan) Then
+                            Dim common As Boolean = True
+                            For i As Integer = 1 To diagnosticPerSymbol.Count - 1
+                                If Not diagnosticPerSymbol(i).Value.Contains(diagnostic) Then
+                                    common = False
+                                    Exit For
+                                End If
+                            Next
+
+                            If common Then
+                                haveCommonErrors = True
+                                diagnostics.Add(diagnostic)
+                            End If
+
+                            Exit For
+                        End If
+                    End If
+                Next
+            Next
+
+            Return haveCommonErrors
+        End Function
 
         ''' <summary>
         ''' Should be kept in sync with OverloadResolution.MatchArguments. Anything that 

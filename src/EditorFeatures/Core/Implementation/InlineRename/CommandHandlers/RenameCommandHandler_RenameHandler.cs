@@ -91,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
 
             // Now make sure the entire selection is contained within that token.
-            if (selectedSpans.Count > 1)
+            // There can be zero selectedSpans in projection scenarios.
+            if (selectedSpans.Count != 1)
             {
                 ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
                 return;

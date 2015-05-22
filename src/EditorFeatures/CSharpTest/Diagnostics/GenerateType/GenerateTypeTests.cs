@@ -1951,5 +1951,67 @@ index: 1);
         {
             TestMissing(@"using [|Sample|] ; ");
         }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccesiblityForPublicFields()
+        {
+            Test(
+@"class A { public B b = new [|B|](); }",
+@"public class B { public B() { } }",
+index: 0,
+isAddedDocument:true);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccesiblityForPublicFields2()
+        {
+            Test(
+@"class A { public B b = new [|B|](); }",
+@"class A { public B b = new B(); } public class B { public B() {}}",
+index: 1);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccesiblityForPublicFields3()
+        {
+            Test(
+@"class A { public B b = new [|B|](); }",
+@"class A { public B b = new B(); public class B { public B() {}}}",
+index: 2);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccesiblityForPublicFields4()
+        {
+            Test(
+@"class A { public B<int> b = new [|B|]<int>(); }",
+@"public class B<T> { public B() {}}",
+index: 0,
+isAddedDocument: true);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccesiblityForPublicFields5()
+        {
+            Test(
+@"class A { public B<int> b = new [|B|]<int>(); }",
+@"class A { public B<int> b = new B<int>(); } public class B<T>{ public B(){}}",
+index: 1);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccesiblityForPublicFields6()
+        {
+            Test(
+@"class A { public B<int> b = new [|B|]<int>(); }",
+@"class A { public B<int> b = new B<int>(); public class B<T>{ public B(){}}}",
+index: 2);
+        }
     }
 }

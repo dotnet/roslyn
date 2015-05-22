@@ -44,36 +44,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
     End Class
 
-    Friend NotInheritable Class DisplayClassInstanceFromMe
+    Friend NotInheritable Class DisplayClassInstanceFromParameter
         Inherits DisplayClassInstance
 
-        Friend ReadOnly MeParameter As ParameterSymbol
+        Friend ReadOnly Parameter As ParameterSymbol
 
-        Friend Sub New(meParameter As ParameterSymbol)
-            Debug.Assert(meParameter IsNot Nothing)
-            Me.MeParameter = meParameter
+        Friend Sub New(parameter As ParameterSymbol)
+            Debug.Assert(parameter IsNot Nothing)
+            Debug.Assert(parameter.Name.Equals("Me", StringComparison.Ordinal) OrElse
+                parameter.Name.IndexOf("$Me", StringComparison.Ordinal) >= 0 OrElse
+                parameter.Name.IndexOf("$It", StringComparison.Ordinal) >= 0)
+            Me.Parameter = parameter
         End Sub
 
         Friend Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me.MeParameter.ContainingSymbol
+                Return Me.Parameter.ContainingSymbol
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Type As NamedTypeSymbol
             Get
-                Return DirectCast(Me.MeParameter.Type, NamedTypeSymbol)
+                Return DirectCast(Me.Parameter.Type, NamedTypeSymbol)
             End Get
         End Property
 
         Friend Overrides Function ToOtherMethod(method As MethodSymbol, typeMap As TypeSubstitution) As DisplayClassInstance
             Debug.Assert(method.IsShared)
-            Dim otherParameter = method.Parameters(0)
-            Return New DisplayClassInstanceFromMe(otherParameter)
+            Dim otherOrdinal = If(Me.ContainingSymbol.IsShared, Me.Parameter.Ordinal, Me.Parameter.Ordinal + 1)
+            Dim otherParameter = method.Parameters(otherOrdinal)
+            Return New DisplayClassInstanceFromParameter(otherParameter)
         End Function
 
         Friend Overrides Function ToBoundExpression(syntax As VisualBasicSyntaxNode) As BoundExpression
-            Return New BoundParameter(syntax, Me.MeParameter, Me.MeParameter.Type).MakeCompilerGenerated()
+            Return New BoundParameter(syntax, Me.Parameter, Me.Parameter.Type).MakeCompilerGenerated()
         End Function
     End Class
 End Namespace

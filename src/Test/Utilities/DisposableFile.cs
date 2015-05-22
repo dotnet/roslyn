@@ -2,7 +2,9 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
+using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     try
                     {
                         // the file might still be memory-mapped, delete on close:
-                        FileUtilities.DeleteFileOnClose(Path);
+                        DeleteFileOnClose(Path);
                     }
                     catch (IOException ex)
                     {
@@ -49,6 +51,32 @@ Is the file loaded as an assembly (e.g. via Assembly.LoadFile)?
                         //  are closed.
                     }
                 }
+            }
+        }
+
+        [DllImport("kernel32.dll", PreserveSig = false)]
+        private static extern void SetFileInformationByHandle(SafeFileHandle handle, int fileInformationClass, ref uint fileDispositionInfoDeleteFile, int bufferSize);
+
+        private const int FileDispositionInfo = 4;
+
+        internal static void PrepareDeleteOnCloseStreamForDisposal(FileStream stream)
+        {
+            // tomat: Set disposition to "delete" on the stream, so to avoid ForeFront EndPoint
+            // Protection driver scanning the file. Note that after calling this on a file that's open with DeleteOnClose, 
+            // the file can't be opened again, not even by the same process.
+            uint trueValue = 1;
+            SetFileInformationByHandle(stream.SafeFileHandle, FileDispositionInfo, ref trueValue, sizeof(uint));
+        }
+
+        /// <summary>
+        /// Marks given file for automatic deletion when all its handles are closed.
+        /// Note that after doing this the file can't be opened again, not even by the same process.
+        /// </summary>
+        internal static void DeleteFileOnClose(string fullPath)
+        {
+            using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Delete | FileShare.ReadWrite, 8, FileOptions.DeleteOnClose))
+            {
+                PrepareDeleteOnCloseStreamForDisposal(stream);
             }
         }
     }

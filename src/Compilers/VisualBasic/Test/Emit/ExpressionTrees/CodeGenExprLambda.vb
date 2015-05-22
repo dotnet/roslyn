@@ -1265,7 +1265,7 @@ Lambda(
 
         Private Class TypeDescriptor
             Public Type As String = ""
-            Public IsStruncture As Boolean
+            Public IsStructure As Boolean
             Private ReadOnly _operators As New List(Of OperatorDescriptor)
 
             Public Function WithOperators(ParamArray ops() As OperatorDescriptor) As TypeDescriptor
@@ -1276,7 +1276,7 @@ Lambda(
 
             Public ReadOnly Property Keyword As String
                 Get
-                    Return If(IsStruncture, "Structure", "Class")
+                    Return If(IsStructure, "Structure", "Class")
                 End Get
             End Property
 
@@ -1307,8 +1307,8 @@ Lambda(
         End Class
 
         Private Sub TestConversion_UserDefinedTypes_StructStruct(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
-            Dim type1 As New TypeDescriptor With {.IsStruncture = True}
-            Dim type2 As New TypeDescriptor With {.IsStruncture = True}
+            Dim type1 As New TypeDescriptor With {.IsStructure = True}
+            Dim type2 As New TypeDescriptor With {.IsStructure = True}
 
             Dim ops = {New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                        New OperatorDescriptor With {.IsWidenning = Not isNarrowing, .TypeToLifted = True},
@@ -1325,8 +1325,8 @@ Lambda(
 
         Private Sub TestConversion_UserDefinedTypes_ClassStruct(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
             TestConversion_UserDefinedTypes_TwoOps(isNarrowing,
-                                                   New TypeDescriptor With {.IsStruncture = False},
-                                                   New TypeDescriptor With {.IsStruncture = True},
+                                                   New TypeDescriptor With {.IsStructure = False},
+                                                   New TypeDescriptor With {.IsStructure = True},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing, .TypeToLifted = True},
                                                    list)
@@ -1334,8 +1334,8 @@ Lambda(
 
         Private Sub TestConversion_UserDefinedTypes_StructClass(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
             TestConversion_UserDefinedTypes_TwoOps(isNarrowing,
-                                                   New TypeDescriptor With {.IsStruncture = True},
-                                                   New TypeDescriptor With {.IsStruncture = False},
+                                                   New TypeDescriptor With {.IsStructure = True},
+                                                   New TypeDescriptor With {.IsStructure = False},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing, .TypeFromLifted = True},
                                                    list)
@@ -1343,8 +1343,8 @@ Lambda(
 
         Private Sub TestConversion_UserDefinedTypes_ClassClass(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
             TestConversion_UserDefinedTypes_OneOp(isNarrowing,
-                                                  New TypeDescriptor With {.IsStruncture = False},
-                                                  New TypeDescriptor With {.IsStruncture = False},
+                                                  New TypeDescriptor With {.IsStructure = False},
+                                                  New TypeDescriptor With {.IsStructure = False},
                                                   New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                                                   list)
         End Sub
@@ -1382,8 +1382,8 @@ Lambda(
             Dim typeFromDescr = type1.AssignTypes(typeFrom, typeFrom, typeTo)
             Dim typeToDescr = type2.AssignTypes(typeTo, typeFrom, typeTo)
 
-            For Each typeFromInstance In If(type1.IsStruncture, {typeFrom, typeFrom & "?"}, {typeFrom})
-                For Each typeToInstance In If(type2.IsStruncture, {typeTo, typeTo & "?"}, {typeTo})
+            For Each typeFromInstance In If(type1.IsStructure, {typeFrom, typeFrom & "?"}, {typeFrom})
+                For Each typeToInstance In If(type2.IsStructure, {typeTo, typeTo & "?"}, {typeTo})
                     TestConversion_UserDefinedTypes_OneTest(typeFromDescr, typeToDescr, typeFromInstance, typeToInstance, isNarrowing, list)
                 Next
             Next
@@ -1543,7 +1543,7 @@ Lambda(
                 Return
             End If
 
-            TestConversion_TwoTypesAndExpreession(type1, type2, "{0}", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "{0}", list)
         End Sub
 
         Private Sub TestConversion_TypeMatrix_CType(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
@@ -1551,22 +1551,22 @@ Lambda(
                 Return
             End If
 
-            TestConversion_TwoTypesAndExpreession(type1, type2, "CType({0}, {1})", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "CType({0}, {1})", list)
         End Sub
 
         Private Sub TestConversion_TypeMatrix_DirectCast(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
             If IsPrimitiveStructType(type1) Then
                 If Not IsPrimitiveStructType(type1) OrElse (type1 = type2 AndAlso type1 <> "Single" AndAlso type1 <> "Double") Then
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
                 End If
 
             ElseIf type1 = "String" Then
                 If Not IsPrimitiveStructType(type2) Then
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
                 End If
 
             Else
-                TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+                TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
             End If
         End Sub
 
@@ -1586,7 +1586,7 @@ lNothing:
                         GoTo lNothing
                     End If
 
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "TryCast({0}, {1})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "TryCast({0}, {1})", list)
             End Select
         End Sub
 
@@ -1596,64 +1596,64 @@ lNothing:
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CBool({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CBool({0})", list)
 
                 Case "Byte"
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CByte({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CByte({0})", list)
 
                 Case "Char"
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CChar({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CChar({0})", list)
 
                 Case "Date"
                     If IsPrimitiveStructType(type1) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CDate({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CDate({0})", list)
 
                 Case "Double"
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CDbl({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CDbl({0})", list)
 
                 Case "Decimal"
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CDec({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CDec({0})", list)
 
                 Case "Integer"
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CInt({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CInt({0})", list)
 
                 Case "Long"
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CLng({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CLng({0})", list)
 
                 Case "Object"
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CObj({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CObj({0})", list)
 
                 Case "Short"
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CShort({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CShort({0})", list)
 
                 Case "Single"
                     If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CSng({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CSng({0})", list)
 
                 Case "String"
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CStr({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CStr({0})", list)
 
                 Case Else
 lNothing:
@@ -1681,9 +1681,9 @@ lNothing:
                 TestConversion_TypeParameters(type1, "Object", tests)
             Next
             TestConversion_TypeParameters("O", "Clazz1", tests)
-            TestConversion_TwoTypesAndExpreession("O", "Clazz2", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("O", "Clazz2", "TryCast({0}, {1})", tests)
             TestConversion_TypeParameters("D", "Clazz1", tests)
-            TestConversion_TwoTypesAndExpreession("D", "Clazz2", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("D", "Clazz2", "TryCast({0}, {1})", tests)
 
 
             ' Type -> Type parameter 
@@ -1693,19 +1693,19 @@ lNothing:
             TestConversion_TypeParameters("Object", "T", tests, False)
             TestConversion_TypeParameters("Object", "O", tests)
             TestConversion_TypeParameters("Clazz1", "O", tests)
-            TestConversion_TwoTypesAndExpreession("Clazz2", "O", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("Clazz2", "O", "TryCast({0}, {1})", tests)
             TestConversion_TypeParameters("Object", "D", tests)
             TestConversion_TypeParameters("Clazz1", "D", tests)
-            TestConversion_TwoTypesAndExpreession("Clazz2", "D", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("Clazz2", "D", "TryCast({0}, {1})", tests)
 
 
             ' Nothing -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
-                TestConversion_TwoTypesAndExpreession("Object", type1, "Nothing", tests)
-                TestConversion_TwoTypesAndExpreession("Object", type1, "CType(Nothing, {1})", tests)
-                TestConversion_TwoTypesAndExpreession("Object", type1, "DirectCast(Nothing, {1})", tests)
+                TestConversion_TwoTypesAndExpression("Object", type1, "Nothing", tests)
+                TestConversion_TwoTypesAndExpression("Object", type1, "CType(Nothing, {1})", tests)
+                TestConversion_TwoTypesAndExpression("Object", type1, "DirectCast(Nothing, {1})", tests)
                 If type1 = "O" OrElse type1 = "D" Then
-                    TestConversion_TwoTypesAndExpreession("Object", type1, "TryCast(Nothing, {1})", tests)
+                    TestConversion_TwoTypesAndExpression("Object", type1, "TryCast(Nothing, {1})", tests)
                 End If
             Next
 
@@ -1726,15 +1726,15 @@ End Structure
         End Sub
 
         Private Sub TestConversion_TypeParameters(type1 As String, type2 As String, list As List(Of ExpressionTreeTest), Optional useTryCast As Boolean = True)
-            TestConversion_TwoTypesAndExpreession(type1, type2, "{0}", list)
-            TestConversion_TwoTypesAndExpreession(type1, type2, "CType({0}, {1})", list)
-            TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "{0}", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "CType({0}, {1})", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
             If useTryCast Then
-                TestConversion_TwoTypesAndExpreession(type1, type2, "TryCast({0}, {1})", list)
+                TestConversion_TwoTypesAndExpression(type1, type2, "TryCast({0}, {1})", list)
             End If
         End Sub
 
-        Private Sub TestConversion_TwoTypesAndExpreession(type1 As String, type2 As String, pattern As String, list As List(Of ExpressionTreeTest))
+        Private Sub TestConversion_TwoTypesAndExpression(type1 As String, type2 As String, pattern As String, list As List(Of ExpressionTreeTest))
             list.Add(New ExpressionTreeTest With {.Description =
                                                             String.Format("-=-=-=-=-=-=-=-=- {0} -> {1} -=-=-=-=-=-=-=-=-",
                                                                           String.Format(pattern, type1, type2), type2),
@@ -1864,7 +1864,7 @@ End Structure
                                         Optional typeArguments As String = "",
                                         Optional diagnostics() As DiagnosticDescription = Nothing)
 
-            Dim prexifbuilder As New StringBuilder
+            Dim prefixbuilder As New StringBuilder
             Dim testbuilder As New StringBuilder
 
             Dim procIndex As Integer = 0
@@ -1878,8 +1878,8 @@ End Structure
                 Debug.Assert(tst.Lambda IsNot Nothing)
 
                 If tst.Prefix IsNot Nothing Then
-                    prexifbuilder.AppendLine()
-                    prexifbuilder.AppendLine(tst.Prefix.Value)
+                    prefixbuilder.AppendLine()
+                    prefixbuilder.AppendLine(tst.Prefix.Value)
                 End If
 
                 testbuilder.AppendLine(String.Format("Console.WriteLine(""{0}"")", tst.Description))
@@ -1910,7 +1910,7 @@ End Module
                          </compilation>
 
             source...<file>.Value = String.Format(source...<file>.Value,
-                                                  prexifbuilder.ToString(),
+                                                  prefixbuilder.ToString(),
                                                   testbuilder.ToString(),
                                                   typeParameters,
                                                   typeArguments)
@@ -7737,9 +7737,9 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #Region "Expression Tree Test Helpers"
 
-        Private _exprTesting As XElement = <file name="exprlambdatest.vb"><%= ExpTreeTestResources.ExprLambdaUtils %></file>
+        Private ReadOnly _exprTesting As XElement = <file name="exprlambdatest.vb"><%= ExpTreeTestResources.ExprLambdaUtils %></file>
 
-        Private _queryTesting As XElement = <file name="QueryHelper.vb"><%= ExpTreeTestResources.QueryHelper %></file>
+        Private ReadOnly _queryTesting As XElement = <file name="QueryHelper.vb"><%= ExpTreeTestResources.QueryHelper %></file>
 
 #End Region
 

@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -114,6 +112,38 @@ class C
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=38)))
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPointExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=10, lineOffset:=5, absoluteOffset:=131, lineLength:=43)))
+        End Sub
+
 #End Region
 
 #Region "GetEndPoint tests"
@@ -219,6 +249,38 @@ class C
                      ThrowsNotImplementedException),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=7, lineOffset:=6, absoluteOffset:=96, lineLength:=5)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPointExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=19, lineOffset:=6, absoluteOffset:=250, lineLength:=5)))
         End Sub
 
 #End Region
@@ -333,6 +395,36 @@ class C
             TestFullName(code, "C.F")
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.SampleEvent")
+        End Sub
+
 #End Region
 
 #Region "IsPropertyStyleEvent tests"
@@ -425,6 +517,36 @@ class C
 </Code>
 
             TestName(code, "F")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedEvent()
+            Dim code =
+<Code>
+delegate void SampleEventHandler(object sender);
+
+interface I1
+{
+    event SampleEventHandler SampleEvent;
+}
+
+class C1 : I1
+{
+    event SampleEventHandler $$I1.SampleEvent
+    {
+        add
+        {
+        }
+
+        remove
+        {
+        }
+    }
+}
+</Code>
+
+            TestName(code, "I1.SampleEvent")
         End Sub
 
 #End Region
@@ -678,6 +800,89 @@ class C
 </Code>
 
             TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+        End Sub
+
+#End Region
+
+#Region "AddAttribute tests"
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute1()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    public event EventHandler $$E;
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable()]
+    public event EventHandler E;
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute2()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    public event EventHandler $$E;
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    [CLSCompliant(true)]
+    public event EventHandler E;
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    public event EventHandler $$E;
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    [CLSCompliant(true)]
+    public event EventHandler E;
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region

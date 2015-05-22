@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Initialize the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         /// done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         /// </summary>
-        internal static void InitializeObsoleteDataFromMetadata(ref ObsoleteAttributeData data, Handle token, PEModuleSymbol containingModule)
+        internal static void InitializeObsoleteDataFromMetadata(ref ObsoleteAttributeData data, EntityHandle token, PEModuleSymbol containingModule)
         {
             if (ReferenceEquals(data, ObsoleteAttributeData.Uninitialized))
             {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Get the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         /// done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         /// </summary>
-        internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(Handle token, PEModuleSymbol containingModule)
+        internal static ObsoleteAttributeData GetObsoleteDataFromMetadata(EntityHandle token, PEModuleSymbol containingModule)
         {
             ObsoleteAttributeData obsoleteAttributeData;
             bool isObsolete = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, out obsoleteAttributeData);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         private readonly ScriptEngine _engine;
         private ScriptOptions _options;
-        private Type _globalsType;
+        private readonly Type _globalsType;
         private object _globals;
         private Script _previousScript;
         private Lazy<object> _nextInputState;
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             string code = File.ReadAllText(path);

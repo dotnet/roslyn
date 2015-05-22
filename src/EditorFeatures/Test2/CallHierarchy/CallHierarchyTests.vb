@@ -310,6 +310,49 @@ namespace N
             Assert.NotEqual(navigationService.ProvidedDocumentId, Nothing)
             Assert.NotEqual(navigationService.ProvidedTextSpan, Nothing)
         End Sub
+
+        <WorkItem(1098507)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub DisplayErrorWhenNotOnMemberCS()
+            Dim input =
+    <Workspace>
+        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+            <Document>
+cla$$ss C
+{
+    void Foo()
+    {
+    }
+}
+        </Document>
+        </Project>
+    </Workspace>
+            Dim testState = New CallHierarchyTestState(input)
+            Dim root = testState.GetRoot()
+            Assert.Null(root)
+            Assert.NotNull(testState.NotificationMessage)
+        End Sub
+
+        <WorkItem(1098507)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub DisplayErrorWhenNotOnMemberVB()
+            Dim input =
+    <Workspace>
+        <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
+            <Document>
+Class C
+    Public Sub M()
+    End Sub
+End Cla$$ss
+        </Document>
+        </Project>
+    </Workspace>
+            Dim testState = New CallHierarchyTestState(input)
+            Dim root = testState.GetRoot()
+            Assert.Null(root)
+            Assert.NotNull(testState.NotificationMessage)
+        End Sub
+
     End Class
 
 End Namespace

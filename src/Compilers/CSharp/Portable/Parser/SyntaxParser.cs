@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _resetStart;
 
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
-
+        
         private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(
@@ -76,9 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var blendedTokens = _blendedTokens;
             if (blendedTokens != null)
             {
-                Array.Clear(_blendedTokens, 0, _blendedTokens.Length);
-                s_blendedNodesPool.Free(_blendedTokens);
                 _blendedTokens = null;
+                if (blendedTokens.Length < 4096)
+                {
+                    Array.Clear(blendedTokens, 0, blendedTokens.Length);
+                    s_blendedNodesPool.Free(blendedTokens);
+                }
+                else
+                {
+                    s_blendedNodesPool.ForgetTrackedObject(blendedTokens);
+                }
             }
         }
 
@@ -450,6 +457,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _tokenOffset++;
         }
 
+        protected void ForceEndOfFile()
+        {
+            _currentToken = SyntaxFactory.Token(SyntaxKind.EndOfFileToken);
+        }
+
         //this method is called very frequently
         //we should keep it simple so that it can be inlined.
         protected SyntaxToken EatToken(SyntaxKind kind)
@@ -655,13 +667,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : CSharpSyntaxNode
         {
             DiagnosticInfo[] existingDiags = node.GetDiagnostics();
-
-            //EDMAURER avoid the creation of a bunch of temporary objects that aggravate the memory situation
-            //when the parser gets profoundly confused and produces many missing token diagnostics.
-
             int existingLength = existingDiags.Length;
             if (existingLength == 0)
+            {
                 return node.WithDiagnosticsGreen(diagnostics);
+            }
             else
             {
                 DiagnosticInfo[] result = new DiagnosticInfo[existingDiags.Length + diagnostics.Length];
@@ -1049,9 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
-            LanguageVersion availableVersion = this.Options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            return availableVersion >= requiredVersion;
+            return this.Options.IsFeatureEnabled(feature);
         }
     }
 }

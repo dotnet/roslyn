@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
 
         // lazy binding
-        private NameSyntax _aliasTargetName;
+        private readonly NameSyntax _aliasTargetName;
         private readonly bool _isExtern;
-        private ImmutableArray<Diagnostic> _aliasTargetDiagnostics;
+        private DiagnosticBag _aliasTargetDiagnostics;
 
         private AliasSymbol(InContainerBinder binder, NamespaceOrTypeSymbol target, SyntaxToken aliasName, ImmutableArray<Location> locations)
         {
@@ -249,7 +249,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
-                    bool won = ImmutableInterlocked.InterlockedInitialize(ref _aliasTargetDiagnostics, newDiagnostics.ToReadOnlyAndFree());
+                    // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
+                    // can force the prompt evaluation of lazy initilaized diagnostics.  That in turn can 
+                    // call back into GetAliasTarget on the same thread resulting in a dead lock scenario.
+                    bool won = Interlocked.Exchange(ref _aliasTargetDiagnostics, newDiagnostics) == null;
                     Debug.Assert(won, "Only one thread can win the alias target CompareExchange");
 
                     _state.NotePartComplete(CompletionPart.AliasTarget);
@@ -266,12 +269,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _aliasTarget;
         }
 
-        internal ImmutableArray<Diagnostic> AliasTargetDiagnostics
+        internal DiagnosticBag AliasTargetDiagnostics
         {
             get
             {
                 GetAliasTarget(null);
-                Debug.Assert(!_aliasTargetDiagnostics.IsDefault);
+                Debug.Assert(_aliasTargetDiagnostics != null);
                 return _aliasTargetDiagnostics;
             }
         }

@@ -21,56 +21,59 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
             Debug.Assert(importStringGroups.IsDefault == externAliasStrings.IsDefault);
 
-            if (importStringGroups.IsDefault)
+            ArrayBuilder<ImmutableArray<ImportRecord>> importRecordGroupBuilder = null;
+            ArrayBuilder<ExternAliasRecord> externAliasRecordBuilder = null;
+            if (!importStringGroups.IsDefault)
             {
-                return default(MethodDebugInfo);
-            }
-
-            var importRecordGroupBuilder = ArrayBuilder<ImmutableArray<ImportRecord>>.GetInstance(importStringGroups.Length);
-            foreach (var importStringGroup in importStringGroups)
-            {
-                var groupBuilder = ArrayBuilder<ImportRecord>.GetInstance(importStringGroup.Length);
-                foreach (var importString in importStringGroup)
+                importRecordGroupBuilder = ArrayBuilder<ImmutableArray<ImportRecord>>.GetInstance(importStringGroups.Length);
+                foreach (var importStringGroup in importStringGroups)
                 {
-                    ImportRecord record;
-                    if (NativeImportRecord.TryCreateFromCSharpImportString(importString, out record))
+                    var groupBuilder = ArrayBuilder<ImportRecord>.GetInstance(importStringGroup.Length);
+                    foreach (var importString in importStringGroup)
                     {
-                        groupBuilder.Add(record);
+                        ImportRecord record;
+                        if (NativeImportRecord.TryCreateFromCSharpImportString(importString, out record))
+                        {
+                            groupBuilder.Add(record);
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Failed to parse import string {importString}");
+                        }
                     }
-                    else
+                    importRecordGroupBuilder.Add(groupBuilder.ToImmutableAndFree());
+                }
+
+                if (!externAliasStrings.IsDefault)
+                {
+                    externAliasRecordBuilder = ArrayBuilder<ExternAliasRecord>.GetInstance(externAliasStrings.Length);
+                    foreach (string externAliasString in externAliasStrings)
                     {
-                        Debug.WriteLine($"Failed to parse import string {importString}");
+                        string alias;
+                        string externAlias;
+                        string target;
+                        ImportTargetKind kind;
+                        if (!CustomDebugInfoReader.TryParseCSharpImportString(externAliasString, out alias, out externAlias, out target, out kind))
+                        {
+                            Debug.WriteLine($"Unable to parse extern alias '{externAliasString}'");
+                            continue;
+                        }
+
+                        Debug.Assert(kind == ImportTargetKind.Assembly, "Programmer error: How did a non-assembly get in the extern alias list?");
+                        Debug.Assert(alias != null); // Name of the extern alias.
+                        Debug.Assert(externAlias == null); // Not used.
+                        Debug.Assert(target != null); // Name of the target assembly.
+
+                        AssemblyIdentity targetIdentity;
+                        if (!AssemblyIdentity.TryParseDisplayName(target, out targetIdentity))
+                        {
+                            Debug.WriteLine($"Unable to parse target of extern alias '{externAliasString}'");
+                            continue;
+                        }
+
+                        externAliasRecordBuilder.Add(new NativeExternAliasRecord<AssemblySymbol>(alias, targetIdentity));
                     }
                 }
-                importRecordGroupBuilder.Add(groupBuilder.ToImmutableAndFree());
-            }
-
-            var externAliasRecordBuilder = ArrayBuilder<ExternAliasRecord>.GetInstance(externAliasStrings.Length);
-            foreach (string externAliasString in externAliasStrings)
-            {
-                string alias;
-                string externAlias;
-                string target;
-                ImportTargetKind kind;
-                if (!CustomDebugInfoReader.TryParseCSharpImportString(externAliasString, out alias, out externAlias, out target, out kind))
-                {
-                    Debug.WriteLine($"Unable to parse extern alias '{externAliasString}'");
-                    continue;
-                }
-
-                Debug.Assert(kind == ImportTargetKind.Assembly, "Programmer error: How did a non-assembly get in the extern alias list?");
-                Debug.Assert(alias != null); // Name of the extern alias.
-                Debug.Assert(externAlias == null); // Not used.
-                Debug.Assert(target != null); // Name of the target assembly.
-
-                AssemblyIdentity targetIdentity;
-                if (!AssemblyIdentity.TryParseDisplayName(target, out targetIdentity))
-                {
-                    Debug.WriteLine($"Unable to parse target of extern alias '{externAliasString}'");
-                    continue;
-                }
-
-                externAliasRecordBuilder.Add(new NativeExternAliasRecord<AssemblySymbol>(alias, targetIdentity));
             }
 
             var hoistedLocalScopeRecords = ImmutableArray<HoistedLocalScopeRecord>.Empty;
@@ -97,11 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     out dynamicLocalConstantMap);
             }
 
-
             return new MethodDebugInfo(
                 hoistedLocalScopeRecords,
-                importRecordGroupBuilder.ToImmutableAndFree(),
-                externAliasRecordBuilder.ToImmutableAndFree(),
+                importRecordGroupBuilder?.ToImmutableAndFree() ?? ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
+                externAliasRecordBuilder?.ToImmutableAndFree() ?? ImmutableArray<ExternAliasRecord>.Empty,
                 dynamicLocalMap,
                 dynamicLocalConstantMap,
                 defaultNamespaceName: ""); // Unused in C#.
