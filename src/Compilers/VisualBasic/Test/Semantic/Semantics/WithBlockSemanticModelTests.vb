@@ -217,6 +217,65 @@ End Module
 
 #End Region
 
+        <Fact, WorkItem(2662, "https://github.com/dotnet/roslyn/issues/2662")>
+        Public Sub Issue2662()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+    Private Sub AddCustomer()
+        Dim theCustomer As New Customer
+
+        With theCustomer
+            .Name = "Abc"
+            .URL = "http://www.microsoft.com/"
+            .City = "Redmond"
+            .Print(.Name)
+        End With
+    End Sub
+
+    <Extension()>
+    Public Sub Print(ByVal cust As Customer, str As String)
+        Console.WriteLine(str)
+    End Sub
+
+    Public Class Customer
+        Public Property Name As String
+        Public Property City As String
+        Public Property URL As String
+
+        Public Property Comments As New List(Of String)
+    End Class
+End Module
+    ]]></file>
+</compilation>, {SystemCoreRef})
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim withBlock = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of WithBlockSyntax)().Single()
+
+            Dim name = withBlock.Statements(3).DescendantNodes().OfType(Of IdentifierNameSyntax).Where(Function(i) i.Identifier.ValueText = "Name").Single()
+            model.GetAliasInfo(name)
+
+            Dim result2 = model.AnalyzeDataFlow(withBlock, withBlock)
+            Assert.True(result2.Succeeded)
+
+            model = compilation.GetSemanticModel(tree)
+            model.GetAliasInfo(name)
+
+            Assert.Equal("theCustomer As Program.Customer", model.GetSymbolInfo(withBlock.WithStatement.Expression).Symbol.ToTestDisplayString())
+        End Sub
+
     End Class
 
 End Namespace

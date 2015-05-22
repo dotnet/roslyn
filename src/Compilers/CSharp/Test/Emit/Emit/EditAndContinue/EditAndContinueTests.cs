@@ -5170,6 +5170,147 @@ class B
             }
         }
 
+        [Fact]
+        public void ExceptionFilters()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.IO;
+
+class C
+{
+    static bool G(Exception e) => true;
+
+    static void F()
+    {
+        try
+        {
+            throw new InvalidOperationException();
+        }
+        catch <N:0>(IOException e)</N:0> <N:1>when (G(e))</N:1>
+        {
+            Console.WriteLine();
+        }
+        catch <N:2>(Exception e)</N:2> <N:3>when (G(e))</N:3>
+        {
+            Console.WriteLine();
+        }
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.IO;
+
+class C
+{
+    static bool G(Exception e) => true;
+
+    static void F()
+    {
+        try
+        {
+            throw new InvalidOperationException();
+        }
+        catch <N:0>(IOException e)</N:0> <N:1>when (G(e))</N:1>
+        {
+            Console.WriteLine();
+        }
+        catch <N:2>(Exception e)</N:2> <N:3>when (G(e))</N:3>
+        {
+            Console.WriteLine();
+        }
+
+        Console.WriteLine(1);
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (System.IO.IOException V_0, //e
+                bool V_1,
+                System.Exception V_2, //e
+                bool V_3)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  newobj     ""System.InvalidOperationException..ctor()""
+    IL_0007:  throw
+  }
+  filter
+  {
+    IL_0008:  isinst     ""System.IO.IOException""
+    IL_000d:  dup
+    IL_000e:  brtrue.s   IL_0014
+    IL_0010:  pop
+    IL_0011:  ldc.i4.0
+    IL_0012:  br.s       IL_0020
+    IL_0014:  stloc.0
+    IL_0015:  ldloc.0
+    IL_0016:  call       ""bool C.G(System.Exception)""
+    IL_001b:  stloc.1
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  cgt.un
+    IL_0020:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0022:  pop
+    IL_0023:  nop
+    IL_0024:  call       ""void System.Console.WriteLine()""
+    IL_0029:  nop
+    IL_002a:  nop
+    IL_002b:  leave.s    IL_0052
+  }
+  filter
+  {
+    IL_002d:  isinst     ""System.Exception""
+    IL_0032:  dup
+    IL_0033:  brtrue.s   IL_0039
+    IL_0035:  pop
+    IL_0036:  ldc.i4.0
+    IL_0037:  br.s       IL_0045
+    IL_0039:  stloc.2
+    IL_003a:  ldloc.2
+    IL_003b:  call       ""bool C.G(System.Exception)""
+    IL_0040:  stloc.3
+    IL_0041:  ldloc.3
+    IL_0042:  ldc.i4.0
+    IL_0043:  cgt.un
+    IL_0045:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0047:  pop
+    IL_0048:  nop
+    IL_0049:  call       ""void System.Console.WriteLine()""
+    IL_004e:  nop
+    IL_004f:  nop
+    IL_0050:  leave.s    IL_0052
+  }
+  IL_0052:  ldc.i4.1
+  IL_0053:  call       ""void System.Console.WriteLine(int)""
+  IL_0058:  nop
+  IL_0059:  ret
+}
+");
+        }
+
         [WorkItem(844472, "DevDiv")]
         [Fact]
         public void MethodSignatureWithNoPIAType()
