@@ -707,6 +707,72 @@ End Class
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
 
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_SimpleEvent_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Public Event $$E()
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;CLSCompliant(true)&gt;
+    Public Event E()
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_CustomEvent_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Public Custom Event $$E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;CLSCompliant(true)&gt;
+    Public Custom Event E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
 #End Region
 
 #Region "Set IsShared tests"

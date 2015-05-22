@@ -410,42 +410,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // happenning.  It's not a bug but it's inefficient and should be changed.
             Debug.Assert(_recursionDepth == 0);
 
-            TNode node;
-            var hitStackBoundary = false;
-            var resetPoint = GetResetPoint();
-
-            // TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
-            // is available in the PCL
             try
             {
-                node = parseFunc();
+                return parseFunc();
             }
+            // TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
+            // is available in the PCL
             catch (Exception ex) when (ex.GetType().Name == "InsufficientExecutionStackException")
             {
-                hitStackBoundary = true;
-                node = CreateForInsufficientStack(ref resetPoint, createEmptyNodeFunc());
+                return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
             }
-
-            if (!hitStackBoundary)
-            {
-                Release(ref resetPoint);
-            }
-
-            return node;
         }
 
-        private TNode CreateForInsufficientStack<TNode>(ref ResetPoint state, TNode node) where TNode : CSharpSyntaxNode
+        private TNode CreateForGlobalFailure<TNode>(int position, TNode node) where TNode : CSharpSyntaxNode
         {
-            var position = this.lexer.TextWindow.Position;
-            this.Reset(ref state);
-            var builder = new SyntaxListBuilder(4);
-            while (CurrentToken.Kind != SyntaxKind.EndOfFileToken)
-            {
-                builder.Add(this.EatToken());
-            }
-
+            // Turn the complete input into a single skipped token. This avoids running the lexer, and therefore
+            // the preprocessor directive parser, which may itself run into the same problem that caused the
+            // original failure.
+            var builder = new SyntaxListBuilder(1);
+            builder.Add(SyntaxFactory.BadToken(null, lexer.TextWindow.Text.ToString(), null));
             var fileAsTrivia = _syntaxFactory.SkippedTokensTrivia(builder.ToList<SyntaxToken>());
             node = AddLeadingSkippedSyntax(node, fileAsTrivia);
+            ForceEndOfFile(); // force the scanner to report that it is at the end of the input.
             return AddError(node, position, 0, ErrorCode.ERR_InsufficientStack);
         }
 

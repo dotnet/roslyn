@@ -63,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            var comHandleToThis = provider.ProjectCodeModel.GetFileCodeModelInstance(this.Workspace.GetFilePath(GetDocumentId()));
-            if (comHandleToThis == null)
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle;
+            if (!provider.ProjectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out fileCodeModelHandle))
             {
                 return needMoreTime;
             }

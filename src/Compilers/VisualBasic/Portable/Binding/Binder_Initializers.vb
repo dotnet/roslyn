@@ -302,7 +302,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' In speculative semantic model scenarios equalsValueOrAsNewSyntax might have no parent.
             If equalsValueOrAsNewSyntax.Parent IsNot Nothing Then
-                Debug.Assert(fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
+                Debug.Assert(Me.IsSemanticModelBinder OrElse
+                             fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
 
                 If equalsValueOrAsNewSyntax.Kind() = SyntaxKind.AsNewClause Then
                     For Each name In DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
