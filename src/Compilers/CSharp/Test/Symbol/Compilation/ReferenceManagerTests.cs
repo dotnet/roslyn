@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2121,8 +2122,9 @@ public class Source
                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"NativeApp.exe", CodeAnalysisResources.PEImageDoesntContainManagedMetadata));
         }
 
-        [Fact, WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
-        public void EmptyReference()
+        [WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
+        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        public void EmptyReference1()
         {
             var source = "class C { public static void Main() { } }";
 
@@ -2131,7 +2133,8 @@ public class Source
                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"Empty.dll", CodeAnalysisResources.PEImageDoesntContainManagedMetadata));
         }
 
-        [Fact, WorkItem(2992, "https://github.com/dotnet/roslyn/issues/2992")]
+        [WorkItem(2992, "https://github.com/dotnet/roslyn/issues/2992")]
+        [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void MetadataDisposed()
         {
             var md = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib);
