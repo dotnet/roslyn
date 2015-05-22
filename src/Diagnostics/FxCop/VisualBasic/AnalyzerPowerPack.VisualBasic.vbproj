@@ -37,6 +37,7 @@
       <Name>Workspaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\AnalyzerPowerPack.Common.csproj">
+      <Project>{36755424-5267-478c-9434-37a507e22711}</Project>
       <Name>AnalyzerPowerPack.Common</Name>
     </ProjectReference>
   </ItemGroup>
