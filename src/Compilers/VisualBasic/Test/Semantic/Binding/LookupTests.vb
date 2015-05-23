@@ -2800,6 +2800,65 @@ BC37229: 'C' is ambiguous between declarations in namespaces 'A.X, B.X'.
                                                     ]]></expected>)
         End Sub
 
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
+        Public Sub AmbiguousEnumConstants01()
+            Dim csCompilation = CreateCSharpCompilation("CSEnum",
+            <![CDATA[
+public enum Color
+{
+Red,
+Green,
+DateTime,
+[System.Obsolete] Datetime = DateTime,
+Blue,
+}
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            csCompilation.VerifyDiagnostics()
+            Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
+            <![CDATA[
+Public Module Program
+    Sub Main()
+        System.Console.WriteLine(CInt(Color.DateTime))
+    End Sub
+End Module]]>,
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                referencedCompilations:={csCompilation})
+            CompileAndVerify(vbCompilation, expectedOutput:="2")
+        End Sub
+
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
+        Public Sub AmbiguousEnumConstants02()
+            Dim csCompilation = CreateCSharpCompilation("CSEnum",
+            <![CDATA[
+public enum Color
+{
+Red,
+Green,
+DateTime,
+[System.Obsolete] Datetime,
+Blue,
+}
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            csCompilation.VerifyDiagnostics()
+            Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
+            <![CDATA[
+Public Module Program
+    Sub Main()
+        System.Console.WriteLine(CInt(Color.DateTime))
+    End Sub
+End Module]]>,
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                referencedCompilations:={csCompilation})
+            CompilationUtils.AssertTheseDiagnostics(vbCompilation,
+                                                    <expected><![CDATA[
+BC31429: 'DateTime' is ambiguous because multiple kinds of members with this name exist in enum 'Color'.
+        System.Console.WriteLine(CInt(Color.DateTime))
+                                      ~~~~~~~~~~~~~~
+                                                    ]]></expected>)
+        End Sub
+
     End Class
 End Namespace
 
