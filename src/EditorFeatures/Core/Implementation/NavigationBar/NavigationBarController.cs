@@ -322,14 +322,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldRight != null)
             {
-                newRight = new NavigationBarItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, 0, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed);
+                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed);
                 newRight.TrackingSpans = oldRight.TrackingSpans;
                 listOfRight.Add(newRight);
             }
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight, 0, oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed);
+                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight, oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed);
                 newLeft.TrackingSpans = oldLeft.TrackingSpans;
                 listOfLeft.Add(newLeft);
             }
@@ -366,6 +366,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private void ProcessItemSelectionSynchronously(NavigationBarItem item, CancellationToken cancellationToken)
         {
             AssertIsForeground();
+
+            var presentedItem = item as NavigationBarPresentedItem;
+            if (presentedItem != null)
+            {
+                // Presented items are not navigable, but they may be selected due to a race
+                // documented in Bug #1174848. Protect all INavigationBarItemService implementers
+                // from this by ignoring these selections here.
+                return;
+            }
 
             var projectItem = item as NavigationBarProjectItem;
             if (projectItem != null)
