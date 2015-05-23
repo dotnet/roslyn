@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.Usage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.UnitTests;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public partial class CA2229Tests : DiagnosticAnalyzerTestBase
     {
@@ -410,9 +411,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static string CA2229Name = "CA2229";
-        internal static string CA2229Message = FxCopRulesResources.SerializableTypeDoesntHaveCtor;
-        internal static string CA2229MessageSealed = FxCopRulesResources.SerializationCtorAccessibilityForSealedType;
-        internal static string CA2229MessageUnsealed = FxCopRulesResources.SerializationCtorAccessibilityForUnSealedType;
+        internal static string CA2229Message = AnalyzerPowerPackRulesResources.SerializableTypeDoesntHaveCtor;
+        internal static string CA2229MessageSealed = AnalyzerPowerPackRulesResources.SerializationCtorAccessibilityForSealedType;
+        internal static string CA2229MessageUnsealed = AnalyzerPowerPackRulesResources.SerializationCtorAccessibilityForUnSealedType;
 
         private static DiagnosticResult GetCA2229CSharpResultAt(int line, int column, string objectName, string message)
         {

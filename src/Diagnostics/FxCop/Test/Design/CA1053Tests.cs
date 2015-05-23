@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     // Some of the CA1052Tests tests hold true here as CA1052 and CA1053 are mutually exclusive
     public class CA1053Tests : DiagnosticAnalyzerTestBase
@@ -28,12 +29,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static DiagnosticResult CSharpResult(int line, int column, string objectName)
         {
-            return GetCSharpResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1053RuleId, string.Format(FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage, objectName));
+            return GetCSharpResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1053RuleId, string.Format(AnalyzerPowerPackRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage, objectName));
         }
 
         private static DiagnosticResult BasicResult(int line, int column, string objectName)
         {
-            return GetBasicResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1053RuleId, string.Format(FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage, objectName));
+            return GetBasicResultAt(line, column, StaticTypeRulesDiagnosticAnalyzer.CA1053RuleId, string.Format(AnalyzerPowerPackRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage, objectName));
         }
 
         #endregion
