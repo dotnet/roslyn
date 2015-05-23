@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, svctype =>
                 {
-                    return PickLanguageService(_services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
+                    var assemblyQualifiedName = svctype.AssemblyQualifiedName;
+                    return PickLanguageService(_services.Where(lz => lz.Metadata.ServiceType == assemblyQualifiedName));
                 });
             }
 
