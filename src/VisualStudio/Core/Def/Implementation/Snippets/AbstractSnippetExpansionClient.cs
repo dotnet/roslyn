@@ -588,7 +588,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         internal bool TryGetSubjectBufferSpan(VsTextSpan surfaceBufferTextSpan, out SnapshotSpan subjectBufferSpan)
         {
             var snapshotSpan = TextView.TextSnapshot.GetSpan(surfaceBufferTextSpan);
-            var subjectBufferSpanCollection = TextView.BufferGraph.MapDownToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, SubjectBuffer);
+            var subjectBufferSpanCollection = TextView.BufferGraph.Hack_WorkaroundElisionBuffers_MapDownToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, SubjectBuffer);
 
             // Bail if a snippet span does not map down to exactly one subject buffer span.
             if (subjectBufferSpanCollection.Count == 1)

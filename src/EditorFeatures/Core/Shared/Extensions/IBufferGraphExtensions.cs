@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 case BufferMapDirection.Down:
                     {
-                        var spans = bufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
+                        var spans = bufferGraph.Hack_WorkaroundElisionBuffers_MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
                         return spans.Select(s => (SnapshotSpan?)s).FirstOrDefault();
                     }
 
@@ -103,6 +103,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             return top.SourceBuffers.Contains(bottom) ||
                 top.SourceBuffers.OfType<IProjectionBufferBase>().Any(b => IsSourceBuffer(b, bottom));
+        }
+
+        public static NormalizedSnapshotSpanCollection Hack_WorkaroundElisionBuffers_MapDownToBuffer(this IBufferGraph bufferGraph, SnapshotSpan span, SpanTrackingMode spanTrackingMode, ITextBuffer targetBuffer)
+        {
+            var spans = bufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
+
+            // Workaround:
+            // An elision buffer that elides an entire buffer (the length of the elision is 0)
+            // will return two spans: the null span starting at 0, and a second span that's probably
+            // the "real" span. 
+            // If we need to map down from an elision buffer and get back multiple spans, and the
+            // first one [0,0], ignore it.
+            if (span.Snapshot.TextBuffer is IElisionBuffer && spans.Count > 1 && spans[0].Start == 0 && spans[0].Length == 0)
+            {
+                return new NormalizedSnapshotSpanCollection(spans.Skip(1));
+            }
+
+            return spans;
         }
     }
 }
