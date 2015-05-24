@@ -3013,6 +3013,52 @@ End Class
                     result.AssertLabeledSpansAre("conflict", "Test", RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
+
+            <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub InvalidNamesDoNotCauseCrash_IntroduceQualifiedName()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class {|conflict:C$$|}
+End Class
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="C.D")
+
+                    result.AssertReplacementTextInvalid()
+                    result.AssertLabeledSpansAre("conflict", "C.D", RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
+
+            <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub InvalidNamesDoNotCauseCrash_AccidentallyPasteLotsOfCode()
+                Dim renameTo = "
+Class C
+    Sub M()
+        System.Console.WriteLine(""Hello, Test!"")
+    End Sub
+End Class"
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class {|conflict:C$$|}
+End Class
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo)
+
+                    result.AssertReplacementTextInvalid()
+                    result.AssertLabeledSpansAre("conflict", renameTo, RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
         End Class
     End Class
 End Namespace

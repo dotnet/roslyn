@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 // determine the canonical identifier name (unescaped, no unicode escaping, ...)
-                string valueText;
+                string valueText = currentNewIdentifier;
                 var kind = SyntaxFacts.GetKeywordKind(currentNewIdentifier);
                 if (kind != SyntaxKind.None)
                 {
@@ -578,9 +578,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
                 else
                 {
-                    var parsedIdentifier = (IdentifierNameSyntax)SyntaxFactory.ParseName(currentNewIdentifier);
-                    Debug.Assert(parsedIdentifier.Kind() == SyntaxKind.IdentifierName);
-                    valueText = parsedIdentifier.Identifier.ValueText;
+                    var parsedIdentifier = SyntaxFactory.ParseName(currentNewIdentifier);
+                    if (parsedIdentifier.IsKind(SyntaxKind.IdentifierName))
+                    {
+                        valueText = ((IdentifierNameSyntax)parsedIdentifier).Identifier.ValueText;
+                    }
                 }
 
                 // TODO: we can't use escaped unicode characters in xml doc comments, so we need to pass the valuetext as text as well.
