@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnBeforeDebuggingStateChanged(object sender, DebuggingStateChangedEventArgs args)
         {
-            if (args.After == DebuggingState.Run)
+            if (!_dismissed && args.After == DebuggingState.Run)
             {
                 Commit();
             }
