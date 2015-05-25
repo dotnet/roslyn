@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, svctype =>
                 {
-                    // pick from list of exported factories and instances
+                    // Pick from list of exported factories and instances
+                    // PERF: Hoist AssemblyQualifiedName out of inner lambda to avoid repeated string allocations.
                     var assemblyQualifiedName = svctype.AssemblyQualifiedName;
                     return PickWorkspaceService(_services.Where(lz => lz.Metadata.ServiceType == assemblyQualifiedName));
                 });
