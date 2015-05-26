@@ -165,7 +165,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Microsoft.CodeAnalysis.FxCopAnalyzers.Common.props">
+    <Content Include="AnalyzerPowerPack.Common.props">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>

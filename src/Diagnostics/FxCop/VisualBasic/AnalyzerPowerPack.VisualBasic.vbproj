@@ -109,7 +109,7 @@
     <Compile Include="Usage\MarkAllNonSerializableFields.Fixer.vb" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.props">
+    <Content Include="AnalyzerPowerPack.VisualBasic.props">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
