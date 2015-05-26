@@ -99,7 +99,6 @@
     <Content Include="MetadataTests\Interop\Interop.Mock01.Impl.dll" />
     <Content Include="MetadataTests\Invalid\ClassLayout.dll" />
     <Content Include="MetadataTests\Invalid\ClassLayout.il" />
-    <Content Include="MetadataTests\Invalid\CustomAttributeTableDeclaredUnsorted.dll" />
     <Content Include="MetadataTests\Invalid\CustomAttributeTableUnsorted.dll" />
     <Content Include="MetadataTests\Invalid\EmptyModuleTable.netmodule" />
     <Content Include="MetadataTests\Invalid\IncorrectCustomAssemblyTableSize_TooManyMethodSpecs.dll" />
