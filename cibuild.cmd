@@ -6,8 +6,8 @@ set BuildConfiguration=Debug
 :ParseArguments
 if "%1" == "" goto :DoneParsing
 if /I "%1" == "/?" call :Usage && exit /b 1
-if /I "%1" == "/debug" set BuildConfiguration=Debug && shift && goto :ParseArguments
-if /I "%1" == "/release" set BuildConfiguration=Release && shift && goto :ParseArguments
+if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArguments
+if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArguments
 goto :Usage && exit /b 1
 :DoneParsing
 
