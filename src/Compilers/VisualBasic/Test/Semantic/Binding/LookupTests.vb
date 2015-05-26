@@ -2932,7 +2932,7 @@ Red,
 Green,
 DateTime,
 [System.Obsolete] Datetime = DateTime,
-DATETIME,
+[System.Obsolete] DATETIME,
 Blue,
 }
 ]]>,
@@ -3029,8 +3029,8 @@ End Module]]>,
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
                                                     <expected><![CDATA[
                                                     ]]></expected>)
+            CompileAndVerify(vbCompilation, expectedOutput:="2")
         End Sub
 
     End Class
 End Namespace
-
