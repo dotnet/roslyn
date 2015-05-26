@@ -2824,6 +2824,36 @@ Public Module Program
 End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
+            vbCompilation.VerifyDiagnostics() ' no obsolete diagnostic - we select the first one of the given name
+            CompileAndVerify(vbCompilation, expectedOutput:="2")
+        End Sub
+
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
+        Public Sub AmbiguousEnumConstants01b()
+            Dim csCompilation = CreateCSharpCompilation("CSEnum",
+            <![CDATA[
+public enum Color
+{
+Red,
+Green,
+DateTime,
+[System.Obsolete] Datetime = DateTime,
+DATETIME = DateTime,
+Blue,
+}
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            csCompilation.VerifyDiagnostics()
+            Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
+            <![CDATA[
+Public Module Program
+    Sub Main()
+        System.Console.WriteLine(CInt(Color.Datetime))
+    End Sub
+End Module]]>,
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                referencedCompilations:={csCompilation})
+            vbCompilation.VerifyDiagnostics() ' no obsolete diagnostic - we select the first one of the given name
             CompileAndVerify(vbCompilation, expectedOutput:="2")
         End Sub
 
@@ -2837,6 +2867,72 @@ Red,
 Green,
 DateTime,
 [System.Obsolete] Datetime,
+Blue,
+}
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            csCompilation.VerifyDiagnostics()
+            Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
+            <![CDATA[
+Public Module Program
+    Sub Main()
+        System.Console.WriteLine(CInt(Color.DateTime))
+    End Sub
+End Module]]>,
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                referencedCompilations:={csCompilation})
+            CompilationUtils.AssertTheseDiagnostics(vbCompilation,
+                                                    <expected><![CDATA[
+BC31429: 'DateTime' is ambiguous because multiple kinds of members with this name exist in enum 'Color'.
+        System.Console.WriteLine(CInt(Color.DateTime))
+                                      ~~~~~~~~~~~~~~
+                                                    ]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
+        Public Sub AmbiguousEnumConstants02b()
+            Dim csCompilation = CreateCSharpCompilation("CSEnum",
+            <![CDATA[
+public enum Color
+{
+Red,
+Green,
+DateTime,
+[System.Obsolete] Datetime,
+DATETIME,
+Blue,
+}
+]]>,
+                compilationOptions:=New Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            csCompilation.VerifyDiagnostics()
+            Dim vbCompilation = CreateVisualBasicCompilation("VBEnumClient",
+            <![CDATA[
+Public Module Program
+    Sub Main()
+        System.Console.WriteLine(CInt(Color.DateTime))
+    End Sub
+End Module]]>,
+                compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+                referencedCompilations:={csCompilation})
+            CompilationUtils.AssertTheseDiagnostics(vbCompilation,
+                                                    <expected><![CDATA[
+BC31429: 'DateTime' is ambiguous because multiple kinds of members with this name exist in enum 'Color'.
+        System.Console.WriteLine(CInt(Color.DateTime))
+                                      ~~~~~~~~~~~~~~
+                                                    ]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
+        Public Sub AmbiguousEnumConstants02c()
+            Dim csCompilation = CreateCSharpCompilation("CSEnum",
+            <![CDATA[
+public enum Color
+{
+Red,
+Green,
+DateTime,
+[System.Obsolete] Datetime = DateTime,
+DATETIME,
 Blue,
 }
 ]]>,

@@ -691,13 +691,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     CompactSymbols(lost)
                     Debug.Assert(_symList.Count > 0)
 
-                    ' As a special case, we allow conflicting enum members imported from
-                    ' metadata If the have the same value, and take the first
-                    If _symList.Count = 1 AndAlso ambiguous = 1 AndAlso AreEquivalentEnumConstants(_symList(0), other.Symbol) Then
+                    If otherLost Then
                         Return
                     End If
 
-                    If otherLost Then
+                    ' As a special case, we allow conflicting enum members imported from
+                    ' metadata If they have the same value, and take the first
+                    If _symList.Count = 1 AndAlso ambiguous = 1 AndAlso AreEquivalentEnumConstants(_symList(0), other.Symbol) Then
                         Return
                     End If
                 End If
@@ -729,11 +729,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function AreEquivalentEnumConstants(symbol1 As Symbol, symbol2 As Symbol) As Boolean
+            Debug.Assert(symbol1.ContainingType = symbol2.ContainingType)
             If symbol1.Kind <> SymbolKind.Field OrElse symbol2.Kind <> SymbolKind.Field OrElse symbol1.ContainingType.TypeKind <> TypeKind.Enum Then
                 Return False
             End If
-            Dim f1 = CType(symbol1, FieldSymbol)
-            Dim f2 = CType(symbol2, FieldSymbol)
+            Dim f1 = DirectCast(symbol1, FieldSymbol)
+            Dim f2 = DirectCast(symbol2, FieldSymbol)
             Return f1.ConstantValue IsNot Nothing AndAlso f1.ConstantValue.Equals(f2.ConstantValue)
         End Function
 
