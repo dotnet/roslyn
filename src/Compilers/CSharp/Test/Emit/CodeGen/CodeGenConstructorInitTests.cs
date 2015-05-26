@@ -463,5 +463,70 @@ struct C
 }
 ");
         }
+
+        [Fact]
+        public void TestInitializerInCtor005()
+        {
+            var source = @"
+struct C
+{
+    static int P1 { get; }
+
+    static int y = (P1 = 123);
+
+    static void Main()
+    {
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(P1);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"123
+123").
+                VerifyIL("C..cctor()", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   123
+  IL_0002:  dup
+  IL_0003:  stsfld     ""int C.<P1>k__BackingField""
+  IL_0008:  stsfld     ""int C.y""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestInitializerInCtor006()
+        {
+            var source = @"
+struct C
+{
+    static int P1 { get; }
+
+    static int y { get; } = (P1 = 123);
+
+    static void Main()
+    {
+        System.Console.WriteLine(y);
+        System.Console.WriteLine(P1);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"123
+123").
+                VerifyIL("C..cctor()", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   123
+  IL_0002:  dup
+  IL_0003:  stsfld     ""int C.<P1>k__BackingField""
+  IL_0008:  stsfld     ""int C.<y>k__BackingField""
+  IL_000d:  ret
+}
+");
+        }
+
     }
 }
