@@ -32,6 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 If leftIsNamedArgument AndAlso Not rightIsNamedArgument Then
                     Return 1
                 End If
+                If rightIsNamedArgument AndAlso Not leftIsNamedArgument Then
+                    Return -1
+                End If
 
                 diff = PatternMatch.CompareCase(leftMatch, rightMatch)
                 If diff <> 0 Then
