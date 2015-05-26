@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
         <Fact>
         Public Sub CompareAllBytesEmitted_Release()
-            Dim source = 
+            Dim source =
 "Class Program
     Shared Sub Main()
     End Sub
@@ -41,7 +41,7 @@ End Class"
             AssertEx.Equal(result3, result4)
         End Sub
 
-        <Fact(Skip:="926"), WorkItem(926)>
+        <Fact, WorkItem(926)>
         Public Sub CompareAllBytesEmitted_Debug()
             Dim source =
 "Class Program
