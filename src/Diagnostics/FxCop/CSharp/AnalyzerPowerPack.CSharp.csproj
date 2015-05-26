@@ -85,7 +85,7 @@
     <Compile Include="Usage\CSharpCA2214DiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.props">
+    <Content Include="AnalyzerPowerPack.CSharp.props">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
