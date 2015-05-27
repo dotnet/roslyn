@@ -111,12 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void WithNonIdentifierNames()
         {
-            // methods from metadata could have names that don't parse as a valid C#/VB identifier
+            // methods from metadata could have names that don't parse as a valid C# identifier
             var tree = ParseCode(
 @"class Interop
 {
-    public Interop();
-
     public void $Invoke();
 }");
             var typeDecl = tree.DigToFirstTypeDeclaration();

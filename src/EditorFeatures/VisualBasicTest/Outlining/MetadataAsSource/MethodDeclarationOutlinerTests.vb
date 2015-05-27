@@ -109,5 +109,22 @@ End Class
 
             AssertRegion(expectedRegion, actualRegion)
         End Sub
+
+        <WorkItem(1174405)>
+        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        Public Sub WithNonIdentifierNames()
+            ' methods from metadata could have names that don't parse as a valid VB identifier
+            Dim code =
+<code><![CDATA[
+Class Interop
+    Public Sub $Invoke()
+End Class
+]]></code>
+
+            Dim methodStatement As MethodStatementSyntax = GetMethodStatement(code)
+
+            Dim regions = GetRegions(methodStatement)
+            Assert.Equal(0, regions.Count())
+        End Sub
     End Class
 End Namespace
