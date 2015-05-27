@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.Design;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.UnitTests;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public class CA1008Tests : DiagnosticAnalyzerTestBase
     {
@@ -26,10 +27,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CSharp_EnumsShouldZeroValueFlagsRename()
         {
             // In enum '{0}', change the name of '{1}' to 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
-            var expectedMessage3 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
-            var expectedMessage4 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
+            var expectedMessage3 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
+            var expectedMessage4 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
 
             var code = @"
 [System.Flags]
@@ -77,8 +78,8 @@ public enum NoZeroValuedField
         public void CSharp_EnumsShouldZeroValueFlagsMultipleZero()
         {
             // Remove all members that have the value zero from {0} except for one member that is named 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E2");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E2");
 
             var code = @"// Some comment
 [System.Flags]
@@ -103,8 +104,8 @@ internal enum E2
         public void CSharp_EnumsShouldZeroValueFlagsMultipleZeroWithScope()
         {
             // Remove all members that have the value zero from {0} except for one member that is named 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E2");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E2");
 
             var code = @"// Some comment
 [System.Flags]
@@ -128,8 +129,8 @@ internal enum E2
         public void CSharp_EnumsShouldZeroValueNotFlagsNoZeroValue()
         {
             // Add a member to {0} that has a value of zero with a suggested name of 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
 
             var code = @"
 private enum E
@@ -164,8 +165,8 @@ internal enum E4
         public void CSharp_EnumsShouldZeroValueNotFlagsNoZeroValueWithScope()
         {
             // Add a member to {0} that has a value of zero with a suggested name of 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
 
             var code = @"
 class C
@@ -202,10 +203,10 @@ class C
         public void VisualBasic_EnumsShouldZeroValueFlagsRename()
         {
             // In enum '{0}', change the name of '{1}' to 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
-            var expectedMessage3 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
-            var expectedMessage4 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
+            var expectedMessage3 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
+            var expectedMessage4 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
 
             var code = @"
 <System.Flags>
@@ -242,10 +243,10 @@ End Enum
         public void VisualBasic_EnumsShouldZeroValueFlagsRenameScope()
         {
             // In enum '{0}', change the name of '{1}' to 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
-            var expectedMessage3 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
-            var expectedMessage4 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
+            var expectedMessage3 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
+            var expectedMessage4 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
 
             var code = @"
 <System.Flags>
@@ -282,10 +283,10 @@ End Enum
         public void VisualBasic_EnumsShouldZeroValueFlagsRename_AttributeListHasTrivia()
         {
             // In enum '{0}', change the name of '{1}' to 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
-            var expectedMessage3 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
-            var expectedMessage4 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E", "A");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E2", "A2");
+            var expectedMessage3 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E3", "A3");
+            var expectedMessage4 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsRename, "E4", "A4");
 
             var code = @"
 <System.Flags> _
@@ -322,9 +323,9 @@ End Enum
         public void VisualBasic_EnumsShouldZeroValueFlagsMultipleZero()
         {
             // Remove all members that have the value zero from {0} except for one member that is named 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E2");
-            var expectedMessage3 = string.Format(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E3");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E2");
+            var expectedMessage3 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueFlagsMultipleZero, "E3");
 
             var code = @"
 <System.Flags>
@@ -355,8 +356,8 @@ End Enum";
         public void VisualBasic_EnumsShouldZeroValueNotFlagsNoZeroValue()
         {
             // Add a member to {0} that has a value of zero with a suggested name of 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
 
             var code = @"
 Private Enum E
@@ -388,8 +389,8 @@ End Enum
         public void VisualBasic_EnumsShouldZeroValueNotFlagsNoZeroValueWithScope()
         {
             // Add a member to {0} that has a value of zero with a suggested name of 'None'.
-            var expectedMessage1 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
-            var expectedMessage2 = string.Format(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
+            var expectedMessage1 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E");
+            var expectedMessage2 = string.Format(AnalyzerPowerPackRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue, "E2");
 
             var code = @"
 Private Enum E

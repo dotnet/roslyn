@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
+namespace Microsoft.AnalyzerPowerPack.Utilities
 {
     /// <summary>
     ///     Provides <see langword="static"/> methods for parsing words from text.
@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         // allocation of a Collection<String> if you manually construct WordParser
         // and use the NextWord method instead of using the static Parse method.
         //
-        // [char]:      Represents any unicode character
-        // [A-Z]:       Represents any unicode uppercase letter
-        // [a-z]:       Represents any unicode lowercase letter
+        // [char]:      Represents any Unicode character
+        // [A-Z]:       Represents any Unicode uppercase letter
+        // [a-z]:       Represents any Unicode lowercase letter
         // [0-9]:       Represents the numbers 0 to 9
-        // [letter]:    Represents any unicode letter
+        // [letter]:    Represents any Unicode letter
         //
         // <words>      -> <prefix>(<word> | <notword>)+
         // 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="text"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="InvalidEnumArgumentException">
+        /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
         internal WordParser(string text, WordParserOptions options) : this(text, options, NullChar)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="text"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="InvalidEnumArgumentException">
+        /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
         internal WordParser(string text, WordParserOptions options, char prefix)
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
             if (options < WordParserOptions.None || options > (WordParserOptions.IgnoreMnemonicsIndicators | WordParserOptions.SplitCompoundWords))
             {
-                throw new InvalidEnumArgumentException(nameof(options), (int)options, typeof(WordParserOptions));
+                throw new ArgumentException($"'{nameof(options)}' ({((int)options).ToString()}) is invalid for Enum type'{typeof(WordParserOptions).Name}'");
             }
 
             _text = text;
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="text"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="InvalidEnumArgumentException">
+        /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
         internal static Collection<string> Parse(string text, WordParserOptions options)
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="text"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="InvalidEnumArgumentException">
+        /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
         internal static Collection<string> Parse(string text, WordParserOptions options, char prefix)
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         }
 
         /// <summary>
-        ///     Returns a value indicating whether at least one of the specified words occurs, using a case-insensitive ordinal comparision, within the specified text.
+        ///     Returns a value indicating whether at least one of the specified words occurs, using a case-insensitive ordinal comparison, within the specified text.
         /// </summary>
         /// <param name="text">
         ///     A <see cref="String"/> containing the text to check.
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         ///     </para>
         ///     <paramref name="words"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="InvalidEnumArgumentException">
+        /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
         internal static bool ContainsWord(string text, WordParserOptions options, params string[] words)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         }
 
         /// <summary>
-        ///     Returns a value indicating whether at least one of the specified words occurs, using a case-insensitive ordinal comparision, within the specified text.
+        ///     Returns a value indicating whether at least one of the specified words occurs, using a case-insensitive ordinal comparison, within the specified text.
         /// </summary>
         /// <param name="text">
         ///     A <see cref="String"/> containing the text to check.
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         ///     </para>
         ///     <paramref name="words"/> is <see langword="null"/>.
         /// </exception>
-        /// <exception cref="InvalidEnumArgumentException">
+        /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
         internal static bool ContainsWord(string text, WordParserOptions options, char prefix, params string[] words)
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
                         return true;
                     }
 
-                    // Unrecogized character, ignore
+                    // Unrecognized character, ignore
                     Skip();
                     continue;
                 }

@@ -1626,6 +1626,36 @@ End Class
                 Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("NativeApp.exe", CodeAnalysisResources.PEImageDoesntContainManagedMetadata))
         End Sub
 
+        <Fact, WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")>
+        Public Sub EmptyReference()
+            Dim source =
+<compilation>
+    <file>        
+Public Class C 
+    Shared Sub Main() 
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithMscorlibAndReferences(source, {AssemblyMetadata.CreateFromImage({}).GetReference(display:="Empty.dll")}, TestOptions.ReleaseDll)
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("Empty.dll", CodeAnalysisResources.PEImageDoesntContainManagedMetadata))
+        End Sub
+
+        <Fact, WorkItem(2992, "https://github.com/dotnet/roslyn/issues/2992")>
+        Public Sub MetadataDisposed()
+            Dim md = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib)
+            Dim c = VisualBasicCompilation.Create("test", references:={md.GetReference()})
+
+            ' Use the Compilation once to force lazy initialization of the underlying MetadataReader
+            c.GetTypeByMetadataName("System.Int32").GetMembers()
+
+            md.Dispose()
+
+            Assert.Throws(Of ObjectDisposedException)(Function() c.GetTypeByMetadataName("System.Int64").GetMembers())
+        End Sub
+
         <Fact, WorkItem(43)>
         Public Sub ReusingCorLibManager()
             Dim corlib1 = VisualBasicCompilation.Create("Comp")

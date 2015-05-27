@@ -3,15 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
+using Microsoft.AnalyzerPowerPack.Naming;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Naming;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.HardeningAnalyzer
+namespace Microsoft.AnalyzerPowerPack.UnitTests.HardeningAnalyzer
 {
     public class HardeningAnalyzerTests : DiagnosticAnalyzerTestBase
     {
@@ -42,13 +42,13 @@ public class Class6<TTypeParameter>
 {
 }
 ";
-            var diagnosticsBag = DiagnosticBag.GetInstance();
+            var diagnostics = new List<Diagnostic>();
             var documentsAndSpan = GetDocumentsAndSpans(new[] { source }, LanguageNames.CSharp);
-            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, logAnalyzerExceptionAsDiagnostics: true);
-            var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
-            Assert.True(diagnostics.Length > 0);
-            Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "System.NotImplementedException", "The method or operation is not implemented."),
-                DiagnosticFormatter.Instance.Format(diagnostics[0], EnsureEnglishUICulture.PreferredOrNull));
+            AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnostics.Add, null, logAnalyzerExceptionAsDiagnostics: true);
+            Assert.True(diagnostics.Count > 0);
+            Assert.Equal(
+                $"info AD0001: The Compiler Analyzer '{GetCSharpDiagnosticAnalyzer().GetType()}' threw an exception of type 'System.NotImplementedException' with message 'The method or operation is not implemented.'.",
+                (new DiagnosticFormatter()).Format(diagnostics[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 
         #region "Test_Class"

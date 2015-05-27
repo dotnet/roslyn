@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
+namespace Microsoft.AnalyzerPowerPack.Utilities
 {
     public static class ITypeSymbolExtensions
     {
