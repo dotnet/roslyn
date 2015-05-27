@@ -1643,6 +1643,7 @@
       </PropertyComment>
       <Kind Name="IdentifierToken"/>
     </Field>
+    <Field Name="TypeParameterListOpt" Type="TypeParameterListSyntax" Optional="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax"/>
     <Field Name="Body" Type="BlockSyntax" Optional="true"/>
     <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />

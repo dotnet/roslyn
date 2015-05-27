@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = model.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-            if (methodSymbol.ReturnsVoid)
+            // TODO: methodSymbol is null if this is a LocalFunctionStatementSyntax
+            // Need to implement SyntaxTreeSemanticModel.GetDeclaredSymbol(LocalFunctionStatementSyntax),
+            // then fix this analyzer to break the assumption that it's a MethodDeclarationSyntax (by allowing LocalFunctionStatementSyntax)
+            if (methodSymbol == null || methodSymbol.ReturnsVoid)
             {
                 return null;
             }

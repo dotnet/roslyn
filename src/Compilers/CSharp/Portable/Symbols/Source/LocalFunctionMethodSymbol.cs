@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
         private ImmutableArray<ParameterSymbol> _parameters;
+        private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private TypeSymbol _returnType;
         private bool _isVararg;
 
@@ -87,10 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<TypeParameterSymbol>.Empty;
+                // this if statement breaks a recursive loop, where Parameters needs TypeParameters to bind
+                if (!_typeParameters.IsDefault)
+                    return _typeParameters;
+                EnsureLazyInitFinished();
+                return _typeParameters;
             }
         }
-
+        
         internal override bool GenerateDebugInfo
         {
             get
@@ -119,6 +125,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void MethodChecks(DiagnosticBag diagnostics, Binder parameterBinder)
         {
+            if (_syntax.TypeParameterListOpt != null)
+            {
+                parameterBinder = new WithMethodTypeParametersBinder(this, parameterBinder);
+                _typeParameters = MakeTypeParameters(diagnostics);
+            }
+            else
+            {
+                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+            }
             SyntaxToken arglistToken;
             _parameters = ParameterHelpers.MakeParameters(parameterBinder, this, _syntax.ParameterList, true, out arglistToken, diagnostics);
             _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
@@ -130,10 +145,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
         }
+        
+        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
+        {
+            var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            var typeParameters = _syntax.TypeParameterListOpt.Parameters;
+            for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
+            {
+                var parameter = typeParameters[ordinal];
+                var identifier = parameter.Identifier;
+                var location = identifier.GetLocation();
+                var name = identifier.ValueText;
+                
+                // TODO: Add diagnostic checks for nested local functions (and containing method)
+                if (name == this.Name)
+                {
+                    diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, location, name);
+                }
+
+                for (int i = 0; i < result.Count; i++)
+                {
+                    if (name == result[i].Name)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
+                        break;
+                    }
+                }
+
+                var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                if ((object)tpEnclosing != null)
+                {
+                    // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
+                    diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
+                }
+                
+                var typeParameter = new LocalFunctionTypeParameterSymbol(
+                        this,
+                        name,
+                        ordinal,
+                        locations,
+                        ImmutableArray.Create(parameter.GetReference()));
+
+                result.Add(typeParameter);
+            }
+
+            return result.ToImmutableAndFree();
+        }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             MethodChecks(diagnostics, _binder);
+        }
+
+        public override int GetHashCode()
+        {
+            // this is what lambdas do (do not use hashes of other fields)
+            return _syntax.GetHashCode();
+        }
+
+        public sealed override bool Equals(object symbol)
+        {
+            if ((object)this == symbol) return true;
+            
+            var localFunction = symbol as LocalFunctionMethodSymbol;
+            return (object)localFunction != null
+                && localFunction._syntax == _syntax
+                && localFunction.ReturnType == this.ReturnType
+                && System.Linq.ImmutableArrayExtensions.SequenceEqual(localFunction.ParameterTypes, this.ParameterTypes)
+                && System.Linq.ImmutableArrayExtensions.SequenceEqual(localFunction.TypeParameters, this.TypeParameters)
+                && localFunction.IsVararg == this.IsVararg
+                && Equals(localFunction.ContainingSymbol, this.ContainingSymbol);
         }
     }
 }

@@ -1236,6 +1236,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a local function declaration syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a member.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            return null; // TODO
+            //return GetDeclaredMemberSymbol(declarationSyntax);
+        }
+
+        /// <summary>
         /// Given a enum member declaration, get the corresponding field symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares an enum member.</param>

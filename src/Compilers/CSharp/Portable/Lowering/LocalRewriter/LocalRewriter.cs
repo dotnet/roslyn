@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
-                _factory.CurrentMethod = node.LocalSymbol;
+                _factory.CurrentMethod = node.Symbol;
                 return base.VisitLocalFunctionStatement(node);
             }
             finally

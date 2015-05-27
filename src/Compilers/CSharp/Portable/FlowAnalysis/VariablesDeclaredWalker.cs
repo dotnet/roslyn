@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside && !node.WasCompilerGenerated)
             {
-                foreach (var parameter in node.LocalSymbol.Parameters)
+                foreach (var parameter in node.Symbol.Parameters)
                 {
                     _variablesDeclared.Add(parameter);
                 }

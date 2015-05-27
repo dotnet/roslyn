@@ -7990,7 +7990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.ParseModifiers(modifiers);
             TypeSyntax type = this.ParseReturnType();
             SyntaxToken identifier = this.EatToken(SyntaxKind.IdentifierToken);
-            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken && this.CurrentToken.Kind != SyntaxKind.LessThanToken)
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
@@ -8014,6 +8014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
+            TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
 
             BlockSyntax blockBody;
@@ -8025,6 +8026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 modifiers.ToTokenList(),
                 type,
                 identifier,
+                typeParameterListOpt,
                 paramList,
                 blockBody,
                 expressionBody,

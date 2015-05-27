@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(false);
+                        // skip over it, this is an error
                     }
                 }
                 methodsWithYield.Free();

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// For each lambda in the code, the set of variables that it captures.
             /// </summary>
-            public readonly MultiDictionary<LambdaSymbol, Symbol> capturedVariablesByLambda = new MultiDictionary<LambdaSymbol, Symbol>();
+            public readonly MultiDictionary<MethodSymbol, Symbol> capturedVariablesByLambda = new MultiDictionary<MethodSymbol, Symbol>();
 
             /// <summary>
             /// Blocks that are positioned between a block declaring some lifted variables
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// If someone only needs diagnostics or information about captures, this information is not necessary.
             /// <see cref="ComputeLambdaScopesAndFrameCaptures"/> needs to be called to compute this.
             /// </summary>
-            public Dictionary<LambdaSymbol, BoundNode> lambdaScopes;
+            public Dictionary<MethodSymbol, BoundNode> lambdaScopes;
 
             private Analysis(MethodSymbol method)
             {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ///  </summary>
             internal void ComputeLambdaScopesAndFrameCaptures()
             {
-                lambdaScopes = new Dictionary<LambdaSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
+                lambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 needsParentFrame = new HashSet<BoundNode>();
 
                 foreach (var kvp in capturedVariablesByLambda)
@@ -323,7 +323,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            public override BoundNode VisitCall(BoundCall node)
+            {
+                var localFunction = node.Method as LocalFunctionMethodSymbol;
+                if (localFunction != null)
+                {
+                    //ReferenceVariable(node.Syntax, localFunction);
+                }
+                return base.VisitCall(node);
+            }
+
             public override BoundNode VisitLambda(BoundLambda node)
+            {
+                return VisitLambdaOrFunction(node);
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                //variableScope[node.Symbol] = _currentScope;
+                return VisitLambdaOrFunction(node);
+            }
+
+            private BoundNode VisitLambdaOrFunction(IBoundLambdaOrFunction node)
             {
                 Debug.Assert((object)node.Symbol != null);
                 SeenLambda = true;
@@ -333,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _currentScope = node.Body;
                 scopeParent[_currentScope] = oldBlock;
                 var wasInExpressionLambda = _inExpressionLambda;
-                _inExpressionLambda = _inExpressionLambda || node.Type.IsExpressionTree();
+                _inExpressionLambda = _inExpressionLambda || ((node as BoundLambda)?.Type.IsExpressionTree() ?? false);
 
                 if (!_inExpressionLambda)
                 {
@@ -365,13 +386,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                LambdaSymbol lambda = _currentParent as LambdaSymbol;
+                // using generic MethodSymbol here and not LambdaSymbol because of local functions
+                MethodSymbol lambda = _currentParent as MethodSymbol;
                 if ((object)lambda != null && symbol.ContainingSymbol != lambda)
                 {
                     capturedVariables.Add(symbol, syntax);
 
                     // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
-                    for (; (object)lambda != null && symbol.ContainingSymbol != lambda; lambda = lambda.ContainingSymbol as LambdaSymbol)
+                    for (; (object)lambda != null && symbol.ContainingSymbol != lambda; lambda = lambda.ContainingSymbol as MethodSymbol)
                     {
                         capturedVariablesByLambda.Add(lambda, symbol);
                     }

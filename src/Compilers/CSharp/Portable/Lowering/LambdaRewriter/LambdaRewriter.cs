@@ -67,6 +67,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         // A mapping from every lambda parameter to its corresponding method's parameter.
         private readonly Dictionary<ParameterSymbol, ParameterSymbol> _parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
 
+        private struct LocalFunctionMapValue
+        {
+            public readonly BoundExpression Receiver;
+            public readonly MethodSymbol Symbol;
+            public LocalFunctionMapValue(BoundExpression receiver, MethodSymbol symbol)
+            {
+                Receiver = receiver;
+                Symbol = symbol;
+            }
+        }
+        // A mapping from every local function to its lowered method
+        private readonly Dictionary<LocalFunctionMethodSymbol, LocalFunctionMapValue> _localFunctionMap = new Dictionary<LocalFunctionMethodSymbol, LocalFunctionMapValue>();
+        
         // for each block with lifted (captured) variables, the corresponding frame type
         private readonly Dictionary<BoundNode, LambdaFrame> _frames = new Dictionary<BoundNode, LambdaFrame>();
 
@@ -279,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 LambdaFrame frame = GetFrameForScope(scope, closureDebugInfo);
-
+                
                 var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
                 proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
@@ -579,14 +592,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
                         break;
-
+                        
                     default:
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
-                var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
-                prologue.Add(assignToProxy);
+                if (value != null)
+                {
+                    var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
+                    var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
+                    prologue.Add(assignToProxy);
+                }
             }
         }
 
@@ -626,10 +642,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? node
                 : FramePointer(node.Syntax, _topLevelMethod.ContainingType); // technically, not the correct static type
         }
+        
+        private BoundCall RewriteLocalFunctionCall(BoundCall node)
+        {
+            var localFunction = node.Method as LocalFunctionMethodSymbol;
+            if (localFunction == null)
+                return node;
+
+            var mapped = _localFunctionMap[localFunction];
+            var receiver = mapped.Receiver;
+            var method = mapped.Symbol;
+
+            if (receiver == null && _currentMethod == method)
+            {
+                receiver = new BoundParameter(node.Syntax, method.ThisParameter);
+            }
+
+            // fzoo
+            Debug.Assert(receiver != null, "Mutually recursive local functions with closures are not yet supported");
+
+            return node.Update(receiver, method, node.Arguments);
+        }
 
         public override BoundNode VisitCall(BoundCall node)
         {
-            var visited = base.VisitCall(node);
+            var visited = base.VisitCall(RewriteLocalFunctionCall(node));
             if (visited.Kind != BoundKind.Call)
             {
                 return visited;
@@ -908,6 +945,129 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            NamedTypeSymbol translatedLambdaContainer;
+            BoundNode lambdaScope = null;
+            LambdaFrame containerAsFrame;
+
+            int closureOrdinal;
+            ClosureKind closureKind;
+            if (_analysis.lambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
+            {
+                translatedLambdaContainer = containerAsFrame = _frames[lambdaScope];
+                closureKind = ClosureKind.General;
+                closureOrdinal = containerAsFrame.ClosureOrdinal;
+            }
+            else if (_analysis.capturedVariablesByLambda[node.Symbol].Count == 0)
+            {
+                translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
+                closureKind = ClosureKind.Static;
+                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
+            }
+            else
+            {
+                containerAsFrame = null;
+                translatedLambdaContainer = _topLevelMethod.ContainingType;
+                closureKind = ClosureKind.ThisOnly;
+                closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
+            }
+
+            // Move the body of the lambda to a freshly generated synthetic method on its frame.
+            DebugId topLevelMethodId = GetTopLevelMethodId();
+            DebugId lambdaId = GetLambdaId(node.Syntax, closureKind, closureOrdinal);
+            
+            var synthesizedMethod = new SynthesizedLambdaMethod(translatedLambdaContainer, closureKind, _topLevelMethod, topLevelMethodId, node, lambdaId);
+            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
+
+            foreach (var parameter in node.Symbol.Parameters)
+            {
+                _parameterMap.Add(parameter, synthesizedMethod.Parameters[parameter.Ordinal]);
+            }
+            
+            // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
+            NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ?
+                translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(_currentTypeParameters)) :
+                translatedLambdaContainer;
+
+            // for instance lambdas, receiver is the frame
+            // for static lambdas, get the singleton receiver 
+            BoundExpression receiver;
+            if (closureKind != ClosureKind.Static)
+            {
+                receiver = FrameOfType(node.Syntax, constructedFrame);
+            }
+            else
+            {
+                var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
+                receiver = new BoundFieldAccess(node.Syntax, null, field, constantValueOpt: null);
+            }
+
+            MethodSymbol referencedMethod = synthesizedMethod.AsMember(constructedFrame);
+            if (referencedMethod.IsGenericMethod)
+            {
+                referencedMethod = referencedMethod.Construct(StaticCast<TypeSymbol>.From(_currentTypeParameters));
+            }
+
+            // null means "use closed value"
+            _localFunctionMap.Add(node.Symbol, new LocalFunctionMapValue(null, referencedMethod));
+
+            // rewrite the lambda body as the generated method's body
+            var oldMethod = _currentMethod;
+            var oldFrameThis = _currentFrameThis;
+            var oldTypeParameters = _currentTypeParameters;
+            var oldInnermostFramePointer = _innermostFramePointer;
+            var oldTypeMap = _currentLambdaBodyTypeMap;
+            var oldAddedStatements = _addedStatements;
+            var oldAddedLocals = _addedLocals;
+            _addedStatements = null;
+            _addedLocals = null;
+
+            // switch to the generated method
+
+            _currentMethod = synthesizedMethod;
+            if (closureKind == ClosureKind.Static)
+            {
+                // no link from a static lambda to its container
+                _innermostFramePointer = _currentFrameThis = null;
+            }
+            else
+            {
+                _currentFrameThis = synthesizedMethod.ThisParameter;
+                _innermostFramePointer = null;
+                _framePointers.TryGetValue(translatedLambdaContainer, out _innermostFramePointer);
+            }
+
+            if ((object)containerAsFrame != null)
+            {
+                _currentTypeParameters = translatedLambdaContainer.TypeParameters;
+                _currentLambdaBodyTypeMap = ((LambdaFrame)translatedLambdaContainer).TypeMap;
+            }
+            else
+            {
+                _currentTypeParameters = synthesizedMethod.TypeParameters;
+                _currentLambdaBodyTypeMap = new TypeMap(_topLevelMethod.TypeParameters, _currentTypeParameters);
+            }
+
+            var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
+            CheckLocalsDefined(body);
+            CompilationState.AddSynthesizedMethod(synthesizedMethod, body);
+
+            // return to the old method
+
+            _currentMethod = oldMethod;
+            _currentFrameThis = oldFrameThis;
+            _currentTypeParameters = oldTypeParameters;
+            _innermostFramePointer = oldInnermostFramePointer;
+            _currentLambdaBodyTypeMap = oldTypeMap;
+            _addedLocals = oldAddedLocals;
+            _addedStatements = oldAddedStatements;
+
+            _localFunctionMap[node.Symbol] = new LocalFunctionMapValue(receiver, _localFunctionMap[node.Symbol].Symbol);
+
+            return new BoundNoOpStatement(node.Syntax, NoOpStatementFlavor.Default);
+        }
+
         private DebugId GetTopLevelMethodId()
         {
             return slotAllocatorOpt?.MethodId ?? new DebugId(_topLevelMethodOrdinal, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
@@ -940,11 +1100,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode lambdaOrLambdaBodySyntax;
             var anonymousFunction = syntax as AnonymousFunctionExpressionSyntax;
+            var localFunction = syntax as LocalFunctionStatementSyntax;
             bool isLambdaBody;
 
             if (anonymousFunction != null)
             {
                 lambdaOrLambdaBodySyntax = anonymousFunction.Body;
+                isLambdaBody = true;
+            }
+            else if (localFunction != null)
+            {
+                lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
                 isLambdaBody = true;
             }
             else if (LambdaUtilities.IsQueryPairLambda(syntax))

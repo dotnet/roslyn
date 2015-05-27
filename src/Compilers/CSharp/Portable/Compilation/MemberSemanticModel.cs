@@ -422,6 +422,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't define member inside member.
+            return null;
+        }
+
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define member inside member.

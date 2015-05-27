@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            MakeSlots(node.LocalSymbol.Parameters);
+            MakeSlots(node.Symbol.Parameters);
             return base.VisitLocalFunctionStatement(node);
         }
 

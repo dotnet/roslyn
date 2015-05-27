@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement bodyWithoutLambdas = loweredBody;
-            if (sawLambdas)
+            if (sawLambdas || sawLocalFunctions)
             {
                 bodyWithoutLambdas = LambdaRewriter.Rewrite(
                     loweredBody,
@@ -1221,27 +1221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return bodyWithoutLambdas;
             }
-
-            BoundStatement bodyWithoutLocalFunctions = bodyWithoutLambdas;
-            if (sawLocalFunctions)
-            {
-                bodyWithoutLocalFunctions = LocalFunctionRewriter.Rewrite(
-                    bodyWithoutLocalFunctions,
-                    method.ContainingType,
-                    method.ThisParameter,
-                    method,
-                    methodOrdinal,
-                    compilationState,
-                    diagnostics);
-            }
-
-            if (bodyWithoutLocalFunctions.HasErrors)
-            {
-                return bodyWithoutLocalFunctions;
-            }
-
+            
             IteratorStateMachine iteratorStateMachine;
-            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLocalFunctions, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
+            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
 
             if (bodyWithoutIterators.HasErrors)
             {

@@ -446,7 +446,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     block = null;
                     hasErrors = true;
                     // TODO: add a message for this?
-                    diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, node.Location, localSymbol);
+                    diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
+                }
+
+                if (block != null)
+                {
+                    // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
+                    // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
+                    // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
+                    if (endIsReachable)
+                    {
+                        if (ImplicitReturnIsOkay(localSymbol))
+                        {
+                            block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol, node);
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
+                        }
+                    }
                 }
             }
             else
@@ -457,7 +476,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
-        
+
+        private bool ImplicitReturnIsOkay(MethodSymbol method)
+        {
+            return method.ReturnsVoid || method.IsIterator ||
+                (method.IsAsync && method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType);
+        }
+
         public BoundExpressionStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
         {
             return BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics);

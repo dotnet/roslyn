@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldContainingSymbol = _F.CurrentMethod;
             var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
 
-            _F.CurrentMethod = node.LocalSymbol;
+            _F.CurrentMethod = node.Symbol;
             _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
             var result = base.VisitLocalFunctionStatement(node);
