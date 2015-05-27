@@ -1305,7 +1305,7 @@ class Program
                 expectedIndentation: 16);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void AfterIfWithSingleStatementInTopLevelMethod_Bug7291_1()
         {
@@ -1322,7 +1322,7 @@ class Program
                 options: Options.Script);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888")]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void AfterIfWithSingleStatementInTopLevelMethod_Bug7291_2()
         {
@@ -2376,7 +2376,11 @@ class Program
 
         private static void AssertSmartIndentInProjection(string markup, int expectedIndentation, CSharpParseOptions options = null)
         {
-            foreach (var option in GetOptions(options))
+            var optionsSet = options != null
+                    ? new[] { options }
+                    : new[] { Options.Regular, Options.Script };
+
+            foreach (var option in optionsSet)
             {
                 using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new string[] { markup }, parseOptions: option))
                 {
@@ -2407,26 +2411,17 @@ class Program
             int? expectedIndentation,
             CSharpParseOptions options = null)
         {
-            foreach (var option in GetOptions(options))
+            var optionsSet = options != null
+                ? new[] { options }
+                : new[] { Options.Regular, Options.Script };
+
+            foreach (var option in optionsSet)
             {
                 using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions: option))
                 {
                     TestIndentation(indentationLine, expectedIndentation, workspace);
                 }
             }
-        }
-
-        private static CSharpParseOptions[] GetOptions(CSharpParseOptions options)
-        {
-            if (options != null)
-            {
-                return new[] { options };
-            }
-#if SCRIPTING
-            return new[] { Options.Regular, Options.Script };
-#else
-            return new[] { Options.Regular };
-#endif
         }
     }
 }

@@ -133,9 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         protected override void Test(string markup, params Action<object>[] expectedResults)
         {
             TestWithOptions(Options.Regular, markup, expectedResults);
-#if SCRIPTING
             TestWithOptions(Options.Script, markup, expectedResults);
-#endif
         }
 
         protected void TestWithUsings(string markup, params Action<object>[] expectedResults)

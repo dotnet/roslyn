@@ -1154,7 +1154,7 @@ class Test
             }
 
             [WorkItem(545503)]
-            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
             public void MethodBodyInScript()
             {
                 var code = @"#r ""System.Management""

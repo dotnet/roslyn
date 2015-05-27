@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub VerifyHighlightsForScriptReference()
             VerifyHighlights(

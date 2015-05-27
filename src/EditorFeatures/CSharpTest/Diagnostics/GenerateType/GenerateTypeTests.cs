@@ -1080,7 +1080,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         [WorkItem(539783)]
         public void RegressionFor5867ErrorToleranceTopLevel()
         {

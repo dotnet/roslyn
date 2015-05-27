@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void ConstructorValidation()
         {
-            Assert.DoesNotThrow(() => new CSharpParseOptions(kind: SourceCodeKind.Regular));
-#if !SCRIPTING
-            Assert.Throws<NotSupportedException>(() => new CSharpParseOptions(kind: SourceCodeKind.Interactive));
-            Assert.Throws<NotSupportedException>(() => new CSharpParseOptions(kind: SourceCodeKind.Script));
-#endif
             Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(kind: (SourceCodeKind)Int32.MaxValue));
             Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(languageVersion: (LanguageVersion)1000));
         }

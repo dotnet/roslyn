@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -89,8 +88,8 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         End Function
 
 #Region "Compilation"
-        Private Shared ReadOnly s_defaultInteractive As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive, documentationMode:=DocumentationMode.Parse, preprocessorSymbols:=ImmutableArray(Of KeyValuePair(Of String, Object)).Empty)
-        Private Shared ReadOnly s_defaultScript As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script, documentationMode:=DocumentationMode.Parse, preprocessorSymbols:=ImmutableArray(Of KeyValuePair(Of String, Object)).Empty)
+        Private Shared ReadOnly s_defaultInteractive As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
+        Private Shared ReadOnly s_defaultScript As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
 
         Protected Overrides Function CreateCompilation() As Compilation
 

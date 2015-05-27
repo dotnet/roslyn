@@ -1054,12 +1054,10 @@ NewLines("Module Program \n Sub Main() \n With """" \n Dim x = [|.GetHashCode|] 
 NewLines("Module Program \n Sub Main() \n With """" \n Dim {|Rename:getHashCode|} As Integer = .GetHashCode \n Dim x = getHashCode Xor &H7F3E ' Introduce Local \n End With \n End Sub \n End Module"),
 parseOptions:=Nothing)
 
-#If SCRIPTING Then
             Test(
 NewLines("Module Program \n Sub Main() \n With """" \n Dim x = [|.GetHashCode|] Xor &H7F3E ' Introduce Local \n End With \n End Sub \n End Module"),
 NewLines("Module Program \n Sub Main() \n With """" \n Dim {|Rename:getHashCode1|} As Integer = .GetHashCode \n Dim x = getHashCode1 Xor &H7F3E ' Introduce Local \n End With \n End Sub \n End Module"),
 parseOptions:=GetScriptOptions())
-#End If
         End Sub
 
         <WorkItem(545702)>

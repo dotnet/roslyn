@@ -7135,35 +7135,6 @@ End Class
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(source)
         End Sub
-
-        ''' <summary>
-        ''' Script compilation should be internal only.
-        ''' </summary>
-        <WorkItem(1979, "https://github.com/dotnet/roslyn/issues/1979")>
-        <Fact>
-        Public Sub ScriptCompilationInternalOnly()
-            Dim source = "System.Console.WriteLine()"
-            Dim dir = Temp.CreateDirectory()
-            Dim file = dir.CreateFile("b.vbx")
-            file.WriteAllText(source)
-
-            ' Compiling script file with internal API should be supported.
-            Dim compilation = CreateCompilationWithMscorlib(
-                <compilation>
-                    <file name="b.vbx"><%= source %></file>
-                </compilation>,
-                parseOptions:=New VisualBasicParseOptions(LanguageVersion.VisualBasic14, DocumentationMode.Parse, SourceCodeKind.Script, ImmutableArray(Of KeyValuePair(Of String, Object)).Empty),
-                options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
-            compilation.VerifyDiagnostics()
-
-            ' Compiling with command-line compiler, should not treat .vbx as script.
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", file.Path})
-            Dim output As StringWriter = New StringWriter()
-            cmd.Run(output, Nothing)
-            Assert.True(output.ToString().Contains("error BC30689: Statement cannot appear outside of a method body."))
-
-            CleanupAllGeneratedFiles(file.Path)
-        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

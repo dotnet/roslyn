@@ -112,27 +112,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, validLocation: true);
-#if SCRIPTING
             VerifyWorker(text, validLocation: true, options: Options.Script);
-#endif
         }
 
         protected void VerifyOnlyInScript(string text)
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, validLocation: false);
-#if SCRIPTING
             VerifyWorker(text, validLocation: true, options: Options.Script);
-#endif
         }
 
         protected void VerifyFalse(string text)
         {
             // run the verification in both context(normal and script)
             VerifyWorker(text, validLocation: false);
-#if SCRIPTING
             VerifyWorker(text, validLocation: false, options: Options.Script);
-#endif
         }
 
         protected string AddInsideMethod(string text)

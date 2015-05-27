@@ -47,11 +47,6 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact>
     Public Sub ConstructorValidation()
-        Assert.DoesNotThrow(Function() New VisualBasicParseOptions(kind:=SourceCodeKind.Regular))
-#If Not SCRIPTING Then
-        Assert.Throws(Of NotSupportedException)(Function() New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
-        Assert.Throws(Of NotSupportedException)(Function() New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-#End If
         Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(kind:=DirectCast(Int32.MaxValue, SourceCodeKind)))
         Assert.Throws(Of ArgumentOutOfRangeException)(Function() New VisualBasicParseOptions(languageVersion:=DirectCast(1000, LanguageVersion)))
     End Sub

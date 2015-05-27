@@ -8793,7 +8793,7 @@ struct Foo
         }
 
         [WorkItem(542632)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodInInteractive1()
         {
             var code = @"int i; [|i = 2|]; i = 3;";
@@ -9160,7 +9160,7 @@ class Node<K, T> where T : new()
         }
 
         [WorkItem(542708)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void InteractiveArgumentException()
         {
             var code = @"using System;
@@ -9521,7 +9521,7 @@ class Program
         }
 
         [WorkItem(530609)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void NoCrashInteractive()
         {
             var code = @"[|if (true)

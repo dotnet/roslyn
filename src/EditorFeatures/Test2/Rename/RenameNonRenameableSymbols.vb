@@ -363,7 +363,7 @@ class Program
         End Sub
 
         <WorkItem(543969)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameElementFromPreviousSubmission()
             Using workspace = CreateWorkspaceWithWaiter(

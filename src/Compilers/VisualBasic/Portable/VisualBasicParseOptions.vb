@@ -45,12 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentOutOfRangeException(NameOf(kind))
             End If
 
-#If Not SCRIPTING Then
-            If kind <> SourceCodeKind.Regular Then
-                Throw New NotSupportedException(kind.ToString())
-            End If
-#End If
-
             ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
         End Sub
 
@@ -160,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="kind">The parser source code kind.</param>
         ''' <returns>A new instance of VisualBasicParseOptions if source code kind is different; otherwise current instance.</returns>
-        Friend Shadows Function WithKind(kind As SourceCodeKind) As VisualBasicParseOptions
+        Public Shadows Function WithKind(kind As SourceCodeKind) As VisualBasicParseOptions
             If kind = Me.Kind Then
                 Return Me
             End If
@@ -231,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="kind">The parser source code kind.</param>
         ''' <returns>A new instance of ParseOptions.</returns>
-        Friend Overrides Function CommonWithKind(kind As SourceCodeKind) As ParseOptions
+        Protected Overrides Function CommonWithKind(kind As SourceCodeKind) As ParseOptions
             Return WithKind(kind)
         End Function
 

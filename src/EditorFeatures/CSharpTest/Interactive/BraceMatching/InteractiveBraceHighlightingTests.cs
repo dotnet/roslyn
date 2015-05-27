@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             return producer.ProduceTagsAsync(document, buffer.CurrentSnapshot, position, CancellationToken.None).Result;
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestCurlies()
         {
             var code = new string[] { "public class C {", "} " };
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestTouchingItems()
         {
             var code = new string[] { "public class C {", "  public void Foo(){}", "}" };
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestAngles()
         {
             var code = new string[] { "/// <summary>Foo</summary>", "public class C<T> {", "  void Foo() {", "    bool a = b < c;", "    bool d = e > f;", "  }", "} " };
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestSwitch()
         {
             var code = @"
