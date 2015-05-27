@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -3749,6 +3751,203 @@ class C
   IL_0010:  nop
   IL_0011:  ret
 }");
+        }
+
+        [Fact]
+        public void AnonymousTypes_Update()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    static void F()
+    {
+        var <N:0>x = new { A = 1 }</N:0>;
+    }
+}
+");
+            var source1 = MarkedSource(@"
+class C
+{
+    static void F()
+    {
+        var <N:0>x = new { A = 2 }</N:0>;
+    }
+}
+");
+            var source2 = MarkedSource(@"
+class C
+{
+    static void F()
+    {
+        var <N:0>x = new { A = 3 }</N:0>;
+    }
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            v0.VerifyIL("C.F", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (<>f__AnonymousType0<int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
+                        
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (<>f__AnonymousType0<int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+");
+            // expect a single TypeRef for System.Object
+            var md1 = diff1.GetMetadata();
+            AssertEx.Equal(new[] { "[0x23000002] 0x0000028b.0x00000298" }, DumpTypeRefs(md1.Reader));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff2.VerifyIL("C.F", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (<>f__AnonymousType0<int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+");
+            // expect a single TypeRef for System.Object
+            var md2 = diff2.GetMetadata();
+            AssertEx.Equal(new[] { "[0x23000003] 0x000002f9.0x00000306" }, DumpTypeRefs(md2.Reader));
+        }
+
+        [Fact]
+        public void AnonymousTypes_UpdateAfterAdd()
+        {
+            var source0 = MarkedSource(@"
+class C
+{
+    static void F()
+    {
+    }
+}
+");
+            var source1 = MarkedSource(@"
+class C
+{
+    static void F()
+    {
+        var <N:0>x = new { A = 2 }</N:0>;
+    }
+}
+");
+            var source2 = MarkedSource(@"
+class C
+{
+    static void F()
+    {
+        var <N:0>x = new { A = 3 }</N:0>;
+    }
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (<>f__AnonymousType0<int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+");
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff2.VerifyIL("C.F", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (<>f__AnonymousType0<int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+");
+            // expect a single TypeRef for System.Object
+            var md2 = diff2.GetMetadata();
+            AssertEx.Equal(new[] { "[0x23000003] 0x0000032c.0x00000339" }, DumpTypeRefs(md2.Reader));
+        }
+
+        private static IEnumerable<string> DumpTypeRefs(MetadataReader reader)
+        {
+            foreach (var typeRefHandle in reader.TypeReferences)
+            {
+                var typeRef = reader.GetTypeReference(typeRefHandle);
+                yield return $"[0x{MetadataTokens.GetToken(typeRef.ResolutionScope):x8}] 0x{MetadataTokens.GetHeapOffset(typeRef.Namespace):x8}.0x{MetadataTokens.GetHeapOffset(typeRef.Name):x8}";
+            }
         }
 
         /// <summary>

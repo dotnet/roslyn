@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -3352,6 +3353,173 @@ End Class
 }
 ]]>.Value)
         End Sub
+
+        <Fact>
+        Public Sub AnonymousTypes_Update()
+            Dim source0 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 1 }
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 2 }
+    End Sub
+End Class
+")
+            Dim source2 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 3 }
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            v0.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            ' expect a single TypeRef for System.Object
+            Dim md1 = diff1.GetMetadata()
+            AssertEx.Equal({"[0x23000002] 0x00000232.0x0000023f"}, DumpTypeRefs(md1.Reader))
+
+            Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            ' expect a single TypeRef for System.Object
+            Dim md2 = diff2.GetMetadata()
+            AssertEx.Equal({"[0x23000003] 0x000002a0.0x000002ad"}, DumpTypeRefs(md2.Reader))
+        End Sub
+
+        <Fact>
+        Public Sub AnonymousTypes_UpdateAfterAdd()
+            Dim source0 = MarkedSource("
+Class C
+    Shared Sub F()
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 2 }
+    End Sub
+End Class
+")
+            Dim source2 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 3 }
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            ' expect a single TypeRef for System.Object
+            Dim md2 = diff2.GetMetadata()
+            AssertEx.Equal({"[0x23000003] 0x000002d3.0x000002e0"}, DumpTypeRefs(md2.Reader))
+        End Sub
+
+        Private Shared Iterator Function DumpTypeRefs(reader As MetadataReader) As IEnumerable(Of String)
+            For Each typeRefHandle In reader.TypeReferences
+                Dim typeRef = reader.GetTypeReference(typeRefHandle)
+                Yield $"[0x{MetadataTokens.GetToken(typeRef.ResolutionScope):x8}] 0x{MetadataTokens.GetHeapOffset(typeRef.Namespace):x8}.0x{MetadataTokens.GetHeapOffset(typeRef.Name):x8}"
+            Next
+        End Function
 
         <Fact>
         Public Sub AnonymousTypes()
