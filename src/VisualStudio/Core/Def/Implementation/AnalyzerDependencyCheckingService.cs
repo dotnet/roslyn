@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class AnalyzerDependencyCheckingService
     {
         private static readonly object s_dependencyConflictErrorId = new object();
+        private static readonly IAssemblyWhiteList s_systemPrefixWhiteList = new AssemblyNamePrefixWhiteList("System");
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _updateSource;
@@ -192,9 +193,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             _task = _task.SafeContinueWith(_ =>
             {
-
                 IEnumerable<AssemblyIdentity> loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
-                return new AnalyzerDependencyChecker(currentAnalyzerPaths, loadedAssemblies, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
+                AssemblyIdentityWhiteList loadedAssembliesWhiteList = new AssemblyIdentityWhiteList(loadedAssemblies);
+                IAssemblyWhiteList[] whiteLists = new[] { s_systemPrefixWhiteList, loadedAssembliesWhiteList };
+
+                return new AnalyzerDependencyChecker(currentAnalyzerPaths, whiteLists, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
             },
             TaskScheduler.Default);
 

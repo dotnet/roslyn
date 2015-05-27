@@ -3,8 +3,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
+namespace Microsoft.AnalyzerPowerPack.Utilities
 {
     internal static class DiagnosticHelpers
     {

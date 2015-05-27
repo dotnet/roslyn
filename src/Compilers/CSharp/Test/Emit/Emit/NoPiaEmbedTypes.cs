@@ -5553,5 +5553,140 @@ class UsePia
 
             VerifyEmitDiagnostics(compilation1, true, expected);
         }
+
+        [Fact, WorkItem(2793, "https://github.com/dotnet/roslyn/issues/2793")]
+        public void DefaultValueWithoutOptional_01()
+        {
+            var il = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly pia
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = ( 01 00 0E 47 65 6E 65 72 61 6C 50 49 41 2E 64 6C   // ...GeneralPIA.dl
+                                                                                                                 6C 00 00 )                                        // l..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 66 39 63 32 64 35 31 64 2D 34 66 34 34   // ..$f9c2d51d-4f44
+                                                                                                  2D 34 35 66 30 2D 39 65 64 61 2D 63 39 64 35 39   // -45f0-9eda-c9d59
+                                                                                                  39 62 35 38 32 35 37 00 00 )                      // 9b58257..
+}
+.module pia.dll
+// MVID: {FDF1B1F7-A867-40B9-83CD-3F75B2D2B3C2}
+.imagebase 0x10000000
+.file alignment 0x00000200
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000001    //  ILONLY
+.class interface public abstract auto ansi import IA
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 44 45 41 44 42 45 45 46 2D 43 41 46 45   // ..$DEADBEEF-CAFE
+                                                                                                  2D 42 41 42 45 2D 42 41 41 44 2D 44 45 41 44 43   // -BABE-BAAD-DEADC
+                                                                                                  30 44 45 30 30 30 30 00 00 )                      // 0DE0000..
+  .method public newslot abstract strict virtual 
+          instance void  M(int32 x) cil managed
+  {
+    .param [1] = int32(0x0000000C)
+  } // end of method IA::M
+} // end of class IA
+";
+            MetadataReference piaReference = CompileIL(il, appendDefaultHeader: false, embedInteropTypes: true);
+            var csharp = @"
+class B : IA
+{
+    public void M(int x)
+    {
+    }
+}
+";
+            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module => {
+                ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+                var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");
+                var m = (MethodSymbol)ia.GetMember("M");
+                var p = (PEParameterSymbol)m.Parameters[0];
+                Assert.False(p.IsMetadataOptional);
+                Assert.Equal(ParameterAttributes.HasDefault, p.Flags);
+                Assert.Equal((object)0x0000000C, p.ExplicitDefaultConstantValue.Value);
+                Assert.False(p.HasExplicitDefaultValue);
+                Assert.Throws(typeof(InvalidOperationException), delegate
+                    {
+                        var tmp = p.ExplicitDefaultValue;
+                    });
+            }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2793, "https://github.com/dotnet/roslyn/issues/2793")]
+        public void DefaultValueWithoutOptional_02()
+        {
+            var il = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly pia
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = ( 01 00 0E 47 65 6E 65 72 61 6C 50 49 41 2E 64 6C   // ...GeneralPIA.dl
+                                                                                                                 6C 00 00 )                                        // l..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 66 39 63 32 64 35 31 64 2D 34 66 34 34   // ..$f9c2d51d-4f44
+                                                                                                  2D 34 35 66 30 2D 39 65 64 61 2D 63 39 64 35 39   // -45f0-9eda-c9d59
+                                                                                                  39 62 35 38 32 35 37 00 00 )                      // 9b58257..
+}
+.module pia.dll
+// MVID: {FDF1B1F7-A867-40B9-83CD-3F75B2D2B3C2}
+.imagebase 0x10000000
+.file alignment 0x00000200
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000001    //  ILONLY
+.class interface public abstract auto ansi import IA
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 44 45 41 44 42 45 45 46 2D 43 41 46 45   // ..$DEADBEEF-CAFE
+                                                                                                  2D 42 41 42 45 2D 42 41 41 44 2D 44 45 41 44 43   // -BABE-BAAD-DEADC
+                                                                                                  30 44 45 30 30 30 30 00 00 )                      // 0DE0000..
+  .method public newslot abstract strict virtual 
+          instance void  M(valuetype [mscorlib]System.DateTime x) cil managed
+  {
+  .param [1]
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 B1 68 DE 3A 00 00 00 00 00 00 )             // ...h.:......
+  } // end of method IA::M
+} // end of class IA
+";
+            MetadataReference piaReference = CompileIL(il, appendDefaultHeader: false, embedInteropTypes: true);
+            var csharp = @"
+class B : IA
+{
+    public void M(System.DateTime x)
+    {
+    }
+}
+";
+            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module => {
+                ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+                var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");
+                var m = (MethodSymbol)ia.GetMember("M");
+                var p = (PEParameterSymbol)m.Parameters[0];
+                Assert.False(p.IsMetadataOptional);
+                Assert.Equal(ParameterAttributes.None, p.Flags);
+                Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString());
+                Assert.Null(p.ExplicitDefaultConstantValue);
+                Assert.False(p.HasExplicitDefaultValue);
+                Assert.Throws(typeof(InvalidOperationException), delegate
+                {
+                    var tmp = p.ExplicitDefaultValue;
+                });
+            }).VerifyDiagnostics();
+        }
+
     }
 }

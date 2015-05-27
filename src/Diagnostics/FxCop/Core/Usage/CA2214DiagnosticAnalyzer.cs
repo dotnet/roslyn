@@ -2,9 +2,10 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+namespace Microsoft.AnalyzerPowerPack.Usage
 {
     /// <summary>
     /// CA2214: Do not call overridable methods in constructors
@@ -18,13 +19,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     public abstract class CA2214DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         public const string RuleId = "CA2214";
-        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotCallOverridableMethodsInConstructors), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotCallOverridableMethodsInConstructorsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.DoNotCallOverridableMethodsInConstructors), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.DoNotCallOverridableMethodsInConstructorsDescription), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
 
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableMessageAndTitle,
                                                                          s_localizableMessageAndTitle,
-                                                                         FxCopDiagnosticCategory.Usage,
+                                                                         AnalyzerPowerPackDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          description: s_localizableDescription,

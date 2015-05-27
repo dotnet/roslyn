@@ -131,6 +131,14 @@ namespace Microsoft.Cci
                     //        all types and members for better error reporting by WinMDExp.
                     nativePdbWriterOpt.WriteDefinitionLocations(_module.GetSymbolToLocationMap());
                 }
+                else
+                {
+#if DEBUG
+                    // validate that all definitions are writeable
+                    // if same scenario would happen in an winmdobj project
+                    nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(_module.GetSymbolToLocationMap());
+#endif
+                }
 
                 pdbContentId = nativePdbWriterOpt.GetContentId();
 

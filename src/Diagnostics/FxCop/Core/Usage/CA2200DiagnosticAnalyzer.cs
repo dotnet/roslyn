@@ -2,20 +2,21 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+namespace Microsoft.AnalyzerPowerPack.Usage
 {
     public abstract class CA2200DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA2200";
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.RethrowToPreserveStackDetails), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.RethrowException), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.RethrowToPreserveStackDetails), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.RethrowException), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitle,
                                                                          s_localizableMessage,
-                                                                         FxCopDiagnosticCategory.Usage,
+                                                                         AnalyzerPowerPackDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182363.aspx",
