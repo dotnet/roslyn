@@ -4737,7 +4737,8 @@ End Class
         Dim tree = VisualBasicSyntaxTree.ParseText(source)
         Dim emptyStatement = tree.GetRoot().DescendantNodes().OfType(Of EmptyStatementSyntax).Single()
         Assert.Equal(numTokens, emptyStatement.FullWidth)
-        Assert.Equal(numTokens, emptyStatement.GetTrailingTrivia().Single().GetStructure().DescendantTokens().Count) ' Confirm that we built a list.
+        Assert.Equal(source, tree.ToString())
+        Assert.Equal(InternalSyntax.Scanner.BadTokenCountLimit, emptyStatement.GetTrailingTrivia().Single().GetStructure().DescendantTokens().Count) ' Confirm that we built a list.
     End Sub
 
 #End Region
