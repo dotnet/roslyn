@@ -51,6 +51,76 @@ class Program
         }
 
         [Fact]
+        public void StandardMethodFeatures()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Params(params int[] x)
+        {
+            Console.WriteLine(string.Join("","", x));
+        }
+        void RefOut(ref int x, out int y)
+        {
+            y = ++x;
+        }
+        void NamedOptional(int x = 2)
+        {
+            Console.WriteLine(x);
+        }
+        Params(2);
+        int a = 1;
+        int b;
+        RefOut(ref a, out b);
+        Console.WriteLine(a);
+        Console.WriteLine(b);
+        NamedOptional(x: 2);
+        NamedOptional();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void Delegate()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int Local(int x) => x;
+        Func<int, int> local = Local;
+        Console.WriteLine(local(2));
+        void Local2()
+        {
+            Console.WriteLine(2);
+        }
+        var local2 = new Action(Local2);
+        local2();
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+2
+2
+");
+        }
+
+        [Fact]
         public void Closure()
         {
             var source = @"
@@ -77,6 +147,45 @@ class Program
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"
 1
+2
+");
+        }
+
+        [Fact]
+        public void InstanceClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    int x;
+
+    void A(int y)
+    {
+        void Local()
+        {
+            A(x + y);
+        }
+        if (y != 0)
+        {
+            Console.WriteLine(y);
+        }
+        else
+        {
+            Local();
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var prog = new Program();
+        prog.x = 2;
+        prog.A(0);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
 2
 ");
         }
@@ -148,7 +257,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -257,7 +365,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -271,9 +378,13 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
-2
-");
+            // TODO: Eventually support this
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+    // (8,16): error CS1519: Invalid token '<T>' in class, struct, or interface member declaration
+    //         T Local<T>(T val)
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "<T>").WithArguments("<T>").WithLocation(8, 16)
+                );
         }
 
         [Fact]
@@ -296,6 +407,35 @@ class Program
     static void Main(string[] args)
     {
         Console.WriteLine(Outer(2));
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+2
+");
+        }
+
+        [Fact]
+        public void Shadows()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Local()
+    {
+        Console.WriteLine(""bad"");
+    }
+
+    static void Main(string[] args)
+    {
+        void Local()
+        {
+            Console.WriteLine(2);
+        }
+        Local();
     }
 }
 ";
@@ -390,7 +530,7 @@ class Program
         }
 
         [Fact]
-        public void PartialExpressionBody()
+        public void ForwardReference()
         {
             var source = @"
 using System;
@@ -400,21 +540,16 @@ class Program
 {
     static void Main(string[] args)
     {
-        void Local() => Console.Writ
+        Console.WriteLine(Local());
+        int Local() => 2;
     }
 }
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
-    // (9,37): error CS1002: ; expected
-    //         void Local() => Console.Writ
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(9, 37),
-    // (9,33): error CS0117: 'Console' does not contain a definition for 'Writ'
-    //         void Local() => Console.Writ
-    Diagnostic(ErrorCode.ERR_NoSuchMember, "Writ").WithArguments("System.Console", "Writ").WithLocation(9, 33),
-    // (9,25): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-    //         void Local() => Console.Writ
-    Diagnostic(ErrorCode.ERR_IllegalStatement, "Console.Writ").WithLocation(9, 25)
+    // (9,27): error CS0841: Cannot use local variable 'Local' before it is declared
+    //         Console.WriteLine(Local());
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(9, 27)
                 );
         }
     }

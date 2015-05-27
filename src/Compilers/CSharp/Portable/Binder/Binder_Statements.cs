@@ -420,11 +420,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if (localSymbol == null)
             {
-                localSymbol = new LocalFunctionMethodSymbol(this, this.ContainingType, node, node.Identifier.GetLocation());
+                localSymbol = new LocalFunctionMethodSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node, node.Identifier.GetLocation());
             }
             else
             {
                 hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            }
+
+            if (localSymbol.IsGenericMethod)
+            {
+                diagnostics.Add(ErrorCode.ERR_InvalidMemberDecl, node.TypeParameterListOpt.Location, node.TypeParameterListOpt);
             }
 
             var binder = this.GetBinder(node);

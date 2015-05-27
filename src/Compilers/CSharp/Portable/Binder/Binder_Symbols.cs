@@ -889,6 +889,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(members.Count > 0);
 
+            if (!hasErrors && members[0] is LocalFunctionMethodSymbol)
+            {
+                Debug.Assert(members.Count == 1 && members[0].Locations.Length == 1);
+                var localSymbolLocation = members[0].Locations[0];
+                bool usedBeforeDecl =
+                    syntax.SyntaxTree == localSymbolLocation.SourceTree &&
+                    syntax.SpanStart < localSymbolLocation.SourceSpan.Start;
+                if (usedBeforeDecl)
+                {
+                    Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, syntax, syntax);
+                }
+            }
+
             switch (members[0].Kind)
             {
                 case SymbolKind.Method:

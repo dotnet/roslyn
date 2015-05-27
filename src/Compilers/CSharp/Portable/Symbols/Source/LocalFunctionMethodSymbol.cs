@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -10,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
+        private readonly Symbol _containingSymbol;
         private ImmutableArray<ParameterSymbol> _parameters;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private TypeSymbol _returnType;
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public LocalFunctionMethodSymbol(
             Binder binder,
             NamedTypeSymbol containingType,
+            Symbol containingSymbol,
             LocalFunctionStatementSyntax syntax,
             Location location) :
             base(
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _binder = binder;
             _syntax = syntax;
+            _containingSymbol = containingSymbol;
 
             // It is an error to be an extension method, but we need to compute it to report it
             var firstParam = syntax.ParameterList.Parameters.FirstOrDefault();
@@ -37,9 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(
                 MethodKind.LocalFunction,
-                DeclarationModifiers.Static | syntax.Modifiers.ToDeclarationModifiers(), // TODO: Will change when we allow local captures (also change in LocalFunctionRewriter)
+                (_containingSymbol.IsStatic ? DeclarationModifiers.Static : 0) | syntax.Modifiers.ToDeclarationModifiers(),
                 returnsVoid: false, // will be fixed in MethodChecks
                 isExtensionMethod: isExtensionMethod);
+        }
+
+        public sealed override Symbol ContainingSymbol
+        {
+            get
+            {
+                return _containingSymbol;
+            }
         }
 
         public override string Name
@@ -96,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _typeParameters;
             }
         }
-        
+
         internal override bool GenerateDebugInfo
         {
             get
@@ -145,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
         }
-        
+
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
@@ -156,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
-                
+
                 // TODO: Add diagnostic checks for nested local functions (and containing method)
                 if (name == this.Name)
                 {
@@ -178,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
                     diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
                 }
-                
+
                 var typeParameter = new LocalFunctionTypeParameterSymbol(
                         this,
                         name,
@@ -206,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool Equals(object symbol)
         {
             if ((object)this == symbol) return true;
-            
+
             var localFunction = symbol as LocalFunctionMethodSymbol;
             return (object)localFunction != null
                 && localFunction._syntax == _syntax

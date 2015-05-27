@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalFunctionMethodSymbol(
                 this,
                 this.ContainingType,
+                this.ContainingMemberOrLambda,
                 declaration,
                 declaration.Identifier.GetLocation());
         }

@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localFunction = node.Method as LocalFunctionMethodSymbol;
                 if (localFunction != null)
                 {
-                    //ReferenceVariable(node.Syntax, localFunction);
+                    ReferenceVariable(node.Syntax, localFunction.OriginalDefinition);
                 }
                 return base.VisitCall(node);
             }
@@ -338,9 +338,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitLambdaOrFunction(node);
             }
 
+            public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+            {
+                if (node.MethodOpt.MethodKind == MethodKind.LocalFunction)
+                {
+                    ReferenceVariable(node.Syntax, node.MethodOpt);
+                }
+                return base.VisitDelegateCreationExpression(node);
+            }
+
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
             {
-                //variableScope[node.Symbol] = _currentScope;
+                variableScope[node.Symbol] = _currentScope;
                 return VisitLambdaOrFunction(node);
             }
 
@@ -426,6 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.ConversionKind == ConversionKind.MethodGroup)
                 {
+                    if (node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
+                    {
+                        ReferenceVariable(node.Syntax, node.SymbolOpt);
+                    }
                     if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
                     {
                         return VisitSyntaxWithReceiver(node.Syntax, ((BoundMethodGroup)node.Operand).ReceiverOpt);

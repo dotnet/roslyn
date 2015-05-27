@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
         }
 
-        public sealed override Symbol ContainingSymbol
+        public override Symbol ContainingSymbol
         {
             get
             {
