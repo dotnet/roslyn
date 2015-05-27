@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// <summary>
     /// Represents a project file loaded from disk.
     /// </summary>
+    [Serializable]
     internal sealed class ProjectFileInfo
     {
         /// <summary>
@@ -23,14 +25,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string AssemblyName { get; }
 
         /// <summary>
-        /// The compilation options for this project.
+        /// The parse and compilation options for this project.
         /// </summary>
-        public CompilationOptions CompilationOptions { get; }
-
-        /// <summary>
-        /// The parse options for this project.
-        /// </summary>
-        public ParseOptions ParseOptions { get; }
+        public BuildOptions BuildOptions { get; }
 
         /// <summary>
         /// The codepage for this project.
@@ -53,37 +50,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public IReadOnlyList<ProjectFileReference> ProjectReferences { get; }
 
         /// <summary>
-        /// References to other metadata files; libraries and executables.
+        /// other information represented as command line args
         /// </summary>
-        public IReadOnlyList<MetadataReference> MetadataReferences { get; }
-
-        /// <summary>
-        /// References to analyzer assembly files; contains diagnostic analyzers.
-        /// </summary>
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
+        public IReadOnlyList<string> CommandLineArgs { get; }
 
         public ProjectFileInfo(
             string outputPath,
             string assemblyName,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
+            BuildOptions buildOptions,
             int codePage,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
             IEnumerable<ProjectFileReference> projectReferences,
-            IEnumerable<MetadataReference> metadataReferences,
-            IEnumerable<AnalyzerReference> analyzerReferences)
+            IEnumerable<string> commandLineArgs)
         {
             this.OutputFilePath = outputPath;
             this.AssemblyName = assemblyName;
-            this.CompilationOptions = compilationOptions;
-            this.ParseOptions = parseOptions;
+            this.BuildOptions = buildOptions;
             this.CodePage = codePage;
-            this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
-            this.AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
-            this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
-            this.MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
-            this.AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
+            this.Documents = documents.ToList().AsReadOnly();
+            this.AdditionalDocuments = additionalDocuments.ToList().AsReadOnly();
+            this.ProjectReferences = projectReferences.ToList().AsReadOnly();
+            this.CommandLineArgs = commandLineArgs.ToList().AsReadOnly();
         }
     }
 }

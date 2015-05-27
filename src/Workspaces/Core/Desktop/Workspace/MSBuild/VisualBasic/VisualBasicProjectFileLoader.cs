@@ -24,41 +24,24 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 {
     internal class VisualBasicProjectFileLoader : ProjectFileLoader
     {
-        private readonly HostWorkspaceServices _workspaceServices;
-
-        internal HostLanguageServices LanguageServices
-        {
-            get { return this._workspaceServices.GetLanguageServices(LanguageNames.VisualBasic); }
-        }
-
         public override string Language
         {
             get { return LanguageNames.VisualBasic; }
         }
 
-        internal VisualBasicProjectFileLoader(HostWorkspaceServices workspaceServices)
+        public VisualBasicProjectFileLoader()
         {
-            this._workspaceServices = workspaceServices;
         }
 
         protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
         {
-            return new VisualBasicProjectFile(this, loadedProject, this._workspaceServices.GetService<IMetadataService>(), this._workspaceServices.GetService<IAnalyzerService>());
+            return new VisualBasicProjectFile(this, loadedProject);
         }
 
         internal class VisualBasicProjectFile : ProjectFile
         {
-            private readonly IMetadataService _metadataService;
-            private readonly IAnalyzerService _analyzerService;
-            private readonly IHostBuildDataFactory _hostBuildDataFactory;
-            private readonly ICommandLineArgumentsFactoryService _commandLineArgumentsFactory;
-
-            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, IMetadataService metadataService, IAnalyzerService analyzerService) : base(loader, loadedProject)
+            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject) : base(loader, loadedProject)
             {
-                this._metadataService = metadataService;
-                this._analyzerService = analyzerService;
-                this._hostBuildDataFactory = loader.LanguageServices.GetService<IHostBuildDataFactory>();
-                this._commandLineArgumentsFactory = loader.LanguageServices.GetService<ICommandLineArgumentsFactoryService>();
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -89,7 +72,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 return result;
             }
 
-            public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
+            public override async Task<ProjectFileInfo> GetProjectFileInfoWorkerAsync(CancellationToken cancellationToken)
             {
                 var compilerInputs = new VisualBasicCompilerInputs(this);
                 var executedProject = await BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(false);
@@ -104,18 +87,22 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             private ProjectFileInfo CreateProjectFileInfo(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, ProjectInstance executedProject)
             {
-                IEnumerable<MetadataReference> metadataReferences = null;
-                IEnumerable<AnalyzerReference> analyzerReferences = null;
-                this.GetReferences(compilerInputs, executedProject, ref metadataReferences, ref analyzerReferences);
                 string outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
                 string assemblyName = this.GetAssemblyName();
-                HostBuildData hostBuildData = this._hostBuildDataFactory.Create(compilerInputs.HostBuildOptions);
-                return new ProjectFileInfo(outputPath, assemblyName, hostBuildData.CompilationOptions, hostBuildData.ParseOptions, compilerInputs.CodePage, this.GetDocuments(compilerInputs.Sources, executedProject), this.GetDocuments(compilerInputs.AdditionalFiles, executedProject), base.GetProjectReferences(executedProject), metadataReferences, analyzerReferences);
+
+                return new ProjectFileInfo(
+                    outputPath, 
+                    assemblyName, 
+                    compilerInputs.BuildOptions, 
+                    compilerInputs.CodePage, 
+                    this.GetDocuments(compilerInputs.Sources, executedProject), 
+                    this.GetDocuments(compilerInputs.AdditionalFiles, executedProject), 
+                    base.GetProjectReferences(executedProject), 
+                    GetCommandLineArgs(compilerInputs));
             }
 
-            private void GetReferences(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, ProjectInstance executedProject, ref IEnumerable<MetadataReference> metadataReferences, ref IEnumerable<AnalyzerReference> analyzerReferences)
+            private List<string> GetCommandLineArgs(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs)
             {
-
                 // use command line parser to compute references using common logic
                 List<string> list = new List<string>();
                 if (compilerInputs.LibPaths != null && compilerInputs.LibPaths.Count<string>() > 0)
@@ -167,17 +154,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     list.Add("/sdkpath:" + compilerInputs.SdkPath);
                 }
 
-                CommandLineArguments commandLineArguments = this._commandLineArgumentsFactory.CreateCommandLineArguments(list, executedProject.Directory, false, RuntimeEnvironment.GetRuntimeDirectory());
-                MetadataFileReferenceResolver pathResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-                metadataReferences = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(pathResolver, this._metadataService.GetProvider()));
-
-                IAnalyzerAssemblyLoader loader = this._analyzerService.GetLoader();
-                foreach (var path in commandLineArguments.AnalyzerReferences.Select((r) => r.FilePath))
-                {
-                    loader.AddDependencyLocation(path);
-                }
-
-                analyzerReferences = commandLineArguments.ResolveAnalyzerReferences(loader);
+                return list;
             }
 
             private IEnumerable<DocumentFileInfo> GetDocuments(IEnumerable<ITaskItem> sources, ProjectInstance executedProject)
@@ -287,7 +264,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 private readonly VisualBasicProjectFile _projectFile;
                 private bool _initialized;
-                private HostBuildOptions _options;
+                private BuildOptions _options;
                 private int _codePage;
                 private IEnumerable<MSB.Framework.ITaskItem> _sources;
                 private IEnumerable<MSB.Framework.ITaskItem> _additionalFiles;
@@ -304,7 +281,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 public VisualBasicCompilerInputs(VisualBasicProjectFile projectFile)
                 {
                     this._projectFile = projectFile;
-                    this._options = new HostBuildOptions();
+                    this._options = new BuildOptions();
                     this._sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this._references = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this._analyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
@@ -319,7 +296,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     get { return this._initialized; }
                 }
 
-                public HostBuildOptions HostBuildOptions
+                public BuildOptions BuildOptions
                 {
                     get { return this._options; }
                 }
@@ -767,8 +744,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return Compile1();
                 }
             }
-
-
         }
     }
 }

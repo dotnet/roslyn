@@ -89,6 +89,7 @@
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
+    <Compile Include="Utilities\RemoteTask.cs" />
     <Compile Include="Utilities\Documentation\FileBasedXmlDocumentationProvider.cs" />
     <Compile Include="Utilities\ReferencePathUtilities.cs" />
     <Compile Include="WorkspaceDesktopResources.Designer.cs">
@@ -109,16 +110,20 @@
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\BuildOptions.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectAnalyzerReference.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileExtensionAttribute.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileInfo.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileReference.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectMetadataReference.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\ProjectTypeGuidAttribute.cs" />
+    <Compile Include="Workspace\MSBuild\ProjectFile\RemoteProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\LineScanner.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
@@ -161,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Workspace\MSBuild\msbuild.config" />
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -14,23 +13,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// Represents a reference to another project file.
     /// </summary>
     [Serializable]
-    internal sealed class ProjectFileReference
+    internal sealed class ProjectAnalyzerReference
     {
         /// <summary>
-        /// The path on disk to the other project file. 
-        /// This path may be relative to the referencing project's file or an absolute path.
         /// </summary>
         public string Path { get; }
 
-        /// <summary>
-        /// The aliases assigned to this reference, if any.
-        /// </summary>
-        public IReadOnlyList<string> Aliases { get; }
+        public string Display { get; }
 
-        public ProjectFileReference(string path, IEnumerable<string> aliases)
+        public ProjectAnalyzerReference(string path, string display)
         {
             this.Path = path;
-            this.Aliases = aliases.ToList().AsReadOnly();
+            this.Display = display;
         }
     }
 }

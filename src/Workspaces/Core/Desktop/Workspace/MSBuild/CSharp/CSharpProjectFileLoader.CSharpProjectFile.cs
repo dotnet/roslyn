@@ -23,18 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class CSharpProjectFile : ProjectFile
         {
-            private readonly IMetadataService _metadataService;
-            private readonly IAnalyzerService _analyzerService;
-            private readonly IHostBuildDataFactory _msbuildHost;
-            private readonly ICommandLineArgumentsFactoryService _commandLineArgumentsFactoryService;
-
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService, IAnalyzerService analyzerService)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project)
                 : base(loader, project)
             {
-                _metadataService = metadataService;
-                _analyzerService = analyzerService;
-                _msbuildHost = loader.MSBuildHost;
-                _commandLineArgumentsFactoryService = loader.CommandLineArgumentsFactoryService;
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -55,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
+            public override async Task<ProjectFileInfo> GetProjectFileInfoWorkerAsync(CancellationToken cancellationToken)
             {
                 var compilerInputs = new CSharpCompilerInputs(this);
 
@@ -96,25 +87,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                                      .ToImmutableArray();
 
-                IEnumerable<MetadataReference> metadataRefs;
-                IEnumerable<AnalyzerReference> analyzerRefs;
-                this.GetReferences(compilerInputs, executedProject, out metadataRefs, out analyzerRefs);
-
                 var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
                 var assemblyName = this.GetAssemblyName();
-                var msbuildData = _msbuildHost.Create(compilerInputs.Options);
 
                 return new ProjectFileInfo(
                     outputPath,
                     assemblyName,
-                    msbuildData.CompilationOptions,
-                    msbuildData.ParseOptions,
+                    compilerInputs.Options,
                     compilerInputs.CodePage,
                     docs,
                     additionalDocs,
                     this.GetProjectReferences(executedProject),
-                    metadataRefs,
-                    analyzerRefs);
+                    GetCommandLineArgs(compilerInputs));
             }
 
             private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
@@ -126,26 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated);
             }
 
-            private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
+            private List<string> GetCommandLineArgs(CSharpCompilerInputs compilerInputs)
             {
-                var aliasesText = item.GetMetadata("Aliases");
-
-                if (string.IsNullOrEmpty(aliasesText))
-                {
-                    return ImmutableArray<string>.Empty;
-                }
-
-                return ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries));
-            }
-
-            private void GetReferences(
-                CSharpCompilerInputs compilerInputs,
-                MSB.Execution.ProjectInstance executedProject,
-                out IEnumerable<MetadataReference> metadataReferences,
-                out IEnumerable<AnalyzerReference> analyzerReferences)
-            {
-                // use command line parser to do reference translation same as command line compiler
-
                 var args = new List<string>();
 
                 if (compilerInputs.LibPaths != null && compilerInputs.LibPaths.Count > 0)
@@ -158,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var filePath = GetDocumentFilePath(mr);
 
                     var aliases = GetAliases(mr);
-                    if (aliases.IsDefaultOrEmpty)
+                    if (aliases.Count == 0)
                     {
                         args.Add("/r:\"" + filePath + "\"");
                     }
@@ -182,17 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     args.Add("/nostdlib");
                 }
 
-                var commandLineArgs = _commandLineArgumentsFactoryService.CreateCommandLineArguments(args, executedProject.Directory, isInteractive: false, sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
-
-                var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
-                metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
-
-                var analyzerLoader = _analyzerService.GetLoader();
-                foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
-                {
-                    analyzerLoader.AddDependencyLocation(path);
-                }
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
+                return args;
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
@@ -274,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly CSharpProjectFile _projectFile;
 
                 internal bool Initialized { get; private set; }
-                internal HostBuildOptions Options { get; private set; }
+                internal BuildOptions Options { get; private set; }
                 internal int CodePage { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
                 internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
@@ -287,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal CSharpCompilerInputs(CSharpProjectFile projectFile)
                 {
                     _projectFile = projectFile;
-                    this.Options = new HostBuildOptions();
+                    this.Options = new BuildOptions();
                     this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();

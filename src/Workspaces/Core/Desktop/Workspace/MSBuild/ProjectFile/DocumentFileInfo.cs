@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// <summary>
     /// Represents a source file that is part of a project file.
     /// </summary>
+    [Serializable]
     internal sealed class DocumentFileInfo
     {
         /// <summary>
