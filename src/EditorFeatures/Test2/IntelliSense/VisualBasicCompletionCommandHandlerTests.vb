@@ -2124,8 +2124,8 @@ Class C
             End Using
         End Sub
 
-        <WorkItem(1659, "https://github.com/dotnet/roslyn/issues/1659")>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3088, "https://github.com/dotnet/roslyn/issues/3088")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DoNotPreferParameterNames()
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
