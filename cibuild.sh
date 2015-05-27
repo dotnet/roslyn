@@ -15,6 +15,7 @@ XUNIT_VERSION=2.0.0-alpha-build2576
 FULL_RUN=true
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
+
 while [[ $# > 0 ]]
 do
     opt="$1"
@@ -141,6 +142,57 @@ build_roslyn()
     fi
 }
 
+# Install the specified Mono toolset from our Azure blob storage.
+install_mono_toolset()
+{
+    TARGET=/tmp/$1
+    echo "Installing Mono toolset $1"
+    if [ -d $TARGET ]; then
+        echo "Already installed"
+        return
+    fi
+
+    pushd /tmp
+
+    rm $TARGET 2>/dev/null
+    curl -O https://jaredpar.blob.core.windows.net/mono/$1.tar.bz2
+    tar -jxvf $1.tar.bz2
+    if [ $? -ne 0 ]; then
+        echo "Unable to download toolset"
+        exit 1
+    fi
+
+    popd
+}
+
+# This function will update the PATH variable to put the desired
+# version of Mono ahead of the system one. 
+set_mono_path()
+{
+    if [ "$CUSTOM_MONO_PATH" != "" ]; then
+        if [ ! -d "$CUSTOM_MONO_PATH" ]; then
+            echo "Not a valid directory $CUSTOM_MONO_PATH"
+            exit 1
+        fi
+  
+        echo "Using mono path $CUSTOM_MONO_PATH"
+        PATH=$CUSTOM_MONO_PATH:$PATH
+        return
+    fi
+
+    if [ "$OS_NAME" = "Darwin" ]; then
+        MONO_TOOLSET_NAME=mono.mac.1
+    elif [ "$OS_NAME" = "Linux" ]; then
+        MONO_TOOLSET_NAME=mono.linux.1
+    else
+        echo "Error: Unsupported OS $OS_NAME"
+        exit 1
+    fi
+
+    install_mono_toolset $MONO_TOOLSET_NAME
+    PATH=/tmp/$MONO_TOOLSET_NAME/bin:$PATH
+}
+
 test_roslyn()
 {
     if [ "$FULL_RUN" != "true" ]; then
@@ -179,23 +231,6 @@ if [ "$OS_NAME" = "Linux" ]; then
     FULL_RUN=false
 fi
 
-if [ "$CUSTOM_MONO_PATH" != "" ]; then
-    if [ ! -d "$CUSTOM_MONO_PATH" ]; then
-        echo "Not a valid directory $CUSTOM_MONO_PATH"
-        exit 1
-    fi
-
-    echo "Using mono path $CUSTOM_MONO_PATH"
-    PATH=$CUSTOM_MONO_PATH:$PATH
-else
-    echo Changing mono snapshot
-    . mono-snapshot mono/20150316155603
-    if [ $? -ne 0 ]; then
-        echo Could not set mono snapshot 
-        exit 1
-    fi
-fi
-
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
@@ -203,6 +238,8 @@ echo Restoring NuGet packages
 run_nuget restore src/Roslyn.sln
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
+set_mono_path
+which mono
 compile_toolset
 save_toolset
 clean_roslyn
