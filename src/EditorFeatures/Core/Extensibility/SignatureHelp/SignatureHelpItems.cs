@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor
             var distinctItems = items.Distinct().ToList();
             if (selectedItem.HasValue && items.Count != distinctItems.Count)
             {
-                // `selectedItem` index has already been determined to be valid, it now needs to be adjusted to account for duplicates being removed.
+                // `selectedItem` index has already been determined to be valid, it now needs to be adjusted to point
+                // to the equivalent item in the reduced list to account for duplicates being removed
                 // E.g.,
                 //   items = {A, A, B, B, C, D}
                 //   selectedItem = 4 (index for item C)
