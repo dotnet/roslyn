@@ -32,6 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Protected _lineBufferOffset As Integer ' marks the next character to read from _buffer
         Private _endOfTerminatorTrivia As Integer ' marks how far scanner may have scanned ahead for terminator trivia. This may be greater than _lineBufferOffset
 
+        Friend Const BadTokenCountLimit As Integer = 200
+        Private _badTokenCount As Integer ' cumulative count of bad tokens produced
+
         Private ReadOnly _sbPooled As PooledStringBuilder = PooledStringBuilder.GetInstance
         ''' <summary>
         ''' DO NOT USE DIRECTLY. 
@@ -226,10 +229,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If Not CanGet() Then
                 token = MakeEofToken(leadingTrivia)
             Else
-                ' // Don't break up surrogate pairs
-                Dim c = Peek()
-                Dim length = If(IsHighSurrogate(c) AndAlso CanGet(1) AndAlso IsLowSurrogate(Peek(1)), 2, 1)
-                token = MakeBadToken(leadingTrivia, length, ERRID.ERR_IllegalChar)
+                _badTokenCount += 1
+
+                If _badTokenCount < BadTokenCountLimit Then
+                    ' // Don't break up surrogate pairs
+                    Dim c = Peek()
+                    Dim length = If(IsHighSurrogate(c) AndAlso CanGet(1) AndAlso IsLowSurrogate(Peek(1)), 2, 1)
+                    token = MakeBadToken(leadingTrivia, length, ERRID.ERR_IllegalChar)
+                Else
+                    ' If we get too many characters that we cannot make sense of, absorb the rest of the input.
+                    token = MakeBadToken(leadingTrivia, RemainingLength(), ERRID.ERR_IllegalChar)
+                End If
             End If
 
             Return token
@@ -417,6 +427,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(num >= -MaxCharsLookBehind)
 
             Return _lineBufferOffset + num < _bufferLen
+        End Function
+
+        Private Function RemainingLength() As Integer
+            Dim result = _bufferLen - _lineBufferOffset
+            Debug.Assert(CanGet(result - 1))
+            Return result
         End Function
 
         Private Function GetText(length As Integer) As String

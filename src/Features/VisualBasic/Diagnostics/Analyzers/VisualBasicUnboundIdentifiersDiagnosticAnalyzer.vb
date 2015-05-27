@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
         End Property
 
         Protected Overrides Function ConstructorDoesNotExist(node As SyntaxNode, info As SymbolInfo, semanticModel As SemanticModel) As Boolean
-            Dim arguments = (TryCast(node.Parent, ObjectCreationExpressionSyntax)?.ArgumentList.Arguments)
+            Dim arguments = (TryCast(node.Parent, ObjectCreationExpressionSyntax)?.ArgumentList?.Arguments)
             If Not arguments.HasValue Then
                 Return False
             End If
