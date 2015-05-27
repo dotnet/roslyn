@@ -3306,5 +3306,43 @@ class Program
                 result.AssertLabeledSpansAre("conflict", "Console", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub InvalidNamesDoNotCauseCrash_IntroduceQualifiedName()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class {|conflict:C$$|} { }
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="C.D")
+
+                result.AssertReplacementTextInvalid()
+                result.AssertLabeledSpansAre("conflict", "C.D", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub InvalidNamesDoNotCauseCrash_AccidentallyPasteLotsOfCode()
+            Dim renameTo = "class C { public void M() { for (int i = 0; i < 10; i++) { System.Console.Writeline(""This is a test""); } } }"
+
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class {|conflict:C$$|} { }
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo)
+
+                result.AssertReplacementTextInvalid()
+                result.AssertLabeledSpansAre("conflict", renameTo, RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
