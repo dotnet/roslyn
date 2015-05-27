@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
@@ -38,34 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return new Uri(string.Format(BingSearchString, errorCode + " " + title));
         }
 
-        public static void StartBrowser(IServiceProvider serviceProvider, Uri uri)
+        public static void StartBrowser(Uri uri)
         {
-            if (!TryStartBrowser(serviceProvider, uri))
-            {
-                StartBrowser(uri);
-            }
-        }
-
-        private static bool TryStartBrowser(IServiceProvider serviceProvider, Uri uri)
-        {
-            var browserService = serviceProvider.GetService(typeof(SVsWebBrowsingService)) as IVsWebBrowsingService;
-            if (browserService == null)
-            {
-                return false;
-            }
-
-            return TryStartBrowser(browserService, uri);
-        }
-
-        private static bool TryStartBrowser(IVsWebBrowsingService service, Uri uri)
-        {
-            IVsWindowFrame unused;
-            return ErrorHandler.Succeeded(service.Navigate(uri.AbsoluteUri, 0, out unused));
-        }
-
-        private static void StartBrowser(Uri uri)
-        {
-            Process.Start(new ProcessStartInfo(uri.AbsoluteUri));
+            VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
         }
     }
 }
