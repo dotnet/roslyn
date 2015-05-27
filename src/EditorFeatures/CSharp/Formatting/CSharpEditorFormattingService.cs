@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return false;
             }
 
+            // don't auto format after these keys if smart indenting is not on.
+            if  ((ch == '#' || ch == 'n') && optionsService.GetOption(FormattingOptions.SmartIndent, document.Project.Language) != FormattingOptions.IndentStyle.Smart)
+            {
+                return false;
+            }
+
             return _supportedChars.Contains(ch);
         }
 

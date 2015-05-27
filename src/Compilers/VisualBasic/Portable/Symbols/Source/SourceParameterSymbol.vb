@@ -200,8 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Case SymbolKind.Method
                     Select Case DirectCast(containingSymbol, MethodSymbol).MethodKind
-                        Case MethodKind.DelegateInvoke,
-                             MethodKind.Conversion,
+                        Case MethodKind.Conversion,
                              MethodKind.UserDefinedOperator,
                              MethodKind.EventAdd,
                              MethodKind.EventRemove

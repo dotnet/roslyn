@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function GetMetadataConstantValue(context As EmitContext) As IMetadataConstant
             If Me.HasMetadataConstantValue Then
-                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ExplicitDefaultValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ExplicitDefaultConstantValue.Value, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             Else
                 Return Nothing
             End If

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -27,6 +28,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IDocumentTrackingService _documentTracker;
+                private readonly IProjectCacheService _cacheService;
+
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
                 private readonly LowPriorityProcessor _lowPriorityProcessor;
@@ -43,6 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     _listener = listener;
                     _registration = registration;
+                    _cacheService = registration.GetService<IProjectCacheService>();
 
                     var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetActiveFileIncrementalAnalyzers(_registration, analyzerProviders));
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzerProviders));
@@ -141,6 +145,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         return _registration.CurrentSolution;
                     }
+                }
+
+                private IDisposable EnableCaching(ProjectId projectId)
+                {
+                    return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
                 }
 
                 private ProjectDependencyGraph DependencyGraph
@@ -310,6 +319,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
                     _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+                }
+
+                private class NullDisposable : IDisposable
+                {
+                    public static readonly IDisposable Instance = new NullDisposable();
+
+                    public void Dispose() { }
                 }
             }
         }

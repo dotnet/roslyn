@@ -5913,6 +5913,83 @@ Array element : Changed
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(2903, "https://github.com/dotnet/roslyn/issues/2903")>
+        Public Sub DelegateWithParamArray()
+
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Public Delegate Function MessageFormatter(ByVal format As String, <[ParamArray]> args As Object()) As String
+    ]]></file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.DebugDll)
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module Program
+
+    Sub Main()
+        Log(Function(f) f("Test {0}", 1))
+        Log(Function(f) f("Test"))
+        Log(Function(f) "test")
+    End Sub
+
+    Sub Log(messageFunc As Func(Of MessageFormatter, String))
+        Console.WriteLine(messageFunc(New MessageFormatter(Function(format, args) String.Format(format, args))))
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+
+            Dim expectedOutput = <![CDATA[
+Test 1
+Test
+test
+]]>
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {compilation1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(compilation2, expectedOutput:=expectedOutput)
+
+            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(compilation3, expectedOutput:=expectedOutput)
+
+            Dim source4 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Delegate Function MessageFormatter(ByVal format As String, <[ParamArray]> args As Object()) As String
+
+Module Program
+
+    Sub Main()
+        Log(Function(f) f("Test {0}", 1))
+        Log(Function(f) f("Test"))
+        Log(Function(f) "test")
+    End Sub
+
+    Sub Log(messageFunc As Func(Of MessageFormatter, String))
+        Console.WriteLine(messageFunc(New MessageFormatter(Function(format, args) String.Format(format, args))))
+    End Sub
+
+End Module
+    ]]></file>
+</compilation>
+
+            Dim compilation4 = CreateCompilationWithMscorlibAndVBRuntime(source4, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(compilation4, expectedOutput:=expectedOutput)
+
+        End Sub
+
     End Class
 
 End Namespace

@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get { return _fullPath; }
         }
 
+        public bool HasLoadErrors
+        {
+            get { return _analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0; }
+        }
+
         public AnalyzerReference GetReference()
         {
             if (_analyzerReference == null)
@@ -121,6 +126,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Dispose()
         {
+            Reset();
+
+            _tracker.Dispose();
+            _tracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+        }
+
+        public void Reset()
+        {
             var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
             if (analyzerFileReference != null)
             {
@@ -135,9 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _analyzerLoadErrors = null;
-
-            _tracker.Dispose();
-            _tracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+            _analyzerReference = null;
         }
 
         private void OnUpdatedOnDisk(object sender, EventArgs e)

@@ -354,14 +354,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Next
 
             If eventContainer IsNot Nothing Then
-                Return New NavigationBarItem(
+                Return New NavigationBarActionlessItem(
                     eventContainer.Name,
                     eventContainer.GetGlyph(),
                     indent:=1,
                     spans:=allMethodSpans,
                     childItems:=rightHandMemberItems)
             Else
-                Return New NavigationBarItem(
+                Return New NavigationBarActionlessItem(
                     String.Format(VBEditorResources.Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,

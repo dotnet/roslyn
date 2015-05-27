@@ -194,7 +194,7 @@ class Hello
                 .Returns(s_emptyBuildResponse);
 
             var client = new ServerDispatcher.Connection(clientConnection, handler.Object);
-            var serveTask = client.ServeConnection(new TaskCompletionSource<TimeSpan?>());
+            var serveTask = client.ServeConnection();
 
             // Once this returns we know the Connection object has kicked off a compilation and 
             // started monitoring the disconnect task.  Can now initiate a disconnect in a known
@@ -202,7 +202,7 @@ class Hello
             var cancellationToken = handlerTaskSource.Task.Result;
             monitorTaskSource.SetResult(true);
 
-            Assert.Equal(ServerDispatcher.CompletionReason.ClientDisconnect, serveTask.Result);
+            Assert.Equal(ServerDispatcher.CompletionReason.ClientDisconnect, serveTask.Result.CompletionReason);
             Assert.True(cancellationToken.IsCancellationRequested);
 
             // Now that the asserts are done unblock the "build" long running task.  Have to do this
@@ -221,7 +221,7 @@ class Hello
             clientConnection.CloseAction = delegate { calledClose = true; };
 
             var client = new ServerDispatcher.Connection(clientConnection, handler.Object);
-            Assert.Equal(ServerDispatcher.CompletionReason.CompilationNotStarted, client.ServeConnection().Result);
+            Assert.Equal(ServerDispatcher.CompletionReason.CompilationNotStarted, client.ServeConnection().Result.CompletionReason);
             Assert.True(calledClose);
         }
 
@@ -242,7 +242,7 @@ class Hello
                 .Returns(s_emptyBuildResponse);
 
             var client = new ServerDispatcher.Connection(clientConnection, handler.Object);
-            Assert.Equal(ServerDispatcher.CompletionReason.ClientDisconnect, client.ServeConnection().Result);
+            Assert.Equal(ServerDispatcher.CompletionReason.ClientDisconnect, client.ServeConnection().Result.CompletionReason);
         }
 
         [Fact]
@@ -256,6 +256,19 @@ class Hello
             dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
 
             Assert.True((DateTime.Now - startTime) > keepAlive);
+        }
+
+        [Fact]
+        public async Task FailedConnectionShoudlCreateFailedConnectionData()
+        {
+            var tcs = new TaskCompletionSource<NamedPipeServerStream>();
+            var handler = new Mock<IRequestHandler>(MockBehavior.Strict);
+            var connectionDataTask = ServerDispatcher.CreateHandleConnectionTask(tcs.Task, handler.Object, CancellationToken.None);
+
+            tcs.SetException(new Exception());
+            var connectionData = await connectionDataTask.ConfigureAwait(false);
+            Assert.Equal(ServerDispatcher.CompletionReason.ClientDisconnect, connectionData.CompletionReason);
+            Assert.Null(connectionData.KeepAlive);
         }
 
         /// <summary>

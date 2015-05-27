@@ -1,14 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.Naming;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Naming;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public class CA1708Tests : DiagnosticAnalyzerTestBase
     {
@@ -315,7 +317,7 @@ namespace NI
     }
 }
 ",
-            GetCA1708CSharpResultAt(Member, GetSymbolDisplayString("NI.CASE1.Case1", "NI.CASE1.CAse1(int)", "NI.CASE1.CaSe1<T>(T)", "NI.CASE1.CASe1", "NI.CASE1.CasE1", "NI.CASE1.caSE1", "NI.CASE1.CAsE1"), 4, 18));
+            GetCA1708CSharpResultAt(Member, GetSymbolDisplayStringNoSorting("NI.CASE1.CASe1", "NI.CASE1.CAsE1", "NI.CASE1.CAse1(int)", "NI.CASE1.CaSe1<T>(T)", "NI.CASE1.CasE1", "NI.CASE1.Case1", "NI.CASE1.caSE1"), 4, 18));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -380,7 +382,7 @@ namespace N
         #region Helper Methods
 
         private const string RuleName = CA1708DiagnosticAnalyzer.RuleId;
-        private static readonly string s_message = FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase;
+        private static readonly string s_message = AnalyzerPowerPackRulesResources.IdentifierNamesShouldDifferMoreThanCase;
 
         private const string Namespace = CA1708DiagnosticAnalyzer.Namespace;
         private const string Type = CA1708DiagnosticAnalyzer.Type;
@@ -389,7 +391,12 @@ namespace N
 
         private static string GetSymbolDisplayString(params string[] objectName)
         {
-            return string.Join(", ", objectName.OrderBy(StringComparer.InvariantCulture));
+            return string.Join(", ", objectName.OrderByDescending(x => x, StringComparer.InvariantCulture));
+        }
+
+        private static string GetSymbolDisplayStringNoSorting(params string[] objectName)
+        {
+            return string.Join(", ", objectName);
         }
 
         private static DiagnosticResult GetCA1708CSharpResult(string typeName, string objectName)

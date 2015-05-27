@@ -3,6 +3,14 @@
 using Microsoft.VisualStudio.Shell;
 
 [assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Build.Tasks.CodeAnalysis",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
+[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.CSharp",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
     OldVersionUpperBound = Constants.OldVersionUpperBound,
@@ -161,12 +169,12 @@ internal class Constants
     // redirects from our old versions to the release version 
     public const string OldVersionLowerBound = "0.7.0.0";
     public const string OldVersionUpperBound = "0.7.0.0";
-    public const string NewVersion = "1.0.0.0";
+    public const string NewVersion = "1.1.0.0";
 #else
     // Non-official builds get redirects to local 42.42.42.42,
     // which will only be built locally
     public const string OldVersionLowerBound = "0.7.0.0";
-    public const string OldVersionUpperBound = "1.0.0.0";
+    public const string OldVersionUpperBound = "1.1.0.0";
     public const string NewVersion = "42.42.42.42";
 #endif
     public const string PublicKeyToken = "31BF3856AD364E35";
