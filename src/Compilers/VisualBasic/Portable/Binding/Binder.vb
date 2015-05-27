@@ -478,26 +478,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim metadataName = globalMetadataName
 
             Dim rootNamespace = Me.Compilation.Options.RootNamespace
-            Dim haveRootNamespace As Boolean = Not String.IsNullOrEmpty(rootNamespace)
-            If haveRootNamespace Then
+            If Not String.IsNullOrEmpty(rootNamespace) Then
                 metadataName = $"{rootNamespace}.{metadataName}"
             End If
 
             Dim emittedName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding:=True)
-
-            Dim containingModule = Me.ContainingModule
-            Dim typeSymbol = containingModule.LookupTopLevelMetadataType(emittedName)
-
-            ' Roslyn emits the type into the global namespace so we should look there too.
-            If haveRootNamespace AndAlso TypeOf typeSymbol Is MissingMetadataTypeSymbol Then
-                Dim globalEmittedName = MetadataTypeName.FromFullName(globalMetadataName, useCLSCompliantNameArityEncoding:=True)
-                Dim globalTypeSymbol = containingModule.LookupTopLevelMetadataType(globalEmittedName)
-                If TypeOf globalTypeSymbol IsNot MissingMetadataTypeSymbol Then
-                    typeSymbol = globalTypeSymbol
-                End If
-            End If
-
-            Return typeSymbol
+            Return Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
         End Function
 
         ''' <summary>

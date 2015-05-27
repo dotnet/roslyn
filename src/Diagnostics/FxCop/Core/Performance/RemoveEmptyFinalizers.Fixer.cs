@@ -6,10 +6,11 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
+namespace Microsoft.AnalyzerPowerPack.Performance
 {
     /// <summary>
     /// CA1821: Remove empty finalizers
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
 
             // We cannot have multiple overlapping diagnostics of this id.
             var diagnostic = context.Diagnostics.Single();
-            context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.RemoveEmptyFinalizers,
+            context.RegisterCodeFix(new MyCodeAction(AnalyzerPowerPackFixersResources.RemoveEmptyFinalizers,
                              async ct => await RemoveFinalizer(context.Document, node, ct).ConfigureAwait(false)),
                         diagnostic);
             return;

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design;
+using Microsoft.AnalyzerPowerPack.CSharp.Design;
+using Microsoft.AnalyzerPowerPack.VisualBasic.Design;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public class CA1033Tests : DiagnosticAnalyzerTestBase
     {

@@ -4258,5 +4258,31 @@ End Class
             Assert.Equal(expected, actual)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(2822, "https://github.com/dotnet/roslyn/issues/2822")>
+        Public Sub FormatLabelFollowedByDotExpression()
+            Dim code = <Code>
+Module Module1
+    Sub Main()
+        With New List(Of Integer)
+lab: .Capacity = 15
+        End With
+    End Sub
+End Module
+</Code>
+
+            Dim expected = <Code>
+Module Module1
+    Sub Main()
+        With New List(Of Integer)
+lab:        .Capacity = 15
+        End With
+    End Sub
+End Module
+</Code>
+
+            AssertFormatLf2CrLf(code.Value, expected.Value)
+        End Sub
+
     End Class
 End Namespace

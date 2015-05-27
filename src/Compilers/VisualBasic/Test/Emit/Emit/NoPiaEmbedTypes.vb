@@ -4111,6 +4111,148 @@ BC35000: Requested operation is not available because the runtime library functi
             verifier.Diagnostics.AssertTheseDiagnostics(diagnostics)
         End Sub
 
+        <Fact()>
+        Public Sub DefaultValueWithoutOptional_01()
+            Dim sources1 = <![CDATA[
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.assembly extern System
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.assembly pia
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = ( 01 00 0E 47 65 6E 65 72 61 6C 50 49 41 2E 64 6C   // ...GeneralPIA.dl
+                                                                                                                 6C 00 00 )                                        // l..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 66 39 63 32 64 35 31 64 2D 34 66 34 34   // ..$f9c2d51d-4f44
+                                                                                                  2D 34 35 66 30 2D 39 65 64 61 2D 63 39 64 35 39   // -45f0-9eda-c9d59
+                                                                                                  39 62 35 38 32 35 37 00 00 )                      // 9b58257..
+}
+.module pia.dll
+// MVID: {FDF1B1F7-A867-40B9-83CD-3F75B2D2B3C2}
+.imagebase 0x10000000
+.file alignment 0x00000200
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000001    //  ILONLY
+
+.class interface public abstract auto ansi import IA
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 44 45 41 44 42 45 45 46 2D 43 41 46 45   // ..$DEADBEEF-CAFE
+                                                                                                  2D 42 41 42 45 2D 42 41 41 44 2D 44 45 41 44 43   // -BABE-BAAD-DEADC
+                                                                                                  30 44 45 30 30 30 30 00 00 )                      // 0DE0000..
+  .method public newslot abstract strict virtual 
+          instance void  M(int32 x) cil managed
+  {
+    .param [1] = int32(0x0000000C)
+  } // end of method IA::M
+
+} // end of class IA
+]]>.Value
+            Dim sources2 = <compilation>
+                               <file name="a.vb"><![CDATA[
+    Public Class B
+        Implements IA
+        Sub M(x As Integer) Implements IA.M
+        End Sub
+    End Class
+]]></file>
+                           </compilation>
+            Dim reference1 = CompileIL(sources1, appendDefaultHeader:=False, embedInteropTypes:=True)
+            CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+                                                Sub([module] As ModuleSymbol)
+                                                    DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                    Dim ia = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("IA")
+                                                    Dim m = CType(ia.GetMember("M"), MethodSymbol)
+                                                    Dim p = DirectCast(m.Parameters(0), PEParameterSymbol)
+                                                    Assert.False(p.IsMetadataOptional)
+                                                    Assert.Equal(ParameterAttributes.HasDefault, p.ParamFlags)
+                                                    Assert.Equal(CObj(&H0000000C), p.ExplicitDefaultConstantValue.Value)
+                                                    Assert.False(p.HasExplicitDefaultValue)
+                                                    Assert.Throws(GetType(InvalidOperationException), Sub()
+                                                                                                          Dim tmp = p.ExplicitDefaultValue
+                                                                                                      End Sub)
+                                                End Sub).VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub DefaultValueWithoutOptional_02()
+            Dim sources1 = <![CDATA[
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.assembly extern System
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+
+.assembly pia
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = ( 01 00 0E 47 65 6E 65 72 61 6C 50 49 41 2E 64 6C   // ...GeneralPIA.dl
+                                                                                                                 6C 00 00 )                                        // l..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 66 39 63 32 64 35 31 64 2D 34 66 34 34   // ..$f9c2d51d-4f44
+                                                                                                  2D 34 35 66 30 2D 39 65 64 61 2D 63 39 64 35 39   // -45f0-9eda-c9d59
+                                                                                                  39 62 35 38 32 35 37 00 00 )                      // 9b58257..
+}
+.module pia.dll
+// MVID: {FDF1B1F7-A867-40B9-83CD-3F75B2D2B3C2}
+.imagebase 0x10000000
+.file alignment 0x00000200
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000001    //  ILONLY
+
+.class interface public abstract auto ansi import IA
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 44 45 41 44 42 45 45 46 2D 43 41 46 45   // ..$DEADBEEF-CAFE
+                                                                                                  2D 42 41 42 45 2D 42 41 41 44 2D 44 45 41 44 43   // -BABE-BAAD-DEADC
+                                                                                                  30 44 45 30 30 30 30 00 00 )                      // 0DE0000..
+  .method public newslot abstract strict virtual 
+          instance void  M(valuetype [mscorlib]System.DateTime x) cil managed
+  {
+  .param [1]
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 B1 68 DE 3A 00 00 00 00 00 00 )             // ...h.:......
+  } // end of method IA::M
+
+} // end of class IA
+]]>.Value
+            Dim sources2 = <compilation>
+                               <file name="a.vb"><![CDATA[
+    Public Class B
+        Implements IA
+        Sub M(x As System.DateTime) Implements IA.M
+        End Sub
+    End Class
+]]></file>
+                           </compilation>
+            Dim reference1 = CompileIL(sources1, appendDefaultHeader:=False, embedInteropTypes:=True)
+            CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+                                                Sub([module] As ModuleSymbol)
+                                                    DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                    Dim ia = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("IA")
+                                                    Dim m = CType(ia.GetMember("M"), MethodSymbol)
+                                                    Dim p = DirectCast(m.Parameters(0), PEParameterSymbol)
+                                                    Assert.False(p.IsMetadataOptional)
+                                                    Assert.Equal(ParameterAttributes.None, p.ParamFlags)
+                                                    Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString())
+                                                    Assert.Null(p.ExplicitDefaultConstantValue)
+                                                    Assert.False(p.HasExplicitDefaultValue)
+                                                    Assert.Throws(GetType(InvalidOperationException), Sub()
+                                                                                                          Dim tmp = p.ExplicitDefaultValue
+                                                                                                      End Sub)
+                                                End Sub).VerifyDiagnostics()
+        End Sub
+
     End Class
 
 End Namespace

@@ -1,11 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
+Imports Microsoft.AnalyzerPowerPack.Performance
+Imports Microsoft.AnalyzerPowerPack.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Performance
+Namespace Performance
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicRemoveEmptyFinalizers
         Inherits RemoveEmptyFinalizers(Of SyntaxKind)

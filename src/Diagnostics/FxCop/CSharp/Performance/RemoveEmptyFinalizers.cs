@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.AnalyzerPowerPack.Performance;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Performance;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Performance
+namespace Microsoft.AnalyzerPowerPack.CSharp .Performance
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpRemoveEmptyFinalizers : RemoveEmptyFinalizers<SyntaxKind>

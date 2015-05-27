@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -33,6 +35,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(_id, analyzerReference));
+
+                List<VisualStudioAnalyzer> existingReferencesWithLoadErrors = _analyzers.Values.Where(a => a.HasLoadErrors).ToList();
+
+                foreach (var existingReference in existingReferencesWithLoadErrors)
+                {
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceRemoved(_id, existingReference.GetReference()));
+                    existingReference.Reset();
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(_id, existingReference.GetReference()));
+                }
 
                 GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
