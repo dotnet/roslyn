@@ -21,14 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
     [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
     internal class PreviewPaneService : ForegroundThreadAffinitizedObject, IPreviewPaneService, IWorkspaceServiceFactory
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        [ImportingConstructor]
-        public PreviewPaneService(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
         {
             return this;
@@ -103,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
                 return new PreviewPane(
                     severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
-                    previewContent: previewContent, logIdVerbatimInTelemetry: false, serviceProvider: _serviceProvider);
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false);
             }
 
             var helpLinkToolTipText = string.Empty;
@@ -116,8 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 helpLink: helpLink,
                 helpLinkToolTipText: helpLinkToolTipText,
                 previewContent: previewContent,
-                logIdVerbatimInTelemetry: diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
-                serviceProvider: _serviceProvider);
+                logIdVerbatimInTelemetry: diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry));
         }
     }
 }
