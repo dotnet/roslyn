@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
@@ -104,6 +105,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
                 autoCollapse: true);
 
             AssertRegion(expectedRegion, actualRegion);
+        }
+
+        [WorkItem(1174405)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void WithNonIdentifierNames()
+        {
+            // methods from metadata could have names that don't parse as a valid C#/VB identifier
+            var tree = ParseCode(
+@"class Interop
+{
+    public Interop();
+
+    public void $Invoke();
+}");
+            var typeDecl = tree.DigToFirstTypeDeclaration();
+            var method = typeDecl.DigToFirstNodeOfType<MethodDeclarationSyntax>();
+
+            var regions = GetRegions(method);
+            Assert.Equal(0, regions.Count());
         }
     }
 }
