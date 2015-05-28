@@ -141,6 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     match = candidate;
                 }
             }
+
+            bool oldSawYield = _sawYield;
+            _sawYield = false;
+
             if (match != null)
             {
                 var oldMethod = _method;
@@ -164,6 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Visit(body);
                 }
             }
+
+            if (_sawYield)
+            {
+                _methodsWithYields.Add(node);
+            }
+            _sawYield = oldSawYield;
         }
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
@@ -193,17 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Visit all the statements inside this block
             foreach (StatementSyntax statement in node.Statements)
             {
-                bool oldSawYield = _sawYield;
                 Visit(statement, blockBinder);
-                if (statement is LocalFunctionStatementSyntax)
-                {
-                    if (_sawYield)
-                    {
-                        _methodsWithYields.Add(statement);
-                    }
-                    // do not make the parent method an iterator if a local function has a yield
-                    _sawYield = oldSawYield;
-                }
             }
         }
 

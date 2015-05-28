@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
-        
+
         public override BoundNode VisitSequence(BoundSequence node)
         {
             DeclareVariables(node.Locals);
@@ -1480,43 +1480,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            var oldMethodOrLambda = this.currentMethodOrLambda;
-            this.currentMethodOrLambda = node.Symbol;
-
-            var oldPending = SavePending(); // we do not support branches into a lambda
-            LocalState finalState = this.State;
-            this.State = this.State.Reachable ? this.State.Clone() : AllBitsSet();
-            if (!node.WasCompilerGenerated) EnterParameters(node.Symbol.Parameters);
-            var oldPending2 = SavePending();
-            VisitAlways(node.Body);
-            RestorePending(oldPending2); // process any forward branches within the lambda body
-            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
-            RestorePending(oldPending);
-            LeaveParameters(node.Symbol.Parameters, node.Syntax, null);
-            IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
-            foreach (PendingBranch pending in pendingReturns)
-            {
-                this.State = pending.State;
-                if (pending.Branch.Kind == BoundKind.ReturnStatement)
-                {
-                    // ensure out parameters are definitely assigned at each return
-                    LeaveParameters(node.Symbol.Parameters, pending.Branch.Syntax, null);
-                }
-                else
-                {
-                    // other ways of branching out of a lambda are errors, previously reported in control-flow analysis
-                }
-
-                IntersectWith(ref finalState, ref this.State); // a no-op except in region analysis
-            }
-
-            this.State = finalState;
-
-            this.currentMethodOrLambda = oldMethodOrLambda;
-            return null;
+            return VisitLambdaOrLocalFunction(node);
         }
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            return VisitLambdaOrLocalFunction(node);
+        }
+
+        private BoundNode VisitLambdaOrLocalFunction(IBoundLambdaOrFunction node)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
             this.currentMethodOrLambda = node.Symbol;

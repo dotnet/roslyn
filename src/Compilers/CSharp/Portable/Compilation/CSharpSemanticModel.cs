@@ -476,6 +476,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets the semantic information associated with a local function
+        /// </summary>
+        public abstract SymbolInfo GetSymbolInfo(LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
@@ -4264,6 +4269,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (orderingSyntax != null)
             {
                 return this.GetSymbolInfo(orderingSyntax, cancellationToken);
+            }
+
+            var localFunction = node as LocalFunctionStatementSyntax;
+            if (localFunction != null)
+            {
+                return this.GetSymbolInfo(localFunction, cancellationToken);
             }
 
             return SymbolInfo.None;

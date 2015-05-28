@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return VisitLocalFunctionOrLambda(node.Body);
         }
-        
+
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             return VisitLocalFunctionOrLambda(node.Body);

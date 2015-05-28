@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return;
             }
 
-            if (sawLambdas)
+            if (sawLambdas || sawLocalFunctions)
             {
                 var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                 var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
@@ -577,18 +577,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // we don't need this information:
                 closureDebugInfoBuilder.Free();
                 lambdaDebugInfoBuilder.Free();
-            }
-
-            if (sawLocalFunctions)
-            {
-                body = LocalFunctionRewriter.Rewrite(
-                    body,
-                    this.SubstitutedSourceMethod.ContainingType,
-                    _thisParameter,
-                    this,
-                    _methodOrdinal,
-                    compilationState,
-                    diagnostics);
             }
 
             // Insert locals from the original method,

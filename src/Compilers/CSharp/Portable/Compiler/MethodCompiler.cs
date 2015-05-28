@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return bodyWithoutLambdas;
             }
-            
+
             IteratorStateMachine iteratorStateMachine;
             BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
 

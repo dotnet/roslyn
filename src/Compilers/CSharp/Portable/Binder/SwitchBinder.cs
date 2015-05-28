@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        protected override ImmutableArray<LocalFunctionMethodSymbol> BuildLocalFunctions()
+        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
-            var builder = ArrayBuilder<LocalFunctionMethodSymbol>.GetInstance();
+            var builder = ArrayBuilder<LocalFunctionSymbol>.GetInstance();
 
             foreach (var section in _switchSyntax.Sections)
             {

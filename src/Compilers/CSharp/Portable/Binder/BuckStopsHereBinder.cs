@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override LocalFunctionMethodSymbol LookupLocalFunction(SyntaxToken nameToken)
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
         {
             return null;
         }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ImmutableArray<LocalFunctionMethodSymbol> LocalFunctions
+        internal override ImmutableArray<LocalFunctionSymbol> LocalFunctions
         {
             get
             {

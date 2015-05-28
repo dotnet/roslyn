@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if (localSymbol == null)
             {
-                localSymbol = new LocalFunctionMethodSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node);
+                localSymbol = new LocalFunctionSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node);
             }
             else
             {
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localSymbol.IsGenericMethod)
             {
-                diagnostics.Add(ErrorCode.ERR_InvalidMemberDecl, node.TypeParameterListOpt.Location, node.TypeParameterListOpt);
+                diagnostics.Add(ErrorCode.ERR_InvalidMemberDecl, node.TypeParameterList.Location, node.TypeParameterList);
             }
 
             var binder = this.GetBinder(node);
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax)
         {
-            SourceLocalSymbol localSymbol = (SourceLocalSymbol)this.LookupLocal(declarator.Identifier);
+            SourceLocalSymbol localSymbol = this.LookupLocal(declarator.Identifier);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
@@ -2135,7 +2135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocal(nameToken);
         }
 
-        protected virtual LocalFunctionMethodSymbol LookupLocalFunction(SyntaxToken nameToken)
+        protected virtual LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
         {
             return Next.LookupLocalFunction(nameToken);
         }
@@ -3335,7 +3335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual ImmutableArray<LocalFunctionMethodSymbol> LocalFunctions
+        internal virtual ImmutableArray<LocalFunctionSymbol> LocalFunctions
         {
             get
             {

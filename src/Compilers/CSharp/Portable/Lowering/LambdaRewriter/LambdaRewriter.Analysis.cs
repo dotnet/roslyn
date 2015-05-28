@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitCall(BoundCall node)
             {
-                var localFunction = node.Method as LocalFunctionMethodSymbol;
+                var localFunction = node.Method as LocalFunctionSymbol;
                 if (localFunction != null)
                 {
                     ReferenceVariable(node.Syntax, localFunction.OriginalDefinition);
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
             {
-                if (node.MethodOpt.MethodKind == MethodKind.LocalFunction)
+                if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
                 {
                     ReferenceVariable(node.Syntax, node.MethodOpt);
                 }

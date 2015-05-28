@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MethodSymbol Symbol { get; }
         CSharpSyntaxNode Syntax { get; }
         BoundBlock Body { get; }
+        bool WasCompilerGenerated { get; }
     }
 
     internal sealed partial class BoundLocalFunctionStatement : IBoundLambdaOrFunction

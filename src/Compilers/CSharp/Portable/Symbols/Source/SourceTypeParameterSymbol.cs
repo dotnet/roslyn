@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class LocalFunctionTypeParameterSymbol : SourceTypeParameterSymbolBase
     {
-        private readonly LocalFunctionMethodSymbol _owner;
+        private readonly LocalFunctionSymbol _owner;
 
-        public LocalFunctionTypeParameterSymbol(LocalFunctionMethodSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
+        public LocalFunctionTypeParameterSymbol(LocalFunctionSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
             : base(name, ordinal, locations, syntaxRefs)
         {
             _owner = owner;

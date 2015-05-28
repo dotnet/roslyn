@@ -424,8 +424,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Can't define member inside member.
-            return null;
+            var member = this.GetSymbolInfo(declarationSyntax, cancellationToken);
+
+            return member.Symbol ?? member.CandidateSymbols.FirstOrDefault();
         }
 
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -841,6 +842,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundAdd = boundCollectionInitializer.Initializers[collectionInitializer.Expressions.IndexOf(node)];
 
                 return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, boundAdd, boundAdd, null, binderOpt: null);
+            }
+
+            return SymbolInfo.None;
+        }
+
+        public override SymbolInfo GetSymbolInfo(LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var boundLocalFunction = GetLowerBoundNode(node) as BoundLocalFunctionStatement;
+
+            if (boundLocalFunction != null)
+            {
+                return SymbolInfoFactory.Create(ImmutableArray.Create<Symbol>(boundLocalFunction.Symbol), LookupResultKind.Viable, false);
             }
 
             return SymbolInfo.None;

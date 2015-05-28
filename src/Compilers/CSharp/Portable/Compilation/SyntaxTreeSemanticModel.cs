@@ -385,6 +385,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return model == null ? default(Optional<object>) : model.GetConstantValueWorker(node, cancellationToken);
         }
 
+        public override SymbolInfo GetSymbolInfo(LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(node);
+            var model = this.GetMemberModel(node);
+            return (model == null) ? default(SymbolInfo) : model.GetSymbolInfo(node, cancellationToken);
+        }
+
         public override QueryClauseInfo GetQueryClauseInfo(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
@@ -1161,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = declarationSyntax.Identifier.ValueText;
             return GetDeclaredNamedType(declarationSyntax, name);
         }
-        
+
         private NamedTypeSymbol GetDeclaredNamedType(CSharpSyntaxNode declarationSyntax, string name)
         {
             Debug.Assert(declarationSyntax != null);
@@ -1192,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return GetDeclaredType(delegateDeclarationSyntax);
             }
-            
+
             return null;
         }
 
@@ -1245,8 +1252,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
 
-            return null; // TODO
-            //return GetDeclaredMemberSymbol(declarationSyntax);
+            MemberSemanticModel memberModel = this.GetMemberModel(declarationSyntax);
+            if (memberModel != null)
+            {
+                return memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+            }
+
+            return null;
         }
 
         /// <summary>

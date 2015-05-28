@@ -624,7 +624,7 @@
     <Compile Include="Symbols\Source\ImplicitNamedTypeSymbol.cs" />
     <Compile Include="Symbols\Source\IndexedTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Source\LambdaSymbol.cs" />
-    <Compile Include="Symbols\Source\LocalFunctionMethodSymbol.cs" />
+    <Compile Include="Symbols\Source\LocalFunctionSymbol.cs" />
     <Compile Include="Symbols\Source\ModifierUtils.cs" />
     <Compile Include="Symbols\Source\ParameterHelpers.cs" />
     <Compile Include="Symbols\Source\SourceAssemblySymbol.cs" />

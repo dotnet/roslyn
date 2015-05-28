@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(members.Count > 0);
 
-            if (!hasErrors && members[0] is LocalFunctionMethodSymbol)
+            if (!hasErrors && members[0] is LocalFunctionSymbol)
             {
                 Debug.Assert(members.Count == 1 && members[0].Locations.Length == 1);
                 var localSymbolLocation = members[0].Locations[0];

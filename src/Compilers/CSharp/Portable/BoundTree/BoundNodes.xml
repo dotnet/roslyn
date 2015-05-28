@@ -595,7 +595,7 @@
     void Foo() { }
   -->
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
-    <Field Name="Symbol" Type="LocalFunctionMethodSymbol"/>
+    <Field Name="Symbol" Type="LocalFunctionSymbol"/>
     <Field Name="Body" Type="BoundBlock" Null="allow"/>
   </Node>
  

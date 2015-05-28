@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AsyncBuilderField = 't',
         DynamicCallSiteContainerType = 'o',
         DynamicCallSiteField = 'p',
-        LocalFunction = 'q',
     }
 
     internal static class GeneratedNameKindExtensions

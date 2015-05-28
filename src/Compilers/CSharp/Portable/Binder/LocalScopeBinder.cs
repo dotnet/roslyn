@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class LocalScopeBinder : Binder
     {
         private ImmutableArray<LocalSymbol> _locals;
-        private ImmutableArray<LocalFunctionMethodSymbol> _localFunctions;
+        private ImmutableArray<LocalFunctionSymbol> _localFunctions;
         private ImmutableArray<LabelSymbol> _labels;
 
         internal LocalScopeBinder(Binder next)
@@ -43,22 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal sealed override ImmutableArray<LocalFunctionMethodSymbol> LocalFunctions
+        internal sealed override ImmutableArray<LocalFunctionSymbol> LocalFunctions
         {
             get
             {
                 if (_localFunctions.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _localFunctions, BuildLocalFunctions(), default(ImmutableArray<LocalFunctionMethodSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _localFunctions, BuildLocalFunctions(), default(ImmutableArray<LocalFunctionSymbol>));
                 }
 
                 return _localFunctions;
             }
         }
 
-        protected virtual ImmutableArray<LocalFunctionMethodSymbol> BuildLocalFunctions()
+        protected virtual ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
         {
-            return ImmutableArray<LocalFunctionMethodSymbol>.Empty;
+            return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
         internal sealed override ImmutableArray<LabelSymbol> Labels
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private SmallDictionary<string, LocalFunctionMethodSymbol> _lazyLocalFunctionsMap;
-        private SmallDictionary<string, LocalFunctionMethodSymbol> LocalFunctionsMap
+        private SmallDictionary<string, LocalFunctionSymbol> _lazyLocalFunctionsMap;
+        private SmallDictionary<string, LocalFunctionSymbol> LocalFunctionsMap
         {
             get
             {
@@ -179,9 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        protected ImmutableArray<LocalFunctionMethodSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
+        protected ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions(SyntaxList<StatementSyntax> statements)
         {
-            ArrayBuilder<LocalFunctionMethodSymbol> locals = null;
+            ArrayBuilder<LocalFunctionSymbol> locals = null;
             foreach (var statement in statements)
             {
                 var innerStatement = statement;
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var decl = (LocalFunctionStatementSyntax)innerStatement;
                     if (locals == null)
                     {
-                        locals = ArrayBuilder<LocalFunctionMethodSymbol>.GetInstance();
+                        locals = ArrayBuilder<LocalFunctionSymbol>.GetInstance();
                     }
 
                     var localSymbol = MakeLocalFunction(decl);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return locals.ToImmutableAndFree();
             }
 
-            return ImmutableArray<LocalFunctionMethodSymbol>.Empty;
+            return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
 
         protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
@@ -225,9 +225,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarator.Initializer);
         }
 
-        protected LocalFunctionMethodSymbol MakeLocalFunction(LocalFunctionStatementSyntax declaration)
+        protected LocalFunctionSymbol MakeLocalFunction(LocalFunctionStatementSyntax declaration)
         {
-            return new LocalFunctionMethodSymbol(
+            return new LocalFunctionSymbol(
                 this,
                 this.ContainingType,
                 this.ContainingMemberOrLambda,
@@ -279,9 +279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.LookupLocal(nameToken);
         }
 
-        protected override LocalFunctionMethodSymbol LookupLocalFunction(SyntaxToken nameToken)
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
         {
-            LocalFunctionMethodSymbol result = null;
+            LocalFunctionSymbol result = null;
             if (LocalFunctionsMap != null && LocalFunctionsMap.TryGetValue(nameToken.ValueText, out result))
             {
                 if (result.NameToken == nameToken) return result;
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localFunctionsMap = this.LocalFunctionsMap;
             if (localFunctionsMap != null && (options & LookupOptions.NamespaceAliasesOnly) == 0)
             {
-                LocalFunctionMethodSymbol localSymbol;
+                LocalFunctionSymbol localSymbol;
                 if (localFunctionsMap.TryGetValue(name, out localSymbol))
                 {
                     result.MergeEqual(originalBinder.CheckViability(localSymbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
@@ -394,21 +394,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
                     return true;
                 }
-                return false;
             }
 
             if (newSymbolKind == SymbolKind.Method)
             {
-                if (this.LocalFunctions.Contains((LocalFunctionMethodSymbol)newSymbol) && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
+                if (this.LocalFunctions.Contains((LocalFunctionSymbol)newSymbol) && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
                 {
                     // A local variable named '{0}' is already defined in this scope
                     diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
                     return true;
                 }
-                return false;
             }
 
-            if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter)
+            if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Method)
             {
                 // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
@@ -442,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportConflictWithLocal(existingLocal, symbol, name, location, diagnostics);
             }
 
-            LocalFunctionMethodSymbol existingLocalFunction;
+            LocalFunctionSymbol existingLocalFunction;
             var localFunctionsMap = this.LocalFunctionsMap;
             if (localFunctionsMap != null && localFunctionsMap.TryGetValue(name, out existingLocalFunction))
             {

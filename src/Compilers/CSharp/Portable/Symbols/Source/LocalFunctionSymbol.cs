@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class LocalFunctionMethodSymbol : MethodSymbol
+    internal class LocalFunctionSymbol : MethodSymbol
     {
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbol _iteratorElementType;
         private bool _isVararg;
 
-        public LocalFunctionMethodSymbol(
+        public LocalFunctionSymbol(
             Binder binder,
             NamedTypeSymbol containingType,
             Symbol containingSymbol,
@@ -35,46 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
 
             _declarationModifiers = (_containingSymbol.IsStatic ? DeclarationModifiers.Static : 0) | syntax.Modifiers.ToDeclarationModifiers();
-        }
-
-        public sealed override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingSymbol;
-            }
-        }
-
-        public override string Name
-        {
-            get
-            {
-                return _syntax.Identifier.ValueText;
-            }
-        }
-
-        public SyntaxToken NameToken
-        {
-            get
-            {
-                return _syntax.Identifier;
-            }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return ImmutableArray.Create<Location>(_syntax.Identifier.GetLocation());
-            }
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray.Create<SyntaxReference>(_syntax.GetReference());
-            }
         }
 
         public override bool IsVararg
@@ -148,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override Symbol ContainingSymbol => _containingSymbol;
+        public override string Name => _syntax.Identifier.ValueText;
+        public SyntaxToken NameToken => _syntax.Identifier;
+        public override ImmutableArray<Location> Locations => ImmutableArray.Create(_syntax.Identifier.GetLocation());
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create(_syntax.GetReference());
         internal override bool GenerateDebugInfo => true;
         public override MethodKind MethodKind => MethodKind.LocalFunction;
         public override int Arity => TypeParameters.Length;
@@ -206,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void MethodChecks(DiagnosticBag diagnostics, Binder parameterBinder)
         {
-            if (_syntax.TypeParameterListOpt != null)
+            if (_syntax.TypeParameterList != null)
             {
                 parameterBinder = new WithMethodTypeParametersBinder(this, parameterBinder);
                 _typeParameters = MakeTypeParameters(diagnostics);
@@ -228,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-            var typeParameters = _syntax.TypeParameterListOpt.Parameters;
+            var typeParameters = _syntax.TypeParameterList.Parameters;
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
@@ -281,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)this == symbol) return true;
 
-            var localFunction = symbol as LocalFunctionMethodSymbol;
+            var localFunction = symbol as LocalFunctionSymbol;
             return (object)localFunction != null
                 && localFunction._syntax == _syntax
                 && localFunction.ReturnType == this.ReturnType

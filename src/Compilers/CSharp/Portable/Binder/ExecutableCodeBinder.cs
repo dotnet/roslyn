@@ -2,8 +2,8 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Diagnostics;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -63,11 +63,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var methodWithYield in methodsWithYield)
                 {
                     Binder binder;
-                    InMethodBinder inMethod;
-                    if (map.TryGetValue(methodWithYield, out binder) && (inMethod = binder as InMethodBinder) != null)
+                    if (map.TryGetValue(methodWithYield, out binder))
                     {
-                        inMethod.MakeIterator();
-                        symbolsWithYield.Add((MethodSymbol)inMethod.ContainingMemberOrLambda);
+                        // get the closest inclosing InMethodBinder and make it an iterator
+                        InMethodBinder inMethod = null;
+                        while (binder != null)
+                        {
+                            inMethod = binder as InMethodBinder;
+                            if (inMethod != null)
+                                break;
+                            binder = binder.Next;
+                        }
+                        if (inMethod != null)
+                        {
+                            inMethod.MakeIterator();
+                            symbolsWithYield.Add((MethodSymbol)inMethod.ContainingMemberOrLambda);
+                        }
+                        else
+                        {
+                            Debug.Assert(false);
+                        }
                     }
                     else
                     {
@@ -84,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Interlocked.CompareExchange(ref _lazyBinderMap, map, null);
-            _methodSymbolsWithYield = methodSymbolsWithYield;
+            ImmutableInterlocked.InterlockedCompareExchange(ref _methodSymbolsWithYield, methodSymbolsWithYield, default(ImmutableArray<MethodSymbol>));
         }
 
         private SmallDictionary<CSharpSyntaxNode, Binder> BinderMap

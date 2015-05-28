@@ -93,6 +93,57 @@ class Program
         }
 
         [Fact]
+        public void Property()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static int Foo1
+    {
+        get
+        {
+            int Local()
+            {
+                return 2;
+            }
+            return Local();
+        }
+    }
+
+    static int Foo2
+    {
+        get
+        {
+            int a = 2;
+            IEnumerable<int> Local()
+            {
+                yield return a;
+            }
+            foreach (var x in Local())
+            {
+                return x;
+            }
+            return 0;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Foo1);
+        Console.WriteLine(Foo2);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+2
+2
+");
+        }
+
+        [Fact]
         public void Delegate()
         {
             var source = @"
@@ -283,10 +334,11 @@ class Program
         }
 
         [Fact]
-        public void Enumerator()
+        public void Iterator()
         {
             var source = @"
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 class Program
@@ -297,11 +349,28 @@ class Program
         {
             yield return 2;
         }
+        IEnumerable LocalNongen()
+        {
+            yield return 2;
+        }
+        IEnumerator LocalEnumerator()
+        {
+            yield return 2;
+        }
         Console.WriteLine(string.Join("","", Local()));
+        foreach (int x in LocalNongen())
+        {
+            Console.WriteLine(x);
+        }
+        var y = LocalEnumerator();
+        y.MoveNext();
+        Console.WriteLine(y.Current);
     }
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"
+2
+2
 2
 ");
         }
@@ -358,6 +427,8 @@ class Program
 ");
         }
 
+        // Parser no longer supports generics on local functions (they were never supported in the lowerer, where the below error came from)
+        /*
         [Fact]
         public void Generic()
         {
@@ -384,6 +455,7 @@ class Program
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "<T>").WithArguments("<T>").WithLocation(8, 16)
                 );
         }
+        */
 
         [Fact]
         public void GenericClosure()

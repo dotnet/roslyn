@@ -498,7 +498,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case MethodKind.Ordinary:
                         case MethodKind.LocalFunction:
-                        case MethodKind.AnonymousFunction:
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
                             return true;
