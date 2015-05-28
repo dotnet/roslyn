@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Unable to establish a connection with the client.  The client is responsible for
                 // handling this case.  Nothing else for us to do here.
                 CompilerServerLogger.LogException(ex, "Error creating client named pipe");
-                return new ConnectionData(CompletionReason.ClientDisconnect);
+                return new ConnectionData(CompletionReason.CompilationNotStarted);
             }
 
             return await connection.ServeConnection(cancellationToken).ConfigureAwait(false);

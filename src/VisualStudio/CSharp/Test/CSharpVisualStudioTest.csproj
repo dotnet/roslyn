@@ -20,7 +20,6 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
     </Reference>
     <Reference Include="..\..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />

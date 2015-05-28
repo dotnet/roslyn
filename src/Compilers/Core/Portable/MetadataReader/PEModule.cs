@@ -174,8 +174,18 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(_peReaderOpt != null);
 
-                // Checking for an empty image is a workaround for https://github.com/dotnet/corefx/issues/1815: 
-                if (_peReaderOpt.IsEntireImageAvailable && _peReaderOpt.GetEntireImage().Length == 0 || !_peReaderOpt.HasMetadata)
+                // A workaround for https://github.com/dotnet/corefx/issues/1815    
+                bool hasMetadata;
+                try
+                {
+                    hasMetadata = _peReaderOpt.HasMetadata;
+                }
+                catch
+                {
+                    hasMetadata = false;
+                }
+
+                if (!hasMetadata)
                 {
                     throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
                 }

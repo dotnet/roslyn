@@ -267,7 +267,7 @@ class Hello
 
             tcs.SetException(new Exception());
             var connectionData = await connectionDataTask.ConfigureAwait(false);
-            Assert.Equal(ServerDispatcher.CompletionReason.ClientDisconnect, connectionData.CompletionReason);
+            Assert.Equal(ServerDispatcher.CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
 
