@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return null;
         }
 
-        private static Uri GetHelpLink(Diagnostic diagnostic, out string helpLinkToolTipText)
+        private static Uri GetHelpLink(Diagnostic diagnostic, string language, string projectType, out string helpLinkToolTipText)
         {
             var isBing = false;
             helpLinkToolTipText = string.Empty;
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             if (!BrowserHelper.TryGetUri(diagnostic.Descriptor.HelpLinkUri, out helpLink))
             {
                 // We use the ENU version of the message for bing search.
-                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.GetMessage(DiagnosticData.USCultureInfo));
+                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.GetMessage(DiagnosticData.USCultureInfo), language, projectType);
                 isBing = true;
             }
 
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return helpLink;
         }
 
-        object IPreviewPaneService.GetPreviewPane(Diagnostic diagnostic, object previewContent)
+        object IPreviewPaneService.GetPreviewPane(Diagnostic diagnostic, string language, string projectType, object previewContent)
         {
             var title = diagnostic?.GetMessage();
 
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             }
 
             var helpLinkToolTipText = string.Empty;
-            Uri helpLink = GetHelpLink(diagnostic, out helpLinkToolTipText);
+            Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
 
             return new PreviewPane(
                 severityIcon: GetSeverityIconForDiagnostic(diagnostic),
