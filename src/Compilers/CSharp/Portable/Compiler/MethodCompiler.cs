@@ -1487,18 +1487,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
+                        if (iterator.IsVararg)
+                        {
+                            // error CS1636: __arglist is not allowed in the parameter list of iterators
+                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
+                        }
+
                         var sourceIterator = iterator as SourceMethodSymbol;
                         if (sourceIterator != null)
                         {
                             if (sourceIterator.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
                             {
                                 diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceIterator.Locations[0]);
-                            }
-
-                            if (sourceIterator.IsVararg)
-                            {
-                                // error CS1636: __arglist is not allowed in the parameter list of iterators
-                                diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceIterator.Locations[0]);
                             }
                         }
                     }

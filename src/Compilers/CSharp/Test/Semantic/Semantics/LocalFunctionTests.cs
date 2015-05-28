@@ -159,34 +159,32 @@ using System;
 
 class Program
 {
-    int x;
+    int w;
 
-    void A(int y)
+    int A(int y)
     {
-        void Local()
+        int x = 1;
+        int Local1(int z)
         {
-            A(x + y);
+            int Local2()
+            {
+                return Local1(x + y + w);
+            }
+            return z != -1 ? z : Local2();
         }
-        if (y != 0)
-        {
-            Console.WriteLine(y);
-        }
-        else
-        {
-            Local();
-        }
+        return Local1(-1);
     }
 
     static void Main(string[] args)
     {
         var prog = new Program();
-        prog.x = 2;
-        prog.A(0);
+        prog.w = 3;
+        Console.WriteLine(prog.A(2));
     }
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"
-2
+6
 ");
         }
 

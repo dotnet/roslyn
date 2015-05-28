@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ImmutableArray<LocalSymbol>.Empty;
         }
-        
+
         internal sealed override ImmutableArray<LocalFunctionMethodSymbol> LocalFunctions
         {
             get
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;
                 }
-                
+
                 if (innerStatement.Kind() == SyntaxKind.LocalFunctionStatement)
                 {
                     var decl = (LocalFunctionStatementSyntax)innerStatement;
@@ -231,8 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this,
                 this.ContainingType,
                 this.ContainingMemberOrLambda,
-                declaration,
-                declaration.Identifier.GetLocation());
+                declaration);
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
@@ -422,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
                 return true;
             }
-            
+
             Debug.Assert(false, "what else can be declared inside a local scope?");
             return false;
         }

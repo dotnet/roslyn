@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This occurs through the semantic model.  In that case concoct a plausible result.
             if (localSymbol == null)
             {
-                localSymbol = new LocalFunctionMethodSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node, node.Identifier.GetLocation());
+                localSymbol = new LocalFunctionMethodSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node);
             }
             else
             {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block = null;
                 hasErrors = true;
             }
-            
+
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
 
@@ -2163,7 +2163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (blockBinder.IsDirectlyInIterator)
             {
-                var method = blockBinder.ContainingMemberOrLambda as SourceMethodSymbol;
+                var method = blockBinder.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
                     method.IteratorElementType = blockBinder.GetIteratorElementType(null, diagnostics);
