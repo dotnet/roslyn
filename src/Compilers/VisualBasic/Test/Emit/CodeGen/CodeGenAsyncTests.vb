@@ -8191,11 +8191,23 @@ End Module
 
                     Dim runMethod = testCaseType.GetMember(Of MethodSymbol)("Run")
                     Assert.NotNull(runMethod)
-                    attributeValidator(runMethod, {"System.Runtime.CompilerServices.AsyncStateMachineAttribute(TestCase.VB$StateMachine_4_Run)"})
+
+                    If dbg Then
+                        attributeValidator(runMethod, {"System.Diagnostics.DebuggerStepThroughAttribute()",
+                                                       "System.Runtime.CompilerServices.AsyncStateMachineAttribute(TestCase.VB$StateMachine_4_Run)"})
+                    Else
+                        attributeValidator(runMethod, {"System.Runtime.CompilerServices.AsyncStateMachineAttribute(TestCase.VB$StateMachine_4_Run)"})
+                    End If
 
                     Dim f2Method = testCaseType.GetMember(Of MethodSymbol)("F2")
                     Assert.NotNull(f2Method)
-                    attributeValidator(f2Method, {"System.Runtime.CompilerServices.AsyncStateMachineAttribute(TestCase.VB$StateMachine_2_F2)"})
+
+                    If dbg Then
+                        attributeValidator(f2Method, {"System.Diagnostics.DebuggerStepThroughAttribute()",
+                                                      "System.Runtime.CompilerServices.AsyncStateMachineAttribute(TestCase.VB$StateMachine_2_F2)"})
+                    Else
+                        attributeValidator(f2Method, {"System.Runtime.CompilerServices.AsyncStateMachineAttribute(TestCase.VB$StateMachine_2_F2)"})
+                    End If
 
                     For Each nestedType In testCaseType.GetTypeMembers()
                         Assert.True(TypeNamePattern.IsMatch(nestedType.Name))
