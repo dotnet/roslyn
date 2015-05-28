@@ -58,14 +58,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        public IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> GetFileCodeModelInstances()
+        public IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> GetCachedFileCodeModelInstances()
         {
             return GetCodeModelCache().GetFileCodeModelInstances();
         }
 
-        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? GetFileCodeModelInstance(string fileName)
+        public bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
         {
-            return GetCodeModelCache().GetComHandleForFileCodeModel(fileName);
+            var handle = GetCodeModelCache().GetComHandleForFileCodeModel(fileName);
+
+            fileCodeModelHandle = handle != null
+                ? handle.Value
+                : default(ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>);
+
+            return handle != null;
+        }
+
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string fileName)
+        {
+            return GetCodeModelCache().GetOrCreateFileCodeModel(fileName);
         }
 
         internal abstract bool CanCreateFileCodeModelThroughProject(string fileName);

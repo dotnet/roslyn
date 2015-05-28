@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
             EnvDTE.Properties properties = config.Properties;
             try
             {
-                EnvDTE.Property codeAnalysisRuleSetFileProperty = properties.Item("CodeAnalysisRuleSet");
+                EnvDTE.Property codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
                 if (codeAnalysisRuleSetFileProperty != null)
                 {

@@ -3510,7 +3510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 conv = ClassifyConversionToTypeParameter(source, DirectCast(destination, TypeParameterSymbol), varianceCompatibilityClassificationDepth, useSiteDiagnostics)
 
                 If ConversionExists(conv) Then
-                    Debug.Assert(IsNarrowingConversion(conv)) ' We are relying on this while classifying conversions from type paremeter to avoid need for recursion.
+                    Debug.Assert(IsNarrowingConversion(conv)) ' We are relying on this while classifying conversions from type parameter to avoid need for recursion.
                     Return conv
                 End If
             End If

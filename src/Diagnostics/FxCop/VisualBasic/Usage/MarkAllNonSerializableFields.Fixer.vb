@@ -2,20 +2,22 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+Imports Microsoft.AnalyzerPowerPack.Usage
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
+Namespace Usage
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:="CA2229 CodeFix provider"), [Shared]>
     Public Class BasicMarkAllNonSerializableFieldsFixer
         Inherits MarkAllNonSerializableFieldsFixer
 
         Protected Overrides Function GetFieldDeclarationNode(node As SyntaxNode) As SyntaxNode
             Dim fieldNode = node
-            While fieldNode IsNot Nothing AndAlso fieldNode.Kind() <> VisualBasic.SyntaxKind.FieldDeclaration
+            While fieldNode IsNot Nothing AndAlso fieldNode.Kind() <> SyntaxKind.FieldDeclaration
                 fieldNode = fieldNode.Parent
             End While
 
-            Return If(fieldNode?.Kind() = VisualBasic.SyntaxKind.FieldDeclaration, fieldNode, Nothing)
+            Return If(fieldNode?.Kind() = SyntaxKind.FieldDeclaration, fieldNode, Nothing)
         End Function
     End Class
 End Namespace

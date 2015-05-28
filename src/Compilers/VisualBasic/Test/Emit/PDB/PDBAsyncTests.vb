@@ -441,10 +441,8 @@ End Class
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x13a">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
-                <scope startOffset="0x11" endOffset="0xfd">
-                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x11" il_end="0xfd" attributes="0"/>
-                    <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x11" il_end="0xfd" attributes="0"/>
-                </scope>
+                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x13a" attributes="0"/>
+                <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x0" il_end="0x13a" attributes="0"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_Lambda"/>
@@ -506,9 +504,7 @@ End Class
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10f">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
-                <scope startOffset="0xa" endOffset="0xd6">
-                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0xa" il_end="0xd6" attributes="0"/>
-                </scope>
+                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x10f" attributes="0"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_Lambda"/>
@@ -579,10 +575,8 @@ End Class
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <scope startOffset="0xe" endOffset="0xba">
-                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xe" il_end="0xba" attributes="0"/>
-                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xe" il_end="0xba" attributes="0"/>
-                </scope>
+                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0x0" il_end="0xf7" attributes="0"/>
+                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0x0" il_end="0xf7" attributes="0"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_NoLambda"/>
@@ -643,10 +637,8 @@ End Class
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <scope startOffset="0xa" endOffset="0xaa">
-                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xa" il_end="0xaa" attributes="0"/>
-                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xa" il_end="0xaa" attributes="0"/>
-                </scope>
+                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0x0" il_end="0xe3" attributes="0"/>
+                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0x0" il_end="0xe3" attributes="0"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_NoLambda"/>

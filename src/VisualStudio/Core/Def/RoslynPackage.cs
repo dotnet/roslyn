@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 telemetrySetup.Initialize(this);
             }
-                
+
             // set workspace output pane
             _outputPane = new WorkspaceFailureOutputPane(this, _workspace);
 
@@ -119,9 +119,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
+            this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
 
-            this.ComponentModel.GetService<VisualStudioErrorTaskList>();
             this.ComponentModel.GetService<VisualStudioTodoTaskList>();
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
             this.ComponentModel.GetExtensions<IReferencedSymbolsPresenter>();
@@ -139,8 +139,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Perf: Initialize the command handlers.
             var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             commandHandlerServiceFactory.Initialize(ContentTypeNames.RoslynContentType);
-
-            this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
 
             this.ComponentModel.GetService<MiscellaneousTodoListTable>();
             this.ComponentModel.GetService<MiscellaneousDiagnosticListTable>();

@@ -665,14 +665,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal IEnumerable<NamedTypeSymbol> GetForwardedTypes()
         {
-            foreach (KeyValuePair<string, AssemblyReferenceHandle> forwareder in Module.GetForwardedTypes())
+            foreach (KeyValuePair<string, AssemblyReferenceHandle> forwarder in Module.GetForwardedTypes())
             {
-                var name = MetadataTypeName.FromFullName(forwareder.Key);
+                var name = MetadataTypeName.FromFullName(forwarder.Key);
                 AssemblySymbol assemblySymbol;
 
                 try
                 {
-                    assemblySymbol = this.GetReferencedAssemblySymbols()[Module.GetAssemblyReferenceIndexOrThrow(forwareder.Value)];
+                    assemblySymbol = this.GetReferencedAssemblySymbols()[Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value)];
                 }
                 catch (BadImageFormatException)
                 {

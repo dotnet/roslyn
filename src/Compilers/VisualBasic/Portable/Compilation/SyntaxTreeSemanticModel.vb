@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="cancellationToken">A cancellation token that can be used to cancel the process of obtaining the
         ''' diagnostics.</param>
         ''' <remarks>
-        ''' Because this method must semantically analyse all method bodies and initializers to check for diagnostics, it may
+        ''' Because this method must semantically analyze all method bodies and initializers to check for diagnostics, it may
         ''' take a significant amount of time. Unlike GetDeclarationDiagnostics, diagnostics for method bodies and
         ''' initializers are not cached, the any semantic information used to obtain the diagnostics is discarded.
         ''' </remarks>

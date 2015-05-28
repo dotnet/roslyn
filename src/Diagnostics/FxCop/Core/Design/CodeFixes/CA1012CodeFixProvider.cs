@@ -5,12 +5,13 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.Design
 {
     /// <summary>
     /// CA1012: Abstract classes should not have public constructors
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
-            return FxCopFixersResources.AbstractTypesShouldNotHavePublicConstructorsCodeFix;
+            return AnalyzerPowerPackFixersResources.AbstractTypesShouldNotHavePublicConstructorsCodeFix;
         }
 
         private static SyntaxNode GetDeclaration(ISymbol symbol)

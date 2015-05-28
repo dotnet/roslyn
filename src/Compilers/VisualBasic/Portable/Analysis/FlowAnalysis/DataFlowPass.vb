@@ -1087,14 +1087,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim localOrFieldType As TypeSymbol
             Dim isFunctionValue As Boolean
             Dim isStaticLocal As Boolean
-            Dim isImplicityDeclared As Boolean = False
+            Dim isImplicitlyDeclared As Boolean = False
 
             If sym.Kind = SymbolKind.Local Then
                 Dim locSym = DirectCast(sym, LocalSymbol)
                 localOrFieldType = locSym.Type
                 isFunctionValue = locSym.IsFunctionValue AndAlso EnableBreakingFlowAnalysisFeatures
                 isStaticLocal = locSym.IsStatic
-                isImplicityDeclared = locSym.IsImplicitlyDeclared
+                isImplicitlyDeclared = locSym.IsImplicitlyDeclared
             Else
                 isFunctionValue = False
                 isStaticLocal = False
@@ -1109,7 +1109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: error, thus we don't want to generate redundant warning; we base such an analysis on node
                 ' NOTE: and symbol locations
                 Dim firstLocation As Location = GetUnassignedSymbolFirstLocation(sym, boundFieldAccess)
-                If isImplicityDeclared OrElse firstLocation Is Nothing OrElse firstLocation.SourceSpan.Start < node.SpanStart Then
+                If isImplicitlyDeclared OrElse firstLocation Is Nothing OrElse firstLocation.SourceSpan.Start < node.SpanStart Then
 
                     ' Because VB does not support out parameters, only locals OR fields of local structures can be unassigned.
                     If localOrFieldType IsNot Nothing AndAlso Not isStaticLocal Then
@@ -1767,7 +1767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Assign(node.ControlVariable, Nothing)
         End Sub
 
-        Protected Overrides Sub VisitForStatementVariableDeclation(node As BoundForStatement)
+        Protected Overrides Sub VisitForStatementVariableDeclaration(node As BoundForStatement)
             ' if the for each statement declared a variable explicitly or by using local type inference we'll
             ' need to create a new slot for the new variable that is initially unassigned.
             If node.DeclaredOrInferredLocalOpt IsNot Nothing Then

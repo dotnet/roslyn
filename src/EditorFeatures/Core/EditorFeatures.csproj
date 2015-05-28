@@ -235,6 +235,8 @@
     <Compile Include="Extensibility\Highlighting\IHighlighter.cs" />
     <Compile Include="Extensibility\NavigationBar\AbstractNavigationBarItemService.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarAutomationStrings.cs" />
+    <Compile Include="Extensibility\NavigationBar\NavigationBarActionlessItem.cs" />
+    <Compile Include="Extensibility\NavigationBar\NavigationBarPresentedItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarSymbolItem.cs" />
     <Compile Include="Extensibility\Navigation\INavigableItem.cs" />
     <Compile Include="Extensibility\Navigation\NavigableItemFactory.cs" />
@@ -653,6 +655,10 @@
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Undo\DefaultSourceTextUndoService.cs" />
+    <Compile Include="Undo\EditorSourceTextUndoService.cs" />
+    <Compile Include="Undo\ISourceTextUndoTransaction.cs" />
+    <Compile Include="Undo\ISourceTextUndoService.cs" />
     <Compile Include="MetadataAsSourceFile.cs" />
     <Compile Include="Implementation\Intellisense\IController.cs" />
     <Compile Include="Options\BraceCompletionOptions.cs" />

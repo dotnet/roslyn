@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         }
 
-        private int ComparePunctuation(PatternMatch result1, PatternMatch result2)
+        internal static int ComparePunctuation(PatternMatch result1, PatternMatch result2)
         {
             // Consider a match to be better if it was successful without stripping punctuation
             // versus a match that had to strip punctuation to succeed.
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         }
 
-        private static int CompareCase(PatternMatch result1, PatternMatch result2)
+        internal static int CompareCase(PatternMatch result1, PatternMatch result2)
         {
             if (result1.IsCaseSensitive != result2.IsCaseSensitive)
             {
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         }
 
-        private static int CompareType(PatternMatch result1, PatternMatch result2)
+        internal static int CompareType(PatternMatch result1, PatternMatch result2)
         {
             return result1.Kind - result2.Kind;
         }
 
-        private static int CompareCamelCase(PatternMatch result1, PatternMatch result2)
+        internal static int CompareCamelCase(PatternMatch result1, PatternMatch result2)
         {
             if (result1.Kind == PatternMatchKind.CamelCase && result2.Kind == PatternMatchKind.CamelCase)
             {

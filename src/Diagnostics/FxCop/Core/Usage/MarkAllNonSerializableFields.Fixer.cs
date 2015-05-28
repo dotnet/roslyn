@@ -8,10 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+namespace Microsoft.AnalyzerPowerPack.Usage
 {
     /// <summary>
     /// CA2235: Mark all non-serializable fields
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             var diagnostic = context.Diagnostics.Single();
 
             // Fix 1: Add a NonSerialized attribute to the field
-            context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.AddNonSerializedAttribute,
+            context.RegisterCodeFix(new MyCodeAction(AnalyzerPowerPackFixersResources.AddNonSerializedAttribute,
                                         async ct => await AddNonSerializedAttribute(context.Document, fieldNode, ct).ConfigureAwait(false)),
                                     diagnostic);
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             var type = fieldSymbol?.Type;
             if (type != null && type.Locations.Any(l => l.IsInSource))
             {
-                context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.AddSerializableAttribute,
+                context.RegisterCodeFix(new MyCodeAction(AnalyzerPowerPackFixersResources.AddSerializableAttribute,
                             async ct => await AddSerializableAttributeToType(context.Document, type, ct).ConfigureAwait(false)),
                         diagnostic);
             }
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             {
                 var serializableAttr = docEditor.Generator.Attribute(docEditor.Generator.TypeExpression(WellKnownTypes.SerializableAttribute(docEditor.SemanticModel.Compilation)));
                 docEditor.AddAttribute(declaration, serializableAttr);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             return editor.GetChangedDocuments().First();
         }

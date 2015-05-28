@@ -2437,8 +2437,6 @@ override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(object obj) ->
 override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions
 override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.RegularFileExtension.get -> string
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.ScriptFileExtension.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AppendDefaultVersionResource(System.IO.Stream resourceStream) -> void
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonAddSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> trees) -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonAssembly.get -> Microsoft.CodeAnalysis.IAssemblySymbol
@@ -2453,21 +2451,17 @@ override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetEntryPoint(Sys
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> Microsoft.CodeAnalysis.MetadataReference
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool ignoreAccessibility) -> Microsoft.CodeAnalysis.SemanticModel
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSubmissionResultType(out bool hasValue) -> Microsoft.CodeAnalysis.ITypeSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetTypeByMetadataName(string metadataName) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGlobalNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonObjectType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonOptions.get -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonPreviousSubmission.get -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonRemoveAllSyntaxTrees() -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonRemoveSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> trees) -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree oldTree, Microsoft.CodeAnalysis.SyntaxTree newTree) -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonSourceModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonSyntaxTrees.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree>
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonWithAssemblyName(string assemblyName) -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonWithOptions(Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonWithPreviousSubmission(Microsoft.CodeAnalysis.Compilation newPreviousSubmission) -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonWithReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> newReferences) -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSymbolsWithName(System.Func<string, bool> predicate, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateErrorTypeSymbol(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol container, string name, int arity) -> Microsoft.CodeAnalysis.INamedTypeSymbol
@@ -3295,7 +3289,6 @@ readonly Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.GetEnumeratorMethod 
 readonly Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.MoveNextMethod -> Microsoft.CodeAnalysis.IMethodSymbol
 static Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.ParseConditionalCompilationSymbols(string value, out System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Collections.Generic.IEnumerable<string>
 static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(string assemblyName, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> syntaxTrees = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
-static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateSubmission(string assemblyName, Microsoft.CodeAnalysis.SyntaxTree syntaxTree = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null, Microsoft.CodeAnalysis.Compilation previousSubmission = null, System.Type returnType = null, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.AnalyzeControlFlow(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax firstStatement, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax lastStatement) -> Microsoft.CodeAnalysis.ControlFlowAnalysis
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.AnalyzeControlFlow(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement) -> Microsoft.CodeAnalysis.ControlFlowAnalysis
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.AnalyzeDataFlow(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.DataFlowAnalysis
@@ -4051,7 +4044,6 @@ static Microsoft.CodeAnalysis.CSharpExtensions.IsKind(this Microsoft.CodeAnalysi
 static Microsoft.CodeAnalysis.CSharpExtensions.IsKind(this Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static Microsoft.CodeAnalysis.CSharpExtensions.IsKind(this Microsoft.CodeAnalysis.SyntaxTrivia trivia, Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> bool
 static readonly Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Default -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
-static readonly Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Interactive -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
 static readonly Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter.Instance -> Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter
 static readonly Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Default -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
 static readonly Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CarriageReturn -> Microsoft.CodeAnalysis.SyntaxTrivia

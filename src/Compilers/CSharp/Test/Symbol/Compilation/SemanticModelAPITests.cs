@@ -2408,7 +2408,7 @@ class C
             TypeSyntax speculatedTypeSyntax,
             SpeculativeBindingOption bindingOption,
             SymbolKind expectedSymbolKind,
-            string expectedTypeDislayString)
+            string expectedTypeDisplayString)
         {
             Assert.False(model.IsSpeculativeSemanticModel);
             Assert.Null(model.ParentModel);
@@ -2427,12 +2427,12 @@ class C
             var symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
             var typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
             if (speculatedTypeSyntax.Kind() == SyntaxKind.QualifiedName)
             {
@@ -2441,12 +2441,12 @@ class C
                 symbol = speculativeModel.GetSymbolInfo(right).Symbol;
                 Assert.NotNull(symbol);
                 Assert.Equal(expectedSymbolKind, symbol.Kind);
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
                 typeSymbol = speculativeModel.GetTypeInfo(right).Type;
                 Assert.NotNull(symbol);
                 Assert.Equal(expectedSymbolKind, symbol.Kind);
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
             }
         }
 

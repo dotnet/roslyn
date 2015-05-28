@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.Design
 {
     /// <summary>
     /// CA1033: Interface methods should be callable by child types
@@ -59,11 +60,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 var symbolToChange = candidateToIncreaseVisibility.IsAccessorMethod() ? candidateToIncreaseVisibility.AssociatedSymbol : candidateToIncreaseVisibility;
                 if (symbolToChange != null)
                 {
-                    var title = string.Format(FxCopFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix1, symbolToChange.Name);
+                    var title = string.Format(AnalyzerPowerPackFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix1, symbolToChange.Name);
 
                     context.RegisterCodeFix(new MyCodeAction(title,
                          async ct => await MakeProtected(context.Document, symbolToChange, ct).ConfigureAwait(false),
-                         equivalenceKey: FxCopFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix1),
+                         equivalenceKey: AnalyzerPowerPackFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix1),
                     context.Diagnostics);
                 }
             }
@@ -72,18 +73,18 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 var symbolToChange = methodSymbol.IsAccessorMethod() ? methodSymbol.AssociatedSymbol : methodSymbol;
                 if (symbolToChange != null)
                 {
-                    var title = string.Format(FxCopFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix2, symbolToChange.Name);
+                    var title = string.Format(AnalyzerPowerPackFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix2, symbolToChange.Name);
 
                     context.RegisterCodeFix(new MyCodeAction(title,
                          async ct => await ChangeToPublicInterfaceImplementation(context.Document, symbolToChange, ct).ConfigureAwait(false),
-                         equivalenceKey: FxCopFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix2),
+                         equivalenceKey: AnalyzerPowerPackFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix2),
                     context.Diagnostics);
                 }
             }
 
-            context.RegisterCodeFix(new MyCodeAction(string.Format(FxCopFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix3, methodSymbol.ContainingType.Name),
+            context.RegisterCodeFix(new MyCodeAction(string.Format(AnalyzerPowerPackFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix3, methodSymbol.ContainingType.Name),
                      async ct => await MakeContainingTypeSealed(context.Document, methodSymbol, ct).ConfigureAwait(false),
-                         equivalenceKey: FxCopFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix3),
+                         equivalenceKey: AnalyzerPowerPackFixersResources.InterfaceMethodsShouldBeCallableByChildTypesFix3),
                 context.Diagnostics);
         }
 
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             await editor.EditAllDeclarationsAsync(symbolToChange, (docEditor, declaration) =>
             {
                 docEditor.SetAccessibility(declaration, Accessibility.Protected);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             return editor.GetChangedDocuments().First();
         }
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 }
 
                 docEditor.ReplaceNode(declaration, newDeclaration);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             return editor.GetChangedDocuments().First();
         }
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             {
                 var modifiers = docEditor.Generator.GetModifiers(declaration);
                 docEditor.SetModifiers(declaration, modifiers + DeclarationModifiers.Sealed);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             return editor.GetChangedDocuments().First();
         }

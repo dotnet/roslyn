@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpParseOptions(this) { DocumentationMode = documentationMode };
         }
 
-        protected override ParseOptions CommonWithKind(SourceCodeKind kind)
+        public override ParseOptions CommonWithKind(SourceCodeKind kind)
         {
             return WithKind(kind);
         }

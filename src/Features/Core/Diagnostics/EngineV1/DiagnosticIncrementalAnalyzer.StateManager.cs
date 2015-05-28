@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
+        private const string RoslynLanguageServices = "Roslyn Language Services";
+
         private static readonly int s_stateTypeCount = Enum.GetNames(typeof(StateType)).Count();
 
         /// <summary>
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         }
 
                         var errorSourceName = analyzer == compilerAnalyzer ?
-                            PredefinedErrorSources.Compiler : GetErrorSourceName(analyzerManager, language, analyzer);
+                            PredefinedBuildTools.Compiler : GetErrorSourceName(analyzerManager, language, analyzer);
 
                         builder.Add(analyzer, new StateSet(language, analyzer, errorSourceName));
                     }
@@ -146,6 +148,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (packageName == null)
                 {
                     return null;
+                }
+
+                if (packageName == RoslynLanguageServices)
+                {
+                    return PredefinedBuildTools.Compiler;
                 }
 
                 return $"{analyzer.GetAnalyzerAssemblyName()} [{packageName}]";

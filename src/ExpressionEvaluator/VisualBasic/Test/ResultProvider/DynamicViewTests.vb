@@ -223,6 +223,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         <Fact>
+        Public Sub DynamicMetaObjectProviderDebugViewItemsException()
+            Dim expression = "o"
+            Dim fullName = expression + ", dynamic"
+            Dim o As Object = New ExpandoObject()
+            o.Answer = 42
+
+            Dim runtime As DkmClrRuntimeInstance = Nothing
+            Dim getExceptionValue = Function() CreateDkmClrValue(New NotImplementedException(), evalFlags:=DkmEvaluationResultFlags.ExceptionThrown)
+            runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(), getMemberValue:=Function(v, m) If(m = "Items", getExceptionValue(), Nothing))
+            Dim type = New DkmClrType(runtime, CType(o.GetType(), TypeImpl))
+            Dim value = CreateDkmClrValue(o, type)
+
+            Dim result = FormatResult(expression, fullName, value, inspectionContext:=CreateDkmInspectionContext(DkmEvaluationFlags.DynamicView))
+            Verify(result,
+                EvalResult(expression, Resources.DynamicViewValueWarning, "", fullName, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
+            Dim members = GetChildren(result)
+            Assert.Equal(32, members.Length)
+            Verify(members(1),
+                EvalResult("HResult", "-2147467263", "Integer", Nothing, category:=DkmEvaluationResultCategory.Property, access:=DkmEvaluationResultAccessType.Public))
+
+            getExceptionValue = Function() CreateDkmClrValue(New NotImplementedException())
+            result = FormatResult(expression, fullName, value, inspectionContext:=CreateDkmInspectionContext(DkmEvaluationFlags.DynamicView))
+            Verify(result,
+                EvalResult(expression, Resources.DynamicViewValueWarning, "", fullName, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
+            members = GetChildren(result)
+            Assert.Equal(32, members.Length)
+            Verify(members(1),
+                EvalResult("HResult", "-2147467263", "Integer", "DirectCast(New Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView(o).Items, System.Exception).HResult", category:=DkmEvaluationResultCategory.Property, access:=DkmEvaluationResultAccessType.Public))
+        End Sub
+
+        <Fact>
         Public Sub DynamicFormatSpecifier()
             Dim expression = "o"
             Dim o As Object = New ExpandoObject()

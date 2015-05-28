@@ -483,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var uri = _tracker.SelectedDiagnosticItems[0].GetHelpLink();
             if (uri != null)
             {
-                BrowserHelper.StartBrowser(_serviceProvider, uri);
+                BrowserHelper.StartBrowser(uri);
             }
         }
 
@@ -521,7 +521,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 try
                 {
-                    EnvDTE.Property codeAnalysisRuleSetFileProperty = properties.Item("CodeAnalysisRuleSet");
+                    EnvDTE.Property codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
                     if (codeAnalysisRuleSetFileProperty != null)
                     {

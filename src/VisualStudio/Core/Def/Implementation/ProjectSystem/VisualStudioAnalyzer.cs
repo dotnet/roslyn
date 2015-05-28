@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get { return _fullPath; }
         }
 
+        public bool HasLoadErrors
+        {
+            get { return _analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0; }
+        }
+
         public AnalyzerReference GetReference()
         {
             if (_analyzerReference == null)
@@ -85,12 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
                     id = _language == LanguageNames.CSharp ? WRN_UnableToLoadAnalyzerIdCS : WRN_UnableToLoadAnalyzerIdVB;
                     messageFormat = ServicesVSResources.WRN_UnableToLoadAnalyzer;
-                    message = string.Format(ServicesVSResources.WRN_UnableToLoadAnalyzer, _fullPath, e.Exception.Message);
+                    message = string.Format(ServicesVSResources.WRN_UnableToLoadAnalyzer, _fullPath, e.Message);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = _language == LanguageNames.CSharp ? WRN_AnalyzerCannotBeCreatedIdCS : WRN_AnalyzerCannotBeCreatedIdVB;
                     messageFormat = ServicesVSResources.WRN_AnalyzerCannotBeCreated;
-                    message = string.Format(ServicesVSResources.WRN_AnalyzerCannotBeCreated, e.TypeName, _fullPath, e.Exception.Message);
+                    message = string.Format(ServicesVSResources.WRN_AnalyzerCannotBeCreated, e.TypeName, _fullPath, e.Message);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = _language == LanguageNames.CSharp ? WRN_NoAnalyzerInAssemblyIdCS : WRN_NoAnalyzerInAssemblyIdVB;
@@ -121,6 +126,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Dispose()
         {
+            Reset();
+
+            _tracker.Dispose();
+            _tracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+        }
+
+        public void Reset()
+        {
             var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
             if (analyzerFileReference != null)
             {
@@ -135,9 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _analyzerLoadErrors = null;
-
-            _tracker.Dispose();
-            _tracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+            _analyzerReference = null;
         }
 
         private void OnUpdatedOnDisk(object sender, EventArgs e)

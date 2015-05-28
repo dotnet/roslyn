@@ -66,6 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
         End Sub
+
+        Public Overrides ReadOnly Property ContainingMember As Symbol
+            Get
+                Return Me.Compilation.SourceModule
+            End Get
+        End Property
     End Class
 
 End Namespace

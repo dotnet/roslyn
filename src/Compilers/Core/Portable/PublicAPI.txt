@@ -130,7 +130,6 @@ Microsoft.CodeAnalysis.CommandLineArguments.ReferencePaths.get -> System.Collect
 Microsoft.CodeAnalysis.CommandLineArguments.ReportAnalyzer.get -> bool
 Microsoft.CodeAnalysis.CommandLineArguments.ResolveAnalyzerReferences(Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader analyzerLoader) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
 Microsoft.CodeAnalysis.CommandLineArguments.ResolveMetadataReferences(Microsoft.CodeAnalysis.MetadataReferenceResolver metadataResolver) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference>
-Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.CommandLineArguments.SourceFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineSourceFile>
 Microsoft.CodeAnalysis.CommandLineArguments.TouchedFilesPath.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.Utf8Output.get -> bool
@@ -138,7 +137,6 @@ Microsoft.CodeAnalysis.CommandLineArguments.Win32Icon.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.Win32Manifest.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.Win32ResourceFile.get -> string
 Microsoft.CodeAnalysis.CommandLineParser
-Microsoft.CodeAnalysis.CommandLineParser.IsInteractive.get -> bool
 Microsoft.CodeAnalysis.CommandLineParser.Parse(System.Collections.Generic.IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories) -> Microsoft.CodeAnalysis.CommandLineArguments
 Microsoft.CodeAnalysis.CommandLineReference
 Microsoft.CodeAnalysis.CommandLineReference.Equals(Microsoft.CodeAnalysis.CommandLineReference other) -> bool
@@ -170,12 +168,10 @@ Microsoft.CodeAnalysis.Compilation.GetEntryPoint(System.Threading.CancellationTo
 Microsoft.CodeAnalysis.Compilation.GetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> Microsoft.CodeAnalysis.MetadataReference
 Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool ignoreAccessibility = false) -> Microsoft.CodeAnalysis.SemanticModel
 Microsoft.CodeAnalysis.Compilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Microsoft.CodeAnalysis.Compilation.GetSubmissionResultType(out bool hasValue) -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Compilation.GetTypeByMetadataName(string fullyQualifiedMetadataName) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.GlobalNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
 Microsoft.CodeAnalysis.Compilation.ObjectType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.Options.get -> Microsoft.CodeAnalysis.CompilationOptions
-Microsoft.CodeAnalysis.Compilation.PreviousSubmission.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.References.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference>
 Microsoft.CodeAnalysis.Compilation.RemoveAllReferences() -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.RemoveAllSyntaxTrees() -> Microsoft.CodeAnalysis.Compilation
@@ -185,12 +181,10 @@ Microsoft.CodeAnalysis.Compilation.RemoveSyntaxTrees(System.Collections.Generic.
 Microsoft.CodeAnalysis.Compilation.RemoveSyntaxTrees(params Microsoft.CodeAnalysis.SyntaxTree[] trees) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.ReplaceReference(Microsoft.CodeAnalysis.MetadataReference oldReference, Microsoft.CodeAnalysis.MetadataReference newReference) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.ReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree oldTree, Microsoft.CodeAnalysis.SyntaxTree newTree) -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Compilation.ScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.SourceModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
 Microsoft.CodeAnalysis.Compilation.SyntaxTrees.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree>
 Microsoft.CodeAnalysis.Compilation.WithAssemblyName(string assemblyName) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.WithOptions(Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Compilation.WithPreviousSubmission(Microsoft.CodeAnalysis.Compilation newPreviousSubmission) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.WithReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> newReferences) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.WithReferences(params Microsoft.CodeAnalysis.MetadataReference[] newReferences) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.CompilationOptions
@@ -294,12 +288,16 @@ Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssembly() -> System
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerImageReference.AnalyzerImageReference(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.AnalyzerLoadFailureEventArgs(Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode, System.Exception ex, string typeName) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.AnalyzerLoadFailureEventArgs(Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode, string message, System.Exception exceptionOpt = null, string typeNameOpt = null) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ErrorCode.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Exception.get -> System.Exception
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers = 3 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer = 2 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer = 1 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Message.get -> string
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.TypeName.get -> string
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText>
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalFiles) -> void
@@ -1540,8 +1538,6 @@ abstract Microsoft.CodeAnalysis.AttributeData.CommonConstructorArguments.get -> 
 abstract Microsoft.CodeAnalysis.AttributeData.CommonNamedArguments.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, Microsoft.CodeAnalysis.TypedConstant>>
 abstract Microsoft.CodeAnalysis.CommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions
 abstract Microsoft.CodeAnalysis.CommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions
-abstract Microsoft.CodeAnalysis.CommandLineParser.RegularFileExtension.get -> string
-abstract Microsoft.CodeAnalysis.CommandLineParser.ScriptFileExtension.get -> string
 abstract Microsoft.CodeAnalysis.Compilation.AppendDefaultVersionResource(System.IO.Stream resourceStream) -> void
 abstract Microsoft.CodeAnalysis.Compilation.CommonAddSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> trees) -> Microsoft.CodeAnalysis.Compilation
 abstract Microsoft.CodeAnalysis.Compilation.CommonAssembly.get -> Microsoft.CodeAnalysis.IAssemblySymbol
@@ -1556,21 +1552,17 @@ abstract Microsoft.CodeAnalysis.Compilation.CommonGetEntryPoint(System.Threading
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> Microsoft.CodeAnalysis.MetadataReference
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool ignoreAccessibility) -> Microsoft.CodeAnalysis.SemanticModel
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-abstract Microsoft.CodeAnalysis.Compilation.CommonGetSubmissionResultType(out bool hasValue) -> Microsoft.CodeAnalysis.ITypeSymbol
 abstract Microsoft.CodeAnalysis.Compilation.CommonGetTypeByMetadataName(string metadataName) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 abstract Microsoft.CodeAnalysis.Compilation.CommonGlobalNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
 abstract Microsoft.CodeAnalysis.Compilation.CommonObjectType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 abstract Microsoft.CodeAnalysis.Compilation.CommonOptions.get -> Microsoft.CodeAnalysis.CompilationOptions
-abstract Microsoft.CodeAnalysis.Compilation.CommonPreviousSubmission.get -> Microsoft.CodeAnalysis.Compilation
 abstract Microsoft.CodeAnalysis.Compilation.CommonRemoveAllSyntaxTrees() -> Microsoft.CodeAnalysis.Compilation
 abstract Microsoft.CodeAnalysis.Compilation.CommonRemoveSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> trees) -> Microsoft.CodeAnalysis.Compilation
 abstract Microsoft.CodeAnalysis.Compilation.CommonReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree oldTree, Microsoft.CodeAnalysis.SyntaxTree newTree) -> Microsoft.CodeAnalysis.Compilation
-abstract Microsoft.CodeAnalysis.Compilation.CommonScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 abstract Microsoft.CodeAnalysis.Compilation.CommonSourceModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
 abstract Microsoft.CodeAnalysis.Compilation.CommonSyntaxTrees.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree>
 abstract Microsoft.CodeAnalysis.Compilation.CommonWithAssemblyName(string outputName) -> Microsoft.CodeAnalysis.Compilation
 abstract Microsoft.CodeAnalysis.Compilation.CommonWithOptions(Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Compilation
-abstract Microsoft.CodeAnalysis.Compilation.CommonWithPreviousSubmission(Microsoft.CodeAnalysis.Compilation newPreviousSubmission) -> Microsoft.CodeAnalysis.Compilation
 abstract Microsoft.CodeAnalysis.Compilation.CommonWithReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> newReferences) -> Microsoft.CodeAnalysis.Compilation
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(System.Func<string, bool> predicate, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.CreateErrorTypeSymbol(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol container, string name, int arity) -> Microsoft.CodeAnalysis.INamedTypeSymbol
@@ -1988,9 +1980,6 @@ override sealed Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.ToString()
 override sealed Microsoft.CodeAnalysis.LocalizableString.Equals(object other) -> bool
 override sealed Microsoft.CodeAnalysis.LocalizableString.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.LocalizableString.ToString() -> string
-readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ErrorCode -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
-readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.Exception -> System.Exception
-readonly Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.TypeName -> string
 static Microsoft.CodeAnalysis.AnnotationExtensions.WithAdditionalAnnotations<TNode>(this TNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxAnnotation> annotations) -> TNode
 static Microsoft.CodeAnalysis.AnnotationExtensions.WithAdditionalAnnotations<TNode>(this TNode node, params Microsoft.CodeAnalysis.SyntaxAnnotation[] annotations) -> TNode
 static Microsoft.CodeAnalysis.AnnotationExtensions.WithoutAnnotations<TNode>(this TNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxAnnotation> annotations) -> TNode

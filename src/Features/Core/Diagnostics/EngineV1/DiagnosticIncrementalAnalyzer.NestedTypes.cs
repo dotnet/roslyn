@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _analyzerPackageName = analyzerPackageName;
             }
 
-            public override string ErrorSource
+            public override string BuildTool
             {
                 get
                 {

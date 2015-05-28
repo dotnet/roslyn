@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     public class CSharpCommandLineParser : CommandLineParser
     {
         public static readonly CSharpCommandLineParser Default = new CSharpCommandLineParser();
-        public static readonly CSharpCommandLineParser Interactive = new CSharpCommandLineParser(isInteractive: true);
+        internal static readonly CSharpCommandLineParser Interactive = new CSharpCommandLineParser(isInteractive: true);
 
         internal CSharpCommandLineParser(bool isInteractive = false)
             : base(CSharp.MessageProvider.Instance, isInteractive)
         {
         }
 
-        protected override string RegularFileExtension { get { return ".cs"; } }
-        protected override string ScriptFileExtension { get { return ".csx"; } }
+        internal override string RegularFileExtension { get { return ".cs"; } }
+        internal override string ScriptFileExtension { get { return ".csx"; } }
 
         internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
