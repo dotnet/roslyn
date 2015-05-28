@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly NonReentrantLock _gate = new NonReentrantLock();
 
             // metadata references are held weakly, so even though this is a cache that enables reuse, it does not control lifetime.
-            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> references
+            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _references
                 = new Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>>();
 
             public ReferenceSet(MetadataReferenceCache cache)
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.Host
                     WeakReference<MetadataReference> weakref;
                     MetadataReference mref = null;
 
-                    if (!(this.references.TryGetValue(properties, out weakref) && weakref.TryGetTarget(out mref)))
+                    if (!(_references.TryGetValue(properties, out weakref) && weakref.TryGetTarget(out mref)))
                     {
                         // try to base this metadata reference off of an existing one, so we don't load the metadata bytes twice.
-                        foreach (var wr in this.references.Values)
+                        foreach (var wr in _references.Values)
                         {
                             if (wr.TryGetTarget(out mref))
                             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Host
                             mref = _cache._createReference(path, properties);
                         }
 
-                        this.references[properties] = new WeakReference<MetadataReference>(mref);
+                        _references[properties] = new WeakReference<MetadataReference>(mref);
                     }
 
                     return mref;
