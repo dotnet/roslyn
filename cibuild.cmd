@@ -2,6 +2,7 @@
 
 REM Parse Arguments.
 
+set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 :ParseArguments
 if "%1" == "" goto :DoneParsing
@@ -14,17 +15,17 @@ goto :Usage && exit /b 1
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
 
 REM Build the compiler so we can self host it for the full build
-src\.nuget\NuGet.exe restore src\Toolset.sln -packagesdirectory packages
-msbuild /nologo /v:m /m src/Compilers/Core/VBCSCompiler/VBCSCompiler.csproj /p:Configuration=%BuildConfiguration%
-msbuild /nologo /v:m /m src/Compilers/CSharp/csc2/csc2.csproj /p:Configuration=%BuildConfiguration%
-msbuild /nologo /v:m /m src/Compilers/VisualBasic/vbc2/vbc2.csproj /p:Configuration=%BuildConfiguration%
+src\.nuget\NuGet.exe restore %RoslynRoot%/src/Toolset.sln -packagesdirectory packages
+msbuild /nologo /v:m /m %RoslynRoot%/src/Compilers/Core/VBCSCompiler/VBCSCompiler.csproj /p:Configuration=%BuildConfiguration%
+msbuild /nologo /v:m /m %RoslynRoot%/src/Compilers/CSharp/csc2/csc2.csproj /p:Configuration=%BuildConfiguration%
+msbuild /nologo /v:m /m %RoslynRoot%/src/Compilers/VisualBasic/vbc2/vbc2.csproj /p:Configuration=%BuildConfiguration%
 
-mkdir Binaries\Bootstrap
-move Binaries\%BuildConfiguration%\* Binaries\Bootstrap
+mkdir %RoslynRoot%\Binaries\Bootstrap
+move Binaries\%BuildConfiguration%\* %RoslynRoot%\Binaries\Bootstrap
 msbuild /v:m /t:Clean src/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
-msbuild /v:m /m /p:BootstrapBuildPath=%~dp0\Binaries\Bootstrap BuildAndTest.proj /p:CIBuild=true /p:Configuration=%BuildConfiguration%
+msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap BuildAndTest.proj /p:CIBuild=true /p:Configuration=%BuildConfiguration%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
     echo Build failed
