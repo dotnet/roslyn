@@ -3,6 +3,14 @@
 using Microsoft.VisualStudio.Shell;
 
 [assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Build.Tasks.CodeAnalysis",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
+[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.CSharp",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
     OldVersionUpperBound = Constants.OldVersionUpperBound,
