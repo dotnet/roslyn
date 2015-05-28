@@ -371,9 +371,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsFormattableString(this ITypeSymbol symbol)
         {
             return symbol?.MetadataName == "FormattableString"
+                && symbol.ContainingType == null
                 && symbol.ContainingNamespace?.Name == "System"
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
-
         }
 
         public static ITypeSymbol RemoveUnavailableTypeParameters(
