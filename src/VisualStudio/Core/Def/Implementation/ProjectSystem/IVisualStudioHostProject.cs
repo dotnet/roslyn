@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         IVsHierarchy Hierarchy { get; }
         Guid Guid { get; }
+        string ProjectType { get; }
 
         Workspace Workspace { get; }
         string ProjectSystemName { get; }
