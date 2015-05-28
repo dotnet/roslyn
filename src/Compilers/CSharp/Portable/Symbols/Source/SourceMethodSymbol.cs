@@ -1513,6 +1513,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
                 }
+
+                if (this.IsAsync)
+                {
+                    // Async kick-off method calls MoveNext, which contains user code. 
+                    // This means we need to emit DebuggerStepThroughAttribute in order
+                    // to have correct stepping behavior during debugging.
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                }
             }
         }
 
