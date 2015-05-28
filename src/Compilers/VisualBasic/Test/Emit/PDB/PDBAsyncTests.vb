@@ -29,7 +29,7 @@ End Class
 
             v.VerifyIL("C.VB$StateMachine_1_M.MoveNext", "
 {
-  // Code size      185 (0xb9)
+  // Code size      184 (0xb8)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -45,81 +45,80 @@ End Class
    ~IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_004a
+    IL_000c:  br.s       IL_0049
    -IL_000e:  nop
-   -IL_000f:  nop
-    IL_0010:  ldc.i4.1
-    IL_0011:  call       ""Function System.Threading.Tasks.Task.Delay(Integer) As System.Threading.Tasks.Task""
-    IL_0016:  callvirt   ""Function System.Threading.Tasks.Task.GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_001b:  stloc.3
-   ~IL_001c:  ldloca.s   V_3
-    IL_001e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter.get_IsCompleted() As Boolean""
-    IL_0023:  brtrue.s   IL_0068
-    IL_0025:  ldarg.0
-    IL_0026:  ldc.i4.0
-    IL_0027:  dup
-    IL_0028:  stloc.1
-    IL_0029:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
-   <IL_002e:  ldarg.0
-    IL_002f:  ldloc.3
-    IL_0030:  stfld      ""C.VB$StateMachine_1_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0035:  ldarg.0
-    IL_0036:  ldflda     ""C.VB$StateMachine_1_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_003b:  ldloca.s   V_3
-    IL_003d:  ldarg.0
-    IL_003e:  stloc.s    V_4
-    IL_0040:  ldloca.s   V_4
-    IL_0042:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter, C.VB$StateMachine_1_M)(ByRef System.Runtime.CompilerServices.TaskAwaiter, ByRef C.VB$StateMachine_1_M)""
-    IL_0047:  nop
-    IL_0048:  leave.s    IL_00b8
-   >IL_004a:  ldarg.0
-    IL_004b:  ldc.i4.m1
-    IL_004c:  dup
-    IL_004d:  stloc.1
-    IL_004e:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
-    IL_0053:  ldarg.0
-    IL_0054:  ldfld      ""C.VB$StateMachine_1_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0059:  stloc.3
-    IL_005a:  ldarg.0
-    IL_005b:  ldflda     ""C.VB$StateMachine_1_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0060:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0066:  br.s       IL_0068
-    IL_0068:  ldloca.s   V_3
-    IL_006a:  call       ""Sub System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_006f:  nop
-    IL_0070:  ldloca.s   V_3
-    IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-   -IL_0078:  ldc.i4.1
-    IL_0079:  stloc.0
-    IL_007a:  leave.s    IL_00a1
+   -IL_000f:  ldc.i4.1
+    IL_0010:  call       ""Function System.Threading.Tasks.Task.Delay(Integer) As System.Threading.Tasks.Task""
+    IL_0015:  callvirt   ""Function System.Threading.Tasks.Task.GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_001a:  stloc.3
+   ~IL_001b:  ldloca.s   V_3
+    IL_001d:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter.get_IsCompleted() As Boolean""
+    IL_0022:  brtrue.s   IL_0067
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.0
+    IL_0026:  dup
+    IL_0027:  stloc.1
+    IL_0028:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
+   <IL_002d:  ldarg.0
+    IL_002e:  ldloc.3
+    IL_002f:  stfld      ""C.VB$StateMachine_1_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0034:  ldarg.0
+    IL_0035:  ldflda     ""C.VB$StateMachine_1_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_003a:  ldloca.s   V_3
+    IL_003c:  ldarg.0
+    IL_003d:  stloc.s    V_4
+    IL_003f:  ldloca.s   V_4
+    IL_0041:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter, C.VB$StateMachine_1_M)(ByRef System.Runtime.CompilerServices.TaskAwaiter, ByRef C.VB$StateMachine_1_M)""
+    IL_0046:  nop
+    IL_0047:  leave.s    IL_00b7
+   >IL_0049:  ldarg.0
+    IL_004a:  ldc.i4.m1
+    IL_004b:  dup
+    IL_004c:  stloc.1
+    IL_004d:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
+    IL_0052:  ldarg.0
+    IL_0053:  ldfld      ""C.VB$StateMachine_1_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0058:  stloc.3
+    IL_0059:  ldarg.0
+    IL_005a:  ldflda     ""C.VB$StateMachine_1_M.$A0 As System.Runtime.CompilerServices.TaskAwaiter""
+    IL_005f:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0065:  br.s       IL_0067
+    IL_0067:  ldloca.s   V_3
+    IL_0069:  call       ""Sub System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_006e:  nop
+    IL_006f:  ldloca.s   V_3
+    IL_0071:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+   -IL_0077:  ldc.i4.1
+    IL_0078:  stloc.0
+    IL_0079:  leave.s    IL_00a0
   }
   catch System.Exception
   {
-   ~IL_007c:  dup
-    IL_007d:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0082:  stloc.s    V_5
-   ~IL_0084:  ldarg.0
-    IL_0085:  ldc.i4.s   -2
-    IL_0087:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
-    IL_008c:  ldarg.0
-    IL_008d:  ldflda     ""C.VB$StateMachine_1_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0092:  ldloc.s    V_5
-    IL_0094:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_0099:  nop
-    IL_009a:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_009f:  leave.s    IL_00b8
+   ~IL_007b:  dup
+    IL_007c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0081:  stloc.s    V_5
+   ~IL_0083:  ldarg.0
+    IL_0084:  ldc.i4.s   -2
+    IL_0086:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
+    IL_008b:  ldarg.0
+    IL_008c:  ldflda     ""C.VB$StateMachine_1_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0091:  ldloc.s    V_5
+    IL_0093:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_0098:  nop
+    IL_0099:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_009e:  leave.s    IL_00b7
   }
- -IL_00a1:  ldarg.0
-  IL_00a2:  ldc.i4.s   -2
-  IL_00a4:  dup
-  IL_00a5:  stloc.1
-  IL_00a6:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
- ~IL_00ab:  ldarg.0
-  IL_00ac:  ldflda     ""C.VB$StateMachine_1_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00b1:  ldloc.0
-  IL_00b2:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00b7:  nop
-  IL_00b8:  ret
+ -IL_00a0:  ldarg.0
+  IL_00a1:  ldc.i4.s   -2
+  IL_00a3:  dup
+  IL_00a4:  stloc.1
+  IL_00a5:  stfld      ""C.VB$StateMachine_1_M.$State As Integer""
+ ~IL_00aa:  ldarg.0
+  IL_00ab:  ldflda     ""C.VB$StateMachine_1_M.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00b0:  ldloc.0
+  IL_00b1:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00b6:  nop
+  IL_00b7:  ret
 }", sequencePoints:="C+VB$StateMachine_1_M.MoveNext")
 
             ' NOTE: No <local> for the return variable "M".
@@ -142,21 +141,21 @@ End Class
                 <entry offset="0x7" hidden="true" document="0"/>
                 <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="50" document="0"/>
                 <entry offset="0xf" startLine="6" startColumn="9" endLine="6" endColumn="28" document="0"/>
-                <entry offset="0x1c" hidden="true" document="0"/>
-                <entry offset="0x78" startLine="7" startColumn="9" endLine="7" endColumn="17" document="0"/>
-                <entry offset="0x7c" hidden="true" document="0"/>
-                <entry offset="0x84" hidden="true" document="0"/>
-                <entry offset="0xa1" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-                <entry offset="0xab" hidden="true" document="0"/>
+                <entry offset="0x1b" hidden="true" document="0"/>
+                <entry offset="0x77" startLine="7" startColumn="9" endLine="7" endColumn="17" document="0"/>
+                <entry offset="0x7b" hidden="true" document="0"/>
+                <entry offset="0x83" hidden="true" document="0"/>
+                <entry offset="0xa0" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
+                <entry offset="0xaa" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xb9">
+            <scope startOffset="0x0" endOffset="0xb8">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="M"/>
-                <await yield="0x2e" resume="0x4a" declaringType="C+VB$StateMachine_1_M" methodName="MoveNext"/>
+                <await yield="0x2d" resume="0x49" declaringType="C+VB$StateMachine_1_M" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -233,19 +232,19 @@ End Module
                 <entry offset="0x7" hidden="true" document="0"/>
                 <entry offset="0xe" startLine="11" startColumn="5" endLine="11" endColumn="68" document="0"/>
                 <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="25" document="0"/>
-                <entry offset="0x1f" hidden="true" document="0"/>
-                <entry offset="0x7b" startLine="13" startColumn="9" endLine="13" endColumn="17" document="0"/>
-                <entry offset="0x7f" hidden="true" document="0"/>
-                <entry offset="0x87" hidden="true" document="0"/>
-                <entry offset="0xa4" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0xae" hidden="true" document="0"/>
+                <entry offset="0x1e" hidden="true" document="0"/>
+                <entry offset="0x7a" startLine="13" startColumn="9" endLine="13" endColumn="17" document="0"/>
+                <entry offset="0x7e" hidden="true" document="0"/>
+                <entry offset="0x86" hidden="true" document="0"/>
+                <entry offset="0xa3" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0xad" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xbc">
+            <scope startOffset="0x0" endOffset="0xbb">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="Module1" methodName="F" parameterNames="a"/>
-                <await yield="0x31" resume="0x4d" declaringType="Module1+VB$StateMachine_1_F" methodName="MoveNext"/>
+                <await yield="0x30" resume="0x4c" declaringType="Module1+VB$StateMachine_1_F" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -288,43 +287,35 @@ End Module
                 <entry offset="0x7" hidden="true" document="0"/>
                 <entry offset="0x5d" startLine="16" startColumn="5" endLine="16" endColumn="34" document="0"/>
                 <entry offset="0x5e" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x5f" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x60" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x73" hidden="true" document="0"/>
-                <entry offset="0xdd" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0xf5" hidden="true" document="0"/>
-                <entry offset="0x17a" hidden="true" document="0"/>
-                <entry offset="0x1e2" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1e3" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1e4" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1e5" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1f8" hidden="true" document="0"/>
-                <entry offset="0x271" hidden="true" document="0"/>
-                <entry offset="0x2ea" hidden="true" document="0"/>
-                <entry offset="0x354" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x36c" hidden="true" document="0"/>
-                <entry offset="0x3ed" hidden="true" document="0"/>
-                <entry offset="0x46c" hidden="true" document="0"/>
-                <entry offset="0x4c8" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x4ca" hidden="true" document="0"/>
-                <entry offset="0x4d2" hidden="true" document="0"/>
-                <entry offset="0x4ef" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x4f9" hidden="true" document="0"/>
+                <entry offset="0x70" hidden="true" document="0"/>
+                <entry offset="0xf1" hidden="true" document="0"/>
+                <entry offset="0x176" hidden="true" document="0"/>
+                <entry offset="0x1f0" hidden="true" document="0"/>
+                <entry offset="0x269" hidden="true" document="0"/>
+                <entry offset="0x2e2" hidden="true" document="0"/>
+                <entry offset="0x363" hidden="true" document="0"/>
+                <entry offset="0x3e4" hidden="true" document="0"/>
+                <entry offset="0x463" hidden="true" document="0"/>
+                <entry offset="0x4bf" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
+                <entry offset="0x4c1" hidden="true" document="0"/>
+                <entry offset="0x4c9" hidden="true" document="0"/>
+                <entry offset="0x4e6" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
+                <entry offset="0x4f0" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x506">
+            <scope startOffset="0x0" endOffset="0x4fd">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="Module1" methodName="Test"/>
-                <await yield="0x85" resume="0xa5" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x107" resume="0x127" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x18c" resume="0x1ab" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x20a" resume="0x22a" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x283" resume="0x2a3" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x2fc" resume="0x31c" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x37e" resume="0x39e" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x3ff" resume="0x41e" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x47e" resume="0x49a" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x82" resume="0xa2" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x103" resume="0x123" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x188" resume="0x1a7" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x202" resume="0x222" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x27b" resume="0x29b" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x2f4" resume="0x314" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x375" resume="0x395" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x3f6" resume="0x415" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
+                <await yield="0x475" resume="0x491" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -359,20 +350,20 @@ End Module
                 <entry offset="0x7" hidden="true" document="0"/>
                 <entry offset="0xe" startLine="26" startColumn="5" endLine="26" endColumn="18" document="0"/>
                 <entry offset="0xf" startLine="27" startColumn="9" endLine="27" endColumn="25" document="0"/>
-                <entry offset="0x1e" hidden="true" document="0"/>
-                <entry offset="0x79" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0x7b" hidden="true" document="0"/>
-                <entry offset="0x83" hidden="true" document="0"/>
-                <entry offset="0xa0" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0xaa" hidden="true" document="0"/>
+                <entry offset="0x1d" hidden="true" document="0"/>
+                <entry offset="0x78" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
+                <entry offset="0x7a" hidden="true" document="0"/>
+                <entry offset="0x82" hidden="true" document="0"/>
+                <entry offset="0x9f" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
+                <entry offset="0xa9" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xb7">
+            <scope startOffset="0x0" endOffset="0xb6">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
             <asyncInfo>
-                <catchHandler offset="0x7b"/>
+                <catchHandler offset="0x7a"/>
                 <kickoffMethod declaringType="Module1" methodName="S"/>
-                <await yield="0x30" resume="0x4b" declaringType="Module1+VB$StateMachine_3_S" methodName="MoveNext"/>
+                <await yield="0x2f" resume="0x4a" declaringType="Module1+VB$StateMachine_3_S" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -430,23 +421,23 @@ End Class
                 <entry offset="0x29" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
                 <entry offset="0x35" startLine="9" startColumn="13" endLine="9" endColumn="53" document="0"/>
                 <entry offset="0x4c" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
-                <entry offset="0x7c" hidden="true" document="0"/>
-                <entry offset="0xda" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
-                <entry offset="0xeb" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
-                <entry offset="0xfc" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0xfe" hidden="true" document="0"/>
-                <entry offset="0x106" hidden="true" document="0"/>
-                <entry offset="0x123" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0x12d" hidden="true" document="0"/>
+                <entry offset="0x7b" hidden="true" document="0"/>
+                <entry offset="0xd9" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
+                <entry offset="0xea" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
+                <entry offset="0xfb" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0xfd" hidden="true" document="0"/>
+                <entry offset="0x105" hidden="true" document="0"/>
+                <entry offset="0x122" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
+                <entry offset="0x12c" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x13a">
+            <scope startOffset="0x0" endOffset="0x139">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
-                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x13a" attributes="0"/>
-                <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x0" il_end="0x13a" attributes="0"/>
+                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x139" attributes="0"/>
+                <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x0" il_end="0x139" attributes="0"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_Lambda"/>
-                <await yield="0x8e" resume="0xac" declaringType="C+VB$StateMachine_1_Async_Lambda" methodName="MoveNext"/>
+                <await yield="0x8d" resume="0xab" declaringType="C+VB$StateMachine_1_Async_Lambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -562,25 +553,25 @@ End Class
                 <entry offset="0xf" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
                 <entry offset="0x16" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
                 <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
-                <entry offset="0x43" hidden="true" document="0"/>
-                <entry offset="0xa1" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
-                <entry offset="0xad" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
-                <entry offset="0xb9" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xbb" hidden="true" document="0"/>
-                <entry offset="0xc3" hidden="true" document="0"/>
-                <entry offset="0xe0" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xea" hidden="true" document="0"/>
+                <entry offset="0x42" hidden="true" document="0"/>
+                <entry offset="0xa0" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
+                <entry offset="0xac" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
+                <entry offset="0xb8" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
+                <entry offset="0xba" hidden="true" document="0"/>
+                <entry offset="0xc2" hidden="true" document="0"/>
+                <entry offset="0xdf" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
+                <entry offset="0xe9" hidden="true" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xf7">
+            <scope startOffset="0x0" endOffset="0xf6">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0x0" il_end="0xf7" attributes="0"/>
-                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0x0" il_end="0xf7" attributes="0"/>
+                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0x0" il_end="0xf6" attributes="0"/>
+                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0x0" il_end="0xf6" attributes="0"/>
             </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="Async_NoLambda"/>
-                <await yield="0x55" resume="0x73" declaringType="C+VB$StateMachine_1_Async_NoLambda" methodName="MoveNext"/>
+                <await yield="0x54" resume="0x72" declaringType="C+VB$StateMachine_1_Async_NoLambda" methodName="MoveNext"/>
             </asyncInfo>
         </method>
     </methods>
@@ -648,6 +639,151 @@ End Class
     </methods>
 </symbols>)
         End Sub
+
+        <Fact>
+        Sub AsyncAndClosure()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Module M
+    Async Function F() As Task(Of Boolean)
+        Dim z = Await Task.FromResult(1)
+ 
+        Dim x = Sub()
+                    Console.WriteLine(z)
+                End Sub
+        Return False
+    End Function
+End Module
+    </file>
+</compilation>
+
+            Dim v = CompileAndVerify(source, LatestReferences, options:=TestOptions.DebugDll)
+
+            v.VerifyIL("M.VB$StateMachine_0_F.MoveNext", "
+{
+  // Code size      266 (0x10a)
+  .maxstack  3
+  .locals init (Boolean V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Boolean) V_2,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                M.VB$StateMachine_0_F V_4,
+                Integer V_5,
+                System.Exception V_6)
+ ~IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""M.VB$StateMachine_0_F.$State As Integer""
+  IL_0006:  stloc.1
+  .try
+  {
+   ~IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_006f
+   -IL_000e:  nop
+   ~IL_000f:  ldarg.0
+    IL_0010:  newobj     ""Sub M._Closure$__0-0..ctor()""
+    IL_0015:  stfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
+   -IL_001a:  ldarg.0
+    IL_001b:  ldarg.0
+    IL_001c:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
+    IL_0021:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+    IL_0026:  ldarg.0
+    IL_0027:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+    IL_002c:  ldfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
+    IL_0031:  pop
+    IL_0032:  ldc.i4.1
+    IL_0033:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0038:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_003d:  stloc.3
+   ~IL_003e:  ldloca.s   V_3
+    IL_0040:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0045:  brtrue.s   IL_008d
+    IL_0047:  ldarg.0
+    IL_0048:  ldc.i4.0
+    IL_0049:  dup
+    IL_004a:  stloc.1
+    IL_004b:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+   <IL_0050:  ldarg.0
+    IL_0051:  ldloc.3
+    IL_0052:  stfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0057:  ldarg.0
+    IL_0058:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+    IL_005d:  ldloca.s   V_3
+    IL_005f:  ldarg.0
+    IL_0060:  stloc.s    V_4
+    IL_0062:  ldloca.s   V_4
+    IL_0064:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), M.VB$StateMachine_0_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef M.VB$StateMachine_0_F)""
+    IL_0069:  nop
+    IL_006a:  leave      IL_0109
+   >IL_006f:  ldarg.0
+    IL_0070:  ldc.i4.m1
+    IL_0071:  dup
+    IL_0072:  stloc.1
+    IL_0073:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+    IL_0078:  ldarg.0
+    IL_0079:  ldfld      ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_007e:  stloc.3
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     ""M.VB$StateMachine_0_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0085:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_008b:  br.s       IL_008d
+    IL_008d:  ldarg.0
+    IL_008e:  ldfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+    IL_0093:  ldloca.s   V_3
+    IL_0095:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_009a:  stloc.s    V_5
+    IL_009c:  ldloca.s   V_3
+    IL_009e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00a4:  ldloc.s    V_5
+    IL_00a6:  stfld      ""M._Closure$__0-0.$VB$Local_z As Integer""
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldnull
+    IL_00ad:  stfld      ""M.VB$StateMachine_0_F.$U1 As M._Closure$__0-0""
+   -IL_00b2:  ldarg.0
+    IL_00b3:  ldarg.0
+    IL_00b4:  ldfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_$VB$Closure_$0 As M._Closure$__0-0""
+    IL_00b9:  ldftn      ""Sub M._Closure$__0-0._Lambda$__0()""
+    IL_00bf:  newobj     ""Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)""
+    IL_00c4:  stfld      ""M.VB$StateMachine_0_F.$VB$ResumableLocal_x$1 As <generated method>""
+   -IL_00c9:  ldc.i4.0
+    IL_00ca:  stloc.0
+    IL_00cb:  leave.s    IL_00f2
+  }
+  catch System.Exception
+  {
+   ~IL_00cd:  dup
+    IL_00ce:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_00d3:  stloc.s    V_6
+   ~IL_00d5:  ldarg.0
+    IL_00d6:  ldc.i4.s   -2
+    IL_00d8:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+    IL_00dd:  ldarg.0
+    IL_00de:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+    IL_00e3:  ldloc.s    V_6
+    IL_00e5:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetException(System.Exception)""
+    IL_00ea:  nop
+    IL_00eb:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00f0:  leave.s    IL_0109
+  }
+ -IL_00f2:  ldarg.0
+  IL_00f3:  ldc.i4.s   -2
+  IL_00f5:  dup
+  IL_00f6:  stloc.1
+  IL_00f7:  stfld      ""M.VB$StateMachine_0_F.$State As Integer""
+ ~IL_00fc:  ldarg.0
+  IL_00fd:  ldflda     ""M.VB$StateMachine_0_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean)""
+  IL_0102:  ldloc.0
+  IL_0103:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Boolean).SetResult(Boolean)""
+  IL_0108:  nop
+  IL_0109:  ret
+}
+", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
+        End Sub
+
 
     End Class
 End Namespace
