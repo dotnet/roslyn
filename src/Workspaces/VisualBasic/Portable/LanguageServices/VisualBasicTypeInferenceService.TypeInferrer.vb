@@ -100,6 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(binaryExpression As BinaryExpressionSyntax) InferTypeInBinaryExpression(binaryExpression, expression),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression, expression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause),
+                    Function(collectionInitializer As CollectionInitializerSyntax) InferTypeInCollectionInitializerExpression(collectionInitializer, expression),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, expression),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, expression),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(),
@@ -831,20 +832,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
             End Function
 
-            Private Function GetCollectionElementType(namedType As INamedTypeSymbol, parameterIndex As Integer, parameterCount As Integer) As IEnumerable(Of ITypeSymbol)
-                If namedType IsNot Nothing Then
-#If False Then
-            Dim addMethods = Me.Binding.Lookup(leftType, "Add").OfType()
-            Dim method = addMethods.Where(Function(m) Not m.IsStatic).Where(Function(m) m.Arity = 0).Where(Function(m) m.Parameters.Count = parameterCount).FirstOrDefault()
-            If method IsNot Nothing Then
-                Return method.Parameters(parameterIndex).Type
-            End If
-#End If
-                End If
-
-                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
-            End Function
-
             Private Function GetArgumentListIndex(argumentList As ArgumentListSyntax, previousToken As SyntaxToken) As Integer
                 If previousToken = argumentList.OpenParenToken Then
                     Return 0
@@ -854,34 +841,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return (index + 1) \ 2
             End Function
 
-#If False Then
-    Private Function InferTypeInInitializerExpression(expression As ExpressionSyntax, initializer As InitializerExpressionSyntax) As TypeSymbol
-        If initializer.IsParentKind(SyntaxKind.ArrayCreationExpression) Then
-            ' new int[] { Foo() }
-            Dim arrayCreation = DirectCast(initializer.Parent, ArrayCreationExpressionSyntax)
-            Dim [type] = [GetType](arrayCreation)
-            If TypeOf [type] Is ArrayTypeSymbol Then
-                Return (DirectCast([type], ArrayTypeSymbol)).ElementType
-            End If
-        ElseIf initializer.IsParentKind(SyntaxKind.ObjectCreationExpression) Then
-            ' new List<T> { Foo() }
-            Dim objectCreation = DirectCast(initializer.Parent, ObjectCreationExpressionSyntax)
-            Dim [type] = TryCast([GetType](objectCreation), NamedTypeSymbol)
-            Return GetCollectionElementType([type], parameterIndex:=0, parameterCount:=1)
-        ElseIf initializer.IsParentKind(SyntaxKind.InitializerExpression) AndAlso initializer.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) Then
-            ' new Dictionary<K,V> { { Foo(), .. } }
-            Dim objectCreation = DirectCast(initializer.Parent.Parent, ObjectCreationExpressionSyntax)
-            Dim [type] = TryCast([GetType](objectCreation), NamedTypeSymbol)
-            Return GetCollectionElementType([type], parameterIndex:=initializer.Expressions.IndexOf(expression), parameterCount:=initializer.Expressions.Count)
-        ElseIf initializer.IsParentKind(SyntaxKind.AssignExpression) Then
-            ' new Foo { a = { Foo() } }
-            Dim assignExpression = DirectCast(initializer.Parent, BinaryExpressionSyntax)
-            Dim [type] = TryCast([GetType](assignExpression.Left), NamedTypeSymbol)
-            Return GetCollectionElementType([type], parameterIndex:=initializer.Expressions.IndexOf(expression), parameterCount:=initializer.Expressions.Count)
-        End If
-        Return Me.Compilation.ObjectType
-    End Function
-#End If
+            Private Function InferTypeInCollectionInitializerExpression(
+                collectionInitializer As CollectionInitializerSyntax,
+                Optional expression As ExpressionSyntax = Nothing,
+                Optional previousToken As SyntaxToken? = Nothing) As IEnumerable(Of ITypeSymbol)
+
+                ' New List(Of T) From { x }
+                If expression IsNot Nothing Then
+                    Dim expressionAddMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
+                    Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols _
+                        .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = 1) _
+                        .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters(0).Type).WhereNotNull()
+
+                    If expressionAddMethodParameterTypes.Any() Then
+                        Return expressionAddMethodParameterTypes
+                    End If
+                End If
+
+                ' New Dictionary<K,V> From { { x, ... } }
+                Dim parameterIndex = If(previousToken.HasValue,
+                        collectionInitializer.Initializers.GetSeparators().ToList().IndexOf(previousToken.Value) + 1,
+                        collectionInitializer.Initializers.IndexOf(expression))
+
+                Dim initializerAddMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
+                Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols _
+                    .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = collectionInitializer.Initializers.Count) _
+                    .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters.ElementAtOrDefault(parameterIndex)?.Type).WhereNotNull()
+
+                If initializerAddMethodParameterTypes.Any() Then
+                    Return initializerAddMethodParameterTypes
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
+            End Function
         End Class
     End Class
 End Namespace
