@@ -363,7 +363,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 node = node.Parent
             End While
             Return False
-            'Return node.AncestorsAndSelf().Any(Function(n) TypeOf n Is SingleLineLambdaExpressionSyntax)
         End Function
 
         Private Function PartOfMultilineLambdaFooter(node As SyntaxNode) As Boolean
