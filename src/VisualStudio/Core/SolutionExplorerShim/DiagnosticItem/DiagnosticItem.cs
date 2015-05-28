@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -87,9 +88,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             if (!string.IsNullOrWhiteSpace(Descriptor.Id))
             {
+                string language;
+                string projectType;
+                _analyzerItem.AnalyzersFolder.Workspace.GetLanguageAndProjectTypeAndUser(_analyzerItem.AnalyzersFolder.ProjectId, out language, out projectType);
+
                 // we use message format here since we don't have actual instance of diagnostic here. 
                 // (which means we do not have a message)
-                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo));
+                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo), language, projectType);
             }
 
             return null;
