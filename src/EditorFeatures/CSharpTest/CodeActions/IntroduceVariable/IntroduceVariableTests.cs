@@ -2434,5 +2434,113 @@ class Test
 }
 ");
         }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void InParentConditionalAccessExpressions()
+        {
+            var code =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = [|F(new C())|]?.F(new C())?.F(new C());
+        return x;
+    }
+}";
+
+            var expected =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var {|Rename:c|} = F(new C());
+        var y = c?.F(new C())?.F(new C());
+        return x;
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void InParentConditionalAccessExpression2()
+        {
+            var code =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = [|F(new C()).F(new C())|]?.F(new C());
+        return x;
+    }
+}";
+
+            var expected =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var {|Rename:c|} = F(new C()).F(new C());
+        var y = c?.F(new C());
+        return x;
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(1130990)]
+        [WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void MissingAcrossMultipleParentConditionalAccessExpressions()
+        {
+            TestMissing(
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = [|F(new C())?.F(new C())|]?.F(new C());
+        return x;
+    }
+}");
+        }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void MissingOnInvocationExpressionInParentConditionalAccessExpressions()
+        {
+            TestMissing(
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = F(new C())?.[|F(new C())|]?.F(new C());
+        return x;
+    }
+}");
+        }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
+        {
+            TestMissing(
+    @"using System;
+class C
+{
+    static void Test(string s)
+    {
+        var l = s?.[|Length|] ?? 0;
+    }
+}");
+        }
     }
 }

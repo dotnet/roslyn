@@ -1416,6 +1416,79 @@ End Module
 </File>)
         End Sub
 
+        <WorkItem(1130990)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub InParentConditionalAccessExpressions()
+            Dim code =
+<File>
+Imports System
+Class C
+    Function F(Of T)(x As T) As T
+        Dim y = [|F(New C)|]?.F(New C)?.F(New C)
+        Return x
+    End Function
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Class C
+    Function F(Of T)(x As T) As T
+        Dim {|Rename:c1|} As C = F(New C)
+        Dim y = c1?.F(New C)?.F(New C)
+        Return x
+    End Function
+End Class
+</File>
+            Test(code, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(1130990)>
+        <WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub MissingAcrossMultipleParentConditionalAccessExpressions()
+            TestMissing(
+<File>
+Imports System
+Class C
+    Function F(Of T)(x As T) As T
+        Dim y = [|F(New C)?.F(New C)|]?.F(New C)
+        Return x
+    End Function
+End Class
+</File>)
+        End Sub
+
+        <WorkItem(1130990)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub MissingOnInvocationExpressionInParentConditionalAccessExpressions()
+            TestMissing(
+<File>
+Imports System
+Class C
+    Function F(Of T)(x As T) As T
+        Dim y = F(New C)?.[|F(New C)|]?.F(New C)
+        Return x
+    End Function
+End Class
+</File>)
+        End Sub
+
+        <WorkItem(1130990)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
+            TestMissing(
+<File>
+Imports System
+Class C
+    Sub F()
+        Dim s as String = "Text"
+        Dim l = s?.[|Length|]
+    End Sub
+End Class
+</File>)
+        End Sub
+
         <WorkItem(2026, "https://github.com/dotnet/roslyn/issues/2026")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestReplaceAllFromInsideIfBlock()

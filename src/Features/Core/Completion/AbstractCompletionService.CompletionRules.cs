@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 if (match1 != null && match2 != null)
                 {
-                    var result = match1.Value.CompareTo(match2.Value);
+                    var result = CompareMatches(match1.Value, match2.Value, item1, item2);
                     if (result != 0)
                     {
                         return result < 0;
@@ -116,6 +116,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 // The one with the lower index is the better one.
                 return item1MRUIndex < item2MRUIndex;
+            }
+
+            protected virtual int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+            {
+                return match1.CompareTo(match2);
             }
 
             public virtual bool? ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)

@@ -511,8 +511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 If name.IsKind(SyntaxKind.GlobalName) Then
                     valueText = currentNewIdentifier
-                Else
-                    Debug.Assert(name.IsKind(SyntaxKind.IdentifierName))
+                ElseIf name.IsKind(SyntaxKind.IdentifierName) Then
                     valueText = DirectCast(name, IdentifierNameSyntax).Identifier.ValueText
                 End If
 

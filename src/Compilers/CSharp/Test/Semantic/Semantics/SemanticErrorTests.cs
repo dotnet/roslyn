@@ -8054,6 +8054,34 @@ public class MemberInitializerTest
         }
 
         [Fact]
+        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializerr()
+        {
+            CreateCompilationWithMscorlib(
+@"
+class TestClass
+{
+    int P1 { get; }
+
+    int y = (P1 = 123);
+    int y1 { get; } = (P1 = 123);
+
+    static void Main()
+    {
+    }
+}
+")
+            .VerifyDiagnostics(
+    // (6,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'TestClass.P1'
+    //     int y = (P1 = 123);
+    Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(6, 14),
+    // (7,24): error CS0236: A field initializer cannot reference the non-static field, method, or property 'TestClass.P1'
+    //     int y1 { get; } = (P1 = 123);
+    Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(7, 24)
+                );
+        }
+
+
+        [Fact]
         public void CS0242ERR_VoidError()
         {
             var text = @"
