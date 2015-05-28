@@ -202,6 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Me.IsAsync OrElse Me.IsIterator Then
                 AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
             End If
         End Sub
 

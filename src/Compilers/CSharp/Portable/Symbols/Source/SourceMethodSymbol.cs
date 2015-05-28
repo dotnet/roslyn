@@ -1513,6 +1513,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
                 }
+
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
             }
         }
 
