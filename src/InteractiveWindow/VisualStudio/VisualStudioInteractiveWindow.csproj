@@ -124,7 +124,6 @@
   <ItemGroup>
     <Content Include="Resources\Package.ico" />
     <None Include="packages.config" />
-    <None Include="Resources\InteractiveToolbarImages.png" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
