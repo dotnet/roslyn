@@ -116,6 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return info.ConvertedType;
                 }
 
+                // use FormattableString if conversion between String and FormattableString
+                if (info.Type?.SpecialType == SpecialType.System_String &&
+                    info.ConvertedType?.IsFormattableString() == true)
+                {
+                    return info.ConvertedType;
+                }
+
                 // always try to use type that is more specific than object type if possible.
                 return !info.Type.IsObjectType() ? info.Type : info.ConvertedType;
             }

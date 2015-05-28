@@ -368,6 +368,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
+        public static bool IsFormattableString(this ITypeSymbol symbol)
+        {
+            return symbol?.MetadataName == "FormattableString"
+                && symbol.ContainingNamespace?.Name == "System"
+                && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
+
+        }
+
         public static ITypeSymbol RemoveUnavailableTypeParameters(
             this ITypeSymbol type,
             Compilation compilation,

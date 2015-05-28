@@ -310,6 +310,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var semanticModel = document.SemanticModel;
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
 
+            if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
+                typeInfo.ConvertedType.IsFormattableString())
+            {
+                return typeInfo.ConvertedType;
+            }
+
             if (typeInfo.Type != null)
             {
                 return typeInfo.Type;
