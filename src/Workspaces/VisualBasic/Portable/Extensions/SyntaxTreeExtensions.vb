@@ -357,7 +357,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function PartOfSingleLineLambda(node As SyntaxNode) As Boolean
-            Return node.AncestorsAndSelf().Any(Function(n) TypeOf n Is SingleLineLambdaExpressionSyntax)
+            While node IsNot Nothing
+                If TypeOf node Is MultiLineLambdaExpressionSyntax Then Return False
+                If TypeOf node Is SingleLineLambdaExpressionSyntax Then Return True
+                node = node.Parent
+            End While
+            Return False
+            'Return node.AncestorsAndSelf().Any(Function(n) TypeOf n Is SingleLineLambdaExpressionSyntax)
         End Function
 
         Private Function PartOfMultilineLambdaFooter(node As SyntaxNode) As Boolean
