@@ -350,6 +350,7 @@
     <Compile Include="Outlining\MetadataAsSource\EnumMemberDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\MetadataAsSource\EventDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\MetadataAsSource\FieldDeclarationOutlinerTests.vb" />
+    <Compile Include="Outlining\MetadataAsSource\InvalidIdentifierTests.vb" />
     <Compile Include="Outlining\MetadataAsSource\MethodDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\MetadataAsSource\OperatorDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\MetadataAsSource\PropertyDeclarationOutlinerTests.vb" />

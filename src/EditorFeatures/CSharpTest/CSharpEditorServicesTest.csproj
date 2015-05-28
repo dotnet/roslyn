@@ -353,6 +353,7 @@
     <Compile Include="Outlining\MetadataAsSource\EventFieldDeclarationOutlinerTests.cs" />
     <Compile Include="Outlining\MetadataAsSource\FieldDeclarationOutlinerTests.cs" />
     <Compile Include="Outlining\MetadataAsSource\IndexerDeclarationOutlinerTests.cs" />
+    <Compile Include="Outlining\MetadataAsSource\InvalidIdentifierTests.cs" />
     <Compile Include="Outlining\MetadataAsSource\MethodDeclarationOutlinerTests.cs" />
     <Compile Include="Outlining\MetadataAsSource\OperatorDeclarationOutlinerTests.cs" />
     <Compile Include="Outlining\MetadataAsSource\PropertyDeclarationOutlinerTests.cs" />
