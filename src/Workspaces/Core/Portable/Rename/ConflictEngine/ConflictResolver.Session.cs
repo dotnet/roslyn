@@ -170,6 +170,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             // Note that we need to get the conflictLocations here since we're going to remove some locations below if phase == 2
                             documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(_conflictLocations.Select(l => l.DocumentId));
 
+                            // Include the declaration document if we are processing its project to
+                            // ensure declaration conflicts are calculated correctly when the
+                            // declaration document does not contain any references.
+                            if (documentsByProject.Key == _documentIdOfRenameSymbolDeclaration.ProjectId)
+                            {
+                                documentIdsThatGetsAnnotatedAndRenamed.Add(_documentIdOfRenameSymbolDeclaration);
+                            }
+
                             if (phase == 2)
                             {
                                 // After phase 2, if there are still conflicts then remove the conflict locations from being expanded

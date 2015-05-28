@@ -3344,5 +3344,72 @@ class {|conflict:C$$|} { }
                 result.AssertLabeledSpansAre("conflict", renameTo, RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DeclarationConflictInFileWithoutReferences_SameProject()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document FilePath="Test1.cs">
+class Program
+{
+    internal void [|A$$|]() { }
+    internal void {|conflict:B|}() { }
+}
+                            </Document>
+                           <Document FilePath="Test2.cs">
+class Program2
+{
+    void M()
+    {
+        Program p = null;
+        p.{|conflict:A|}();
+        p.{|conflict:B|}();
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="B")
+
+                result.AssertLabeledSpansAre("conflict", "B", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DeclarationConflictInFileWithoutReferences_DifferentProjects()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true" AssemblyName="CSAssembly1">
+                           <Document FilePath="Test1.cs">
+public class Program
+{
+    public void [|A$$|]() { }
+    public void {|conflict:B|}() { }
+}
+                            </Document>
+                       </Project>
+                       <Project Language="C#" CommonReferences="true" AssemblyName="CSAssembly2">
+                           <ProjectReference>CSAssembly1</ProjectReference>
+                           <Document FilePath="Test2.cs">
+class Program2
+{
+    void M()
+    {
+        Program p = null;
+        p.{|conflict:A|}();
+        p.{|conflict:B|}();
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="B")
+
+                result.AssertLabeledSpansAre("conflict", "B", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
