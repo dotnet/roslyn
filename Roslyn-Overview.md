@@ -39,7 +39,7 @@ The transition to compilers as platforms dramatically lowers the barrier to entr
 The .NET Compiler Platform (“Roslyn”) SDK Preview includes the latest drafts of new language object models for code generation, analysis, and refactoring. We hope to include drafts of API support for scripting and interactive use of C# and Visual Basic in a future preview. This document provides a conceptual overview of the .NET Compiler Platform (“Roslyn”). Further details can be found in the walkthroughs and samples included in the SDK Preview.
 
 ## Exposing the Compiler APIs
-### Compiler Pipeline Functonal Areas
+### Compiler Pipeline Functional Areas
 
 The .NET Compiler Platform (“Roslyn”) exposes the C# and Visual Basic compiler’s code analysis to you as a consumer by providing an API layer that mirrors a traditional compiler pipeline.
 
