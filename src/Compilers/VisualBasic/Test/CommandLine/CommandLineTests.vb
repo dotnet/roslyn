@@ -7164,6 +7164,27 @@ End Class
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
+
+        <Fact, WorkItem(1093063, "DevDiv")>
+        Public Sub VerifyDiagnosticSeverityNotLocalized()
+            Dim source = <![CDATA[
+Class A
+End Class
+]]>
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source.Value)
+
+            Dim output As New StringWriter()
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/target:exe", fileName})
+            vbc.Run(output, Nothing)
+
+            ' If "error" was localized, below assert will fail on PLOC builds. The output would be something like: "!pTCvB!vbc : !FLxft!error 表! BC30420:"
+            Assert.Contains("error BC30420:", output.ToString())
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
