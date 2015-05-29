@@ -2712,6 +2712,24 @@ namespace ConsoleApplication1
 @"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await M ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } private static Task < bool > M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
+        [WorkItem(529480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestInCollectionInitializers1()
+        {
+            Test(
+@"class C { void M() { var x = new System.Collections.Generic.List<int> { [|T|]() } ; } } ",
+@"using System ; class C { void M() { var x = new System.Collections.Generic.List<int> { T() } ; } private int T() { throw new NotImplementedException(); } } ");
+        }
+
+        [WorkItem(529480)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestInCollectionInitializers2()
+        {
+            Test(
+@"class C { void M() { var x = new System.Collections.Generic.Dictionary<int, bool> { { 1, [|T|]() } }; } } ",
+@"using System ; class C { void M() { var x = new System.Collections.Generic.Dictionary<int, bool> { { 1, T() } }; } private bool T() { throw new NotImplementedException(); } } ");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

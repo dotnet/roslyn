@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             if (!string.IsNullOrWhiteSpace(item.Id))
             {
-                return BrowserHelper.CreateBingQueryUri(item.Id, item.ENUMessageForBingSearch).AbsoluteUri;
+                return BrowserHelper.CreateBingQueryUri(item).AbsoluteUri;
             }
 
             return null;
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Uri helpUri = null;
             if (!BrowserHelper.TryGetUri(item.HelpLink, out helpUri) && !string.IsNullOrWhiteSpace(item.Id))
             {
-                helpUri = BrowserHelper.CreateBingQueryUri(item.Id, item.ENUMessageForBingSearch);
+                helpUri = BrowserHelper.CreateBingQueryUri(item);
                 isBing = true;
             }
 
