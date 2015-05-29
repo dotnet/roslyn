@@ -137,5 +137,81 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
         End Sub
+
+        <Fact>
+        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        Public Sub FindMethodInVisualBasicToCSharpProject_RefKindRef()
+            Dim workspaceDefinition =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+        <Document>
+            namespace N
+            {
+                public class CSClass
+                {
+                    public void M(ref int i) { }
+                }
+            }
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
+        <ProjectReference>CSharpAssembly</ProjectReference>
+        <Document>
+        </Document>
+    </Project>
+</Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
+                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+                Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
+
+                Assert.Equal(LanguageNames.VisualBasic, member.Language)
+                Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
+
+                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Assert.NotNull(mappedMember)
+
+                Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
+                Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        Public Sub FindMethodInVisualBasicToCSharpProject_RefKindOut()
+            Dim workspaceDefinition =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
+        <Document>
+            namespace N
+            {
+                public class CSClass
+                {
+                    public void M(out int i) { }
+                }
+            }
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
+        <ProjectReference>CSharpAssembly</ProjectReference>
+        <Document>
+        </Document>
+    </Project>
+</Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
+                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+                Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
+
+                Assert.Equal(LanguageNames.VisualBasic, member.Language)
+                Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
+
+                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Assert.NotNull(mappedMember)
+
+                Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
+                Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
+            End Using
+        End Sub
     End Class
 End Namespace

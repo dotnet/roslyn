@@ -98,6 +98,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.SelectNextItem(), Times.Once)
         End Sub
 
+        <WorkItem(1181, "https://github.com/dotnet/roslyn/issues/1181")>
+        <Fact>
+        Public Sub UpAndDownKeysShouldStillNavigateWhenDuplicateItemsAreFiltered()
+            Dim item = CreateItems(1).Single()
+            Dim controller = CreateController(items:={item, item}, waitForPresentation:=True)
+
+            Dim handled = controller.TryHandleUpKey()
+
+            Assert.False(handled)
+            GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
+        End Sub
+
         <Fact>
         Public Sub CaretMoveWithActiveSessionShouldRecomputeModel()
             Dim controller = CreateController(waitForPresentation:=True)

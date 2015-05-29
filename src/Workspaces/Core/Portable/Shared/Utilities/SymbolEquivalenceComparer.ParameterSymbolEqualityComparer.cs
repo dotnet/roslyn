@@ -14,11 +14,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         internal class ParameterSymbolEqualityComparer : IEqualityComparer<IParameterSymbol>
         {
             private readonly SymbolEquivalenceComparer _symbolEqualityComparer;
+            private readonly bool _distinguishRefFromOut;
 
             public ParameterSymbolEqualityComparer(
-                SymbolEquivalenceComparer symbolEqualityComparer)
+                SymbolEquivalenceComparer symbolEqualityComparer,
+                bool distinguishRefFromOut)
             {
                 _symbolEqualityComparer = symbolEqualityComparer;
+                _distinguishRefFromOut = distinguishRefFromOut;
             }
 
             public bool Equals(
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // equality, then we want to consider method type parameters by index only.
 
                 return
-                    x.RefKind == y.RefKind &&
+                    AreRefKindsEquivalent(x.RefKind, y.RefKind, _distinguishRefFromOut) &&
                     nameComparisonCheck &&
                     _symbolEqualityComparer.GetEquivalenceVisitor().AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                     _symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
@@ -77,6 +80,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     Hash.Combine(x.IsRefOrOut(),
                     _symbolEqualityComparer.SignatureTypeEquivalenceComparer.GetHashCode(x.Type));
             }
+        }
+
+        public static bool AreRefKindsEquivalent(RefKind rk1, RefKind rk2, bool distinguishRefFromOut)
+        {
+            return distinguishRefFromOut
+                ? rk1 == rk2
+                : (rk1 == RefKind.None) == (rk2 == RefKind.None);
         }
     }
 }
