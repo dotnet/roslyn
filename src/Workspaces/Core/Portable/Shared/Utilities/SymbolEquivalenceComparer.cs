@@ -46,19 +46,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance);
-        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null);
+        public static readonly SymbolEquivalenceComparer Instance = new SymbolEquivalenceComparer(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false);
+        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false);
 
         private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; private set; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; private set; }
 
-        internal SymbolEquivalenceComparer(IEqualityComparer<IAssemblySymbol> assemblyComparerOpt)
+        internal SymbolEquivalenceComparer(IEqualityComparer<IAssemblySymbol> assemblyComparerOpt, bool distinguishRefFromOut)
         {
             _assemblyComparerOpt = assemblyComparerOpt;
 
-            this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this);
+            this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
 
             // There are only so many EquivalenceVisitors and GetHashCodeVisitors we can have.
