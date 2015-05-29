@@ -54,8 +54,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
         {
-            var operations = await this.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operationTask = this.ComputeOperationsAsync(cancellationToken);
+            if (operationTask == null)
+            {
+                // user overrode ComputeOperationsAsync but returned null
+                return ImmutableArray<CodeActionOperation>.Empty;
+            }
 
+            var operations = await operationTask.ConfigureAwait(false);
             if (operations != null)
             {
                 return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
@@ -69,8 +75,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
-            var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
+            var operationTask = this.ComputePreviewOperationsAsync(cancellationToken);
+            if (operationTask == null)
+            {
+                // user overrode ComputePreviewOperationsAsync but returned null
+                return ImmutableArray<CodeActionOperation>.Empty;
+            }
 
+            var operations = await operationTask.ConfigureAwait(false);
             if (operations != null)
             {
                 return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
@@ -84,7 +96,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
-            var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            var operationTask = GetChangedSolutionAsync(cancellationToken);
+            if (operationTask == null)
+            {
+                // user overrode GetChangedSolutionAsync but returned null
+                return null;
+            }
+
+            var changedSolution = await operationTask.ConfigureAwait(false);
             if (changedSolution == null)
             {
                 return null;
@@ -97,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
         /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
         /// </summary>
-        protected virtual async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected virtual Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
-            return await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
+            return ComputeOperationsAsync(cancellationToken);
         }
 
         /// <summary>
@@ -108,7 +127,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         protected async virtual Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
-            var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var operationTask = GetChangedDocumentAsync(cancellationToken);
+            if (operationTask == null)
+            {
+                // user overrode GetChangedDocumentAsync but returned null
+                return null;
+            }
+
+            var changedDocument = await operationTask.ConfigureAwait(false);
             if (changedDocument == null)
             {
                 return null;
@@ -131,7 +157,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         internal async Task<Solution> GetChangedSolutionInternalAsync(CancellationToken cancellationToken)
         {
-            var solution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            var operationTask = GetChangedSolutionAsync(cancellationToken);
+            if (operationTask == null)
+            {
+                return null;
+            }
+
+            var solution = await operationTask.ConfigureAwait(false);
             if (solution == null)
             {
                 return null;
@@ -191,8 +223,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 foreach (var documentId in documentsToProcess)
                 {
                     var document = processedSolution.GetDocument(documentId);
-                    var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                    processedSolution = processedDocument.Project.Solution;
+
+                    var operationTask = PostProcessChangesAsync(document, cancellationToken);
+                    if (operationTask != null)
+                    {
+                        var processedDocument = await operationTask.ConfigureAwait(false);
+                        processedSolution = processedDocument.Project.Solution;
+                    }
                 }
             }
 
@@ -204,8 +241,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 foreach (var documentId in documentsToProcess)
                 {
                     var document = processedSolution.GetDocument(documentId);
-                    var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
-                    processedSolution = processedDocument.Project.Solution;
+
+                    var operationTask = PostProcessChangesAsync(document, cancellationToken);
+                    if (operationTask != null)
+                    {
+                        var processedDocument = await operationTask.ConfigureAwait(false);
+                        processedSolution = processedDocument.Project.Solution;
+                    }
                 }
             }
 
