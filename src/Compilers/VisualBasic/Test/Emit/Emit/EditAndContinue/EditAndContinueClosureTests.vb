@@ -895,6 +895,111 @@ End Class
         ' TODO: port C# tests, add more VB specific tests
 
         <Fact>
+        Public Sub Lambdas_UpdateAfterAdd()
+            Dim source0 = MarkedSource("
+Imports System
+
+Class C
+    Shared Function G(f As Func(Of Integer, Integer))
+        Return 0
+    End Function
+
+    <N:0>Shared Function F()</N:0>
+        Return G(Nothing)
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+
+Class C
+    Shared Function G(f As Func(Of Integer, Integer))
+        Return 0
+    End Function
+
+    <N:0>Shared Function F()</N:0>
+        Return G(<N:1>Function(a) a + 1</N:1>)
+    End Function
+End Class
+")
+            Dim source2 = MarkedSource("
+Imports System
+
+Class C
+    Shared Function G(f As Func(Of Integer, Integer))
+        Return 0
+    End Function
+
+    <N:0>Shared Function F()</N:0>
+        Return G(<N:1>Function(a) a + 2</N:1>)
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            Dim md1 = diff1.GetMetadata()
+            Dim reader1 = md1.Reader
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I0#1, _Lambda$__0#1}")
+
+            diff1.VerifyIL("C._Closure$__._Lambda$__0#1", "
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.1
+  IL_0003:  add.ovf
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+")
+            Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I0#1, _Lambda$__0#1}")
+
+            diff2.VerifyIL("C._Closure$__._Lambda$__0#1", "
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.2
+  IL_0003:  add.ovf
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0007
+  IL_0007:  ldloc.0
+  IL_0008:  ret
+}
+")
+        End Sub
+
+        <Fact>
         Public Sub LambdasMultipleGenerations1()
             Dim source0 = MarkedSource("
 Imports System

@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining.MetadataAsSource
             var startToken = node.GetFirstToken();
             var endToken = GetEndToken(node);
 
+            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
+            {
+                // if valid tokens can't be found then a meaningful span can't be generated
+                return;
+            }
+
             var firstComment = startToken.LeadingTrivia.FirstOrNullable(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia);
 
             var startPosition = firstComment.HasValue ? firstComment.Value.SpanStart : startToken.SpanStart;

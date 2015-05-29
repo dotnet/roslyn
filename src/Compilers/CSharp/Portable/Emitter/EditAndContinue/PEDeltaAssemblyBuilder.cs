@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -30,15 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Func<ISymbol, bool> isAddedSymbol)
             : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper: null, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
+            var initialBaseline = previousGeneration.InitialBaseline;
             var context = new EmitContext(this, null, new DiagnosticBag());
             var module = previousGeneration.OriginalMetadata;
             var compilation = sourceAssembly.DeclaringCompilation;
             var metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(module), MetadataImportOptions.All);
-            var metadataDecoder = new Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.MetadataDecoder(metadataAssembly.PrimaryModule);
+            var metadataDecoder = new Symbols.Metadata.PE.MetadataDecoder(metadataAssembly.PrimaryModule);
 
-            previousGeneration = EnsureInitialized(previousGeneration, metadataDecoder);
+            if (initialBaseline.LazyOriginalMetadataAnonymousTypeMap == null)
+            {
+                initialBaseline.LazyOriginalMetadataAnonymousTypeMap = GetAnonymousTypeMapFromMetadata(module.MetadataReader, metadataDecoder);
+            }
 
-            var matchToMetadata = new CSharpSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly);
+            var matchToMetadata = new CSharpSymbolMatcher(initialBaseline.LazyOriginalMetadataAnonymousTypeMap, sourceAssembly, context, metadataAssembly);
 
             CSharpSymbolMatcher matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
@@ -114,19 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 builder.Add(AnonymousTypeKeyField.CreateField(fieldName));
             }
             return true;
-        }
-
-        private static EmitBaseline EnsureInitialized(
-            EmitBaseline previousGeneration,
-            Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.MetadataDecoder metadataDecoder)
-        {
-            if (previousGeneration.AnonymousTypeMap != null)
-            {
-                return previousGeneration;
-            }
-
-            var anonymousTypeMap = GetAnonymousTypeMapFromMetadata(previousGeneration.MetadataReader, metadataDecoder);
-            return previousGeneration.WithAnonymousTypeMap(anonymousTypeMap);
         }
 
         internal EmitBaseline PreviousGeneration
