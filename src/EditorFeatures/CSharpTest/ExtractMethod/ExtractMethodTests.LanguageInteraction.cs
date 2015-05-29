@@ -1862,5 +1862,45 @@ public class Test<T>
                 TestExtractMethod(code, expected);
             }
         }
+
+        [WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void HandleFormattableStringTargetTyping1()
+        {
+            const string code = CodeSnippets.FormattableStringType + @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public void M()
+        {
+            var f = FormattableString.Invariant([|$""""|]);
+        }
+    }
+}";
+
+            const string expected = CodeSnippets.FormattableStringType + @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public void M()
+        {
+            var f = FormattableString.Invariant(NewMethod());
+        }
+
+        private static FormattableString NewMethod()
+        {
+            return $"""";
+        }
+    }
+}";
+
+            TestExtractMethod(code, expected);
+        }
     }
 }

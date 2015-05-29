@@ -522,6 +522,7 @@
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.vb" />
     <Compile Include="TodoComment\TodoCommentTests.vb" />
     <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
+    <Compile Include="Utilities\CodeSnippets.vb" />
     <Compile Include="Utils.vb" />
     <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
     <None Include="app.config" />
