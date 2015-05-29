@@ -23,9 +23,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
             Dim typeBlock = syntaxTree.FindTokenOnLeftOfPosition(subjectBufferFieldSpan.Start.Position, cancellationToken).GetAncestor(Of TypeBlockSyntax)
 
             If typeBlock IsNot Nothing AndAlso
-               Not String.IsNullOrWhiteSpace(typeBlock.GetNameTokenOrNothing().ValueText) Then
+               Not String.IsNullOrWhiteSpace(typeBlock.GetNameToken().ValueText) Then
 
-                value = typeBlock.GetNameTokenOrNothing().ValueText
+                value = typeBlock.GetNameToken().ValueText
                 hasDefaultValue = 1
             End If
 
