@@ -4570,6 +4570,30 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
+        [Fact, WorkItem(1093063, "DevDiv")]
+        public void VerifyDiagnosticSeverityNotLocalized()
+        {
+            string source = @"
+class C
+{
+}
+";
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText(source);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/target:exe", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+            Assert.NotEqual(0, exitCode);
+
+            // If "error" was localized, below assert will fail on PLOC builds. The output would be something like: "!pTCvB!vbc : !FLxft!error 表! CS5001:"
+            Assert.Contains("error CS5001:", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
         [Fact]
         public void NoLogo_1()
         {
