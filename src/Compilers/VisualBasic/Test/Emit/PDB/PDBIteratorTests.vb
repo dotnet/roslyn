@@ -72,7 +72,6 @@ End Class
         End Sub
 
         <Fact, WorkItem(651996, "DevDiv")>
->>>>>>> 4e135dabc991d3a9008768ec3983bbdee45cb047
         Public Sub IteratorLambdaWithForEach()
             Dim source =
 <compilation>

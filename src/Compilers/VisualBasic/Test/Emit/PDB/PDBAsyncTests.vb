@@ -163,7 +163,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(651996, "DevDiv")>
         Public Sub TestAsync()
             Dim source =
 <compilation>

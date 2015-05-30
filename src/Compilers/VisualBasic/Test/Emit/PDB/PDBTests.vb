@@ -632,7 +632,7 @@ End Module
 ", sequencePoints:="M1.Main")
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub TestBasic1()
             Dim source =
 <compilation>
@@ -995,7 +995,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub ForStatement()
             Dim source =
 <compilation>

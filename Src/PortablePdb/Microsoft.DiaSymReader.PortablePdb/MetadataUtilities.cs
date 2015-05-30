@@ -16,7 +16,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public static int MethodDefToken(int rowId) => 0x06000000 | rowId;
 
-        internal static int GetTypeDefOrRefOrSpecCodedIndex(Handle typeHandle)
+        internal static int GetTypeDefOrRefOrSpecCodedIndex(EntityHandle typeHandle)
         {
             int tag = 0;
             switch (typeHandle.Kind)

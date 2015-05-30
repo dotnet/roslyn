@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22725.0
+VisualStudioVersion = 14.0.22905.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -325,8 +325,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PortablePdb", "PortablePdb"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb", "PortablePdb\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj", "{F83343BA-B4EA-451C-B6DB-5D645E6171BC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Microsoft.DiaSymReader.PortablePdb.Native.UnitTests", "PortablePdb\Microsoft.DiaSymReader.PortablePdb.NativeTests\Microsoft.DiaSymReader.PortablePdb.Native.UnitTests.vcxproj", "{690CACA9-9F32-47DA-B61D-55231257CBA3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb.UnitTests", "PortablePdb\Microsoft.DiaSymReader.PortablePdb.Tests\Microsoft.DiaSymReader.PortablePdb.UnitTests.csproj", "{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "System.Runtime.InteropServices.Analyzers", "System.Runtime.InteropServices.Analyzers", "{32BCFD38-B44B-4E4F-AFC6-90ABAF32C465}"
@@ -357,8 +355,8 @@ Global
 		ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{bf9dac1e-3a5e-4dc3-bb44-9a64e0d4e9d3}*SharedItemsImports = 4
 		Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{fa0e905d-ec46-466d-b7b2-3b5557f9428c}*SharedItemsImports = 4
-		Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 4
 		ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bedc5a4a-809e-4017-9cfd-6c8d4e1847f0}*SharedItemsImports = 4
 		Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
@@ -2886,20 +2884,6 @@ Global
 		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|x64.Build.0 = Release|Any CPU
 		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|x86.ActiveCfg = Release|Any CPU
 		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|x86.Build.0 = Release|Any CPU
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|ARM.ActiveCfg = Debug|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|x64.ActiveCfg = Debug|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|x86.ActiveCfg = Debug|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Debug|x86.Build.0 = Debug|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Any CPU.ActiveCfg = Release|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|ARM.ActiveCfg = Release|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|x64.ActiveCfg = Release|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|x86.ActiveCfg = Release|Win32
-		{690CACA9-9F32-47DA-B61D-55231257CBA3}.Release|x86.Build.0 = Release|Win32
 		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|ARM.ActiveCfg = Debug|Any CPU
@@ -3142,7 +3126,6 @@ Global
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{CF450DCE-D12B-4A11-8D2D-A7A125372C48} = {64BDF58B-41BA-A19E-0D34-B5FA598403B6}
 		{F83343BA-B4EA-451C-B6DB-5D645E6171BC} = {21590A0E-5748-43B2-AB46-EEDBD8998DA4}
-		{690CACA9-9F32-47DA-B61D-55231257CBA3} = {21590A0E-5748-43B2-AB46-EEDBD8998DA4}
 		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0} = {21590A0E-5748-43B2-AB46-EEDBD8998DA4}
 		{32BCFD38-B44B-4E4F-AFC6-90ABAF32C465} = {24E8CBFA-38D2-486F-B772-C10AB2DC7F01}
 		{0A2BB2D6-883E-4C19-895A-0DC067436623} = {32BCFD38-B44B-4E4F-AFC6-90ABAF32C465}
