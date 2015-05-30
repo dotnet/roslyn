@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Xunit;
 using Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -294,7 +295,7 @@ class C
         }
 
         [WorkItem(1117084)]
-        [Fact(Skip = "1114866")]
+        [Fact]
         public void OtherFrameworkAssembly()
         {
             var source =
@@ -310,32 +311,21 @@ class C
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Foundation", "Windows.UI", "Windows.UI.Xaml")));
             var context = CreateMethodContext(runtime, "C.M");
             string error;
+            ResultProperties resultProperties;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var testData = new CompilationTestData();
-            context.CompileExpression(
+            var result = context.CompileExpression(
                 "f.RenderSize",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
+                DiagnosticFormatter.Instance,
+                out resultProperties,
                 out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
-  // Code size       55 (0x37)
-  .maxstack  2
-  IL_0000:  ldstr      ""s""
-  IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
-  IL_000a:  castclass  ""Windows.Storage.StorageFolder""
-  IL_000f:  callvirt   ""Windows.Storage.FileAttributes Windows.Storage.StorageFolder.Attributes.get""
-  IL_0014:  box        ""Windows.Storage.FileAttributes""
-  IL_0019:  dup
-  IL_001a:  brtrue.s   IL_0036
-  IL_001c:  pop
-  IL_001d:  ldstr      ""d""
-  IL_0022:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
-  IL_0027:  unbox.any  ""Windows.Foundation.DateTime""
-  IL_002c:  ldfld      ""long Windows.Foundation.DateTime.UniversalTime""
-  IL_0031:  box        ""long""
-  IL_0036:  ret
-}");
+            var expectedAssemblyIdentity = WinRtRefs.Single(r => r.Display == "System.Runtime.WindowsRuntime.dll").GetAssemblyIdentity();
+            Assert.Equal(expectedAssemblyIdentity,  missingAssemblyIdentities.Single());
         }
 
         [WorkItem(1154988)]

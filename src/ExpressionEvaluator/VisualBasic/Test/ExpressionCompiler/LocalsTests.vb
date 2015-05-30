@@ -1401,7 +1401,7 @@ End Class
             locals.Free()
         End Sub
 
-        <Fact(Skip:="1002672"), WorkItem(1002672)>
+        <Fact, WorkItem(1002672)>
         Public Sub Async_InstanceMethod_Generic()
             Const source = "
 Imports System.Threading.Tasks
@@ -1423,70 +1423,65 @@ End Structure
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                methodName:="S.VB$StateMachine_0_F.MoveNext")
+                methodName:="S.VB$StateMachine_2_F.MoveNext")
             Dim testData As New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
             context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
 
-            Assert.Equal(5, locals.Count)
+            Assert.Equal(4, locals.Count)
 
             VerifyLocal(testData, "<>x(Of T, U)", locals(0), "<>m0", "Me", expectedILOpt:="
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (Object V_0, //VB$returnTemp
-                Integer V_1, //VB$cachedState
-                System.Threading.Tasks.Task(Of Object) V_2, //MoveNext
-                T V_3, //z
-                T V_4,
-                System.Exception V_5)
+  .locals init (Object V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Object) V_2,
+                T V_3,
+                System.Exception V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""Friend $VB$Me As S(Of T)""
+  IL_0001:  ldfld      ""S(Of T).VB$StateMachine_2_F(Of U).$VB$Me As S(Of T)""
   IL_0006:  ret
 }
 ")
-            VerifyLocal(testData, "<>x(Of T, U)", locals(1), "<>m1", "MoveNext") ' We don't actually step into MoveNext, so this does not appear in the UI.
-            VerifyLocal(testData, "<>x(Of T, U)", locals(2), "<>m2", "z", expectedILOpt:="
-{
-  // Code size        2 (0x2)
-  .maxstack  1
-  .locals init (Object V_0, //VB$returnTemp
-                Integer V_1, //VB$cachedState
-                System.Threading.Tasks.Task(Of Object) V_2, //MoveNext
-                T V_3, //z
-                T V_4,
-                System.Exception V_5)
-  IL_0000:  ldloc.3
-  IL_0001:  ret
-}
-")
-            VerifyLocal(testData, "<>x(Of T, U)", locals(3), "<>m3", "y", expectedILOpt:="
+            VerifyLocal(testData, "<>x(Of T, U)", locals(1), "<>m1", "y", expectedILOpt:="
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (Object V_0, //VB$returnTemp
-                Integer V_1, //VB$cachedState
-                System.Threading.Tasks.Task(Of Object) V_2, //MoveNext
-                T V_3, //z
-                T V_4,
-                System.Exception V_5)
+  .locals init (Object V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Object) V_2,
+                T V_3,
+                System.Exception V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""Friend $VB$Local_y As U""
+  IL_0001:  ldfld      ""S(Of T).VB$StateMachine_2_F(Of U).$VB$Local_y As U""
   IL_0006:  ret
 }
 ")
-            ' TODO: Don't show does U in the UI (DevDiv #1014763).
-            VerifyLocal(testData, "<>x(Of T, U)", locals(4), "<>m4", "<>TypeVariables", expectedILOpt:="
+            VerifyLocal(testData, "<>x(Of T, U)", locals(2), "<>m2", "z", expectedILOpt:="
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Object V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Object) V_2,
+                T V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S(Of T).VB$StateMachine_2_F(Of U).$VB$ResumableLocal_z$0 As T""
+  IL_0006:  ret
+}
+")
+            VerifyLocal(testData, "<>x(Of T, U)", locals(3), "<>m3", "<>TypeVariables", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:="
 {
   // Code size        6 (0x6)
   .maxstack  1
-  .locals init (Object V_0, //VB$returnTemp
-                Integer V_1, //VB$cachedState
-                System.Threading.Tasks.Task(Of Object) V_2, //MoveNext
-                T V_3, //z
-                T V_4,
-                System.Exception V_5)
+  .locals init (Object V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Object) V_2,
+                T V_3,
+                System.Exception V_4)
   IL_0000:  newobj     ""Sub <>c__TypeVariables(Of T, U)..ctor()""
   IL_0005:  ret
 }
@@ -1495,7 +1490,7 @@ End Structure
             locals.Free()
         End Sub
 
-        <Fact(Skip:="1002672"), WorkItem(1002672)>
+        <Fact, WorkItem(1002672)>
         Public Sub Async_StaticMethod()
             Const source = "
 Imports System.Threading.Tasks
@@ -1519,45 +1514,41 @@ End Class
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(
                 runtime,
-                methodName:="C.VB$StateMachine_1_M.MoveNext")
+                methodName:="C.VB$StateMachine_2_M.MoveNext")
             Dim testData As New CompilationTestData()
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
             context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
 
-            Assert.Equal(3, locals.Count)
+            Assert.Equal(2, locals.Count)
 
-            VerifyLocal(testData, typeName, locals(0), "<>m0", "MoveNext") ' We don't actually step into MoveNext, so this does not appear in the UI.
-            VerifyLocal(testData, typeName, locals(1), "<>m1", "y", expectedILOpt:="
-{
-  // Code size        2 (0x2)
-  .maxstack  1
-  .locals init (Integer V_0, //VB$cachedState
-                System.Threading.Tasks.Task V_1, //MoveNext
-                Object V_2, //y
-                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_3,
-                Boolean V_4,
-                Object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_6,
-                System.Exception V_7)
-  IL_0000:  ldloc.2
-  IL_0001:  ret
-}
-")
-            VerifyLocal(testData, typeName, locals(2), "<>m2", "x", expectedILOpt:="
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "x", expectedILOpt:="
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (Integer V_0, //VB$cachedState
-                System.Threading.Tasks.Task V_1, //MoveNext
-                Object V_2, //y
-                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_3,
-                Boolean V_4,
-                Object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_6,
-                System.Exception V_7)
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_1,
+                C.VB$StateMachine_2_M V_2,
+                Object V_3,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_4,
+                System.Exception V_5)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_M.$VB$Local_x As Object""
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$Local_x As Object""
+  IL_0006:  ret
+}
+")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "y", expectedILOpt:="
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_1,
+                C.VB$StateMachine_2_M V_2,
+                Object V_3,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$VB$ResumableLocal_y$0 As Object""
   IL_0006:  ret
 }
 ")
