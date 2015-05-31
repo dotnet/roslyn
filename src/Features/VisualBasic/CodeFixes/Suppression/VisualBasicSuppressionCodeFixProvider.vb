@@ -36,8 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
 
         Private Function CreatePragmaDirectiveTrivia(enableOrDisablePragmaDirective As StructuredTriviaSyntax, diagnostic As Diagnostic, needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
             Dim pragmaDirectiveTrivia = SyntaxFactory.Trivia(enableOrDisablePragmaDirective.WithAdditionalAnnotations(Formatter.Annotation))
-            Dim endOfLineTrivia = SyntaxFactory.EndOfLine("
-")
+            Dim endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
             Dim triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia)
 
             Dim title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture)

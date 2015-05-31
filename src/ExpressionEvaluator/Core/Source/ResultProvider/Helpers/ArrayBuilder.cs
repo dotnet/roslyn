@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<ArrayBuilder<T>> s_poolInstance = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(), 16);
         private static readonly ReadOnlyCollection<T> s_empty = new ReadOnlyCollection<T>(new T[0]);
 
-        private List<T> _items;
+        private readonly List<T> _items;
 
         public static ArrayBuilder<T> GetInstance(int size = 0)
         {

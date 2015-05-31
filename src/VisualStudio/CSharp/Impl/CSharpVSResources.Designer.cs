@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically format completed _block on }.
+        ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
         internal static string FormatOnCloseBraceCheckBox {
             get {
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically format completed _statement on ;.
+        ///   Looks up a localized string similar to Automatically format _statement on ;.
         /// </summary>
         internal static string FormatOnSemicolonCheckBox {
             get {
@@ -543,6 +543,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_PlaceSystemNamespaceFirst {
             get {
                 return ResourceManager.GetString("Option_PlaceSystemNamespaceFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show preview for _rename tracking.
+        /// </summary>
+        internal static string Option_RenameTrackingPreview {
+            get {
+                return ResourceManager.GetString("Option_RenameTrackingPreview", resourceCulture);
             }
         }
         

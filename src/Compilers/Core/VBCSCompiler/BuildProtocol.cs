@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             if (arguments.Length > ushort.MaxValue)
             {
-                throw new ArgumentOutOfRangeException("arguments",
+                throw new ArgumentOutOfRangeException(nameof(arguments),
                     "Too many arguments: maximum of "
                     + ushort.MaxValue + " arguments allowed.");
             }
@@ -265,7 +265,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public enum ResponseType
         {
             MismatchedVersion,
-            Completed
+            Completed,
+            AnalyzerInconsistency
         }
 
         public abstract ResponseType Type { get; }
@@ -339,6 +340,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return CompletedBuildResponse.Create(reader);
                     case ResponseType.MismatchedVersion:
                         return new MismatchedVersionBuildResponse();
+                    case ResponseType.AnalyzerInconsistency:
+                        return new AnalyzerInconsistencyBuildResponse();
                     default:
                         throw new InvalidOperationException("Received invalid response type from server.");
                 }
@@ -409,6 +412,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
+    internal class AnalyzerInconsistencyBuildResponse : BuildResponse
+    {
+        public override ResponseType Type { get { return ResponseType.AnalyzerInconsistency; } }
+
+        /// <summary>
+        /// AnalyzerInconsistency has no body.
+        /// </summary>
+        /// <param name="writer"></param>
+        protected override void AddResponseBody(BinaryWriter writer) { }
+    }
+
     /// <summary>
     /// Constants about the protocol.
     /// </summary>
@@ -447,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static string GetPipeName(string compilerExeDirectory)
         {
-            using (var sha = SHA1.Create())
+            using (var sha = SHA256.Create())
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
                 return BitConverter.ToString(bytes).Replace("-", string.Empty);

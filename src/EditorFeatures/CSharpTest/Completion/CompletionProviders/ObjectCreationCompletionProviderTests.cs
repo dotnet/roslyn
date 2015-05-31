@@ -199,5 +199,31 @@ class Program
 }";
             VerifyProviderCommit(markup, "D", expected, '(', "");
         }
+
+        [WorkItem(1090377)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByAssignment()
+        {
+            var markup = @"
+class Location {}
+enum EAB { A, B }
+class Foo
+{
+    Location Loc {get; set;}
+    EAB E {get; set;}
+
+    void stuff()
+    {
+        var x = new Foo
+            {
+                Loc = new $$
+                E = EAB.A
+            };
+    }
+}
+
+";
+            VerifyItemExists(markup, "Location");
+        }
     }
 }

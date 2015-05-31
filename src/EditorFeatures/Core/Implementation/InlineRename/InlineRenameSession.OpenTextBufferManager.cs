@@ -287,52 +287,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            /// <summary>
-            /// Temporary until we figure out why Document.GetTextChangesAsync(Document) sometimes hangs
-            /// </summary>
-            private static async Task<IEnumerable<TextChange>> HACK_GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                try
-                {
-                    using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, newDocument.Name, cancellationToken))
-                    {
-                        if (oldDocument == newDocument)
-                        {
-                            // no changes
-                            return SpecializedCollections.EmptyEnumerable<TextChange>();
-                        }
-
-                        if (newDocument.Id != oldDocument.Id)
-                        {
-                            throw new ArgumentException(WorkspacesResources.DocumentVersionIsDifferent);
-                        }
-
-                        SourceText oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        SourceText newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                        if (oldText == newText)
-                        {
-                            return SpecializedCollections.EmptyEnumerable<TextChange>();
-                        }
-
-                        var textChanges = newText.GetTextChanges(oldText).ToList();
-
-                        // if changes are significant (not the whole document being replaced) then use these changes
-                        if (textChanges.Count != 1 || textChanges[0].Span != new TextSpan(0, oldText.Length))
-                        {
-                            return textChanges;
-                        }
-
-                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-                        return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            }
-
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
                 AssertIsForeground();
@@ -351,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var newDocument = mergeResult.MergedSolution.GetDocument(documents.First().Id);
                     var originalDocument = _baseDocuments.Single(d => d.Id == newDocument.Id);
 
-                    var changes = HACK_GetTextChangesAsync(originalDocument, newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var changes = GetTextChangesFromTextDifferencingServiceAsync(originalDocument, newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
 
                     // TODO: why does the following line hang when uncommented?
                     // newDocument.GetTextChangesAsync(this.baseDocuments.Single(d => d.Id == newDocument.Id), cancellationToken).WaitAndGetResult(cancellationToken).Reverse();
@@ -456,6 +410,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // 3. Reset the undo state and notify the taggers.
                     this.ApplyReplacementText(updateSelection: false);
                     RaiseSpansChanged();
+                }
+            }
+
+            private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                try
+                {
+                    using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, newDocument.Name, cancellationToken))
+                    {
+                        if (oldDocument == newDocument)
+                        {
+                            // no changes
+                            return SpecializedCollections.EmptyEnumerable<TextChange>();
+                        }
+
+                        if (newDocument.Id != oldDocument.Id)
+                        {
+                            throw new ArgumentException(WorkspacesResources.DocumentVersionIsDifferent);
+                        }
+
+                        SourceText oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        SourceText newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                        if (oldText == newText)
+                        {
+                            return SpecializedCollections.EmptyEnumerable<TextChange>();
+                        }
+
+                        var textChanges = newText.GetTextChanges(oldText).ToList();
+
+                        // if changes are significant (not the whole document being replaced) then use these changes
+                        if (textChanges.Count != 1 || textChanges[0].Span != new TextSpan(0, oldText.Length))
+                        {
+                            return textChanges;
+                        }
+
+                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+                        return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

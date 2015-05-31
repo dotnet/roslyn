@@ -11,15 +11,14 @@ namespace Microsoft.CodeAnalysis
     public abstract class SyntaxWalker
     {
         /// <summary>
-        /// True if this walker will descend into structured trivia.
+        /// Syntax the <see cref="SyntaxWalker"/> should descent into.
         /// </summary>
-        protected readonly SyntaxWalkerDepth Depth;
+        protected SyntaxWalkerDepth Depth { get; }
 
         /// <summary>
         /// Creates a new walker instance.
         /// </summary>
-        /// <param name="depth">specify how much this walker will descent into
-        /// trivia.</param>
+        /// <param name="depth">Syntax the <see cref="SyntaxWalker"/> should descent into.</param>
         protected SyntaxWalker(SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node)
         {
             this.Depth = depth;

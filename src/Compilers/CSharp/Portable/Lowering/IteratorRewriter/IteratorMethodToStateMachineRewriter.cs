@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// When this is more that 0, returns are emitted as "methodValue = value; goto exitLabel;"
         /// </summary>
-        private int _tryNestingLevel = 0;
+        private int _tryNestingLevel;
         private LabelSymbol _exitLabel;
         private LocalSymbol _methodValue;
 

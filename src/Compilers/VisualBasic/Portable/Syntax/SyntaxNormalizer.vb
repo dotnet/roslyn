@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private _afterLineBreak As Boolean
         Private _afterIndentation As Boolean
 
-        Private _lineBreaksAfterToken As Dictionary(Of SyntaxToken, Integer) = New Dictionary(Of SyntaxToken, Integer)()
-        Private _lastStatementsInBlocks As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
+        Private ReadOnly _lineBreaksAfterToken As Dictionary(Of SyntaxToken, Integer) = New Dictionary(Of SyntaxToken, Integer)()
+        Private ReadOnly _lastStatementsInBlocks As HashSet(Of SyntaxNode) = New HashSet(Of SyntaxNode)()
 
         Private _indentationDepth As Integer
 
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             For i As Integer = _indentations.Count To count
                 Dim text As String = If(i = 0, "", _indentations(i - 1).ToString() + Me._indentWhitespace)
-                _indentations.Add(SyntaxFactory.Whitespace(text, Me._useElasticTrivia))
+                _indentations.Add(If(Me._useElasticTrivia, SyntaxFactory.ElasticWhitespace(text), SyntaxFactory.Whitespace(text)))
             Next
 
             Return _indentations(count)

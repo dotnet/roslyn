@@ -19,25 +19,25 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Convention">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Hosting">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.TypedParts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll" />
@@ -55,27 +55,19 @@
   <ItemGroup>
     <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\AssemblyReferenceResolver.cs">
-      <Link>InternalUtilities\AssemblyReferenceResolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\MetadataFileReferenceResolver.cs">
-      <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\EncodedStringText.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
       <Link>InternalUtilities\EncodedStringText.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\FileKey.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
       <Link>InternalUtilities\FileKey.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\FileUtilities.cs">
-      <Link>InternalUtilities\FileUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\PathUtilities.cs">
-      <Link>InternalUtilities\PathUtilities.cs</Link>
+    <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
@@ -88,6 +80,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
       <Link>InternalUtilities\AssemblyIdentityExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
@@ -103,14 +98,16 @@
     </Compile>
     <Compile Include="Workspace\CommandLineProject.cs" />
     <Compile Include="Workspace\FileTextLoader.cs" />
-    <Compile Include="Workspace\Host\CommandLineArgumentsFactory\ICommandLineArgumentsFactoryService.cs" />
     <Compile Include="Workspace\Host\Documentation\DocumentationProviderServiceFactory.cs" />
     <Compile Include="Workspace\Host\Mef\DesktopMefHostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
-    <Compile Include="Workspace\Host\AnalyzerServiceFactory.cs" />
+    <Compile Include="Workspace\Host\SimpleAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
     <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
+    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.cs" />
+    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
+    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
@@ -126,10 +123,10 @@
     <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
     <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
+    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoader.cs" />
+    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
@@ -153,10 +150,6 @@
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>

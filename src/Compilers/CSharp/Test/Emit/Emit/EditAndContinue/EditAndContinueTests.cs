@@ -462,20 +462,22 @@ class B
                     CheckNames(readers, reader1.GetFieldDefNames());
                     CheckNames(readers, reader1.GetPropertyDefNames(), "R");
                     CheckNames(readers, reader1.GetMethodDefNames(), "get_R");
+
                     CheckEncLog(reader1,
                         Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                         Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+
                     CheckEncMap(reader1,
                         Handle(9, TableIndex.TypeRef),
                         Handle(5, TableIndex.MethodDef),
-                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(1, TableIndex.StandAloneSig),
                         Handle(2, TableIndex.PropertyMap),
                         Handle(2, TableIndex.Property),
                         Handle(3, TableIndex.MethodSemantics),
@@ -504,7 +506,6 @@ class B
                             Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
                             Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
@@ -545,7 +546,6 @@ class B
                             Handle(9, TableIndex.CustomAttribute),
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
-                            Handle(3, TableIndex.StandAloneSig),
                             Handle(3, TableIndex.Property),
                             Handle(4, TableIndex.Property),
                             Handle(4, TableIndex.MethodSemantics),
@@ -4801,32 +4801,34 @@ class B
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       37 (0x25)
+  // Code size       40 (0x28)
   .maxstack  3
   .locals init (C V_0, //c
                 [unchanged] V_1,
                 [int] V_2,
-                C V_3,
-                int V_4)
+                [int] V_3,
+                C V_4,
+                int V_5,
+                int V_6)
   IL_0000:  nop
   IL_0001:  newobj     ""C..ctor()""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  stloc.3
-  IL_0009:  ldloc.3
-  IL_000a:  callvirt   ""int C.P.get""
-  IL_000f:  stloc.s    V_4
-  IL_0011:  ldloc.3
-  IL_0012:  ldloc.s    V_4
-  IL_0014:  ldc.i4.1
-  IL_0015:  add
-  IL_0016:  callvirt   ""void C.P.set""
-  IL_001b:  nop
-  IL_001c:  ldloc.s    V_4
-  IL_001e:  stloc.s    V_4
-  IL_0020:  br.s       IL_0022
-  IL_0022:  ldloc.s    V_4
-  IL_0024:  ret
+  IL_0008:  stloc.s    V_4
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  callvirt   ""int C.P.get""
+  IL_0011:  stloc.s    V_5
+  IL_0013:  ldloc.s    V_4
+  IL_0015:  ldloc.s    V_5
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  callvirt   ""void C.P.set""
+  IL_001e:  nop
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  stloc.s    V_6
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.s    V_6
+  IL_0027:  ret
 }");
         }
 
@@ -5166,6 +5168,147 @@ class B
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.EmitResult.Diagnostics.Verify();
             }
+        }
+
+        [Fact]
+        public void ExceptionFilters()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.IO;
+
+class C
+{
+    static bool G(Exception e) => true;
+
+    static void F()
+    {
+        try
+        {
+            throw new InvalidOperationException();
+        }
+        catch <N:0>(IOException e)</N:0> <N:1>when (G(e))</N:1>
+        {
+            Console.WriteLine();
+        }
+        catch <N:2>(Exception e)</N:2> <N:3>when (G(e))</N:3>
+        {
+            Console.WriteLine();
+        }
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+using System.IO;
+
+class C
+{
+    static bool G(Exception e) => true;
+
+    static void F()
+    {
+        try
+        {
+            throw new InvalidOperationException();
+        }
+        catch <N:0>(IOException e)</N:0> <N:1>when (G(e))</N:1>
+        {
+            Console.WriteLine();
+        }
+        catch <N:2>(Exception e)</N:2> <N:3>when (G(e))</N:3>
+        {
+            Console.WriteLine();
+        }
+
+        Console.WriteLine(1);
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       90 (0x5a)
+  .maxstack  2
+  .locals init (System.IO.IOException V_0, //e
+                bool V_1,
+                System.Exception V_2, //e
+                bool V_3)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  newobj     ""System.InvalidOperationException..ctor()""
+    IL_0007:  throw
+  }
+  filter
+  {
+    IL_0008:  isinst     ""System.IO.IOException""
+    IL_000d:  dup
+    IL_000e:  brtrue.s   IL_0014
+    IL_0010:  pop
+    IL_0011:  ldc.i4.0
+    IL_0012:  br.s       IL_0020
+    IL_0014:  stloc.0
+    IL_0015:  ldloc.0
+    IL_0016:  call       ""bool C.G(System.Exception)""
+    IL_001b:  stloc.1
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.0
+    IL_001e:  cgt.un
+    IL_0020:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0022:  pop
+    IL_0023:  nop
+    IL_0024:  call       ""void System.Console.WriteLine()""
+    IL_0029:  nop
+    IL_002a:  nop
+    IL_002b:  leave.s    IL_0052
+  }
+  filter
+  {
+    IL_002d:  isinst     ""System.Exception""
+    IL_0032:  dup
+    IL_0033:  brtrue.s   IL_0039
+    IL_0035:  pop
+    IL_0036:  ldc.i4.0
+    IL_0037:  br.s       IL_0045
+    IL_0039:  stloc.2
+    IL_003a:  ldloc.2
+    IL_003b:  call       ""bool C.G(System.Exception)""
+    IL_0040:  stloc.3
+    IL_0041:  ldloc.3
+    IL_0042:  ldc.i4.0
+    IL_0043:  cgt.un
+    IL_0045:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0047:  pop
+    IL_0048:  nop
+    IL_0049:  call       ""void System.Console.WriteLine()""
+    IL_004e:  nop
+    IL_004f:  nop
+    IL_0050:  leave.s    IL_0052
+  }
+  IL_0052:  ldc.i4.1
+  IL_0053:  call       ""void System.Console.WriteLine(int)""
+  IL_0058:  nop
+  IL_0059:  ret
+}
+");
         }
 
         [WorkItem(844472, "DevDiv")]
@@ -5917,7 +6060,7 @@ public class C
 
         [WorkItem(918650)]
         [Fact]
-        public void OutofMemoryDuringEditAndContinue()
+        public void ManyGenerations()
         {
             var source =
 @"class C

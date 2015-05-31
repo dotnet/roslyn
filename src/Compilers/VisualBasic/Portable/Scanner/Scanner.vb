@@ -2607,7 +2607,7 @@ baddate:
 
         ''' <summary>
         ''' Try to convert an Identifier to a Keyword.  Called by the parser when it wants to force
-        ''' an identifer to be a keyword.
+        ''' an identifier to be a keyword.
         ''' </summary>
         Friend Function TryIdentifierAsContextualKeyword(id As IdentifierTokenSyntax, ByRef k As KeywordSyntax) As Boolean
             Debug.Assert(id IsNot Nothing)

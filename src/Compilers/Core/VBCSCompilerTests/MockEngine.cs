@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -44,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             throw new NotImplementedException();
         }
 
-        private StringBuilder _messages = new StringBuilder();
-        private StringBuilder _errors = new StringBuilder();
-        private StringBuilder _warnings = new StringBuilder();
+        private readonly StringBuilder _messages = new StringBuilder();
+        private readonly StringBuilder _errors = new StringBuilder();
+        private readonly StringBuilder _warnings = new StringBuilder();
 
         public void LogCustomEvent(CustomBuildEventArgs e)
         {

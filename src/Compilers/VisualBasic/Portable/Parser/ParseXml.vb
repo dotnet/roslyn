@@ -2427,9 +2427,9 @@ TryResync:
     End Class
 
     Friend Structure XmlContext
-        Private _start As XmlElementStartTagSyntax
+        Private ReadOnly _start As XmlElementStartTagSyntax
         Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
-        Private _pool As SyntaxListPool
+        Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)
             _pool = pool

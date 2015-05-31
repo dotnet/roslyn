@@ -34,16 +34,16 @@ End Class
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            Dim Runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(Runtime, "C.M")
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "Me.get_P()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
@@ -171,10 +171,9 @@ End Class
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.Test")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.M(Me.P)", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.M(Me.P)", errorMessage, testData)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       13 (0xd)

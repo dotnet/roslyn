@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         //   Non-FX identities:
         //     if (isUnified1 && version1 > version2 || isUnified2 && version1 < version2) return EquivalentUnified.
 
-        public static new readonly DesktopAssemblyIdentityComparer Default = new DesktopAssemblyIdentityComparer(default(AssemblyPortabilityPolicy));
+        public static new DesktopAssemblyIdentityComparer Default { get; } = new DesktopAssemblyIdentityComparer(default(AssemblyPortabilityPolicy));
 
         internal readonly AssemblyPortabilityPolicy policy;
 

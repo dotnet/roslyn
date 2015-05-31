@@ -337,7 +337,7 @@ class Program
         End Sub
 
         <WorkItem(540515)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_AcrossSubmission()
             Dim input =
 <Workspace>

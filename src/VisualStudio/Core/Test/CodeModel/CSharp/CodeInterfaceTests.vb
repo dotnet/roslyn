@@ -141,7 +141,7 @@ partial interface I
 <Code>
 using System;
 
-interface $$C { }
+interface $$I { }
 </Code>
 
             Dim expected =
@@ -149,7 +149,7 @@ interface $$C { }
 using System;
 
 [Serializable()]
-interface C { }
+interface I { }
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
@@ -161,7 +161,7 @@ interface C { }
 using System;
 
 [Serializable]
-interface $$C { }
+interface $$I { }
 </Code>
 
             Dim expected =
@@ -170,9 +170,31 @@ using System;
 
 [Serializable]
 [CLSCompliant(true)]
-interface C { }
+interface I { }
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+interface $$I { }
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[CLSCompliant(true)]
+interface I { }
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region

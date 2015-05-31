@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 Imports Microsoft.CodeAnalysis.GenerateType
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
@@ -23,10 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
         Friend Const BC32042 As String = "BC32042" ' error BC32042: Too few type arguments to 'AA(Of T)'.
         Friend Const BC32043 As String = "BC32043" ' error BC32043: Too many type arguments to 'AA(Of T)'.
         Friend Const BC32045 As String = "BC32045" ' error BC32045: 'Foo' has no type parameters and so cannot have type arguments.
+        Friend Const BC40056 As String = "BC40056" ' error BC40056: Namespace or type specified in the Imports 'A' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30002, BC30182, BC30451, BC30456, BC32042, BC32043, BC32045)
+                Return ImmutableArray.Create(BC30002, BC30182, BC30451, BC30456, BC32042, BC32043, BC32045, BC40056)
             End Get
         End Property
 

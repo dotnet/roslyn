@@ -794,11 +794,10 @@ index:=1)
         End Sub
 
         <WorkItem(543529)>
+        <WorkItem(909152)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestInStatementlessConstructorParameter()
-            Test(
-NewLines("Class C1 \n Sub New(Optional ByRef x As String = [|Nothing|]) \n End Sub \n End Class"),
-NewLines("Class C1 \n Private Const {|Rename:P|} As String = Nothing \n Sub New(Optional ByRef x As String = P) \n End Sub \n End Class"))
+            TestMissing(NewLines("Class C1 \n Sub New(Optional ByRef x As String = [|Nothing|]) \n End Sub \n End Class"))
         End Sub
 
         <WorkItem(543650)>
@@ -910,12 +909,10 @@ NewLines("Module M \n Sub Main() \n Dim x = <[|x|]/> \n End Sub \n End Module"))
         End Sub
 
         <WorkItem(545262)>
+        <WorkItem(909152)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestInTernaryConditional()
-            Test(
-NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|]) \n End Sub \n End Module"),
-NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Const {|Rename:P1|} As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, P1) \n End Sub \n End Module"),
-index:=2)
+            TestMissing(NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|]) \n End Sub \n End Module"))
         End Sub
 
         <WorkItem(545316)>
@@ -1401,6 +1398,91 @@ End Module
             Test(code, expected, index:=3, compareTokens:=False)
         End Sub
 
+        <WorkItem(909152)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestMissingOnNothingLiteral()
+            TestMissing(
+<File>
+Imports System
+Module Program
+    Sub Main(args As String())
+        Main([|Nothing|])
+        M(Nothing)
+    End Sub
+
+    Sub M(i As Integer)
+    End Sub
+End Module
+</File>)
+        End Sub
+
+        <WorkItem(2026, "https://github.com/dotnet/roslyn/issues/2026")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestReplaceAllFromInsideIfBlock()
+            Dim code =
+<File>
+Imports System
+Module DataTipInfoGetterModule
+    Friend Function GetInfoAsync() As DebugDataTipInfo
+        Dim expression As ExpressionSyntax = Nothing
+
+        Dim curr = DirectCast(expression.Parent, ExpressionSyntax)
+        If curr Is expression.Parent Then
+            Return New DebugDataTipInfo([|expression.Parent|].Span)
+        End If
+
+        Return Nothing
+    End Function
+End Module
+
+Friend Class TextSpan
+End Class
+
+Friend Class ExpressionSyntax
+    Public Property Parent As ExpressionSyntax
+    Public Property Span As TextSpan
+End Class
+
+Friend Class DebugDataTipInfo
+    Public Sub New(span As Object)
+    End Sub
+End Class
+</File>
+
+            Dim expected =
+<File>
+Imports System
+Module DataTipInfoGetterModule
+    Friend Function GetInfoAsync() As DebugDataTipInfo
+        Dim expression As ExpressionSyntax = Nothing
+        Dim {|Rename:parent|} As ExpressionSyntax = expression.Parent
+
+        Dim curr = DirectCast(parent, ExpressionSyntax)
+        If curr Is parent Then
+            Return New DebugDataTipInfo(parent.Span)
+        End If
+
+        Return Nothing
+    End Function
+End Module
+
+Friend Class TextSpan
+End Class
+
+Friend Class ExpressionSyntax
+    Public Property Parent As ExpressionSyntax
+    Public Property Span As TextSpan
+End Class
+
+Friend Class DebugDataTipInfo
+    Public Sub New(span As Object)
+    End Sub
+End Class
+</File>
+
+            Test(code, expected, index:=1, compareTokens:=False)
+        End Sub
+
         <WorkItem(1065661)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestIntroduceVariableTextDoesntSpanLines()
@@ -1414,6 +1496,60 @@ c""|]
     End Sub
 End Class"
             TestSmartTagText(code, String.Format(FeaturesResources.IntroduceLocalConstantFor, """a b c"""), index:=2)
+        End Sub
+
+        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestNoConstantForInterpolatedStrings1()
+            Dim code =
+<File>
+Module Program
+    Sub Main()
+        Dim args As String() = Nothing
+        Console.WriteLine([|$"{DateTime.Now.ToString()}Text{args(0)}"|])
+    End Sub
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module Program
+    Sub Main()
+        Dim args As String() = Nothing
+        Dim {|Rename:v|} As String = $"{DateTime.Now.ToString()}Text{args(0)}"
+        Console.WriteLine(v)
+    End Sub
+End Module
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub TestNoConstantForInterpolatedStrings2()
+            Dim code =
+<File>
+Module Program
+    Sub Main()
+        Console.WriteLine([|$"Text{{s}}"|])
+        Console.WriteLine($"Text{{s}}")
+    End Sub
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module Program
+    Sub Main()
+        Dim {|Rename:v|} As String = $"Text{{s}}"
+        Console.WriteLine(v)
+        Console.WriteLine(v)
+    End Sub
+End Module
+</File>
+
+            Test(code, expected, index:=1, compareTokens:=False)
         End Sub
     End Class
 End Namespace

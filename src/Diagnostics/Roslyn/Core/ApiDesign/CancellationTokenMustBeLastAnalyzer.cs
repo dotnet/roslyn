@@ -11,8 +11,8 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CancellationTokenMustBeLastAnalyzer : DiagnosticAnalyzer
     {
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.CancellationTokenMustBeLastDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.CancellationTokenMustBeLastDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId,

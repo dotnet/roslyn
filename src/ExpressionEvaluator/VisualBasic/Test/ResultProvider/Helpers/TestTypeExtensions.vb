@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Public Function GetTypeName(type As System.Type, Optional dynamicFlags As Boolean() = Nothing, Optional escapeKeywordIdentifiers As Boolean = False) As String
-            Return type.GetTypeName(ResultProviderTestBase.MakeDynamicFlagsCustomTypeInfo(dynamicFlags).GetCustomTypeInfo(), escapeKeywordIdentifiers)
+            Return type.GetTypeName(DynamicFlagsCustomTypeInfo.Create(dynamicFlags).GetCustomTypeInfo(), escapeKeywordIdentifiers)
         End Function
 
         <Extension>

@@ -10,14 +10,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Rename;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -53,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private readonly Func<SyntaxNode, bool> _expandInsideNode;
             private readonly CancellationToken _cancellationToken;
             private readonly SyntaxAnnotation _annotationForReplacedAliasIdentifier;
-            private bool _expandParameter;
+            private readonly bool _expandParameter;
 
             public Expander(
                 SemanticModel semanticModel,
@@ -381,6 +378,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             return replacement;
                         }
 
+                        if (replacement.IsKind(SyntaxKind.IdentifierName))
+                        {
+                            var identifierReplacement = (IdentifierNameSyntax)replacement;
+
+                            var newIdentifier = identifier.CopyAnnotationsTo(identifierReplacement.Identifier);
+
+                            if (_annotationForReplacedAliasIdentifier != null)
+                            {
+                                newIdentifier = newIdentifier.WithAdditionalAnnotations(_annotationForReplacedAliasIdentifier);
+                            }
+
+                            var aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name);
+
+                            newIdentifier = newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo);
+
+                            replacement = replacement.ReplaceToken(identifier, newIdentifier);
+
+                            replacement = newNode.CopyAnnotationsTo(replacement);
+
+                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
+
+                            return replacement;
+                        }
+
                         throw new NotImplementedException();
                     }
                 }
@@ -426,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
                 if (originalSimpleName.GetAncestor<AttributeSyntax>() != null)
                 {
-                    if (symbol.IsConstructor() && symbol.ContainingType.IsAttribute())
+                    if (symbol.IsConstructor() && symbol.ContainingType?.IsAttribute() == true)
                     {
                         symbol = symbol.ContainingType;
                         var name = symbol.Name;

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(arrayType.RankSpecifiers.Count(), numRanks);
         }
 
-        internal static void AliassedNameVerification(ExpressionSyntax nameTree, string alias, string name)
+        internal static void AliasedNameVerification(ExpressionSyntax nameTree, string alias, string name)
         {
             // Verification of the change
             Assert.IsType(typeof(AliasQualifiedNameSyntax), nameTree);

@@ -208,12 +208,9 @@ Namespace System.Xml.Linq
     Public Class XNamespace
     End Class
 End Namespace
-Namespace My
-    Public Module InternalXmlHelper
-        Public Function RemoveNamespaceAttributes(prefixes As String(), namespaces As XNamespace(), attributes As Object, o As Object) As Object
-            Return Nothing
-        End Function
-    End Module
+Namespace Microsoft.VisualBasic.CompilerServices
+    Public Class StandardModuleAttribute : Inherits System.Attribute
+    End Class
 End Namespace
     ]]></file>
 </compilation>)
@@ -222,11 +219,20 @@ End Namespace
 <compilation name="XAttributeTypeMissing">
     <file name="c.vb"><![CDATA[
 Option Strict On
+Imports System.Collections.Generic
+Imports System.Xml.Linq
 Class C
     Private F1 As Object = <x <%= Nothing %>/>
     Private F2 As Object = <x <%= "a" %>="b"/>
     Private F3 As Object = <x a=<%= "b" %>/>
 End Class
+Namespace My
+    Public Module InternalXmlHelper
+        Public Function RemoveNamespaceAttributes(prefixes As String(), namespaces As XNamespace(), attributes As Object, o As Object) As Object
+            Return Nothing
+        End Function
+    End Module
+End Namespace
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
@@ -271,12 +277,9 @@ Namespace System.Xml.Linq
     Public Class XNamespace
     End Class
 End Namespace
-Namespace My
-    Public Module InternalXmlHelper
-        Public Function RemoveNamespaceAttributes(prefixes As String(), namespaces As XNamespace(), attributes As List(Of XAttribute), o As Object) As Object
-            Return Nothing
-        End Function
-    End Module
+Namespace Microsoft.VisualBasic.CompilerServices
+    Public Class StandardModuleAttribute : Inherits System.Attribute
+    End Class
 End Namespace
     ]]></file>
 </compilation>)
@@ -285,11 +288,20 @@ End Namespace
 <compilation name="XAttributeTypeMissing">
     <file name="c.vb"><![CDATA[
 Option Strict On
+Imports System.Collections.Generic
+Imports System.Xml.Linq
 Class C
     Private F1 As Object = <x <%= Nothing %>/>
     Private F2 As Object = <x <%= "a" %>="b"/>
     Private F3 As Object = <x a=<%= "b" %>/>
 End Class
+Namespace My
+    Public Module InternalXmlHelper
+        Public Function RemoveNamespaceAttributes(prefixes As String(), namespaces As XNamespace(), attributes As List(Of XAttribute), o As Object) As Object
+            Return Nothing
+        End Function
+    End Module
+End Namespace
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
@@ -599,6 +611,22 @@ Namespace System.Xml.Linq
     Public Class XNamespace
     End Class
 End Namespace
+Namespace Microsoft.VisualBasic.CompilerServices
+    Public Class StandardModuleAttribute : Inherits System.Attribute
+    End Class
+End Namespace
+    ]]></file>
+</compilation>)
+            compilation1.AssertNoErrors()
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+<compilation name="XNamespaceGetMissing">
+    <file name="c.vb"><![CDATA[
+Imports <xmlns:p="http://roslyn/">
+Imports System.Collections.Generic
+Imports System.Xml.Linq
+Class C
+    Shared F As Object = <p:x><%= Nothing %></>
+End Class
 Namespace My
     Public Module InternalXmlHelper
         Public Function CreateNamespaceAttribute(name As XName, ns As XNamespace) As XAttribute
@@ -609,16 +637,6 @@ Namespace My
         End Function
     End Module
 End Namespace
-    ]]></file>
-</compilation>)
-            compilation1.AssertNoErrors()
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
-<compilation name="XNamespaceGetMissing">
-    <file name="c.vb"><![CDATA[
-Imports <xmlns:p="http://roslyn/">
-Class C
-    Shared F As Object = <p:x><%= Nothing %></>
-End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
@@ -711,9 +729,9 @@ Namespace System.Xml.Linq
     Public Module Extensions
     End Module
 End Namespace
-Namespace My
-    Public Module InternalXmlHelper
-    End Module
+Namespace Microsoft.VisualBasic.CompilerServices
+    Public Class StandardModuleAttribute : Inherits System.Attribute
+    End Class
 End Namespace
     ]]></file>
 </compilation>)
@@ -728,6 +746,10 @@ Class C
     Private F2 As Object = F1.<x>
     Private F3 As Object = F1.@x
 End Class
+Namespace My
+    Public Module InternalXmlHelper
+    End Module
+End Namespace
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
@@ -758,8 +780,8 @@ Namespace System.Xml.Linq
     End Class
 End Namespace
 Namespace Microsoft.VisualBasic.CompilerServices
-    Public Module InternalXmlHelper
-    End Module
+    Public Class StandardModuleAttribute : Inherits System.Attribute
+    End Class
 End Namespace
     ]]></file>
 </compilation>)
@@ -775,6 +797,10 @@ Class C
         Return x.Value
     End Function
 End Class
+Namespace My
+    Public Module InternalXmlHelper
+    End Module
+End Namespace
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
@@ -798,13 +824,8 @@ Namespace System.Xml.Linq
     End Class
 End Namespace
 Namespace Microsoft.VisualBasic.CompilerServices
-    Public Module InternalXmlHelper
-        Public ReadOnly Property Value(x As IEnumerable(Of XElement), y As Object, z As Object) As Object
-            Get
-                Return Nothing
-            End Get
-        End Property
-    End Module
+    Public Class StandardModuleAttribute : Inherits System.Attribute
+    End Class
 End Namespace
     ]]></file>
 </compilation>)
@@ -820,6 +841,15 @@ Class C
         Return x.VALUE
     End Function
 End Class
+Namespace My
+    Public Module InternalXmlHelper
+        Public ReadOnly Property Value(x As IEnumerable(Of XElement), y As Object, z As Object) As Object
+            Get
+                Return Nothing
+            End Get
+        End Property
+    End Module
+End Namespace
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[

@@ -282,6 +282,28 @@ class C
                 GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names));
         }
 
+        [Fact, WorkItem(1154945, "DevDiv")]
+        public void GetNameIncorrectNumberOfArgumentValues()
+        {
+            var source = @"
+class C
+{
+    void M(int x, int y)
+    {
+    }
+}";
+            var expected = "C.M(int x, int y)";
+
+            Assert.Equal(expected,
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { }));
+
+            Assert.Equal(expected,
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { "1" }));
+
+            Assert.Equal(expected,
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { "1", "2", "3" }));
+        }
+
         [Fact, WorkItem(1134081, "DevDiv")]
         public void GetFileNameWithoutExtension()
         {
@@ -395,7 +417,6 @@ class C
             ArrayBuilder<string> builder = null;
             if (argumentValues != null)
             {
-                Assert.InRange(argumentValues.Length, 1, int.MaxValue);
                 builder = ArrayBuilder<string>.GetInstance();
                 builder.AddRange(argumentValues);
             }

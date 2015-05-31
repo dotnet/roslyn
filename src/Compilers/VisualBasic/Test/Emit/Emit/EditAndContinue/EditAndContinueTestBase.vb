@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return New EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation)
         End Function
 
-        Friend Shared Function Handle(rowNumber As Integer, table As TableIndex) As Handle
+        Friend Shared Function Handle(rowNumber As Integer, table As TableIndex) As EntityHandle
             Return MetadataTokens.Handle(table, rowNumber)
         End Function
 
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
 
-        Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As Handle())
+        Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As EntityHandle())
             AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
         End Sub
 
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 row.Operation)
         End Function
 
-        Friend Shared Function EncMapRowToString(handle As Handle) As String
+        Friend Shared Function EncMapRowToString(handle As EntityHandle) As String
             Dim index As TableIndex = 0
             MetadataTokens.TryGetTableIndex(handle.Kind, index)
             Return String.Format(

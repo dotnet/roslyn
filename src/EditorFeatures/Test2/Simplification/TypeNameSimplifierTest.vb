@@ -2373,6 +2373,46 @@ namespace N
 
             Test(input, expected)
         End Sub
+
+        <Fact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DontSimplifyToPredefinedTypeNameInQualifiedName()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+using System;
+namespace N
+{
+    class Program
+    {
+        void Main()
+        {
+            var x = new {|SimplifyParent:System.Int32|}.Blah;
+        }
+    }
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+using System;
+namespace N
+{
+    class Program
+    {
+        void Main()
+        {
+            var x = new Int32.Blah;
+        }
+    }
+}]]></text>
+
+            Test(input, expected)
+        End Sub
 #End Region
 
 #Region "Normal Visual Basic Tests"
@@ -4244,6 +4284,36 @@ Module Program
     Sub Main()
         Dim x = N.A.X ' Simplify type name 'N.A' 
         Dim a As A = Nothing
+    End Sub
+End Module]]></text>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, WorkItem(2232, "https://github.com/dotnet/roslyn/issues/2232"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontSimplifyToPredefinedTypeNameInQualifiedName()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+Module Module1
+    Sub Main()
+        Dim x = New {|SimplifyParent:System.Int32|}.Blah
+    End Sub
+End Module]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+Module Module1
+    Sub Main()
+        Dim x = New System.Int32.Blah
     End Sub
 End Module]]></text>
 

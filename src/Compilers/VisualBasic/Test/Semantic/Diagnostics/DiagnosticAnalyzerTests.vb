@@ -170,23 +170,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub TestGetEffectiveDiagnostics()
-            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
-            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
-            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
-            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault:=True)
+            Dim noneDiagDescriptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
+            Dim infoDiagDescriptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+            Dim warningDiagDescriptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Dim errorDiagDescriptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault:=True)
 
-            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
-            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
-            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None)
-            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None)
+            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDescriptor, Location.None)
+            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDescriptor, Location.None)
+            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDescriptor, Location.None)
+            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDescriptor, Location.None)
 
             Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
 
             ' Escalate all diagnostics to error.
             Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
-            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.[Error])
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.[Error])
-            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.[Error])
             Dim options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
             Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
@@ -199,10 +199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             ' Suppress all diagnostics.
             ' NOTE: Diagnostics with default severity error cannot be suppressed and its severity cannot be lowered.
             specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
-            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Suppress)
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Suppress)
-            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.Suppress)
-            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Suppress)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
             comp = CreateCompilationWithMscorlib({""}, options:=options)
@@ -211,10 +211,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             ' Shuffle diagnostic severity.
             specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
-            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Info)
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Hidden)
-            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
-            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Warn)
+            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Info)
+            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Hidden)
+            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Warn)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
             comp = CreateCompilationWithMscorlib({""}, options:=options)
@@ -226,18 +226,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Select Case effectiveDiag.Severity
                     Case DiagnosticSeverity.Hidden
-                        Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(infoDiagDescriptor.Id, effectiveDiag.Id)
 
                     Case DiagnosticSeverity.Info
-                        Assert.Equal(noneDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(noneDiagDescriptor.Id, effectiveDiag.Id)
                         Exit Select
 
                     Case DiagnosticSeverity.Warning
-                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(errorDiagDescriptor.Id, effectiveDiag.Id)
                         Exit Select
 
                     Case DiagnosticSeverity.Error
-                        Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(warningDiagDescriptor.Id, effectiveDiag.Id)
                         Exit Select
                     Case Else
 
@@ -251,15 +251,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub TestGetEffectiveDiagnosticsGlobal()
-            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
-            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
-            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
-            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
+            Dim noneDiagDescriptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
+            Dim infoDiagDescriptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+            Dim warningDiagDescriptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Dim errorDiagDescriptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
 
-            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
-            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
-            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None)
-            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None)
+            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDescriptor, Location.None)
+            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDescriptor, Location.None)
+            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDescriptor, Location.None)
+            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDescriptor, Location.None)
 
             Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
 
@@ -522,7 +522,7 @@ End Namespace
         Private Class CodeBlockAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private Shared s_descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
+            Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get

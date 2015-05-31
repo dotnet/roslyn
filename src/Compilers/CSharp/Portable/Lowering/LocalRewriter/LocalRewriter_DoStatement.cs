@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = node.Syntax;
 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the condition are being executed.
             BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, AddConditionSequencePoint(rewrittenCondition, node), true, startLabel);
 
             if (this.GenerateDebugInfo)

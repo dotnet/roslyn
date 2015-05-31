@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             DiagnosticDescription[] expectedWarnings = null)
         {
             var stream = new MemoryStream();
-            MemoryStream pdbStream = (compilation.Options.OptimizationLevel == OptimizationLevel.Debug) ? new MemoryStream() : null;
+            MemoryStream pdbStream = 
+                (compilation.Options.OptimizationLevel == OptimizationLevel.Debug) && !CLRHelpers.IsRunningOnMono() 
+                ? new MemoryStream() 
+                : null;
 
             var emitResult = compilation.Emit(
                 peStream: stream,
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 getHostDiagnostics: null,
                 cancellationToken: default(CancellationToken));
 
-            Assert.True(emitResult.Success, "Diagnostics:\r\n" + string.Join("\r\n, ", emitResult.Diagnostics.Select(d => d.ToString())));
+            Assert.True(emitResult.Success, "Diagnostics:\r\n" + string.Join("\r\n", emitResult.Diagnostics.Select(d => d.ToString())));
 
             if (expectedWarnings != null)
             {

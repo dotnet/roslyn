@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             Return VisualBasicCompilation.Create("test").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
+        Public Function CompileRaw(code As String) As Compilation
+            Return VisualBasicCompilation.Create("test").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+        End Function
+
         Private Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
@@ -101,6 +105,99 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(True), "True")
             VerifySyntax(Of LiteralExpressionSyntax)(_g.LiteralExpression(False), "False")
         End Sub
+
+        <Fact>
+        Public Sub TestAttributeData()
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute
+End Class
+", "<MyAttribute>")), "<Global.MyAttribute>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute
+  Public Sub New(value As Object)
+  End Sub
+End Class
+", "<MyAttribute(Nothing)>")), "<Global.MyAttribute(Nothing)>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute
+  Public Sub New(value As Integer)
+  End Sub
+End Class
+", "<MyAttribute(123)>")), "<Global.MyAttribute(123)>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute
+  Public Sub New(value As Double)
+  End Sub
+End Class
+", "<MyAttribute(12.3)>")), "<Global.MyAttribute(12.3)>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute
+  Public Sub New(value As String)
+  End Sub
+End Class
+", "<MyAttribute(""value"")>")), "<Global.MyAttribute(""value"")>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Enum E
+    A
+End Enum
+
+Public Class MyAttribute
+  Inherits Attribute
+  Public Sub New(value As E)
+  End Sub
+End Class
+", "<MyAttribute(E.A)>")), "<Global.MyAttribute(Global.E.A)>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute
+  Public Sub New(value As Type)
+  End Sub
+End Class
+", "<MyAttribute(GetType(MyAttribute))>")), "<Global.MyAttribute(GetType(Global.MyAttribute))>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute
+  Public Sub New(values as Integer())
+  End Sub
+End Class
+", "<MyAttribute({1, 2, 3})>")), "<Global.MyAttribute({1, 2, 3})>")
+
+            VerifySyntax(Of AttributeListSyntax)(_g.Attribute(GetAttributeData("
+Imports System
+Public Class MyAttribute
+  Inherits Attribute 
+  Public Property Value As Integer
+End Class
+", "<MyAttribute(Value := 123)>")), "<Global.MyAttribute(Value:=123)>")
+
+        End Sub
+
+        Private Function GetAttributeData(decl As String, use As String) As AttributeData
+            Dim code = decl & vbCrLf & use & vbCrLf & "Public Class C " & vbCrLf & "End Class" & vbCrLf
+            Dim compilation = CompileRaw(code)
+            Dim typeC = DirectCast(compilation.GlobalNamespace.GetMembers("C").First, INamedTypeSymbol)
+            Return typeC.GetAttributes().First()
+        End Function
 
         <Fact>
         Public Sub TestNameExpressions()
@@ -280,6 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         Public Sub TestIsAndAsExpressions()
             VerifySyntax(Of TypeOfExpressionSyntax)(_g.IsTypeExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "TypeOf(x) Is y")
             VerifySyntax(Of TryCastExpressionSyntax)(_g.TryCastExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "TryCast(x, y)")
+            VerifySyntax(Of GetTypeExpressionSyntax)(_g.TypeOfExpression(_g.IdentifierName("x")), "GetType(x)")
         End Sub
 
         <Fact>
@@ -1310,6 +1408,21 @@ End Property</x>.Value)
     Set(value As t)
     End Set
 End Property</x>.Value)
+
+            ' convert private method to public 
+            Dim pim = _g.AsPrivateInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType:=_g.IdentifierName("t")),
+                    _g.IdentifierName("i"))
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2")),
+<x>Public Function m() As t Implements i2.m
+End Function</x>.Value)
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPublicInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+<x>Public Function m2() As t Implements i2.m2
+End Function</x>.Value)
         End Sub
 
         <Fact>
@@ -1351,6 +1464,21 @@ End Property</x>.Value)
     Set(value As t)
     End Set
 End Property</x>.Value)
+
+            ' convert public method to private
+            Dim pim = _g.AsPublicInterfaceImplementation(
+                    _g.MethodDeclaration("m", returnType:=_g.IdentifierName("t")),
+                    _g.IdentifierName("i"))
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2")),
+<x>Private Function i2_m() As t Implements i2.m
+End Function</x>.Value)
+
+            VerifySyntax(Of MethodBlockBaseSyntax)(
+                _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
+<x>Private Function i2_m2() As t Implements i2.m2
+End Function</x>.Value)
         End Sub
 
         <Fact>
@@ -1754,15 +1882,6 @@ End Class ' end</x>.Value)
 <x>' comment
 &lt;a&gt;</x>.Value)
 
-            ' added attributes are stripped of trivia
-            Dim added2 = _g.AddAttributes(cls, attrWithComment)
-            VerifySyntax(Of ClassBlockSyntax)(
-                added2,
-<x>' comment
-&lt;a&gt;
-Class C
-End Class ' end</x>.Value)
-
         End Sub
 
         <Fact>
@@ -1817,8 +1936,8 @@ End Interface</x>.Value)
             Assert.Equal("p", _g.GetName(_g.ParameterDeclaration("p")))
             Assert.Equal("p", _g.GetName(_g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)))
             Assert.Equal("p", _g.GetName(_g.PropertyDeclaration("p", _g.IdentifierName("t"))))
-            Assert.Equal("", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"))))
-            Assert.Equal("", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)))
+            Assert.Equal("Item", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"))))
+            Assert.Equal("Item", _g.GetName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)))
             Assert.Equal("f", _g.GetName(_g.FieldDeclaration("f", _g.IdentifierName("t"))))
             Assert.Equal("v", _g.GetName(_g.EnumMember("v")))
             Assert.Equal("ef", _g.GetName(_g.EventDeclaration("ef", _g.IdentifierName("t"))))
@@ -1842,8 +1961,8 @@ End Interface</x>.Value)
             Assert.Equal("p", _g.GetName(_g.WithName(_g.ParameterDeclaration("x"), "p")))
             Assert.Equal("p", _g.GetName(_g.WithName(_g.PropertyDeclaration("x", _g.IdentifierName("t")), "p")))
             Assert.Equal("p", _g.GetName(_g.WithName(_g.PropertyDeclaration("x", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract), "p")))
-            Assert.Equal("", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t")), "this")))
-            Assert.Equal("", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract), "this")))
+            Assert.Equal("X", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t")), "X")))
+            Assert.Equal("X", _g.GetName(_g.WithName(_g.IndexerDeclaration({_g.ParameterDeclaration("i")}, _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract), "X")))
             Assert.Equal("f", _g.GetName(_g.WithName(_g.FieldDeclaration("x", _g.IdentifierName("t")), "f")))
             Assert.Equal("v", _g.GetName(_g.WithName(_g.EnumMember("x"), "v")))
             Assert.Equal("ef", _g.GetName(_g.WithName(_g.EventDeclaration("x", _g.IdentifierName("t")), "ef")))

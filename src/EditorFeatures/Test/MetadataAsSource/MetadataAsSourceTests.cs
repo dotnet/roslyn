@@ -861,7 +861,7 @@ public class [|C|]
 
     [Obsolete]
     public void method1();
-    public void method2([CallerMemberName]string name = """");
+    public void method2([CallerMemberName] string name = """");
 
     [Obsolete]
     public static C operator +(C c1, C c2);
@@ -958,7 +958,7 @@ public class [|C|]
     public event Action event2;
 
     public void method1();
-    public void method2([CallerMemberName]string name = """");
+    public void method2([CallerMemberName] string name = """");
 
     public static C operator +(C c1, C c2);
     public static C operator -(C c1, C c2);

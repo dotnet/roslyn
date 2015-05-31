@@ -16,69 +16,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class AnalyzerFileReferenceTests : TestBase
     {
+        private static readonly SimpleAnalyzerAssemblyLoader _analyzerLoader = new SimpleAnalyzerAssemblyLoader();
+
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
-            return new AnalyzerFileReference(fullPath, InMemoryAssemblyProvider.GetAssembly);
-        }
-
-        [Fact]
-        public void AssemblyLoading()
-        {
-            StringBuilder sb = new StringBuilder();
-            var directory = Temp.CreateDirectory();
-
-            EventHandler<InMemoryAssemblyProvider.AssemblyLoadEventArgs> handler = (e, args) =>
-            {
-                var relativePath = args.Path.Substring(directory.Path.Length);
-                sb.AppendFormat("Assembly {0} loaded from {1}", args.LoadedAssembly.FullName, relativePath);
-                sb.AppendLine();
-            };
-
-            InMemoryAssemblyProvider.AssemblyLoad += handler;
-
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
-            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Beta);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Delta);
-
-            AnalyzerFileReference alphaReference = CreateAnalyzerFileReference(alphaDll.Path);
-            Assembly alpha = alphaReference.GetAssembly();
-            File.Delete(alphaDll.Path);
-
-            var a = alpha.CreateInstance("Alpha.A");
-            a.GetType().GetMethod("Write").Invoke(a, new object[] { sb, "Test A" });
-
-            File.Delete(gammaDll.Path);
-            File.Delete(deltaDll.Path);
-
-            AnalyzerFileReference betaReference = CreateAnalyzerFileReference(betaDll.Path);
-            Assembly beta = betaReference.GetAssembly();
-            var b = beta.CreateInstance("Beta.B");
-            b.GetType().GetMethod("Write").Invoke(b, new object[] { sb, "Test B" });
-
-            var expected = @"Assembly Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null loaded from \Alpha.dll
-Assembly Gamma, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null loaded from \Gamma.dll
-Assembly Delta, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null loaded from \Delta.dll
-Delta: Gamma: Alpha: Test A
-Assembly Beta, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null loaded from \Beta.dll
-Delta: Gamma: Beta: Test B
-";
-
-            var actual = sb.ToString();
-
-            Assert.Equal(expected, actual);
-
-            var alphaDllRequestor = InMemoryAssemblyProvider.TryGetRequestingAssembly(alphaDll.Path);
-            var betaDllRequestor = InMemoryAssemblyProvider.TryGetRequestingAssembly(betaDll.Path);
-            var gammaDllRequestor = InMemoryAssemblyProvider.TryGetRequestingAssembly(gammaDll.Path);
-            var deltaDllRequestor = InMemoryAssemblyProvider.TryGetRequestingAssembly(deltaDll.Path);
-
-            Assert.Null(alphaDllRequestor);
-            Assert.Null(betaDllRequestor);
-            Assert.Equal(expected: alphaDll.Path, actual: gammaDllRequestor, comparer: StringComparer.OrdinalIgnoreCase);
-            Assert.Equal(expected: gammaDll.Path, actual: deltaDllRequestor, comparer: StringComparer.OrdinalIgnoreCase);
-
-            InMemoryAssemblyProvider.AssemblyLoad -= handler;
+            return new AnalyzerFileReference(fullPath, _analyzerLoader);
         }
 
         [Fact]
@@ -192,7 +134,44 @@ Delta: Gamma: Beta: Test B
             var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
             AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
 
-            Assert.Equal(expected: "Foo.txt", actual: reference.Display);
+            Assert.Equal(expected: "Foo", actual: reference.Display);
+        }
+
+        [Fact]
+        public void ValidAnalyzerReference_DisplayName()
+        {
+            var directory = Temp.CreateDirectory();
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+
+            Assert.Equal(expected: "Alpha", actual: reference.Display);
+        }
+
+        [Fact]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
+        public void ValidAnalyzerReference_Id()
+        {
+            var directory = Temp.CreateDirectory();
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+
+            AssemblyIdentity expectedIdentity = null;
+            AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedIdentity);
+
+            Assert.Equal(expected: expectedIdentity, actual: reference.Id);
+        }
+
+        [Fact]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
+        public void BadAnalyzerReference_Id()
+        {
+            var directory = Temp.CreateDirectory();
+            var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
+
+            Assert.Equal(expected: "Foo", actual: reference.Id);
         }
 
         [Fact]
@@ -213,30 +192,6 @@ Delta: Gamma: Beta: Test B
 
             Assert.Equal(1, errors.Count);
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
-        }
-
-        [Fact]
-        public void AssemblyPathHelper_NeutralCultureAssembly()
-        {
-            string directoryPath = @"C:\Alpha\Beta";
-            AssemblyIdentity assemblyIdentity = new AssemblyIdentity("Gamma");
-
-            string expected = @"C:\Alpha\Beta\Gamma.dll";
-            string actual = InMemoryAssemblyProvider.GetCandidatePath(directoryPath, assemblyIdentity);
-
-            Assert.Equal(expected, actual, StringComparer.OrdinalIgnoreCase);
-        }
-
-        [Fact]
-        public void AssemblyPathHelper_AssemblyWithCulture()
-        {
-            string directoryPath = @"C:\Alpha\Beta";
-            AssemblyIdentity assemblyIdentity = new AssemblyIdentity(name: "Gamma", cultureName: "fr-FR");
-
-            string expected = @"C:\Alpha\Beta\fr-FR\Gamma.dll";
-            string actual = InMemoryAssemblyProvider.GetCandidatePath(directoryPath, assemblyIdentity);
-
-            Assert.Equal(expected, actual, StringComparer.OrdinalIgnoreCase);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]

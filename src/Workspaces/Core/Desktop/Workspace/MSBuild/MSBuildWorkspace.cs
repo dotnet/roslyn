@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (properties == null)
             {
-                throw new ArgumentNullException("properties");
+                throw new ArgumentNullException(nameof(properties));
             }
 
             if (hostServices == null)
             {
-                throw new ArgumentNullException("hostServices");
+                throw new ArgumentNullException(nameof(hostServices));
             }
 
             return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary());
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             if (projectFileExtension == null)
             {
-                throw new ArgumentNullException("projectFileExtension");
+                throw new ArgumentNullException(nameof(projectFileExtension));
             }
 
             using (_dataGuard.DisposableWait())
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (projectFilePath == null)
             {
-                throw new ArgumentNullException("projectFilePath");
+                throw new ArgumentNullException(nameof(projectFilePath));
             }
 
             string fullPath;
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectId = this.GetOrCreateProjectId(projectFilePath);
 
-            var name = Path.GetFileNameWithoutExtension(projectFilePath);
+            var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
@@ -660,10 +660,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var docs = new List<DocumentInfo>();
             foreach (var docFileInfo in docFileInfos)
             {
+                string name;
+                ImmutableArray<string> folders;
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+
                 docs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    Path.GetFileName(docFileInfo.LogicalPath),
-                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    name,
+                    folders,
                     projectFile.GetSourceCodeKind(docFileInfo.FilePath),
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
@@ -673,10 +677,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var additonalDocs = new List<DocumentInfo>();
             foreach (var docFileInfo in projectFileInfo.AdditionalDocuments)
             {
+                string name;
+                ImmutableArray<string> folders;
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+
                 additonalDocs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    Path.GetFileName(docFileInfo.LogicalPath),
-                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    name,
+                    folders,
                     SourceCodeKind.Regular,
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
@@ -709,7 +717,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 ProjectInfo.Create(
                     projectId,
                     version,
-                    name,
+                    projectName,
                     assemblyName,
                     loader.Language,
                     projectFilePath,
@@ -746,18 +754,29 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar };
+        private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
-        private static ImmutableArray<string> GetDocumentFolders(string logicalPath)
+        private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
         {
-            var logicalDirectory = Path.GetDirectoryName(logicalPath);
-
-            if (!string.IsNullOrEmpty(logicalDirectory))
+            var pathNames = logicalPath.Split(s_directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
+            if (pathNames.Length > 0)
             {
-                return logicalDirectory.Split(s_directorySplitChars, StringSplitOptions.None).ToImmutableArray();
-            }
+                if (pathNames.Length > 1)
+                {
+                    folders = pathNames.Take(pathNames.Length - 1).ToImmutableArray();
+                }
+                else
+                {
+                    folders = ImmutableArray.Create<string>();
+                }
 
-            return ImmutableArray.Create<string>();
+                name = pathNames[pathNames.Length - 1];
+            }
+            else
+            {
+                name = logicalPath;
+                folders = ImmutableArray.Create<string>();
+            }
         }
 
         private void CheckDocuments(IEnumerable<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
@@ -846,7 +865,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private async Task<MetadataReference> GetProjectMetadata(string projectFilePath, ImmutableArray<string> aliases, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             // use loader service to determine output file for project if possible
-            var outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
+            string outputFilePath = null;
+
+            try
+            {
+                outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                this.OnWorkspaceFailed(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message));
+            }
 
             if (outputFilePath != null && File.Exists(outputFilePath))
             {
@@ -969,7 +997,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 Encoding encoding = DetermineEncoding(text, document);
 
-                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? Encoding.UTF8);
+                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
         }

@@ -3392,6 +3392,34 @@ End Namespace
             VerifyDiagnostics()
         End Sub
 
+        <Fact(), WorkItem(2640, "https://github.com/dotnet/roslyn/issues/2640")>
+        Public Sub WithUnusedArrayElement()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+  Private Structure MyStructure
+    Public x As Single
+  End Structure
+  Sub Main()
+    Dim unusedArrayInWith(0) As MyStructure
+    With unusedArrayInWith(GetIndex())
+      System.Console.WriteLine("Hello, World")
+    End With
+  End Sub
+
+  Function GetIndex() as Integer
+    System.Console.WriteLine("GetIndex")
+    Return 0
+  End Function
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe, expectedOutput:=<![CDATA[
+GetIndex
+Hello, World
+]]>)
+        End Sub
+
     End Class
 
 End Namespace

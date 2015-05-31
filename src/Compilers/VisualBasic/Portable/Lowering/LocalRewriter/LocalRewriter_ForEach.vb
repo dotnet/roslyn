@@ -322,8 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
 
             ' now build while loop
-            Dim boundWhileStatement = CreateLoweredWhileStatements(syntaxNode,
-                                                                   node,
+            Dim boundWhileStatement = CreateLoweredWhileStatements(node,
                                                                    boundLimit,
                                                                    boundIndex,
                                                                    boundCurrentAssignment,
@@ -411,16 +410,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates the while statement for the for each rewrite
         ''' </summary>
-        ''' <param name="syntaxNode">The syntax node.</param>
         ''' <param name="limit">The limit to check the index against.</param>
         ''' <param name="index">The index.</param>
         ''' <param name="currentAssignment">The assignment statement of the current value.</param>
         ''' <param name="incrementAssignment">The increment statement.</param>
-        ''' <param name="node">The bound for each node.</param>
+        ''' <param name="forEachStatement">The bound for each node.</param>
         ''' <returns>The lowered statement list for the while statement.</returns>
         Private Function CreateLoweredWhileStatements(
-            syntaxNode As VisualBasicSyntaxNode,
-            node As BoundForEachStatement,
+            forEachStatement As BoundForEachStatement,
             limit As BoundExpression,
             index As BoundLocal,
             currentAssignment As BoundStatement,
@@ -428,17 +425,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             generateUnstructuredExceptionHandlingResumeCode As Boolean
         ) As BoundStatementList
 
-            Dim body = DirectCast(Visit(node.Body), BoundStatement)
-            Dim endSyntax = DirectCast(syntaxNode, ForEachBlockSyntax).NextStatement
+            Dim body = DirectCast(Visit(forEachStatement.Body), BoundStatement)
+            Dim statementSyntax = forEachStatement.Syntax
+            Dim endSyntax = DirectCast(statementSyntax, ForEachBlockSyntax).NextStatement
 
             If generateUnstructuredExceptionHandlingResumeCode Then
                 If GenerateDebugInfo AndAlso endSyntax IsNot Nothing Then
                     incrementAssignment = Concat(New BoundSequencePoint(endSyntax,
-                                                                        New BoundStatementList(syntaxNode, RegisterUnstructuredExceptionHandlingResumeTarget(syntaxNode, canThrow:=True))),
+                                                                        New BoundStatementList(statementSyntax, RegisterUnstructuredExceptionHandlingResumeTarget(statementSyntax, canThrow:=True))),
                                                  incrementAssignment)
                 Else
-                    incrementAssignment = New BoundStatementList(syntaxNode,
-                                                                 RegisterUnstructuredExceptionHandlingResumeTarget(syntaxNode, canThrow:=True).Add(incrementAssignment))
+                    incrementAssignment = New BoundStatementList(statementSyntax,
+                                                                 RegisterUnstructuredExceptionHandlingResumeTarget(statementSyntax, canThrow:=True).Add(incrementAssignment))
                 End If
             ElseIf GenerateDebugInfo AndAlso endSyntax IsNot Nothing Then
                 incrementAssignment = Concat(New BoundSequencePoint(endSyntax, Nothing),
@@ -450,38 +448,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Also: see while node creation below
             Dim rewrittenBodyStatements = ImmutableArray.Create(Of BoundStatement)(currentAssignment,
                                                                                       body,
-                                                                                      New BoundLabelStatement(syntaxNode, node.ContinueLabel),
+                                                                                      New BoundLabelStatement(statementSyntax, forEachStatement.ContinueLabel),
                                                                                       incrementAssignment)
 
             ' declare the control variable inside of the while loop to capture it for each
             ' iteration of this loop with a copy constructor
-            Dim rewrittenBodyBlock As BoundBlock = New BoundBlock(syntaxNode,
+            Dim rewrittenBodyBlock As BoundBlock = New BoundBlock(statementSyntax,
                                                                   Nothing,
-                                                                  If(node.DeclaredOrInferredLocalOpt IsNot Nothing,
-                                                                     ImmutableArray.Create(Of LocalSymbol)(node.DeclaredOrInferredLocalOpt),
+                                                                  If(forEachStatement.DeclaredOrInferredLocalOpt IsNot Nothing,
+                                                                     ImmutableArray.Create(Of LocalSymbol)(forEachStatement.DeclaredOrInferredLocalOpt),
                                                                      ImmutableArray(Of LocalSymbol).Empty),
                                                                   rewrittenBodyStatements)
 
-            Dim booleanType = GetSpecialTypeWithUseSiteDiagnostics(SpecialType.System_Boolean, syntaxNode)
+            Dim booleanType = GetSpecialTypeWithUseSiteDiagnostics(SpecialType.System_Boolean, statementSyntax)
             Dim boundCondition = TransformRewrittenBinaryOperator(
-                                    New BoundBinaryOperator(syntaxNode,
-                                                         BinaryOperatorKind.LessThan,
-                                                         index.MakeRValue(),
-                                                         limit,
-                                                         checked:=False,
+                                    New BoundBinaryOperator(statementSyntax,
+                                                            BinaryOperatorKind.LessThan,
+                                                            index.MakeRValue(),
+                                                            limit,
+                                                            checked:=False,
                                                             type:=booleanType))
 
             ' now build while loop
             ' Note: we're creating a new label for the while loop that get's used for the initial jump from the 
             ' beginning of the loop to the condition to check it for the first time.
             ' Also: see while body creation above
-            Dim boundWhileStatement = RewriteWhileStatement(syntaxNode,
+            Dim boundWhileStatement = RewriteWhileStatement(forEachStatement,
                                                             Nothing,
                                                             Nothing,
                                                             VisitExpressionNode(boundCondition),
                                                             rewrittenBodyBlock,
                                                             New GeneratedLabelSymbol("postIncrement"),
-                                                            node.ExitLabel)
+                                                            forEachStatement.ExitLabel)
             Return DirectCast(boundWhileStatement, BoundStatementList)
         End Function
 
@@ -628,7 +626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             rewrittenBodyBlock = AppendToBlock(rewrittenBodyBlock, bodyEpilogue)
 
             ' now build while loop
-            Dim boundWhileStatement = RewriteWhileStatement(syntaxNode,
+            Dim boundWhileStatement = RewriteWhileStatement(node,
                                                             Nothing,
                                                             Nothing,
                                                             VisitExpressionNode(enumeratorInfo.MoveNext),
@@ -782,8 +780,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class LocalVariableSubstitutor
             Inherits BoundTreeRewriter
 
-            Private _original As LocalSymbol
-            Private _replacement As LocalSymbol
+            Private ReadOnly _original As LocalSymbol
+            Private ReadOnly _replacement As LocalSymbol
             Private _replacedNode As Boolean = False
 
             Public Shared Function Replace(

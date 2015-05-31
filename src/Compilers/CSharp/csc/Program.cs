@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
                 clientDir: AppDomain.CurrentDomain.BaseDirectory,
                 workingDir: Directory.GetCurrentDirectory(),
                 sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                analyzerLoader: new SimpleAnalyzerAssemblyLoader(),
                 language: RequestLanguage.CSharpCompile,
                 fallbackCompiler: Csc.Run);
     }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (expected == null)
             {
-                throw new ArgumentException("Must specify expected errors.", "expected");
+                throw new ArgumentException("Must specify expected errors.", nameof(expected));
             }
 
             var unmatched = actual.Select(d => new DiagnosticDescription(d, errorCodeOnly)).ToList();
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
 
@@ -198,7 +198,8 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            c.Emit(new MemoryStream(), pdbStream: new MemoryStream(), options: options).Diagnostics.Verify(expected);
+            var pdbStream = CLRHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options).Diagnostics.Verify(expected);
             return c;
         }
 
@@ -211,7 +212,8 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, IEnumerable<ResourceDescription> manifestResources, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            c.Emit(new MemoryStream(), pdbStream: new MemoryStream(), manifestResources: manifestResources).Diagnostics.Verify(expected);
+            var pdbStream = CLRHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            c.Emit(new MemoryStream(), pdbStream: pdbStream, manifestResources: manifestResources).Diagnostics.Verify(expected);
             return c;
         }
 

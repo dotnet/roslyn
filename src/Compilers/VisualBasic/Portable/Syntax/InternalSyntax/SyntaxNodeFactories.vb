@@ -507,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Private Shared s_missingExpr As ExpressionSyntax = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("", Nothing, Nothing))
+        Private Shared ReadOnly s_missingExpr As ExpressionSyntax = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("", Nothing, Nothing))
         Friend Shared Function MissingExpression() As ExpressionSyntax
             Return s_missingExpr
         End Function

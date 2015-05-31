@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._name = name
         End Sub
 
-        Private _name As String
+        Private ReadOnly _name As String
 
         Public Overrides ReadOnly Property Name As String
             Get

@@ -36,6 +36,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
                     <CheckBox x:Name="ClosedFileDiagnostics"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
+                    <CheckBox x:Name="RenameTrackingPreview"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="OrganizeUsingsGroupBox"
@@ -55,7 +57,8 @@
                     <CheckBox x:Name="DontPutOutOrRefOnStruct"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
                     <CheckBox x:Name="AllowMovingDeclaration"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}"
+                              Visibility="Collapsed" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return semanticModel.GetTypeInfo(castExpression).Type;
             }
 
+            if (parentNode.IsKind(SyntaxKind.PointerIndirectionExpression))
+            {
+                return semanticModel.GetTypeInfo(expression).Type;
+            }
+
             if (parentNode.IsKind(SyntaxKind.IsExpression) ||
                 parentNode.IsKind(SyntaxKind.AsExpression))
             {
@@ -350,6 +355,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return true;
             }
+            else if (expressionToCastType.IsExplicit && expressionToCastType.IsReference)
+            {
+                // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
+                return false;
+            }
+            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric && IsInExplicitCheckedOrUncheckedContext(cast))
+            {
+                // Don't remove any explicit numeric casts in explicit checked/unchecked context.
+                // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
+                return false;
+            }
+            else if (expressionToCastType.IsPointer)
+            {
+                // Don't remove any non-identity pointer conversions.
+                // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
+                return expressionType != null && expressionType.Equals(outerType);
+            }
 
             if (parentIsOrAsExpression)
             {
@@ -493,16 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     return true;
                 }
-
-                // case :
-                // 4. baseType x;
-                //    baseType y = (DerivedType)x;
-                if (expressionToOuterType.IsIdentity &&
-                    castToOuterType.IsImplicit &&
-                    castToOuterType.IsReference)
-                {
-                    return true;
-                }
             }
 
             return false;
@@ -544,6 +556,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
+        }
+
+        private static bool IsInExplicitCheckedOrUncheckedContext(CastExpressionSyntax cast)
+        {
+            SyntaxNode currentNode = cast;
+
+            do
+            {
+                switch(currentNode.Kind())
+                {
+                    case SyntaxKind.UncheckedExpression:
+                    case SyntaxKind.UncheckedStatement:
+                    case SyntaxKind.CheckedExpression:
+                    case SyntaxKind.CheckedStatement:
+                        return true;
+                }
+
+                currentNode = currentNode.Parent;
+            } while (currentNode is ExpressionSyntax || currentNode is StatementSyntax);
+
+            return false;
         }
     }
 }

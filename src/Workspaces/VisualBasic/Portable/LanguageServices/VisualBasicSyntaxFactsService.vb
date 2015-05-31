@@ -33,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsOperator(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsOperator
-            Return (IsUnaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso TypeOf token.Parent Is UnaryExpressionSyntax) OrElse
-                   (IsBinaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso TypeOf token.Parent Is BinaryExpressionSyntax)
+            Return (IsUnaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso (TypeOf token.Parent Is UnaryExpressionSyntax OrElse TypeOf token.Parent Is OperatorStatementSyntax)) OrElse
+                   (IsBinaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso (TypeOf token.Parent Is BinaryExpressionSyntax OrElse TypeOf token.Parent Is OperatorStatementSyntax))
         End Function
 
         Public Function IsContextualKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsContextualKeyword
@@ -407,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsStringLiteral
-            Return CType(token.Kind, SyntaxKind) = SyntaxKind.StringLiteralToken
+            Return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken)
         End Function
 
         Public Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean Implements ISyntaxFactsService.IsBindableToken
@@ -578,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFactsService.GetContainingMemberDeclaration
+        Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFactsService.GetContainingMemberDeclaration
             Contract.ThrowIfNull(root, NameOf(root))
             Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
 
@@ -593,25 +593,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim node = root.FindToken(position).Parent
             While node IsNot Nothing
-                If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
-                    Return node
-                End If
+                If useFullSpan OrElse node.Span.Contains(position) Then
 
-                If TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
-                    Return node
-                End If
+                    If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                        Return node
+                    End If
 
-                If TypeOf node Is EventStatementSyntax AndAlso Not TypeOf node.Parent Is EventBlockSyntax Then
-                    Return node
-                End If
+                    If TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                        Return node
+                    End If
 
-                If TypeOf node Is PropertyBlockSyntax OrElse
-                   TypeOf node Is TypeBlockSyntax OrElse
-                   TypeOf node Is EnumBlockSyntax OrElse
-                   TypeOf node Is NamespaceBlockSyntax OrElse
-                   TypeOf node Is EventBlockSyntax OrElse
-                   TypeOf node Is FieldDeclarationSyntax Then
-                    Return node
+                    If TypeOf node Is EventStatementSyntax AndAlso Not TypeOf node.Parent Is EventBlockSyntax Then
+                        Return node
+                    End If
+
+                    If TypeOf node Is PropertyBlockSyntax OrElse
+                       TypeOf node Is TypeBlockSyntax OrElse
+                       TypeOf node Is EnumBlockSyntax OrElse
+                       TypeOf node Is NamespaceBlockSyntax OrElse
+                       TypeOf node Is EventBlockSyntax OrElse
+                       TypeOf node Is FieldDeclarationSyntax Then
+                        Return node
+                    End If
                 End If
 
                 node = node.Parent

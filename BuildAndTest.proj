@@ -15,6 +15,7 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs></RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
+    <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
 
     <!-- Emit XML in a CIBuild in order to get structured test results -->
     <RunTestArgs Condition="'$(CIBuild)' == 'true'">$(RunTestArgs) -xml</RunTestArgs>
@@ -50,28 +51,24 @@
 
     <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == ''">
       <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
         Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == 'true'">
       <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\*ResultProvider*.UnitTests.dll;
-        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests.dll;" />
+        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
     </ItemGroup>
 
     <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
     <ItemGroup Condition="'$(PublicBuild)' == 'true' AND '$(CIBuild)' == ''">
       <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\*ResultProvider*.UnitTests.dll;
         Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
         Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests2.dll;
         Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests.dll;

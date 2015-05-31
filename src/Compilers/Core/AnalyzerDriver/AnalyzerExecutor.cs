@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
-        private readonly ImmutableDictionary<DiagnosticAnalyzer, object> _singleThreadedAnalyzerToGateMap;
+        private readonly Func<DiagnosticAnalyzer, object> _getAnalyzerGateOpt;
+        private readonly ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeMapOpt;
 
         private readonly CancellationToken _cancellationToken;
 
@@ -42,9 +44,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="isCompilerAnalyzer">Delegate to determine if the given analyzer is compiler analyzer. 
         /// We need to special case the compiler analyzer at few places for performance reasons.</param>
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
-        /// <param name="singleThreadedAnalyzerToGateMap">Map from non-thread safe analyzers to unique gate objects. 
-        /// All analyzer callbacks for these analyzers will be guarded with a lock on the gate.
+        /// <param name="getAnalyzerGate">
+        /// Delegate to fetch the gate object to guard all callbacks into the analyzer.
+        /// It should return a unique gate object for the given analyzer instance for non-concurrent analyzers, and null otherwise.
+        /// All analyzer callbacks for non-concurrent analyzers will be guarded with a lock on the gate.
         /// </param>
+        /// <param name="logExecutionTime">Flag indicating whether we need to log analyzer execution time.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor Create(
             Compilation compilation,
@@ -53,10 +58,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
-            ImmutableDictionary<DiagnosticAnalyzer, object> singleThreadedAnalyzerToGateMap = default(ImmutableDictionary<DiagnosticAnalyzer, object>),
+            Func<DiagnosticAnalyzer, object> getAnalyzerGate,
+            bool logExecutionTime = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, isCompilerAnalyzer, analyzerManager, singleThreadedAnalyzerToGateMap, cancellationToken);
+            return new AnalyzerExecutor(compilation, analyzerOptions, addDiagnostic, onAnalyzerException, isCompilerAnalyzer, analyzerManager, getAnalyzerGate, logExecutionTime, cancellationToken);
         }
 
         /// <summary>
@@ -67,20 +73,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
         /// </param>
         /// <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
+        /// <param name="logExecutionTime">Flag indicating whether we need to log analyzer execution time.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             AnalyzerManager analyzerManager,
-            CancellationToken cancellationToken)
+            bool logExecutionTime = false,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             return new AnalyzerExecutor(
                 compilation: null,
                 analyzerOptions: null,
                 addDiagnostic: null,
                 isCompilerAnalyzer: null,
-                singleThreadedAnalyzerToGateMap: ImmutableDictionary<DiagnosticAnalyzer, object>.Empty,
+                getAnalyzerGateOpt: null,
                 onAnalyzerException: onAnalyzerException,
                 analyzerManager: analyzerManager,
+                logExecutionTime: logExecutionTime,
                 cancellationToken: cancellationToken);
         }
 
@@ -91,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerManager analyzerManager,
-            ImmutableDictionary<DiagnosticAnalyzer, object> singleThreadedAnalyzerToGateMap,
+            Func<DiagnosticAnalyzer, object> getAnalyzerGateOpt,
+            bool logExecutionTime,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
@@ -100,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _onAnalyzerException = onAnalyzerException;
             _isCompilerAnalyzer = isCompilerAnalyzer;
             _analyzerManager = analyzerManager;
-            _singleThreadedAnalyzerToGateMap = singleThreadedAnalyzerToGateMap ?? ImmutableDictionary<DiagnosticAnalyzer, object>.Empty;
+            _getAnalyzerGateOpt = getAnalyzerGateOpt;
+            _analyzerExecutionTimeMapOpt = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan>() : null;
             _cancellationToken = cancellationToken;
         }
 
@@ -108,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal AnalyzerOptions AnalyzerOptions => _analyzerOptions;
         internal CancellationToken CancellationToken => _cancellationToken;
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
+        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes => _analyzerExecutionTimeMapOpt.ToImmutableDictionary();
 
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
@@ -476,35 +488,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows(DiagnosticAnalyzer analyzer, Action analyze)
         {
-            object gate;
-            if (_singleThreadedAnalyzerToGateMap.TryGetValue(analyzer, out gate))
+            object gate = _getAnalyzerGateOpt?.Invoke(analyzer);
+            if (gate != null)
             {
-                lock(gate)
+                lock (gate)
                 {
-                    ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+                    ExecuteAndCatchIfThrows_NoLock(analyzer, analyze);
                 }
             }
             else
             {
-                ExecuteAndCatchIfThrows(analyzer, analyze, _onAnalyzerException, _cancellationToken);
+                ExecuteAndCatchIfThrows_NoLock(analyzer, analyze);
             }
         }
 
-        private static void ExecuteAndCatchIfThrows(
-            DiagnosticAnalyzer analyzer,
-            Action analyze,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            CancellationToken cancellationToken)
+        private void ExecuteAndCatchIfThrows_NoLock(DiagnosticAnalyzer analyzer, Action analyze)
         {
             try
             {
+                Stopwatch timer = null;
+                if (_analyzerExecutionTimeMapOpt != null)
+                {
+                    timer = Stopwatch.StartNew();
+                }
+
                 analyze();
+
+                if (timer != null)
+                {
+                    timer.Stop();
+
+                    _analyzerExecutionTimeMapOpt.AddOrUpdate(analyzer, timer.Elapsed, (a, accumulatedTime) => accumulatedTime + timer.Elapsed);
+                }
             }
-            catch (Exception e) when (!IsCanceled(e, cancellationToken))
+            catch (Exception e) when (!IsCanceled(e, _cancellationToken))
             {
                 // Diagnostic for analyzer exception.
                 var diagnostic = GetAnalyzerExceptionDiagnostic(analyzer, e);
-                onAnalyzerException(e, analyzer, diagnostic);
+                _onAnalyzerException(e, analyzer, diagnostic);
             }
         }
 

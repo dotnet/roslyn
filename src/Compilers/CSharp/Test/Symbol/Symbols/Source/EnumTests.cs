@@ -285,7 +285,7 @@ void foo()
         }
 
         // Convert integer to Enum instance
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void ConvertOnEnum()
         {
             var source =

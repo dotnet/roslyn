@@ -142,11 +142,11 @@
     <comment>"C#" node help text in profile Import/Export.</comment>
   </data>
   <data name="306" xml:space="preserve">
-    <value>Enter outlining mode when files open;Underline errors in the editor;Turn live semantic errors on or off;Turn highlight references on or off;Change refactoring settings;Generate XML documentation comments;Surround generated code with #region;Change the settings for Organize Usings</value>
+    <value>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</value>
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">
-    <value>Automatically format completed statement on semicolon;Automatically format completed block on brace;Automatically format on paste</value>
+    <value>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</value>
     <comment>C# Formatting &gt; General options page keywords</comment>
   </data>
   <data name="308" xml:space="preserve">

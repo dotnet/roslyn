@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+#if TODO
 #pragma warning( push )
 #pragma warning( disable: 4499 )
 #include "CppUnitTest.h"
@@ -40,3 +40,4 @@ namespace Microsoft_DiaSymReader_PortablePdb_UnitTests
     };
 
 }
+#endif

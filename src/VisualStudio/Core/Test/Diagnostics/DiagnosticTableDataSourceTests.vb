@@ -11,8 +11,8 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
-Imports Microsoft.VisualStudio.TableControl
-Imports Microsoft.VisualStudio.TableManager
+Imports Microsoft.VisualStudio.Shell.TableControl
+Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -461,35 +461,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Sub TestProjectRank()
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
-                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
-                Dim projectId = documentId.ProjectId
-
-                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error)
-                Dim provider = New TestDiagnosticService(item1)
-
-                Dim tableManagerProvider = New TestTableManagerProvider()
-
-                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
-                provider.RaiseDiagnosticsUpdated(workspace)
-
-                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticsUpdatedArgs, DiagnosticData))
-                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
-
-                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
-                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
-                Assert.Equal(1, snapshot.Count)
-
-                Dim content As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectRank, content))
-                Assert.NotNull(content)
-                Assert.Equal(CType(content, Integer), 0)
-            End Using
-        End Sub
-
-        <Fact>
         Public Sub TestErrorSource()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
@@ -511,10 +482,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
                 Assert.Equal(1, snapshot.Count)
 
-                Dim errorSource As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ErrorSource, errorSource))
+                Dim buildTool As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.BuildTool, buildTool))
 
-                Assert.Equal("ErrorSource", errorSource.ToString())
+                Assert.Equal("BuildTool", buildTool.ToString())
             End Using
         End Sub
 
@@ -583,15 +554,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Sub
 
             Private Class ErrorId
-                Inherits ErrorSourceId.Base(Of TestDiagnosticService, Object)
+                Inherits BuildToolId.Base(Of TestDiagnosticService, Object)
 
                 Public Sub New(service As TestDiagnosticService, id As Object)
                     MyBase.New(service, id)
                 End Sub
 
-                Public Overrides ReadOnly Property ErrorSource As String
+                Public Overrides ReadOnly Property BuildTool As String
                     Get
-                        Return "ErrorSource"
+                        Return "BuildTool"
                     End Get
                 End Property
             End Class

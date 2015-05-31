@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private static Handle Token
+        private static EntityHandle Token
         {
             get
             {
-                return Handle.ModuleDefinition;
+                return EntityHandle.ModuleDefinition;
             }
         }
 
@@ -213,12 +213,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ArrayBuilder<CSharpAttributeData> moduleAssemblyAttributesBuilder = null;
 
                 string corlibName = ContainingAssembly.CorLibrary.Name;
-                Handle assemblyMSCorLib = Module.GetAssemblyRef(corlibName);
+                EntityHandle assemblyMSCorLib = Module.GetAssemblyRef(corlibName);
                 if (!assemblyMSCorLib.IsNil)
                 {
                     foreach (var qualifier in Cci.MetadataWriter.dummyAssemblyAttributeParentQualifier)
                     {
-                        Handle typerefAssemblyAttributesGoHere =
+                        EntityHandle typerefAssemblyAttributesGoHere =
                                     Module.GetTypeRef(
                                         assemblyMSCorLib,
                                         Cci.MetadataWriter.dummyAssemblyAttributeParentNamespace,
@@ -251,13 +251,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyAssemblyAttributes;
         }
 
-        internal void LoadCustomAttributes(Handle token, ref ImmutableArray<CSharpAttributeData> customAttributes)
+        internal void LoadCustomAttributes(EntityHandle token, ref ImmutableArray<CSharpAttributeData> customAttributes)
         {
             var loaded = GetCustomAttributesForToken(token);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
-        internal void LoadCustomAttributesFilterExtensions(Handle token,
+        internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes,
             out bool foundExtension)
         {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
-        internal void LoadCustomAttributesFilterExtensions(Handle token,
+        internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes)
         {
             // Ignore whether or not extension attributes were found
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// for the ParamArrayAttribute if any is found and is null otherwise. This allows NoPia to filter
         /// the attribute out for the symbol but still cache it separately for emit.
         /// </summary>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(Handle token,
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
             out CustomAttributeHandle filteredOutAttribute1,
             AttributeDescription filterOut1,
             out CustomAttributeHandle filteredOutAttribute2,
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return ImmutableArray<CSharpAttributeData>.Empty;
         }
 
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(Handle token)
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token)
         {
             // Do not filter anything and therefore ignore the out results
             CustomAttributeHandle ignore1;
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="token">The parameter token handle.</param>
         /// <param name="paramArrayAttribute">Set to a ParamArrayAttribute</param>
         /// CustomAttributeHandle if any are found. Nil token otherwise.
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(Handle token,
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
             out CustomAttributeHandle paramArrayAttribute)
         {
             CustomAttributeHandle ignore;
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 
-        internal bool HasAnyCustomAttributes(Handle token)
+        internal bool HasAnyCustomAttributes(EntityHandle token)
         {
             try
             {
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        internal TypeSymbol TryDecodeAttributeWithTypeArgument(Handle handle, AttributeDescription attributeDescription)
+        internal TypeSymbol TryDecodeAttributeWithTypeArgument(EntityHandle handle, AttributeDescription attributeDescription)
         {
             string typeName;
             if (_module.HasStringValuedAttribute(handle, attributeDescription, out typeName))
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="token"></param>
         /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
         /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterExtensions(Handle token, out bool foundExtension)
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterExtensions(EntityHandle token, out bool foundExtension)
         {
             CustomAttributeHandle extensionAttribute;
             CustomAttributeHandle ignore;
@@ -665,14 +665,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal IEnumerable<NamedTypeSymbol> GetForwardedTypes()
         {
-            foreach (KeyValuePair<string, AssemblyReferenceHandle> forwareder in Module.GetForwardedTypes())
+            foreach (KeyValuePair<string, AssemblyReferenceHandle> forwarder in Module.GetForwardedTypes())
             {
-                var name = MetadataTypeName.FromFullName(forwareder.Key);
+                var name = MetadataTypeName.FromFullName(forwarder.Key);
                 AssemblySymbol assemblySymbol;
 
                 try
                 {
-                    assemblySymbol = this.GetReferencedAssemblySymbols()[Module.GetAssemblyReferenceIndexOrThrow(forwareder.Value)];
+                    assemblySymbol = this.GetReferencedAssemblySymbols()[Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value)];
                 }
                 catch (BadImageFormatException)
                 {

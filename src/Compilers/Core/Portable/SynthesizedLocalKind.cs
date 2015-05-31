@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         // VB TODO:
         ForStep = 12,
         // VB TODO:
-        ForLoopObject = 13,
+        ForInitialValue = 13,
         // VB TODO:
         ForDirection = 14,
 
@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis
         StateMachineReturnValue = AsyncMethodReturnValue, // TODO VB: why do we need this in iterators?
 
         /// <summary>
-        /// Stores the return value of a VB function that is not accessible from user code (e.g. operator, lambda, async, iterator).
+        /// VB: Stores the return value of a function that is not accessible from user code (e.g. operator, lambda, async, iterator).
+        /// C#: Stores the return value of a method/lambda with a block body, so that we can put a sequence point on the closing brace of the body.
         /// </summary>
         FunctionReturnValue = 21,
 

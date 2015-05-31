@@ -162,9 +162,10 @@ End Class
                     <slot kind="0" offset="372"/>
                     <slot kind="6" offset="363"/>
                     <slot kind="8" offset="363"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="363"/>
                     <slot kind="6" offset="606"/>
                     <slot kind="8" offset="606"/>
+                    <slot kind="1" offset="606"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -178,6 +179,7 @@ End Class
                 <entry offset="0x4d" startLine="46" startColumn="9" endLine="46" endColumn="15" document="3"/>
                 <entry offset="0x4e" hidden="true" document="3"/>
                 <entry offset="0x52" hidden="true" document="3"/>
+                <entry offset="0x59" hidden="true" document="3"/>
                 <entry offset="0x5c" hidden="true" document="3"/>
                 <entry offset="0x67" hidden="true" document="3"/>
                 <entry offset="0x7d" hidden="true" document="3"/>
@@ -185,11 +187,12 @@ End Class
                 <entry offset="0x96" hidden="true" document="3"/>
                 <entry offset="0x97" hidden="true" document="3"/>
                 <entry offset="0x9d" hidden="true" document="3"/>
-                <entry offset="0xa9" hidden="true" document="3"/>
+                <entry offset="0xa7" hidden="true" document="3"/>
+                <entry offset="0xab" hidden="true" document="3"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xaa">
+            <scope startOffset="0x0" endOffset="0xac">
                 <importsforward declaringType="C1" methodName="FooInvisible"/>
-                <local name="i" il_index="0" il_start="0x0" il_end="0xaa" attributes="0"/>
+                <local name="i" il_index="0" il_start="0x0" il_end="0xac" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -583,10 +586,10 @@ End Class
         <method containingType="C1" name=".ctor">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x6" startLine="46" startColumn="12" endLine="46" endColumn="30" document="2"/>
-                <entry offset="0xe" startLine="27" startColumn="36" endLine="27" endColumn="54" document="3"/>
+                <entry offset="0x7" startLine="46" startColumn="12" endLine="46" endColumn="30" document="2"/>
+                <entry offset="0xf" startLine="27" startColumn="36" endLine="27" endColumn="54" document="3"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x17">
+            <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
@@ -622,9 +625,9 @@ End Class
         <method containingType="InActual" name=".ctor">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x6" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0xf">
+            <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="C1" methodName=".ctor"/>
             </scope>
         </method>

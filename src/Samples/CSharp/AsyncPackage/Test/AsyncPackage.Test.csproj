@@ -56,10 +56,6 @@
       <HintPath>(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Desktop, Version=42.42.42.42, Culture=neutral, PublicKeyToken=fc793a00266884fb, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>(VSLOutDir)\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic">
       <HintPath>(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
       <Private>false</Private>

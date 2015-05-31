@@ -4198,6 +4198,12 @@
 			.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
 			ret
 		}
+		.method public static hidebysig 
+			valuetype [mscorlib]System.TypeCode GetTypeCode(class [mscorlib]System.Type 'type')
+		{
+			.custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = { }
+			ret
+		}
 	}
 	.class public sealed TypeFilter
 		extends [mscorlib]System.MulticastDelegate

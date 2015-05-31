@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class BinaryOperators
         Inherits BasicTestBase
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/856")>
+        <Fact>
         Public Sub Test1()
 
             Dim compilationDef =
@@ -1436,7 +1436,7 @@ Module M
 
             Dim err = compilation.GetDiagnostics().Single()
 
-            Assert.Equal(ERRID.ERR_ContantStringTooLong, err.Code)
+            Assert.Equal(ERRID.ERR_ConstantStringTooLong, err.Code)
             Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         End Sub
 

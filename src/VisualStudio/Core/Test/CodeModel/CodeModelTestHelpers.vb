@@ -2,14 +2,17 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
+Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Friend Module CodeModelTestHelpers
@@ -40,6 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
                 Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
                 Dim mockVisualStudioWorkspace = New MockVisualStudioWorkspace(workspace)
+                WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
                 Dim state = New CodeModelState(
                                 mockServiceProvider,
@@ -80,6 +84,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                 Throw New NotImplementedException()
             End Function
+        End Class
+
+        Friend Class MockComWrapperFactory
+            Implements IComWrapperFactory
+
+            Public Shared ReadOnly Instance As IComWrapperFactory = New MockComWrapperFactory
+
+            Public Function CreateAggregatedObject(managedObject As Object) As Object Implements IComWrapperFactory.CreateAggregatedObject
+                Dim wrapperUnknown = BlindAggregatorFactory.CreateWrapper()
+                Try
+                    Dim innerUnknown = Marshal.CreateAggregatedObject(wrapperUnknown, managedObject)
+                    Try
+                        Dim handle = GCHandle.Alloc(managedObject, GCHandleType.Normal)
+                        Dim freeHandle = True
+                        Try
+                            BlindAggregatorFactory.SetInnerObject(wrapperUnknown, innerUnknown, GCHandle.ToIntPtr(handle))
+                            freeHandle = False
+                        Finally
+                            If freeHandle Then handle.Free()
+                        End Try
+
+                        Dim wrapperRCW = Marshal.GetObjectForIUnknown(wrapperUnknown)
+                        Return CType(wrapperRCW, IComWrapper)
+                    Finally
+                        Marshal.Release(innerUnknown)
+                    End Try
+                Finally
+                    Marshal.Release(wrapperUnknown)
+                End Try
+            End Function
+
         End Class
 
         <Extension()>
@@ -141,8 +176,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
              {GetType(EnvDTE80.CodeElement2), {EnvDTE.vsCMElement.vsCMElementOptionStmt, EnvDTE.vsCMElement.vsCMElementInheritsStmt, EnvDTE.vsCMElement.vsCMElementImplementsStmt}},
              {GetType(EnvDTE.CodeEnum), {EnvDTE.vsCMElement.vsCMElementEnum}},
              {GetType(EnvDTE80.CodeEvent), {EnvDTE.vsCMElement.vsCMElementEvent}},
-             {GetType(EnvDTE.CodeFunction), {EnvDTE.vsCMElement.vsCMElementFunction}},
-             {GetType(EnvDTE80.CodeFunction2), {EnvDTE.vsCMElement.vsCMElementFunction}},
+             {GetType(EnvDTE.CodeFunction), {EnvDTE.vsCMElement.vsCMElementFunction, EnvDTE.vsCMElement.vsCMElementDeclareDecl}},
+             {GetType(EnvDTE80.CodeFunction2), {EnvDTE.vsCMElement.vsCMElementFunction, EnvDTE.vsCMElement.vsCMElementDeclareDecl}},
              {GetType(EnvDTE80.CodeImport), {EnvDTE.vsCMElement.vsCMElementImportStmt}},
              {GetType(EnvDTE.CodeInterface), {EnvDTE.vsCMElement.vsCMElementInterface}},
              {GetType(EnvDTE80.CodeInterface2), {EnvDTE.vsCMElement.vsCMElementInterface}},

@@ -3,9 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Rename
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
@@ -468,6 +466,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             Return replacement
                         End If
 
+                        If replacement.IsKind(SyntaxKind.IdentifierName) Then
+                            Dim identifierReplacement = DirectCast(replacement, IdentifierNameSyntax)
+
+                            Dim newIdentifier = identifier.CopyAnnotationsTo(identifierReplacement.Identifier)
+
+                            If Me._annotationForReplacedAliasIdentifier IsNot Nothing Then
+                                newIdentifier = newIdentifier.WithAdditionalAnnotations(Me._annotationForReplacedAliasIdentifier)
+                            End If
+
+                            Dim aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name)
+                            newIdentifier = newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo)
+
+                            replacement = replacement.ReplaceToken(identifier, newIdentifier)
+
+                            replacement = newNode.CopyAnnotationsTo(replacement)
+
+                            Return replacement
+                        End If
+
                         Throw New NotImplementedException()
                     End If
                 End If
@@ -481,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' 2. If it's an attribute, make sure the identifier matches the attribute's class name without the attribute suffix.
                 '
                 If originalSimpleName.GetAncestor(Of AttributeSyntax)() IsNot Nothing Then
-                    If symbol.IsConstructor() AndAlso symbol.ContainingType.IsAttribute() Then
+                    If symbol.IsConstructor() AndAlso symbol.ContainingType?.IsAttribute() Then
                         symbol = symbol.ContainingType
                         Dim name = symbol.Name
                         Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText, StringComparison.Ordinal))

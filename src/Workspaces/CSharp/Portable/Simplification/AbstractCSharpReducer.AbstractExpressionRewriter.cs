@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             // can be used to simplify whole subtrees while just annotating one syntax node.
             // This is e.g. useful in the name simplification, where a whole qualified name is annotated
-            protected bool alwaysSimplify = false;
+            protected bool alwaysSimplify;
 
             private static SyntaxNode GetParentNode(SyntaxNode node)
             {

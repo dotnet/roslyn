@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Sub ValidateLocationInformation(kind As BoundKind, syntax As SyntaxNode)
             ' We should always have a syntax node and a syntax tree as well, unless it is a hidden sequence point.
             ' If it's a sequence point, it must have a syntax tree to retrieve the file name.
-            Debug.Assert(kind = BoundKind.SequencePoint OrElse syntax IsNot Nothing)
+            Debug.Assert(kind = BoundKind.SequencePoint OrElse kind = BoundKind.SequencePointExpression OrElse syntax IsNot Nothing)
         End Sub
 
         Public ReadOnly Property HasErrors As Boolean

@@ -16,9 +16,9 @@ namespace Roslyn.Test.Utilities.Parallel
         private readonly Dictionary<MethodInfo, object> _fixtures = new Dictionary<MethodInfo, object>();
         private readonly IDictionary<IMethodInfo, Task<MethodResult>> _testMethodTasks = new Dictionary<IMethodInfo, Task<MethodResult>>();
         private ITypeInfo _typeUnderTest;
-        private bool _classStarted = false;
+        private bool _classStarted;
         private bool _invokingSingleMethod = true;
-        private List<TraceListener> _oldListeners = null;
+        private List<TraceListener> _oldListeners;
 
         public ParallelTestClassCommand()
             : this((ITypeInfo)null)

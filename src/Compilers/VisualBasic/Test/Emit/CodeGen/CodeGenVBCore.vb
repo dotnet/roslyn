@@ -3148,7 +3148,7 @@ End Module
 
 #Region "Symbols Validator"
 
-        Private Shared s_normalizeRegex As New Regex("^(\s*)", RegexOptions.Multiline)
+        Private Shared ReadOnly s_normalizeRegex As New Regex("^(\s*)", RegexOptions.Multiline)
 
         Private Sub ValidateSourceSymbols([module] As ModuleSymbol)
             ValidateSourceSymbol([module].GlobalNamespace)

@@ -554,16 +554,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             Public Function Retarget(type As ArrayTypeSymbol) As ArrayTypeSymbol
                 Dim oldElement As TypeSymbol = type.ElementType
-                Dim newElemenet As TypeSymbol = Retarget(oldElement, RetargetOptions.RetargetPrimitiveTypesByTypeCode)
+                Dim newElement As TypeSymbol = Retarget(oldElement, RetargetOptions.RetargetPrimitiveTypesByTypeCode)
 
                 Dim modifiersHaveChanged As Boolean = False
                 Dim newModifiers As ImmutableArray(Of CustomModifier) = RetargetModifiers(type.CustomModifiers, modifiersHaveChanged)
 
-                If Not modifiersHaveChanged AndAlso oldElement.Equals(newElemenet) Then
+                If Not modifiersHaveChanged AndAlso oldElement.Equals(newElement) Then
                     Return type
                 End If
 
-                Return New ArrayTypeSymbol(newElemenet, newModifiers, type.Rank, RetargetingAssembly)
+                Return New ArrayTypeSymbol(newElement, newModifiers, type.Rank, RetargetingAssembly)
             End Function
 
             Friend Function RetargetModifiers(oldModifiers As ImmutableArray(Of CustomModifier), ByRef modifiersHaveChanged As Boolean) As ImmutableArray(Of CustomModifier)

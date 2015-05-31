@@ -414,7 +414,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Project level imports (VB only, TODO: C# scripts).
         /// </summary>
-        ImmutableArray<UsedNamespaceOrType> GetImports(EmitContext context);
+        ImmutableArray<UsedNamespaceOrType> GetImports();
 
         /// <summary>
         /// Default namespace (VB only).

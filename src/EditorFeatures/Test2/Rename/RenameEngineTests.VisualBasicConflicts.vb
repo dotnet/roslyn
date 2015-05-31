@@ -2871,6 +2871,148 @@ End Class
                     result.AssertLabeledSpansAre("ref", "Dim x = NameOf(C.zoo)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
+
+            <WorkItem(1027506)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub TestConflictBetweenClassAndInterface1()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class {|conflict:C|}
+End Class
+Interface [|$$I|]
+End Interface
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="C")
+
+                    result.AssertLabeledSpansAre("conflict", "C", RelatedLocationType.UnresolvableConflict)
+                End Using
+            End Sub
+
+            <WorkItem(1027506)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub TestConflictBetweenClassAndInterface2()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class [|$$C|]
+End Class
+Interface {|conflict:I|}
+End Interface
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="I")
+
+                    result.AssertLabeledSpansAre("conflict", "I", RelatedLocationType.UnresolvableConflict)
+                End Using
+            End Sub
+
+            <WorkItem(1027506)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub TestConflictBetweenClassAndNamespace1()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class {|conflict:$$C|}
+End Class
+Namespace N
+End Namespace
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="N")
+
+                    result.AssertLabeledSpansAre("conflict", "N", RelatedLocationType.UnresolvableConflict)
+                End Using
+            End Sub
+
+            <WorkItem(1027506)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub TestConflictBetweenClassAndNamespace2()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class {|conflict:C|}
+End Class
+Namespace [|$$N|]
+End Namespace
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="C")
+
+                    result.AssertLabeledSpansAre("conflict", "C", RelatedLocationType.UnresolvableConflict)
+                End Using
+            End Sub
+
+            <WorkItem(1027506)>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub TestNoConflictBetweenTwoNamespaces()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Namespace [|$$N1|]
+End Namespace
+Namespace N2
+End Namespace
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="N2")
+                End Using
+            End Sub
+
+            <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub NameOfReferenceNoConflict()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class C
+    Sub [|T$$|](x As Integer)
+    End Sub
+
+    Sub Test()
+        Dim x = NameOf(Test)
+    End Sub
+End Class
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Test")
+                End Using
+            End Sub
+
+            <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+            <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+            Public Sub NameOfReferenceWithConflict()
+                Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document FilePath="Test.cs"><![CDATA[
+Class C
+    Sub Test()
+        Dim [|T$$|] As Integer
+        Dim x = NameOf({|conflict:Test|})
+    End Sub
+End Class
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Test")
+
+                    result.AssertLabeledSpansAre("conflict", "Test", RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
         End Class
     End Class
 End Namespace

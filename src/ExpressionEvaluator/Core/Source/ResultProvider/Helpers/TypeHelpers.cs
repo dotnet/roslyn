@@ -270,6 +270,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsType(null, "<>c__TypeVariables");
         }
 
+        internal static bool IsComObject(this Type type)
+        {
+            return type.IsType("System", "__ComObject");
+        }
+
+        internal static bool IsDynamicProperty(this Type type)
+        {
+            return type.IsType("Microsoft.CSharp.RuntimeBinder", "DynamicProperty");
+        }
+
+        internal static bool IsDynamicDebugViewEmptyException(this Type type)
+        {
+            return type.IsType("Microsoft.CSharp.RuntimeBinder", "DynamicDebugViewEmptyException");
+        }
+
+        internal static bool IsIDynamicMetaObjectProvider(this Type type)
+        {
+            foreach (var @interface in type.GetInterfaces())
+            {
+                if (@interface.IsType("System.Dynamic", "IDynamicMetaObjectProvider"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Returns type argument if the type is
         /// Nullable&lt;T&gt;, otherwise null.
@@ -668,6 +695,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var result = declaration.GetGenericTypeDefinition().GetInterfacesOnType()[index];
             Debug.Assert(interfaceType.GetGenericTypeDefinition().Equals(result.GetGenericTypeDefinition()));
             return result;
+        }
+
+        internal static MemberAndDeclarationInfo GetMemberByName(this DkmClrType type, string name)
+        {
+            var members = type.GetLmrType().GetMember(name, TypeHelpers.MemberBindingFlags);
+            Debug.Assert(members.Length == 1);
+            return new MemberAndDeclarationInfo(members[0], browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0);
         }
     }
 }

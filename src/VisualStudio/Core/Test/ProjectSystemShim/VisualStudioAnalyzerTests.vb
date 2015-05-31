@@ -1,8 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -12,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualStudioAnalyzerTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub GetReferenceCalledMultipleTimes()
-            Using analyzer = New VisualStudioAnalyzer("C:\Foo\Bar.dll", New MockVsFileChangeEx(), Nothing, Nothing, Nothing, Nothing)
+            Using analyzer = New VisualStudioAnalyzer("C:\Foo\Bar.dll", New MockVsFileChangeEx(), Nothing, Nothing, Nothing, Nothing, Nothing)
                 Dim reference1 = analyzer.GetReference()
                 Dim reference2 = analyzer.GetReference()
 
@@ -29,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
-            Using analyzer = New VisualStudioAnalyzer(file, New MockVsFileChangeEx(), hostDiagnosticUpdateSource, ProjectId.CreateNewId(), Nothing, LanguageNames.VisualBasic)
+            Using analyzer = New VisualStudioAnalyzer(file, New MockVsFileChangeEx(), hostDiagnosticUpdateSource, ProjectId.CreateNewId(), Nothing, New MockAnalyzerAssemblyLoader(), LanguageNames.VisualBasic)
                 Dim reference = analyzer.GetReference()
                 reference.GetAnalyzers(LanguageNames.VisualBasic)
 
@@ -51,13 +53,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(1, e.Diagnostics.Length)
                 Dim diagnostic As DiagnosticData = e.Diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
-                Assert.Equal(ServicesVSResources.WRN_UnableToLoadAnalyzer, diagnostic.MessageFormat)
                 Assert.Contains(File, diagnostic.Message, StringComparison.Ordinal)
             End Sub
 
             Public Sub DiagnosticRemovedTest(o As Object, e As DiagnosticsUpdatedArgs)
                 Assert.Equal(0, e.Diagnostics.Length)
             End Sub
+        End Class
+
+        Private Class MockAnalyzerAssemblyLoader
+            Implements IAnalyzerAssemblyLoader
+
+            Public Sub AddDependencyLocation(fullPath As String) Implements IAnalyzerAssemblyLoader.AddDependencyLocation
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function LoadFromPath(fullPath As String) As Assembly Implements IAnalyzerAssemblyLoader.LoadFromPath
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace

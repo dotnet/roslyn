@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
     internal class DiagnosticBag
     {
         // The lazyBag field is populated lazily -- the first time an error is added.
-        private ConcurrentQueue<Diagnostic> _lazyBag = null;
+        private ConcurrentQueue<Diagnostic> _lazyBag;
 
         /// <summary>
         /// Return true if the bag is completely empty - not even containing void diagnostics.

@@ -229,14 +229,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         ExternalModules: null,
                         DataItem: dataItem));
                     break;
+                case ExpansionKind.DynamicView:
                 case ExpansionKind.ResultsView:
                     completionRoutine(DkmSuccessEvaluationResult.Create(
                         inspectionContext,
                         stackFrame,
-                        Name: dataItem.Name,
-                        FullName: dataItem.FullName,
-                        Flags: dataItem.Flags,
-                        Value: Resources.ResultsViewValueWarning,
+                        dataItem.Name,
+                        dataItem.FullName,
+                        dataItem.Flags,
+                        dataItem.DisplayValue,
                         EditableValue: null,
                         Type: string.Empty,
                         Category: DkmEvaluationResultCategory.Method,
@@ -516,14 +517,28 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.ResultsOnly) != 0)
             {
                 var dataItem = ResultsViewExpansion.CreateResultsOnlyRow(
-                    inspectionContext, 
-                    name, 
-                    declaredType, 
-                    declaredTypeInfo, 
-                    value, 
+                    inspectionContext,
+                    name,
+                    declaredType,
+                    declaredTypeInfo,
+                    value,
                     this.Formatter);
                 CreateEvaluationResultAndContinue(
-                    dataItem, 
+                    dataItem,
+                    workList,
+                    inspectionContext,
+                    value.StackFrame,
+                    completionRoutine);
+            }
+            else if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.DynamicView) != 0)
+            {
+                var dataItem = DynamicViewExpansion.CreateMembersOnlyRow(
+                    inspectionContext,
+                    name,
+                    value,
+                    this.Formatter);
+                CreateEvaluationResultAndContinue(
+                    dataItem,
                     workList,
                     inspectionContext,
                     value.StackFrame,
@@ -532,11 +547,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             else
             {
                 var dataItem = ResultsViewExpansion.CreateResultsOnlyRowIfSynthesizedEnumerable(
-                    inspectionContext, 
-                    name, 
-                    declaredType, 
-                    declaredTypeInfo, 
-                    value, 
+                    inspectionContext,
+                    name,
+                    declaredType,
+                    declaredTypeInfo,
+                    value,
                     this.Formatter);
                 if (dataItem != null)
                 {
@@ -799,7 +814,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (declaredType.IsArray)
                 {
                     elementType = declaredType.GetElementType();
-                    elementTypeInfo = new DynamicFlagsCustomTypeInfo(declaredTypeAndInfo.Info).SkipOne().GetCustomTypeInfo();
+                    elementTypeInfo = DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).SkipOne().GetCustomTypeInfo();
                 }
                 else
                 {
@@ -818,7 +833,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (declaredType.IsPointer)
             {
                 // If this ever happens, the element type info is just .SkipOne().
-                Debug.Assert(!new DynamicFlagsCustomTypeInfo(declaredTypeAndInfo.Info).Any());
+                Debug.Assert(!DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).Any());
                 var elementType = declaredType.GetElementType();
                 return value.IsNull || elementType.IsVoid()
                     ? null

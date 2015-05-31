@@ -1566,6 +1566,7 @@ partial class C
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
@@ -1599,6 +1600,76 @@ class $$C { }
 <Code>
 using System;
 
+[Serializable]
+[CLSCompliant(true)]
+class C { }
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment1()
+            Dim code =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+class $$C { }
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[CLSCompliant(true)]
+class C { }
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment2()
+            Dim code =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[Serializable]
+class $$C { }
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[CLSCompliant(true)]
+[Serializable]
+class C { }
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment3()
+            Dim code =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[Serializable]
+class $$C { }
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
 [Serializable]
 [CLSCompliant(true)]
 class C { }
@@ -1945,6 +2016,33 @@ class C
 </Code>
 
             TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionDestructor, .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
+        End Sub
+
+        <WorkItem(1172038)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddFunction_AfterIncompleteMember()
+            Dim code =
+<Code>
+class $$C
+{
+    private void M1()
+    private void
+}
+</Code>
+
+            Dim expected =
+<Code>
+class C
+{
+    private void M1()
+    private void private void M2()
+    {
+
+    }
+}
+</Code>
+
+            TestAddFunction(code, expected, New FunctionData With {.Name = "M2", .Type = "void", .Position = -1, .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
         End Sub
 
 #End Region

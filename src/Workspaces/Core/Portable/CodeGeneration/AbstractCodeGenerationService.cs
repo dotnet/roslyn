@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (namespaceOrType == null)
             {
-                throw new ArgumentNullException("namespaceOrType");
+                throw new ArgumentNullException(nameof(namespaceOrType));
             }
 
             if (namespaceOrType is INamespaceSymbol)

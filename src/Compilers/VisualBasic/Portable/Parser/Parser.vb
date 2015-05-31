@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Enum
 
         ' Keep this value in sync with C# LanguageParser
-        Private Const _maxUncheckedRecursionDepth As Integer = 30
+        Friend Const MaxUncheckedRecursionDepth As Integer = 20
 
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
@@ -856,8 +856,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= _maxUncheckedRecursionDepth Then
-                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack()
+                If _recursionDepth >= MaxUncheckedRecursionDepth Then
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
                 End If
 
                 _hadImplicitLineContinuation = False
@@ -2535,7 +2535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim equals As PunctuationSyntax = Nothing
             Dim expression As ExpressionSyntax
 
-            ' Parse form: Key? '.'<IdentiferOrKeyword> '=' <Expression>
+            ' Parse form: Key? '.'<IdentifierOrKeyword> '=' <Expression>
 
             If anonymousTypeInitializer AndAlso
                 TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.KeyKeyword, optionalKey) Then
@@ -2616,7 +2616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.InferredFieldInitializer(optionalKey, expression)
 
             Else
-                ' Assume that the "'.'<IdentiferOrKeyword> '='" was left out.
+                ' Assume that the "'.'<IdentifierOrKeyword> '='" was left out.
 
                 dot = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.DotToken)
                 id = InternalSyntaxFactory.MissingIdentifier()
@@ -2724,7 +2724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Parse an identifier followed by optional? (but not optional array bounds), and return modified identifier
         ' Used inside LINQ queries.
-        Private Function ParseNullableModifiedIdentifer() As ModifiedIdentifierSyntax
+        Private Function ParseNullableModifiedIdentifier() As ModifiedIdentifierSyntax
             Dim optionalNullable As PunctuationSyntax = Nothing
             Dim id As IdentifierTokenSyntax = ParseNullableIdentifier(optionalNullable)
 

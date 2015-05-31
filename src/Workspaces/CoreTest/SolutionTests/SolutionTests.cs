@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var docText = doc.GetTextAsync().Result;
 
             Assert.NotNull(docText);
-            Assert.Equal(text, docText.ToString());
+            Assert.Equal(text, docText.ToString());            
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1068,7 +1068,7 @@ End Class";
             var observed2 = GetObservedSyntaxTreeRootAsync(doc2.Project.Solution, did);
             StopObservingAndWaitForReferenceToGo(observed2);
 
-            // access the tree & root again (recovert it)
+            // access the tree & root again (recover it)
             var tree2 = doc2.GetSyntaxTreeAsync().Result;
 
             // this should cause deserialization

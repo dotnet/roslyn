@@ -12,7 +12,7 @@ namespace System.Runtime.Analyzers
         internal const string CA1016RuleId = "CA1016";
         internal const string CA1014RuleId = "CA1014";
 
-        private static LocalizableString s_localizableMessageCA1016 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageCA1016 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor CA1016Rule = new DiagnosticDescriptor(CA1016RuleId,
                                                                          s_localizableMessageCA1016,
                                                                          s_localizableMessageCA1016,
@@ -22,8 +22,8 @@ namespace System.Runtime.Analyzers
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182155.aspx",
                                                                          customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString s_localizableMessageCA1014 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAssembliesWithCLSCompliantAttribute), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
-        private static LocalizableString s_localizableDescriptionCA1014 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAssembliesWithCLSCompliantDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableMessageCA1014 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAssembliesWithCLSCompliantAttribute), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
+        private static readonly LocalizableString s_localizableDescriptionCA1014 = new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.MarkAssembliesWithCLSCompliantDescription), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources));
         internal static DiagnosticDescriptor CA1014Rule = new DiagnosticDescriptor(CA1014RuleId,
                                                                          s_localizableMessageCA1014,
                                                                          s_localizableMessageCA1014,

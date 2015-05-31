@@ -5248,6 +5248,94 @@ Test2.Else
         End Sub
 
         <Fact()>
+        Public Sub InlineNullableIsTrue_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim s1 As New S1(True)
+        Test1(s1)
+
+        s1 = New S1(False)
+        Test1(s1)
+
+        Test1(Nothing)
+    End Sub
+
+    Sub Test1(x as S1?)
+        if GetVal(x)?.M1()
+            System.Console.WriteLine("Test1.Then")
+        Else
+            System.Console.WriteLine("Test1.Else")
+        End If
+    End Sub
+
+    Function GetVal(x As S1?) As S1?
+        return x
+    End Function
+End Module
+
+Structure S1
+    Dim _x as Boolean 
+
+    Sub New(x as Boolean)
+        _x = x
+    End Sub
+
+    Function M1() As Boolean
+        System.Console.WriteLine("M1")
+        return _x
+    End Function
+End Structure
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+M1
+Test1.Then
+M1
+Test1.Else
+Test1.Else
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       58 (0x3a)
+  .maxstack  1
+  .locals init (S1? V_0,
+                S1 V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Module1.GetVal(S1?) As S1?"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "Function S1?.get_HasValue() As Boolean"
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldc.i4.0
+  IL_0011:  br.s       IL_0022
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "Function S1?.GetValueOrDefault() As S1"
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       "Function S1.M1() As Boolean"
+  IL_0022:  brfalse.s  IL_002f
+  IL_0024:  ldstr      "Test1.Then"
+  IL_0029:  call       "Sub System.Console.WriteLine(String)"
+  IL_002e:  ret
+  IL_002f:  ldstr      "Test1.Else"
+  IL_0034:  call       "Sub System.Console.WriteLine(String)"
+  IL_0039:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub InlineBinaryConditional_01()
 
             Dim compilationDef =
@@ -5902,6 +5990,75 @@ End Class
         End Sub
 
         <Fact()>
+        Public Sub InlineBinaryConditional_05()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim s1 As New S1()
+        Test1(s1)
+        System.Console.WriteLine("---")
+        Test1(Nothing)
+    End Sub
+
+    Sub Test1(x as S1?)
+        System.Console.WriteLine(if(GetVal(x)?.M1(), 101))
+    End Sub
+
+    Function GetVal(x As S1?) As S1?
+        return x
+    End Function
+End Module
+
+Structure S1
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return 1
+    End Function
+End Structure
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+M1
+1
+---
+101
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  1
+  .locals init (S1? V_0,
+                S1 V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Module1.GetVal(S1?) As S1?"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "Function S1?.get_HasValue() As Boolean"
+  IL_000e:  brtrue.s   IL_0014
+  IL_0010:  ldc.i4.s   101
+  IL_0012:  br.s       IL_0023
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       "Function S1?.GetValueOrDefault() As S1"
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  call       "Function S1.M1() As Integer"
+  IL_0023:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0028:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub InlineConversion_01()
 
             Dim compilationDef =
@@ -6016,6 +6173,85 @@ End Class
   IL_0036:  box        "Long?"
   IL_003b:  call       "Sub System.Console.WriteLine(Object)"
   IL_0040:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineConversion_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim s1 As New S1()
+        Test1(s1)
+        System.Console.WriteLine("---")
+        Test1(Nothing)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as S1?)
+        System.Console.WriteLine(CType(GetVal(x)?.M1(), Long?))
+    End Sub
+
+    Function GetVal(x As S1?) As S1?
+        return x
+    End Function
+End Module
+
+Structure S1
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return 1
+    End Function
+End Structure
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+1
+---
+
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (S1? V_0,
+                Long? V_1,
+                S1 V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Module1.GetVal(S1?) As S1?"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "Function S1?.get_HasValue() As Boolean"
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    "Long?"
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0030
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       "Function S1?.GetValueOrDefault() As S1"
+  IL_0022:  stloc.2
+  IL_0023:  ldloca.s   V_2
+  IL_0025:  call       "Function S1.M1() As Integer"
+  IL_002a:  conv.i8
+  IL_002b:  newobj     "Sub Long?..ctor(Long)"
+  IL_0030:  box        "Long?"
+  IL_0035:  call       "Sub System.Console.WriteLine(Object)"
+  IL_003a:  ret
 }
 ]]>)
         End Sub
@@ -6449,6 +6685,83 @@ False
         End Sub
 
         <Fact()>
+        Public Sub InlineIsNot_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim s1 As New S1()
+        Test1(s1)
+
+        System.Console.WriteLine("---")
+
+        Test1(Nothing)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as S1?)
+        System.Console.WriteLine(GetVal(x)?.M1() IsNot Nothing)
+    End Sub
+
+    Function GetVal(x As S1?) As S1?
+        return x
+    End Function
+End Module
+
+Structure S1
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return 1
+    End Function
+End Structure
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+True
+---
+False
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       42 (0x2a)
+  .maxstack  1
+  .locals init (S1? V_0,
+                S1 V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Module1.GetVal(S1?) As S1?"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "Function S1?.get_HasValue() As Boolean"
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldc.i4.0
+  IL_0011:  br.s       IL_0024
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "Function S1?.GetValueOrDefault() As S1"
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       "Function S1.M1() As Integer"
+  IL_0022:  pop
+  IL_0023:  ldc.i4.1
+  IL_0024:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_0029:  ret
+}
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub InlineBinary_01()
 
             Dim compilationDef =
@@ -6851,6 +7164,87 @@ Else
   IL_0057:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub InlineBinary_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        System.Console.WriteLine("---")
+        Dim s1 As New S1()
+        Test1(s1)
+        System.Console.WriteLine("---")
+        Test1(Nothing)
+        System.Console.WriteLine("---")
+    End Sub
+
+    Sub Test1(x as S1?)
+        System.Console.WriteLine(GetVal(x)?.M1() = 1)
+    End Sub
+
+    Function GetVal(x As S1?) As S1?
+        return x
+    End Function
+End Module
+
+Structure S1
+    Function M1() As Integer
+        System.Console.WriteLine("M1")
+        return 1
+    End Function
+End Structure
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+M1
+True
+---
+
+---
+]]>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (S1? V_0,
+                Boolean? V_1,
+                S1 V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Module1.GetVal(S1?) As S1?"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "Function S1?.get_HasValue() As Boolean"
+  IL_000e:  brtrue.s   IL_001b
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  initobj    "Boolean?"
+  IL_0018:  ldloc.1
+  IL_0019:  br.s       IL_0032
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  call       "Function S1?.GetValueOrDefault() As S1"
+  IL_0022:  stloc.2
+  IL_0023:  ldloca.s   V_2
+  IL_0025:  call       "Function S1.M1() As Integer"
+  IL_002a:  ldc.i4.1
+  IL_002b:  ceq
+  IL_002d:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0032:  box        "Boolean?"
+  IL_0037:  call       "Sub System.Console.WriteLine(Object)"
+  IL_003c:  ret
+}
+]]>)
+
         End Sub
 
         <Fact()>

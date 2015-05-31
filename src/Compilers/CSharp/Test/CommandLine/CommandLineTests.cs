@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 _patterns = patterns;
             }
 
-            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, SearchOption searchOption)
+            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, object searchOption)
             {
                 var key = directory + "|" + fileNamePattern;
-                if (searchOption == SearchOption.TopDirectoryOnly)
+                if (searchOption == PortableShim.SearchOption.TopDirectoryOnly)
                 {
                     return _patterns[key];
                 }
@@ -5339,7 +5339,7 @@ class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ResponseFilesWithNoconfig_01()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -6262,7 +6262,7 @@ class Program3
                     throw new IOException();
                 }
 
-                return File.Open(file, mode, access, share);
+                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6288,7 +6288,7 @@ class Program3
                     throw new IOException();
                 }
 
-                return File.Open(file, mode, access, share);
+                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6314,7 +6314,7 @@ class Program3
                 }
                 else
                 {
-                    return File.Open(file, mode, access, share);
+                    return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
                 }
             };
 
@@ -6588,6 +6588,32 @@ public class C { }
             string stringStart = "foo(1,7,1,8)";
 
             Assert.Equal(stringStart, text.Substring(0, stringStart.Length));
+        }
+
+        [Fact]
+        public void ReportAnalyzer()
+        {
+            var parsedArgs1 = DefaultParse(new[] { "a.cs", "/reportanalyzer" }, _baseDirectory);
+            Assert.True(parsedArgs1.ReportAnalyzer);
+
+            var parsedArgs2 = DefaultParse(new[] { "a.cs", "" }, _baseDirectory);
+            Assert.False(parsedArgs2.ReportAnalyzer);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, srcDirectory, new[] { "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
         }
 
         [Fact]
@@ -6918,7 +6944,7 @@ using System.Diagnostics; // Unused.
         }
 
         private static string VerifyOutput(TempDirectory sourceDir, TempFile sourceFile,
-                                           bool includeCurrentAssemblyAsAnalyzerReferecne = true,
+                                           bool includeCurrentAssemblyAsAnalyzerReference = true,
                                            string[] additionalFlags = null,
                                            int expectedInfoCount = 0,
                                            int expectedWarningCount = 0,
@@ -6928,7 +6954,7 @@ using System.Diagnostics; // Unused.
                                 "/nologo", "/preferreduilang:en", "/t:library",
                                 sourceFile.Path
                              };
-            if (includeCurrentAssemblyAsAnalyzerReferecne)
+            if (includeCurrentAssemblyAsAnalyzerReference)
             {
                 args = args.Append("/a:" + Assembly.GetExecutingAssembly().Location);
             }
@@ -7231,7 +7257,7 @@ using System.Diagnostics; // Unused.
         private string GetOutput(
             string name,
             string source,
-            bool includeCurrentAssemblyAsAnalyzerReferecne = true,
+            bool includeCurrentAssemblyAsAnalyzerReference = true,
             string[] additionalFlags = null,
             int expectedInfoCount = 0,
             int expectedWarningCount = 0,
@@ -7241,7 +7267,7 @@ using System.Diagnostics; // Unused.
             var file = dir.CreateFile(name);
             file.WriteAllText(source);
 
-            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount);
+            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount);
             CleanupAllGeneratedFiles(file.Path);
             return output;
         }
@@ -7540,41 +7566,41 @@ class C
             var file = dir.CreateFile("a.cs");
             file.WriteAllText(source);
 
-            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, expectedErrorCount: 1);
+            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler error CS0029 can't be suppressed via /warn:0.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warn:0" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warn:0" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler error CS0029 can't be suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/nowarn:29" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:29" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/nowarn:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens when using /warnaserror[+/-] when compiler error CS0029 is present.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror+" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror-" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens if someone passes compiler error CS0029 to /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror:0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror:0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror+:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror+:CS0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror-:29" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-:29" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror-:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-:CS0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(file.Path);

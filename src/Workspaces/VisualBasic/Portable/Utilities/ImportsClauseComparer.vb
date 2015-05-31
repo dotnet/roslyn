@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Public Shared ReadOnly Instance As IComparer(Of ImportsClauseSyntax) = New ImportsClauseComparer()
 
-        Private _nameComparer As IComparer(Of NameSyntax)
+        Private ReadOnly _nameComparer As IComparer(Of NameSyntax)
 
         Private Sub New()
             _nameComparer = NameSyntaxComparer.Create(TokenComparer.NormalInstance)

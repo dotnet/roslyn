@@ -414,6 +414,9 @@ namespace ConsoleApplication1
     <method containingType=""ConsoleApplication1.Program"" name=""GetNextInt"" parameterNames=""random"">
       <customDebugInfo>
         <forward declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" document=""0"" />
@@ -459,7 +462,7 @@ namespace ConsoleApplication1
       <customDebugInfo>
         <forward declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x11"" endOffset=""0x11e"" />
+          <slot startOffset=""0x0"" endOffset=""0x14e"" />
           <slot startOffset=""0x0"" endOffset=""0x0"" />
           <slot startOffset=""0x0"" endOffset=""0x0"" />
           <slot startOffset=""0x41"" endOffset=""0xed"" />
@@ -574,6 +577,139 @@ class TestCase
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void TestAsyncDebug4()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<int> F()
+    {
+        await Task.Delay(1);
+        return 1;
+    }
+}";
+            var v = CompileAndVerify(CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll));
+
+            v.VerifyIL("C.F", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (C.<F>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> V_1)
+  IL_0000:  newobj     ""C.<F>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldc.i4.m1
+  IL_0013:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<C.<F>d__0>(ref C.<F>d__0)""
+  IL_0028:  ldloc.0
+  IL_0029:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_002e:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
+  IL_0033:  ret
+}",
+sequencePoints: "C.F");
+
+            v.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+{
+  // Code size      168 (0xa8)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter V_2,
+                C.<F>d__0 V_3,
+                System.Exception V_4)
+ ~IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+   ~IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0048
+   -IL_000e:  nop
+   -IL_000f:  ldc.i4.1
+    IL_0010:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
+    IL_0015:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_001a:  stloc.2
+   ~IL_001b:  ldloca.s   V_2
+    IL_001d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0022:  brtrue.s   IL_0064
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.0
+    IL_0026:  dup
+    IL_0027:  stloc.0
+    IL_0028:  stfld      ""int C.<F>d__0.<>1__state""
+   <IL_002d:  ldarg.0
+    IL_002e:  ldloc.2
+    IL_002f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0034:  ldarg.0
+    IL_0035:  stloc.3
+    IL_0036:  ldarg.0
+    IL_0037:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_003c:  ldloca.s   V_2
+    IL_003e:  ldloca.s   V_3
+    IL_0040:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<F>d__0)""
+    IL_0045:  nop
+    IL_0046:  leave.s    IL_00a7
+   >IL_0048:  ldarg.0
+    IL_0049:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_004e:  stloc.2
+    IL_004f:  ldarg.0
+    IL_0050:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0055:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_005b:  ldarg.0
+    IL_005c:  ldc.i4.m1
+    IL_005d:  dup
+    IL_005e:  stloc.0
+    IL_005f:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0064:  ldloca.s   V_2
+    IL_0066:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_006b:  nop
+    IL_006c:  ldloca.s   V_2
+    IL_006e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+   -IL_0074:  ldc.i4.1
+    IL_0075:  stloc.1
+    IL_0076:  leave.s    IL_0092
+  }
+  catch System.Exception
+  {
+   ~IL_0078:  stloc.s    V_4
+    IL_007a:  ldarg.0
+    IL_007b:  ldc.i4.s   -2
+    IL_007d:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0082:  ldarg.0
+    IL_0083:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_0088:  ldloc.s    V_4
+    IL_008a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_008f:  nop
+    IL_0090:  leave.s    IL_00a7
+  }
+ -IL_0092:  ldarg.0
+  IL_0093:  ldc.i4.s   -2
+  IL_0095:  stfld      ""int C.<F>d__0.<>1__state""
+ ~IL_009a:  ldarg.0
+  IL_009b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_00a0:  ldloc.1
+  IL_00a1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00a6:  nop
+  IL_00a7:  ret
+}
+", sequencePoints: "C+<F>d__0.MoveNext");
         }
 
         [WorkItem(836491, "DevDiv")]
@@ -712,7 +848,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x11"" endOffset=""0xe0"" />
+          <slot startOffset=""0x0"" endOffset=""0x10d"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -809,7 +945,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0xa"" endOffset=""0xc0"" />
+          <slot startOffset=""0x0"" endOffset=""0xeb"" />
         </hoistedLocalScopes>
       </customDebugInfo>
       <sequencePoints>
@@ -898,7 +1034,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x11"" endOffset=""0xcf"" />
+          <slot startOffset=""0x0"" endOffset=""0xfc"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -991,7 +1127,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0xe"" endOffset=""0xdc"" />
+          <slot startOffset=""0x0"" endOffset=""0x109"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1154,7 +1290,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x11"" endOffset=""0xdc"" />
+          <slot startOffset=""0x0"" endOffset=""0x109"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1451,7 +1587,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0xe"" endOffset=""0xed"" />
+          <slot startOffset=""0x0"" endOffset=""0x11d"" />
           <slot startOffset=""0x29"" endOffset=""0x32"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>

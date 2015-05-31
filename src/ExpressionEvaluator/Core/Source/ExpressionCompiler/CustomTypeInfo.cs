@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Payload = payload;
         }
 
+        public DynamicFlagsCustomTypeInfo ToDynamicFlagsCustomTypeInfo()
+        {
+            return DynamicFlagsCustomTypeInfo.Create(this);
+        }
+
         public DkmClrCustomTypeInfo ToDkmClrCustomTypeInfo()
         {
             return Payload == null

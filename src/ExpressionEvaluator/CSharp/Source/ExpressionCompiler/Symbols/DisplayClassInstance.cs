@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -51,36 +52,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
     }
 
-    internal sealed class DisplayClassInstanceFromThis : DisplayClassInstance
+    internal sealed class DisplayClassInstanceFromParameter : DisplayClassInstance
     {
-        internal readonly ParameterSymbol ThisParameter;
+        internal readonly ParameterSymbol Parameter;
 
-        internal DisplayClassInstanceFromThis(ParameterSymbol thisParameter)
+        internal DisplayClassInstanceFromParameter(ParameterSymbol parameter)
         {
-            Debug.Assert(thisParameter != null);
-            this.ThisParameter = thisParameter;
+            Debug.Assert((object)parameter != null);
+            Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) || 
+                GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
+            this.Parameter = parameter;
         }
 
         internal override Symbol ContainingSymbol
         {
-            get { return this.ThisParameter.ContainingSymbol; }
+            get { return this.Parameter.ContainingSymbol; }
         }
 
         internal override NamedTypeSymbol Type
         {
-            get { return (NamedTypeSymbol)this.ThisParameter.Type; }
+            get { return (NamedTypeSymbol)this.Parameter.Type; }
         }
 
         internal override DisplayClassInstance ToOtherMethod(MethodSymbol method, TypeMap typeMap)
         {
             Debug.Assert(method.IsStatic);
-            var otherParameter = method.Parameters[0];
-            return new DisplayClassInstanceFromThis(otherParameter);
+            var otherOrdinal = this.ContainingSymbol.IsStatic
+                ? this.Parameter.Ordinal
+                : (this.Parameter.Ordinal + 1);
+            var otherParameter = method.Parameters[otherOrdinal];
+            return new DisplayClassInstanceFromParameter(otherParameter);
         }
 
         internal override BoundExpression ToBoundExpression(CSharpSyntaxNode syntax)
         {
-            return new BoundParameter(syntax, this.ThisParameter) { WasCompilerGenerated = true };
+            return new BoundParameter(syntax, this.Parameter) { WasCompilerGenerated = true };
         }
     }
 }

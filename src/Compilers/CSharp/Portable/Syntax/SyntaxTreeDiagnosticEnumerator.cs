@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private struct NodeIteration
         {
-            internal GreenNode Node;
+            internal readonly GreenNode Node;
             internal int DiagnosticIndex;
             internal int SlotIndex;
 

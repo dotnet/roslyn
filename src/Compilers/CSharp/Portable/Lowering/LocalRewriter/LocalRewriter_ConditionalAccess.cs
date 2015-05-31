@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // null when currently enclosing conditional access node
         // is not supposed to be lowered.
-        private BoundExpression _currentConditionalAccessTarget = null;
-        private int _currentConditionalAccessID = 0;
+        private BoundExpression _currentConditionalAccessTarget;
+        private int _currentConditionalAccessID;
 
         private enum ConditionalAccessLoweringKind
         {

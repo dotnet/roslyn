@@ -19,13 +19,6 @@
 "version"="42.42.42.42"
 "codeBase"="$PackageFolder$\OpenSourceDebug.dll"
 
-[$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{BD63FD05-C1FF-4FC9-8B16-1F89252C1AA6}]
-"name"="Microsoft.CodeAnalysis.CSharp.Desktop"
-"publicKeyToken"="31bf3856ad364e35"
-"culture"="neutral"
-"version"="42.42.42.42"
-"codeBase"="$PackageFolder$\Microsoft.CodeAnalysis.CSharp.Desktop.dll"
-
 [$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{6F2F49AD-3400-468C-A4E3-DF22A400A5BE}]
 "name"="Microsoft.CodeAnalysis.CSharp"
 "publicKeyToken"="31bf3856ad364e35"
@@ -47,13 +40,6 @@
 "version"="42.42.42.42"
 "codeBase"="$PackageFolder$\Microsoft.CodeAnalysis.CSharp.Workspaces.dll"
 
-[$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{BEFBFC1B-A65A-4673-A2D8-DDF88FE832F1}]
-"name"="Microsoft.CodeAnalysis.Desktop"
-"publicKeyToken"="31bf3856ad364e35"
-"culture"="neutral"
-"version"="42.42.42.42"
-"codeBase"="$PackageFolder$\Microsoft.CodeAnalysis.Desktop.dll"
-
 [$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{9191E7D9-AD0F-4FC4-9BAA-13F5AEB7B7A9}]
 "name"="Microsoft.CodeAnalysis"
 "publicKeyToken"="31bf3856ad364e35"
@@ -67,13 +53,6 @@
 "culture"="neutral"
 "version"="42.42.42.42"
 "codeBase"="$PackageFolder$\Microsoft.CodeAnalysis.FxCopAnalyzers.dll"
-
-[$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{A0B7536E-8ADA-4108-8E98-ECFDAC4BBB79}]
-"name"="Microsoft.CodeAnalysis.VisualBasic.Desktop"
-"publicKeyToken"="31bf3856ad364e35"
-"culture"="neutral"
-"version"="42.42.42.42"
-"codeBase"="$PackageFolder$\Microsoft.CodeAnalysis.VisualBasic.Desktop.dll"
 
 [$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{74465C32-9A24-44DE-BDD0-6A335D926101}]
 "name"="Microsoft.CodeAnalysis.VisualBasic"

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         // might not "enabled" but we always have this singleton alive
         public static readonly RoslynEventSource Instance = new RoslynEventSource();
 
-        private readonly bool _initialized = false;
+        private readonly bool _initialized;
         private RoslynEventSource()
         {
             _initialized = true;

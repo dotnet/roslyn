@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (headerLines == null)
             {
-                throw new ArgumentNullException("headerLines");
+                throw new ArgumentNullException(nameof(headerLines));
             }
 
             if (projectBlocks == null)
             {
-                throw new ArgumentNullException("projectBlocks");
+                throw new ArgumentNullException(nameof(projectBlocks));
             }
 
             if (globalSectionBlocks == null)
             {
-                throw new ArgumentNullException("globalSectionBlocks");
+                throw new ArgumentNullException(nameof(globalSectionBlocks));
             }
 
             _headerLines = headerLines.ToList().AsReadOnly();

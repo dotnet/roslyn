@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>> where TNode : CSharpSyntaxNode
     {
-        private CSharpSyntaxNode _node;
+        private readonly CSharpSyntaxNode _node;
 
         internal SyntaxList(CSharpSyntaxNode node)
         {

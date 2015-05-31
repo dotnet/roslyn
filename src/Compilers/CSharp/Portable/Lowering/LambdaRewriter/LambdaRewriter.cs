@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The "this" symbol for the current method.
         private ParameterSymbol _currentFrameThis;
 
-        private ArrayBuilder<LambdaDebugInfo> _lambdaDebugInfoBuilder;
+        private readonly ArrayBuilder<LambdaDebugInfo> _lambdaDebugInfoBuilder;
 
         // ID dispenser for field names of frame references
         private int _synthesizedFieldNameIdDispenser;
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
-            closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId.Generation));
+            closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId));
 
             return closureId;
         }
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree);
-            _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, closureOrdinal, lambdaId.Generation));
+            _lambdaDebugInfoBuilder.Add(new LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal));
             return lambdaId;
         }
 
@@ -1144,12 +1144,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression cache;
                     if (shouldCacheForStaticMethod || shouldCacheInLoop && (object)containerAsFrame != null)
                     {
-                        var cacheVariableType = containerAsFrame?.TypeMap.SubstituteType(type) ?? translatedLambdaContainer;
-
-                        // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
-                        // no need to include the top-level method ordinal in the field name.
+                        // Since the cache variable will be in a container with possibly alpha-rewritten generic parameters, we need to
+                        // substitute the original type according to the type map for that container. That substituted type may be
+                        // different from the local variable `type`, which has the node's type substituted for the current container.
+                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type);
 
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
+                            // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
+                            // no need to include the top-level method ordinal in the field name.
                             (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
                             topLevelMethodId.Generation,
                             lambdaId.Ordinal,

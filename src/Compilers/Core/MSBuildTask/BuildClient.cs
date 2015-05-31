@@ -17,6 +17,7 @@ using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
 using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
 using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -41,8 +42,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string clientDir,
             string workingDir,
             string sdkDir,
+            IAnalyzerAssemblyLoader analyzerLoader,
             RequestLanguage language,
-            Func<string, string, string[], int> fallbackCompiler)
+            Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler)
         {
             args = args.Select(arg => arg.Trim()).ToArray();
 
@@ -75,33 +77,40 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var response = responseTask.Result;
                 if (response != null)
                 {
-                    return HandleResponse(response);
+                    return HandleResponse(response, clientDir, sdkDir, analyzerLoader, fallbackCompiler, parsedArgs);
                 }
             }
 
-            return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray());
+            return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray(), analyzerLoader);
         }
 
-        private static int HandleResponse(BuildResponse response)
+        private static int HandleResponse(BuildResponse response, string clientDir, string sdkDir, IAnalyzerAssemblyLoader analyzerLoader, Func<string, string, string[], IAnalyzerAssemblyLoader, int> fallbackCompiler, List<string> parsedArgs)
         {
-            if (response.Type == BuildResponse.ResponseType.Completed)
+            switch (response.Type)
             {
-                var completedResponse = (CompletedBuildResponse)response;
-                return ConsoleUtil.RunWithOutput(
-                    completedResponse.Utf8Output,
-                    (outWriter, errorWriter) =>
-                    {
-                        outWriter.Write(completedResponse.Output);
-                        errorWriter.Write(completedResponse.ErrorOutput);
-                        return completedResponse.ReturnCode;
-                    });
-            }
-            else
-            {
-                Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
-                return CommonCompiler.Failed;
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
+                    return CommonCompiler.Failed;
+
+                case BuildResponse.ResponseType.Completed:
+                    var completedResponse = (CompletedBuildResponse)response;
+                    return ConsoleUtil.RunWithOutput(
+                        completedResponse.Utf8Output,
+                        (outWriter, errorWriter) =>
+                        {
+                            outWriter.Write(completedResponse.Output);
+                            errorWriter.Write(completedResponse.ErrorOutput);
+                            return completedResponse.ReturnCode;
+                        });
+
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    return fallbackCompiler(clientDir, sdkDir, parsedArgs.ToArray(), analyzerLoader);
+
+                default:
+                    throw new InvalidOperationException("Encountered unknown response type");
             }
         }
+
 
         /// <summary>
         /// Returns a Task with a null BuildResponse if no server
@@ -148,16 +157,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         {
                             var request = BuildRequest.Create(language, workingDir, arguments, keepAlive, libEnvVariable);
                             // Check for already running processes in case someone came in before us
-                            if (null != (pipe = TryConnectToProcess(pipeName,
-                                                                    TimeOutMsExistingProcess,
-                                                                    cancellationToken)))
+                            string availablePipeName;
+                            if (null != (pipe = TryAllProcesses(pipeName,
+                                                                TimeOutMsExistingProcess,
+                                                                cancellationToken,
+                                                                out availablePipeName)))
                             {
                                 return TryCompile(pipe, request, cancellationToken);
                             }
                             else
                             {
-                                if (TryCreateServerProcess(clientDir, pipeName) &&
-                                    null != (pipe = TryConnectToProcess(pipeName,
+                                if (TryCreateServerProcess(clientDir, availablePipeName) &&
+                                    null != (pipe = TryConnectToProcess(availablePipeName,
                                                                         TimeOutMsNewProcess,
                                                                         cancellationToken)))
                                 {
@@ -298,6 +309,35 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             ref int bufferSize);
 
         private const int MAX_PATH_SIZE = 260;
+
+        /// <summary>
+        /// Try all processes that start with the current pipe name and return
+        /// the connected pipe if one is found. Otherwise, return null.
+        /// <paramref name="newPipeName" /> will contain the next free pipe
+        /// name if no connection was made.
+        /// </summary>
+        private static NamedPipeClientStream TryAllProcesses(
+            string pipeName,
+            int timeoutMs,
+            CancellationToken cancellationToken,
+            out string newPipeName)
+        {
+            string basePipeName = pipeName;
+            for (int counter = 1; File.Exists($@"\\.\pipe\{pipeName}"); counter++)
+            {
+                NamedPipeClientStream pipe;
+                if (null != (pipe = TryConnectToProcess(pipeName, timeoutMs, cancellationToken)))
+                {
+                    newPipeName = pipeName;
+                    return pipe;
+                }
+
+                // Append an integer counter to the pipename
+                pipeName = basePipeName + "." + counter.ToString(CultureInfo.InvariantCulture);
+            }
+            newPipeName = pipeName;
+            return null;
+        }
 
         /// <summary>
         /// Connect to the pipe for a given directory and return it.

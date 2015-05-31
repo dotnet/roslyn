@@ -248,6 +248,69 @@ class C
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=31)))
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=9, lineOffset:=5, absoluteOffset:=76, lineLength:=22)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetStartPoint_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetStartPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=8, lineOffset:=5, absoluteOffset:=67, lineLength:=16)))
+        End Sub
+
 #End Region
 
 #Region "GetEndPoint() tests"
@@ -489,6 +552,69 @@ class C
                      TextPoint(line:=13, lineOffset:=6, absoluteOffset:=182, lineLength:=5)))
         End Sub
 
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=18, lineOffset:=6, absoluteOffset:=178, lineLength:=5)))
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetEndPoint_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestGetEndPoint(code,
+                Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
+                     TextPoint(line:=19, lineOffset:=6, absoluteOffset:=193, lineLength:=5)))
+        End Sub
+
 #End Region
 
 #Region "FullName tests"
@@ -539,6 +665,65 @@ class C
 </Code>
 
             TestFullName(code, "C.this")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.Prop1")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub FullName_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestFullName(code, "C1.I1.this")
         End Sub
 
 #End Region
@@ -648,6 +833,65 @@ class C
 </Code>
 
             TestName(code, "this")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedProperty()
+            Dim code =
+<Code>
+interface I1
+{
+    int Prop1 { get; set; }
+}
+
+class C1 : I1
+{
+    int $$I1.Prop1
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestName(code, "I1.Prop1")
+        End Sub
+
+        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub Name_ExplicitlyImplementedIndexer()
+            Dim code =
+<Code>
+interface I1
+{
+    int this[int i]
+    { get;set; }
+}
+
+class C1 : I1
+{
+    int $$I1.this[int i]
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+        }
+    }
+}
+</Code>
+
+            TestName(code, "I1.this")
         End Sub
 
 #End Region
@@ -1094,6 +1338,114 @@ class Program
 </Code>
 
             TestAllParameterNames(code, "@int")
+        End Sub
+
+#End Region
+
+#Region "AddAttribute tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute1()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    public int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable()]
+    public int P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute2()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    public int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    [CLSCompliant(true)]
+    public int P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    public int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    [CLSCompliant(true)]
+    public int P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region

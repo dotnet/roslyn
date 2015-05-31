@@ -49,10 +49,10 @@ Namespace Global
     Friend Class ExpressionPrinter
         Inherits System.Linq.Expressions.ExpressionVisitor
 
-        Private _s As StringBuilder = New StringBuilder()
+        Private ReadOnly _s As StringBuilder = New StringBuilder()
 
         Private _indent As String = ""
-        Private _indentStep As String = "  "
+        Private ReadOnly _indentStep As String = "  "
 
         Public Shared Function GetCultureInvariantString(val As Object) As String
             If val Is Nothing Then

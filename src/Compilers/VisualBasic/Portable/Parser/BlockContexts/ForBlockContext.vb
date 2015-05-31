@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class ForBlockContext
         Inherits ExecutableStatementContext
 
-        Private Shared s_emptyNextStatement As NextStatementSyntax
+        Private Shared ReadOnly s_emptyNextStatement As NextStatementSyntax
 
         Shared Sub New()
             s_emptyNextStatement = InternalSyntaxFactory.NextStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.NextKeyword), Nothing)

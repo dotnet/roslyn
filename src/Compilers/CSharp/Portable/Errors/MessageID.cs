@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingStatic = MessageBase + 12701,
         IDS_FeatureInterpolatedStrings = MessageBase + 12702,
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
+        IDS_AwaitInCatchAndFinally = MessageBase + 12704,
 
     }
 
@@ -161,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureDictionaryInitializer:
                 case MessageID.IDS_FeatureUsingStatic:
                 case MessageID.IDS_FeatureInterpolatedStrings:
+                case MessageID.IDS_AwaitInCatchAndFinally:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

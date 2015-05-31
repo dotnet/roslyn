@@ -1456,7 +1456,7 @@ class A { }
         }
 
         [WorkItem(536995, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestTextAndSpanWithTrivia1()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -1474,7 +1474,7 @@ class A { }
         }
 
         [WorkItem(536996, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestTextAndSpanWithTrivia2()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
@@ -2305,7 +2305,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestRemove_KeepUnbalancedDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"
@@ -2338,7 +2338,7 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestRemove_KeepDirectives()
         {
             var cu = SyntaxFactory.ParseCompilationUnit(@"

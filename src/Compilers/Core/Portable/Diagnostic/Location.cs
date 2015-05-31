@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract class Location
     {
-        protected Location()
+        internal Location()
         {
         }
 

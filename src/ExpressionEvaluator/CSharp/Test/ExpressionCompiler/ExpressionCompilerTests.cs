@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 string error;
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
                 var result = context.CompileExpression(
-                    DefaultInspectionContext.Instance,
                     "M(",
                     DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
                     CustomDiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
@@ -1370,10 +1370,8 @@ class B : A
 }");
             // Assign to a local, as above, but in an expression.
             testData = new CompilationTestData();
-            ResultProperties resultProperties;
             context.CompileExpression(
                 expr: "x = 1",
-                resultProperties: out resultProperties,
                 error: out error,
                 testData: testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1983,9 +1981,13 @@ class C
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression(
+            context.CompileExpression(
                 "@0x123 ?? @0xa1b2c3 ?? (object)$exception ?? @0XA1B2C3.GetHashCode()",
-                out error, testData);
+                DkmEvaluationFlags.TreatAsExpression,
+                ImmutableArray.Create(ExceptionAlias()),
+                out error, 
+                testData);
+            Assert.Null(error);
             Assert.Equal(testData.Methods.Count, 1);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -2016,7 +2018,7 @@ class C
 }");
             testData = new CompilationTestData();
             // Report overflow, even though native EE does not.
-            result = context.CompileExpression(
+            context.CompileExpression(
                 "@0xffff0000ffff0000ffff0000",
                 out error, testData);
             Assert.Equal(error, "(1,1): error CS1021: Integral constant is too large");
@@ -3619,9 +3621,9 @@ class C
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "o.First()",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -3832,9 +3834,9 @@ class C
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "x.F0 + y.F0",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -3845,9 +3847,9 @@ class C
             Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "y.F0",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -3858,9 +3860,9 @@ class C
             Assert.Equal("error CS7079: The type 'A0' is defined in a module that has not been added. You must add the module '" + assemblyName + "_N0.netmodule'.", error);
 
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "z.F1",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -4547,10 +4549,9 @@ class C
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("D", out resultProperties, out error, testData);
+            context.CompileExpression("D", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        6 (0x6)
@@ -4618,18 +4619,16 @@ struct S
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("x", out resultProperties, out error, testData);
+            context.CompileExpression("x", out error, testData);
             var methodData = testData.GetMethodData("<>x.<>m0");
             Assert.Equal(SpecialType.System_Int32, methodData.Method.ReturnType.SpecialType);
             methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.x""
   IL_0006:  ret
@@ -4658,22 +4657,20 @@ struct S
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("t", out resultProperties, out error, testData);
+            context.CompileExpression("t", out error, testData);
             var methodData = testData.GetMethodData("<>x<T>.<>m0");
             Assert.Equal("T", methodData.Method.ReturnType.Name);
             methodData.VerifyIL(@"
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""T C<T>.<F>d__0.<t>5__1""
   IL_0006:  ret
-            }
+}
 ");
         }
 
@@ -4730,9 +4727,8 @@ struct S
                 runtime,
                 methodName: "C.<>c__DisplayClass2.<Test>b__1");
             string error;
-            ResultProperties resultProperties;
             var testData = new CompilationTestData();
-            context.CompileExpression("x", out resultProperties, out error, testData);
+            context.CompileExpression("x", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -4767,10 +4763,9 @@ struct S
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("this?.F()", out resultProperties, out error, testData);
+            var result = context.CompileExpression("this?.F()", out error, testData);
             var methodData = testData.GetMethodData("<>x.<>m0");
             Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ToDisplayString(), "int?");
             methodData.VerifyIL(
@@ -4791,12 +4786,12 @@ struct S
 }");
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("(new C())?.G()?.F()", out resultProperties, out error, testData);
+            result = context.CompileExpression("(new C())?.G()?.F()", out error, testData);
             methodData = testData.GetMethodData("<>x.<>m0");
             Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ToDisplayString(), "int?");
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("G()?.M()", out resultProperties, out error, testData);
+            result = context.CompileExpression("G()?.M()", out error, testData);
             methodData = testData.GetMethodData("<>x.<>m0");
             Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
             methodData.VerifyIL(
@@ -4838,10 +4833,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.Main");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("F()", out resultProperties, out error, testData);
+            var result = context.CompileExpression("F()", out error, testData);
             // Currently, the name of the evaluation method is used for
             // [CallerMemberName] so "F()" will generate "[] [<>m0] [1]".
             testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -4892,31 +4886,30 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("X")) });
             var runtime = CreateRuntimeInstance(comp);
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
 
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("SXL.LoadOptions.None.ToString()", out resultProperties, out error, testData);
+            var result = context.CompileExpression("SXL.LoadOptions.None.ToString()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("LO.None.ToString()", out resultProperties, out error, testData);
+            result = context.CompileExpression("LO.None.ToString()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("LoadOptions.None.ToString()", out resultProperties, out error, testData);
+            result = context.CompileExpression("LoadOptions.None.ToString()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("X.System.Xml.Linq.LoadOptions.None.ToString()", out resultProperties, out error, testData);
+            result = context.CompileExpression("X.System.Xml.Linq.LoadOptions.None.ToString()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("X::System.Xml.Linq.LoadOptions.None.ToString()", out resultProperties, out error, testData);
+            result = context.CompileExpression("X::System.Xml.Linq.LoadOptions.None.ToString()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
         }
@@ -4957,16 +4950,15 @@ class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemXmlLinqRef.WithAliases(ImmutableArray.Create("global", "X")) });
             var runtime = CreateRuntimeInstance(comp);
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
 
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("A.LoadOptions.None.ToString()", out resultProperties, out error, testData);
+            var result = context.CompileExpression("A.LoadOptions.None.ToString()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("B.LoadOptions.None.ToString()", out resultProperties, out error, testData);
+            result = context.CompileExpression("B.LoadOptions.None.ToString()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL);
         }
@@ -4997,11 +4989,10 @@ class C
                 });
             var runtime = CreateRuntimeInstance(comp);
             var context = CreateMethodContext(runtime, "C.M");
-            ResultProperties resultProperties;
 
             string error;
             var testData = new CompilationTestData();
-            var result = context.CompileExpression("new X::System.Xml.XmlDocument()", out resultProperties, out error, testData);
+            var result = context.CompileExpression("new X::System.Xml.XmlDocument()", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
@@ -5014,7 +5005,7 @@ class C
 ");
 
             testData = new CompilationTestData();
-            result = context.CompileExpression("X::System.Xml.Linq.LoadOptions.None", out resultProperties, out error, testData);
+            result = context.CompileExpression("X::System.Xml.Linq.LoadOptions.None", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
@@ -5306,9 +5297,9 @@ class C
             string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             context.CompileExpression(
-                DefaultInspectionContext.Instance,
                 "from c in \"ABC\" select c",
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -5341,21 +5332,19 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<M>b__0");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("z", out resultProperties, out error, testData);
+            context.CompileExpression("z", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
             testData = new CompilationTestData();
-            context.CompileExpression("y", out resultProperties, out error, testData);
+            context.CompileExpression("y", out error, testData);
             Assert.Equal(error, "error CS0103: The name 'y' does not exist in the current context");
         }
 
@@ -5387,7 +5376,6 @@ class C
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -5450,10 +5438,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.I");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("typeof(T)", out resultProperties, out error, testData);
+            context.CompileExpression("typeof(T)", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0<T>").VerifyIL(@"
 {
@@ -5489,17 +5476,15 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<I>d__0.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("typeof(T)", out resultProperties, out error, testData);
+            context.CompileExpression("typeof(T)", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x<T>.<>m0").VerifyIL(@"
 {
   // Code size       11 (0xb)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldtoken    ""T""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ret
@@ -5602,9 +5587,9 @@ public class C
             Action<string> verify = expr =>
             {
                 context.CompileExpression(
-                    DefaultInspectionContext.Instance,
                     expr,
                     DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
                     DiagnosticFormatter.Instance,
                     out resultProperties,
                     out actualError,
@@ -5678,10 +5663,9 @@ public class Source
             var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, libAv1Ref, libBv2Ref), exeBytes, new SymReader(pdbBytes));
             var context = CreateMethodContext(runtime, "Source.Test");
 
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("new A()", out resultProperties, out error, testData);
+            context.CompileExpression("new A()", out error, testData);
             Assert.Null(error);
             var methodData = testData.GetMethodData("<>x.<>m0");
 

@@ -178,24 +178,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not lock on objects with weak identity..
-        /// </summary>
-        internal static string DoNotLockOnObjectsWithWeakIdentity {
-            get {
-                return ResourceManager.GetString("DoNotLockOnObjectsWithWeakIdentity", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Do not lock on a reference of type &apos;{0}&apos; as it has weak identity. Replace that with a lock against an object with strong identity..
-        /// </summary>
-        internal static string DoNotLockOnWeakIdentity {
-            get {
-                return ResourceManager.GetString("DoNotLockOnWeakIdentity", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enums should have zero value..
         /// </summary>
         internal static string EnumsShouldHaveZeroValue {
@@ -291,6 +273,34 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string ImplementSerializationConstructorDescription {
             get {
                 return ResourceManager.GetString("ImplementSerializationConstructorDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unsealed externally visible type provides an explicit method implementation of a public interface and does not provide an alternative externally visible method that has the same name.
+        ///Consider a base type that explicitly implements a public interface method. A type that derives from the base type can access the inherited interface method only through a reference to the current instance that is cast to the interface. If the derived type re-implements (explicitly) the inherited interface method, the base  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesDescription {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make &apos;{0}&apos; sealed (a breaking change if this class has previously shipped), implement the method non-explicitly, or implement a new method that exposes the functionality of &apos;{1}&apos; and is visible to derived classes..
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesMessage {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface methods should be callable by child types.
+        /// </summary>
+        internal static string InterfaceMethodsShouldBeCallableByChildTypesTitle {
+            get {
+                return ResourceManager.GetString("InterfaceMethodsShouldBeCallableByChildTypesTitle", resourceCulture);
             }
         }
         
@@ -471,15 +481,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers {
         internal static string TypesThatOwnDisposableFieldsShouldBeDisposable {
             get {
                 return ResourceManager.GetString("TypesThatOwnDisposableFieldsShouldBeDisposable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use System.EventHandler&lt;T&gt; where T inherits System.EventArgs or use System.EventHandler.
-        /// </summary>
-        internal static string UseGenericEventHandlerInstances {
-            get {
-                return ResourceManager.GetString("UseGenericEventHandlerInstances", resourceCulture);
             }
         }
         

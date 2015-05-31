@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected NotOverridable Overrides Function MakeRValueImpl() As BoundExpression
-            Return New BoundLValueToRValueWrapper(Me.Syntax, Me, Me.Type)
+            Return New BoundLValueToRValueWrapper(Me.Syntax, Me, Me.Type).MakeCompilerGenerated() ' This is a compiler generated node
         End Function
 
     End Class

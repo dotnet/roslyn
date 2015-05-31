@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private abstract class SynthesizedMethodBase : SynthesizedInstanceMethodSymbol
         {
-            private readonly NamedTypeSymbol _containigType;
+            private readonly NamedTypeSymbol _containingType;
             private readonly string _name;
 
-            public SynthesizedMethodBase(NamedTypeSymbol containigType, string name)
+            public SynthesizedMethodBase(NamedTypeSymbol containingType, string name)
             {
-                _containigType = containigType;
+                _containingType = containingType;
                 _name = name;
             }
 
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public sealed override Symbol ContainingSymbol
             {
-                get { return _containigType; }
+                get { return _containingType; }
             }
 
             public override NamedTypeSymbol ContainingType
             {
                 get
                 {
-                    return _containigType;
+                    return _containingType;
                 }
             }
 
@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    AnonymousTypeTemplateSymbol template = _containigType as AnonymousTypeTemplateSymbol;
-                    return ((object)template != null) ? template.Manager : ((AnonymousTypePublicSymbol)_containigType).Manager;
+                    AnonymousTypeTemplateSymbol template = _containingType as AnonymousTypeTemplateSymbol;
+                    return ((object)template != null) ? template.Manager : ((AnonymousTypePublicSymbol)_containingType).Manager;
                 }
             }
 

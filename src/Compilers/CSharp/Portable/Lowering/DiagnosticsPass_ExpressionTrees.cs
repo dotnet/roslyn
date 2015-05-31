@@ -169,11 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            CheckLiftedCompoundAssignment(node);
-            if (_inExpressionLambda)
-            {
-                Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
-            }
+            CheckCompoundAssignmentOperator(node);
 
             return base.VisitCompoundAssignmentOperator(node);
         }

@@ -143,59 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         // VisualBasicDiagnosticFilter.GetDiagnosticReport.
         internal static ReportDiagnostic GetEffectiveSeverity(string ruleId, IDictionary<string, ReportDiagnostic> specificOptions, ReportDiagnostic generalOption, DiagnosticSeverity defaultSeverity, bool enabledByDefault)
         {
-            ReportDiagnostic report = ReportDiagnostic.Default;
-            var isSpecified = specificOptions.TryGetValue(ruleId, out report);
-            if (!isSpecified)
-            {
-                report = enabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
-            }
-
-            if (report == ReportDiagnostic.Default)
-            {
-                switch (generalOption)
-                {
-                    case ReportDiagnostic.Error:
-                        if (defaultSeverity == DiagnosticSeverity.Warning)
-                        {
-                            if (!isSpecified)
-                            {
-                                return ReportDiagnostic.Error;
-                            }
-                        }
-
-                        break;
-                    case ReportDiagnostic.Suppress:
-                        if (defaultSeverity == DiagnosticSeverity.Warning || defaultSeverity == DiagnosticSeverity.Info)
-                        {
-                            return ReportDiagnostic.Suppress;
-                        }
-
-                        break;
-                    default:
-                        break;
-                }
-
-                return MapSeverityToReport(defaultSeverity);
-            }
-
-            return report;
-        }
-
-        private static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity defaultSeverity)
-        {
-            switch (defaultSeverity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    return ReportDiagnostic.Hidden;
-                case DiagnosticSeverity.Info:
-                    return ReportDiagnostic.Info;
-                case DiagnosticSeverity.Warning:
-                    return ReportDiagnostic.Warn;
-                case DiagnosticSeverity.Error:
-                    return ReportDiagnostic.Error;
-                default:
-                    throw new ArgumentException("Unhandled DiagnosticSeverity: " + defaultSeverity, "defaultSeverity");
-            }
+            return AnalyzerHelper.GetEffectiveSeverity(generalOption, specificOptions, ruleId, defaultSeverity, enabledByDefault);
         }
     }
 }

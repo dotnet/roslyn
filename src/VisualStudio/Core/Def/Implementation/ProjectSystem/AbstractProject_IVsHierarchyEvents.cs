@@ -69,6 +69,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 UpdateProjectDisplayNameAndFilePath();
             }
 
+            if ((propid == (int)__VSHPROPID.VSHPROPID_ProjectIDGuid) &&
+                 itemid == (uint)VSConstants.VSITEMID.Root)
+            {
+                // this should happen whle project loading if it ever happens
+                _guid = GetProjectIDGuid(_hierarchy);
+            }
+
             return VSConstants.S_OK;
         }
     }

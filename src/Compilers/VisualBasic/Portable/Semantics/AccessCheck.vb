@@ -728,7 +728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 
-        Private Shared s_mapAccessToAccessOutsideAssembly() As Accessibility
+        Private Shared ReadOnly s_mapAccessToAccessOutsideAssembly() As Accessibility
 
         Shared Sub New()
             s_mapAccessToAccessOutsideAssembly = New Accessibility(Accessibility.Public) {}

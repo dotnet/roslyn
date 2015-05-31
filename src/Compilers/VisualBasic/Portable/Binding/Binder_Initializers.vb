@@ -299,16 +299,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                   diagnostics)
 
             Dim hasErrors = False
-            If fieldSymbols.Length > 1 Then
-                Debug.Assert(fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
 
-                For Each name In DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
-                    If Not (name.ArrayRankSpecifiers.IsEmpty AndAlso name.ArrayBounds Is Nothing) Then
-                        ' Arrays cannot be declared with AsNew syntax
-                        ReportDiagnostic(diagnostics, name, ERRID.ERR_AsNewArray)
-                        hasErrors = True
-                    End If
-                Next
+            ' In speculative semantic model scenarios equalsValueOrAsNewSyntax might have no parent.
+            If equalsValueOrAsNewSyntax.Parent IsNot Nothing Then
+                Debug.Assert(Me.IsSemanticModelBinder OrElse
+                             fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
+
+                If equalsValueOrAsNewSyntax.Kind() = SyntaxKind.AsNewClause Then
+                    For Each name In DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
+                        If Not (name.ArrayRankSpecifiers.IsEmpty AndAlso name.ArrayBounds Is Nothing) Then
+                            ' Arrays cannot be declared with AsNew syntax
+                            ReportDiagnostic(diagnostics, name, ERRID.ERR_AsNewArray)
+                            hasErrors = True
+                        End If
+                    Next
+                End If
             End If
 
             boundInitializers.Add(New BoundFieldOrPropertyInitializer(

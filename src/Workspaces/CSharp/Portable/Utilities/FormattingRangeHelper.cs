@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 (parent is DelegateDeclarationSyntax) ||
                 (parent is FieldDeclarationSyntax) ||
                 (parent is EventFieldDeclarationSyntax) ||
-                (parent is MethodDeclarationSyntax))
+                (parent is MethodDeclarationSyntax) ||
+                (parent is PropertyDeclarationSyntax))
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }

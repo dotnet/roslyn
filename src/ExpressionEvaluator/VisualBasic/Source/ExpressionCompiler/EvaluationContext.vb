@@ -15,8 +15,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.DiaSymReader
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
@@ -178,12 +180,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim inScopeHoistedLocalNames As ImmutableHashSet(Of String) = Nothing
             Dim localNames = GetLocalNames(containingScopes, inScopeHoistedLocalNames)
             Dim localInfo = metadataDecoder.GetLocalInfo(localSignatureToken)
-            Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
-            GetLocals(localBuilder, currentFrame, localNames, localInfo)
-            GetStaticLocals(localBuilder, currentFrame, methodHandle, metadataDecoder)
-            GetConstants(localBuilder, currentFrame, containingScopes, metadataDecoder)
+            Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
+            GetLocals(localsBuilder, currentFrame, localNames, localInfo)
+            GetStaticLocals(localsBuilder, currentFrame, methodHandle, metadataDecoder)
+            GetConstants(localsBuilder, currentFrame, containingScopes, metadataDecoder)
             containingScopes.Free()
-            Dim locals = localBuilder.ToImmutableAndFree()
+            Dim locals = localsBuilder.ToImmutableAndFree()
 
             Dim methodDebugInfo As MethodDebugInfo
             Dim inScopeHoistedLocals As InScopeHoistedLocals
@@ -338,9 +340,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Friend Overrides Function CompileExpression(
-            inspectionContext As InspectionContext,
             expr As String,
             compilationFlags As DkmEvaluationFlags,
+            aliases As ImmutableArray(Of [Alias]),
             diagnostics As DiagnosticBag,
             <Out> ByRef resultProperties As ResultProperties,
             testData As Microsoft.CodeAnalysis.CodeGen.CompilationTestData) As CompileResult
@@ -361,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim context = Me.CreateCompilationContext(DirectCast(syntax, ExecutableStatementSyntax))
             Dim properties As ResultProperties = Nothing
-            Dim moduleBuilder = context.Compile(inspectionContext, s_typeName, s_methodName, testData, diagnostics, properties)
+            Dim moduleBuilder = context.Compile(s_typeName, s_methodName, aliases, testData, diagnostics, properties)
             If moduleBuilder Is Nothing Then
                 Return Nothing
             End If
@@ -392,9 +394,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Friend Overrides Function CompileAssignment(
-            inspectionContext As InspectionContext,
             target As String,
             expr As String,
+            aliases As ImmutableArray(Of [Alias]),
             diagnostics As DiagnosticBag,
             <Out> ByRef resultProperties As ResultProperties,
             testData As Microsoft.CodeAnalysis.CodeGen.CompilationTestData) As CompileResult
@@ -406,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim context = Me.CreateCompilationContext(assignment)
             Dim properties As ResultProperties = Nothing
-            Dim modulebuilder = context.Compile(inspectionContext, s_typeName, s_methodName, testData, diagnostics, properties)
+            Dim modulebuilder = context.Compile(s_typeName, s_methodName, aliases, testData, diagnostics, properties)
             If modulebuilder Is Nothing Then
                 Return Nothing
             End If
@@ -444,15 +446,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
 
         Friend Overrides Function CompileGetLocals(
-            aliases As ReadOnlyCollection(Of [Alias]),
             locals As ArrayBuilder(Of LocalAndMethod),
             argumentsOnly As Boolean,
+            aliases As ImmutableArray(Of [Alias]),
             diagnostics As DiagnosticBag,
             <Out> ByRef typeName As String,
             testData As CompilationTestData) As ReadOnlyCollection(Of Byte)
 
             Dim context = Me.CreateCompilationContext(Nothing)
-            Dim modulebuilder = context.CompileGetLocals(aliases, EvaluationContext.s_typeName, locals, argumentsOnly, testData, diagnostics)
+            Dim modulebuilder = context.CompileGetLocals(s_typeName, locals, argumentsOnly, aliases, testData, diagnostics)
             Dim assembly As ReadOnlyCollection(Of Byte) = Nothing
 
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then

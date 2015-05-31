@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             this IExtensionManager extensionManager,
             object extension,
             Func<T> function,
-            T defaultValue = default(T))
+            T defaultValue)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             this IExtensionManager extensionManager,
             object extension,
             Func<Task<T>> function,
-            T defaultValue = default(T))
+            T defaultValue)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Extensions
                 t1 =>
                 {
                     var query = from e in extensions
-                                let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e))
+                                let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), defaultValue: SpecializedCollections.EmptyEnumerable<Type>())
                                 where types != null
                                 where !types.Any() || types.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
                                 select e;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Extensions
                 k =>
                 {
                     var query = from e in extensions
-                                let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e))
+                                let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e), defaultValue: SpecializedCollections.EmptyEnumerable<int>())
                                 where kinds != null
                                 where !kinds.Any() || kinds.Contains(k)
                                 select e;

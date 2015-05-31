@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.ExperimentalFeaturesEnabled,
                 RudeEditKind.AwaitStatementUpdate,
                 RudeEditKind.InsertFile,
+                RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,
             };
 
             var arg2 = new HashSet<RudeEditKind>()
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.AccessingCapturedVariableInLambda,
                 RudeEditKind.NotAccessingCapturedVariableInLambda,
+                RudeEditKind.RenamingCapturedVariable
             };
 
             var arg3 = new HashSet<RudeEditKind>()

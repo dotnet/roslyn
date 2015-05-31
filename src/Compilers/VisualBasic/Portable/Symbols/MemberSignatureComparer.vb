@@ -27,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         PropertySignatureComparer.WinRTConflictComparer,
                                         EventSignatureComparer.WinRTConflictComparer)
 
-        Private _methodComparer As MethodSignatureComparer
-        Private _propertyComparer As PropertySignatureComparer
-        Private _eventComparer As EventSignatureComparer
+        Private ReadOnly _methodComparer As MethodSignatureComparer
+        Private ReadOnly _propertyComparer As PropertySignatureComparer
+        Private ReadOnly _eventComparer As EventSignatureComparer
 
         Private Sub New(methodComparer As MethodSignatureComparer,
                         propertyComparer As PropertySignatureComparer,

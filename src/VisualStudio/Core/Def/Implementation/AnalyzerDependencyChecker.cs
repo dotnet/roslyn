@@ -11,59 +11,88 @@ using System.Security;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal sealed class AnalyzerDependencyChecker
     {
-        private readonly ImmutableHashSet<string> _analyzerFilePaths;
+        private readonly HashSet<string> _analyzerFilePaths;
+        private readonly HashSet<AssemblyIdentity> _assemblyWhiteList;
+        private readonly IBindingRedirectionService _bindingRedirectionService;
 
-        private readonly SortedSet<string> _examinedFilePaths = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-        private readonly SortedSet<string> _filePathsToExamine = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        private readonly Dictionary<string, string> _dependencyPathToAnalyzerPathMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths)
+        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<AssemblyIdentity> assemblyWhiteList, IBindingRedirectionService bindingRedirectionService = null)
         {
-            _analyzerFilePaths = analyzerFilePaths.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+            Debug.Assert(analyzerFilePaths != null);
+            Debug.Assert(assemblyWhiteList != null);
+
+            _analyzerFilePaths = new HashSet<string>(analyzerFilePaths, StringComparer.OrdinalIgnoreCase);
+            _assemblyWhiteList = new HashSet<AssemblyIdentity>(assemblyWhiteList);
+            _bindingRedirectionService = bindingRedirectionService;
         }
 
-        public ImmutableArray<AnalyzerDependencyConflict> Run(CancellationToken cancellationToken = default(CancellationToken))
+        public AnalyzerDependencyResults Run(CancellationToken cancellationToken = default(CancellationToken))
         {
+            List<AnalyzerInfo> analyzerInfos = new List<AnalyzerInfo>();
+
             foreach (var analyzerFilePath in _analyzerFilePaths)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (File.Exists(analyzerFilePath))
+                AnalyzerInfo info = TryReadAnalyzerInfo(analyzerFilePath);
+
+                if (info != null)
                 {
-                    AddDependenciesToWorkList(analyzerFilePath, analyzerFilePath);
+                    analyzerInfos.Add(info);
                 }
             }
 
-            List<DependencyInfo> dependencies = new List<DependencyInfo>();
+            _assemblyWhiteList.UnionWith(analyzerInfos.Select(info => info.Identity));
 
-            while (_filePathsToExamine.Count > 0)
+            // First check for analyzers with the same identity but different
+            // contents (that is, different MVIDs).
+
+            ImmutableArray<AnalyzerDependencyConflict> conflicts = FindConflictingAnalyzers(analyzerInfos, cancellationToken);
+
+            // Then check for missing references.
+
+            ImmutableArray<MissingAnalyzerDependency> missingDependencies = FindMissingDependencies(analyzerInfos, cancellationToken);
+
+            return new AnalyzerDependencyResults(conflicts, missingDependencies);
+        }
+
+        private ImmutableArray<MissingAnalyzerDependency> FindMissingDependencies(List<AnalyzerInfo> analyzerInfos, CancellationToken cancellationToken)
+        {
+            ImmutableArray<MissingAnalyzerDependency>.Builder builder = ImmutableArray.CreateBuilder<MissingAnalyzerDependency>();
+
+            foreach (var analyzerInfo in analyzerInfos)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                string filePath = _filePathsToExamine.Min;
-                _filePathsToExamine.Remove(filePath);
-                _examinedFilePaths.Add(filePath);
-
-                AssemblyIdentity assemblyIdentity = TryReadAssemblyIdentity(filePath);
-                if (assemblyIdentity != null)
+                foreach (var reference in analyzerInfo.References)
                 {
-                    var analyzerPath = _dependencyPathToAnalyzerPathMap[filePath];
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    dependencies.Add(new DependencyInfo(filePath, assemblyIdentity, analyzerPath));
+                    var redirectedReference = _bindingRedirectionService != null
+                        ? _bindingRedirectionService.ApplyBindingRedirects(reference)
+                        : reference;
 
-                    AddDependenciesToWorkList(analyzerPath, filePath);
+                    if (!_assemblyWhiteList.Contains(redirectedReference))
+                    {
+                        builder.Add(new MissingAnalyzerDependency(
+                            analyzerInfo.Path,
+                            reference));
+                    }
                 }
             }
 
-            ImmutableArray<AnalyzerDependencyConflict>.Builder conflicts = ImmutableArray.CreateBuilder<AnalyzerDependencyConflict>();
+            return builder.ToImmutable();
+        }
 
-            foreach (var identityGroup in dependencies.GroupBy(di => di.Identity))
+        private static ImmutableArray<AnalyzerDependencyConflict> FindConflictingAnalyzers(List<AnalyzerInfo> analyzerInfos, CancellationToken cancellationToken)
+        {
+            ImmutableArray<AnalyzerDependencyConflict>.Builder builder = ImmutableArray.CreateBuilder<AnalyzerDependencyConflict>();
+
+            foreach (var identityGroup in analyzerInfos.GroupBy(di => di.Identity))
             {
                 var identityGroupArray = identityGroup.ToImmutableArray();
 
@@ -73,81 +102,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        byte[] hash1;
-                        byte[] hash2;
-                        if ((hash1 = identityGroupArray[i].TryGetFileHash()) != null &&
-                            (hash2 = identityGroupArray[j].TryGetFileHash()) != null &&
-                            !HashesAreEqual(hash1, hash2))
+                        if (identityGroupArray[i].MVID != identityGroupArray[j].MVID)
                         {
-                            conflicts.Add(new AnalyzerDependencyConflict(
-                                identityGroupArray[i].DependencyFilePath,
-                                identityGroupArray[j].DependencyFilePath,
-                                identityGroupArray[i].AnalyzerFilePath,
-                                identityGroupArray[j].AnalyzerFilePath));
+                            builder.Add(new AnalyzerDependencyConflict(
+                                identityGroup.Key,
+                                identityGroupArray[i].Path,
+                                identityGroupArray[j].Path));
                         }
                     }
                 }
             }
 
-            return conflicts.ToImmutable();
+            return builder.ToImmutable();
         }
 
-        private bool HashesAreEqual(byte[] hash1, byte[] hash2)
-        {
-            for (int i = 0; i < hash1.Length; i++)
-            {
-                if (hash1[i] != hash2[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private void AddDependenciesToWorkList(string analyzerFilePath, string assemblyPath)
-        {
-            ImmutableArray<string> referencedAssemblyNames = GetReferencedAssemblyNames(assemblyPath);
-            foreach (var reference in referencedAssemblyNames)
-            {
-                string referenceFilePath = Path.Combine(Path.GetDirectoryName(analyzerFilePath), reference + ".dll");
-
-                if (!_examinedFilePaths.Contains(referenceFilePath) &&
-                    File.Exists(referenceFilePath))
-                {
-                    _filePathsToExamine.Add(referenceFilePath);
-
-                    _dependencyPathToAnalyzerPathMap[referenceFilePath] = analyzerFilePath;
-                }
-            }
-        }
-
-        private ImmutableArray<string> GetReferencedAssemblyNames(string assemblyPath)
-        {
-            try
-            {
-                using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
-                using (var peReader = new PEReader(stream))
-                {
-                    var metadataReader = peReader.GetMetadataReader();
-
-                    var builder = ImmutableArray.CreateBuilder<string>();
-                    foreach (var referenceHandle in metadataReader.AssemblyReferences)
-                    {
-                        var reference = metadataReader.GetAssemblyReference(referenceHandle);
-
-                        builder.Add(metadataReader.GetString(reference.Name));
-                    }
-
-                    return builder.ToImmutable();
-                }
-            }
-            catch { }
-
-            return ImmutableArray<string>.Empty;
-        }
-
-        private AssemblyIdentity TryReadAssemblyIdentity(string filePath)
+        private static AnalyzerInfo TryReadAnalyzerInfo(string filePath)
         {
             try
             {
@@ -156,18 +125,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var metadataReader = peReader.GetMetadataReader();
 
-                    string name;
-                    Version version;
-                    string cultureName;
-                    ImmutableArray<byte> publicKeyToken;
+                    Guid mvid = ReadMvid(metadataReader);
+                    AssemblyIdentity identity = ReadAssemblyIdentity(metadataReader);
+                    ImmutableArray<AssemblyIdentity> references = ReadReferences(metadataReader);
 
-                    var assemblyDefinition = metadataReader.GetAssemblyDefinition();
-                    name = metadataReader.GetString(assemblyDefinition.Name);
-                    version = assemblyDefinition.Version;
-                    cultureName = metadataReader.GetString(assemblyDefinition.Culture);
-                    publicKeyToken = metadataReader.GetBlobContent(assemblyDefinition.PublicKey);
-
-                    return new AssemblyIdentity(name, version, cultureName, publicKeyToken, hasPublicKey: false);
+                    return new AnalyzerInfo(filePath, identity, mvid, references);
                 }
             }
             catch { }
@@ -175,50 +137,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return null;
         }
 
-        private sealed class DependencyInfo
+        private static ImmutableArray<AssemblyIdentity> ReadReferences(MetadataReader metadataReader)
         {
-            private byte[] _lazyFileHash;
-            private bool _triedToComputeFileHash = false;
-
-            public DependencyInfo(string dependencyFilePath, AssemblyIdentity identity, string analyzerFilePath)
+            var builder = ImmutableArray.CreateBuilder<AssemblyIdentity>();
+            foreach (var referenceHandle in metadataReader.AssemblyReferences)
             {
-                DependencyFilePath = dependencyFilePath;
-                Identity = identity;
-                AnalyzerFilePath = analyzerFilePath;
+                var reference = metadataReader.GetAssemblyReference(referenceHandle);
+
+                string refname = metadataReader.GetString(reference.Name);
+                Version refversion = reference.Version;
+                string refcultureName = metadataReader.GetString(reference.Culture);
+                ImmutableArray<byte> refpublicKeyOrToken = metadataReader.GetBlobContent(reference.PublicKeyOrToken);
+                AssemblyFlags refflags = reference.Flags;
+                bool refhasPublicKey = (refflags & AssemblyFlags.PublicKey) != 0;
+
+                builder.Add(new AssemblyIdentity(refname, refversion, refcultureName, refpublicKeyOrToken, hasPublicKey: refhasPublicKey));
             }
 
-            public string AnalyzerFilePath { get; }
+            return builder.ToImmutable();
+        }
 
-            public string DependencyFilePath { get; }
+        private static AssemblyIdentity ReadAssemblyIdentity(MetadataReader metadataReader)
+        {
+            var assemblyDefinition = metadataReader.GetAssemblyDefinition();
+            string name = metadataReader.GetString(assemblyDefinition.Name);
+            Version version = assemblyDefinition.Version;
+            string cultureName = metadataReader.GetString(assemblyDefinition.Culture);
+            ImmutableArray<byte> publicKeyOrToken = metadataReader.GetBlobContent(assemblyDefinition.PublicKey);
+            AssemblyFlags flags = assemblyDefinition.Flags;
+            bool hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
+
+            return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey: hasPublicKey);
+        }
+
+        private static Guid ReadMvid(MetadataReader metadataReader)
+        {
+            var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+            return metadataReader.GetGuid(mvidHandle);
+        }
+
+        private sealed class AnalyzerInfo
+        {
+            public AnalyzerInfo(string filePath, AssemblyIdentity identity, Guid mvid, ImmutableArray<AssemblyIdentity> references)
+            {
+                Path = filePath;
+                Identity = identity;
+                MVID = mvid;
+                References = references;
+            }
+
+            public string Path { get; }
 
             public AssemblyIdentity Identity { get; }
 
-            public byte[] TryGetFileHash()
-            {
-                if (!_triedToComputeFileHash)
-                {
-                    _triedToComputeFileHash = true;
+            public Guid MVID { get; }
 
-                    _lazyFileHash = TryComputeFileHash(DependencyFilePath);
-                }
-
-                return _lazyFileHash;
-            }
-
-            private byte[] TryComputeFileHash(string filePath)
-            {
-                try
-                {
-                    using (var cryptoProvider = new SHA1CryptoServiceProvider())
-                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
-                    {
-                        return cryptoProvider.ComputeHash(stream);
-                    }
-                }
-                catch { }
-
-                return null;
-            }
+            public ImmutableArray<AssemblyIdentity> References { get; }
         }
     }
+
+
 }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly ImportTargetKind _targetKind;
         private readonly string _alias;
         private readonly AssemblyReferenceHandle _targetAssemblyHandle;
-        private readonly Handle _targetTypeHandle;
+        private readonly EntityHandle _targetTypeHandle;
         private readonly string _targetNamespaceName;
 
         public override ImportTargetKind TargetKind => _targetKind;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImportTargetKind targetKind,
             string alias,
             AssemblyReferenceHandle targetAssemblyHandle,
-            Handle targetTypeHandle,
+            EntityHandle targetTypeHandle,
             string targetNamespaceName)
         {
             _targetKind = targetKind;
@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _targetNamespaceName = targetNamespaceName;
         }
 
+#if TODO
         public static bool TryCreateFromImportDefinition(
             ImportDefinition importDefinition,
             MetadataReader metadataReader,
@@ -53,12 +54,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var targetHandle = importDefinition.TargetType;
 
-            Handle targetTypeHandle;
+            EntityHandle targetTypeHandle;
             string targetNamespaceName;
             if (targetHandle.Kind == HandleKind.Blob)
             {
-                targetTypeHandle = default(Handle);
-                targetNamespaceName = GetUtf8String(metadataReader, ((BlobHandle)importDefinition.TargetType));
+                targetTypeHandle = default(EntityHandle);
+                targetNamespaceName = GetUtf8String(metadataReader, importDefinition.TargetNamespace);
             }
             else
             {
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 targetNamespaceName);
             return true;
         }
-
+#endif
         public TTypeSymbol GetTargetType<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol>(
             MetadataDecoder<TModuleSymbol, TTypeSymbol, TMethodSymbol, TFieldSymbol, TSymbol> metadataDecoder)
             where TModuleSymbol : class, IModuleSymbol

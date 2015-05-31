@@ -14,7 +14,7 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public sealed class EventWaiter : IDisposable
     {
-        private ManualResetEvent _eventSignal = new ManualResetEvent(false);
+        private readonly ManualResetEvent _eventSignal = new ManualResetEvent(false);
         private Exception _capturedException;
 
         /// <summary>

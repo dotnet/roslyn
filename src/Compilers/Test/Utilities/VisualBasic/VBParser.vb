@@ -4,7 +4,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Public Class VBParser : Implements IParser
-    Private _options As VisualBasicParseOptions
+    Private ReadOnly _options As VisualBasicParseOptions
 
     Public Sub New(Optional options As VisualBasicParseOptions = Nothing)
         _options = options

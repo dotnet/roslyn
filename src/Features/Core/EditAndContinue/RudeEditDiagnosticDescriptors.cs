@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.GenericTypeTriviaUpdate,                   FeaturesResources.ModifyingTriviaInMethodInsideTheContext) },
             { GetDescriptorPair(RudeEditKind.GenericTypeInitializerUpdate,              FeaturesResources.ModifyingTheInitializerInGenericType) },
             { GetDescriptorPair(RudeEditKind.PartialTypeInitializerUpdate,              FeaturesResources.ModifyingTheInitializerInPartialType) },
+            { GetDescriptorPair(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,  FeaturesResources.InsertConstructorToTypeWithInitializersWithLambdas) },
+            { GetDescriptorPair(RudeEditKind.RenamingCapturedVariable,                  FeaturesResources.RenamingCapturedVariable) },
             { GetDescriptorPair(RudeEditKind.StackAllocUpdate,                          FeaturesResources.ModifyingAWhichContainsStackalloc) },
             { GetDescriptorPair(RudeEditKind.ExperimentalFeaturesEnabled,               FeaturesResources.ModifyingAFileWithExperimentalFeaturesEnabled) },
             { GetDescriptorPair(RudeEditKind.AwaitStatementUpdate,                      FeaturesResources.UpdatingAStatementContainingAwaitExpression) },
@@ -75,9 +77,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.ActiveStatementLambdaRemoved,              FeaturesResources.RemovingThatContainsActiveStatement) },
             { GetDescriptorPair(RudeEditKind.InsertFile,                                FeaturesResources.AddingANewFile) },
 
-            { GetDescriptorPair(RudeEditKind.RUDE_EDIT_ANON_METHOD,                     FeaturesResources.ModifyingAWhichContainsAnonymousMethod) },
-            { GetDescriptorPair(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION,               FeaturesResources.ModifyingAWhichContainsLambda) },
-            { GetDescriptorPair(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION,                FeaturesResources.ModifyingAWhichContainsQuery) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.ModifyingAWhichContainsComplexQuery) },
 
             // VB specific,

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
@@ -15,6 +16,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal class DiagnosticAnalyzerDriver
     {
+        /// <summary>
+        /// Map containing unique gate objects per-analyzer instance.
+        /// We need to guard against concurrent callbacks into analyzers from different diagnostic clients.
+        /// Additionally, certain diagnostic clients, such as FixAll occurrences, may request diagnostics for multiple documents in parallel.
+        /// </summary>
+        private static readonly ConditionalWeakTable<DiagnosticAnalyzer, object> s_analyzerGateMap =
+            new ConditionalWeakTable<DiagnosticAnalyzer, object>();
+
         private readonly Document _document;
 
         // The root of the document.  May be null for documents without a root.
@@ -37,15 +46,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private ImmutableArray<ISymbol> _lazySymbols;
         private ImmutableArray<SyntaxNode> _lazyAllSyntaxNodesToAnalyze;
 
-        private AnalyzerOptions _analyzerOptions = null;
+        private readonly AnalyzerOptions _analyzerOptions;
 
         public DiagnosticAnalyzerDriver(
-            Document document, 
-            TextSpan? span, 
+            Document document,
+            TextSpan? span,
             SyntaxNode root,
             BaseDiagnosticIncrementalAnalyzer owner,
             CancellationToken cancellationToken)
-            : this (document.Project, owner, cancellationToken)
+            : this(document.Project, owner, cancellationToken)
         {
             _document = document;
             _span = span;
@@ -280,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         internal void OnAnalyzerException(Exception ex, DiagnosticAnalyzer analyzer, Compilation compilation)
         {
             var exceptionDiagnostic = AnalyzerExecutor.GetAnalyzerExceptionDiagnostic(analyzer, ex);
-            
+
             if (compilation != null)
             {
                 exceptionDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
@@ -291,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private AnalyzerExecutor GetAnalyzerExecutor(DiagnosticAnalyzer analyzer, Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
-            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, cancellationToken: _cancellationToken);
+            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, s_analyzerGateMap.GetOrCreateValue, cancellationToken: _cancellationToken);
         }
 
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)

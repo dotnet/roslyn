@@ -147,14 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             list.Add(FormattingOperations.CreateAnchorIndentationOperation(anchorToken, endToken));
         }
 
-        protected void AddAlignIndentationOfTokensToBaseTokenOperation(List<AlignTokensOperation> list, SyntaxNode containingNode, SyntaxToken baseNode, IEnumerable<SyntaxToken> tokens)
+        protected void AddAlignIndentationOfTokensToBaseTokenOperation(List<AlignTokensOperation> list, SyntaxNode containingNode, SyntaxToken baseNode, IEnumerable<SyntaxToken> tokens, AlignTokensOption option = AlignTokensOption.AlignIndentationOfTokensToBaseToken)
         {
             if (containingNode == null || tokens == null)
             {
                 return;
             }
 
-            list.Add(FormattingOperations.CreateAlignTokensOperation(baseNode, tokens, AlignTokensOption.AlignIndentationOfTokensToBaseToken));
+            list.Add(FormattingOperations.CreateAlignTokensOperation(baseNode, tokens, option));
         }
 
         protected AdjustNewLinesOperation CreateAdjustNewLinesOperation(int line, AdjustNewLinesOption option)

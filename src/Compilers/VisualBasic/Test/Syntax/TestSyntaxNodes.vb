@@ -979,7 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                            {New TextSpan(26, 5), New TextSpan(26, 5), New TextSpan(71, 22), New TextSpan(94, 1), New TextSpan(96, 5)})
         End Sub
 
-        Private Shared s_messageProvider As New MockMessageProvider()
+        Private Shared ReadOnly s_messageProvider As New MockMessageProvider()
 
         Private Function CreateDiagnosticInfo(code As Integer) As DiagnosticInfo
             Return New DiagnosticInfo(s_messageProvider, code)

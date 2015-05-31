@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     _errorHandlers.Do(h => h.HandleError(provider, exception));
                 }
 
-                _errorLoggerService?.LogError(provider.GetType().Name, exception.Message + Environment.NewLine + exception.StackTrace);
+                _errorLoggerService?.LogException(provider, exception);
             }
         }
     }

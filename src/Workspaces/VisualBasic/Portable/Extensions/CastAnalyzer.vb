@@ -214,10 +214,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim expressionToCastType = _semanticModel.ClassifyConversion(_castNode.SpanStart, _castExpressionNode, castType)
 
-            ' Simple case: If the conversion from the inner expression to the cast type is identity,
-            ' the cast can be removed.
             If expressionToCastType.IsIdentity Then
+                ' Simple case: If the conversion from the inner expression to the cast type is identity,
+                ' the cast can be removed.
                 Return True
+            ElseIf expressionToCastType.IsNarrowing AndAlso expressionToCastType.IsReference
+                ' If the conversion from the inner expression to the cast type is narrowing reference conversion,
+                ' the cast cannot be removed.
+                Return False
             End If
 
             Dim outerType = GetOuterCastType(_castNode, castTypeInfo, _semanticModel, _cancellationToken)
@@ -311,7 +315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If expressionToOuterType.IsIdentity AndAlso
                         castToOuterType.IsWidening AndAlso
                         castToOuterType.IsReference Then
-                    Return Not (expressionToCastType.IsNarrowing AndAlso expressionToCastType.IsReference)
+                    Debug.Assert(Not (expressionToCastType.IsNarrowing AndAlso expressionToCastType.IsReference))
+                    Return True
                 End If
             End If
 

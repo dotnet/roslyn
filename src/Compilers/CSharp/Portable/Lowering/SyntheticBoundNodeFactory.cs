@@ -900,6 +900,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeArguments.SelectAsArray(Typeof);
         }
 
+        public BoundExpression TypeofDynamicOperationContextType()
+        {
+            return Typeof(this.CompilationState.DynamicOperationContextType);
+        }
+
         public BoundExpression Sizeof(TypeSymbol type)
         {
             return new BoundSizeOfOperator(Syntax, Type(type), Binder.GetConstantSizeOf(type), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };

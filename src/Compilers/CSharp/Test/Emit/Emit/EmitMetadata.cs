@@ -210,7 +210,7 @@ public class Test : Class2
                 GetDefaultModulePropertiesForSerialization(),
                 Enumerable.Empty<ResourceDescription>(),
                 // map all references to a single name:
-                assembylSymbol => new AssemblyIdentity("foo")
+                assemblySymbol => new AssemblyIdentity("foo")
             );
 
             // Don't attempt to emit if there were any syntax, declaration, semantic, or emitted errors previously.

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundAnonymousTypePropertyAccess
 
-        Private _lazyPropertySymbol As New Lazy(Of PropertySymbol)(AddressOf LazyGetProperty)
+        Private ReadOnly _lazyPropertySymbol As New Lazy(Of PropertySymbol)(AddressOf LazyGetProperty)
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get

@@ -146,7 +146,7 @@ namespace Roslyn.Test.Utilities
             return reader.PropertyDefinitions.Select(handle => reader.GetPropertyDefinition(handle).Name).ToArray();
         }
 
-        public static StringHandle GetName(this MetadataReader reader, Handle token)
+        public static StringHandle GetName(this MetadataReader reader, EntityHandle token)
         {
             switch (token.Kind)
             {

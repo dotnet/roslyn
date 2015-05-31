@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Const s_indentationLevelCacheSize = 20
         Private Const s_lineContinuationCacheSize = 80
 
-        Private _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
+        Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
 
         Public Sub New(treeInfo As TreeData, optionSet As OptionSet)
             MyBase.New(treeInfo, optionSet)

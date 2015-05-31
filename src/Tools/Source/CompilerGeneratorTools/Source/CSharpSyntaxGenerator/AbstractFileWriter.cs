@@ -16,7 +16,7 @@ namespace CSharpSyntaxGenerator
         private readonly IDictionary<string, Node> _nodeMap;
 
         private const int INDENT_SIZE = 4;
-        private int _indentLevel = 0;
+        private int _indentLevel;
         private bool _needIndent = true;
 
         protected AbstractFileWriter(TextWriter writer, Tree tree)

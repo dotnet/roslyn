@@ -1274,16 +1274,16 @@
     <Kind Name="AnonymousObjectMemberDeclarator"/>
     <Field Name="NameEquals" Type="NameEqualsSyntax" Optional="true">
       <PropertyComment>
-        <summary>NameEqualsSyntax representing the optional name of the property being initialized.</summary>
+        <summary>NameEqualsSyntax representing the optional name of the member being initialized.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax">
       <PropertyComment>
-        <summary>ExpressionSyntax representing the value the property is initialized with.</summary>
+        <summary>ExpressionSyntax representing the value the member is initialized with.</summary>
       </PropertyComment>
     </Field>
     <FactoryComment>
-      <summary>Creates an AnonymousObjectPropertyInitializerSyntax node.</summary>
+      <summary>Creates an AnonymousObjectMemberDeclaratorSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="AnonymousObjectCreationExpressionSyntax" Base="ExpressionSyntax">
@@ -1302,7 +1302,7 @@
     </Field>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;">
       <PropertyComment>
-        <summary>SeparatedSyntaxList of AnonymousObjectPropertyInitializerSyntax representing the list of object property initializers.</summary>
+        <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
       </PropertyComment>
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
@@ -1604,7 +1604,7 @@
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
   <Node Name="InterpolationFormatClauseSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="InterpolationFormatClause"  Optional="true"/>
+    <Kind Name="InterpolationFormatClause"/>
     <Field Name="ColonToken" Type="SyntaxToken"/>
     <Field Name="FormatStringToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringTextToken"/>

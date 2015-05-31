@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Gives about 8% win on subsequent lookups in some scenarios.     
         ''' </summary>
         ''' <remarks></remarks>
-        Private _emittedNameToTypeMap As New ConcurrentDictionary(Of MetadataTypeName.Key, NamedTypeSymbol)()
+        Private ReadOnly _emittedNameToTypeMap As New ConcurrentDictionary(Of MetadataTypeName.Key, NamedTypeSymbol)()
 
         ''' <summary>
         ''' The global namespace symbol. Lazily populated on first access.

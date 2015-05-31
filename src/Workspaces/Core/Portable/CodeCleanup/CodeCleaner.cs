@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             var service = document.Project.LanguageServices.GetService<ICodeCleanerService>();

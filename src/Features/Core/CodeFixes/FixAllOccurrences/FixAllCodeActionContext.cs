@@ -13,14 +13,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// FixAll context with some additional information specifically for <see cref="FixAllCodeAction"/>.
     /// </summary>
-    internal class FixAllCodeActionContext : FixAllContext
+    internal partial class FixAllCodeActionContext : FixAllContext
     {
         private readonly FixAllProviderInfo _fixAllProviderInfo;
         private readonly IEnumerable<Diagnostic> _originalFixDiagnostics;
-        private readonly Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getDocumentDiagnosticsAsync;
-        private readonly Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getProjectDiagnosticsAsync;
+        private readonly FixAllDiagnosticProvider _diagnosticProvider;
 
-        internal FixAllCodeActionContext(
+        internal static FixAllCodeActionContext Create(
             Document document,
             FixAllProviderInfo fixAllProviderInfo,
             CodeFixProvider originalFixProvider,
@@ -28,17 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
             Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
             CancellationToken cancellationToken)
-            : base(document, originalFixProvider, FixAllScope.Document,
-                  null, GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics),
-                  getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync, cancellationToken)
         {
-            _fixAllProviderInfo = fixAllProviderInfo;
-            _originalFixDiagnostics = originalFixDiagnostics;
-            _getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
-            _getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
+            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
+            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            return new FixAllCodeActionContext(document, fixAllProviderInfo, originalFixProvider, originalFixDiagnostics, diagnosticIds, diagnosticProvider, cancellationToken);
         }
 
-        internal FixAllCodeActionContext(
+        internal static FixAllCodeActionContext Create(
             Project project,
             FixAllProviderInfo fixAllProviderInfo,
             CodeFixProvider originalFixProvider,
@@ -46,14 +41,40 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
             Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
             CancellationToken cancellationToken)
-            : base(project, originalFixProvider, FixAllScope.Project,
-                  null, GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics),
-                  getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync, cancellationToken)
+        {
+            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
+            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            return new FixAllCodeActionContext(project, fixAllProviderInfo, originalFixProvider, originalFixDiagnostics, diagnosticIds, diagnosticProvider, cancellationToken);
+        }
+
+        private FixAllCodeActionContext(
+            Document document,
+            FixAllProviderInfo fixAllProviderInfo,
+            CodeFixProvider originalFixProvider,
+            IEnumerable<Diagnostic> originalFixDiagnostics,
+            ImmutableHashSet<string> diagnosticIds,
+            FixAllDiagnosticProvider diagnosticProvider,
+            CancellationToken cancellationToken)
+            : base(document, originalFixProvider, FixAllScope.Document, null, diagnosticIds, diagnosticProvider, cancellationToken)
         {
             _fixAllProviderInfo = fixAllProviderInfo;
             _originalFixDiagnostics = originalFixDiagnostics;
-            _getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
-            _getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
+            _diagnosticProvider = diagnosticProvider;
+        }
+
+        private FixAllCodeActionContext(
+            Project project,
+            FixAllProviderInfo fixAllProviderInfo,
+            CodeFixProvider originalFixProvider,
+            IEnumerable<Diagnostic> originalFixDiagnostics,
+            ImmutableHashSet<string> diagnosticIds,
+            FixAllDiagnosticProvider diagnosticProvider,
+            CancellationToken cancellationToken)
+            : base(project, originalFixProvider, FixAllScope.Project, null, diagnosticIds, diagnosticProvider, cancellationToken)
+        {
+            _fixAllProviderInfo = fixAllProviderInfo;
+            _originalFixDiagnostics = originalFixDiagnostics;
+            _diagnosticProvider = diagnosticProvider;
         }
 
         private static IEnumerable<string> GetFixAllDiagnosticIds(FixAllProviderInfo fixAllProviderInfo, IEnumerable<Diagnostic> originalFixDiagnostics)
@@ -91,11 +112,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (this.Document != null)
             {
                 return new FixAllContext(this.Document, this.CodeFixProvider, scope, codeActionEquivalenceKey,
-                    this.DiagnosticIds, _getDocumentDiagnosticsAsync, _getProjectDiagnosticsAsync, this.CancellationToken);
+                    this.DiagnosticIds, _diagnosticProvider, this.CancellationToken);
             }
 
             return new FixAllContext(this.Project, this.CodeFixProvider, scope, codeActionEquivalenceKey,
-                    this.DiagnosticIds, _getDocumentDiagnosticsAsync, _getProjectDiagnosticsAsync, this.CancellationToken);
+                    this.DiagnosticIds, _diagnosticProvider, this.CancellationToken);
         }
     }
 }

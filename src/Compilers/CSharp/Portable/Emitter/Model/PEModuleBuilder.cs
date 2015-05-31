@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
 
         // C# currently doesn't emit compilation level imports (TODO: scripting).
-        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports(EmitContext context) => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
+        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
 
         // C# doesn't allow to define default namespace for compilation.
         protected override string DefaultNamespace => null;
@@ -329,12 +329,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// members, in particular for generic type arguments
         /// (e.g.: binding to internal types in the EE).
         /// </summary>
-        internal virtual bool IgnoreAccessibility
-        {
-            get { return false; }
-        }
+        internal virtual bool IgnoreAccessibility => false;
 
-        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)
+        /// <summary>
+        /// Override the dynamic operation context type for all dynamic calls in the module.
+        /// </summary>
+        internal virtual NamedTypeSymbol DynamicOperationContextType => null;
+
+        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod)
         {
             return null;
         }

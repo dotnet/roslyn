@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string RuleMultipleZeroCustomTag = "RuleMultipleZero";
         internal const string RuleNoZeroCustomTag = "RuleNoZero";
 
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValueDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValueDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
 
-        private static LocalizableString s_localizableMessageRuleRename = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsRename), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageRuleRename = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsRename), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleRename = new DiagnosticDescriptor(RuleId,
                                                                        s_localizableTitle,
                                                                        s_localizableMessageRuleRename,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                        helpLinkUri: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                        customTags: DiagnosticCustomTags.Microsoft.Concat(RuleRenameCustomTag).ToArray());
 
-        private static LocalizableString s_localizableMessageRuleMultipleZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageRuleMultipleZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
                                                                s_localizableTitle,
                                                                s_localizableMessageRuleMultipleZero,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                helpLinkUri: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleMultipleZeroCustomTag).ToArray());
 
-        private static LocalizableString s_localizableMessageRuleNoZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageRuleNoZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
                                                                s_localizableTitle,
                                                                s_localizableMessageRuleNoZero,

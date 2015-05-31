@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal sealed partial class RenameTrackingTaggerProvider
     {
-        private class Tagger : ITagger<RenameTrackingTag>, IDisposable
+        private class Tagger : ITagger<RenameTrackingTag>, ITagger<IErrorTag>, IDisposable
         {
             private readonly StateMachine _stateMachine;
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -53,6 +54,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public IEnumerable<ITagSpan<RenameTrackingTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
+                return GetTags(spans, RenameTrackingTag.Instance);
+            }
+
+            IEnumerable<ITagSpan<IErrorTag>> ITagger<IErrorTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+            {
+                return GetTags(spans, new ErrorTag(PredefinedErrorTypeNames.Suggestion));
+            }
+
+            private IEnumerable<ITagSpan<T>> GetTags<T>(NormalizedSnapshotSpanCollection spans, T tag) where T : ITag
+            {
                 if (!_stateMachine.Buffer.GetOption(InternalFeatureOnOffOptions.RenameTracking))
                 {
                     // Changes aren't being triggered by the buffer, but there may still be taggers
@@ -68,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         var snapshotSpan = trackingSession.TrackingSpan.GetSpan(span.Snapshot);
                         if (span.IntersectsWith(snapshotSpan))
                         {
-                            yield return new TagSpan<RenameTrackingTag>(snapshotSpan, RenameTrackingTag.Instance);
+                            yield return new TagSpan<T>(snapshotSpan, tag);
                         }
                     }
                 }

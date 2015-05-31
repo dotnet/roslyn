@@ -373,7 +373,7 @@ namespace Microsoft.Cci
                 SerializeImport(writer, alias);
             }
 
-            foreach (UsedNamespaceOrType import in module.GetImports(Context))
+            foreach (UsedNamespaceOrType import in module.GetImports())
             {
                 SerializeImport(writer, import);
             }
@@ -431,7 +431,7 @@ namespace Microsoft.Cci
             MemoryStream imports = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(imports);
 
-            foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces(Context))
+            foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
             {
                 SerializeImport(writer, import);
             }

@@ -593,5 +593,16 @@ class C { }
         {
             VerifyAbsence(@"class c { async async $$ }");
         }
+
+        [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void NotInCrefTypeParameter()
+        {
+            VerifyAbsence(@"
+using System;
+/// <see cref=""List{$$}"" />
+class C { }
+");
+        }
     }
 }

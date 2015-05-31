@@ -1315,7 +1315,7 @@ class C
                 .ToArray());
 
             var expected = string.Join("\n", source
-                .Split(new[] { "\r\n" }, System.StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { Environment.NewLine }, System.StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.Contains("//-"))
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
@@ -4884,7 +4884,7 @@ A");
         }
 
         [WorkItem(656739, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void DynamicAmbiguousOrConversion()
         {
             string source = @"
@@ -8650,8 +8650,31 @@ class M
 
             var err = compilation.GetDiagnostics().Single();
 
-            Assert.Equal((int)ErrorCode.ERR_ContantStringTooLong, err.Code);
+            Assert.Equal((int)ErrorCode.ERR_ConstantStringTooLong, err.Code);
             Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull));
+        }
+
+        [Fact, WorkItem(2075, "https://github.com/dotnet/roslyn/issues/2075")]
+        public void NegateALiteral()
+        {
+            string source = @"
+using System;
+
+namespace roslynChanges
+{
+    class MainClass
+    {
+        public static void Main (string[] args)
+        {
+            Console.WriteLine ((-(2147483648)).GetType ());
+            Console.WriteLine ((-2147483648).GetType ());
+        }
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"System.Int64
+System.Int32
+");
         }
     }
 }

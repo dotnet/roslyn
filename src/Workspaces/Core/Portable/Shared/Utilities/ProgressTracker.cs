@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </summary>
     internal class ProgressTracker
     {
-        private int _completedItems = 0;
-        private int _totalItems = 0;
+        private int _completedItems;
+        private int _totalItems;
 
         private readonly Action<int, int> _updateActionOpt;
 

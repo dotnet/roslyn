@@ -22,23 +22,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             if (awaitable && extension)
             {
                 result.Add(Punctuation(SyntaxKind.OpenParenToken));
-                result.Add(Text(CSharpEditorResources.Awaitable));
+                result.Add(Text(CSharpFeaturesResources.Awaitable));
                 result.Add(Punctuation(SyntaxKind.CommaToken));
-                result.Add(Text(CSharpEditorResources.Extension));
+                result.Add(Text(CSharpFeaturesResources.Extension));
                 result.Add(Punctuation(SyntaxKind.CloseParenToken));
                 result.Add(Space());
             }
             else if (awaitable)
             {
                 result.Add(Punctuation(SyntaxKind.OpenParenToken));
-                result.Add(Text(CSharpEditorResources.Awaitable));
+                result.Add(Text(CSharpFeaturesResources.Awaitable));
                 result.Add(Punctuation(SyntaxKind.CloseParenToken));
                 result.Add(Space());
             }
             else if (extension)
             {
                 result.Add(Punctuation(SyntaxKind.OpenParenToken));
-                result.Add(Text(CSharpEditorResources.Extension));
+                result.Add(Text(CSharpFeaturesResources.Extension));
                 result.Add(Punctuation(SyntaxKind.CloseParenToken));
                 result.Add(Space());
             }

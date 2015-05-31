@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                if (triggerInfo.IsDebugger && triggerInfo.IsImmediateWindow)
+                if (triggerInfo.IsDebugger)
                 {
                     // Aggressive Intellisense in the debugger: always show the builder 
                     return new CompletionItem(this, "", CompletionUtilities.GetTextChangeSpan(text, position), isBuilder: true);

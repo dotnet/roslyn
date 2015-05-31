@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly OptionSet _optionSet;
 
         // hold onto information that are made to original trivia info
-        private readonly Changes _changes;
+        private Changes _changes;
 
         // factory that will cache trivia info
         private readonly AbstractTriviaDataFactory _factory;
@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 Contract.Requires(this.TokenCount > 0);
 
                 // initialize trivia related info
-                _changes = new Changes();
                 _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
 
                 _tokenToIndexMap = new Dictionary<SyntaxToken, int>(this.TokenCount);
@@ -268,28 +267,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // do reference equality check
             var sameAsOriginal = GetOriginalTriviaData(pairIndex) == data;
-
-            if (_changes.Contains(pairIndex))
-            {
-                if (sameAsOriginal)
-                {
-                    _changes.Remove(pairIndex);
-                    return;
-                }
-
-                // okay it already exist.
-                // replace existing one
-                _changes.Replace(pairIndex, data);
-                return;
-            }
-
-            // triviaInfo is same as original, nothing to do here.
             if (sameAsOriginal)
             {
-                return;
+                _changes.TryRemove(pairIndex);
             }
-
-            _changes.Add(pairIndex, data);
+            else
+            {
+                _changes.AddOrReplace(pairIndex, data);
+            }
         }
 
         public int GetCurrentColumn(SyntaxToken token)
@@ -465,9 +450,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             Contract.ThrowIfFalse(this.FormatBeginningOfTree);
 
-            if (_changes.Contains(Changes.BeginningOfTreeKey))
+            TriviaData data;
+            if (_changes.TryGet(Changes.BeginningOfTreeKey, out data))
             {
-                return _changes[Changes.BeginningOfTreeKey];
+                return data;
             }
 
             Contract.Requires(_treeData.IsFirstToken(this.FirstTokenInStream.Token));
@@ -478,9 +464,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             Contract.ThrowIfFalse(this.FormatEndOfTree);
 
-            if (_changes.Contains(Changes.EndOfTreeKey))
+            TriviaData data;
+            if (_changes.TryGet(Changes.EndOfTreeKey, out data))
             {
-                return _changes[Changes.EndOfTreeKey];
+                return data;
             }
 
             Contract.Requires(_treeData.IsLastToken(this.LastTokenInStream.Token));
@@ -491,9 +478,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             Contract.ThrowIfFalse(0 <= pairIndex && pairIndex < this.TokenCount - 1);
 
-            if (_changes.Contains(pairIndex))
+            TriviaData data;
+            if (_changes.TryGet(pairIndex, out data))
             {
-                return _changes[pairIndex];
+                return data;
             }
 
             // no change between two tokens, return trivia info from original code
