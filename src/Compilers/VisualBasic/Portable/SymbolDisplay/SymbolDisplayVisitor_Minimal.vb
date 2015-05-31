@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(symbol.ContainingNamespace IsNot Nothing OrElse symbol.IsGlobalNamespace)
 
             ' NOTE(cyrusn): We only call this once we've already checked if there is an alias that
-            ' corresponds to this namespace. 
+            ' corresponds to this namespace.
 
             If symbol.IsGlobalNamespace Then
                 ' nothing to add for global namespace itself

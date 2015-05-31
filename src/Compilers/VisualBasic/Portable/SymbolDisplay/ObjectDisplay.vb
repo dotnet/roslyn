@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             ValidateOptions(options)
 
             If value Is Nothing Then
-                Throw New ArgumentNullException()
+                Throw New ArgumentNullException( NameOf(value))
             End If
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()

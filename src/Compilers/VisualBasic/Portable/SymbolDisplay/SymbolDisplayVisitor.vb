@@ -11,10 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _escapeKeywordIdentifiers As Boolean
 
-        ' A Symbol in VB might be a PENamedSymbolWithEmittedNamespaceName and in that case the 
+        ' A Symbol in VB might be a PENamedSymbolWithEmittedNamespaceName and in that case the
         ' casing of the contained types and namespaces might differ because of merged classes/namespaces.
-        ' To maintain the original spelling an emittedNamespaceName with the correct spelling is passed to 
-        ' this visitor. 
+        ' To maintain the original spelling an emittedNamespaceName with the correct spelling is passed to
+        ' this visitor.
 
         Friend Sub New(
             builder As ArrayBuilder(Of SymbolDisplayPart),
@@ -102,9 +102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function EscapeIdentifier(identifier As String) As String
 
-            ' always escape keywords, 
+            ' always escape keywords,
             If SyntaxFacts.GetKeywordKind(identifier) <> SyntaxKind.None Then
-                Return String.Format("[{0}]", identifier)
+                Return $"[{identifier}]"
             End If
 
             ' The minimal flag is e.g. used by the service layer when generating code (example: simplify name).
@@ -113,13 +113,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me.IsMinimizing Then
                 Dim contextualKeywordKind As SyntaxKind = SyntaxFacts.GetContextualKeywordKind(identifier)
 
-                ' Leading implicit line continuation is allowed before query operators (Aggregate, Distinct, From, Group By, 
-                ' Group Join, Join, Let, Order By, Select, Skip, Skip While, Take, Take While, Where, In, Into, On, Ascending, 
+                ' Leading implicit line continuation is allowed before query operators (Aggregate, Distinct, From, Group By,
+                ' Group Join, Join, Let, Order By, Select, Skip, Skip While, Take, Take While, Where, In, Into, On, Ascending,
                 ' and Descending).
                 ' If the current identifier is one of these keywords, we need to escape them to avoid parsing issues if the
                 ' previous line was a query expression.
                 '
-                ' In addition to the query operators, we need to escape the identifier "preserve" to avoid ambiguities 
+                ' In addition to the query operators, we need to escape the identifier "preserve" to avoid ambiguities
                 ' inside of a dim statement (dim [preserve].ArrayName(1))
                 Select Case contextualKeywordKind
                     Case SyntaxKind.AggregateKeyword,
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          SyntaxKind.AscendingKeyword,
                          SyntaxKind.DescendingKeyword,
                          SyntaxKind.PreserveKeyword
-                        Return String.Format("[{0}]", identifier)
+                        Return $"[{identifier}]"
                 End Select
             End If
 

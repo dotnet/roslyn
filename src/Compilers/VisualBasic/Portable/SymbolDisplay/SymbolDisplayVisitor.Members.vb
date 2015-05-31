@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case MethodKind.AnonymousFunction
                     ' there is no name to show, but it must be handled to not cause
-                    ' the NYI below. 
+                    ' the NYI below.
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(symbol.MethodKind)
