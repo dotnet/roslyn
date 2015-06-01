@@ -106,6 +106,7 @@
     <Compile Include="Attributes\AttributeTests_StructLayout.vb" />
     <Compile Include="Attributes\AttributeTests_Synthesized.vb" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.vb" />
+    <Compile Include="Attributes\EmitTestStrongNameProvider.vb" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.vb" />
     <Compile Include="BreakingChanges.vb" />
     <Compile Include="CodeGen\AnonymousTypesCodeGenTests.vb" />
