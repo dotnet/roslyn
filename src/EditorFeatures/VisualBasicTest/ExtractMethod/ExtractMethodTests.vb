@@ -36,23 +36,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             End Using
         End Sub
 
-        Protected Shared Sub TestExtractMethod(codeWithMarker As XElement,
-                                               expected As XElement,
-                                               Optional temporaryFailing As Boolean = False,
-                                               Optional allowMovingDeclaration As Boolean = True,
-                                               Optional dontPutOutOrRefOnStruct As Boolean = True,
-                                               Optional metadataReference As String = Nothing,
-                                               Optional compareTokens As Boolean = False)
-
-            Dim codeWithoutMarker As String = Nothing
-            Dim textSpan As TextSpan
-            MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
+        Protected Overloads Shared Sub TestExtractMethod(
+            codeWithMarker As String,
+            expected As String,
+            Optional temporaryFailing As Boolean = False,
+            Optional allowMovingDeclaration As Boolean = True,
+            Optional dontPutOutOrRefOnStruct As Boolean = True,
+            Optional metadataReference As String = Nothing,
+            Optional compareTokens As Boolean = False
+        )
 
             Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFiles(New String() {codeWithMarker.NormalizedValue}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFiles(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
-                Dim subjectBuffer = workspace.Documents.First().TextBuffer
+                Dim document = workspace.Documents.First()
+                Dim subjectBuffer = document.TextBuffer
+                Dim textSpan = document.SelectedSpans.First()
 
                 Dim tree = ExtractMethod(workspace, workspace.Documents.First(), textSpan, allowMovingDeclaration:=allowMovingDeclaration, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
 
@@ -62,15 +62,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 End Using
 
                 If temporaryFailing Then
-                    Assert.NotEqual(expected.NormalizedValue, subjectBuffer.CurrentSnapshot.GetText())
+                    Assert.NotEqual(expected, subjectBuffer.CurrentSnapshot.GetText())
                 Else
                     If compareTokens Then
-                        TokenUtilities.AssertTokensEqual(expected.NormalizedValue, subjectBuffer.CurrentSnapshot.GetText(), LanguageNames.VisualBasic)
+                        TokenUtilities.AssertTokensEqual(expected, subjectBuffer.CurrentSnapshot.GetText(), LanguageNames.VisualBasic)
                     Else
-                        Assert.Equal(expected.NormalizedValue, subjectBuffer.CurrentSnapshot.GetText())
+                        Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText())
                     End If
                 End If
             End Using
+        End Sub
+
+        Protected Overloads Shared Sub TestExtractMethod(
+            codeWithMarker As XElement,
+            expected As XElement,
+            Optional temporaryFailing As Boolean = False,
+            Optional allowMovingDeclaration As Boolean = True,
+            Optional dontPutOutOrRefOnStruct As Boolean = True,
+            Optional metadataReference As String = Nothing,
+            Optional compareTokens As Boolean = False
+        )
+
+            TestExtractMethod(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference, compareTokens)
         End Sub
 
         Private Shared Function ExtractMethod(workspace As TestWorkspace,

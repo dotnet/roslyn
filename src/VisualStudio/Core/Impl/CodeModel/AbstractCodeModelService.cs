@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -617,19 +618,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return false;
             }
 
+            // Here's the strategy for determine what source file we'd try to return an element from.
+            //     1. Prefer source files that we don't heuristically flag as generated code.
+            //     2. If all of the source files are generated code, pick the first one.
+
+            var generatedCodeRecognitionService = project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+
+            Compilation compilation = null;
+            Tuple<DocumentId, Location> generatedCode = null;
+
+            DocumentId chosenDocumentId = null;
+            Location chosenLocation = null;
+
             foreach (var location in typeSymbol.Locations)
             {
-                if (location.IsInSource &&
-                    project.GetCompilationAsync().Result.ContainsSyntaxTree(location.SourceTree))
+                if (location.IsInSource)
                 {
-                    var document = project.GetDocument(location.SourceTree);
-                    var fcm = state.Workspace.GetFileCodeModel(document.Id);
-                    if (fcm != null)
+                    compilation = compilation ?? project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+
+                    if (compilation.ContainsSyntaxTree(location.SourceTree))
                     {
-                        var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(fcm);
-                        element = fileCodeModel.CodeElementFromPosition(location.SourceSpan.Start, GetElementKind(typeSymbol));
-                        return element != null;
+                        var document = project.GetDocument(location.SourceTree);
+
+                        if (generatedCodeRecognitionService?.IsGeneratedCode(document) == false)
+                        {
+                            chosenLocation = location;
+                            chosenDocumentId = document.Id;
+                            break;
+                        }
+                        else
+                        {
+                            generatedCode = generatedCode ?? Tuple.Create(document.Id, location);
+                        }
                     }
+                }
+            }
+
+            if (chosenDocumentId == null && generatedCode != null)
+            {
+                chosenDocumentId = generatedCode.Item1;
+                chosenLocation = generatedCode.Item2;
+            }
+
+            if (chosenDocumentId != null)
+            {
+                var fileCodeModel = state.Workspace.GetFileCodeModel(chosenDocumentId);
+                if (fileCodeModel != null)
+                {
+                    var underlyingFileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(fileCodeModel);
+                    element = underlyingFileCodeModel.CodeElementFromPosition(chosenLocation.SourceSpan.Start, GetElementKind(typeSymbol));
+                    return element != null;
                 }
             }
 
