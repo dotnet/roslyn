@@ -3552,6 +3552,130 @@ class A
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
+        public void TestConditionalAccessWithExtensionMethodInvocation()
+        {
+            Test(
+            @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var [|assembly|] = t?.Something().First();
+            var identity = assembly?.ToArray();
+        }
+        return null;
+    }
+}
+", @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var identity = t?.Something().First()?.ToArray();
+        }
+        return null;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
+        public void TestConditionalAccessWithExtensionMethodInvocation_2()
+        {
+            Test(
+            @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var [|assembly|] = (t?.Something2())()?.Something().First();
+            var identity = assembly?.ToArray();
+        }
+        return null;
+    }
+}
+", @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var identity = (t?.Something2())()?.Something().First()?.ToArray();
+        }
+        return null;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestAliasQualifiedNameIntoInterpolation()
         {
             Test(

@@ -3914,6 +3914,118 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        Public Sub TestConditionalAccessWithExtensionMethodInvocation()
+            Dim code =
+<File><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim [|assembly|] = t?.Something().First()
+            Dim identity = assembly?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Dim expected =
+<File><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim identity = (t?.Something().First())?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        Public Sub TestConditionalAccessWithExtensionMethodInvocation_2()
+            Dim code =
+<File><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim [|assembly|] = t?.Something2?()?.Something().First()
+            Dim identity = (assembly)?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Dim expected =
+<File><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim identity = ((t?.Something2?()?.Something().First()))?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestXmlLiteral()
             Dim code =
 <File>
