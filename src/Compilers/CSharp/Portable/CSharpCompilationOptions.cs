@@ -65,6 +65,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        internal CSharpCompilationOptions(
+            OutputKind outputKind,
+            ImmutableArray<string> features,
+            string moduleName = null,
+            string mainTypeName = null,
+            string scriptClassName = null,
+            IEnumerable<string> usings = null,
+            OptimizationLevel optimizationLevel = OptimizationLevel.Debug,
+            bool checkOverflow = false,
+            bool allowUnsafe = false,
+            string cryptoKeyContainer = null,
+            string cryptoKeyFile = null,
+            ImmutableArray<byte> cryptoPublicKey = default(ImmutableArray<byte>),
+            bool? delaySign = null,
+            Platform platform = Platform.AnyCpu,
+            ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default,
+            int warningLevel = 4,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null,
+            bool concurrentBuild = true,
+            XmlReferenceResolver xmlReferenceResolver = null,
+            SourceReferenceResolver sourceReferenceResolver = null,
+            MetadataReferenceResolver metadataReferenceResolver = null,
+            AssemblyIdentityComparer assemblyIdentityComparer = null,
+            StrongNameProvider strongNameProvider = null)
+            : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild,
+                   extendedCustomDebugInformation: true,
+                   xmlReferenceResolver: xmlReferenceResolver,
+                   sourceReferenceResolver: sourceReferenceResolver,
+                   metadataReferenceResolver: metadataReferenceResolver,
+                   assemblyIdentityComparer: assemblyIdentityComparer,
+                   strongNameProvider: strongNameProvider,
+                   metadataImportOptions: MetadataImportOptions.Public,
+                   features: features)
+        {
+        }
+
         // Expects correct arguments.
         internal CSharpCompilationOptions(
             OutputKind outputKind,

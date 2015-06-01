@@ -145,6 +145,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
+        internal static string RequiredFeature(this MessageID feature)
+        {
+            switch (feature)
+            {
+                default:
+                    return null;
+            }
+        }
+
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
