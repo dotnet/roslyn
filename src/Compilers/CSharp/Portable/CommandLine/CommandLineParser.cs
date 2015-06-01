@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public class CSharpCommandLineParser : CommandLineParser
     {
-        public static readonly CSharpCommandLineParser Default = new CSharpCommandLineParser();
-        internal static readonly CSharpCommandLineParser Interactive = new CSharpCommandLineParser(isInteractive: true);
+        public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
+
+        internal static CSharpCommandLineParser Interactive { get; } = new CSharpCommandLineParser(isInteractive: true);
 
         internal CSharpCommandLineParser(bool isInteractive = false)
             : base(CSharp.MessageProvider.Instance, isInteractive)
