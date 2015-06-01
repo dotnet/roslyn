@@ -1385,6 +1385,33 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub AsyncStateMachineAttribute_Method_Debug()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Class Test
+    Async Sub F()
+        Await Task.Delay(0)
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.DebugDll).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim asyncMethodAttributes = asyncMethod.GetAttributes()
+            AssertEx.SetEqual({"AsyncStateMachineAttribute", "DebuggerStepThroughAttribute"}, GetAttributeNames(asyncMethodAttributes))
+
+            Dim attributeArg = DirectCast(asyncMethodAttributes.First().ConstructorArguments.Single().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
+        End Sub
+
+        <Fact>
         Public Sub AsyncStateMachineAttribute_Lambda()
             Dim source =
 <compilation>
@@ -1411,6 +1438,36 @@ End Class
             AssertEx.SetEqual({"AsyncStateMachineAttribute"}, GetAttributeNames(asyncMethodAttributes))
 
             Dim attributeArg = DirectCast(asyncMethodAttributes.Single().ConstructorArguments.First().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
+        End Sub
+
+        <Fact>
+        Public Sub AsyncStateMachineAttribute_Lambda_Debug()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Class Test
+    Sub F()
+        Dim f As Action = Async Sub()
+                              Await Task.Delay(0)
+                          End Sub
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.DebugDll).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-0")
+
+            Dim asyncMethodAttributes = asyncMethod.GetAttributes()
+            AssertEx.SetEqual({"AsyncStateMachineAttribute", "DebuggerStepThroughAttribute"}, GetAttributeNames(asyncMethodAttributes))
+
+            Dim attributeArg = DirectCast(asyncMethodAttributes.First().ConstructorArguments.First().Value, NamedTypeSymbol)
             Assert.Equal(attributeArg, stateMachine)
         End Sub
 
@@ -1466,6 +1523,31 @@ End Class
             Dim asyncMethodAttributes = asyncMethod.GetAttributes()
             Assert.Empty(GetAttributeNames(asyncMethodAttributes))
         End Sub
+
+        <Fact>
+        Public Sub AsyncStateMachineAttribute_MetadataOnly_Debug()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Threading.Tasks
+
+Public Class Test
+    Public Async Sub F()
+        Await Task.Delay(0)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.DebugDll).EmitToImageReference(New EmitOptions(metadataOnly:=True))
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_0_F"))
+            Dim asyncMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+
+            Dim asyncMethodAttributes = asyncMethod.GetAttributes()
+            AssertEx.SetEqual({"DebuggerStepThroughAttribute"}, GetAttributeNames(asyncMethodAttributes))
+        End Sub
 #End Region
 
 #Region "IteratorStateMachineAttribute"
@@ -1484,17 +1566,20 @@ Class Test
 End Class
     </file>
 </compilation>
-            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
-            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
+                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
+                Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
-            AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+                Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
+                Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
 
-            Dim attributeArg = DirectCast(iteratorMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
-            Assert.Equal(attributeArg, stateMachine)
+                Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+                AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+
+                Dim attributeArg = DirectCast(iteratorMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
+                Assert.Equal(attributeArg, stateMachine)
+            Next
         End Sub
 
         <Fact>
@@ -1515,18 +1600,20 @@ Class Test
 End Class
     </file>
 </compilation>
-            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
+                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
+                Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
-            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-0")
+                Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
+                Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-0")
 
-            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
-            AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+                Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+                AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
 
-            Dim smAttribute = iteratorMethodAttributes.Single(Function(a) a.AttributeClass.Name = "IteratorStateMachineAttribute")
-            Dim attributeArg = DirectCast(smAttribute.ConstructorArguments.First().Value, NamedTypeSymbol)
-            Assert.Equal(attributeArg, stateMachine)
+                Dim smAttribute = iteratorMethodAttributes.Single(Function(a) a.AttributeClass.Name = "IteratorStateMachineAttribute")
+                Dim attributeArg = DirectCast(smAttribute.ConstructorArguments.First().Value, NamedTypeSymbol)
+                Assert.Equal(attributeArg, stateMachine)
+            Next
         End Sub
 
         <Fact>
@@ -1574,14 +1661,16 @@ End Class
     </file>
 </compilation>
 
-            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference(New EmitOptions(metadataOnly:=True))
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
+                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference(New EmitOptions(metadataOnly:=True))
+                Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-            Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_1_F"))
-            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+                Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_1_F"))
+                Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
 
-            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
-            Assert.Empty(GetAttributeNames(iteratorMethodAttributes))
+                Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+                Assert.Empty(GetAttributeNames(iteratorMethodAttributes))
+            Next
         End Sub
 #End Region
     End Class

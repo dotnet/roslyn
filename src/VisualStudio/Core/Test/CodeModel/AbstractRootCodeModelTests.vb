@@ -4,7 +4,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractRootCodeModelTests
         Inherits AbstractCodeModelObjectTests(Of EnvDTE.CodeModel)
 
-        Protected Sub TestRootCodeModel(code As XElement, action As Action(Of EnvDTE.CodeModel))
+        Protected Sub TestRootCodeModel(workspaceDefinition As XElement, action As Action(Of EnvDTE.CodeModel))
+            Using state = CreateCodeModelTestState(workspaceDefinition)
+                Dim rootCodeModel = state.RootCodeModel
+                Assert.NotNull(rootCodeModel)
+
+                action(rootCodeModel)
+            End Using
+        End Sub
+
+        Protected Sub TestRootCodeModelWithCodeFile(code As XElement, action As Action(Of EnvDTE.CodeModel))
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim rootCodeModel = state.RootCodeModel
                 Assert.NotNull(rootCodeModel)
@@ -14,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestCodeElements(code As XElement, ParamArray expectedChildren() As Action(Of Object))
-            TestRootCodeModel(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim codeElements = rootCodeModel.CodeElements
                     Assert.Equal(expectedChildren.Length, rootCodeModel.CodeElements.Count)
@@ -26,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestCodeElements(code As XElement, ParamArray names() As String)
-            TestRootCodeModel(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Assert.Equal(names.Length, rootCodeModel.CodeElements.Count)
 
@@ -43,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestCreateCodeTypeRef(code As XElement, type As Object, data As CodeTypeRefData)
-            TestRootCodeModel(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim codeTypeRef = rootCodeModel.CreateCodeTypeRef(type)
 
@@ -56,12 +65,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestCreateCodeTypeRef(Of TException As Exception)(code As XElement, type As Object)
-            TestRootCodeModel(code,
+            TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Assert.Throws(Of TException)(
                         Sub()
                             rootCodeModel.CreateCodeTypeRef(type)
                         End Sub)
+                End Sub)
+        End Sub
+
+        Protected Sub TestCodeTypeFromFullName(workspaceDefinition As XElement, fullName As String, action As Action(Of EnvDTE.CodeType))
+            TestRootCodeModel(workspaceDefinition,
+                Sub(rootCodeModel)
+                    action(rootCodeModel.CodeTypeFromFullName(fullName))
                 End Sub)
         End Sub
 

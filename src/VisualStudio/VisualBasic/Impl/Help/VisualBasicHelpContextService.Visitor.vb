@@ -575,7 +575,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitNamespaceStatement(node As NamespaceStatementSyntax)
-                If Not TryGetDeclaredSymbol(node.GetNameTokenOrNothing()) Then
+                If Not TryGetDeclaredSymbol(node.GetNameToken()) Then
                     result = Keyword(SyntaxKind.NamespaceKeyword)
                 End If
             End Sub

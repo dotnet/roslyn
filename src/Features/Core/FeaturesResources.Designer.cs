@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos; (but still use field).
         /// </summary>
         internal static string EncapsulateField {
             get {
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Encapsulate fields.
+        ///   Looks up a localized string similar to Encapsulate fields (but still use field).
         /// </summary>
         internal static string EncapsulateFields {
             get {
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Encapsulate fields (usages reference field).
+        ///   Looks up a localized string similar to Encapsulate fields (and use property).
         /// </summary>
         internal static string EncapsulateFieldsUsages {
             get {
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos; (usages reference field).
+        ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos; (and use property).
         /// </summary>
         internal static string EncapsulateFieldUsages {
             get {
