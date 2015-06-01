@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -106,7 +107,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         protected override void SetName(string value)
         {
-            UpdateNodeAndReaquireNodeKey(FileCodeModel.UpdateName, value);
+            var nodeKeyValidation = new NodeKeyValidation();
+            nodeKeyValidation.AddFileCodeModel(this.FileCodeModel);
+
+            var node = LookupNode();
+
+            FileCodeModel.UpdateName(node, value);
+
+            nodeKeyValidation.RestoreKeys();
         }
     }
 }
