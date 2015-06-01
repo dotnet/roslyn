@@ -366,8 +366,8 @@ End Class"
         ''' defined in a previous evaluation, say an anonymous
         ''' type (e.g.: evaluate "o" after "o = New With { .P = 1 }").
         ''' </summary>
-        <WorkItem(1102923)>
-        <Fact(Skip:="1102923")>
+        <WorkItem(1449, "https://github.com/dotnet/roslyn/issues/1449")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1449")>
         Public Sub UnrecognizedAssembly()
             Const source =
 "Friend Structure S(Of T)
