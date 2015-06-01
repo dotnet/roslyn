@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="FixAnalyzers\CSharpFixerWithFixAllAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\CSharpDiagnosticDescriptorCreationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\CSharpRegisterActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\CSharpDiagnosticAnalyzerFieldsAnalyzer.cs" />

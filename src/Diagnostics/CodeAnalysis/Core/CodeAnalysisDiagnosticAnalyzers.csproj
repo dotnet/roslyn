@@ -64,6 +64,7 @@
     </Compile>
     <Compile Include="DiagnosticCategory.cs" />
     <Compile Include="DiagnosticIds.cs" />
+    <Compile Include="FixAnalyzers\FixerWithFixAllAnalyzer.cs" />
     <Compile Include="Helpers\AttributeHelpers.cs" />
     <Compile Include="Helpers\DocumentChangedAction.cs" />
     <Compile Include="Helpers\ITypeSymbolExtensions.cs" />

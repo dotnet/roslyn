@@ -219,6 +219,21 @@
     <value>Type {0} cannot implement interface {1} because {1} is not available for public implementation.</value>
   </data>
   <data name="InternalImplementationOnlyTitle" xml:space="preserve">
-    <value>"Only internal implementations of this interface are allowed."</value>
+    <value>Only internal implementations of this interface are allowed.</value>
+  </data>
+  <data name="CodeActionNeedsEquivalenceKeyDescription" xml:space="preserve">
+    <value>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</value>
+  </data>
+  <data name="CreateCodeActionWithEquivalenceKeyMessage" xml:space="preserve">
+    <value>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</value>
+  </data>
+  <data name="CreateCodeActionWithEquivalenceKeyTitle" xml:space="preserve">
+    <value>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</value>
+  </data>
+  <data name="OverrideCodeActionEquivalenceKeyMessage" xml:space="preserve">
+    <value>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</value>
+  </data>
+  <data name="OverrideCodeActionEquivalenceKeyTitle" xml:space="preserve">
+    <value>Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</value>
   </data>
 </root>
