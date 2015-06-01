@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _operationPairs = operationPairs;
             }
 
-            public List<IEnumerable<TokenPairWithOperations>> GetPartitions(int partitionCount)
+            public List<IEnumerable<TokenPairWithOperations>> GetPartitions(int partitionCount, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(partitionCount > 0);
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         break;
                     }
 
-                    var nextToken = _context.GetEndTokenForRelativeIndentationSpan(_operationPairs[nextPartitionStartOperationIndex].Token1);
+                    var nextToken = _context.GetEndTokenForRelativeIndentationSpan(_operationPairs[nextPartitionStartOperationIndex].Token1, cancellationToken);
                     if (nextToken.RawKind == 0)
                     {
                         // reached the last token in the tree
@@ -79,6 +80,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                     list.Add(GetOperationPairsFromTo(currentOperationIndex, nextTokenWithIndex.IndexInStream));
                     currentOperationIndex = nextTokenWithIndex.IndexInStream;
+
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
 
                 return list;
