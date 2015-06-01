@@ -332,7 +332,8 @@ class Wrapper
                 EvalResult("NoDisplayPointer", PointerToString(IntPtr.Zero), "NoDisplay*", "wrapper.display.NoDisplayPointer"));
         }
 
-        [Fact(Skip = "Issue #321")]
+        [WorkItem(321, "https://github.com/dotnet/roslyn/issues/321")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/321")]
         public void PointerDereferenceExpansion_NonNull()
         {
             var source = @"

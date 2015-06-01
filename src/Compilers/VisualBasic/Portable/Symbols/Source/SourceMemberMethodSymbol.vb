@@ -183,6 +183,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If Me.IsAsync OrElse Me.IsIterator Then
                 AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+
+                If Me.IsAsync Then
+                    ' Async kick-off method calls MoveNext, which contains user code. 
+                    ' This means we need to emit DebuggerStepThroughAttribute in order
+                    ' to have correct stepping behavior during debugging.
+                    AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
+                End If
             End If
         End Sub
 

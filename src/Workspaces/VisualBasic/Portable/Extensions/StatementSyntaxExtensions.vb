@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetNameTokenOrNothing(member As StatementSyntax) As SyntaxToken
+        Public Function GetNameToken(member As StatementSyntax) As SyntaxToken
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
@@ -329,6 +329,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Case SyntaxKind.FunctionBlock,
                         SyntaxKind.SubBlock
                         Return DirectCast(DirectCast(member, MethodBlockSyntax).BlockStatement, MethodStatementSyntax).Identifier
+                    Case SyntaxKind.ConstructorBlock
+                        Return DirectCast(DirectCast(member, ConstructorBlockSyntax).BlockStatement, SubNewStatementSyntax).NewKeyword
+                    Case SyntaxKind.OperatorBlock
+                        Return DirectCast(DirectCast(member, OperatorBlockSyntax).BlockStatement, OperatorStatementSyntax).OperatorToken
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement
                         Return DirectCast(member, MethodStatementSyntax).Identifier
@@ -341,7 +345,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End Select
             End If
 
-            ' Constructors, accessors and operators don't have names.
             Return Nothing
         End Function
 
@@ -420,7 +423,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Nothing
         End Function
 
-        Private Function GetAsClause(member As StatementSyntax) As AsClauseSyntax
+        <Extension()>
+        Public Function GetAsClause(member As StatementSyntax) As AsClauseSyntax
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.FunctionBlock
@@ -451,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetReturnType(member As StatementSyntax) As TypeSyntax
-            Dim asClause = GetAsClause(member)
+            Dim asClause = member.GetAsClause()
             Return If(asClause IsNot Nothing, asClause.Type, Nothing)
         End Function
 

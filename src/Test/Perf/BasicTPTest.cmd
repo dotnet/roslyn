@@ -1,5 +1,6 @@
 rem Prep-install required packages
 set ROSLYN_ROOT=%~dp0..\..\..
+set PERF_DIR=%~dp0
 set PERFTOOLS_NAME=Microsoft.DotNet.PerfTools
 set PERFTOOLS_VERSION=0.0.1-prerelease-00050
 set NUGET_EXE=%ROSLYN_ROOT%\src\.nuget\nuget.exe
@@ -11,6 +12,8 @@ if not exist %ROSLYN_DIR%\csc.exe (
 	echo Please build a release version of Roslyn before running this.
 	exit /b 1
 )
+
+cd %PERF_DIR%
 
 if exist Profile.etl del Profile.etl
 if exist Report.xml del Report.xml

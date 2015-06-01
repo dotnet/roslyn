@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
             return attributes;
         }
 
-        internal static bool DerivesFrom(INamedTypeSymbol symbol, INamedTypeSymbol candidateBaseType)
+        internal static bool DerivesFrom(this INamedTypeSymbol symbol, INamedTypeSymbol candidateBaseType)
         {
             while (symbol != null)
             {

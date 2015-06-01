@@ -7135,6 +7135,105 @@ End Class
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(source)
         End Sub
+
+        <Fact>
+        Public Sub AdditionalFileDiagnostics()
+            Dim dir = Temp.CreateDirectory()
+            Dim source = dir.CreateFile("a.vb").WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim additionalFile = dir.CreateFile("AdditionalFile.txt").WriteAllText(<text>
+Additional File Line 1!
+Additional File Line 2!
+</text>.Value).Path
+
+            Dim nonCompilerInputFile = dir.CreateFile("DummyFile.txt").WriteAllText(<text>
+Dummy File Line 1!
+</text>.Value).Path
+
+            Dim analyzer = New AdditionalFileDiagnosticAnalyzer(nonCompilerInputFile)
+            Dim arguments = {"/nologo", "/preferreduilang:en", "/vbruntime", "/t:library",
+                "/additionalfile:" & additionalFile, ' Valid additional text file
+                "/additionalfile:" & Assembly.GetExecutingAssembly.Location, ' Non-text file specified as an additional text file
+                source}
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, arguments, analyzer)
+
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(1, exitCode)
+            Dim output = outWriter.ToString()
+
+            AssertOutput(
+    String.Format(<text>
+AdditionalFile.txt(1) : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
+Additional File Line 1!
+~~~~~~~~~~             
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: {0}
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: DummyFile
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: NonExistentPath
+vbc : error BC2015: the file '{1}' is not a text file
+</text>.Value.ToString(),
+        IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly.Location),
+        Assembly.GetExecutingAssembly.Location),
+    output, fileName:="AdditionalFile.txt")
+
+            CleanupAllGeneratedFiles(source)
+            CleanupAllGeneratedFiles(additionalFile)
+            CleanupAllGeneratedFiles(nonCompilerInputFile)
+        End Sub
+
+        ''' <summary>
+        ''' Script compilation should be internal only.
+        ''' </summary>
+        <WorkItem(1979, "https://github.com/dotnet/roslyn/issues/1979")>
+        <Fact>
+        Public Sub ScriptCompilationInternalOnly()
+            Dim source = "System.Console.WriteLine()"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("b.vbx")
+            file.WriteAllText(source)
+
+            ' Compiling script file with internal API should be supported.
+            Dim compilation = CreateCompilationWithMscorlib(
+                <compilation>
+                    <file name="b.vbx"><%= source %></file>
+                </compilation>,
+                parseOptions:=New VisualBasicParseOptions(LanguageVersion.VisualBasic14, DocumentationMode.Parse, SourceCodeKind.Script, ImmutableArray(Of KeyValuePair(Of String, Object)).Empty),
+                options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+            compilation.VerifyDiagnostics()
+
+            ' Compiling with command-line compiler, should not treat .vbx as script.
+            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", file.Path})
+            Dim output As StringWriter = New StringWriter()
+            cmd.Run(output, Nothing)
+            Assert.True(output.ToString().Contains("error BC30689: Statement cannot appear outside of a method body."))
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <Fact, WorkItem(1093063, "DevDiv")>
+        Public Sub VerifyDiagnosticSeverityNotLocalized()
+            Dim source = <![CDATA[
+Class A
+End Class
+]]>
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source.Value)
+
+            Dim output As New StringWriter()
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/target:exe", fileName})
+            vbc.Run(output, Nothing)
+
+            ' If "error" was localized, below assert will fail on PLOC builds. The output would be something like: "!pTCvB!vbc : !FLxft!error 表! BC30420:"
+            Assert.Contains("error BC30420:", output.ToString())
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -7250,6 +7349,57 @@ End Class
 
         Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
             context.ReportDiagnostic(Diagnostic.Create(Error01, context.Node.GetLocation()))
+        End Sub
+    End Class
+
+    Friend Class AdditionalFileDiagnosticAnalyzer
+        Inherits MockAbstractDiagnosticAnalyzer
+
+        Friend Shared ReadOnly Rule As DiagnosticDescriptor = New DiagnosticDescriptor("AdditionalFileDiagnostic", "", "Additional File Diagnostic: {0}", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+        Private ReadOnly _nonCompilerInputFile As String
+
+        Public Sub New(nonCompilerInputFile As String)
+            _nonCompilerInputFile = nonCompilerInputFile
+        End Sub
+
+        Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+            Get
+                Return ImmutableArray.Create(Rule)
+            End Get
+        End Property
+
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
+        End Sub
+
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterCompilationEndAction(AddressOf CompilationEndAction)
+        End Sub
+
+        Private Sub CompilationEndAction(context As CompilationAnalysisContext)
+            ' Diagnostic reported on additionals file, with valid span.
+            For Each additionalFile In context.Options.AdditionalFiles
+                ReportDiagnostic(additionalFile.Path, context)
+            Next
+
+            ' Diagnostic reported on an additional file, but with an invalid span.
+            ReportDiagnostic(context.Options.AdditionalFiles.First().Path, context, New TextSpan(0, 1000000)) ' Overflow span
+
+            ' Diagnostic reported on a file which is not an input for the compiler.
+            ReportDiagnostic(_nonCompilerInputFile, context)
+
+            ' Diagnostic reported on a non-existent file.
+            ReportDiagnostic("NonExistentPath", context)
+        End Sub
+
+        Private Sub ReportDiagnostic(path As String, context As CompilationAnalysisContext, Optional span As TextSpan = Nothing)
+            If span = Nothing Then
+                span = New TextSpan(0, 11)
+            End If
+
+            Dim linePosSpan = New LinePositionSpan(New LinePosition(0, 0), New LinePosition(0, span.End))
+            Dim diagLocation = Location.Create(path, span, linePosSpan)
+            Dim diag = Diagnostic.Create(Rule, diagLocation, IO.Path.GetFileNameWithoutExtension(path))
+            context.ReportDiagnostic(diag)
         End Sub
     End Class
 End Namespace

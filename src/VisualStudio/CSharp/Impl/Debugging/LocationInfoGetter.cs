@@ -1,94 +1,129 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 {
     internal static class LocationInfoGetter
     {
-        private static readonly SymbolDisplayFormat s_nameFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
-                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeExtensionThis |
-                    SymbolDisplayParameterOptions.IncludeType |
-                    SymbolDisplayParameterOptions.IncludeName,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
         internal static async Task<DebugLocationInfo> GetInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            string name = null;
-            int lineOffset = 0;
-
-            // Note that we get the current partial solution here.  Technically, this means that we may
-            // not fully understand the signature of the member.  But that's ok.  We just need this
-            // symbol so we can create a display string to put into the debugger.  If we try to
-            // find the document in the "CurrentSolution" then when we try to get the semantic 
-            // model below then it might take a *long* time as all dependent compilations are built.
+            // PERF:  This method will be called synchronously on the UI thread for every breakpoint in the solution.
+            // Therefore, it is important that we make this call as cheap as possible.  Rather than constructing a
+            // containing Symbol and using ToDisplayString (which might be more *correct*), we'll just do the best we
+            // can with Syntax.  This approach is capable of providing parity with the pre-Roslyn implementation.
             var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            SyntaxNode memberDecl = token.GetAncestor<MemberDeclarationSyntax>();
+            var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+
+            if (memberDeclaration == null)
+            {
+                return default(DebugLocationInfo);
+            }
 
             // field or event field declarations may contain multiple variable declarators. Try finding the correct one.
             // If the position does not point to one, try using the first one.
-            if (memberDecl != null &&
-                (memberDecl.Kind() == SyntaxKind.FieldDeclaration || memberDecl.Kind() == SyntaxKind.EventFieldDeclaration))
+            VariableDeclaratorSyntax fieldDeclarator = null;
+            if (memberDeclaration.Kind() == SyntaxKind.FieldDeclaration || memberDeclaration.Kind() == SyntaxKind.EventFieldDeclaration)
             {
-                SeparatedSyntaxList<VariableDeclaratorSyntax> variableDeclarators = ((BaseFieldDeclarationSyntax)memberDecl).Declaration.Variables;
+                SeparatedSyntaxList<VariableDeclaratorSyntax> variableDeclarators = ((BaseFieldDeclarationSyntax)memberDeclaration).Declaration.Variables;
 
                 foreach (var declarator in variableDeclarators)
                 {
                     if (declarator.FullSpan.Contains(token.FullSpan))
                     {
-                        memberDecl = declarator;
+                        fieldDeclarator = declarator;
                         break;
                     }
                 }
 
-                if (memberDecl == null)
+                if (fieldDeclarator == null)
                 {
-                    memberDecl = variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
+                    fieldDeclarator = variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
                 }
             }
 
-            if (memberDecl != null)
+            var name = GetName(memberDeclaration, fieldDeclarator);
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var lineNumber = text.Lines.GetLineFromPosition(position).LineNumber;
+            var accessor = token.GetAncestor<AccessorDeclarationSyntax>();
+            var memberLine = text.Lines.GetLineFromPosition(accessor?.SpanStart ?? memberDeclaration.SpanStart).LineNumber;
+            var lineOffset = lineNumber - memberLine;
+
+            return new DebugLocationInfo(name, lineOffset);
+        }
+
+        private static string GetName(MemberDeclarationSyntax memberDeclaration, VariableDeclaratorSyntax fieldDeclaratorOpt)
+        {
+            const string missingInformationPlaceholder = "?";
+
+            // containing namespace(s) and type(s)
+            ArrayBuilder<string> containingDeclarationNames = ArrayBuilder<string>.GetInstance();
+            var containingDeclaration = memberDeclaration.Parent;
+            while (containingDeclaration != null)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
-
-                if (memberSymbol != null)
+                var @namespace = containingDeclaration as NamespaceDeclarationSyntax;
+                if (@namespace != null)
                 {
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var lineNumber = text.Lines.GetLineFromPosition(position).LineNumber;
-
-                    var accessor = token.GetAncestor<AccessorDeclarationSyntax>();
-                    var memberLine = accessor == null
-                        ? text.Lines.GetLineFromPosition(memberDecl.SpanStart).LineNumber
-                        : text.Lines.GetLineFromPosition(accessor.SpanStart).LineNumber;
-
-                    name = memberSymbol.ToDisplayString(s_nameFormat);
-                    lineOffset = lineNumber - memberLine;
-                    return new DebugLocationInfo(name, lineOffset);
+                    var syntax = @namespace.Name;
+                    containingDeclarationNames.Add(syntax.IsMissing ? missingInformationPlaceholder : syntax.ToString());
                 }
+                else
+                {
+                    var type = containingDeclaration as TypeDeclarationSyntax;
+                    if (type != null)
+                    {
+                        var token = type.GetNameToken();
+                        containingDeclarationNames.Add(token.IsMissing ? missingInformationPlaceholder : token.Text);
+                    }
+                }
+                containingDeclaration = containingDeclaration.Parent;
+            }
+            var pooled = PooledStringBuilder.GetInstance();
+            var builder = pooled.Builder;
+            for (var i = containingDeclarationNames.Count - 1; i >= 0; i--)
+            {
+                builder.Append(containingDeclarationNames[i]);
+                builder.Append('.');
+            }
+            containingDeclarationNames.Free();
+
+            // simple name
+            var nameToken = fieldDeclaratorOpt?.Identifier ?? memberDeclaration.GetNameToken();
+            if (nameToken.IsMissing)
+            {
+                builder.Append(missingInformationPlaceholder);
+            }
+            else if (nameToken == default(SyntaxToken))
+            {
+                Debug.Assert(memberDeclaration.Kind() == SyntaxKind.ConversionOperatorDeclaration);
+                builder.Append((memberDeclaration as ConversionOperatorDeclarationSyntax)?.Type);
+            }
+            else
+            {
+                if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
+                {
+                    builder.Append('~');
+                }
+                builder.Append(nameToken.Text);
             }
 
-            return default(DebugLocationInfo);
+            // parameter list (if any)
+            builder.Append(memberDeclaration.GetParameterList());
+
+            return pooled.ToStringAndFree();
         }
     }
 }

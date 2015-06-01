@@ -3339,7 +3339,8 @@ class B : A
         /// containing the current frame, so new instances can
         /// be used interchangeably with existing instances.
         /// </summary>
-        [Fact(Skip = "error CS0019: Operator '==' cannot be applied to operands of type ...")]
+        [WorkItem(3188, "https://github.com/dotnet/roslyn/issues/3188")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/3188")]
         public void EvaluateExistingAnonymousType_2()
         {
             var source =
