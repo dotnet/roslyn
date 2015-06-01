@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -51,12 +52,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     var service = document.Project.LanguageServices.GetService<IFindReferencesService>();
                     if (service != null)
                     {
-                        if (!service.TryFindReferences(document, caretPosition, context))
+                        var globalOperationService = document.Project.Solution.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+                        using (globalOperationService?.Start("FindReferences"))
                         {
-                            foreach (var presenter in _presenters)
+                            if (!service.TryFindReferences(document, caretPosition, context))
                             {
-                                presenter.DisplayResult(document.Project.Solution, SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
-                                return;
+                                foreach (var presenter in _presenters)
+                                {
+                                    presenter.DisplayResult(document.Project.Solution, SpecializedCollections.EmptyEnumerable<ReferencedSymbol>());
+                                    return;
+                                }
                             }
                         }
                     }
