@@ -793,6 +793,72 @@ class B
             }
         }
 
+        [Fact, WorkItem(1175704, "DevDiv")]
+        public void EventFields()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static event EventHandler handler;
+
+    static int F()
+    {
+        handler(null, null);
+        return 1;
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static event EventHandler handler;
+
+    static int F()
+    {
+        handler(null, null);
+        return 10;
+    }
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.EventHandler C.handler""
+  IL_0006:  ldnull
+  IL_0007:  ldnull
+  IL_0008:  callvirt   ""void System.EventHandler.Invoke(object, System.EventArgs)""
+  IL_000d:  nop
+  IL_000e:  ldc.i4.s   10
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0013
+  IL_0013:  ldloc.0
+  IL_0014:  ret
+}
+");
+        }
+
         [Fact]
         public void AddNestedTypeAndMembers()
         {

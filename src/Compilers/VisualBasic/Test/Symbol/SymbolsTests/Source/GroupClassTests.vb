@@ -2600,7 +2600,8 @@ BC30469: Reference to a non-shared member requires an object reference.
             semanticInfo1 = CompilationUtils.GetSemanticInfoSummary(semanticModel, node1)
             semanticInfo2 = CompilationUtils.GetSemanticInfoSummary(semanticModel, node2)
 
-            Assert.Equal(semanticInfo1.Symbol, semanticInfo2.Symbol)
+            Assert.Equal("WindowsApplication1.Form1", semanticInfo1.Symbol.ToTestDisplayString())
+            Assert.Equal("Property WindowsApplication1.My.MyProject.MyForms.Form1 As WindowsApplication1.Form1", semanticInfo2.Symbol.ToTestDisplayString())
             Assert.Equal(semanticInfo1.Type, semanticInfo2.Type)
             Assert.Equal(semanticInfo1.ImplicitConversion, semanticInfo2.ImplicitConversion)
             Assert.Equal(semanticInfo1.ConvertedType, semanticInfo2.ConvertedType)
@@ -2610,7 +2611,6 @@ BC30469: Reference to a non-shared member requires an object reference.
             Assert.Equal(0, semanticInfo2.CandidateSymbols.Length)
             Assert.Equal(semanticInfo1.AllSymbols.Length, semanticInfo2.AllSymbols.Length)
             Assert.Equal(1, semanticInfo2.AllSymbols.Length)
-            Assert.Equal(semanticInfo1.AllSymbols(0), semanticInfo2.AllSymbols(0))
             Assert.Equal(0, semanticInfo1.MemberGroup.Length)
             Assert.Equal(0, semanticInfo2.MemberGroup.Length)
 
@@ -3199,8 +3199,8 @@ Imports System
 
 Module Module1
     Sub Main()
-        Dim x = DefaultInstanceTest1
-        Dim y = DefaultInstanceTest2
+        Dim x = DefaultInstanceTest1 'BIND1:"DefaultInstanceTest1"
+        Dim y = DefaultInstanceTest2 'BIND2:"DefaultInstanceTest2"
     End Sub
 End Module
 
@@ -3252,9 +3252,103 @@ End Module
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30109: 'DefaultInstanceTest1' is a class type and cannot be used as an expression.
-        Dim x = DefaultInstanceTest1
+        Dim x = DefaultInstanceTest1 'BIND1:"DefaultInstanceTest1"
                 ~~~~~~~~~~~~~~~~~~~~
 </expected>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo As SymbolInfo
+            Dim typeInfo As TypeInfo
+
+            Dim node1 As ExpressionSyntax = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1)
+            Assert.Equal("= DefaultInstanceTest1", node1.Parent.ToString())
+            symbolInfo = semanticModel.GetSymbolInfo(node1)
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.CandidateSymbols.Single().Kind)
+            Assert.Equal("DefaultInstanceTest1", symbolInfo.CandidateSymbols.Single().ToTestDisplayString())
+            Assert.Equal(CandidateReason.NotAValue, symbolInfo.CandidateReason)
+            typeInfo = semanticModel.GetTypeInfo(node1)
+            Assert.Equal("DefaultInstanceTest1", typeInfo.Type.ToTestDisplayString())
+
+            Dim node2 As ExpressionSyntax = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 2)
+            Assert.Equal("= DefaultInstanceTest2", node2.Parent.ToString())
+            symbolInfo = semanticModel.GetSymbolInfo(node2)
+            Assert.Equal(SymbolKind.Field, symbolInfo.Symbol.Kind)
+            Assert.Equal("Factory.DefaultInstanceTest2 As DefaultInstanceTest2", symbolInfo.Symbol.ToTestDisplayString())
+            typeInfo = semanticModel.GetTypeInfo(node2)
+            Assert.Equal("DefaultInstanceTest2", typeInfo.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub DefaultInstancePropertyAsFunction()
+            Dim compilationDef =
+<compilation name="SimpleTest1">
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Module Module1
+    Sub Main()
+        Dim y = DefaultInstanceTest2 'BIND2:"DefaultInstanceTest2"
+    End Sub
+End Module
+
+Public Class DefaultInstanceTest
+    Sub Close()
+    End Sub
+
+    Public F1 As Integer
+End Class
+
+Public Class DefaultInstanceTest2
+    Inherits DefaultInstanceTest
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+
+            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            <![CDATA[
+Imports System
+
+<Microsoft.VisualBasic.MyGroupCollection("defaultInstanceteSt", "Create", "Dispose", "Factory")> _
+Public NotInheritable Class MyTests
+    Private Shared Function Create(Of T As {New, DefaultInstanceTest}) _
+        (Instance As T) As T
+        If Instance Is Nothing Then
+            Return New T()
+        Else
+            Return Instance
+        End If
+    End Function
+
+    Private Shared Sub Dispose(Of T As DefaultInstanceTest)(ByRef Instance As T)
+        Instance.Close()
+        Instance = Nothing
+    End Sub
+End Class
+
+Module Factory
+    Public Function DefaultInstanceTest2() As DefaultInstanceTest2
+        Return Nothing
+    End Function
+End Module
+]]>.Value, isMyTemplate:=True)
+
+            AssertNoDiagnostics(compilation)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo As SymbolInfo
+            Dim typeInfo As TypeInfo
+
+            Dim node2 As ExpressionSyntax = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 2)
+            Assert.Equal("= DefaultInstanceTest2", node2.Parent.ToString())
+            symbolInfo = semanticModel.GetSymbolInfo(node2)
+            Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind)
+            Assert.Equal("Function Factory.DefaultInstanceTest2() As DefaultInstanceTest2", symbolInfo.Symbol.ToTestDisplayString())
+            typeInfo = semanticModel.GetTypeInfo(node2)
+            Assert.Equal("DefaultInstanceTest2", typeInfo.Type.ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -3606,6 +3700,85 @@ End Class
             Next
 
             Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub SemanticModelTest_01()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class Form1
+    Inherits Windows.Forms.Form
+
+    Shared Sub M1()
+    End Sub
+
+    Default Readonly Property P1(x as Integer) As Integer
+        Get
+            Return x
+        End Get
+    End Property
+End Class
+
+Class Test
+    Sub Test1()
+        Form1.M1() 'BIND1:"Form1"
+        Form1.Close() 'BIND2:"Form1"
+
+        Dim f1 = Form1 'BIND3:"Form1"
+        Console.WriteLine(f1)
+
+        Dim p1 = Form1(2) 'BIND4:"Form1"
+        Console.WriteLine(p1)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef})
+
+            compilation.MyTemplate = GroupClassTests.WindowsFormsMyTemplateTree
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo As SymbolInfo
+            Dim typeInfo As TypeInfo
+
+            Dim node1 As ExpressionSyntax = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 1)
+            Assert.Equal("Form1.M1", node1.Parent.ToString())
+            symbolInfo = semanticModel.GetSymbolInfo(node1)
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
+            Assert.Equal("Form1", symbolInfo.Symbol.ToTestDisplayString())
+            typeInfo = semanticModel.GetTypeInfo(node1)
+            Assert.Equal("Form1", typeInfo.Type.ToTestDisplayString())
+
+            Dim node2 As ExpressionSyntax = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 2)
+            Assert.Equal("Form1.Close", node2.Parent.ToString())
+            symbolInfo = semanticModel.GetSymbolInfo(node2)
+            Assert.Equal(SymbolKind.Property, symbolInfo.Symbol.Kind)
+            Assert.Equal("Property My.MyProject.MyForms.Form1 As Form1", symbolInfo.Symbol.ToTestDisplayString())
+            typeInfo = semanticModel.GetTypeInfo(node2)
+            Assert.Equal("Form1", typeInfo.Type.ToTestDisplayString())
+
+            Dim node3 As ExpressionSyntax = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 3)
+            Assert.Equal("f1 = Form1", node3.Parent.Parent.ToString())
+            symbolInfo = semanticModel.GetSymbolInfo(node3)
+            Assert.Equal(SymbolKind.Property, symbolInfo.Symbol.Kind)
+            Assert.Equal("Property My.MyProject.MyForms.Form1 As Form1", symbolInfo.Symbol.ToTestDisplayString())
+            typeInfo = semanticModel.GetTypeInfo(node3)
+            Assert.Equal("Form1", typeInfo.Type.ToTestDisplayString())
+
+            Dim node4 As ExpressionSyntax = CompilationUtils.FindBindingText(Of ExpressionSyntax)(compilation, "a.vb", 4)
+            Assert.Equal("= Form1(2)", node4.Parent.Parent.ToString())
+            symbolInfo = semanticModel.GetSymbolInfo(node4)
+            Assert.Equal(SymbolKind.Property, symbolInfo.Symbol.Kind)
+            Assert.Equal("Property My.MyProject.MyForms.Form1 As Form1", symbolInfo.Symbol.ToTestDisplayString())
+            typeInfo = semanticModel.GetTypeInfo(node3)
+            Assert.Equal("Form1", typeInfo.Type.ToTestDisplayString())
         End Sub
 
     End Class

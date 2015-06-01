@@ -1120,6 +1120,76 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
+        <Fact, WorkItem(1175704, "DevDiv")>
+        Public Sub EventFields()
+            Dim source0 = MarkedSource("
+Imports System
+
+Class C
+    Shared Event handler As EventHandler
+
+    Shared Function F() As Integer
+        RaiseEvent handler(Nothing, Nothing)
+        Return 1
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+
+Class C
+    Shared Event handler As EventHandler
+
+    Shared Function F() As Integer
+        RaiseEvent handler(Nothing, Nothing)
+        Return 10
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+
+            compilation0.AssertNoDiagnostics()
+
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+               generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (Integer V_0, //F
+                [unchanged] V_1,
+                System.EventHandler V_2)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C.handlerEvent As System.EventHandler""
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.2
+  IL_000b:  ldnull
+  IL_000c:  ldnull
+  IL_000d:  callvirt   ""Sub System.EventHandler.Invoke(Object, System.EventArgs)""
+  IL_0012:  nop
+  IL_0013:  ldc.i4.s   10
+  IL_0015:  stloc.0
+  IL_0016:  br.s       IL_0018
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}
+")
+        End Sub
+
         ''' <summary>
         ''' Should use TypeDef rather than TypeRef for unrecognized
         ''' local of a type defined in the original assembly.

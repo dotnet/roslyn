@@ -174,6 +174,26 @@
   <data name="InvalidSyntaxKindTypeArgumentDescription" xml:space="preserve">
     <value>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</value>
   </data>
+  <data name="StartActionWithOnlyEndActionTitle" xml:space="preserve">
+    <value>Start action has no registered non-end actions.</value>
+  </data>
+  <data name="StartActionWithNoRegisteredActionsMessage" xml:space="preserve">
+    <value>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</value>
+  </data>
+  <data name="StartActionWithNoRegisteredActionsTitle" xml:space="preserve">
+    <value>Start action has no registered actions.</value>
+  </data>
+  <data name="StartActionWithOnlyEndActionMessage" xml:space="preserve">
+    <value>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</value>
+  </data>
+  <data name="StatefulAnalyzerRegisterActionsDescription" xml:space="preserve">
+    <value>An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
+1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
+2. If required, define and initialize state in the start action.
+3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
+4. If required, register an end action to report diagnostics based on the final state.
+</value>
+  </data>
   <data name="UseLocalizableStringsInDescriptorMessage" xml:space="preserve">
     <value>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable.</value>
   </data>
@@ -199,6 +219,21 @@
     <value>Type {0} cannot implement interface {1} because {1} is not available for public implementation.</value>
   </data>
   <data name="InternalImplementationOnlyTitle" xml:space="preserve">
-    <value>"Only internal implementations of this interface are allowed."</value>
+    <value>Only internal implementations of this interface are allowed.</value>
+  </data>
+  <data name="CodeActionNeedsEquivalenceKeyDescription" xml:space="preserve">
+    <value>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</value>
+  </data>
+  <data name="CreateCodeActionWithEquivalenceKeyMessage" xml:space="preserve">
+    <value>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</value>
+  </data>
+  <data name="CreateCodeActionWithEquivalenceKeyTitle" xml:space="preserve">
+    <value>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</value>
+  </data>
+  <data name="OverrideCodeActionEquivalenceKeyMessage" xml:space="preserve">
+    <value>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</value>
+  </data>
+  <data name="OverrideCodeActionEquivalenceKeyTitle" xml:space="preserve">
+    <value>Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</value>
   </data>
 </root>

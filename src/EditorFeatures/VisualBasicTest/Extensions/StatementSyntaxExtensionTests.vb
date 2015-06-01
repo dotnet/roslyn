@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
 
         Private Sub VerifyTokenName(Of T As StatementSyntax)(code As String, expectedName As String)
             Dim node = SyntaxFactory.ParseCompilationUnit(code).DescendantNodes.OfType(Of T).First()
-            Dim actualNameToken = node.GetNameTokenOrNothing()
+            Dim actualNameToken = node.GetNameToken()
             Assert.Equal(expectedName, actualNameToken.ToString())
         End Sub
 

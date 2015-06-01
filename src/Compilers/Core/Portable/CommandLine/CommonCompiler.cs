@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis
             return Succeeded;
         }
 
-        private ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)
+        protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)
         {
             var builder = ImmutableArray.CreateBuilder<AdditionalTextFile>();
 
