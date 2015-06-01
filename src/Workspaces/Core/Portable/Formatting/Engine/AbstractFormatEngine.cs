@@ -441,7 +441,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var partitioner = new Partitioner(context, tokenStream, tokenOperations);
 
                 // always create task 1 more than current processor count
-                var partitions = partitioner.GetPartitions(this.TaskExecutor == TaskExecutor.Synchronous ? 1 : Environment.ProcessorCount + 1);
+                var partitions = partitioner.GetPartitions(this.TaskExecutor == TaskExecutor.Synchronous ? 1 : Environment.ProcessorCount + 1, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var tasks = new Task[partitions.Count];
                 for (int i = 0; i < partitions.Count; i++)
