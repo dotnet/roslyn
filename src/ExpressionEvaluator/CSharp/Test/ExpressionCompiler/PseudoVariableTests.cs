@@ -304,13 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"{
   // Code size       40 (0x28)
   .maxstack  2
-  IL_0000:  ldstr      ""23""
+  IL_0000:  ldstr      ""$23""
   IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""string""
   IL_000f:  dup
   IL_0010:  brtrue.s   IL_0027
   IL_0012:  pop
-  IL_0013:  ldstr      ""4""
+  IL_0013:  ldstr      ""$4""
   IL_0018:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_001d:  castclass  ""System.Type""
   IL_0022:  callvirt   ""System.Type System.Type.BaseType.get""
@@ -977,13 +977,13 @@ class C
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_002b
   IL_0008:  pop
-  IL_0009:  ldstr      ""1""
+  IL_0009:  ldstr      ""$1""
   IL_000e:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0013:  castclass  ""A<B<object>>""
   IL_0018:  dup
   IL_0019:  brtrue.s   IL_002b
   IL_001b:  pop
-  IL_001c:  ldstr      ""2""
+  IL_001c:  ldstr      ""$2""
   IL_0021:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0026:  castclass  ""B<A<object>[]>""
   IL_002b:  ret
@@ -1097,7 +1097,7 @@ class B
   // Code size       17 (0x11)
   .maxstack  1
   .locals init (object V_0) //o
-  IL_0000:  ldstr      ""1""
+  IL_0000:  ldstr      ""$1""
   IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  castclass  ""A<B>""
   IL_000f:  stloc.0
