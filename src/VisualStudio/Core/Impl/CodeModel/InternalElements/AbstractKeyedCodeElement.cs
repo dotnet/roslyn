@@ -107,14 +107,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         protected override void SetName(string value)
         {
-            var nodeKeyValidation = new NodeKeyValidation();
-            nodeKeyValidation.AddFileCodeModel(this.FileCodeModel);
+            FileCodeModel.EnsureEditor(() =>
+            {
+                var nodeKeyValidation = new NodeKeyValidation();
+                nodeKeyValidation.AddFileCodeModel(this.FileCodeModel);
 
-            var node = LookupNode();
+                var node = LookupNode();
 
-            FileCodeModel.UpdateName(node, value);
+                FileCodeModel.UpdateName(node, value);
 
-            nodeKeyValidation.RestoreKeys();
+                nodeKeyValidation.RestoreKeys();
+            });
         }
     }
 }
