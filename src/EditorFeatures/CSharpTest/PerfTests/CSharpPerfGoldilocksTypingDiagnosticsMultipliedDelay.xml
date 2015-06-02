@@ -29,8 +29,8 @@
       <DelayTracker Action="Stop" />
       <CollectPerfViewTrace Action="Stop" />
 
-      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="CSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoBasic" />-->
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="CSharp" />
+      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoBasic" />
     </Scenario>
 
   </ScenarioList>
