@@ -169,7 +169,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             var allMatchingRules = ruleSetDocument.Root
                                        .Descendants("Rule")
-                                       .Where(r => r.Attribute("Id").Value.Equals(_descriptor.Id));
+                                       .Where(r => r.Attribute("Id").Value.Equals(_descriptor.Id))
+                                       .ToList();
 
             foreach (var matchingRule in allMatchingRules)
             {
