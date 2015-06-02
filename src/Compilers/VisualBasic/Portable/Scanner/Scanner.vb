@@ -397,12 +397,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #Region "Buffer helpers"
 
-        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function NextAre(chars As String) As Boolean
             Return NextAre(0, chars)
         End Function
 
-        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function NextAre(offset As Integer, chars As String) As Boolean
             Debug.Assert(Not String.IsNullOrEmpty(chars))
             Dim n = chars.Length
@@ -413,17 +411,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function NextIs(offset As Integer, c As Char) As Boolean
             Return CanGet(offset) AndAlso (Peek(offset) = c)
         End Function
 
-        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function CanGet() As Boolean
             Return _lineBufferOffset < _bufferLen
         End Function
 
-        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Private Function CanGet(num As Integer) As Boolean
             Debug.Assert(_lineBufferOffset + num >= 0)
             Debug.Assert(num >= -MaxCharsLookBehind)
