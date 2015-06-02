@@ -1180,8 +1180,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             uint itemId;
-            Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId);
-            return itemId;
+            return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId) == VSConstants.S_OK
+                ? itemId
+                : (uint)VSConstants.VSITEMID.Nil;
         }
 
         private enum RazorCodeBlockType
