@@ -79,10 +79,15 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // In an expression or statement context, we don't want to display instance members declared in outer containing types.
             if ((context.IsStatementContext || context.IsAnyExpressionContext) &&
                 !symbol.IsStatic &&
-                isMember &&
-                context.GetOuterTypes(cancellationToken).Contains(symbol.ContainingType))
+                isMember)
             {
-                return false;
+                var outerTypesAndBases = context.GetOuterTypes(cancellationToken).SelectMany(o => o.GetBaseTypesAndThis()).Select(t => t.OriginalDefinition);
+                var containingTypeOriginalDefinition = symbol.ContainingType.OriginalDefinition;
+                if (outerTypesAndBases.Contains(containingTypeOriginalDefinition))
+                {
+                    var enclosingType = context.SemanticModel.GetEnclosingNamedType(context.LeftToken.SpanStart, cancellationToken);
+                    return enclosingType != null && enclosingType.GetBaseTypes().Select(b => b.OriginalDefinition).Contains(containingTypeOriginalDefinition);
+                }
             }
 
             var namespaceSymbol = symbol as INamespaceSymbol;
