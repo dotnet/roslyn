@@ -80,6 +80,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
+        Public Sub TestBuildStartEvent()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim waiter = New Waiter()
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+                Dim diagnostic = GetDiagnosticData(workspace, project.Id)
+
+                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray(Of DiagnosticData).Empty)
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                AddHandler source.BuildStarted, Sub(o, started)
+                                                    If Not started Then
+                                                        Assert.Equal(2, source.GetBuildErrors().Length)
+                                                    End If
+                                                End Sub
+
+                Dim map = New Dictionary(Of DocumentId, HashSet(Of DiagnosticData))()
+                map.Add(project.DocumentIds.First(), New HashSet(Of DiagnosticData)(
+                        SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
+
+                source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
+                waiter.CreateWaitTask().PumpingWait()
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+                waiter.CreateWaitTask().PumpingWait()
+            End Using
+        End Sub
+
+        <Fact>
         Public Sub TestExternalBuildErrorCustomTags()
             Assert.Equal(1, ProjectExternalErrorReporter.CustomTags.Count)
             Assert.Equal(WellKnownDiagnosticTags.Telemetry, ProjectExternalErrorReporter.CustomTags(0))

@@ -382,18 +382,6 @@
   <data name="CantCreateReferenceToDynamicAssembly" xml:space="preserve">
     <value>Can't create a metadata reference to a dynamic assembly.</value>
   </data>
-  <data name="SeverityError" xml:space="preserve">
-    <value>error</value>
-  </data>
-  <data name="SeverityHidden" xml:space="preserve">
-    <value>hidden</value>
-  </data>
-  <data name="SeverityInfo" xml:space="preserve">
-    <value>info</value>
-  </data>
-  <data name="SeverityWarning" xml:space="preserve">
-    <value>warning</value>
-  </data>
   <data name="ArgumentCannotBeEmpty" xml:space="preserve">
     <value>Argument cannot be empty.</value>
   </data>

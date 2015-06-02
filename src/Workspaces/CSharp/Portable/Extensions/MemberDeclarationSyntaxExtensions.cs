@@ -98,10 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return ((EventDeclarationSyntax)member).Identifier;
                     case SyntaxKind.MethodDeclaration:
                         return ((MethodDeclarationSyntax)member).Identifier;
+                    case SyntaxKind.ConstructorDeclaration:
+                        return ((ConstructorDeclarationSyntax)member).Identifier;
+                    case SyntaxKind.DestructorDeclaration:
+                        return ((DestructorDeclarationSyntax)member).Identifier;
+                    case SyntaxKind.IndexerDeclaration:
+                        return ((IndexerDeclarationSyntax)member).ThisKeyword;
+                    case SyntaxKind.OperatorDeclaration:
+                        return ((OperatorDeclarationSyntax)member).OperatorToken;
                 }
             }
 
-            // Constructors, destructors, indexers and operators don't have names.
+            // Conversion operators don't have names.
             return default(SyntaxToken);
         }
 
@@ -157,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return ((MethodDeclarationSyntax)member).ParameterList;
                     case SyntaxKind.ConstructorDeclaration:
                         return ((ConstructorDeclarationSyntax)member).ParameterList;
+                    case SyntaxKind.DestructorDeclaration:
+                        return ((DestructorDeclarationSyntax)member).ParameterList;
                     case SyntaxKind.IndexerDeclaration:
                         return ((IndexerDeclarationSyntax)member).ParameterList;
                     case SyntaxKind.OperatorDeclaration:

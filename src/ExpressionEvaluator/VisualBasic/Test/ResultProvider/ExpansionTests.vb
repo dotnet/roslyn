@@ -92,7 +92,8 @@ End Class"
                 EvalResult("F", "1", "Object {Integer}", "(New C()).s1.F"))
         End Sub
 
-        <Fact(Skip:="Issue #321")>
+        <WorkItem(321, "https://github.com/dotnet/roslyn/issues/321")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/321")>
         Public Sub Pointers()
             Dim source =
 ".class private auto ansi beforefieldinit C
@@ -627,7 +628,7 @@ End Class
                 EvalResult("S", "42", "Integer", "A.S"))
         End Sub
 
-        <Fact(Skip:="1074435"), WorkItem(1074435)>
+        <Fact, WorkItem(1074435, "DevDiv")>
         Public Sub NameConflictsWithInterfaceReimplementation()
             Dim source = "
 Interface I

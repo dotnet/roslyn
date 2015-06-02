@@ -2006,7 +2006,7 @@ End Function, Func(Of E(Of T)))()")
         End Sub
 
         <WorkItem(986227)>
-        <Fact(Skip:="986227")>
+        <Fact>
         Public Sub RewriteSequenceTemps()
             Const source =
 "Class C
@@ -2027,16 +2027,20 @@ End Class"
             Assert.Equal(returnType.ContainingSymbol, method)
 
             Dim locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder()
-            ' Both locals of type T from <>m0(Of T): the original local
-            ' and the temporary for "New T()" in (New T()).F = 1.
-            Assert.Equal(locals.Length, 2)
-            For Each local In locals
-                Dim localType = DirectCast(local.Type, TypeSymbol)
-                Assert.Equal(localType.ContainingSymbol, method)
-            Next
+            Assert.Equal(method, DirectCast(locals.Single().Type, TypeSymbol).ContainingSymbol)
+
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
-...
+  // Code size       23 (0x17)
+  .maxstack  3
+  .locals init (T V_0) //o
+  IL_0000:  call       ""Function System.Activator.CreateInstance(Of T)() As T""
+  IL_0005:  dup
+  IL_0006:  box        ""T""
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""Integer""
+  IL_0011:  stfld      ""C.F As Object""
+  IL_0016:  ret
 }")
         End Sub
 
@@ -3902,8 +3906,8 @@ End Class
 ")
         End Sub
 
-        <WorkItem(1105859)>
-        <Fact(Skip:="1105859")>
+        <WorkItem(1450, "https://github.com/dotnet/roslyn/issues/1450")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1450")>
         Public Sub WithExpression()
             Const source =
 "Structure S
@@ -4003,7 +4007,7 @@ End Class"
         End Sub
 
         <WorkItem(1112496)>
-        <Fact(Skip:="1112496")>
+        <Fact>
         Public Sub EvaluateLocalInAsyncLambda()
             Const source = "
 Imports System.Threading.Tasks
@@ -4019,7 +4023,7 @@ Module Module1
 End Module"
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(MakeSources(source), options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(compilation)
-            Dim context = CreateMethodContext(runtime, "Module1._Closure$__.VB$StateMachine___Lambda$__0-1.MoveNext")
+            Dim context = CreateMethodContext(runtime, "Module1._Closure$__.VB$StateMachine___Lambda$__0-0.MoveNext")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
             Dim result = context.CompileExpression("i", errorMessage, testData)
@@ -4028,12 +4032,12 @@ End Module"
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (Integer V_0, //$VB$ResumableLocal_i$0
+  .locals init (Integer V_0,
                 Integer V_1,
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""Module1._Closure$__.VB$StateMachine___Lambda$__0-1.$VB$ResumableLocal_i$0 As Integer""
+  IL_0001:  ldfld      ""Module1._Closure$__.VB$StateMachine___Lambda$__0-0.$VB$ResumableLocal_i$0 As Integer""
   IL_0006:  ret
 }")
         End Sub

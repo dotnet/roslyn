@@ -144,13 +144,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 SetStableState(errorSource.IsInProgress);
 
-                errorSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
                 errorSource.BuildStarted += OnBuildStarted;
             }
 
             private void OnBuildStarted(object sender, bool started)
             {
                 SetStableState(started);
+
+                if (!started)
+                {
+                    OnDataAddedOrChanged(this, _buildErrorSource.GetBuildErrors().Length);
+                }
             }
 
             private void SetStableState(bool started)
@@ -162,11 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string DisplayName => ServicesVSResources.BuildTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => IdentifierString;
-
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
-            {
-                OnDataAddedOrChanged(this, _buildErrorSource.GetBuildErrors().Length);
-            }
 
             protected void OnDataAddedOrChanged(object key, int itemCount)
             {

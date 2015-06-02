@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     public abstract partial class DiagnosticAnalyzerCorrectnessAnalyzer : DiagnosticAnalyzer
     {
-        protected abstract class CompilationAnalyzer
+        protected abstract class DiagnosticAnalyzerSymbolAnalyzer
         {
             private readonly INamedTypeSymbol _diagnosticAnalyzer;
             private readonly INamedTypeSymbol _diagnosticAnalyzerAttribute;
 
-            public CompilationAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            protected DiagnosticAnalyzerSymbolAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
             {
                 _diagnosticAnalyzer = diagnosticAnalyzer;
                 _diagnosticAnalyzerAttribute = diagnosticAnalyzerAttribute;
