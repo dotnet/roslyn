@@ -1,8 +1,9 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
-|Windows|Linux|Mac OSX|
-|:--:|:--:|:--:|
-|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/)|
+||Windows|Linux|Mac OSX|
+|:--:|:--:|:--:|:--:|
+|**master**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/)|
+|**stabilization**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_mac/)|
 
 
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
