@@ -5826,7 +5826,7 @@ End Class
         End Sub
 
         <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionForConditionalAccessOnTypes1()
             Dim text =
 <code><![CDATA[
@@ -5871,5 +5871,51 @@ End Module
             VerifyNoItemsExist(text)
         End Sub
 
+        <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SharedMembersOffInstanceInColorColor()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x = C.$$
+    End Sub
+
+    Dim C As New C()
+End Module
+
+Class C
+    Public X As Integer = 1
+    Public Shared Y As Integer = 2
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "X")
+            VerifyItemExists(text, "Y")
+        End Sub
+
+        <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotSharedMembersOffAliasInColorColor()
+            Dim text =
+<code><![CDATA[
+Imports B = C
+Module Program
+    Sub Main(args As String())
+        Dim x = B.$$
+    End Sub
+
+    Dim B As New B()
+End Module
+
+Class C
+    Public X As Integer = 1
+    Public Shared Y As Integer = 2
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "X")
+            VerifyItemIsAbsent(text, "Y")
+        End Sub
     End Class
 End Namespace
