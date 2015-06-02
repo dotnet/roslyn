@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
@@ -26,14 +27,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         ICommandHandler<UncommentSelectionCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
         internal CommentUncommentSelectionCommandHandler(
-            IWaitIndicator waitIndicator)
+            IWaitIndicator waitIndicator,
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             Contract.ThrowIfNull(waitIndicator);
+            Contract.ThrowIfNull(undoHistoryRegistry);
+            Contract.ThrowIfNull(editorOperationsFactoryService);
 
             _waitIndicator = waitIndicator;
+            _undoHistoryRegistry = undoHistoryRegistry;
+            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
         private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
@@ -103,11 +112,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
                     CollectEdits(service, textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer), textChanges, trackingSpans, operation);
 
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, waitContext.CancellationToken);
+                    using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    {
+                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, waitContext.CancellationToken);
+                        transaction.Complete();
+                    }
 
                     if (operation == Operation.Uncomment)
                     {
-                        Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, waitContext.CancellationToken);
+                        using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                        {
+                            Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, waitContext.CancellationToken);
+                            transaction.Complete();
+                        }
                     }
 
                     if (trackingSpans.Any())
@@ -116,6 +133,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                         textView.SetSelection(trackingSpans.First().GetSpan(subjectBuffer.CurrentSnapshot));
                     }
                 });
+        }
+
+        private static IEnumerable<TextSpan> GetUpdatedSpans(IEnumerable<TextChangeRange> ranges)
+        {
+            int delta = 0;
+            foreach (var range in ranges)
+            {
+                yield return new TextSpan(range.Span.Start + delta, range.NewLength);
+                delta += (range.NewLength - range.Span.Length);
+            }
         }
 
         private void Format(ICommentUncommentService service, ITextSnapshot snapshot, IEnumerable<ITrackingSpan> changes, CancellationToken cancellationToken)
