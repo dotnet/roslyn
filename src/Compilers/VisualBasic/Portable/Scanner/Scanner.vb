@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' optimization for a common case
             ' the ASCII range between ': and ~ , with exception of except "'", "_" and R cannot start trivia
-            If ch > ":"c AndAlso ch <= "~"c AndAlso ch.IsntFrom("'"c, "_"c, "R"c, "r"c) Then
+            If ch > ":"c AndAlso ch <= "~"c AndAlso ch.IsnotFrom("'"c, "_"c, "R"c, "r"c) Then
                 Return Nothing
             End If
 
@@ -1141,14 +1141,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(Not IsNewLine(ch))
             If fullWidth Then
                 Debug.Assert(Not IsDoubleQuote(ch))
-            Else
-                If IsDoubleQuote(ch) Then
+                Return nothing
+            End If
+            If IsDoubleQuote(ch) Then
                     Return ScanStringLiteral(precedingTrivia)
-                End If
-                If IsFullWidth(ch) Then
-                    ch = MakeHalfWidth(ch)
-                    Return ScanTokenFullWidth(precedingTrivia, ch)
-                End If
+            End If
+            If IsFullWidth(ch) Then
+                ch = MakeHalfWidth(ch)
+                Return ScanTokenFullWidth(precedingTrivia, ch)
             End If
             Return Nothing
         End Function
@@ -1262,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     length += 1
                     If Peep(length, c) Then
                         'if the second "<" is a part of "<%" - like in "<<%" , we do not want to use it.
-                        If c.IsntFrom("%"c, FULLWIDTH_PERCENT_SIGN) Then
+                        If c.IsnotFrom("%"c, FULLWIDTH_PERCENT_SIGN) Then
                             If TrySkipFollowingEquals(length) Then
                                 Return MakeLessThanLessThanEqualsToken(precedingTrivia, length)
                             Else

@@ -506,17 +506,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Runtime.CompilerServices.Extension>
-        Friend Function IsntFrom(c As Char, c0 As Char, c1 As Char) As Boolean
+        Friend Function IsnotFrom(c As Char, c0 As Char, c1 As Char) As Boolean
             Return (c <> c0) AndAlso (c <> c1)
         End Function
 
         <Runtime.CompilerServices.Extension>
-        Friend Function IsntFrom(c As Char, c0 As Char, c1 As Char, c2 As Char) As Boolean
+        Friend Function IsnotFrom(c As Char, c0 As Char, c1 As Char, c2 As Char) As Boolean
             Return (c <> c0) AndAlso (c <> c1) AndAlso (c <> c2)
         End Function
 
         <Runtime.CompilerServices.Extension>
-        Friend Function IsntFrom(c As Char, c0 As Char, c1 As Char, c2 As Char, c3 As Char) As Boolean
+        Friend Function IsnotFrom(c As Char, c0 As Char, c1 As Char, c2 As Char, c3 As Char) As Boolean
             Return (c <> c0) AndAlso (c <> c1) AndAlso (c <> c2) AndAlso (c <> c3)
         End Function
 

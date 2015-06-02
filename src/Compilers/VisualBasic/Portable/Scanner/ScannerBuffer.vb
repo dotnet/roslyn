@@ -105,7 +105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' NOTE: This is different behaviour to the Try methods that always return a value.
         ''' </param>
         ''' <returns>Returns True if it possible to peek at, otherwise returns False.</returns>
-        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Friend Function Peep(at As Integer, ByRef ch As Char) As Boolean
             ' CanGet(at)
             Debug.Assert(_lineBufferOffset + at >= 0)
@@ -132,7 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' NOTE: This is different behaviour to the Try methods that always return a value.
         ''' </param>
         ''' <returns>Returns True if it possible to peek at, otherwise returns False.</returns>
-        <Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
         Friend Function Peep(ByRef ch As Char) As Boolean
             ' CanGet()
             If _lineBufferOffset >= _bufferLen Then
