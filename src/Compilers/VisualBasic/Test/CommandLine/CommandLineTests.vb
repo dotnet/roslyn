@@ -6027,30 +6027,38 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim args = DefaultParse({"/features:Test", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test", args.CompilationOptions.Features.Single())
+            Assert.Equal("Test", args.ParseOptions.Features.Single().Key)
 
             args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.CompilationOptions.Features.Length)
             Assert.Equal("Test", args.CompilationOptions.Features(0))
             Assert.Equal("Experiment", args.CompilationOptions.Features(1))
+            Assert.Equal(2, args.ParseOptions.Features.Count)
+            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
+            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
 
             args = DefaultParse({"/features:Test:false,Key:value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single())
+            Assert.Equal("Test:false,Key:value", args.ParseOptions.Features.Single().Key)
 
             ' We don't do any rigorous validation of /features arguments...
 
             args = DefaultParse({"/features", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Empty(args.CompilationOptions.Features)
+            Assert.Empty(args.ParseOptions.Features)
 
             args = DefaultParse({"/features:,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(",", args.CompilationOptions.Features.Single())
+            Assert.Equal(",", args.ParseOptions.Features.Single().Key)
 
             args = DefaultParse({"/features:Test,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test,", args.CompilationOptions.Features.Single())
+            Assert.Equal("Test,", args.ParseOptions.Features.Single().Key)
         End Sub
 
         <Fact>
@@ -7183,35 +7191,6 @@ vbc : error BC2015: the file '{1}' is not a text file
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(additionalFile)
             CleanupAllGeneratedFiles(nonCompilerInputFile)
-        End Sub
-
-        ''' <summary>
-        ''' Script compilation should be internal only.
-        ''' </summary>
-        <WorkItem(1979, "https://github.com/dotnet/roslyn/issues/1979")>
-        <Fact>
-        Public Sub ScriptCompilationInternalOnly()
-            Dim source = "System.Console.WriteLine()"
-            Dim dir = Temp.CreateDirectory()
-            Dim file = dir.CreateFile("b.vbx")
-            file.WriteAllText(source)
-
-            ' Compiling script file with internal API should be supported.
-            Dim compilation = CreateCompilationWithMscorlib(
-                <compilation>
-                    <file name="b.vbx"><%= source %></file>
-                </compilation>,
-                parseOptions:=New VisualBasicParseOptions(LanguageVersion.VisualBasic14, DocumentationMode.Parse, SourceCodeKind.Script, ImmutableArray(Of KeyValuePair(Of String, Object)).Empty),
-                options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
-            compilation.VerifyDiagnostics()
-
-            ' Compiling with command-line compiler, should not treat .vbx as script.
-            Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", file.Path})
-            Dim output As StringWriter = New StringWriter()
-            cmd.Run(output, Nothing)
-            Assert.True(output.ToString().Contains("error BC30689: Statement cannot appear outside of a method body."))
-
-            CleanupAllGeneratedFiles(file.Path)
         End Sub
 
         <Fact, WorkItem(1093063, "DevDiv")>
