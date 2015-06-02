@@ -2,7 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -28,60 +29,88 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _operationPairs = operationPairs;
             }
 
-            public List<IEnumerable<TokenPairWithOperations>> GetPartitions(int partitionCount)
+            public List<IEnumerable<TokenPairWithOperations>> GetPartitions(int partitionCount, CancellationToken cancellationToken)
             {
-                Contract.ThrowIfFalse(partitionCount > 0);
-
-                var list = new List<IEnumerable<TokenPairWithOperations>>();
-
-                // too small items in the list. give out one list
-                int perPartition = _operationPairs.Length / partitionCount;
-                if (perPartition < 10 || partitionCount <= 1 || _operationPairs.Length < MinimumItemsPerPartition)
+                using (Logger.LogBlock(FunctionId.Formatting_Partitions, cancellationToken))
                 {
-                    list.Add(GetOperationPairsFromTo(0, _operationPairs.Length));
+                    Contract.ThrowIfFalse(partitionCount > 0);
+
+                    var list = new List<IEnumerable<TokenPairWithOperations>>();
+
+                    // too small items in the list. give out one list
+                    int perPartition = _operationPairs.Length / partitionCount;
+                    if (perPartition < 10 || partitionCount <= 1 || _operationPairs.Length < MinimumItemsPerPartition)
+                    {
+                        list.Add(GetOperationPairsFromTo(0, _operationPairs.Length));
+                        return list;
+                    }
+
+                    // split items up to the partition count with about same number of items if possible
+                    // this algorithm has one problem. if there is an operation that marked whole tree
+                    // as inseparable region, then it wouldn't go into the inseparable regions to find
+                    // local parts that could run concurrently; which means everything will run
+                    // synchronously.
+                    var currentOperationIndex = 0;
+                    while (currentOperationIndex < _operationPairs.Length)
+                    {
+                        int nextPartitionStartOperationIndex;
+                        if (!TryGetNextPartitionIndex(currentOperationIndex, perPartition, out nextPartitionStartOperationIndex))
+                        {
+                            // reached end of operation pairs
+                            list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
+                            break;
+                        }
+
+                        var nextToken = GetNextPartitionToken(nextPartitionStartOperationIndex, perPartition, cancellationToken);
+                        if (nextToken.RawKind == 0)
+                        {
+                            // reached the last token in the tree
+                            list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
+                            break;
+                        }
+
+                        var nextTokenWithIndex = _tokenStream.GetTokenData(nextToken);
+                        if (nextTokenWithIndex.IndexInStream < 0)
+                        {
+                            // first token for next partition is out side of valid token stream
+                            list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
+                            break;
+                        }
+
+                        Contract.ThrowIfFalse(currentOperationIndex < nextTokenWithIndex.IndexInStream);
+                        Contract.ThrowIfFalse(nextTokenWithIndex.IndexInStream <= _operationPairs.Length);
+
+                        list.Add(GetOperationPairsFromTo(currentOperationIndex, nextTokenWithIndex.IndexInStream));
+                        currentOperationIndex = nextTokenWithIndex.IndexInStream;
+                    }
+
                     return list;
                 }
+            }
 
-                // split items up to the partition count with about same number of items if possible
-                // this algorithm has one problem. if there is an operation that marked whole tree
-                // as inseparable region, then it wouldn't go into the inseparable regions to find
-                // local parts that could run concurrently; which means everything will run
-                // synchronously.
-                var currentOperationIndex = 0;
-                while (currentOperationIndex < _operationPairs.Length)
+            private SyntaxToken GetNextPartitionToken(int index, int perPartition, CancellationToken cancellationToken)
+            {
+                while (true)
                 {
-                    var nextPartitionStartOperationIndex = Math.Min(currentOperationIndex + perPartition, _operationPairs.Length);
-                    if (nextPartitionStartOperationIndex >= _operationPairs.Length)
+                    SyntaxToken nextToken;
+                    if (_context.TryGetEndTokenForRelativeIndentationSpan(_operationPairs[index].Token1, 10, out nextToken, cancellationToken))
+                    {
+                        return nextToken;
+                    }
+
+                    // we couldn't determine how to split chunks in short time period. make partition bigger
+                    if (!TryGetNextPartitionIndex(index, perPartition, out index))
                     {
                         // reached end of operation pairs
-                        list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
-                        break;
+                        return default(SyntaxToken);
                     }
-
-                    var nextToken = _context.GetEndTokenForRelativeIndentationSpan(_operationPairs[nextPartitionStartOperationIndex].Token1);
-                    if (nextToken.RawKind == 0)
-                    {
-                        // reached the last token in the tree
-                        list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
-                        break;
-                    }
-
-                    var nextTokenWithIndex = _tokenStream.GetTokenData(nextToken);
-                    if (nextTokenWithIndex.IndexInStream < 0)
-                    {
-                        // first token for next partition is out side of valid token stream
-                        list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
-                        break;
-                    }
-
-                    Contract.ThrowIfFalse(currentOperationIndex < nextTokenWithIndex.IndexInStream);
-                    Contract.ThrowIfFalse(nextTokenWithIndex.IndexInStream <= _operationPairs.Length);
-
-                    list.Add(GetOperationPairsFromTo(currentOperationIndex, nextTokenWithIndex.IndexInStream));
-                    currentOperationIndex = nextTokenWithIndex.IndexInStream;
                 }
+            }
 
-                return list;
+            private bool TryGetNextPartitionIndex(int index, int perPartition, out int nextIndex)
+            {
+                nextIndex = Math.Min(index + perPartition, _operationPairs.Length);
+                return nextIndex < _operationPairs.Length;
             }
 
             private IEnumerable<TokenPairWithOperations> GetOperationPairsFromTo(int from, int to)
