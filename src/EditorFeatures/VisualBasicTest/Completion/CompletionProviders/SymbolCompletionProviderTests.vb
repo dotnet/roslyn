@@ -5871,5 +5871,131 @@ End Module
             VerifyNoItemsExist(text)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType()
+            Dim text =
+<code><![CDATA[
+MustInherit Class Test
+    Private _field As Integer
+    NotInheritable Class InnerTest
+        Inherits Test
+        Sub SomeTest()
+            Dim x = $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "_field")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType2()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            $$ ' M recommended and accessible
+        End Sub
+        Class NN
+            Sub Test2()
+                ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType3()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            ' M recommended and accessible
+        End Sub
+        Class NN
+            Sub Test2()
+                $$ ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType4()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            M() ' M recommended and accessible
+        End Sub
+        Class NN
+            Inherits N
+            Sub Test2()
+                $$ ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType5()
+            Dim text =
+<code><![CDATA[
+Class D
+    Public Sub Q()
+    End Sub
+End Class
+Class C(Of T)
+    Inherits D
+    Class N
+        Sub Test()
+            $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Q")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType6()
+            Dim text =
+<code><![CDATA[
+Class Base(Of T)
+    Public X As Integer
+End Class
+Class Derived
+    Inherits C(Of Integer)
+    Class Nested
+        Sub Test()
+            $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "X")
+        End Sub
+
     End Class
 End Namespace
