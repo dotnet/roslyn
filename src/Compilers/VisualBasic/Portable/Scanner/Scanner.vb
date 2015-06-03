@@ -1555,6 +1555,7 @@ FullWidthRepeat:
             Dim Here As Integer = 0
             Dim IntegerLiteralStart As Integer
             Dim UnderscoreInWrongPlace As Boolean
+            Dim UnderscoreUsed As Boolean = False
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1577,11 +1578,14 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
-                        UnderscoreInWrongPlace = Peek(Here) = "_"c
+                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
+                            End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
                             End If
                             Here += 1
                         End While
@@ -1592,11 +1596,14 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Binary
 
-                        UnderscoreInWrongPlace = Peek(Here) = "_"c
+                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
+                            End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
                             End If
                             Here += 1
                         End While
@@ -1607,11 +1614,14 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
-                        UnderscoreInWrongPlace = Peek(Here) = "_"c
+                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then
                                 Exit While
+                            End If
+                            If ch = "_"c Then
+                                UnderscoreUsed = True
                             End If
                             Here += 1
                         End While
@@ -1628,11 +1638,14 @@ FullWidthRepeat:
             Else
                 ' no base specifier - just go through decimal digits.
                 IntegerLiteralStart = Here
-                UnderscoreInWrongPlace = Peek(Here) = "_"c
+                UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
                 While CanGet(Here)
                     ch = Peek(Here)
                     If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
                         Exit While
+                    End If
+                    If ch = "_"c Then
+                        UnderscoreUsed = True
                     End If
                     Here += 1
                 End While
@@ -1957,6 +1970,13 @@ FullWidthRepeat2:
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
             ElseIf UnderscoreInWrongPlace Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
+            End If
+
+            If UnderscoreUsed Then
+                result = CheckFeatureAvailability(result, Feature.DigitSeparators)
+            End If
+            If Base = LiteralBase.Binary Then
+                result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If
 
             Return result
@@ -2488,6 +2508,29 @@ baddate:
 
         Private Function IsIdentifierStartCharacter(c As Char) As Boolean
             Return (_isScanningForExpressionCompiler AndAlso c = "$"c) OrElse SyntaxFacts.IsIdentifierStartCharacter(c)
+        End Function
+
+        Private Function CheckFeatureAvailability(token As SyntaxToken, feature As Feature) As SyntaxToken
+            If CheckFeatureAvailability(feature) Then
+                Return token
+            End If
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Return DirectCast(token.AddError(errorInfo), SyntaxToken)
+        End Function
+
+        Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
+            Return CheckFeatureAvailability(Me.Options, feature)
+        End Function
+
+        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
+            Dim featureFlag = feature.GetFeatureFlag()
+            If featureFlag IsNot Nothing Then
+                Return parseOptions.Features.ContainsKey(featureFlag)
+            End If
+
+            Dim required = feature.GetLanguageVersion()
+            Dim actual = parseOptions.LanguageVersion
+            Return CInt(required) <= CInt(actual)
         End Function
     End Class
 End Namespace

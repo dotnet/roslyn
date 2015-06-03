@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the character is a binary digit.</returns>
         internal static bool IsBinaryDigit(char c)
         {
-            return c == '0' || c == '1';
+            return c == '0' | c == '1';
         }
 
         /// <summary>
@@ -50,6 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(IsHexDigit(c));
             return (c >= '0' && c <= '9') ? c - '0' : (c & 0xdf) - 'A' + 10;
+        }
+
+        /// <summary>
+        /// Returns the value of a binary Unicode character.
+        /// </summary>
+        /// <param name="c">The Unicode character.</param>
+        internal static int BinaryValue(char c)
+        {
+            Debug.Assert(IsBinaryDigit(c));
+            return c - '0';
         }
 
         /// <summary>

@@ -700,6 +700,7 @@ End If]]>.Value,
         Assert.Equal(LiteralBase.Decimal, tk.GetBase())
         Assert.Equal(42, tk.Value)
         Assert.Equal(" 4_2 ", tk.ToFullString())
+        Assert.Equal("error BC36716: Visual Basic 14.0 does not support digit separators.", tk.Errors().Single().ToString())
 
         Str = " &H42L "
         tk = ScanOnce(Str)
@@ -728,6 +729,7 @@ End If]]>.Value,
         Assert.Equal(LiteralBase.Binary, tk.GetBase())
         Assert.Equal(&HAL, tk.Value)
         Assert.Equal(" &B1010L ", tk.ToFullString())
+        Assert.Equal("error BC36716: Visual Basic 14.0 does not support binary literals.", tk.Errors().Single().ToString())
 
         Str = " &B1_0_1_0L "
         tk = ScanOnce(Str)
@@ -735,6 +737,9 @@ End If]]>.Value,
         Assert.Equal(LiteralBase.Binary, tk.GetBase())
         Assert.Equal(&HAL, tk.Value)
         Assert.Equal(" &B1_0_1_0L ", tk.ToFullString())
+        Assert.Equal(2, tk.Errors().Count)
+        Assert.Equal("error BC36716: Visual Basic 14.0 does not support digit separators.", tk.Errors()(0).ToString())
+        Assert.Equal("error BC36716: Visual Basic 14.0 does not support binary literals.", tk.Errors()(1).ToString())
     End Sub
 
     <Fact>

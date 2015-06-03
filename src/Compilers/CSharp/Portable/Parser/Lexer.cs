@@ -921,27 +921,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Allows underscores in integers, except at beginning and end
-        private void ScanNumericLiteralSingleInteger(StringBuilder builder, ref bool underscoreInWrongPlace)
+        private void ScanNumericLiteralSingleInteger(StringBuilder builder, ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
         {
-            char ch;
-            bool lastCharWasUnderscore = false;
             if (TextWindow.PeekChar() == '_')
             {
                 underscoreInWrongPlace = true;
             }
-            while (((ch = TextWindow.PeekChar()) >= '0' && ch <= '9') || ch == '_')
+
+            char ch;
+            var lastCharWasUnderscore = false;
+            while (true)
             {
-                if (ch != '_')
+                ch = TextWindow.PeekChar();
+                if (ch == '_')
                 {
-                    builder.Append(ch);
-                    lastCharWasUnderscore = false;
+                    usedUnderscore = true;
+                    lastCharWasUnderscore = true;
+                }
+                else if ((isHex && !SyntaxFacts.IsHexDigit(ch))
+                        || (isBinary && !SyntaxFacts.IsBinaryDigit(ch))
+                        || (!isHex && !isBinary && !SyntaxFacts.IsDecDigit(ch)))
+                {
+                    break;
                 }
                 else
                 {
-                    lastCharWasUnderscore = true;
+                    _builder.Append(ch);
+                    lastCharWasUnderscore = false;
                 }
                 TextWindow.AdvanceChar();
             }
+
             if (lastCharWasUnderscore)
             {
                 underscoreInWrongPlace = true;
@@ -962,6 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool hasUSuffix = false;
             bool hasLSuffix = false;
             bool underscoreInWrongPlace = false;
+            bool usedUnderscore = false;
 
             ch = TextWindow.PeekChar();
             if (ch == '0')
@@ -974,6 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else if (ch == 'b' || ch == 'B')
                 {
+                    CheckFeatureAvailability(MessageID.IDS_FeatureBinaryLiteral);
                     TextWindow.AdvanceChar(2);
                     isBinary = true;
                 }
@@ -983,40 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // It's OK if it has no digits after the '0x' -- we'll catch it in ScanNumericLiteral
                 // and give a proper error then.
-
-                if (TextWindow.PeekChar() == '_')
-                {
-                    underscoreInWrongPlace = true;
-                }
-
-                var lastCharWasUnderscore = false;
-                while (true)
-                {
-                    ch = TextWindow.PeekChar();
-                    if (ch == '_')
-                    {
-                        lastCharWasUnderscore = true;
-                    }
-                    else
-                    {
-                        if (isHex && !SyntaxFacts.IsHexDigit(ch))
-                        {
-                            break;
-                        }
-                        if (isBinary && !SyntaxFacts.IsBinaryDigit(ch))
-                        {
-                            break;
-                        }
-                        _builder.Append(ch);
-                        lastCharWasUnderscore = false;
-                    }
-                    TextWindow.AdvanceChar();
-                }
-
-                if (lastCharWasUnderscore)
-                {
-                    underscoreInWrongPlace = true;
-                }
+                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex, isBinary);
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
                 {
@@ -1046,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace);
+                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
 
                 if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar() == '#')
                 {
@@ -1067,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         _builder.Append(ch);
                         TextWindow.AdvanceChar();
 
-                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace);
+                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                     }
                     else if (_builder.Length == 0)
                     {
@@ -1089,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace);
+                    ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                 }
 
                 if (hasExponent || hasDecimal)
@@ -1159,6 +1138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (underscoreInWrongPlace)
             {
                 this.AddError(MakeError(start, TextWindow.Position - start, ErrorCode.ERR_InvalidNumber));
+            }
+            if (usedUnderscore)
+            {
+                CheckFeatureAvailability(MessageID.IDS_FeatureDigitSeparator);
             }
 
             info.Kind = SyntaxKind.NumericLiteralToken;
@@ -1285,18 +1268,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool TryParseBinaryUInt64(string text, out ulong value)
         {
             value = 0;
-            for (int i = 0; i < text.Length; i++)
+            foreach (char c in text)
             {
                 // if uppermost bit is set, then the next bitshift will overflow
                 if ((value & 0x8000000000000000) != 0)
                 {
                     return false;
                 }
-                if (!SyntaxFacts.IsBinaryDigit(text[i]))
-                {
-                    return false;
-                }
-                var bit = (ulong)SyntaxFacts.DecValue(text[i]);
+                // We shouldn't ever get a string that's nonbinary (see ScanNumericLiteral),
+                // so don't explicitly check for it (there's a debug assert in SyntaxFacts)
+                var bit = (ulong)SyntaxFacts.BinaryValue(c);
                 value = (value << 1) | bit;
             }
             return true;

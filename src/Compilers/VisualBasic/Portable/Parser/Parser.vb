@@ -5998,36 +5998,19 @@ checkNullable:
         ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
         ''' </summary>
         Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Dim languageVersion = _scanner.Options.LanguageVersion
-            If CheckFeatureAvailability(languageVersion, feature) Then
+            If _scanner.CheckFeatureAvailability(feature) Then
                 Return node
             End If
 
             If feature = Feature.InterpolatedStrings Then
                 ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
                 ' an unlocalized string and fix this to be localized in the next release.
-                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, _scanner.Options.LanguageVersion.GetErrorName(), "interpolated strings")
             Else
                 Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, _scanner.Options.LanguageVersion.GetErrorName(), featureName)
             End If
         End Function
-
-        Private Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
-        End Function
-
-        Private Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Return CInt(required) <= CInt(languageVersion)
-        End Function
-
-        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
-            If Not CheckFeatureAvailability(languageVersion, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
-            End If
-        End Sub
 
     End Class
 
