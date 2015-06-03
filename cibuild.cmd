@@ -9,7 +9,7 @@ if "%1" == "" goto :DoneParsing
 if /I "%1" == "/?" call :Usage && exit /b 1
 if /I "%1" == "/debug" set BuildConfiguration=Debug&&shift&& goto :ParseArguments
 if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArguments
-goto :Usage && exit /b 1
+call :Usage && exit /b 1
 :DoneParsing
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
