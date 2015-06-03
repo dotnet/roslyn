@@ -75,18 +75,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     element.SetAttributeValue(RootNamespaceAttributeName, vbOptions.RootNamespace);
                 }
 
-                if (vbOptions.SpecificDiagnosticOptions?.Any() == true)
-                {
-                    element.Add(
-                    vbOptions.SpecificDiagnosticOptions.AsEnumerable().Select(
-                        i =>
-                        {
-                            var x = new XElement(DiagnosticOptionElementName, i.Key);
-                            x.SetAttributeValue(ReportDiagnosticAttributeName, System.Enum.GetName(typeof(ReportDiagnostic), i.Value));
-                            return x;
-                        }));
-                }
-
                 return element;
             }
 

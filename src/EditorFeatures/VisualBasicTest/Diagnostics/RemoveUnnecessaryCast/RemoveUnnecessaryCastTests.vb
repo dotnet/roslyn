@@ -2697,7 +2697,7 @@ End Class
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastInNarrowingConverionWihtOptionStrictOn()
+        Public Sub DoNotRemoveCastInUserDefinedNarrowingConverionStrictOn()
             Dim markup =
 <File>
 Option Strict On
@@ -2736,7 +2736,7 @@ End Structure
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastInNarrowingConverionWihtOptionStrictOffBC42016AsWarning()
+        Public Sub DoNotRemoveCastInUserDefinedNarrowingConverionStrictOff()
             Dim markup =
 <File>
 Option Strict Off
@@ -2771,80 +2771,6 @@ Public Structure Color
 End Structure
 </File>
             TestMissing(markup)
-        End Sub
-
-        <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub RemoveCastInNarrowingConverionWihtOptionStrictOffBC42016Suppressed()
-            Dim markup =
-<File>
-Option Strict Off
-
-Module Module1
-
-    Sub Main()
-        Dim red = ColorF.FromArgb(255, 255, 0, 0)
-        Dim c As Color = [|CType(red, Color)|]
-    End Sub
-
-End Module
-
-Public Structure ColorF
-    Public A, R, G, B As Single
-    Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF
-        Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)}
-    End Function
-    Public Shared Widening Operator CType(x As Color) As ColorF
-        Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255)
-    End Operator
-    Public Shared Narrowing Operator CType(x As ColorF) As Color
-        Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255))
-    End Operator
-End Structure
-
-Public Structure Color
-    Public A, R, G, B As Byte
-    Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color
-        Return New Color With {.A = a, .R = r, .G = g, .B = b}
-    End Function
-End Structure
-</File>
-            Dim expected =
-<File>
-Option Strict Off
-
-Module Module1
-
-    Sub Main()
-        Dim red = ColorF.FromArgb(255, 255, 0, 0)
-        Dim c As Color = red
-    End Sub
-
-End Module
-
-Public Structure ColorF
-    Public A, R, G, B As Single
-    Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF
-        Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)}
-    End Function
-    Public Shared Widening Operator CType(x As Color) As ColorF
-        Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255)
-    End Operator
-    Public Shared Narrowing Operator CType(x As ColorF) As Color
-        Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255))
-    End Operator
-End Structure
-
-Public Structure Color
-    Public A, R, G, B As Byte
-    Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color
-        Return New Color With {.A = a, .R = r, .G = g, .B = b}
-    End Function
-End Structure
-</File>
-            Dim compilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
-            compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.Add("BC42016", ReportDiagnostic.Suppress))
-            Test(markup, expected, compareTokens:=False, compilationOptions:=compilationOptions)
         End Sub
     End Class
 End Namespace

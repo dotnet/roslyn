@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) OrElse
                             HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) AndAlso
                            (UserDefinedConversionIsAllowed(_castNode, _semanticModel) AndAlso
-                            NarrowingConversionIsAllowed(expressionToCastType, _semanticModel))
+                            Not expressionToCastType.IsNarrowing)
                 ElseIf expressionToOuterType.IsUserDefined Then
                     Return False
                 End If
@@ -338,28 +338,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             If parentNode.IsKind(SyntaxKind.ThrowStatement) Then
                 Return False
-            End If
-
-            Return True
-        End Function
-
-        Private Shared Function NarrowingConversionIsAllowed(conversion As Conversion, semanticModel As SemanticModel) As Boolean
-            ' If this is not a narrowing conversion then no VB compiler options will disallow it
-            If conversion.IsNarrowing Then
-                ' If Option Strict is On then all narrowing conversions are illegal
-                If semanticModel.OptionStrict = OptionStrict.On Then
-                    Return False
-                Else
-                    ' For all other cases we only want to label a cast as unnecessary if BC42016 is suppressed, 
-                    ' otherwise removing the cast will cause a warning or error to be shown to the user.
-                    Dim reportDiagnostic As ReportDiagnostic
-                    If semanticModel.Compilation.Options.SpecificDiagnosticOptions.TryGetValue("BC42016", reportDiagnostic) AndAlso
-                       reportDiagnostic = ReportDiagnostic.Suppress Then
-                        Return True
-                    Else
-                        Return False
-                    End If
-                End If
             End If
 
             Return True

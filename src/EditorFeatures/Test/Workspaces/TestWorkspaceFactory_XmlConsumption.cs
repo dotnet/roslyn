@@ -398,7 +398,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var rootNamespace = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication).RootNamespace;
             var globalImports = new List<GlobalImport>();
             var reportDiagnostic = ReportDiagnostic.Default;
-            var specificDiagnostics = ImmutableDictionary.Create<string, ReportDiagnostic>();
 
             if (compilationOptionsElement != null)
             {
@@ -430,10 +429,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                        : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports)
                                                                          .WithRootNamespace(rootNamespace);
                 }
-
-                specificDiagnostics = compilationOptionsElement.Elements(DiagnosticOptionElementName)
-                    .Select(x => KeyValuePair.Create(x.Value, (ReportDiagnostic)Enum.Parse(typeof(ReportDiagnostic), x.Attribute(ReportDiagnosticAttributeName).Value)))
-                    .ToImmutableDictionary();
             }
             else
             {
@@ -451,8 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
                                                    .WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default))
-                                                   .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
-                                                   .WithSpecificDiagnosticOptions(specificDiagnostics);
+                                                   .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
             if (language == LanguageNames.VisualBasic)
             {
