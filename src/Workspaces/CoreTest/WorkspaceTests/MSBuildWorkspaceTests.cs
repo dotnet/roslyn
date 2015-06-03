@@ -180,6 +180,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(831379, "DevDiv")]
+        public void GetCompilationWithCircularProjectReferences()
+        {
+            CreateFiles(GetSolutionWithCircularProjectReferences());
+
+            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("CircularSolution.sln")).Result;
+
+            // Verify we can get compilations for both projects
+            var projects = solution.Projects.ToArray();
+
+            // Exactly one of them should have a reference to the other. Which one it is is unspecced
+            Assert.True(projects[0].ProjectReferences.Any(r => r.ProjectId == projects[1].Id) ||
+                        projects[1].ProjectReferences.Any(r => r.ProjectId == projects[0].Id));
+
+            var compilation1 = projects[0].GetCompilationAsync().Result;
+            var compilation2 = projects[1].GetCompilationAsync().Result;
+
+            // Exactly one of them should have a compilation to the other. Which one it is is unspecced
+            Assert.True(compilation1.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation2) ||
+                        compilation2.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation1));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOutputFilePaths()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
