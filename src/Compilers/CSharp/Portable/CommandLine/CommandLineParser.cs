@@ -1038,7 +1038,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 languageVersion: languageVersion,
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
-                kind: SourceCodeKind.Regular
+                kind: SourceCodeKind.Regular,
+                features: features.ToImmutableDictionary(feature => feature, feature => "true")
             );
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
@@ -1060,8 +1061,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 platform: platform,
                 generalDiagnosticOption: generalDiagnosticOption,
                 warningLevel: warningLevel,
-                specificDiagnosticOptions: diagnosticOptions
-            ).WithFeatures(features.AsImmutable());
+                specificDiagnosticOptions: diagnosticOptions,
+                features: features.AsImmutable()
+            );
 
             var emitOptions = new EmitOptions
             (

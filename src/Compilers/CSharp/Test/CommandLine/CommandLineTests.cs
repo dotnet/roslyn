@@ -6841,16 +6841,20 @@ using System.Diagnostics; // Unused.
             var args = DefaultParse(new[] { "/features:Test", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
             Assert.Equal("Test", args.CompilationOptions.Features.Single());
+            Assert.Equal("Test", args.ParseOptions.Features.Single().Key);
 
             args = DefaultParse(new[] { "/features:Test", "a.vb", "/Features:Experiment" }, _baseDirectory);
             args.Errors.Verify();
             Assert.Equal(2, args.CompilationOptions.Features.Length);
             Assert.Equal("Test", args.CompilationOptions.Features[0]);
             Assert.Equal("Experiment", args.CompilationOptions.Features[1]);
+            Assert.True(args.ParseOptions.Features.ContainsKey("Test"));
+            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"));
 
             args = DefaultParse(new[] { "/features:Test:false,Key:value", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
             Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single());
+            Assert.Equal("Test:false,Key:value", args.ParseOptions.Features.Single().Key);
 
             // We don't do any rigorous validation of /features arguments...
 
