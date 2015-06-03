@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits ParseOptions
         Implements IEquatable(Of VisualBasicParseOptions)
 
-        Public Shared ReadOnly [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
+        Public Shared ReadOnly Property [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
         Private Shared s_defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
 
         Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))

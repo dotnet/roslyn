@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the &quot;GetEnumerator&quot; method.
         /// </summary>
-        public readonly IMethodSymbol GetEnumeratorMethod;
+        public IMethodSymbol GetEnumeratorMethod { get; }
 
         /// <summary>
         /// Gets the &quot;MoveNext&quot; method.
         /// </summary>
-        public readonly IMethodSymbol MoveNextMethod;
+        public IMethodSymbol MoveNextMethod { get; }
 
         /// <summary>
         /// Gets the &quot;Current&quot; property.
         /// </summary>
-        public readonly IPropertySymbol CurrentProperty;
+        public IPropertySymbol CurrentProperty { get; }
 
         /// <summary>
         /// Gets the &quot;Dispose&quot; method.
         /// </summary>
-        public readonly IMethodSymbol DisposeMethod;
+        public IMethodSymbol DisposeMethod { get; }
 
         /// <summary>
         /// The intermediate type to which the output of the <see cref="CurrentProperty"/> is converted
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// As you might hope, for an array, it is the element type of the array.
         /// </remarks>
-        public readonly ITypeSymbol ElementType;
+        public ITypeSymbol ElementType { get; }
 
         /// <summary>
         /// The conversion from the <see cref="ElementType"/> to the iteration variable type.
@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// May be user-defined.
         /// </remarks>
-        public readonly Conversion ElementConversion;
+        public Conversion ElementConversion { get; }
 
         /// <summary>
         /// The conversion from the type of the <see cref="CurrentProperty"/> to the <see cref="ElementType"/>.
         /// </summary>
-        public readonly Conversion CurrentConversion;
+        public Conversion CurrentConversion { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForEachStatementInfo" /> structure.
