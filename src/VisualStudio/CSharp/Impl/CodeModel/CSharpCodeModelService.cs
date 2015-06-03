@@ -482,6 +482,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
         }
 
+        /// <summary>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// </summary>
         public override EnvDTE.CodeElement CreateInternalCodeElement(
             CodeModelState state,
             FileCodeModel fileCodeModel,
