@@ -409,25 +409,28 @@ namespace Microsoft.CodeAnalysis.Formatting
             return _relativeIndentationTree.GetIntersectingInOrderIntervals(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
         }
 
-        public SyntaxToken GetEndTokenForRelativeIndentationSpan(SyntaxToken token)
+        public SyntaxToken GetEndTokenForRelativeIndentationSpan(SyntaxToken token, CancellationToken cancellationToken)
         {
-            var span = token.Span;
-            var indentationData = _relativeIndentationTree.GetSmallestContainingInterval(span.Start, 0);
-            if (indentationData == null)
+            while (true)
             {
-                // this means the given token is not inside of inseparable regions
-                return token;
-            }
+                var span = token.Span;
+                var indentationData = _relativeIndentationTree.GetSmallestContainingInterval(span.Start, 0);
+                if (indentationData == null)
+                {
+                    // this means the given token is not inside of inseparable regions
+                    return token;
+                }
 
-            // recursively find the end token outside of inseparable regions
-            var nextToken = indentationData.EndToken.GetNextToken(includeZeroWidth: true);
-            if (nextToken.RawKind == 0)
-            {
-                // reached end of tree
-                return default(SyntaxToken);
-            }
+                // recursively find the end token outside of inseparable regions
+                token = indentationData.EndToken.GetNextToken(includeZeroWidth: true);
+                if (token.RawKind == 0)
+                {
+                    // reached end of tree
+                    return default(SyntaxToken);
+                }
 
-            return GetEndTokenForRelativeIndentationSpan(nextToken);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
         }
 
         private AnchorData GetAnchorData(SyntaxToken token)
