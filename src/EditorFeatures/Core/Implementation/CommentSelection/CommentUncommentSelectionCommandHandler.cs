@@ -135,16 +135,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 });
         }
 
-        private static IEnumerable<TextSpan> GetUpdatedSpans(IEnumerable<TextChangeRange> ranges)
-        {
-            int delta = 0;
-            foreach (var range in ranges)
-            {
-                yield return new TextSpan(range.Span.Start + delta, range.NewLength);
-                delta += (range.NewLength - range.Span.Length);
-            }
-        }
-
         private void Format(ICommentUncommentService service, ITextSnapshot snapshot, IEnumerable<ITrackingSpan> changes, CancellationToken cancellationToken)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
