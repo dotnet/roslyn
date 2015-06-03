@@ -626,14 +626,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Select
         End Function
 
-        Friend Overrides Function GetMissingAssemblyIdentities(diagnostic As Diagnostic) As ImmutableArray(Of AssemblyIdentity)
-            Return GetMissingAssemblyIdentitiesHelper(CType(diagnostic.Code, ERRID), diagnostic.Arguments, Me.Compilation.GlobalNamespace)
+        Friend Overrides Function GetMissingAssemblyIdentities(diagnostic As Diagnostic, linqLibrary As AssemblyIdentity) As ImmutableArray(Of AssemblyIdentity)
+            Return GetMissingAssemblyIdentitiesHelper(CType(diagnostic.Code, ERRID), diagnostic.Arguments, Me.Compilation.GlobalNamespace, linqLibrary)
         End Function
 
         ''' <remarks>
         ''' Friend for testing.
         ''' </remarks>
-        Friend Shared Function GetMissingAssemblyIdentitiesHelper(code As ERRID, arguments As IReadOnlyList(Of Object), globalNamespace As NamespaceSymbol) As ImmutableArray(Of AssemblyIdentity)
+        Friend Shared Function GetMissingAssemblyIdentitiesHelper(code As ERRID, arguments As IReadOnlyList(Of Object), globalNamespace As NamespaceSymbol, linqLibrary As AssemblyIdentity) As ImmutableArray(Of AssemblyIdentity)
+            Debug.Assert(linqLibrary IsNot Nothing)
+
             Select Case code
                 Case ERRID.ERR_UnreferencedAssemblyEvent3, ERRID.ERR_UnreferencedAssembly3
                     For Each argument As Object In arguments
@@ -659,8 +661,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             Dim identity = New AssemblyIdentity($"{containingNamespace.ToDisplayString}.{namespaceName}", contentType:=AssemblyContentType.WindowsRuntime)
                             Return ImmutableArray.Create(identity)
                         Else
-                            ' Maybe it's a missing Linq extension method.  Let's try adding System.Core and see if that helps.
-                            Return ImmutableArray.Create(SystemCoreIdentity)
+                            ' Maybe it's a missing LINQ extension method.  Let's try adding the "LINQ library" to see if that helps.
+                            Return ImmutableArray.Create(linqLibrary)
                         End If
                     End If
                 Case ERRID.ERR_UndefinedType1
@@ -696,7 +698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
                     End If
                 Case ERRID.ERR_XmlFeaturesNotAvailable
-                    Return ImmutableArray.Create(SystemIdentity, SystemCoreIdentity, SystemXmlIdentity, SystemXmlLinqIdentity)
+                    Return ImmutableArray.Create(SystemIdentity, linqLibrary, SystemXmlIdentity, SystemXmlLinqIdentity)
                 Case ERRID.ERR_MissingRuntimeHelper
                     Return ImmutableArray.Create(MicrosoftVisualBasicIdentity)
             End Select
