@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -14,9 +15,10 @@ Public MustInherit Class BasicTestBase
     Protected Overloads Function GetCompilationForEmit(
         source As IEnumerable(Of String),
         additionalRefs() As MetadataReference,
-        options As VisualBasicCompilationOptions
+        options As VisualBasicCompilationOptions,
+        parseOptions As VisualBasicParseOptions
     ) As VisualBasicCompilation
-        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options), VisualBasicCompilation)
+        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
     End Function
 
     Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol, TestEmitters)
@@ -483,11 +485,12 @@ Public MustInherit Class BasicTestBaseBase
     Protected Overrides Function GetCompilationForEmit(
         source As IEnumerable(Of String),
         additionalRefs As IEnumerable(Of MetadataReference),
-        options As CompilationOptions
+        options As CompilationOptions,
+        parseOptions As ParseOptions
     ) As Compilation
         Return VisualBasicCompilation.Create(
             GetUniqueName(),
-            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t)),
+            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
             references:=If(additionalRefs IsNot Nothing, DefaultReferences.Concat(additionalRefs), DefaultReferences),
             options:=DirectCast(options, VisualBasicCompilationOptions))
     End Function
