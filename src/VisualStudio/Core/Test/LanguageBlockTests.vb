@@ -102,7 +102,7 @@ Namespace N
         End Property|]
     End Module
 End Namespace
-", LanguageNames.VisualBasic, "Property Program.P As Integer")
+", LanguageNames.VisualBasic, "Property Program.P() As Integer")
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
