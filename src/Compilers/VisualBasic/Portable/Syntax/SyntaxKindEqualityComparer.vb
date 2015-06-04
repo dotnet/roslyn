@@ -23,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' PERF: The framework specializes EqualityComparer for enums, but only if the underlying type is System.Int32
         ''' Since SyntaxKind's underlying type is System.UInt16, ObjectEqualityComparer will be chosen instead.
         ''' </remarks>
-        Public Shared ReadOnly EqualityComparer As IEqualityComparer(Of SyntaxKind) = New SyntaxKindEqualityComparer
-
+        Public Shared ReadOnly Property EqualityComparer As IEqualityComparer(Of SyntaxKind) = New SyntaxKindEqualityComparer
     End Class
 End Namespace

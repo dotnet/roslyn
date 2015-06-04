@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Formatting_AggregateCreateFormattedRoot,
         Formatting_CreateTextChanges,
         Formatting_CreateFormattedRoot,
+        Formatting_Partitions,
 
         SmartIndentation_Start,
         SmartIndentation_OpenCurly,
@@ -303,6 +304,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VirtualMemory_MemoryLow,
         Extension_Exception,
 
-        WorkCoordinator_WaitForHigherPriorityOperationsAsync,
+        WorkCoordinator_WaitForHigherPriorityOperationsAsync
     }
 }

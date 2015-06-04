@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports VbObjectDisplay = Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay
 
@@ -12,67 +9,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A trivia with kind EndOfLineTrivia containing both the carriage return And line feed characters.
         ''' </summary>
-        Public Shared ReadOnly CarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturnLineFeed, SyntaxTrivia)
+        Public Shared ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturnLineFeed, SyntaxTrivia)
 
         ''' <summary>
         ''' A trivia with kind EndOfLineTrivia containing a single line feed character.
         ''' </summary>
-        Public Shared ReadOnly LineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.LineFeed, SyntaxTrivia)
+        Public Shared ReadOnly Property LineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.LineFeed, SyntaxTrivia)
 
         ''' <summary>
         ''' A trivia with kind EndOfLineTrivia containing a single carriage return character.
         ''' </summary>
-        Public Shared ReadOnly CarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturn, SyntaxTrivia)
+        Public Shared ReadOnly Property CarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturn, SyntaxTrivia)
 
         ''' <summary>
         '''  A trivia with kind WhitespaceTrivia containing a single space character.
         ''' </summary>
-        Public Shared ReadOnly Space As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Space, SyntaxTrivia)
+        Public Shared ReadOnly Property Space As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Space, SyntaxTrivia)
 
         ''' <summary>
         ''' A trivia with kind WhitespaceTrivia containing a single tab character.
         ''' </summary>
-        Public Shared ReadOnly Tab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Tab, SyntaxTrivia)
+        Public Shared ReadOnly Property Tab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Tab, SyntaxTrivia)
 
         ''' <summary>
         ''' An elastic trivia with kind EndOfLineTrivia containing both the carriage return And line feed characters.
         ''' Elastic trivia are used to denote trivia that was Not produced by parsing source text, And are usually Not
         ''' preserved during formatting.
         ''' </summary>
-        Public Shared ReadOnly ElasticCarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxTrivia)
+        Public Shared ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxTrivia)
 
         ''' <summary>
         ''' An elastic trivia with kind EndOfLineTrivia containing a single line feed character. Elastic trivia are used
         ''' to denote trivia that was Not produced by parsing source text, And are usually Not preserved during
         ''' formatting.
         ''' </summary>
-        Public Shared ReadOnly ElasticLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticLineFeed, SyntaxTrivia)
+        Public Shared ReadOnly Property ElasticLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticLineFeed, SyntaxTrivia)
 
         ''' <summary>
         ''' An elastic trivia with kind EndOfLineTrivia containing a single carriage return character. Elastic trivia
         ''' are used to denote trivia that was Not produced by parsing source text, And are usually Not preserved during
         ''' formatting.
         ''' </summary>
-        Public Shared ReadOnly ElasticCarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturn, SyntaxTrivia)
+        Public Shared ReadOnly Property ElasticCarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturn, SyntaxTrivia)
 
         ''' <summary>
         ''' An elastic trivia with kind WhitespaceTrivia containing a single space character. Elastic trivia are used to
         ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
         ''' </summary>
-        Public Shared ReadOnly ElasticSpace As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticSpace, SyntaxTrivia)
+        Public Shared ReadOnly Property ElasticSpace As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticSpace, SyntaxTrivia)
 
         ''' <summary>
         ''' An elastic trivia with kind WhitespaceTrivia containing a single tab character. Elastic trivia are used to
         ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
         ''' </summary>
-        Public Shared ReadOnly ElasticTab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticTab, SyntaxTrivia)
+        Public Shared ReadOnly Property ElasticTab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticTab, SyntaxTrivia)
 
         ''' <summary>
         ''' An elastic trivia with kind WhitespaceTrivia containing no characters. Elastic marker trivia are included
         ''' automatically by factory methods when trivia Is Not specified. Syntax formatting will replace elastic
         ''' markers with appropriate trivia.
         ''' </summary>
-        Public Shared ReadOnly ElasticMarker As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia)
+        Public Shared ReadOnly Property ElasticMarker As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia)
         Private Shared ReadOnly s_elasticMarkerList As SyntaxTriviaList = SyntaxFactory.TriviaList(CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia))
 
         ''' <summary>

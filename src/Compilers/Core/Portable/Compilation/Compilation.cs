@@ -1665,8 +1665,17 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
-                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                        retStream = signingInputStream;
+                        // Targeted try-catch for errors during CreateInputStream as found in TFS 1140649
+                        // TODO: Put this wrapping in PeWriter to catch all potential PE writing exceptions
+                        try
+                        {
+                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                            retStream = signingInputStream;
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Cci.PeWritingException(e);
+                        }
                     }
                     else
                     {
@@ -1719,6 +1728,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
                     return false;
+                }
+                catch (Cci.PeWritingException e)
+                {
+                    // Targeted fix for TFS 1140649
+                    // TODO: Add resource and better error message for a variety of PE exceptions
+                    diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, e.Message, MessageProvider));
                 }
                 catch (ResourceException e)
                 {
