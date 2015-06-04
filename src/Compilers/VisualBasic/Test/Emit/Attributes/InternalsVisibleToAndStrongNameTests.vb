@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 
-Public Class InternalsVisibleToAndStrongNameTests
+Partial Public Class InternalsVisibleToAndStrongNameTests
     Inherits BasicTestBase
 
 #Region "Helpers"
@@ -417,7 +417,7 @@ End Class
         Dim err = other.GetDeclarationDiagnostics().Single()
 
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
-        Assert.Equal(2, Err.Arguments.Count)
+        Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("foo", DirectCast(err.Arguments(0), String))
         Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
 
@@ -1652,7 +1652,7 @@ End Class
 
     <Fact, WorkItem(1072350, "DevDiv")>
     Public Sub Bug1072350()
-        Dim sourceA As XElement = _
+        Dim sourceA As XElement =
 <compilation name="ClassLibrary2">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("X ")>
@@ -1662,7 +1662,7 @@ End Class]]>
     </file>
 </compilation>
 
-        Dim sourceB As XElement = _
+        Dim sourceB As XElement =
 <compilation name="X">
     <file name="b.vb"><![CDATA[
 Class B
@@ -1676,13 +1676,13 @@ End Class]]>
         Dim ca = CreateCompilationWithMscorlib(sourceA, options:=TestOptions.ReleaseDll)
         CompileAndVerify(ca)
 
-        Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={new VisualBasicCompilationReference(ca)})
+        Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={New VisualBasicCompilationReference(ca)})
         CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1072339, "DevDiv")>
     Public Sub Bug1072339()
-        Dim sourceA As XElement = _
+        Dim sourceA As XElement =
 <compilation name="ClassLibrary2">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("x")>
@@ -1692,7 +1692,7 @@ End Class]]>
     </file>
 </compilation>
 
-        Dim sourceB As XElement = _
+        Dim sourceB As XElement =
 <compilation name="x">
     <file name="b.vb"><![CDATA[
 Class B
@@ -1706,13 +1706,13 @@ End Class]]>
         Dim ca = CreateCompilationWithMscorlib(sourceA, options:=TestOptions.ReleaseDll)
         CompileAndVerify(ca)
 
-        Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={new VisualBasicCompilationReference(ca)})
+        Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={New VisualBasicCompilationReference(ca)})
         CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1095618, "DevDiv")>
     Public Sub Bug1095618()
-        Dim source As XElement = _
+        Dim source As XElement =
 <compilation name="a">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000")>
