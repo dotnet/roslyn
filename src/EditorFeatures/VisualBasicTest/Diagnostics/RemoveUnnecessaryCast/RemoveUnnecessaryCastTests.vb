@@ -2658,5 +2658,41 @@ End Class
 </File>
             TestMissing(markup)
         End Sub
+
+        <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub DontRemoveCastToTypeParameterWithExceptionContraint()
+            Dim markup =
+<File>
+Imports System
+
+Class Program
+    Private Shared Sub RequiresCondition(Of TException As Exception)(condition As Boolean, messageOnFalseCondition As String)
+        If Not condition Then
+            Throw [|DirectCast(Activator.CreateInstance(GetType(TException), messageOnFalseCondition), TException)|]
+        End If
+    End Sub
+End Class
+</File>
+            TestMissing(markup)
+        End Sub
+
+        <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub DontRemoveCastToTypeParameterWithExceptionSubTypeContraint()
+            Dim markup =
+<File>
+Imports System
+
+Class Program
+    Private Shared Sub RequiresCondition(Of TException As ArgumentException)(condition As Boolean, messageOnFalseCondition As String)
+        If Not condition Then
+            Throw [|DirectCast(Activator.CreateInstance(GetType(TException), messageOnFalseCondition), TException)|]
+        End If
+    End Sub
+End Class
+</File>
+            TestMissing(markup)
+        End Sub
     End Class
 End Namespace

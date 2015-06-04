@@ -1238,7 +1238,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private bool TryExtractStringValueFromAttribute(CustomAttributeHandle handle, out string value)
+        internal bool TryExtractStringValueFromAttribute(CustomAttributeHandle handle, out string value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringValueExtractor);
         }

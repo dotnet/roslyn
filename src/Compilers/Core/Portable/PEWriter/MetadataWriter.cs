@@ -4759,6 +4759,15 @@ namespace Microsoft.Cci
                 sb.Append(", Retargetable=Yes");
             }
 
+            if (assemblyReference.ContentType == AssemblyContentType.WindowsRuntime)
+            {
+                sb.Append(", ContentType=WindowsRuntime");
+            }
+            else
+            {
+                Debug.Assert(assemblyReference.ContentType == AssemblyContentType.Default);
+            }
+
             return pooled.ToStringAndFree();
         }
 

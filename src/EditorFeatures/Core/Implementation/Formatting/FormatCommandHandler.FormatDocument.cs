@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             _waitIndicator.Wait(
                 title: EditorFeaturesResources.FormatDocument,
                 message: EditorFeaturesResources.FormattingDocument,
-                allowCancel: false,
+                allowCancel: true,
                 action: waitContext =>
                 {
                     Format(args.TextView, document, null, waitContext.CancellationToken);
