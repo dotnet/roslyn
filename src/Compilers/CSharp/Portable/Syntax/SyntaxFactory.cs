@@ -21,67 +21,67 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A trivia with kind EndOfLineTrivia containing both the carriage return and line feed characters.
         /// </summary>
-        public static readonly SyntaxTrivia CarriageReturnLineFeed = Syntax.InternalSyntax.SyntaxFactory.CarriageReturnLineFeed;
+        public static SyntaxTrivia CarriageReturnLineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.CarriageReturnLineFeed;
 
         /// <summary>
         /// A trivia with kind EndOfLineTrivia containing a single line feed character.
         /// </summary>
-        public static readonly SyntaxTrivia LineFeed = Syntax.InternalSyntax.SyntaxFactory.LineFeed;
+        public static SyntaxTrivia LineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.LineFeed;
 
         /// <summary>
         /// A trivia with kind EndOfLineTrivia containing a single carriage return character.
         /// </summary>
-        public static readonly SyntaxTrivia CarriageReturn = Syntax.InternalSyntax.SyntaxFactory.CarriageReturn;
+        public static SyntaxTrivia CarriageReturn { get; } = Syntax.InternalSyntax.SyntaxFactory.CarriageReturn;
 
         /// <summary>
         ///  A trivia with kind WhitespaceTrivia containing a single space character.
         /// </summary>
-        public static readonly SyntaxTrivia Space = Syntax.InternalSyntax.SyntaxFactory.Space;
+        public static SyntaxTrivia Space { get; } = Syntax.InternalSyntax.SyntaxFactory.Space;
 
         /// <summary>
         /// A trivia with kind WhitespaceTrivia containing a single tab character.
         /// </summary>
-        public static readonly SyntaxTrivia Tab = Syntax.InternalSyntax.SyntaxFactory.Tab;
+        public static SyntaxTrivia Tab { get; } = Syntax.InternalSyntax.SyntaxFactory.Tab;
 
         /// <summary>
         /// An elastic trivia with kind EndOfLineTrivia containing both the carriage return and line feed characters.
         /// Elastic trivia are used to denote trivia that was not produced by parsing source text, and are usually not
         /// preserved during formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticCarriageReturnLineFeed = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed;
+        public static SyntaxTrivia ElasticCarriageReturnLineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed;
 
         /// <summary>
         /// An elastic trivia with kind EndOfLineTrivia containing a single line feed character. Elastic trivia are used
         /// to denote trivia that was not produced by parsing source text, and are usually not preserved during
         /// formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticLineFeed = Syntax.InternalSyntax.SyntaxFactory.ElasticLineFeed;
+        public static SyntaxTrivia ElasticLineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticLineFeed;
 
         /// <summary>
         /// An elastic trivia with kind EndOfLineTrivia containing a single carriage return character. Elastic trivia
         /// are used to denote trivia that was not produced by parsing source text, and are usually not preserved during
         /// formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticCarriageReturn = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturn;
+        public static SyntaxTrivia ElasticCarriageReturn { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturn;
 
         /// <summary>
         /// An elastic trivia with kind WhitespaceTrivia containing a single space character. Elastic trivia are used to
         /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticSpace = Syntax.InternalSyntax.SyntaxFactory.ElasticSpace;
+        public static SyntaxTrivia ElasticSpace { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticSpace;
 
         /// <summary>
         /// An elastic trivia with kind WhitespaceTrivia containing a single tab character. Elastic trivia are used to
         /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticTab = Syntax.InternalSyntax.SyntaxFactory.ElasticTab;
+        public static SyntaxTrivia ElasticTab { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticTab;
 
         /// <summary>
         /// An elastic trivia with kind WhitespaceTrivia containing no characters. Elastic marker trivia are included
         /// automatically by factory methods when trivia is not specified. Syntax formatting will replace elastic
         /// markers with appropriate trivia.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticMarker = Syntax.InternalSyntax.SyntaxFactory.ElasticZeroSpace;
+        public static SyntaxTrivia ElasticMarker { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticZeroSpace;
 
         /// <summary>
         /// Creates a trivia with kind EndOfLineTrivia containing the specified text. 

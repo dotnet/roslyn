@@ -14,6 +14,13 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
+    internal sealed class PeWritingException : Exception
+    {
+        public PeWritingException(Exception inner)
+            : base(inner.Message, inner)
+        { }
+    }
+
     internal sealed class PeWriter
     {
         /// <summary>

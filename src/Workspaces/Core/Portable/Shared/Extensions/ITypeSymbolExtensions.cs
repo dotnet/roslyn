@@ -777,12 +777,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (type != null)
             {
-                foreach (var baseType in type.GetBaseTypesAndThis())
+                switch(type.Kind)
                 {
-                    if (baseType.Equals(compilation.ExceptionType()))
-                    {
-                        return true;
-                    }
+                    case SymbolKind.NamedType:
+                        foreach (var baseType in type.GetBaseTypesAndThis())
+                        {
+                            if (baseType.Equals(compilation.ExceptionType()))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+
+                    case SymbolKind.TypeParameter:
+                        foreach (var constraint in ((ITypeParameterSymbol)type).ConstraintTypes)
+                        {
+                            if (constraint.IsOrDerivesFromExceptionType(compilation))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
                 }
             }
 

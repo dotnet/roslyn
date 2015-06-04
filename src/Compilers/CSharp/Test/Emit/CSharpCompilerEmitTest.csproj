@@ -58,7 +58,7 @@
     <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>    
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -151,6 +151,7 @@
     <Compile Include="Emit\EmitErrorTests.cs" />
     <Compile Include="Emit\EmitMetadata.cs" />
     <Compile Include="Emit\EmitMetadataTestBase.cs" />
+    <Compile Include="Attributes\EmitTestStrongNameProvider.cs" />
     <Compile Include="Emit\EntryPointTests.cs" />
     <Compile Include="Emit\NoPiaEmbedTypes.cs" />
     <Compile Include="Emit\OptionalArgumentsTests.cs" />

@@ -28,6 +28,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
+        public void AddFileCodeModel(FileCodeModel fileCodeModel)
+        {
+            var handle = new ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(fileCodeModel);
+            var globalNodeKeys = fileCodeModel.GetCurrentNodeKeys();
+
+            _nodeKeysMap.Add(handle, globalNodeKeys);
+        }
+
         public void RestoreKeys()
         {
             foreach (var e in _nodeKeysMap)
