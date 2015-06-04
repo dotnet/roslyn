@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal const string DefaultIndentation = "    ";
+        internal const string DefaultEOL = "\r\n";
 
         /// <summary>
         /// Creates a new syntax node with all whitespace and end of line trivia replaced with
@@ -284,13 +285,27 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <typeparam name="TNode">The type of the node.</typeparam>
         /// <param name="node">The node to format.</param>
-        /// <param name="indentation">An optional sequence of whitespace characters that defines a
-        /// single level of indentation.</param>
+        /// <param name="indentation">A sequence of whitespace characters that defines a single level of indentation.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
-        public static TNode NormalizeWhitespace<TNode>(this TNode node, string indentation = DefaultIndentation, bool elasticTrivia = false)
+        public static TNode NormalizeWhitespace<TNode>(this TNode node, string indentation, bool elasticTrivia)
             where TNode : SyntaxNode
         {
-            return (TNode)node.NormalizeWhitespaceCore(indentation, elasticTrivia);
+            return (TNode)node.NormalizeWhitespaceCore(indentation, DefaultEOL, elasticTrivia);
+        }
+
+        /// <summary>
+        /// Creates a new syntax node with all whitespace and end of line trivia replaced with
+        /// regularly formatted trivia.
+        /// </summary>
+        /// <typeparam name="TNode">The type of the node.</typeparam>
+        /// <param name="node">The node to format.</param>
+        /// <param name="indentation">An optional sequence of whitespace characters that defines a single level of indentation.</param>
+        /// <param name="eol">An optional sequence of whitespace characters used for end of line.</param>
+        /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
+        public static TNode NormalizeWhitespace<TNode>(this TNode node, string indentation = DefaultIndentation, string eol = DefaultEOL, bool elasticTrivia = false)
+            where TNode : SyntaxNode
+        {
+            return (TNode)node.NormalizeWhitespaceCore(indentation, eol, elasticTrivia);
         }
 
         /// <summary>
