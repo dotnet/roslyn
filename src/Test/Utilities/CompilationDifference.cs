@@ -67,6 +67,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
+        public void VerifyLocalSignature(
+            string qualifiedMethodName,
+            string expectedSignature,
+            [CallerLineNumber]int callerLine = 0,
+            [CallerFilePath]string callerPath = null)
+        {
+            var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
+            string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder, ToLocalInfo);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        }
+
         public void VerifyIL(
             string qualifiedMethodName,
             string expectedIL,
