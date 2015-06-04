@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                throw new ArgumentException("name");
+                throw new ArgumentException(nameof(name));
             }
 
             this.Feature = feature;
