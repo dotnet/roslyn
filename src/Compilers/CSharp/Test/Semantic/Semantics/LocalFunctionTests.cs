@@ -7,6 +7,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LocalFunctionTests : CSharpTestBase
     {
+        private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithFeatures(new SmallDictionary<string, string> { { "localFunctions", "true" } });
+
         [Fact]
         public void EndToEnd()
         {
@@ -25,7 +27,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 Hello, world!
 ");
         }
@@ -45,7 +48,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 ");
         }
@@ -83,7 +87,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 2
 2
@@ -137,7 +142,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 2
 ");
@@ -165,7 +171,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 2
 ");
@@ -196,7 +203,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 1
 2
 ");
@@ -234,7 +242,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 6
 ");
         }
@@ -267,7 +276,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 ");
         }
@@ -296,7 +306,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 ");
         }
@@ -328,7 +339,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 ");
         }
@@ -368,7 +380,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 2
 2
@@ -395,7 +408,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
             var comp = CompileAndVerify(compilation, expectedOutput: @"
 2
 ");
@@ -421,7 +436,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
             var comp = CompileAndVerify(compilation, expectedOutput: @"
 2
 ");
@@ -480,7 +497,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 ");
         }
@@ -509,7 +527,8 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 ");
         }
@@ -531,7 +550,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,22): error CS1002: ; expected
     //         void Local1()
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(9, 22),
@@ -565,7 +584,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,40): error CS1623: Iterators cannot have ref or out parameters
     //         IEnumerable<int> Local(ref int x)
     Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(9, 40)
@@ -592,7 +611,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,26): error CS1636: __arglist is not allowed in the parameter list of iterators
     //         IEnumerable<int> Local(__arglist)
     Diagnostic(ErrorCode.ERR_VarargsIterator, "Local").WithLocation(9, 26)
@@ -616,7 +635,7 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,27): error CS0841: Cannot use local variable 'Local' before it is declared
     //         Console.WriteLine(Local());
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(9, 27)

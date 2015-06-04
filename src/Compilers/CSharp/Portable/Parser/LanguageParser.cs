@@ -7938,8 +7938,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 this.ParseDeclarationModifiers(mods);
+                var allowLocalFunctions = IsFeatureEnabled(MessageID.IDS_FeatureLocalFunctions);
                 LocalFunctionStatementSyntax localFunction;
-                this.ParseDeclaration(out type, variables, true, mods.ToTokenList(), out localFunction);
+                this.ParseDeclaration(out type, variables, allowLocalFunctions, mods.ToTokenList(), out localFunction);
                 if (localFunction != null)
                 {
                     Debug.Assert(variables.Count == 0);
