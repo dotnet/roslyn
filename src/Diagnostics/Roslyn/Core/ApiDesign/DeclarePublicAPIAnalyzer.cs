@@ -97,6 +97,23 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 HashSet<string> examinedPublicTypes = new HashSet<string>();
                 object lockObj = new object();
 
+                Dictionary<ITypeSymbol, bool> typeCanBeExtendedPubliclyMap = new Dictionary<ITypeSymbol, bool>();
+                Func<ITypeSymbol, bool> typeCanBeExtendedPublicly = type =>
+                {
+                    bool result;
+                    if (typeCanBeExtendedPubliclyMap.TryGetValue(type, out result)) return result;
+
+                    // a type can be extended publicly if (1) it isn't sealed, and (2) it has some constructor that is
+                    // not internal, private or protected&internal
+                    result = !type.IsSealed &&
+                        type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
+                            m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
+                        );
+
+                    typeCanBeExtendedPubliclyMap.Add(type, result);
+                    return result;
+                };
+
                 compilationContext.RegisterSymbolAction(symbolContext =>
                 {
                     var symbol = symbolContext.Symbol;
@@ -108,15 +125,15 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                         return;
                     }
 
-                    if (!IsPublicOrPublicProtected(symbol))
-                    {
-                        return;
-                    }
-
-                    string publicApiName = GetPublicApiName(symbol);
-
                     lock (lockObj)
                     {
+                        if (!IsPublicApi(symbol, typeCanBeExtendedPublicly))
+                        {
+                            return;
+                        }
+
+                        string publicApiName = GetPublicApiName(symbol);
+
                         examinedPublicTypes.Add(publicApiName);
 
                         if (!declaredPublicSymbols.Contains(publicApiName))
@@ -241,19 +258,18 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return false;
         }
 
-        private static bool IsPublicOrPublicProtected(ISymbol symbol)
+        private static bool IsPublicApi(ISymbol symbol, Func<ITypeSymbol, bool> typeCanBeExtendedPublicly)
         {
-            if (symbol.DeclaredAccessibility == Accessibility.Public)
-            {
-                return symbol.ContainingType == null || IsPublic(symbol.ContainingType);
-            }
-
+            if (IsPublic(symbol)) return true;
             if (symbol.DeclaredAccessibility == Accessibility.Protected ||
                 symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
             {
                 // Protected symbols must have parent types (that is, top-level protected
                 // symbols are not allowed.
-                return symbol.ContainingType != null && IsPublicOrPublicProtected(symbol.ContainingType);
+                return
+                    symbol.ContainingType != null &&
+                    IsPublicApi(symbol.ContainingType, typeCanBeExtendedPublicly) &&
+                    typeCanBeExtendedPublicly(symbol.ContainingType);
             }
 
             return false;
