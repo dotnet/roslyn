@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public abstract class CSharpSyntaxWalker : CSharpSyntaxVisitor
     {
-        protected readonly SyntaxWalkerDepth Depth;
+        protected SyntaxWalkerDepth Depth { get; }
 
         protected CSharpSyntaxWalker(SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node)
         {

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class XmlFileResolver : XmlReferenceResolver
     {
-        public static readonly XmlFileResolver Default = new XmlFileResolver(baseDirectory: null);
+        public static XmlFileResolver Default { get; } = new XmlFileResolver(baseDirectory: null);
 
         private readonly string _baseDirectory;
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (baseDirectory != null && PathUtilities.GetPathKind(baseDirectory) != PathKind.Absolute)
             {
-                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory");
+                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(baseDirectory));
             }
 
             _baseDirectory = baseDirectory;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
 
         public override Stream OpenRead(string resolvedPath)
         {
-            CompilerPathUtilities.RequireAbsolutePath(resolvedPath, "resolvedPath");
+            CompilerPathUtilities.RequireAbsolutePath(resolvedPath, nameof(resolvedPath));
             return FileUtilities.OpenRead(resolvedPath);
         }
 

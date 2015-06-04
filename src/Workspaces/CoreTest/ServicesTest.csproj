@@ -272,6 +272,7 @@
     <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_UnknownProjectExtension.vbproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -300,6 +301,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_ExternAlias2.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularCSharpProject1.csproj" />
+    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularCSharpProject2.csproj" />
+    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularSolution.sln" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

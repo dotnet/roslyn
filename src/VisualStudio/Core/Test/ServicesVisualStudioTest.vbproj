@@ -357,6 +357,7 @@
     <Compile Include="ProjectSystemShim\VisualBasicProjectTests.vb" />
     <Compile Include="Snippets\SnippetServiceWaiter.vb" />
     <Compile Include="SolutionExplorer\FakeAnalyzersCommandHandler.vb" />
+    <Compile Include="SolutionExplorer\RuleSetDocumentExtensionsTests.vb" />
     <Compile Include="StubVsEditorAdaptersFactoryService.vb" />
     <Compile Include="Preview\PreviewChangesTests.vb" />
     <Compile Include="Progression\CallsGraphQueryTests.vb" />

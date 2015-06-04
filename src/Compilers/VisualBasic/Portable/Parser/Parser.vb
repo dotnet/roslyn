@@ -158,7 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Optional nonArrayName As Boolean = False,
                             Optional disallowGenericArgumentsOnLastQualifiedName As Boolean = False,
                             Optional allowEmptyGenericArguments As Boolean = False,
-                            Optional ByRef allowedEmptyGenericArguments As Boolean = False
+                            Optional ByRef allowedEmptyGenericArguments As Boolean = False,
+                            Optional isNameInNamespaceDeclaration As Boolean = False
                         ) As NameSyntax
 
             Debug.Assert(allowGenericArguments OrElse Not allowEmptyGenericArguments, "Inconsistency in generic arguments parsing requirements!!!")
@@ -171,7 +172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
 
                 result = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
-                result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+
+                If isNameInNamespaceDeclaration Then
+                    result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+                End If
 
                 GetNextToken()
 
@@ -1641,7 +1645,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 requireQualification:=False,
                 allowGlobalNameSpace:=True,
                 allowGenericArguments:=False,
-                allowGenericsWithoutOf:=True)
+                allowGenericsWithoutOf:=True,
+                isNameInNamespaceDeclaration:=True)
 
             If namespaceName.ContainsDiagnostics Then
                 ' Resync at EOS so we don't get expecting EOS errors

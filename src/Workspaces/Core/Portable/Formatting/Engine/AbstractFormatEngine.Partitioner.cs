@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting

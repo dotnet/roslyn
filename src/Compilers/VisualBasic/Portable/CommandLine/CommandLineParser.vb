@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current command line parser.
         ''' </summary>
-        Public Shared ReadOnly [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
+        Public Shared ReadOnly Property [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
 
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Friend Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
+        Friend Shared ReadOnly Property Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
