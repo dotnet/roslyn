@@ -8,6 +8,17 @@ Linux and Mac support for developing Roslyn is very much a work in progress.  No
 
 Roslyn requires bug fixes not present in the latest release of mono.  Hence you will need to acquire mono from a different channel in order to develop on Roslyn.  
 
+## Azure drops
+
+The easiest way to acquire a compatible version is to download it from our Azure storage.  This is the version used on our CI system and hence will work with the latest sources:
+
+- [Mac Mono Bundle](https://dotnetci.blob.core.windows.net/roslyn/mono.mac.1.tar.bz2)
+- [Linux Mono Bundle](https://dotnetci.blob.core.windows.net/roslyn/mono.linux.1.tar.bz2)
+
+This file must be unzipped into `/tmp` in order to function correctly.  Once unzipped simply add the `/tmp/mono.mac.1/bin` folder to `$PATH` and you should be able to build, edit and run test for CrossPlatform.sln.  
+
+## Build from source 
+
 The universal working method for Linux and Mac is to build Mono from source.  This actually quite straightforward as Mono has boiled this down to a simple set of steps which is described here:
 
 - [Compiling Mono on Mac](http://www.mono-project.com/docs/compiling-mono/mac/#building-mono-from-a-git-source-code-checkout)
@@ -18,29 +29,14 @@ $> cd mono
 $mono> git remote add jaredpar git@github.com:jaredpar/mono.git
 $mono> git checkout -b build-roslyn jaredpar/build-roslyn
 ```
-### Debian
 
-These instructions are written assuming the Ubuntu 14.04 LTS, since that's the distro the team uses.
-
-The easiest way to acquire Mono on Ubuntu, or any Debian based system, is to use the provided [continuous integration packages](http://www.mono-project.com/docs/getting-started/install/linux/ci-packages).  Any recent package should do as all of the needed fixes are checked into the Mono master branch.  There is a script checked into our repro that automates getting the latest package:
-
-```
-$> cd roslyn
-$roslyn> sudo ./build/linux/setup-snapshot.sh
-```
-
-After this script runs you can enable the latest mono snapshot from a shell prompt by running the following:
-
-```
-$> . mono-snapshot mono
-```
-# Configuring Mono
-
-The standard Mono installation needs to be patched with the Portable Class Libraries in order to build parts of Roslyn.  The [setup-pcl.sh] script takes care of this.  Simply point it to the directory where mono is installed and it will take care of the rest.  
+The standard Mono installation needs to be patched with the Portable Class Libraries in order to build parts of Roslyn.  The [setup-pcl.sh] script takes care of this.  Simply point it to the directory where mono is built.  
 
 ```
 $> ./roslyn/builds/linux/setup-pcl.sh ~/builds/mono 
 ```
+
+# Configuring Mono
 
 Note: This script may need to be used with `sudo` depending on where mono was installed. 
 
