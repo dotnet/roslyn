@@ -991,6 +991,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 int ordinal = start + i;
                 bool hasMatching = false;
                 bool isLeaf = (oldActiveStatements[ordinal].Flags & ActiveStatementFlags.LeafFrame) != 0;
+                bool isPartiallyExecuted = (oldActiveStatements[ordinal].Flags & ActiveStatementFlags.PartiallyExecuted) != 0;
                 int statementPart = activeNodes[i].StatementPart;
                 var oldStatementSyntax = activeNodes[i].OldNode;
                 var oldEnclosingLambdaBody = activeNodes[i].EnclosingLambdaBodyOpt;
@@ -1036,10 +1037,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
                     newSpan = FindClosestActiveSpan(newStatementSyntax, statementPart);
 
-                    if (!isLeaf && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntax, statementPart))
+                    if ((!isLeaf || isPartiallyExecuted) && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntax, statementPart))
                     {
                         // rude edit: internal active statement changed
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementUpdate, newSpan));
+                        diagnostics.Add(new RudeEditDiagnostic(isLeaf ? RudeEditKind.PartiallyExecutedActiveStatementUpdate : RudeEditKind.ActiveStatementUpdate, newSpan));
                     }
 
                     // exception handling around the statement:
