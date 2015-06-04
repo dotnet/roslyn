@@ -6168,5 +6168,29 @@ class C
   IL_001f:  ret
 }");
         }
+
+        [WorkItem(3309, "https://github.com/dotnet/roslyn/issues/3309")]
+        [Fact]
+        public void NullAnonymousTypeInstance()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+    }
+}";
+            var testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "false ? new { P = 1 } : null");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            var returnType = (NamedTypeSymbol)methodData.Method.ReturnType;
+            Assert.True(returnType.IsAnonymousType);
+            methodData.VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  ret
+}");
+        }
     }
 }
