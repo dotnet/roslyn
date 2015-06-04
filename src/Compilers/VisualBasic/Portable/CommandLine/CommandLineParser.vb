@@ -1138,7 +1138,7 @@ lVbRuntimePlus:
                     documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                     kind:=SourceCodeKind.Regular,
                     preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
-                    features:=features.ToImmutableDictionary(Function(feature) feature, Function(feature) "true"))
+                    features:=ParseFeatures(features))
 
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
@@ -1163,8 +1163,7 @@ lVbRuntimePlus:
                         generalDiagnosticOption:=generalDiagnosticOption,
                         specificDiagnosticOptions:=specificDiagnosticOptions,
                         optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                        parseOptions:=parseOptions,
-                        features:=features.AsImmutable())
+                        parseOptions:=parseOptions)
 
             Dim emitOptions = New EmitOptions(
                     metadataOnly:=False,

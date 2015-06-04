@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
                 kind: SourceCodeKind.Regular,
-                features: features.ToImmutableDictionary(feature => feature, feature => "true")
+                features: ParseFeatures(features)
             );
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
@@ -1061,8 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 platform: platform,
                 generalDiagnosticOption: generalDiagnosticOption,
                 warningLevel: warningLevel,
-                specificDiagnosticOptions: diagnosticOptions,
-                features: features.AsImmutable()
+                specificDiagnosticOptions: diagnosticOptions
             );
 
             var emitOptions = new EmitOptions
@@ -1122,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportAnalyzer = reportAnalyzer
             };
         }
-        
+
 
         private static void ParseAndResolveReferencePaths(string switchName, string switchValue, string baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
         {

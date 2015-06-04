@@ -24,12 +24,17 @@ End Class
 
 Friend Module TestOptionExtensions
     <Extension()>
-    Public Function WithStrictMode(options As VisualBasicCompilationOptions) As VisualBasicCompilationOptions
-        Return options.WithFeatures(options.Features.Add("strict"))
+    Public Function WithFeature(options As VisualBasicParseOptions, feature As String, value As String) As VisualBasicParseOptions
+        Return options.WithFeatures(options.Features.Concat({New KeyValuePair(Of String, String)(feature, value)}))
     End Function
 
     <Extension()>
-    Public Function WithStrictMode(compilation As VisualBasicCompilation) As VisualBasicCompilation
-        Return compilation.WithOptions(compilation.Options.WithStrictMode())
+    Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
+        Return options.WithFeature("Strict", "true")
+    End Function
+
+    <Extension()>
+    Public Function WithDeterministicFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
+        Return options.WithFeature("Deterministic", "true")
     End Function
 End Module
