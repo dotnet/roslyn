@@ -22,29 +22,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
         }
 
-        private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModelHandle;
-        private ImmutableArray<EnvDTE.CodeElement> _parts;
-
         private PartialTypeCollection(
             CodeModelState state,
             FileCodeModel fileCodeModel,
             AbstractCodeType parent)
             : base(state, parent)
         {
-            _fileCodeModelHandle = new ComHandle<EnvDTE.FileCodeModel, FileCodeModel>(fileCodeModel);
         }
 
-        private AbstractCodeType ParentType
-        {
-            get { return (AbstractCodeType)this.Parent; }
-        }
+        private ImmutableArray<EnvDTE.CodeElement> _parts;
+
+        private AbstractCodeType ParentType => (AbstractCodeType)this.Parent;
 
         private ImmutableArray<EnvDTE.CodeElement> GetParts()
         {
             // Retrieving the parts is potentially very expensive because it can force multiple FileCodeModels to be instantiated.
             // Here, we cache the result to avoid having to perform these calculations each time GetParts() is called.
             // This *could* be an issue because it means that a PartialTypeCollection will not necessarily reflect the
-            // current state of the user's code. However, because a new PartialTypeCollection is created everytime a the Parts
+            // current state of the user's code. However, because a new PartialTypeCollection is created everytime the Parts
             // property is accessed on CodeClass, CodeStruct or CodeInterface, consumers would hit this behavior rarely.
             if (this._parts == null)
             {
@@ -55,9 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
                 foreach (var location in symbol.Locations.Where(l => l.IsInSource))
                 {
-                    var tree = location.SourceTree;
-                    var document = solution.GetDocument(tree);
-
+                    var document = solution.GetDocument(location.SourceTree);
                     if (document != null)
                     {
                         var fileCodeModelObject = this.Workspace.GetFileCodeModel(document.Id);
@@ -80,11 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return this._parts;
         }
 
-        internal override Snapshot CreateSnapshot()
-        {
-            var parts = GetParts();
-            return new CodeElementSnapshot(parts);
-        }
+        internal override Snapshot CreateSnapshot() => new CodeElementSnapshot(GetParts());
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
         {
