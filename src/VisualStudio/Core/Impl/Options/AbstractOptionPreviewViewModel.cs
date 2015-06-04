@@ -179,15 +179,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             UpdatePreview(text);
         }
 
-        internal virtual void LoadSettings(IOptionService optionService)
-        {
-            foreach (var checkbox in Items.OfType<CheckBoxOptionViewModel>())
-            {
-                var language = checkbox.Option.IsPerLanguage ? this.Language : null;
-                checkbox.IsChecked = (bool)optionService.GetOption(new OptionKey(checkbox.Option, language));
-            }
-        }
-
         internal abstract bool ShouldPersistOption(OptionKey optionKey);
     }
 }
