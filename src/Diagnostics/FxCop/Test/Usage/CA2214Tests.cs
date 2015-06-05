@@ -272,8 +272,8 @@ class E : ControlBase
 }
 ";
             var document = CreateDocument(source, LanguageNames.CSharp);
-            var project = document.Project.AddMetadataReference(MetadataReference.CreateFromAssembly(typeof(System.Web.UI.Control).Assembly));
-            project = project.AddMetadataReference(MetadataReference.CreateFromAssembly(typeof(System.Windows.Forms.Control).Assembly));
+            var project = document.Project.AddMetadataReference(MetadataReference.CreateFromFile(typeof(System.Web.UI.Control).Assembly.Location));
+            project = project.AddMetadataReference(MetadataReference.CreateFromFile(typeof(System.Windows.Forms.Control).Assembly.Location));
             var analyzer = GetCSharpDiagnosticAnalyzer();
             GetSortedDiagnostics(analyzer, project.Documents.Single()).Verify(analyzer);
         }
@@ -314,8 +314,8 @@ Class E
 End Class
 ";
             var document = CreateDocument(source, LanguageNames.VisualBasic);
-            var project = document.Project.AddMetadataReference(MetadataReference.CreateFromAssembly(typeof(System.Web.UI.Control).Assembly));
-            project = project.AddMetadataReference(MetadataReference.CreateFromAssembly(typeof(System.Windows.Forms.Control).Assembly));
+            var project = document.Project.AddMetadataReference(MetadataReference.CreateFromFile(typeof(System.Web.UI.Control).Assembly.Location));
+            project = project.AddMetadataReference(MetadataReference.CreateFromFile(typeof(System.Windows.Forms.Control).Assembly.Location));
             var analyzer = GetBasicDiagnosticAnalyzer();
             GetSortedDiagnostics(analyzer, project.Documents.Single()).Verify(analyzer);
         }

@@ -308,7 +308,7 @@ End If
         Private Function CreateSubmission(code As String, options As VisualBasicParseOptions, Optional expectedErrorCount As Integer = 0) As VisualBasicCompilation
             Dim submission = VisualBasicCompilation.CreateSubmission(
                 "sub",
-                references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly)},
+                references:={MetadataReference.CreateFromAssemblyInternal(GetType(Object).Assembly)},
                 syntaxTree:=Parse(code, options:=options))
 
             Assert.Equal(expectedErrorCount, submission.GetDiagnostics(CompilationStage.Declare, True).Length())
