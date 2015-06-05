@@ -4074,5 +4074,409 @@ End Class")
                 "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of Integer)")
 
         End Sub
+
+        <Fact, WorkItem(1170899, "DevDiv")>
+        Public Sub HoistedAnonymousTypes1()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>x</N:0> = New With {.A = 1}
+        Yield 1
+        Console.WriteLine(x.A + 1)
+    End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>x</N:0> = New With {.A = 1}
+        Yield 1
+        Console.WriteLine(x.A + 2)
+    End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim source2 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>x</N:0> = New With {.A = 1}
+        Yield 1
+        Console.WriteLine(x.A + 3)
+    End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            v0.VerifyDiagnostics()
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim baselineIL = "
+{
+  // Code size       94 (0x5e)
+  .maxstack  3
+  .locals init (Boolean V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0040
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0029:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As <anonymous type: A As Integer>""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0035:  ldarg.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  dup
+  IL_0038:  stloc.1
+  IL_0039:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_003e:  ldc.i4.1
+  IL_003f:  ret
+  IL_0040:  ldarg.0
+  IL_0041:  ldc.i4.m1
+  IL_0042:  dup
+  IL_0043:  stloc.1
+  IL_0044:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0049:  ldarg.0
+  IL_004a:  ldfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As <anonymous type: A As Integer>""
+  IL_004f:  callvirt   ""Function VB$AnonymousType_0(Of Integer).get_A() As Integer""
+  IL_0054:  ldc.i4.<<VALUE>>
+  IL_0055:  add.ovf
+  IL_0056:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_005b:  nop
+  IL_005c:  ldc.i4.0
+  IL_005d:  ret
+}"
+            v0.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"))
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {VB$StateMachine_1_F}",
+                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, $VB$ResumableLocal_x$0, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
+
+            diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "2"))
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {VB$StateMachine_1_F}",
+                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, $VB$ResumableLocal_x$0, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
+
+            diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"))
+        End Sub
+
+        <Fact, WorkItem(3192)>
+        Public Sub HoistedAnonymousTypes_Complex()
+            Dim source0 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>x</N:0> = { New With {.A = New With { .B = 1 } } }
+        Yield 1
+        Console.WriteLine(x(0).A.B + 1)
+    End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>x</N:0> = { New With {.A = New With { .B = 1 } } }
+        Yield 1
+        Console.WriteLine(x(0).A.B + 2)
+    End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim source2 = MarkedSource("
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Dim <N:0>x</N:0> = { New With {.A = New With { .B = 1 } } }
+        Yield 1
+        Console.WriteLine(x(0).A.B + 3)
+    End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            v0.VerifyDiagnostics()
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim baselineIL = "
+{
+  // Code size      115 (0x73)
+  .maxstack  5
+  .locals init (Boolean V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_004e
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  newarr     ""VB$AnonymousType_0(Of <anonymous type: B As Integer>)""
+  IL_0029:  dup
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldc.i4.1
+  IL_002c:  newobj     ""Sub VB$AnonymousType_1(Of Integer)..ctor(Integer)""
+  IL_0031:  newobj     ""Sub VB$AnonymousType_0(Of <anonymous type: B As Integer>)..ctor(<anonymous type: B As Integer>)""
+  IL_0036:  stelem.ref
+  IL_0037:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As <anonymous type: A As <anonymous type: B As Integer>>()""
+  IL_003c:  ldarg.0
+  IL_003d:  ldc.i4.1
+  IL_003e:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0043:  ldarg.0
+  IL_0044:  ldc.i4.1
+  IL_0045:  dup
+  IL_0046:  stloc.1
+  IL_0047:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_004c:  ldc.i4.1
+  IL_004d:  ret
+  IL_004e:  ldarg.0
+  IL_004f:  ldc.i4.m1
+  IL_0050:  dup
+  IL_0051:  stloc.1
+  IL_0052:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0057:  ldarg.0
+  IL_0058:  ldfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As <anonymous type: A As <anonymous type: B As Integer>>()""
+  IL_005d:  ldc.i4.0
+  IL_005e:  ldelem.ref
+  IL_005f:  callvirt   ""Function VB$AnonymousType_0(Of <anonymous type: B As Integer>).get_A() As <anonymous type: B As Integer>""
+  IL_0064:  callvirt   ""Function VB$AnonymousType_1(Of Integer).get_B() As Integer""
+  IL_0069:  ldc.i4.<<VALUE>>
+  IL_006a:  add.ovf
+  IL_006b:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0070:  nop
+  IL_0071:  ldc.i4.0
+  IL_0072:  ret
+}"
+            v0.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"))
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {VB$StateMachine_1_F}",
+                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, $VB$ResumableLocal_x$0, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
+
+            diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "2"))
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {VB$StateMachine_1_F}",
+                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, $VB$ResumableLocal_x$0, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
+
+            diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"))
+        End Sub
+
+        <Fact, WorkItem(3192)>
+        Public Sub HoistedAnonymousTypes_Delete()
+            Dim source0 = MarkedSource("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Shared Async Function F() As Task(Of Integer)
+        Dim <N:1>x</N:1> = From b In { 1, 2, 3 } <N:0>Select <N:3>A = b</N:3></N:0>
+        Return <N:2>Await Task.FromResult(1)</N:2>
+    End Function
+    
+    Sub X()  ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Shared Async Function F() As Task(Of Integer)
+        Dim <N:1>x</N:1> = From b In { 1, 2, 3 } <N:0>Select <N:3>A = b</N:3></N:0>
+        Dim y = x.First()
+        Return <N:2>Await Task.FromResult(1)</N:2>
+    End Function
+    
+    Sub X()  ' needs to be present to work around SymWriter bug #1068894
+    End Sub
+End Class
+")
+            Dim source2 = source0
+            Dim source3 = source1
+            Dim source4 = source0
+            Dim source5 = source1
+
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation0.WithSource(source2.Tree)
+            Dim compilation3 = compilation0.WithSource(source3.Tree)
+            Dim compilation4 = compilation0.WithSource(source4.Tree)
+            Dim compilation5 = compilation0.WithSource(source5.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+            Dim f3 = compilation3.GetMember(Of MethodSymbol)("C.F")
+            Dim f4 = compilation4.GetMember(Of MethodSymbol)("C.F")
+            Dim f5 = compilation5.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            ' y is added 
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+
+            ' y is removed
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            ' Synthesized members collection still includes y field since members are only added to it and never deleted.
+            ' The corresponding CLR field is also present.
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$1}")
+
+            ' y is added and a new slot index is allocated for it
+            Dim diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+
+            diff3.VerifySynthesizedMembers(
+                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$1}")
+
+            ' y is removed
+            Dim diff4 = compilation4.EmitDifference(
+                diff3.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f3, f4, GetSyntaxMapFromMarkers(source3, source4), preserveLocalVariables:=True)))
+
+            diff4.VerifySynthesizedMembers(
+                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$2, $VB$ResumableLocal_y$1}")
+
+            ' y is added and a new slot index is allocated for it
+            Dim diff5 = compilation5.EmitDifference(
+                diff4.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f4, f5, GetSyntaxMapFromMarkers(source4, source5), preserveLocalVariables:=True)))
+
+            diff5.VerifySynthesizedMembers(
+                "C: {_Closure$__, VB$StateMachine_1_F}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$ResumableLocal_x$0, $VB$ResumableLocal_y$3, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_y$2, $VB$ResumableLocal_y$1}")
+        End Sub
     End Class
 End Namespace
