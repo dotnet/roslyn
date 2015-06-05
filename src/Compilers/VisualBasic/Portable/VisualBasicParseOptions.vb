@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits ParseOptions
         Implements IEquatable(Of VisualBasicParseOptions)
 
-        Public Shared ReadOnly [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
+        Public Shared ReadOnly Property [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
         Private Shared s_defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
 
         Private _features As ImmutableDictionary(Of String, String)
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(features))
             End If
 
-            Return New VisualBasicParseOptions(Me) With {._features = features.ToImmutableDictionary()}
+            Return New VisualBasicParseOptions(Me) With {._features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)}
         End Function
 
         Public Overrides ReadOnly Property Features As IReadOnlyDictionary(Of String, String)

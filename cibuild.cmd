@@ -44,4 +44,8 @@ exit /b 0
 @echo Usage: cibuild.cmd [/debug^|/release]
 @echo   /debug 	Perform debug build.  This is the default.
 @echo   /release Perform release build
+<<<<<<< HEAD
 @goto :eof
+=======
+@goto :eof
+>>>>>>> origin/stabilization

@@ -615,7 +615,7 @@ namespace EventDeserialization
 }
 ";
 
-            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, "Lib");
+            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
 
             var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
 

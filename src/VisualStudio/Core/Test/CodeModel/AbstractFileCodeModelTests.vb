@@ -7,12 +7,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractFileCodeModelTests
         Inherits AbstractCodeModelObjectTests(Of EnvDTE80.FileCodeModel2)
 
-        Protected Sub TestOperation(code As XElement, expectedCode As XElement, testOperation As Action(Of EnvDTE80.FileCodeModel2))
+        Protected Sub TestOperation(code As XElement, expectedCode As XElement, operation As Action(Of EnvDTE80.FileCodeModel2))
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
-                testOperation(fileCodeModel)
+                operation(fileCodeModel)
 
                 Dim text = state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None).Result.ToString()
 
@@ -24,12 +24,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Assert.NotNull(fileCodeModel)
 
                 fileCodeModel.BeginBatch()
-                testOperation(fileCodeModel)
+                operation(fileCodeModel)
                 fileCodeModel.EndBatch()
 
                 Dim text = state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None).Result.ToString()
 
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
+            End Using
+        End Sub
+
+        Protected Sub TestOperation(code As XElement, operation As Action(Of EnvDTE80.FileCodeModel2))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim fileCodeModel = state.FileCodeModel
+                Assert.NotNull(fileCodeModel)
+
+                operation(fileCodeModel)
+            End Using
+
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim fileCodeModel = state.FileCodeModel
+                Assert.NotNull(fileCodeModel)
+
+                fileCodeModel.BeginBatch()
+                operation(fileCodeModel)
+                fileCodeModel.EndBatch()
             End Using
         End Sub
 

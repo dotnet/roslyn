@@ -122,73 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public,
-                features:=ImmutableArray(Of String).Empty)
-
-        End Sub
-
-        Friend Sub New(
-            outputKind As OutputKind,
-            features As ImmutableArray(Of String),
-            Optional moduleName As String = Nothing,
-            Optional mainTypeName As String = Nothing,
-            Optional scriptClassName As String = WellKnownMemberNames.DefaultScriptClassName,
-            Optional globalImports As IEnumerable(Of GlobalImport) = Nothing,
-            Optional rootNamespace As String = Nothing,
-            Optional optionStrict As OptionStrict = OptionStrict.Off,
-            Optional optionInfer As Boolean = True,
-            Optional optionExplicit As Boolean = True,
-            Optional optionCompareText As Boolean = False,
-            Optional parseOptions As VisualBasicParseOptions = Nothing,
-            Optional embedVbCoreRuntime As Boolean = False,
-            Optional optimizationLevel As OptimizationLevel = OptimizationLevel.Debug,
-            Optional checkOverflow As Boolean = True,
-            Optional cryptoKeyContainer As String = Nothing,
-            Optional cryptoKeyFile As String = Nothing,
-            Optional cryptoPublicKey As ImmutableArray(Of Byte) = Nothing,
-            Optional delaySign As Boolean? = Nothing,
-            Optional platform As Platform = Platform.AnyCpu,
-            Optional generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default,
-            Optional specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)) = Nothing,
-            Optional concurrentBuild As Boolean = True,
-            Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
-            Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
-            Optional metadataReferenceResolver As MetadataReferenceResolver = Nothing,
-            Optional assemblyIdentityComparer As AssemblyIdentityComparer = Nothing,
-            Optional strongNameProvider As StrongNameProvider = Nothing)
-
-            MyClass.New(
-                outputKind,
-                moduleName,
-                mainTypeName,
-                scriptClassName,
-                globalImports,
-                rootNamespace,
-                optionStrict,
-                optionInfer,
-                optionExplicit,
-                optionCompareText,
-                parseOptions,
-                embedVbCoreRuntime,
-                optimizationLevel,
-                checkOverflow,
-                cryptoKeyContainer,
-                cryptoKeyFile,
-                cryptoPublicKey,
-                delaySign,
-                platform,
-                generalDiagnosticOption,
-                specificDiagnosticOptions,
-                concurrentBuild,
-                suppressEmbeddedDeclarations:=False,
-                extendedCustomDebugInformation:=True,
-                xmlReferenceResolver:=xmlReferenceResolver,
-                sourceReferenceResolver:=sourceReferenceResolver,
-                metadataReferenceResolver:=metadataReferenceResolver,
-                assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public,
-                features:=features)
+                metadataImportOptions:=MetadataImportOptions.Public)
 
         End Sub
 
@@ -222,8 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
-            metadataImportOptions As MetadataImportOptions,
-            features As ImmutableArray(Of String))
+            metadataImportOptions As MetadataImportOptions)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -247,8 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=metadataImportOptions,
-                features:=features)
+                metadataImportOptions:=metadataImportOptions)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -295,8 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=other.MetadataReferenceResolver,
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
-                metadataImportOptions:=other.MetadataImportOptions,
-                features:=other.Features)
+                metadataImportOptions:=other.MetadataImportOptions)
         End Sub
 
         ''' <summary>
@@ -689,14 +620,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.Platform = value}
         End Function
 
-        Friend Shadows Function WithFeatures(features As ImmutableArray(Of String)) As VisualBasicCompilationOptions
-            If features = Me.Features Then
-                Return Me
-            End If
-
-            Return New VisualBasicCompilationOptions(Me) With {.Features = features}
-        End Function
-
         Protected Overrides Function CommonWithGeneralDiagnosticOption(value As ReportDiagnostic) As CompilationOptions
             Return Me.WithGeneralDiagnosticOption(value)
         End Function
@@ -709,8 +632,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
         End Function
 
+        <Obsolete>
         Protected Overrides Function CommonWithFeatures(features As ImmutableArray(Of String)) As CompilationOptions
-            Return Me.WithFeatures(features)
+            Throw New NotImplementedException()
         End Function
 
         ''' <summary>

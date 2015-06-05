@@ -7605,7 +7605,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"pass
 pass").VerifyDiagnostics();
-            CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable())).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (12,36): error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'
                 //         Action a1 = new Action(ref M);
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The default parse options.
         /// </summary>
-        public static readonly CSharpParseOptions Default = new CSharpParseOptions();
+        public static CSharpParseOptions Default { get; } = new CSharpParseOptions();
 
         private ImmutableDictionary<string, string> _features;
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(features));
             }
 
-            return new CSharpParseOptions(this) { _features = features.ToImmutableDictionary() };
+            return new CSharpParseOptions(this) { _features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) };
         }
 
         public override IReadOnlyDictionary<string, string> Features

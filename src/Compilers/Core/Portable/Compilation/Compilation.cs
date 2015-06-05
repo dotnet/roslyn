@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
 
-        private Dictionary<string, string> _lazyFeatures;
+        private readonly IReadOnlyDictionary<string, string> _features;
 
         internal Compilation(
             string name,
@@ -79,6 +79,37 @@ namespace Microsoft.CodeAnalysis
             {
                 _lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
             }
+
+            _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
+        }
+
+        IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        {
+            IReadOnlyDictionary<string, string> set = null;
+
+            foreach (var tree in trees)
+            {
+                var treeFeatures = tree.Options.Features;
+                if (set == null)
+                {
+                    set = treeFeatures;
+                }
+                else
+                {
+                    if ((object)set != treeFeatures && !set.SetEquals(treeFeatures))
+                    {
+                        throw new ArgumentException("inconsistent syntax tree features", nameof(trees));
+                    }
+                }
+            }
+
+            if (set == null)
+            {
+                // Edge case where there are no syntax trees
+                set = ImmutableDictionary<string, string>.Empty;
+            }
+
+            return set;
         }
 
         internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, CancellationToken cancellationToken);
@@ -1511,7 +1542,7 @@ namespace Microsoft.CodeAnalysis
             ICollection<MethodDefinitionHandle> updatedMethodHandles,
             CompilationTestData testData,
             CancellationToken cancellationToken);
-        
+
         /// <summary>
         /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.
         /// The map is used for storing a list of methods and their associated IL.
@@ -1608,7 +1639,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
-                
+
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
@@ -1834,32 +1865,8 @@ namespace Microsoft.CodeAnalysis
 
         internal string Feature(string p)
         {
-            if (_lazyFeatures == null)
-            {
-                var set = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                if (Options.Features != null)
-                {
-                    foreach (var feature in Options.Features)
-                    {
-                        int colon = feature.IndexOf(':');
-                        if (colon > 0)
-                        {
-                            string name = feature.Substring(0, colon);
-                            string value = feature.Substring(colon + 1);
-                            set[name] = value;
-                        }
-                        else
-                        {
-                            set[feature] = "true";
-                        }
-                    }
-                }
-
-                Interlocked.CompareExchange(ref _lazyFeatures, set, null);
-            }
-
             string v;
-            return _lazyFeatures.TryGetValue(p, out v) ? v : null;
+            return _features.TryGetValue(p, out v) ? v : null;
         }
 
         #endregion

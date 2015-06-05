@@ -4186,7 +4186,7 @@ class myClass
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
-            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en"});
+            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
 
@@ -6840,35 +6840,31 @@ using System.Diagnostics; // Unused.
         {
             var args = DefaultParse(new[] { "/features:Test", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal("Test", args.CompilationOptions.Features.Single());
             Assert.Equal("Test", args.ParseOptions.Features.Single().Key);
 
             args = DefaultParse(new[] { "/features:Test", "a.vb", "/Features:Experiment" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(2, args.CompilationOptions.Features.Length);
-            Assert.Equal("Test", args.CompilationOptions.Features[0]);
-            Assert.Equal("Experiment", args.CompilationOptions.Features[1]);
+            Assert.Equal(2, args.ParseOptions.Features.Count);
             Assert.True(args.ParseOptions.Features.ContainsKey("Test"));
             Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"));
 
-            args = DefaultParse(new[] { "/features:Test:false,Key:value", "a.vb" }, _baseDirectory);
+            args = DefaultParse(new[] { "/features:Test=false,Key=value", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single());
-            Assert.Equal("Test:false,Key:value", args.ParseOptions.Features.Single().Key);
+            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "false" }, { "Key", "value" } }));
 
-            // We don't do any rigorous validation of /features arguments...
+            // We don't do any rigorous validation of / features arguments...
 
             args = DefaultParse(new[] { "/features", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Empty(args.CompilationOptions.Features);
+            Assert.Empty(args.ParseOptions.Features);
 
             args = DefaultParse(new[] { "/features:,", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(",", args.CompilationOptions.Features.Single());
+            Assert.Equal("", args.ParseOptions.Features.Single().Key);
 
             args = DefaultParse(new[] { "/features:Test,", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal("Test,", args.CompilationOptions.Features.Single());
+            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" }, { "", "true" } }));
         }
 
         [Fact]
