@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            if (!field.IsReadOnly)
+            if (!field.IsReadOnly || field.IsFixed)
             {
                 return true;
             }
