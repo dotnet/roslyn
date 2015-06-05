@@ -517,7 +517,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(666189)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Sub TestGeneratePropertyInScript()
             Test(
 <Text>Dim x As Integer
@@ -528,9 +528,8 @@ x = Foo</Text>.Value.Replace(vbLf, vbCrLf),
 parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
 compareTokens:=False)
         End Sub
-
         <WorkItem(666189)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Sub TestGenerateFieldInScript()
             Test(
 <Text>Dim x As Integer

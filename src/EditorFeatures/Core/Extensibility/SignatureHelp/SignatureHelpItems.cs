@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor
 
             if (argumentIndex < 0)
             {
-                throw new ArgumentException($"{nameof(argumentIndex)} < 0", nameof(argumentIndex));
+                throw new ArgumentException($"{nameof(argumentIndex)} < 0. {argumentIndex} < 0", nameof(argumentIndex));
             }
 
             if (argumentCount < argumentIndex)
             {
-                throw new ArgumentException($"{nameof(argumentCount)} < {nameof(argumentIndex)}", nameof(argumentIndex));
+                throw new ArgumentException($"{nameof(argumentCount)} < {nameof(argumentIndex)}. {argumentCount} < {argumentIndex}", nameof(argumentIndex));
             }
 
             // Adjust the `selectedItem` index if duplicates are able to be removed.

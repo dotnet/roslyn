@@ -525,9 +525,7 @@ class Program
         private void AssertTagsOnBracesOrSemicolons(string contents, params int[] tokenIndices)
         {
             AssertTagsOnBracesOrSemicolonsTokens(contents, tokenIndices);
-#if SCRIPTING
             AssertTagsOnBracesOrSemicolonsTokens(contents, tokenIndices, Options.Script);
-#endif
         }
 
         private void AssertTagsOnBracesOrSemicolonsTokens(string contents, int[] tokenIndices, CSharpParseOptions options = null)

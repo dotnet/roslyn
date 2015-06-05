@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -8,14 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         // Disable documentation comments by default so that we don't need to
         // document every public member of every test input.
-        public static readonly CSharpParseOptions Script = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.None, SourceCodeKind.Script, ImmutableArray<string>.Empty);
-        public static readonly CSharpParseOptions Interactive = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.None, SourceCodeKind.Interactive, ImmutableArray<string>.Empty);
-        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.None, SourceCodeKind.Regular, ImmutableArray<string>.Empty);
-        public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Diagnose, SourceCodeKind.Regular, ImmutableArray<string>.Empty);
+        public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions Interactive = new CSharpParseOptions(kind: SourceCodeKind.Interactive, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string>(); // no experimental features to enable
         public static readonly CSharpParseOptions ExperimentalParseOptions =
-            Regular.WithFeatures(s_experimentalFeatures);
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
@@ -35,13 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
 
-        public static CSharpCompilationOptions WithStrictMode(this CSharpCompilationOptions options)
+        public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value)
         {
-            return options.WithFeatures(options.Features.Add("strict"));
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
         }
-        public static CSharpCompilation WithStrictMode(this CSharpCompilation compilation)
+
+        public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
-            return compilation.WithOptions(compilation.Options.WithFeatures(compilation.Options.Features.Add("strict")));
+            return options.WithFeature("strict", "true");
+        }
+
+        public static CSharpParseOptions WithDeterministicFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("deterministic", "true");
         }
     }
 }

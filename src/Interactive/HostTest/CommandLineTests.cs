@@ -24,7 +24,7 @@ namespace Roslyn.Interactive.CommandLine.UnitTests
             _baseDirectory = Temp.CreateDirectory();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888")]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void InteractiveCompilerCS()
         {
@@ -52,7 +52,7 @@ namespace Roslyn.Interactive.CommandLine.UnitTests
 ", 1);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888")]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void BadUsings()
         {
@@ -75,7 +75,7 @@ error CS0246: The type or namespace name 'Foo' could not be found (are you missi
                 equalityComparer);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888")]
+        [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void InteractiveCompilerVB()
         {

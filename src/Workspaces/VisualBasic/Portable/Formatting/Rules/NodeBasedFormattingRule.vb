@@ -119,6 +119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim baseToken = multiLineLambda.SubOrFunctionHeader.GetFirstToken(includeZeroWidth:=True)
                 Dim lastBeginningToken = If(multiLineLambda.SubOrFunctionHeader.GetLastToken().Kind = SyntaxKind.None, multiLineLambda.SubOrFunctionHeader.GetLastToken(includeZeroWidth:=True), multiLineLambda.SubOrFunctionHeader.GetLastToken())
 
+                SetAlignmentBlockOperation(operations, baseToken,
+                                        baseToken.GetNextToken(includeZeroWidth:=True),
+                                        multiLineLambda.GetLastToken(includeZeroWidth:=True))
+
                 AddIndentBlockOperation(operations, baseToken,
                                         lastBeginningToken.GetNextToken(includeZeroWidth:=True),
                                         multiLineLambda.EndSubOrFunctionStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))

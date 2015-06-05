@@ -3581,9 +3581,9 @@ End Class
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.LateBound, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
-            Dim sortedSybols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("ReadOnly Property Program.P1(x As System.Int32) As System.Int32", sortedSybols(0).ToTestDisplayString())
-            Assert.Equal("ReadOnly Property Program.P1(x As System.String) As System.Int32", sortedSybols(1).ToTestDisplayString())
+            Dim sortedSymbols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Assert.Equal("ReadOnly Property Program.P1(x As System.Int32) As System.Int32", sortedSymbols(0).ToTestDisplayString())
+            Assert.Equal("ReadOnly Property Program.P1(x As System.String) As System.Int32", sortedSymbols(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
@@ -3654,8 +3654,8 @@ End Module
             Assert.Null(speculativeTypeInfo.Type)
             Assert.Equal("Integer()", speculativeTypeInfo.ConvertedType.ToDisplayString())
 
-            Dim specualtiveConversion = semanticModel.GetSpeculativeConversion(position, expr, SpeculativeBindingOption.BindAsExpression)
-            Assert.Equal(ConversionKind.Widening, specualtiveConversion.Kind)
+            Dim speculativeConversion = semanticModel.GetSpeculativeConversion(position, expr, SpeculativeBindingOption.BindAsExpression)
+            Assert.Equal(ConversionKind.Widening, speculativeConversion.Kind)
         End Sub
 
         <WorkItem(545346, "DevDiv")>

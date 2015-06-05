@@ -216,7 +216,7 @@ class C
         var c = new C { x = 2, y = 3, $$");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void NotAfterOutInArgument()
         {
             var experimentalFeatures = new System.Collections.Generic.Dictionary<string, string>(); // no experimental features to enable

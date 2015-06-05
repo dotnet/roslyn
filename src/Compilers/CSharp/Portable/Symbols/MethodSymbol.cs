@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true for synthesized sybols which generate synthesized body in lowered form
+        /// Returns true for synthesized symbols which generate synthesized body in lowered form
         /// </summary>
         internal virtual bool SynthesizesLoweredBoundBody
         {

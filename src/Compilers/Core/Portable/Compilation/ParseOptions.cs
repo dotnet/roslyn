@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
-using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -34,12 +32,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new options instance with the specified source code kind.
         /// </summary>
-        internal ParseOptions WithKind(SourceCodeKind kind)
+        public ParseOptions WithKind(SourceCodeKind kind)
         {
             return CommonWithKind(kind);
         }
 
-        internal abstract ParseOptions CommonWithKind(SourceCodeKind kind);
+        public abstract ParseOptions CommonWithKind(SourceCodeKind kind);
 
         /// <summary>
         /// Creates a new options instance with the specified documentation mode.

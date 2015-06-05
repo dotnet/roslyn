@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             /// <summary>
             /// The map that captures information about what assembly should be retargeted 
             /// to what assembly. Key is the AssemblySymbol referenced by the underlying module,
-            /// value is the corresponding AssemblySymbol referenced by the reatergeting module, and 
+            /// value is the corresponding AssemblySymbol referenced by the retargeting module, and 
             /// corresponding retargeting map for symbols.
             /// </summary>
             private Dictionary<AssemblySymbol, DestinationData> RetargetingAssemblyMap

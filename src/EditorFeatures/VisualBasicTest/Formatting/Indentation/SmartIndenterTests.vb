@@ -1725,7 +1725,7 @@ End Module
             AssertSmartIndent(
                 code,
                 indentationLine:=4,
-                expectedIndentation:=24)
+                expectedIndentation:=16)
         End Sub
 
         <Fact>

@@ -142,16 +142,16 @@
     <value>{0} Keyword</value>
   </data>
   <data name="EncapsulateFieldUsages" xml:space="preserve">
-    <value>Encapsulate field: '{0}' (usages reference field)</value>
+    <value>Encapsulate field: '{0}' (and use property)</value>
   </data>
   <data name="EncapsulateField" xml:space="preserve">
-    <value>Encapsulate field: '{0}'</value>
+    <value>Encapsulate field: '{0}' (but still use field)</value>
   </data>
   <data name="EncapsulateFieldsUsages" xml:space="preserve">
-    <value>Encapsulate fields (usages reference field)</value>
+    <value>Encapsulate fields (and use property)</value>
   </data>
   <data name="EncapsulateFields" xml:space="preserve">
-    <value>Encapsulate fields</value>
+    <value>Encapsulate fields (but still use field)</value>
   </data>
   <data name="CouldNotExtractInterfaceSelection" xml:space="preserve">
     <value>Could not extract interface: The selection is not inside a class/interface/struct.</value>

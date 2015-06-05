@@ -2540,7 +2540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim equals As PunctuationSyntax = Nothing
             Dim expression As ExpressionSyntax
 
-            ' Parse form: Key? '.'<IdentiferOrKeyword> '=' <Expression>
+            ' Parse form: Key? '.'<IdentifierOrKeyword> '=' <Expression>
 
             If anonymousTypeInitializer AndAlso
                 TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.KeyKeyword, optionalKey) Then
@@ -2621,7 +2621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.InferredFieldInitializer(optionalKey, expression)
 
             Else
-                ' Assume that the "'.'<IdentiferOrKeyword> '='" was left out.
+                ' Assume that the "'.'<IdentifierOrKeyword> '='" was left out.
 
                 dot = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.DotToken)
                 id = InternalSyntaxFactory.MissingIdentifier()
@@ -2729,7 +2729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Parse an identifier followed by optional? (but not optional array bounds), and return modified identifier
         ' Used inside LINQ queries.
-        Private Function ParseNullableModifiedIdentifer() As ModifiedIdentifierSyntax
+        Private Function ParseNullableModifiedIdentifier() As ModifiedIdentifierSyntax
             Dim optionalNullable As PunctuationSyntax = Nothing
             Dim id As IdentifierTokenSyntax = ParseNullableIdentifier(optionalNullable)
 
@@ -5995,30 +5995,29 @@ checkNullable:
         ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
         ''' </summary>
         Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Dim languageVersion = _scanner.Options.LanguageVersion
-            If CheckFeatureAvailability(languageVersion, feature) Then
+            Dim parseOptions = _scanner.Options
+            If CheckFeatureAvailability(parseOptions, feature) Then
                 Return node
             End If
 
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, parseOptions.LanguageVersion.GetErrorName(), featureName)
         End Function
 
         Private Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
+            Return CheckFeatureAvailability(_scanner.Options, feature)
         End Function
 
-        Private Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Return CInt(required) <= CInt(languageVersion)
-        End Function
-
-        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
-            If Not CheckFeatureAvailability(languageVersion, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
+            Dim featureFlag = feature.GetFeatureFlag()
+            If featureFlag IsNot Nothing Then
+                Return parseOptions.Features.ContainsKey(featureFlag)
             End If
-        End Sub
+
+            Dim required = feature.GetLanguageVersion()
+            Dim actual = parseOptions.LanguageVersion
+            Return CInt(required) <= CInt(actual)
+        End Function
 
     End Class
 

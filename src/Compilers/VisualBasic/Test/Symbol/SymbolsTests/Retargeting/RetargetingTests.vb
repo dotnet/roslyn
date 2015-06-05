@@ -1511,7 +1511,7 @@ End Namespace
             Dim sourceMethod As MethodSymbol = Nothing
             Dim retargetingMethod As MethodSymbol = Nothing
 
-            'Public With Different Accessible Memeber
+            'Public With Different Accessible Member
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             CheckTypes(sourceType, retargetingType)

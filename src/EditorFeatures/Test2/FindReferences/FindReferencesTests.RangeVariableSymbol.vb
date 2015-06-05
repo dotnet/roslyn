@@ -52,7 +52,7 @@ class C
         End Sub
 
         <WorkItem(542161)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInSubmission1()
             Dim input =
 <Workspace>
@@ -66,7 +66,7 @@ var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
         End Sub
 
         <WorkItem(542161)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInSubmission2()
             Dim input =
 <Workspace>

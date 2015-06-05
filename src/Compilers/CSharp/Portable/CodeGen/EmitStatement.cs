@@ -518,7 +518,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             DefineLocals(sequence);
             EmitSideEffects(sequence);
             EmitCondBranch(sequence.Value, ref dest, sense);
-            FreeLocals(sequence);
+
+            // sequence is used as a value, can release all locals
+            FreeLocals(sequence, doNotRelease: null);
         }
 
         private void EmitLabelStatement(BoundLabelStatement boundLabelStatement)
@@ -1115,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (sequence != null)
             {
-                FreeLocals(sequence);
+                FreeLocals(sequence, doNotRelease: null);
             }
         }
 

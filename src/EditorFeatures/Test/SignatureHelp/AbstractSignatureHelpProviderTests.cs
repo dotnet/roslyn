@@ -50,9 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             else
             {
                 TestSignatureHelpWorker(markup, SourceCodeKind.Regular, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
-#if SCRIPTING
                 TestSignatureHelpWorker(markup, SourceCodeKind.Script, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
-#endif
             }
         }
 
@@ -123,9 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             else
             {
                 VerifyTriggerCharactersWorker(expectedTriggerCharacters, unexpectedTriggerCharacters, SourceCodeKind.Regular);
-#if SCRIPTING
                 VerifyTriggerCharactersWorker(expectedTriggerCharacters, unexpectedTriggerCharacters, SourceCodeKind.Script);
-#endif
             }
         }
 
@@ -153,9 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             else
             {
                 VerifyCurrentParameterNameWorker(markup, expectedParameterName, SourceCodeKind.Regular);
-#if SCRIPTING
                 VerifyCurrentParameterNameWorker(markup, expectedParameterName, SourceCodeKind.Script);
-#endif
             }
         }
 

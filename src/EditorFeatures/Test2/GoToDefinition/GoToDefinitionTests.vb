@@ -771,7 +771,7 @@ class C
 
 #Region "CSharp Script Tests"
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGoToDefinition()
             Dim workspace =
 <Workspace>
@@ -787,7 +787,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGoToDefinitionSameClass()
             Dim workspace =
 <Workspace>
@@ -802,7 +802,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGoToDefinitionNestedClass()
             Dim workspace =
 <Workspace>
@@ -824,7 +824,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGotoDefinitionDifferentFiles()
             Dim workspace =
 <Workspace>
@@ -847,7 +847,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGotoDefinitionPartialClasses()
             Dim workspace =
 <Workspace>
@@ -874,7 +874,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGotoDefinitionMethod()
             Dim workspace =
 <Workspace>
@@ -899,7 +899,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGotoDefinitionOnMethodCall1()
             Dim workspace =
 <Workspace>
@@ -925,7 +925,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGotoDefinitionOnMethodCall2()
             Dim workspace =
 <Workspace>
@@ -950,8 +950,7 @@ class C
 
             Test(workspace)
         End Sub
-
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGotoDefinitionOnMethodCall3()
             Dim workspace =
 <Workspace>
@@ -977,7 +976,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2888"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub CSharpScriptGotoDefinitionOnMethodCall4()
             Dim workspace =
 <Workspace>

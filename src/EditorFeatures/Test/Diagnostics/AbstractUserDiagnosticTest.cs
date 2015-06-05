@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected virtual void TestMissing(string initial, IDictionary<OptionKey, object> options = null, string fixAllActionEquivalenceKey = null)
         {
             TestMissing(initial, null, options, fixAllActionEquivalenceKey);
-#if SCRIPTING
             TestMissing(initial, GetScriptOptions(), options, fixAllActionEquivalenceKey);
-#endif
         }
 
         protected virtual void TestMissing(string initial, ParseOptions parseOptions, IDictionary<OptionKey, object> options = null, string fixAllActionEquivalenceKey = null)
@@ -66,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string fixAllActionEquivalenceKey = null)
         {
             Test(initial, expected, null, index, compareTokens, isLine, options, isAddedDocument, fixAllActionEquivalenceKey);
-#if SCRIPTING
             Test(initial, expected, GetScriptOptions(), index, compareTokens, isLine, options, isAddedDocument, fixAllActionEquivalenceKey);
-#endif
         }
 
         protected void Test(
@@ -461,9 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             bool isLine = true)
         {
             TestAddDocument(initial, expected, index, expectedContainers, expectedDocumentName, null, null, compareTokens, isLine);
-#if SCRIPTING
             TestAddDocument(initial, expected, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine);
-#endif
         }
 
         private void TestAddDocument(

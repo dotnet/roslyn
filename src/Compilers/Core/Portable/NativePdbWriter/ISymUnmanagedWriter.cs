@@ -144,7 +144,6 @@ namespace Microsoft.Cci
         void MapTokenToSourceSpan(uint token, ISymUnmanagedDocumentWriter document, uint startLine, uint startColumn, uint endLine, uint endColumn);
     }
 
-#if DETERMINISTIC_PDB // workitem 926
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("CA6C2ED9-103D-46A9-B03B-05446485848B"), SuppressUnmanagedCodeSecurity]
     internal interface ISymUnmanagedWriter6 : ISymUnmanagedWriter5
     {
@@ -155,7 +154,7 @@ namespace Microsoft.Cci
         void InitializeDeterministic([MarshalAs(UnmanagedType.IUnknown)] object emitter, [MarshalAs(UnmanagedType.IUnknown)] object stream);
         void SetSignature(uint sig, Guid sig70);
     }
-#endif
+
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct ImageDebugDirectory
     {

@@ -211,26 +211,34 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
         {
-            var operations = new List<T>();
-            var list = new List<T>();
-
-            for (int i = 0; i < nodes.Count; i++)
+            using (var localOperations = new ThreadLocal<List<T>>(() => new List<T>(), trackAllValues: true))
+            using (var localList = new ThreadLocal<List<T>>(() => new List<T>(), trackAllValues: false))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                addOperations(list, nodes[i]);
-
-                foreach (var element in list)
+                // find out which executor we want to use.
+                var taskExecutor = nodes.Count > (1000 * Environment.ProcessorCount) ? TaskExecutor.Concurrent : TaskExecutor.Synchronous;
+                taskExecutor.ForEach(nodes, n =>
                 {
-                    if (element != null)
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var list = localList.Value;
+                    addOperations(list, n);
+
+                    foreach (var element in list)
                     {
-                        operations.Add(element);
+                        if (element != null)
+                        {
+                            localOperations.Value.Add(element);
+                        }
                     }
-                }
 
-                list.Clear();
+                    list.Clear();
+                }, cancellationToken);
+
+                var operations = new List<T>(localOperations.Values.Sum(v => v.Count));
+                operations.AddRange(localOperations.Values.SelectMany(v => v));
+
+                return operations;
             }
-
-            return operations;
         }
 
         private Task<TokenPairWithOperations[]> CreateTokenOperationTask(

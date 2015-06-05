@@ -4050,5 +4050,27 @@ End Class
 
             Test(code, expected, compareTokens:=False)
         End Sub
+
+        <WorkItem(2671, "https://github.com/dotnet/roslyn/issues/2671")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub ReplaceReferencesInWithBlocks()
+            Dim code =
+<MethodBody>
+Dim [||]s As String = "test"
+With s
+    .ToLower()
+End With
+</MethodBody>
+
+            Dim expected =
+<MethodBody>
+With "test"
+    Call .ToLower()
+End With
+</MethodBody>
+            ' Introduction of the Call keyword in this scenario is by design, see bug 529694.
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
     End Class
 End Namespace

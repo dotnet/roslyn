@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         protected override IEnumerable<ParseOptions> GetOptions()
         {
             yield return Options.Regular;
-#if SCRIPTING
             yield return Options.Script;
-#endif
         }
     }
 }
