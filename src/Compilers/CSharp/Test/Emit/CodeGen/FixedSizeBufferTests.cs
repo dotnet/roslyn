@@ -298,5 +298,247 @@ unsafe struct S
                 //     fixed int F[3, 4];
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
         }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void UIntFixedBuffer()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public fixed byte Marker[ 8 ];
+    public fixed UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    static unsafe void Main( string[ ] args )
+    {
+        UInt32 [] arr = new UInt32[18];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = (uint)(120 + i);
+        } 
+
+        fixed (uint *p = arr)
+        {
+            AssemblyRecord * record = (AssemblyRecord*)p;
+            Console.WriteLine(Test(record));
+        }
+    }
+
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133")
+                .VerifyIL("Program.Test",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""uint* AssemblyRecord.StartOfTables""
+  IL_0006:  ldflda     ""uint AssemblyRecord.<StartOfTables>e__FixedBuffer.FixedElementField""
+  IL_000b:  conv.u
+  IL_000c:  ldc.i4.s   11
+  IL_000e:  conv.i
+  IL_000f:  ldc.i4.4
+  IL_0010:  mul
+  IL_0011:  add
+  IL_0012:  ldind.u4
+  IL_0013:  ret
+}");
+        }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void ReadonlyFixedBuffer()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public readonly fixed UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,34): error CS0106: The modifier 'readonly' is not valid for this item
+    //     public readonly fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("readonly").WithLocation(8, 34)
+                );
+        }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void StaticFixedBuffer()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public static fixed UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,32): error CS0106: The modifier 'static' is not valid for this item
+    //     public static fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("static").WithLocation(8, 32)
+                );
+        }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void ConstFixedBuffer_01()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public fixed const UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,18): error CS1031: Type expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 18),
+    // (8,18): error CS1001: Identifier expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "const").WithLocation(8, 18),
+    // (8,18): error CS1003: Syntax error, '[' expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[", "const").WithLocation(8, 18),
+    // (8,18): error CS1003: Syntax error, ']' expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]", "const").WithLocation(8, 18),
+    // (8,18): error CS0443: Syntax error; value expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_ValueExpected, "const").WithLocation(8, 18),
+    // (8,18): error CS1002: ; expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(8, 18),
+    // (8,44): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_CStyleArray, "[ 16 ]").WithLocation(8, 44),
+    // (8,46): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "16").WithLocation(8, 46),
+    // (8,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_IllegalFixedType, "").WithLocation(8, 18),
+    // (15,25): error CS0122: 'AssemblyRecord.StartOfTables' is inaccessible due to its protection level
+    //         return pStruct->StartOfTables[ 11 ];
+    Diagnostic(ErrorCode.ERR_BadAccess, "StartOfTables").WithArguments("AssemblyRecord.StartOfTables").WithLocation(15, 25)
+                );
+        }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void ConstFixedBuffer_02()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public const fixed UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,18): error CS1031: Type expected
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(8, 18),
+    // (8,18): error CS1001: Identifier expected
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "fixed").WithLocation(8, 18),
+    // (8,18): error CS0145: A const field requires a value to be provided
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_ConstValueRequired, "fixed").WithLocation(8, 18),
+    // (8,18): error CS1002: ; expected
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "fixed").WithLocation(8, 18),
+    // (15,25): error CS0122: 'AssemblyRecord.StartOfTables' is inaccessible due to its protection level
+    //         return pStruct->StartOfTables[ 11 ];
+    Diagnostic(ErrorCode.ERR_BadAccess, "StartOfTables").WithArguments("AssemblyRecord.StartOfTables").WithLocation(15, 25)
+                );
+        }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void VolatileFixedBuffer()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public volatile fixed UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,34): error CS0106: The modifier 'volatile' is not valid for this item
+    //     public volatile fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("volatile").WithLocation(8, 34)
+                );
+        }
+
     }
 }
