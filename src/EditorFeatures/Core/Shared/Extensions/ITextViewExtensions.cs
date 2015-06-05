@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static SnapshotPoint? GetCaretPoint(this ITextView textView, ITextBuffer subjectBuffer)
         {
             var caret = textView.Caret.Position;
-            var span = textView.BufferGraph.MapUpOrDownToBuffer(new SnapshotSpan(caret.BufferPosition, 0), subjectBuffer);
-            if (span.HasValue)
+            var point = textView.BufferGraph.MapUpOrDownToBuffer(caret.BufferPosition, subjectBuffer);
+            if (point.HasValue)
             {
-                return span.Value.Start;
+                return point.Value;
             }
             else
             {
