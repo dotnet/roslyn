@@ -399,8 +399,10 @@ class C
     }
 }
 ";
+            var standardCompilation = CreateCompilationWithMscorlib(source);
+            var strictCompilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            standardCompilation.VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
                 //         lock (default(object)) ;
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
@@ -413,8 +415,8 @@ class C
                 // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
                 //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15)
-                )
-            .WithStrictMode().VerifyDiagnostics(
+                );
+            strictCompilation.VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
                 //         lock (default(object)) ;
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
