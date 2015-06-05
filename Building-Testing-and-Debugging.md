@@ -10,7 +10,8 @@ The Roslyn source code targets the latest public build of Visual Studio 2015.  A
 ## Getting the code
 
 1. Clone https://github.com/dotnet/roslyn
-2. Open RoslynLight.sln 
+2. Change directory to `<clone dir>` and run `Src\.nuget\nuget restore Src\RoslynLight.sln`
+3. Open RoslynLight.sln 
 
 ## Running Unit Tests
 To run the unit tests:
@@ -99,4 +100,3 @@ You are welcome to continue to use the End User Preview to provide feedback on t
 * Start Visual Studio
 * Go to Tools\Extensions and Updates
 * Select "Roslyn Preview" and click “Uninstall”
-
