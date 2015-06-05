@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -5454,7 +5454,7 @@ public class C : IEquatable<C>
         }
 
         [WorkItem(531505, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void Pia()
         {
             var source = @"
@@ -6119,7 +6119,8 @@ class Module1
 
         #endregion Dev10 bugs
 
-        [Fact, WorkItem(1115058, "DevDiv")]
+        [ClrOnlyFact]
+        [WorkItem(1115058, "DevDiv")]
         public void UnterminatedElement()
         {
             var source = @"

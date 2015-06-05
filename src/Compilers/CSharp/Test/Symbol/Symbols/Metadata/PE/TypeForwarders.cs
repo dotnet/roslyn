@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1097,7 +1097,7 @@ namespace N1
             }
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_Simple()
         {
             var source1 = @"
@@ -1113,7 +1113,7 @@ public class Forwarded
             CheckForwarderEmit(source1, source2, "Forwarded");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_InNamespace()
         {
             var source1 = @"
@@ -1132,7 +1132,7 @@ namespace NS
             CheckForwarderEmit(source1, source2, "NS.Forwarded");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_OpenGeneric()
         {
             var source1 = @"
@@ -1148,7 +1148,7 @@ public class Forwarded<T>
             CheckForwarderEmit(source1, source2, "Forwarded`1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_ConstructedGeneric()
         {
             var source1 = @"
@@ -1164,7 +1164,7 @@ public class Forwarded<T>
             CheckForwarderEmit(source1, source2, "Forwarded`1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_OverlappingGeneric()
         {
             var source1 = @"
@@ -1182,7 +1182,7 @@ public class Forwarded<T>
             CheckForwarderEmit(source1, source2, "Forwarded`1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_Nested()
         {
             var source1 = @"
@@ -1204,7 +1204,7 @@ namespace NS
             CheckForwarderEmit(source1, source2, "NS.Forwarded", "NS.Forwarded+Inner");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_Nested_Private()
         {
             var source1 = @"
@@ -1242,7 +1242,7 @@ namespace NS
             CheckForwarderEmit(source1, source2, "NS.Forwarded", "NS.Forwarded+Internal", "NS.Forwarded+Protected", "NS.Forwarded+ProtectedInternal");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_MultipleNested()
         {
             // Note the order: depth first, children in forward order.
@@ -1280,7 +1280,7 @@ public class Forwarded
             CheckForwarderEmit(source1, source2, "Forwarded", "Forwarded+A", "Forwarded+A+B", "Forwarded+A+C", "Forwarded+D", "Forwarded+D+E", "Forwarded+D+F");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_NestedGeneric()
         {
             var source1 = @"
@@ -1408,7 +1408,7 @@ namespace NS
         }
 
         [WorkItem(545911, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_WithModule()
         {
             var source0 = @"

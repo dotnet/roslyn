@@ -605,7 +605,7 @@ class D
         }
 
         [WorkItem(713356, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MissedModuleA()
         {
             var netModule1 = CreateCompilationWithMscorlib(

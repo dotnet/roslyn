@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IndexedProperties_BindingTests : SemanticModelTestBase
     {
-        [Fact]
+        [ClrOnlyFact]
         public void OldGetFormat_IndexedProperties()
         {
             var reference = GetReference();
@@ -37,7 +37,7 @@ class B
             IndexedPropertiesBindingChecks(source, reference, SymbolKind.Method, "get_P1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedProperties_Complete()
         {
             var reference = GetReference();
@@ -58,7 +58,7 @@ class B
             IndexedPropertiesBindingChecks(source, reference, SymbolKind.Property, "P1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedProperties_Incomplete()
         {
             var reference = GetReference();
@@ -79,7 +79,7 @@ class B
             IndexedPropertiesBindingChecks(source, reference, SymbolKind.Property, "P1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedProperties_Set_In_Constructor()
         {
             var reference = GetReference();
@@ -99,7 +99,7 @@ class B
             IndexedPropertiesBindingChecks(source, reference, SymbolKind.Property, "P1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedProperties_LINQ()
         {
             var reference = GetReference();
