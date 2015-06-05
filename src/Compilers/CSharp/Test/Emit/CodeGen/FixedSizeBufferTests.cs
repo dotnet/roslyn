@@ -298,5 +298,119 @@ unsafe struct S
                 //     fixed int F[3, 4];
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
         }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void UIntFixedBuffer_01()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public fixed byte Marker[ 8 ];
+    public fixed UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    static unsafe void Main( string[ ] args )
+    {
+        UInt32 [] arr = new UInt32[18];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = (uint)(120 + i);
+        } 
+
+        fixed (uint *p = arr)
+        {
+            AssemblyRecord * record = (AssemblyRecord*)p;
+            Console.WriteLine(Test(record));
+        }
+    }
+
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133")
+                .VerifyIL("Program.Test",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""uint* AssemblyRecord.StartOfTables""
+  IL_0006:  ldflda     ""uint AssemblyRecord.<StartOfTables>e__FixedBuffer.FixedElementField""
+  IL_000b:  conv.u
+  IL_000c:  ldc.i4.s   11
+  IL_000e:  conv.i
+  IL_000f:  ldc.i4.4
+  IL_0010:  mul
+  IL_0011:  add
+  IL_0012:  ldind.u4
+  IL_0013:  ret
+}");
+        }
+
+        [Fact, WorkItem(1171076, "DevDiv")]
+        public void UIntFixedBuffer_02()
+        {
+            var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind.Sequential )]
+public unsafe struct AssemblyRecord
+{
+    public readonly fixed byte Marker[ 8 ];
+    public readonly fixed UInt32 StartOfTables[ 16 ];
+}
+
+class Program
+{
+    static unsafe void Main( string[ ] args )
+    {
+        UInt32 [] arr = new UInt32[18];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = (uint)(120 + i);
+        } 
+
+        fixed (uint *p = arr)
+        {
+            AssemblyRecord * record = (AssemblyRecord*)p;
+            Console.WriteLine(Test(record));
+        }
+    }
+
+    private static unsafe uint Test( AssemblyRecord* pStruct )
+    {
+        return pStruct->StartOfTables[ 11 ];
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133")
+                .VerifyIL("Program.Test",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""uint* AssemblyRecord.StartOfTables""
+  IL_0006:  ldflda     ""uint AssemblyRecord.<StartOfTables>e__FixedBuffer.FixedElementField""
+  IL_000b:  conv.u
+  IL_000c:  ldc.i4.s   11
+  IL_000e:  conv.i
+  IL_000f:  ldc.i4.4
+  IL_0010:  mul
+  IL_0011:  add
+  IL_0012:  ldind.u4
+  IL_0013:  ret
+}");
+        }
     }
 }
