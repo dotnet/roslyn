@@ -306,8 +306,6 @@ namespace Microsoft.CodeAnalysis
         Microsoft_VisualBasic_Information__VbTypeName,
         Microsoft_VisualBasic_Interaction__CallByName,
 
-        My_InternalXmlHelper__Value,
-
         System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
         System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine,
 

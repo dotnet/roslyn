@@ -28,15 +28,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
+            Dim initialBaseline = previousGeneration.InitialBaseline
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
             Dim [module] = previousGeneration.OriginalMetadata
             Dim compilation = sourceAssembly.DeclaringCompilation
             Dim metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create([module]), MetadataImportOptions.All)
-            Dim metadataDecoder = New Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder(metadataAssembly.PrimaryModule)
+            Dim metadataDecoder = New Symbols.Metadata.PE.MetadataDecoder(metadataAssembly.PrimaryModule)
 
-            previousGeneration = EnsureInitialized(previousGeneration, metadataDecoder)
+            If initialBaseline.LazyOriginalMetadataAnonymousTypeMap Is Nothing Then
+                initialBaseline.LazyOriginalMetadataAnonymousTypeMap = GetAnonymousTypeMapFromMetadata([module].MetadataReader, metadataDecoder)
+            End If
 
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyOriginalMetadataAnonymousTypeMap, sourceAssembly, context, metadataAssembly)
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
@@ -138,16 +141,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             parameters.AddRange(method.Parameters.SelectAsArray(Function(p) AnonymousTypeKeyField.CreateField(p.Name, isKey:=False)))
             parameters.Add(AnonymousTypeKeyField.CreateField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False))
             Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
-        End Function
-
-        Private Shared Function EnsureInitialized(previousGeneration As EmitBaseline,
-                                                  metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As EmitBaseline
-            If previousGeneration.AnonymousTypeMap IsNot Nothing Then
-                Return previousGeneration
-            End If
-
-            Dim anonymousTypeMap = GetAnonymousTypeMapFromMetadata(previousGeneration.MetadataReader, metadataDecoder)
-            Return previousGeneration.WithAnonymousTypeMap(anonymousTypeMap)
         End Function
 
         Friend ReadOnly Property PreviousGeneration As EmitBaseline

@@ -148,8 +148,8 @@ namespace RunTests
                 bool noResultsData = (all.Length == 0);
                 if (noResultsData)
                 {
-                    var output = processOutput.OutputLines.Concat(processOutput.ErrorLines).ToArray();
-                    Console.Write(output);
+                    var output = processOutput.OutputLines.Concat(processOutput.ErrorLines);
+                    Console.Write(string.Join(Environment.NewLine, output));
 
                     // Delete the output file.
                     File.Delete(resultsPath);

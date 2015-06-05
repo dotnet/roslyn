@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
 
         // C# currently doesn't emit compilation level imports (TODO: scripting).
-        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports(EmitContext context) => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
+        protected override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
 
         // C# doesn't allow to define default namespace for compilation.
         protected override string DefaultNamespace => null;
@@ -242,10 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         // NOTE: Dev11 does not add synthesized static constructors to this map,
                                         //       but adds synthesized instance constructors, Roslyn adds both
                                         var method = (MethodSymbol)member;
-                                        if (!method.IsDefaultValueTypeConstructor())
+                                        if (method.IsDefaultValueTypeConstructor() ||
+                                            method.IsPartialMethod() && (object)method.PartialImplementationPart == null)
                                         {
-                                            AddSymbolLocation(result, member);
+                                            break;
                                         }
+
+                                        AddSymbolLocation(result, member);
                                         break;
 
                                     case SymbolKind.Property:
@@ -329,10 +332,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// members, in particular for generic type arguments
         /// (e.g.: binding to internal types in the EE).
         /// </summary>
-        internal virtual bool IgnoreAccessibility
-        {
-            get { return false; }
-        }
+        internal virtual bool IgnoreAccessibility => false;
+
+        /// <summary>
+        /// Override the dynamic operation context type for all dynamic calls in the module.
+        /// </summary>
+        internal virtual NamedTypeSymbol DynamicOperationContextType => null;
 
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod)
         {

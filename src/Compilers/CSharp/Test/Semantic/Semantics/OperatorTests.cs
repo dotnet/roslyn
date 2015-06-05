@@ -8650,7 +8650,7 @@ class M
 
             var err = compilation.GetDiagnostics().Single();
 
-            Assert.Equal((int)ErrorCode.ERR_ContantStringTooLong, err.Code);
+            Assert.Equal((int)ErrorCode.ERR_ConstantStringTooLong, err.Code);
             Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull));
         }
 

@@ -472,9 +472,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return SpecializedCollections.SingletonEnumerable(lambdaBody);
         }
 
-        protected override SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
+        protected override SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
-            return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda);
+            return LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
         }
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
         {
-            return root.TryGetClosestBreakpointSpan(position, out span);
+            return BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
         }
 
         protected override bool TryGetActiveSpan(SyntaxNode node, int statementPart, out TextSpan span)
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // which is lexically not the closest breakpoint span (the body is).
                     // do { ... } [|while (condition);|]
                     var doStatement = (DoStatementSyntax)node;
-                    return node.TryGetClosestBreakpointSpan(doStatement.WhileKeyword.SpanStart, out span);
+                    return BreakpointSpans.TryGetClosestBreakpointSpan(node, doStatement.WhileKeyword.SpanStart, out span);
 
                 case SyntaxKind.PropertyDeclaration:
                     // The active span corresponding to a property declaration is the span corresponding to its initializer (if any),
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var propertyDeclaration = (PropertyDeclarationSyntax)node;
 
                     if (propertyDeclaration.Initializer != null &&
-                        node.TryGetClosestBreakpointSpan(propertyDeclaration.Initializer.SpanStart, out span))
+                        BreakpointSpans.TryGetClosestBreakpointSpan(node, propertyDeclaration.Initializer.SpanStart, out span))
                     {
                         return true;
                     }
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 default:
-                    return node.TryGetClosestBreakpointSpan(node.SpanStart, out span);
+                    return BreakpointSpans.TryGetClosestBreakpointSpan(node, node.SpanStart, out span);
             }
         }
 
@@ -825,9 +825,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return memberDeclaration.Parent.FirstAncestorOrSelf<TypeDeclarationSyntax>();
         }
 
-        internal override bool HasBackingField(SyntaxNode propertyDeclaration)
+        internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
         {
-            return SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyDeclaration);
+            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) && 
+                   SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyOrIndexerDeclaration);
         }
 
         internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
@@ -986,16 +987,69 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
-                case SyntaxKind.SelectClause:
-                case SyntaxKind.GroupClause:
-                    var oldSymbolInfo = oldModel.GetSymbolInfo(oldNode, cancellationToken);
-                    var newSymbolInfo = newModel.GetSymbolInfo(newNode, cancellationToken);
+                    var oldOrderingInfo = oldModel.GetSymbolInfo(oldNode, cancellationToken);
+                    var newOrderingInfo = newModel.GetSymbolInfo(newNode, cancellationToken);
 
-                    return MemberSignaturesEquivalent(oldSymbolInfo.Symbol, newSymbolInfo.Symbol);
+                    return MemberSignaturesEquivalent(oldOrderingInfo.Symbol, newOrderingInfo.Symbol);
+
+                case SyntaxKind.SelectClause:
+                    var oldSelectInfo = oldModel.GetSymbolInfo(oldNode, cancellationToken);
+                    var newSelectInfo = newModel.GetSymbolInfo(newNode, cancellationToken);
+
+                    // Changing reduced select clause to a non-reduced form or vice versa
+                    // adds/removes a call to Select method, which is a supported change.
+
+                    return oldSelectInfo.Symbol == null ||
+                           newSelectInfo.Symbol == null ||
+                           MemberSignaturesEquivalent(oldSelectInfo.Symbol, newSelectInfo.Symbol);
+
+                case SyntaxKind.GroupClause:
+                    var oldGroupByInfo = oldModel.GetSymbolInfo(oldNode, cancellationToken);
+                    var newGroupByInfo = newModel.GetSymbolInfo(newNode, cancellationToken);
+                    return MemberSignaturesEquivalent(oldGroupByInfo.Symbol, newGroupByInfo.Symbol, GroupBySignatureComparer);
 
                 default:
                     return true;
             }
+        }
+
+        private static bool GroupBySignatureComparer(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
+        {
+            // C# spec paragraph 7.16.2.6 "Groupby clauses":
+            //
+            // A query expression of the form
+            //   from x in e group v by k
+            // is translated into
+            //   (e).GroupBy(x => k, x => v)
+            // except when v is the identifier x, the translation is
+            //   (e).GroupBy(x => k)
+            //
+            // Possible signatures:
+            //   C<G<K, T>> GroupBy<K>(Func<T, K> keySelector);
+            //   C<G<K, E>> GroupBy<K, E>(Func<T, K> keySelector, Func<T, E> elementSelector);
+
+            if (!s_assemblyEqualityComparer.Equals(oldReturnType, newReturnType))
+            {
+                return false;
+            }
+
+            Debug.Assert(oldParameters.Length == 1 || oldParameters.Length == 2);
+            Debug.Assert(newParameters.Length == 1 || newParameters.Length == 2);
+
+            // The types of the lambdas have to be the same if present.
+            // The element selector may be added/removed.
+
+            if (!s_assemblyEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameters[0], newParameters[0]))
+            {
+                return false;
+            }
+
+            if (oldParameters.Length == newParameters.Length && newParameters.Length == 2)
+            {
+                return s_assemblyEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameters[1], newParameters[1]);
+            }
+
+            return true;
         }
 
         #endregion

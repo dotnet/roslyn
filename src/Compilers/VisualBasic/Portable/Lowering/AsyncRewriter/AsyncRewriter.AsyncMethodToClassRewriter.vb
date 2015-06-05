@@ -57,8 +57,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _typesNeedingClearingCache As New Dictionary(Of TypeSymbol, Boolean)
 
-            Private _enclosingSequencePointSyntax As VisualBasicSyntaxNode = Nothing
-
             Friend Sub New(method As MethodSymbol,
                            F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
@@ -116,6 +114,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.F.CurrentMethod = moveNextMethod
 
                 Dim rewrittenBody As BoundStatement = DirectCast(Visit(body), BoundStatement)
+
+                Dim rootScopeHoistedLocals As ImmutableArray(Of FieldSymbol) = Nothing
+                TryUnwrapBoundStateMachineScope(rewrittenBody, rootScopeHoistedLocals)
 
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
 
@@ -201,14 +202,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 bodyBuilder.Add(Me.F.Label(Me._exitLabel))
                 bodyBuilder.Add(Me.F.Return())
 
-                Dim newBody As ImmutableArray(Of BoundStatement) = bodyBuilder.ToImmutableAndFree()
-
-                Me._owner.CloseMethod(
-                    Me.F.Block(
+                Dim newStatements As ImmutableArray(Of BoundStatement) = bodyBuilder.ToImmutableAndFree()
+                Dim newBody = Me.F.Block(
                         If(Me._exprRetValue IsNot Nothing,
                            ImmutableArray.Create(Me._exprRetValue, Me.CachedState),
                            ImmutableArray.Create(Me.CachedState)),
-                       newBody))
+                       newStatements)
+
+                If rootScopeHoistedLocals.Length > 0 Then
+                    newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody)
+                End If
+
+                Me._owner.CloseMethod(newBody)
             End Sub
 
             Protected Overrides ReadOnly Property ResumeLabelName As String

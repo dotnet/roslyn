@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             out string newPipeName)
         {
             string basePipeName = pipeName;
-            for (int counter = 1; File.Exists(pipeName); counter++)
+            for (int counter = 1; File.Exists($@"\\.\pipe\{pipeName}"); counter++)
             {
                 NamedPipeClientStream pipe;
                 if (null != (pipe = TryConnectToProcess(pipeName, timeoutMs, cancellationToken)))

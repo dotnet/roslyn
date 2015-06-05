@@ -5079,7 +5079,7 @@ Class C
 
         <WorkItem(909121)>
         <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
-        <Fact(Skip:="2048"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitGenericOnParen()
             Dim text =
 <code>
@@ -5826,7 +5826,7 @@ End Class
         End Sub
 
         <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionForConditionalAccessOnTypes1()
             Dim text =
 <code><![CDATA[
@@ -5869,6 +5869,179 @@ End Module
 ]]></code>.Value
 
             VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SharedMembersOffInstanceInColorColor()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x = C.$$
+    End Sub
+
+    Dim C As New C()
+End Module
+
+Class C
+    Public X As Integer = 1
+    Public Shared Y As Integer = 2
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "X")
+            VerifyItemExists(text, "Y")
+        End Sub
+
+        <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotSharedMembersOffAliasInColorColor()
+            Dim text =
+<code><![CDATA[
+Imports B = C
+Module Program
+    Sub Main(args As String())
+        Dim x = B.$$
+    End Sub
+
+    Dim B As New B()
+End Module
+
+Class C
+    Public X As Integer = 1
+    Public Shared Y As Integer = 2
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "X")
+            VerifyItemIsAbsent(text, "Y")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType()
+            Dim text =
+<code><![CDATA[
+MustInherit Class Test
+    Private _field As Integer
+    NotInheritable Class InnerTest
+        Inherits Test
+        Sub SomeTest()
+            Dim x = $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "_field")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType2()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            $$ ' M recommended and accessible
+        End Sub
+        Class NN
+            Sub Test2()
+                ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType3()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            ' M recommended and accessible
+        End Sub
+        Class NN
+            Sub Test2()
+                $$ ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType4()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            M() ' M recommended and accessible
+        End Sub
+        Class NN
+            Inherits N
+            Sub Test2()
+                $$ ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType5()
+            Dim text =
+<code><![CDATA[
+Class D
+    Public Sub Q()
+    End Sub
+End Class
+Class C(Of T)
+    Inherits D
+    Class N
+        Sub Test()
+            $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Q")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType6()
+            Dim text =
+<code><![CDATA[
+Class Base(Of T)
+    Public X As Integer
+End Class
+Class Derived
+    Inherits C(Of Integer)
+    Class Nested
+        Sub Test()
+            $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "X")
         End Sub
 
     End Class

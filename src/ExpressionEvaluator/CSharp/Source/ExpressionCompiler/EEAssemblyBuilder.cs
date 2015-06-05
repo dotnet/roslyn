@@ -17,12 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         internal readonly ImmutableHashSet<MethodSymbol> Methods;
 
+        private readonly NamedTypeSymbol _dynamicOperationContextType;
+
         public EEAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             ImmutableArray<MethodSymbol> methods,
             ModulePropertiesForSerialization serializationProperties,
             ImmutableArray<NamedTypeSymbol> additionalTypes,
+            NamedTypeSymbol dynamicOperationContextType,
             CompilationTestData testData) :
             base(
                   sourceAssembly,
@@ -34,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                   additionalTypes: additionalTypes)
         {
             Methods = ImmutableHashSet.CreateRange(methods);
+            _dynamicOperationContextType = dynamicOperationContextType;
 
             if (testData != null)
             {
@@ -61,10 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return base.TranslateModule(symbol, diagnostics);
         }
 
-        internal override bool IgnoreAccessibility
-        {
-            get { return true; }
-        }
+        internal override bool IgnoreAccessibility => true;
+
+        internal override NamedTypeSymbol DynamicOperationContextType => _dynamicOperationContextType;
 
         public override int CurrentGenerationOrdinal => 0;
 

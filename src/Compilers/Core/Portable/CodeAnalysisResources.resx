@@ -382,18 +382,6 @@
   <data name="CantCreateReferenceToDynamicAssembly" xml:space="preserve">
     <value>Can't create a metadata reference to a dynamic assembly.</value>
   </data>
-  <data name="SeverityError" xml:space="preserve">
-    <value>error</value>
-  </data>
-  <data name="SeverityHidden" xml:space="preserve">
-    <value>hidden</value>
-  </data>
-  <data name="SeverityInfo" xml:space="preserve">
-    <value>info</value>
-  </data>
-  <data name="SeverityWarning" xml:space="preserve">
-    <value>warning</value>
-  </data>
   <data name="ArgumentCannotBeEmpty" xml:space="preserve">
     <value>Argument cannot be empty.</value>
   </data>
@@ -456,5 +444,20 @@
   </data>
   <data name="MissingKeepAlive" xml:space="preserve">
     <value>Missing argument for '/keepalive' option.</value>
+  </data>
+  <data name="AnalyzerTotalExecutionTime" xml:space="preserve">
+    <value>Total analyzer execution time: {0} seconds.</value>
+  </data>
+  <data name="MultithreadedAnalyzerExecutionNote" xml:space="preserve">
+    <value>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</value>
+  </data>
+  <data name="AnalyzerExecutionTimeColumnHeader" xml:space="preserve">
+    <value>Time (s)</value>
+  </data>
+  <data name="AnalyzerNameColumnHeader" xml:space="preserve">
+    <value>Analyzer</value>
+  </data>
+  <data name="NoAnalyzersFound" xml:space="preserve">
+    <value>No analyzers found</value>
   </data>
 </root>

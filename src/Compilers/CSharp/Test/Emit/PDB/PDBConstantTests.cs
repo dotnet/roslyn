@@ -164,34 +164,33 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x22"" endOffset=""0x6a"" />
+          <slot startOffset=""0x20"" endOffset=""0x66"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
-          <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""1"" offset=""37"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x21"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x22"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x29"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2c"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""0"" />
-        <entry offset=""0x45"" hidden=""true"" document=""0"" />
-        <entry offset=""0x4c"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x4d"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""0"" />
-        <entry offset=""0x5d"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""0"" />
-        <entry offset=""0x68"" hidden=""true"" document=""0"" />
-        <entry offset=""0x6b"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x20"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x27"" hidden=""true"" document=""0"" />
+        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2a"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x41"" hidden=""true"" document=""0"" />
+        <entry offset=""0x48"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x49"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x59"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""0"" />
+        <entry offset=""0x64"" hidden=""true"" document=""0"" />
+        <entry offset=""0x67"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x6f"">
+      <scope startOffset=""0x0"" endOffset=""0x69"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x21"" endOffset=""0x6f"">
+        <scope startOffset=""0x1f"" endOffset=""0x69"">
           <constant name=""x"" value=""1"" type=""Int32"" />
-          <scope startOffset=""0x2b"" endOffset=""0x4d"">
+          <scope startOffset=""0x29"" endOffset=""0x49"">
             <constant name=""y"" value=""2"" type=""Int32"" />
           </scope>
         </scope>

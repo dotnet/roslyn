@@ -3,9 +3,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers
+namespace Microsoft.AnalyzerPowerPack
 {
     public abstract class AbstractNamedTypeAnalyzer : DiagnosticAnalyzer
     {

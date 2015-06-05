@@ -14,6 +14,13 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
+    internal sealed class PeWritingException : Exception
+    {
+        public PeWritingException(Exception inner)
+            : base(inner.Message, inner)
+        { }
+    }
+
     internal sealed class PeWriter
     {
         /// <summary>
@@ -130,6 +137,14 @@ namespace Microsoft.Cci
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of
                     //        all types and members for better error reporting by WinMDExp.
                     nativePdbWriterOpt.WriteDefinitionLocations(_module.GetSymbolToLocationMap());
+                }
+                else
+                {
+#if DEBUG
+                    // validate that all definitions are writeable
+                    // if same scenario would happen in an winmdobj project
+                    nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(_module.GetSymbolToLocationMap());
+#endif
                 }
 
                 pdbContentId = nativePdbWriterOpt.GetContentId();

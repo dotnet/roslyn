@@ -4,6 +4,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
@@ -12,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Inherits VisualStudioWorkspace
 
         Private ReadOnly _workspace As TestWorkspace
-        Private ReadOnly _fileCodeModels As New Dictionary(Of DocumentId, EnvDTE.FileCodeModel)
+        Private ReadOnly _fileCodeModels As New Dictionary(Of DocumentId, ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel))
 
         Public Sub New(workspace As TestWorkspace)
             MyBase.New(workspace.Services.HostServices, backgroundWork:=WorkspaceBackgroundWork.ParseAndCompile)
@@ -41,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Sub
 
         Public Overrides Function GetFilePath(documentId As DocumentId) As String
-            Throw New NotImplementedException()
+            Return _workspace.CurrentSolution.GetDocument(documentId).FilePath
         End Function
 
         Public Overrides Function GetHierarchy(projectId As ProjectId) As Microsoft.VisualStudio.Shell.Interop.IVsHierarchy
@@ -57,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Function
 
         Public Overrides Function GetFileCodeModel(documentId As DocumentId) As EnvDTE.FileCodeModel
-            Return _fileCodeModels(documentId)
+            Return CType(_fileCodeModels(documentId).Handle, EnvDTE.FileCodeModel)
         End Function
 
         Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Boolean
@@ -76,9 +78,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Throw New NotImplementedException()
         End Function
 
-        Friend Sub SetFileCodeModel(id As DocumentId, codeModel As EnvDTE.FileCodeModel)
-            _fileCodeModels.Add(id, codeModel)
+        Friend Sub SetFileCodeModel(id As DocumentId, fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel))
+            _fileCodeModels.Add(id, fileCodeModel)
         End Sub
+
+        Friend Function GetFileCodeModelComHandle(id As DocumentId) As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
+            Return _fileCodeModels(id)
+        End Function
 
         Friend Overrides Function RenameFileCodeModelInstance(documentId As DocumentId, newFilePath As String) As Boolean
             Throw New NotImplementedException()

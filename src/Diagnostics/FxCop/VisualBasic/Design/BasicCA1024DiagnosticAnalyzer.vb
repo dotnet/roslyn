@@ -2,11 +2,13 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+Imports Microsoft.AnalyzerPowerPack.Design
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
+Namespace Design
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA1024DiagnosticAnalyzer
         Inherits CA1024DiagnosticAnalyzer(Of SyntaxKind)

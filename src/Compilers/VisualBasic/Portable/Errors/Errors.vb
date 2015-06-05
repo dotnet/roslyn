@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//       Failure to do so may break customer code.
 
         '// AVAILABLE                             31451 - 31497
-        ERR_ContantStringTooLong = 31498
+        ERR_ConstantStringTooLong = 31498
         ERR_MustInheritEventNotOverridden = 31499
         ERR_BadAttributeSharedProperty1 = 31500
         ERR_BadAttributeReadOnlyProperty1 = 31501

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
             var type = analyzer.GetType();
-            return ValueTuple.Create(GetAssemblyQualifiedNameWithoutVersion(type), GetAnalyzerVersion(type.Assembly.Location));
+            return ValueTuple.Create(GetAssemblyQualifiedName(type), GetAnalyzerVersion(type.Assembly.Location));
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
@@ -50,16 +50,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return type.Assembly.GetName().Name;
         }
 
-        private static string GetAssemblyQualifiedNameWithoutVersion(Type type)
+        private static string GetAssemblyQualifiedName(Type type)
         {
-            var name = type.AssemblyQualifiedName;
-            var versionIndex = name.IndexOf(", Version=", StringComparison.InvariantCultureIgnoreCase);
-            if (versionIndex < 0)
-            {
-                return name;
-            }
-
-            return name.Substring(0, versionIndex);
+            // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
+            // so we need to consider them.
+            return type.AssemblyQualifiedName;
         }
 
         internal static AnalyzerExecutor GetAnalyzerExecutorForSupportedDiagnostics(
@@ -73,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> defaultOnAnalyzerException = (ex, a, diagnostic) =>
                 OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, hostDiagnosticUpdateSource);
 
-            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, AnalyzerManager.Instance, cancellationToken);
+            return AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException ?? defaultOnAnalyzerException, AnalyzerManager.Instance, cancellationToken: cancellationToken);
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(

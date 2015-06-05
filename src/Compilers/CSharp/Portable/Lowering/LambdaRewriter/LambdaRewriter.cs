@@ -694,48 +694,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
+            if (prologue.Count > 0)
+            {
+                newStatements.Add(new BoundSequencePoint(null, null) { WasCompilerGenerated = true });
+            }
+
+            InsertAndFreePrologue(newStatements, prologue);
+
             foreach (var statement in node.Statements)
             {
                 var replacement = (BoundStatement)this.Visit(statement);
                 if (replacement != null)
                 {
-                    if (newStatements.Count == 0 && prologue.Count > 0)
-                    {
-                        for (int i = 0; i < prologue.Count; i++)
-                        {
-                            BoundStatement prologueStatement = new BoundExpressionStatement(prologue[i].Syntax, prologue[i]);
-
-                            // transfer the bound sequence point from the first rewritten statement to the first prologue expression statement:
-                            if (i == 0)
-                            {
-                                BoundSequencePoint sequencePoint;
-                                BoundSequencePointWithSpan sequencePointWithSpan;
-                                if ((sequencePointWithSpan = replacement as BoundSequencePointWithSpan) != null)
-                                {
-                                    prologueStatement = new BoundSequencePointWithSpan(sequencePointWithSpan.Syntax, prologueStatement, sequencePointWithSpan.Span);
-                                    replacement = sequencePointWithSpan.StatementOpt;
-                                }
-                                else if ((sequencePoint = replacement as BoundSequencePoint) != null)
-                                {
-                                    prologueStatement = new BoundSequencePoint(sequencePoint.Syntax, prologueStatement);
-                                    replacement = sequencePoint.StatementOpt;
-                                }
-                            }
-
-                            newStatements.Add(prologueStatement);
-                        }
-
-                        if (replacement == null)
-                        {
-                            continue;
-                        }
-                    }
-
                     newStatements.Add(replacement);
                 }
             }
-
-            prologue.Free();
 
             // TODO: we may not need to update if there was nothing to rewrite.
             return node.Update(newLocals.ToImmutableAndFree(), newStatements.ToImmutableAndFree());

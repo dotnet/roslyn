@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     public class CSharpCommandLineParser : CommandLineParser
     {
         public static readonly CSharpCommandLineParser Default = new CSharpCommandLineParser();
-        public static readonly CSharpCommandLineParser Interactive = new CSharpCommandLineParser(isInteractive: true);
+        internal static readonly CSharpCommandLineParser Interactive = new CSharpCommandLineParser(isInteractive: true);
 
         internal CSharpCommandLineParser(bool isInteractive = false)
             : base(CSharp.MessageProvider.Instance, isInteractive)
         {
         }
 
-        protected override string RegularFileExtension { get { return ".cs"; } }
-        protected override string ScriptFileExtension { get { return ".csx"; } }
+        internal override string RegularFileExtension { get { return ".cs"; } }
+        internal override string ScriptFileExtension { get { return ".csx"; } }
 
         internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<string> features = new List<string>();
             string runtimeMetadataVersion = null;
             bool errorEndLocation = false;
+            bool reportAnalyzer = false;
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             var sqmSessionGuid = Guid.Empty;
@@ -892,6 +893,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorEndLocation = true;
                             continue;
 
+                        case "reportanalyzer":
+                            reportAnalyzer = true;
+                            continue;
+
                         case "nostdlib":
                         case "nostdlib+":
                             if (value != null)
@@ -1033,7 +1038,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 languageVersion: languageVersion,
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
-                kind: SourceCodeKind.Regular
+                kind: SourceCodeKind.Regular,
+                features: features.ToImmutableDictionary(feature => feature, feature => "true")
             );
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
@@ -1055,8 +1061,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 platform: platform,
                 generalDiagnosticOption: generalDiagnosticOption,
                 warningLevel: warningLevel,
-                specificDiagnosticOptions: diagnosticOptions
-            ).WithFeatures(features.AsImmutable());
+                specificDiagnosticOptions: diagnosticOptions,
+                features: features.AsImmutable()
+            );
 
             var emitOptions = new EmitOptions
             (
@@ -1111,7 +1118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PrintFullPaths = printFullPaths,
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
-                SqmSessionGuid = sqmSessionGuid
+                SqmSessionGuid = sqmSessionGuid,
+                ReportAnalyzer = reportAnalyzer
             };
         }
         

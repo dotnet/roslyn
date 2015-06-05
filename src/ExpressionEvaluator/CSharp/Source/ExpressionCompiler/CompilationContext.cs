@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 synthesizedType.Methods,
                 additionalTypes: ImmutableArray.Create((NamedTypeSymbol)synthesizedType),
+                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 module,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -209,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 synthesizedType.Methods,
                 additionalTypes: ImmutableArray.Create((NamedTypeSymbol)synthesizedType),
+                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -218,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 module,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -393,6 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 this.Compilation,
                 synthesizedType.Methods,
                 additionalTypes: additionalTypes.ToImmutableAndFree(),
+                synthesizedType: synthesizedType,
                 testData: testData,
                 diagnostics: diagnostics);
 
@@ -402,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 module,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -455,15 +458,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             CSharpCompilation compilation,
             ImmutableArray<MethodSymbol> methods,
             ImmutableArray<NamedTypeSymbol> additionalTypes,
+            EENamedTypeSymbol synthesizedType,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData,
             DiagnosticBag diagnostics)
         {
             // Each assembly must have a unique name.
             var emitOptions = new EmitOptions(outputNameOverride: ExpressionCompilerUtilities.GenerateUniqueName());
 
+            var dynamicOperationContextType = GetNonDisplayClassContainer(synthesizedType.SubstitutedSourceType);
+
             string runtimeMetadataVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMetadataVersion);
-            return new EEAssemblyBuilder(compilation.SourceAssembly, emitOptions, methods, serializationProperties, additionalTypes, testData);
+            return new EEAssemblyBuilder(compilation.SourceAssembly, emitOptions, methods, serializationProperties, additionalTypes, dynamicOperationContextType, testData);
         }
 
         internal EEMethodSymbol CreateMethod(
@@ -632,7 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 BinderFlags.UnsafeRegion |
                 BinderFlags.UncheckedRegion |
                 BinderFlags.AllowManagedAddressOf |
-                BinderFlags.AllowAwaitInUnsafeContext);
+                BinderFlags.AllowAwaitInUnsafeContext |
+                BinderFlags.IgnoreCorLibraryDuplicatedTypes);
             var hasImports = !importRecordGroups.IsDefaultOrEmpty;
             var numImportStringGroups = hasImports ? importRecordGroups.Length : 0;
             var currentStringGroup = numImportStringGroups - 1;
@@ -1429,7 +1436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// The symbol of the method that is currently on top of the callstack, with
         /// EE type parameters substituted in place of the original type parameters.
         /// </param>
-        /// <param name="hasDisplayClassThis">
+        /// <param name="sourceMethodMustBeInstance">
         /// True if "this" is available via a display class in the current context.
         /// </param>
         /// <returns>
@@ -1453,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </remarks>
         internal static MethodSymbol GetSubstitutedSourceMethod(
             MethodSymbol candidateSubstitutedSourceMethod,
-            bool hasDisplayClassThis)
+            bool sourceMethodMustBeInstance)
         {
             var candidateSubstitutedSourceType = candidateSubstitutedSourceMethod.ContainingType;
 
@@ -1471,28 +1478,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     if (GeneratedNames.GetKind(containing.Name) == GeneratedNameKind.LambdaDisplayClass)
                     {
                         candidateSubstitutedSourceType = containing;
-                        hasDisplayClassThis = candidateSubstitutedSourceType.MemberNames.Select(GeneratedNames.GetKind).Contains(GeneratedNameKind.ThisProxyField);
+                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Select(GeneratedNames.GetKind).Contains(GeneratedNameKind.ThisProxyField);
                     }
                 }
 
                 var desiredTypeParameters = candidateSubstitutedSourceType.OriginalDefinition.TypeParameters;
-
-                // We need to use a ThreeState, rather than a bool, because we can't distinguish between
-                // a roslyn lambda that only captures "this" and a dev12 lambda that captures nothing
-                // (neither introduces a display class).  This is unnecessary in the state machine case,
-                // because then "this" is hoisted unconditionally.
-                var isDesiredMethodStatic = hasDisplayClassThis
-                    ? ThreeState.False
-                    : (GeneratedNames.GetKind(candidateSubstitutedSourceType.Name) == GeneratedNameKind.StateMachineType)
-                        ? ThreeState.True
-                        : ThreeState.Unknown;
 
                 // Type containing the original iterator, async, or lambda-containing method.
                 var substitutedSourceType = GetNonDisplayClassContainer(candidateSubstitutedSourceType);
 
                 foreach (var candidateMethod in substitutedSourceType.GetMembers().OfType<MethodSymbol>())
                 {
-                    if (IsViableSourceMethod(candidateMethod, desiredMethodName, desiredTypeParameters, isDesiredMethodStatic))
+                    if (IsViableSourceMethod(candidateMethod, desiredMethodName, desiredTypeParameters, sourceMethodMustBeInstance))
                     {
                         return desiredTypeParameters.Length == 0
                             ? candidateMethod
@@ -1506,11 +1503,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return candidateSubstitutedSourceMethod;
         }
 
-        private static bool IsViableSourceMethod(MethodSymbol candidateMethod, string desiredMethodName, ImmutableArray<TypeParameterSymbol> desiredTypeParameters, ThreeState isDesiredMethodStatic)
+        private static bool IsViableSourceMethod(
+            MethodSymbol candidateMethod,
+            string desiredMethodName, ImmutableArray<TypeParameterSymbol> desiredTypeParameters, bool desiredMethodMustBeInstance)
         {
             return
                 !candidateMethod.IsAbstract &&
-                (isDesiredMethodStatic == ThreeState.Unknown || isDesiredMethodStatic.Value() == candidateMethod.IsStatic) &&
+                (!(desiredMethodMustBeInstance && candidateMethod.IsStatic)) &&
                 candidateMethod.Name == desiredMethodName &&
                 HaveSameConstraints(candidateMethod.TypeParameters, desiredTypeParameters);
         }

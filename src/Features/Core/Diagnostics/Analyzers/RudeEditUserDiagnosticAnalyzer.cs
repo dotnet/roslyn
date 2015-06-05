@@ -38,7 +38,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 EditSession session = encService.EditSession;
-                if (session == null || !session.HasProject(document.Project.Id))
+                if (session == null ||
+                    session.BaseSolution.WorkspaceVersion == document.Project.Solution.WorkspaceVersion ||
+                    !session.HasProject(document.Project.Id))
                 {
                     return;
                 }

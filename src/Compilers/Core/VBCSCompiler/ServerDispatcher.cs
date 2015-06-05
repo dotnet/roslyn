@@ -34,18 +34,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// </remarks>
     internal partial class ServerDispatcher
     {
-        private class ConnectionData
-        {
-            public readonly Task<CompletionReason> ConnectionTask;
-            public Task<TimeSpan?> ChangeKeepAliveTask;
-
-            internal ConnectionData(Task<CompletionReason> connectionTask, Task<TimeSpan?> changeKeepAliveTask)
-            {
-                ConnectionTask = connectionTask;
-                ChangeKeepAliveTask = changeKeepAliveTask;
-            }
-        }
-
         /// <summary>
         /// Default time the server will stay alive after the last request disconnects.
         /// </summary>
@@ -154,15 +142,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// test framework.  The code hooks <see cref="AppDomain.AssemblyResolve"/> in a way
         /// that prevents xUnit from running correctly and hence must be disabled. 
         /// </remarks>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", 
-            MessageId = "System.GC.Collect", 
-            Justification ="We intentionally call GC.Collect when anticipate long period on inactivity.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods",
+            MessageId = "System.GC.Collect",
+            Justification = "We intentionally call GC.Collect when anticipate long period on inactivity.")]
         public void ListenAndDispatchConnections(string pipeName, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
             Debug.Assert(SynchronizationContext.Current == null);
 
             var isKeepAliveDefault = true;
-            var connectionList = new List<ConnectionData>();
+            var connectionList = new List<Task<ConnectionData>>();
             Task gcTask = null;
             Task timeoutTask = null;
             Task<NamedPipeServerStream> listenTask = null;
@@ -192,9 +180,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If there is a connection event that has highest priority. 
                 if (listenTask.IsCompleted && !cancellationToken.IsCancellationRequested)
                 {
-                    var changeKeepAliveSource = new TaskCompletionSource<TimeSpan?>();
-                    var connectionTask = CreateHandleConnectionTask(listenTask, changeKeepAliveSource, cancellationToken);
-                    connectionList.Add(new ConnectionData(connectionTask, changeKeepAliveSource.Task));
+                    var connectionTask = CreateHandleConnectionTask(listenTask, _handler, cancellationToken);
+                    connectionList.Add(connectionTask);
                     listenTask = null;
                     listenCancellationTokenSource = null;
                     timeoutTask = null;
@@ -234,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                Task.WaitAll(connectionList.Select(x => x.ConnectionTask).ToArray());
+                Task.WaitAll(connectionList.ToArray());
             }
             catch
             {
@@ -248,11 +235,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// The server farms out work to Task values and this method needs to wait until at least one of them
         /// has completed.
         /// </summary>
-        private void WaitForAnyCompletion(IEnumerable<ConnectionData> e, Task[] other, CancellationToken cancellationToken)
+        private void WaitForAnyCompletion(IEnumerable<Task<ConnectionData>> e, Task[] other, CancellationToken cancellationToken)
         {
             var all = new List<Task>();
-            all.AddRange(e.Select(x => x.ConnectionTask));
-            all.AddRange(e.Select(x => x.ChangeKeepAliveTask).Where(x => x != null));
+            all.AddRange(e);
             all.AddRange(other.Where(x => x != null));
 
             try
@@ -270,31 +256,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// Checks the completed connection objects.
         /// </summary>
         /// <returns>True if everything completed normally and false if there were any client disconnections.</returns>
-        private bool CheckConnectionTask(List<ConnectionData> connectionList, ref TimeSpan? keepAlive, ref bool isKeepAliveDefault)
+        private bool CheckConnectionTask(List<Task<ConnectionData>> connectionList, ref TimeSpan? keepAlive, ref bool isKeepAliveDefault)
         {
             var allFine = true;
-
-            foreach (var current in connectionList)
+            var processedCount = 0;
+            var i = 0;
+            while (i < connectionList.Count)
             {
-                if (current.ChangeKeepAliveTask != null && current.ChangeKeepAliveTask.IsCompleted)
+                var current = connectionList[i];
+                if (!current.IsCompleted)
                 {
-                    ChangeKeepAlive(current.ChangeKeepAliveTask, ref keepAlive, ref isKeepAliveDefault);
-                    current.ChangeKeepAliveTask = null;
+                    i++;
+                    continue;
                 }
 
-                if (current.ConnectionTask.IsCompleted)
-                {
-                    Debug.Assert(current.ChangeKeepAliveTask == null);
+                connectionList.RemoveAt(i);
+                processedCount++;
 
-                    if (current.ConnectionTask.Result == CompletionReason.ClientDisconnect)
-                    {
-                        allFine = false;
-                    }
+                var connectionData = current.Result;
+                ChangeKeepAlive(connectionData.KeepAlive, ref keepAlive, ref isKeepAliveDefault);
+                if (connectionData.CompletionReason == CompletionReason.ClientDisconnect)
+                {
+                    allFine = false;
                 }
             }
 
-            // Finally remove any ConnectionData for connections which are no longer active.
-            int processedCount = connectionList.RemoveAll(x => x.ConnectionTask.IsCompleted);
             if (processedCount > 0)
             {
                 _diagnosticListener.ConnectionProcessed(processedCount);
@@ -303,15 +289,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return allFine;
         }
 
-        private void ChangeKeepAlive(Task<TimeSpan?> task, ref TimeSpan? keepAlive, ref bool isKeepAliveDefault)
+        private void ChangeKeepAlive(TimeSpan? value, ref TimeSpan? keepAlive, ref bool isKeepAliveDefault)
         {
-            Debug.Assert(task.IsCompleted);
-            if (task.Status != TaskStatus.RanToCompletion)
-            {
-                return;
-            }
-
-            var value = task.Result;
             if (value.HasValue)
             {
                 if (isKeepAliveDefault || !keepAlive.HasValue || value.Value > keepAlive.Value)
@@ -406,15 +385,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Creates a Task representing the processing of the new connection.  Returns null 
-        /// if the server is unable to create a new Task object for the connection.  
+        /// Creates a Task representing the processing of the new connection.  This will return a task that
+        /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
+        /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
-        private async Task<CompletionReason> CreateHandleConnectionTask(Task<NamedPipeServerStream> pipeStreamTask, TaskCompletionSource<TimeSpan?> changeKeepAliveSource, CancellationToken cancellationToken)
+        internal static async Task<ConnectionData> CreateHandleConnectionTask(Task<NamedPipeServerStream> pipeStreamTask, IRequestHandler handler, CancellationToken cancellationToken)
         {
-            var pipeStream = await pipeStreamTask.ConfigureAwait(false);
-            var clientConnection = new NamedPipeClientConnection(pipeStream);
-            var connection = new Connection(clientConnection, _handler);
-            return await connection.ServeConnection(changeKeepAliveSource, cancellationToken).ConfigureAwait(false);
+            Connection connection;
+            try
+            {
+                var pipeStream = await pipeStreamTask.ConfigureAwait(false);
+                var clientConnection = new NamedPipeClientConnection(pipeStream);
+                connection = new Connection(clientConnection, handler);
+            }
+            catch (Exception ex)
+            {
+                // Unable to establish a connection with the client.  The client is responsible for
+                // handling this case.  Nothing else for us to do here.
+                CompilerServerLogger.LogException(ex, "Error creating client named pipe");
+                return new ConnectionData(CompletionReason.CompilationNotStarted);
+            }
+
+            return await connection.ServeConnection(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

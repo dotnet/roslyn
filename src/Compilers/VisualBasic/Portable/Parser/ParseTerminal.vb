@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' *
         ' * Purpose:
         ' *     Parse an identifier. Current token must be at the expected
-        ' *     identifer. Keywords are NOT allowed as identifiers.
+        ' *     identifier. Keywords are NOT allowed as identifiers.
         ' *
         ' **********************************************************************/
 
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' *
         ' * Purpose:
         ' *     Parse an identifier. Current token must be at the expected
-        ' *     identifer. Keywords are allowed as identifiers.
+        ' *     identifier. Keywords are allowed as identifiers.
         ' *
         ' **********************************************************************/
 

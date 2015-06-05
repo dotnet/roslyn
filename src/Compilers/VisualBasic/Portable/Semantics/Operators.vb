@@ -2340,9 +2340,9 @@ Done:
             ' Ignore user defined conversions between types that already have intrinsic conversions.
             ' This could happen for generics after generic param substituion.
             If Not method.ContainingType.IsDefinition Then
-                Dim useSiteDiagnoctics As HashSet(Of DiagnosticInfo) = Nothing
-                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnoctics)) OrElse
-                   Not useSiteDiagnoctics.IsNullOrEmpty Then
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnostics)) OrElse
+                   Not useSiteDiagnostics.IsNullOrEmpty Then
                     Return False
                 End If
             End If

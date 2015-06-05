@@ -2,20 +2,21 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
+namespace Microsoft.AnalyzerPowerPack.Performance
 {
     public abstract class RemoveEmptyFinalizers<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         public const string RuleId = "CA1821";
-        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.RemoveEmptyFinalizers), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.RemoveEmptyFinalizersDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableMessageAndTitle = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.RemoveEmptyFinalizers), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.RemoveEmptyFinalizersDescription), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableMessageAndTitle,
                                                                          s_localizableMessageAndTitle,
-                                                                         FxCopDiagnosticCategory.Performance,
+                                                                         AnalyzerPowerPackDiagnosticCategory.Performance,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          description: s_localizableDescription,

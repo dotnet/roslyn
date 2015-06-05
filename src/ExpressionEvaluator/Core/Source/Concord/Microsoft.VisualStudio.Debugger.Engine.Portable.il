@@ -13832,10 +13832,6 @@
 	.class public interface abstract IDkmNativeEditAndContinueUpdate
 	{
 		.method public virtual hidebysig newslot abstract 
-			instance void BackupSourceFiles(class Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance nativeRuntimeInstance, string[] editSourceFilePaths, string[] backupSourceFilePaths)
-		{
-		}
-		.method public virtual hidebysig newslot abstract 
 			instance void ApplyCodeChange(class Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance nativeRuntimeInstance, class Microsoft.VisualStudio.Debugger.Native.DkmNativeInstructionAddress[] modifiedStackIPAddresses, uint32[] lineHints, [out] class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<string>& warnings, [out] class [System.Runtime]'System.Collections.ObjectModel.ReadOnlyCollection`1'<string>& errors)
 		{
 		}
@@ -24214,12 +24210,6 @@
 		}
 		.method public hidebysig 
 			instance class Microsoft.VisualStudio.Debugger.Native.DkmNativeModuleInstance[] GetNativeModuleInstances()
-		{
-			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
-			ret
-		}
-		.method public hidebysig 
-			instance void BackupSourceFiles(string[] EditSourceFilePaths, string[] BackupSourceFilePaths)
 		{
 			.custom instance void [System.Runtime]System.Security.SecuritySafeCriticalAttribute::.ctor() = { }
 			ret

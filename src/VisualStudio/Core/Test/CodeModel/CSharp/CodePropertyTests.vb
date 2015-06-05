@@ -1342,6 +1342,114 @@ class Program
 
 #End Region
 
+#Region "AddAttribute tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute1()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    public int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable()]
+    public int P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute2()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    public int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    [CLSCompliant(true)]
+    public int P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    public int $$P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    [CLSCompliant(true)]
+    public int P
+    {
+        get { return default(int); }
+        set { }
+    }
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+#End Region
+
         Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As ICSAutoImplementedPropertyExtender
             Return CType(codeElement.Extender(ExtenderNames.AutoImplementedProperty), ICSAutoImplementedPropertyExtender)
         End Function

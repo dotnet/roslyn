@@ -354,7 +354,9 @@ namespace Roslyn.Test.MetadataUtilities
                 return string.Format("#{0:x}", _reader.GetHeapOffset(handle));
             }
 
-            return $"{GetValueChecked(getValue, _reader, handle):x} (#{_reader.GetHeapOffset(handle):x})";
+            // virtual heap handles don't have offset:
+            int heapOffset = MetadataTokens.GetHeapOffset(handle);
+            return $"{GetValueChecked(getValue, _reader, handle):x}" + (heapOffset >= 0 ? $" (#{heapOffset:x})" : "");
         }
 
         private string GetValueChecked(Func<MetadataReader, Handle, string> getValue, MetadataReader reader, Handle handle)

@@ -355,6 +355,7 @@ namespace Microsoft.CodeAnalysis
 
             CancellationTokenSource analyzerCts = null;
             AnalyzerManager analyzerManager = null;
+            AnalyzerDriver analyzerDriver = null;
             try
             {
                 Func<ImmutableArray<Diagnostic>> getAnalyzerDiagnostics = null;
@@ -365,7 +366,7 @@ namespace Microsoft.CodeAnalysis
                     var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
-                    var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, out compilation, analyzerCts.Token);
+                    analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
 
                     getAnalyzerDiagnostics = () =>
                         {
@@ -525,15 +526,23 @@ namespace Microsoft.CodeAnalysis
                 {
                     analyzerCts.Cancel();
 
-                    // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
-                    analyzerManager.ClearAnalyzerState(analyzers);
+                    if (analyzerManager != null)
+                    {
+                        // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
+                        analyzerManager.ClearAnalyzerState(analyzers);
+                    }
+
+                    if (Arguments.ReportAnalyzer && analyzerDriver != null && compilation != null)
+                    {
+                        ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
+                    }
                 }
             }
 
             return Succeeded;
         }
 
-        private ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)
+        protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)
         {
             var builder = ImmutableArray.CreateBuilder<AdditionalTextFile>();
 
@@ -543,6 +552,71 @@ namespace Microsoft.CodeAnalysis
             }
 
             return builder.ToImmutableArray();
+        }
+
+        private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)
+        {
+            Debug.Assert(analyzerDriver.AnalyzerExecutionTimes != null);
+            if (analyzerDriver.AnalyzerExecutionTimes.IsEmpty)
+            {
+                return;
+            }
+
+            var totalAnalyzerExecutionTime = analyzerDriver.AnalyzerExecutionTimes.Sum(kvp => kvp.Value.TotalSeconds);
+            Func<double, string> getFormattedTime = d => d.ToString("##0.000", culture);
+            consoleOutput.WriteLine();
+            consoleOutput.WriteLine(string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, getFormattedTime(totalAnalyzerExecutionTime)));
+
+            if (isConcurrentBuild)
+            {
+                consoleOutput.WriteLine(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote);
+            }
+
+            var analyzersByAssembly = analyzerDriver.AnalyzerExecutionTimes
+                .GroupBy(kvp => kvp.Key.GetType().GetTypeInfo().Assembly)
+                .OrderByDescending(kvp => kvp.Sum(entry => entry.Value.Ticks));
+
+            consoleOutput.WriteLine();
+
+            getFormattedTime = d => d < 0.001 ?
+                string.Format(culture, "{0,8:<0.000}", 0.001) :
+                string.Format(culture, "{0,8:##0.000}", d);
+            Func<int, string> getFormattedPercentage = i => string.Format("{0,5}", i < 1 ? "<1" : i.ToString());
+            Func<string, string> getFormattedAnalyzerName = s => "   " + s;
+
+            // Table header
+            var analyzerTimeColumn = string.Format("{0,8}", CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader);
+            var analyzerPercentageColumn = string.Format("{0,5}", "%");
+            var analyzerNameColumn = getFormattedAnalyzerName(CodeAnalysisResources.AnalyzerNameColumnHeader);
+            consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
+
+            // Table rows grouped by assembly.
+            foreach (var analyzerGroup in analyzersByAssembly)
+            {
+                var executionTime = analyzerGroup.Sum(kvp => kvp.Value.TotalSeconds);
+                var percentage = (int)(executionTime * 100 / totalAnalyzerExecutionTime);
+
+                analyzerTimeColumn = getFormattedTime(executionTime);
+                analyzerPercentageColumn = getFormattedPercentage(percentage);
+                analyzerNameColumn = getFormattedAnalyzerName(analyzerGroup.Key.FullName);
+
+                consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
+
+                // Rows for each diagnostic analyzer in the assembly.
+                foreach (var kvp in analyzerGroup.OrderByDescending(kvp => kvp.Value))
+                {
+                    executionTime = kvp.Value.TotalSeconds;
+                    percentage = (int)(executionTime * 100 / totalAnalyzerExecutionTime);
+
+                    analyzerTimeColumn = getFormattedTime(executionTime);
+                    analyzerPercentageColumn = getFormattedPercentage(percentage);
+                    analyzerNameColumn = getFormattedAnalyzerName("   " + kvp.Key.ToString());
+
+                    consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
+                }
+
+                consoleOutput.WriteLine();
+            }
         }
 
         private void GenerateSqmData(CompilationOptions compilationOptions, ImmutableArray<Diagnostic> diagnostics)

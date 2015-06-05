@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceMemberContainerTypeSymbol typeSymbol,
             MethodSymbol scriptCtor,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> fieldInitializers,
-            bool generateDebugInfo,
             DiagnosticBag diagnostics,
             ref ProcessedFieldInitializers processedInitializers) //by ref so that we can store the results of lowering
         {
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImportChain firstImportChain;
 
                 processedInitializers.BoundInitializers = BindFieldInitializers(typeSymbol, scriptCtor, fieldInitializers,
-                    diagsForInstanceInitializers, generateDebugInfo, out firstImportChain);
+                    diagsForInstanceInitializers, out firstImportChain);
 
                 processedInitializers.HasErrors = diagsForInstanceInitializers.HasAnyErrors();
                 processedInitializers.FirstImportChain = firstImportChain;
@@ -50,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol scriptCtor,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo,
             out ImportChain firstImportChain)
         {
             if (initializers.IsEmpty)
@@ -64,11 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)scriptCtor == null)
             {
-                BindRegularCSharpFieldInitializers(compilation, initializers, boundInitializers, diagnostics, generateDebugInfo, out firstImportChain);
+                BindRegularCSharpFieldInitializers(compilation, initializers, boundInitializers, diagnostics, out firstImportChain);
             }
             else
             {
-                BindScriptFieldInitializers(compilation, scriptCtor, initializers, boundInitializers, diagnostics, generateDebugInfo, out firstImportChain);
+                BindScriptFieldInitializers(compilation, scriptCtor, initializers, boundInitializers, diagnostics, out firstImportChain);
             }
 
             return boundInitializers.ToImmutableAndFree();
@@ -83,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
             ArrayBuilder<BoundInitializer> boundInitializers,
             DiagnosticBag diagnostics,
-            bool generateDebugInfo,
             out ImportChain firstDebugImports)
         {
             firstDebugImports = null;
@@ -118,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
                                 fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
 
-                        if (generateDebugInfo && firstDebugImports == null)
+                        if (firstDebugImports == null)
                         {
                             firstDebugImports = parentBinder.ImportChain;
                         }
@@ -138,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static void BindScriptFieldInitializers(CSharpCompilation compilation, MethodSymbol scriptCtor,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers, ArrayBuilder<BoundInitializer> boundInitializers, DiagnosticBag diagnostics,
-            bool generateDebugInfo, out ImportChain firstDebugImports)
+            out ImportChain firstDebugImports)
         {
             Debug.Assert((object)scriptCtor != null);
 
@@ -177,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder scriptClassBinder = binderFactory.GetBinder(initializerNode);
                     Debug.Assert(((ImplicitNamedTypeSymbol)scriptClassBinder.ContainingMemberOrLambda).IsScriptClass);
 
-                    if (generateDebugInfo && firstDebugImports == null)
+                    if (firstDebugImports == null)
                     {
                         firstDebugImports = scriptClassBinder.ImportChain;
                     }

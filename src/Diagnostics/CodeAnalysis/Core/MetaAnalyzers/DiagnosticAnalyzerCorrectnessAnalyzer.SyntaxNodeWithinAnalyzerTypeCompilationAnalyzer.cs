@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     public abstract partial class DiagnosticAnalyzerCorrectnessAnalyzer : DiagnosticAnalyzer
     {
-        protected abstract class SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TSyntaxNodeOfInterest> : CompilationAnalyzer
+        protected abstract class SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TSyntaxNodeOfInterest> : DiagnosticAnalyzerSymbolAnalyzer
             where TClassDeclarationSyntax : SyntaxNode
             where TSyntaxNodeOfInterest : SyntaxNode
         {

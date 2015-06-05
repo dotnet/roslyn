@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly bool _isRenamingInComments;
             private readonly ISet<TextSpan> _stringAndCommentTextSpans;
             private readonly ISimplificationService _simplificationService;
+            private readonly ISemanticFactsService _semanticFactsService;
             private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new HashSet<SyntaxToken>();
             private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new HashSet<InvocationExpressionSyntax>();
 
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isVerbatim = _replacementText.StartsWith("@", StringComparison.Ordinal);
 
                 _simplificationService = parameters.Document.Project.LanguageServices.GetService<ISimplificationService>();
+                _semanticFactsService = parameters.Document.Project.LanguageServices.GetService<ISemanticFactsService>();
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
@@ -376,6 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         isNamespaceDeclarationReference = true;
                     }
 
+                    var isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken);
+
                     var renameAnnotation =
                             new RenameActionAnnotation(
                                 token.Span,
@@ -385,7 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 renameDeclarationLocations: renameDeclarationLocations,
                                 isOriginalTextLocation: isOldText,
                                 isNamespaceDeclarationReference: isNamespaceDeclarationReference,
-                                isInvocationExpression: false);
+                                isInvocationExpression: false,
+                                isMemberGroupReference: isMemberGroupReference);
 
                     newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
 
@@ -465,7 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                                 renameDeclarationLocations: renameDeclarationLocations,
                                                 isOriginalTextLocation: false,
                                                 isNamespaceDeclarationReference: false,
-                                                isInvocationExpression: true);
+                                                isInvocationExpression: true,
+                                                isMemberGroupReference: false);
 
                     return renameAnnotation;
                 }
@@ -564,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 // determine the canonical identifier name (unescaped, no unicode escaping, ...)
-                string valueText;
+                string valueText = currentNewIdentifier;
                 var kind = SyntaxFacts.GetKeywordKind(currentNewIdentifier);
                 if (kind != SyntaxKind.None)
                 {
@@ -572,9 +578,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
                 else
                 {
-                    var parsedIdentifier = (IdentifierNameSyntax)SyntaxFactory.ParseName(currentNewIdentifier);
-                    Debug.Assert(parsedIdentifier.Kind() == SyntaxKind.IdentifierName);
-                    valueText = parsedIdentifier.Identifier.ValueText;
+                    var parsedIdentifier = SyntaxFactory.ParseName(currentNewIdentifier);
+                    if (parsedIdentifier.IsKind(SyntaxKind.IdentifierName))
+                    {
+                        valueText = ((IdentifierNameSyntax)parsedIdentifier).Identifier.ValueText;
+                    }
                 }
 
                 // TODO: we can't use escaped unicode characters in xml doc comments, so we need to pass the valuetext as text as well.
@@ -709,7 +717,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         #region "Declaration Conflicts"
 
         public bool LocalVariableConflict(
-            SyntaxToken token)
+            SyntaxToken token,
+            IEnumerable<ISymbol> newReferencedSymbols)
         {
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
@@ -723,7 +732,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var locals = enclosingMemberDeclaration.GetLocalDeclarationMap()[token.ValueText];
                     if (locals.Length > 0)
                     {
-                        return true;
+                        // This unqualified invocation name matches the name of an existing local
+                        // or parameter. Report a conflict if the matching local/parameter is not
+                        // a delegate type.
+
+                        var relevantLocals = newReferencedSymbols
+                            .Where(s => s.MatchesKind(SymbolKind.Local, SymbolKind.Parameter) && s.Name == token.ValueText);
+
+                        if (relevantLocals.Count() != 1)
+                        {
+                            return true;
+                        }
+
+                        var matchingLocal = relevantLocals.Single();
+                        var invocationTargetsLocalOfDelegateType =
+                            (matchingLocal.IsKind(SymbolKind.Local) && ((ILocalSymbol)matchingLocal).Type.IsDelegateType()) ||
+                            (matchingLocal.IsKind(SymbolKind.Parameter) && ((IParameterSymbol)matchingLocal).Type.IsDelegateType());
+
+                        return !invocationTargetsLocalOfDelegateType;
                     }
                 }
             }

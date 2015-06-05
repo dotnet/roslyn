@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +22,8 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             {
                 var nodes = FindNodes(root, diagnostic);
                 var types = GetTypesForNodes(model, nodes, cancellationToken).Distinct();
-                AssemblyIdentity identity = GetAssemblyIdentity(types);
+                var message = diagnostic.GetMessage();
+                AssemblyIdentity identity = GetAssemblyIdentity(types, message);
                 if (identity != null && !uniqueIdentities.Contains(identity) && !identity.Equals(model.Compilation.Assembly.Identity))
                 {
                     uniqueIdentities.Add(identity);
@@ -95,18 +98,18 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
         /// so it is safe to assume if this case exists for one of the symbols given 
         /// it is the assembly we want to add.
         /// </summary>
-        private static AssemblyIdentity GetAssemblyIdentity(IEnumerable<ITypeSymbol> types)
+        private static AssemblyIdentity GetAssemblyIdentity(IEnumerable<ITypeSymbol> types, string message)
         {
             foreach (var type in types)
             {
                 var identity = type?.GetBaseTypesAndThis().OfType<IErrorTypeSymbol>().FirstOrDefault()?.ContainingAssembly?.Identity;
-                if (identity != null)
+                if (identity != null && message.Contains(identity.ToString()))
                 {
                     return identity;
                 }
 
                 identity = type?.AllInterfaces.OfType<IErrorTypeSymbol>().FirstOrDefault()?.ContainingAssembly?.Identity;
-                if (identity != null)
+                if (identity != null && message.Contains(identity.ToString()))
                 {
                     return identity;
                 }

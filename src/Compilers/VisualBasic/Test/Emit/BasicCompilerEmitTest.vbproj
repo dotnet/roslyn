@@ -85,7 +85,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc1-20150208-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc3-20150528-03\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
     <Reference Include="Roslyn.Test.Utilities, Version=42.42.42.42, Culture=neutral, PublicKeyToken=fc793a00266884fb, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -106,6 +106,7 @@
     <Compile Include="Attributes\AttributeTests_StructLayout.vb" />
     <Compile Include="Attributes\AttributeTests_Synthesized.vb" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.vb" />
+    <Compile Include="Attributes\EmitTestStrongNameProvider.vb" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.vb" />
     <Compile Include="BreakingChanges.vb" />
     <Compile Include="CodeGen\AnonymousTypesCodeGenTests.vb" />

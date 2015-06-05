@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -802,6 +800,89 @@ class C
 </Code>
 
             TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+        End Sub
+
+#End Region
+
+#Region "AddAttribute tests"
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute1()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    public event EventHandler $$E;
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable()]
+    public event EventHandler E;
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute2()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    public event EventHandler $$E;
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    [Serializable]
+    [CLSCompliant(true)]
+    public event EventHandler E;
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    public event EventHandler $$E;
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    [CLSCompliant(true)]
+    public event EventHandler E;
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region

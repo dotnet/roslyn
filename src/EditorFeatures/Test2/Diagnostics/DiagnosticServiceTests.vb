@@ -172,6 +172,44 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
+        <Fact>
+        Public Sub TestNameCollisionOnDisplayNames()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs">
+                                        class Foo { }
+                                    </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects(0)
+
+                Dim referenceName = "Test"
+
+                Dim hostAnalyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New ProjectDiagnosticAnalyzer(0)), display:=referenceName)
+
+                Dim projectAnalyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(New ProjectDiagnosticAnalyzer(1)), display:=referenceName)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService(
+                    ImmutableArray.Create(Of AnalyzerReference)(hostAnalyzerReference))
+
+                project = project.WithAnalyzerReferences(ImmutableArray.Create(Of AnalyzerReference)(projectAnalyzerReference))
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+
+                ' two references in the map
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim names = New HashSet(Of String)
+                names.UnionWith(descriptorsMap.Keys)
+
+                Assert.Equal(1, names.Where(Function(n) n = referenceName).Count())
+            End Using
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestRulesetBasedDiagnosticFiltering()
             Dim test = <Workspace>
@@ -700,6 +738,38 @@ class AnonymousFunctions
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
 
+                Dim projectDiagnostics = DiagnosticProviderTestUtilities.GetProjectDiagnostics(workspaceAnalyzerOpt:=Nothing, project:=project)
+                Assert.Equal(1, projectDiagnostics.Count())
+                Dim diagnostic = projectDiagnostics.Single()
+                Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
+                Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
+                Assert.Equal(expectedMessage, diagnostic.GetMessage)
+            End Using
+        End Sub
+
+        <Fact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestStatefulCompilationAnalyzer_2()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test.cs">
+                                   class Foo { void M() {} }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+                Dim analyzer = New StatefulCompilationAnalyzer
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                ' Make couple of dummy invocations to GetDocumentDiagnostics.
+                Dim document = project.Documents.Single()
+                Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                Dim documentDiagnostics = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
+                documentDiagnostics = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
+
+                ' Verify that the eventual compilation end diagnostics (and hence the analyzer state) is not affected by prior document analysis.
                 Dim projectDiagnostics = DiagnosticProviderTestUtilities.GetProjectDiagnostics(workspaceAnalyzerOpt:=Nothing, project:=project)
                 Assert.Equal(1, projectDiagnostics.Count())
                 Dim diagnostic = projectDiagnostics.Single()
@@ -1334,7 +1404,7 @@ public class B
             End Sub
 
             Private Class CompilationAnalyzer
-                Private ReadOnly _symbolNames As New ConcurrentSet(Of String)
+                Private ReadOnly _symbolNames As New List(Of String)
 
                 Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
                     _symbolNames.Add(context.Symbol.Name)
@@ -1534,6 +1604,86 @@ End Class
                     Assert.Equal("CodeBlock : M", stateFullDiagnostics.Single().Message)
                 End If
             End Using
+        End Sub
+
+        <Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
+        Public Sub TestGenericName()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+using System;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class MyClass
+    {   
+        private Nullable<int> myVar = 5;
+        void Method()
+        {
+
+        }
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New CSharpGenericNameAnalyzer)
+        End Sub
+
+        Private Sub TestGenericNameCore(test As XElement, expectedMessage As String, expectedId As String, ParamArray analyzers As DiagnosticAnalyzer())
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzerReference = New AnalyzerImageReference(analyzers.ToImmutableArray())
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
+                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(1, diagnostics.Count())
+
+                Dim diagnostic = diagnostics.Single(Function(d) d.Id = expectedId)
+                Assert.Equal(expectedMessage, diagnostic.Message)
+            End Using
+        End Sub
+
+        <Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")>
+        Public Sub TestAnalyzerWithNoActions()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+using System;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class MyClass
+    {   
+        private Nullable<int> myVar = 5;
+        void Method()
+        {
+
+        }
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            ' Ensure that adding a dummy analyzer with no actions doesn't bring down entire analysis.
+            ' See https//github.com/dotnet/roslyn/issues/2980 for details.
+            TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New AnalyzerWithNoActions, New CSharpGenericNameAnalyzer)
         End Sub
     End Class
 End Namespace

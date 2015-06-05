@@ -5,20 +5,27 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class LocalRewriter
+        Friend Function AddConditionSequencePoint(condition As BoundExpression, containingCatchWithFilter As BoundCatchBlock) As BoundExpression
+            Debug.Assert(containingCatchWithFilter.ExceptionFilterOpt.Syntax.Parent.IsKind(SyntaxKind.CatchFilterClause))
+            Dim local As LocalSymbol = Nothing
+            Return AddConditionSequencePoint(condition, containingCatchWithFilter.ExceptionFilterOpt.Syntax.Parent, local, wasGenerated:=containingCatchWithFilter.WasCompilerGenerated, shareLocal:=False)
+        End Function
+
         Friend Function AddConditionSequencePoint(condition As BoundExpression, containingStatement As BoundStatement) As BoundExpression
             Dim local As LocalSymbol = Nothing
-            Return AddConditionSequencePoint(condition, containingStatement, local, shareLocal:=False)
+            Return AddConditionSequencePoint(condition, containingStatement.Syntax, local, wasGenerated:=containingStatement.WasCompilerGenerated, shareLocal:=False)
         End Function
 
         Friend Function AddConditionSequencePoint(condition As BoundExpression, containingStatement As BoundStatement, ByRef lazyConditionalBranchLocal As LocalSymbol) As BoundExpression
-            Return AddConditionSequencePoint(condition, containingStatement, lazyConditionalBranchLocal, shareLocal:=True)
+            Return AddConditionSequencePoint(condition, containingStatement.Syntax, lazyConditionalBranchLocal, wasGenerated:=containingStatement.WasCompilerGenerated, shareLocal:=True)
         End Function
 
         Private Function AddConditionSequencePoint(condition As BoundExpression,
-                                                   containingStatement As BoundStatement,
+                                                   synthesizedVariableSyntax As SyntaxNode,
                                                    ByRef lazyConditionalBranchLocal As LocalSymbol,
+                                                   wasGenerated As Boolean,
                                                    shareLocal As Boolean) As BoundExpression
-            If condition Is Nothing OrElse Not _compilationState.Compilation.Options.EnableEditAndContinue OrElse containingStatement.WasCompilerGenerated Then
+            If condition Is Nothing OrElse Not _compilationState.Compilation.Options.EnableEditAndContinue OrElse wasGenerated Then
                 Return condition
             End If
 
@@ -27,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The local has to be associated with the syntax of the statement containing the condition since 
             ' EnC source mapping only operates on statements.
             If lazyConditionalBranchLocal Is Nothing Then
-                lazyConditionalBranchLocal = New SynthesizedLocal(_currentMethodOrLambda, condition.Type, SynthesizedLocalKind.ConditionalBranchDiscriminator, containingStatement.Syntax)
+                lazyConditionalBranchLocal = New SynthesizedLocal(_currentMethodOrLambda, condition.Type, SynthesizedLocalKind.ConditionalBranchDiscriminator, synthesizedVariableSyntax)
             Else
                 Debug.Assert(lazyConditionalBranchLocal.SynthesizedKind = SynthesizedLocalKind.ConditionalBranchDiscriminator)
                 Debug.Assert(lazyConditionalBranchLocal.Type Is condition.Type)

@@ -6881,6 +6881,16 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.Delete, "public T this[int i]", CSharpFeaturesResources.IndexerSetter));
         }
 
+        [Fact, WorkItem(1174850)]
+        public void Indexer_Insert()
+        {
+            var src1 = "struct C { }";
+            var src2 = "struct C { public int this[int x, int y] { get { return x + y; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
         [WorkItem(1120407)]
         [Fact]
         public void ConstField_Update()

@@ -291,7 +291,7 @@ class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""-118"" />
           <slot kind=""0"" offset=""-54"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""-147"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -319,14 +319,14 @@ class C
         <forward declaringType=""C"" methodName="".cctor"" />
         <encLocalSlotMap>
           <slot kind=""30"" offset=""-45"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" document=""0"" />
+        <entry offset=""0xd"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""0"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1e"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x1a"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
       </scope>
     </method>
   </methods>
@@ -458,6 +458,241 @@ class C2
         <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""51"" document=""0"" />
         <entry offset=""0x2a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""39"" document=""0"" />
       </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        #endregion
+
+        #region ReturnStatement
+
+        [Fact]
+        public void Return_Method1()
+        {
+            var source = @"
+class Program
+{
+    static int Main()
+    {
+        return 1;
+    }
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            // In order to place a breakpoint on the closing brace we need to save the return expression value to 
+            // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+ -IL_0005:  ldloc.0
+  IL_0006:  ret
+}", sequencePoints: "Program.Main");
+
+            v.VerifyPdb("Program.Main", @"
+<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x5"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void Return_Property1()
+        {
+            var source = @"
+class C
+{
+    static int P
+    {
+        get { return 1; }
+    }
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            // In order to place a breakpoint on the closing brace we need to save the return expression value to 
+            // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
+            v.VerifyIL("C.P.get", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+ -IL_0005:  ldloc.0
+  IL_0006:  ret
+}", sequencePoints: "C.get_P");
+
+            v.VerifyPdb("C.get_P", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""get_P"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""15"" endLine=""6"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x5"" startLine=""6"" startColumn=""25"" endLine=""6"" endColumn=""26"" document=""0"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void Return_Void1()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        return;
+    }
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  0
+ -IL_0000:  nop
+ -IL_0001:  br.s       IL_0003
+ -IL_0003:  ret
+}", sequencePoints: "Program.Main");
+        }
+
+        [Fact]
+        public void Return_ExpressionBodied1()
+        {
+            var source = @"
+class Program
+{
+    static int Main() => 1;
+}
+";
+
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+ -IL_0000:  ldc.i4.1
+  IL_0001:  ret
+}", sequencePoints: "Program.Main");
+        }
+
+        [Fact]
+        public void Return_FromExceptionHandler1()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static int Main() 
+    {
+        try
+        {
+            Console.WriteLine();
+            return 1;
+        }
+        catch (Exception)
+        {
+            return 2;
+        }
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Main", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (int V_0)
+ -IL_0000:  nop
+  .try
+  {
+   -IL_0001:  nop
+   -IL_0002:  call       ""void System.Console.WriteLine()""
+    IL_0007:  nop
+   -IL_0008:  ldc.i4.1
+    IL_0009:  stloc.0
+    IL_000a:  leave.s    IL_0012
+  }
+  catch System.Exception
+  {
+   -IL_000c:  pop
+   -IL_000d:  nop
+   -IL_000e:  ldc.i4.2
+    IL_000f:  stloc.0
+    IL_0010:  leave.s    IL_0012
+  }
+ -IL_0012:  ldloc.0
+  IL_0013:  ret
+}", sequencePoints: "Program.Main");
+
+            v.VerifyPdb("Program.Main", @"
+<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""33"" document=""0"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""22"" document=""0"" />
+        <entry offset=""0xc"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""26"" document=""0"" />
+        <entry offset=""0xd"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xe"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""22"" document=""0"" />
+        <entry offset=""0x12"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x14"">
+        <namespace name=""System"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
@@ -1517,7 +1752,7 @@ public class SeqPointForWhile
           <slot kind=""0"" offset=""29"" />
           <slot kind=""0"" offset=""56"" />
           <slot kind=""0"" offset=""126"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2122,7 +2357,7 @@ public class SeqPointAfterReturn
           <slot kind=""1"" offset=""138"" />
           <slot kind=""1"" offset=""238"" />
           <slot kind=""1"" offset=""330"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2184,7 +2419,7 @@ public class SeqPointAfterReturn
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""1"" offset=""42"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2257,7 +2492,7 @@ class Test
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""147"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2288,53 +2523,151 @@ class Test
 </symbols>");
         }
 
-        [Fact]
-        public void ExceptionHandling_Filter1()
+        [Fact, WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
+        public void ExceptionHandling_Filter_Debug1()
         {
             var source = @"
+using System;
+using System.IO;
+
 class Test
 {
+    static string filter(Exception e)
+    {
+        return null;
+    }
+
     static void Main()
     {
         try
         {
-            throw new System.Exception();
+            throw new InvalidOperationException();
         }
-        catch (System.Exception e) when (e.Message != null)
-        { 
-            System.Console.WriteLine();
+        catch (IOException e) when (filter(e) != null)
+        {
+            Console.WriteLine();
+        }
+        catch (Exception e) when (filter(e) != null)
+        {
+            Console.WriteLine();
         }
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("Test.Main", @"
+            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
+
+            v.VerifyIL("Test.Main", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  2
+  .locals init (System.IO.IOException V_0, //e
+                bool V_1,
+                System.Exception V_2, //e
+                bool V_3)
+ -IL_0000:  nop
+  .try
+  {
+   -IL_0001:  nop
+   -IL_0002:  newobj     ""System.InvalidOperationException..ctor()""
+    IL_0007:  throw
+  }
+  filter
+  {
+   ~IL_0008:  isinst     ""System.IO.IOException""
+    IL_000d:  dup
+    IL_000e:  brtrue.s   IL_0014
+    IL_0010:  pop
+    IL_0011:  ldc.i4.0
+    IL_0012:  br.s       IL_0023
+    IL_0014:  stloc.0
+   -IL_0015:  ldloc.0
+    IL_0016:  call       ""string Test.filter(System.Exception)""
+    IL_001b:  ldnull
+    IL_001c:  cgt.un
+    IL_001e:  stloc.1
+   ~IL_001f:  ldloc.1
+    IL_0020:  ldc.i4.0
+    IL_0021:  cgt.un
+    IL_0023:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_0025:  pop
+   -IL_0026:  nop
+   -IL_0027:  call       ""void System.Console.WriteLine()""
+    IL_002c:  nop
+   -IL_002d:  nop
+    IL_002e:  leave.s    IL_0058
+  }
+  filter
+  {
+   ~IL_0030:  isinst     ""System.Exception""
+    IL_0035:  dup
+    IL_0036:  brtrue.s   IL_003c
+    IL_0038:  pop
+    IL_0039:  ldc.i4.0
+    IL_003a:  br.s       IL_004b
+    IL_003c:  stloc.2
+   -IL_003d:  ldloc.2
+    IL_003e:  call       ""string Test.filter(System.Exception)""
+    IL_0043:  ldnull
+    IL_0044:  cgt.un
+    IL_0046:  stloc.3
+   ~IL_0047:  ldloc.3
+    IL_0048:  ldc.i4.0
+    IL_0049:  cgt.un
+    IL_004b:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_004d:  pop
+   -IL_004e:  nop
+   -IL_004f:  call       ""void System.Console.WriteLine()""
+    IL_0054:  nop
+   -IL_0055:  nop
+    IL_0056:  leave.s    IL_0058
+  }
+ -IL_0058:  ret
+}
+", sequencePoints: "Test.Main");
+
+            v.VerifyPdb("Test.Main", @"
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
+        <forward declaringType=""Test"" methodName=""filter"" parameterNames=""e"" />
         <encLocalSlotMap>
-          <slot kind=""0"" offset=""95"" />
+          <slot kind=""0"" offset=""104"" />
+          <slot kind=""1"" offset=""120"" />
+          <slot kind=""0"" offset=""216"" />
+          <slot kind=""1"" offset=""230"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""42"" document=""0"" />
+        <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""51"" document=""0"" />
         <entry offset=""0x8"" hidden=""true"" document=""0"" />
-        <entry offset=""0x15"" startLine=""10"" startColumn=""36"" endLine=""10"" endColumn=""60"" document=""0"" />
-        <entry offset=""0x23"" hidden=""true"" document=""0"" />
-        <entry offset=""0x24"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x25"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""40"" document=""0"" />
-        <entry offset=""0x2b"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2e"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x15"" startLine=""18"" startColumn=""31"" endLine=""18"" endColumn=""55"" document=""0"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""0"" />
+        <entry offset=""0x25"" hidden=""true"" document=""0"" />
+        <entry offset=""0x26"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x27"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""33"" document=""0"" />
+        <entry offset=""0x2d"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x30"" hidden=""true"" document=""0"" />
+        <entry offset=""0x3d"" startLine=""22"" startColumn=""29"" endLine=""22"" endColumn=""53"" document=""0"" />
+        <entry offset=""0x47"" hidden=""true"" document=""0"" />
+        <entry offset=""0x4d"" hidden=""true"" document=""0"" />
+        <entry offset=""0x4e"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x4f"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""33"" document=""0"" />
+        <entry offset=""0x55"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x58"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2f"">
-        <scope startOffset=""0x8"" endOffset=""0x2e"">
-          <local name=""e"" il_index=""0"" il_start=""0x8"" il_end=""0x2e"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x59"">
+        <scope startOffset=""0x8"" endOffset=""0x30"">
+          <local name=""e"" il_index=""0"" il_start=""0x8"" il_end=""0x30"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x30"" endOffset=""0x58"">
+          <local name=""e"" il_index=""2"" il_start=""0x30"" il_end=""0x58"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -2342,8 +2675,8 @@ class Test
 </symbols>");
         }
 
-        [Fact]
-        public void ExceptionHandling_Filter2()
+        [Fact, WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
+        public void ExceptionHandling_Filter_Debug2()
         {
             var source = @"
 class Test
@@ -2366,8 +2699,224 @@ class Test
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("Test.Main", @"
+            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
+            v.VerifyIL("Test.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (bool V_0)
+ -IL_0000:  nop
+  .try
+  {
+   -IL_0001:  nop
+   -IL_0002:  newobj     ""System.Exception..ctor()""
+    IL_0007:  throw
+  }
+  filter
+  {
+   ~IL_0008:  isinst     ""object""
+    IL_000d:  dup
+    IL_000e:  brtrue.s   IL_0014
+    IL_0010:  pop
+    IL_0011:  ldc.i4.0
+    IL_0012:  br.s       IL_001f
+    IL_0014:  pop
+   -IL_0015:  call       ""bool Test.F()""
+    IL_001a:  stloc.0
+   ~IL_001b:  ldloc.0
+    IL_001c:  ldc.i4.0
+    IL_001d:  cgt.un
+    IL_001f:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_0021:  pop
+   -IL_0022:  nop
+   -IL_0023:  call       ""void System.Console.WriteLine()""
+    IL_0028:  nop
+   -IL_0029:  nop
+    IL_002a:  leave.s    IL_002c
+  }
+ -IL_002c:  ret
+}
+", sequencePoints: "Test.Main");
+
+            v.VerifyPdb("Test.Main", @"
+<symbols>
+  <methods>
+    <method containingType=""Test"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""1"" offset=""95"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""42"" document=""0"" />
+        <entry offset=""0x8"" hidden=""true"" document=""0"" />
+        <entry offset=""0x15"" startLine=""10"" startColumn=""15"" endLine=""10"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x21"" hidden=""true"" document=""0"" />
+        <entry offset=""0x22"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x23"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""40"" document=""0"" />
+        <entry offset=""0x29"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2c"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact, WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
+        public void ExceptionHandling_Filter_Debug3()
+        {
+            var source = @"
+class Test
+{
+    static bool a = true;
+
+    static void Main()
+    {
+        try
+        {
+            throw new System.Exception();
+        }
+        catch when (a)
+        { 
+            System.Console.WriteLine();
+        }
+    }
+}
+";
+            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll));
+            v.VerifyIL("Test.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (bool V_0)
+ -IL_0000:  nop
+  .try
+  {
+   -IL_0001:  nop
+   -IL_0002:  newobj     ""System.Exception..ctor()""
+    IL_0007:  throw
+  }
+  filter
+  {
+   ~IL_0008:  isinst     ""object""
+    IL_000d:  dup
+    IL_000e:  brtrue.s   IL_0014
+    IL_0010:  pop
+    IL_0011:  ldc.i4.0
+    IL_0012:  br.s       IL_001f
+    IL_0014:  pop
+   -IL_0015:  ldsfld     ""bool Test.a""
+    IL_001a:  stloc.0
+   ~IL_001b:  ldloc.0
+    IL_001c:  ldc.i4.0
+    IL_001d:  cgt.un
+    IL_001f:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_0021:  pop
+   -IL_0022:  nop
+   -IL_0023:  call       ""void System.Console.WriteLine()""
+    IL_0028:  nop
+   -IL_0029:  nop
+    IL_002a:  leave.s    IL_002c
+  }
+ -IL_002c:  ret
+}
+", sequencePoints: "Test.Main");
+
+            v.VerifyPdb("Test.Main", @"
+<symbols>
+  <methods>
+    <method containingType=""Test"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""1"" offset=""95"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" document=""0"" />
+        <entry offset=""0x8"" hidden=""true"" document=""0"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x21"" hidden=""true"" document=""0"" />
+        <entry offset=""0x22"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x23"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" document=""0"" />
+        <entry offset=""0x29"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2c"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact, WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
+        public void ExceptionHandling_Filter_Release3()
+        {
+            var source = @"
+class Test
+{
+    static bool a = true;
+
+    static void Main()
+    {
+        try
+        {
+            throw new System.Exception();
+        }
+        catch when (a)
+        { 
+            System.Console.WriteLine();
+        }
+    }
+}
+";
+            var v = CompileAndVerify(CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll));
+            v.VerifyIL("Test.Main", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .try
+  {
+   -IL_0000:  newobj     ""System.Exception..ctor()""
+    IL_0005:  throw
+  }
+  filter
+  {
+   ~IL_0006:  isinst     ""object""
+    IL_000b:  dup
+    IL_000c:  brtrue.s   IL_0012
+    IL_000e:  pop
+    IL_000f:  ldc.i4.0
+    IL_0010:  br.s       IL_001b
+    IL_0012:  pop
+   -IL_0013:  ldsfld     ""bool Test.a""
+    IL_0018:  ldc.i4.0
+    IL_0019:  cgt.un
+    IL_001b:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_001d:  pop
+   -IL_001e:  call       ""void System.Console.WriteLine()""
+   -IL_0023:  leave.s    IL_0025
+  }
+ -IL_0025:  ret
+}
+", sequencePoints: "Test.Main");
+
+            v.VerifyPdb("Test.Main", @"
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"">
@@ -2377,16 +2926,13 @@ class Test
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""42"" document=""0"" />
-        <entry offset=""0x8"" hidden=""true"" document=""0"" />
-        <entry offset=""0x15"" startLine=""10"" startColumn=""15"" endLine=""10"" endColumn=""25"" document=""0"" />
-        <entry offset=""0x1f"" hidden=""true"" document=""0"" />
-        <entry offset=""0x20"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x21"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""40"" document=""0"" />
-        <entry offset=""0x27"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" document=""0"" />
+        <entry offset=""0x6"" hidden=""true"" document=""0"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""0"" />
+        <entry offset=""0x1e"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" document=""0"" />
+        <entry offset=""0x23"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x25"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
       </sequencePoints>
     </method>
   </methods>

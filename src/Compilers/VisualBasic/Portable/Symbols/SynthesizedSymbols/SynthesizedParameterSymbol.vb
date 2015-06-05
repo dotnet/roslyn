@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function CreateSetAccessorValueParameter(setter As MethodSymbol, propertySymbol As PropertySymbol, parameterName As String) As ParameterSymbol
             Dim valueParameterType As TypeSymbol = propertySymbol.Type
-            Dim valueParemeterCustomModifiers = propertySymbol.TypeCustomModifiers
+            Dim valueParameterCustomModifiers = propertySymbol.TypeCustomModifiers
 
             Dim overriddenMethod = setter.OverriddenMethod
             If overriddenMethod IsNot Nothing Then
@@ -283,11 +283,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If overriddenParameter.Type.IsSameTypeIgnoringCustomModifiers(valueParameterType) Then
                     valueParameterType = overriddenParameter.Type
-                    valueParemeterCustomModifiers = overriddenParameter.CustomModifiers
+                    valueParameterCustomModifiers = overriddenParameter.CustomModifiers
                 End If
             End If
 
-            If valueParemeterCustomModifiers.IsDefaultOrEmpty Then
+            If valueParameterCustomModifiers.IsDefaultOrEmpty Then
                 Return New SynthesizedParameterSimpleSymbol(setter,
                                                             valueParameterType,
                                                             propertySymbol.ParameterCount,
@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                      propertySymbol.ParameterCount,
                                                                      False,
                                                                      parameterName,
-                                                                     valueParemeterCustomModifiers,
+                                                                     valueParameterCustomModifiers,
                                                                      False)
         End Function
 

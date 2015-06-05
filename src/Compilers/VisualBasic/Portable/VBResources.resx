@@ -5062,7 +5062,8 @@
                                   diagnostics.
 /errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
                                   diagnostics.
-
+/reportanalyzer                   Report additional analyzer information, such as
+                                  execution time.
                                   - LANGUAGE -
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
@@ -5249,7 +5250,7 @@
   <data name="HDN_UnusedImportStatement_Title" xml:space="preserve">
     <value>Unused import statement</value>
   </data>
-  <data name="ERR_ContantStringTooLong" xml:space="preserve">
+  <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_LanguageVersion" xml:space="preserve">

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 moduleBeingBuilt,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: true,
+                emittingPdb: true,
                 diagnostics: diagnostics,
                 filterOpt: changes.RequiresCompilation,
                 cancellationToken: cancellationToken))

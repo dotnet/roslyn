@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
     {
         private static class CoreNames
         {
-            internal const string System_Diagnotsics_FileVersionInfo = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Diagnostics_FileVersionInfo = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem = "System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem_Primitives = "System.IO.FileSystem.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Runtime = "System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
@@ -329,7 +329,7 @@ namespace Roslyn.Utilities
             internal static readonly string DesktopName = $"{TypeName}, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
 
             internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
-                contractName: $"{TypeName}, {CoreNames.System_Diagnotsics_FileVersionInfo}",
+                contractName: $"{TypeName}, {CoreNames.System_Diagnostics_FileVersionInfo}",
                 desktopName: DesktopName);
 
             internal static readonly Func<string, object> GetVersionInfo = Type

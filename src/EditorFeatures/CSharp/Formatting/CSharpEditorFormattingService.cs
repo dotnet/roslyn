@@ -58,9 +58,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
-            var optionsService = document.Project.Solution.Workspace.Options;
-            if ((ch == '}' && !optionsService.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, document.Project.Language)) ||
-                (ch == ';' && !optionsService.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon, document.Project.Language)))
+            var options = document.Project.Solution.Workspace.Options;
+            var smartIndentOn = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language) == FormattingOptions.IndentStyle.Smart;
+
+            if ((ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, document.Project.Language) && !smartIndentOn) ||
+                (ch == ';' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnSemicolon, document.Project.Language)))
+            {
+                return false;
+            }
+
+            // don't auto format after these keys if smart indenting is not on.
+            if  ((ch == '#' || ch == 'n') && !smartIndentOn)
             {
                 return false;
             }
@@ -174,11 +182,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            // if formatting range fails, do format token one at least
-            var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
-            if (changes.Count > 0)
+            var options = document.Project.Solution.Workspace.Options;
+
+            // dont attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
+            bool smartIndentOnly =
+                token.IsKind(SyntaxKind.CloseBraceToken) &&
+                !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, document.Project.Language);
+
+            if (!smartIndentOnly)
             {
-                return changes;
+                // if formatting range fails, do format token one at least
+                var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
+                if (changes.Count > 0)
+                {
+                    return changes;
+                }
             }
 
             // if we can't, do normal smart indentation

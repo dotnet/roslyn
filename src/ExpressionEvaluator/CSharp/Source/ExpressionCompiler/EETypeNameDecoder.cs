@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
         {
-            var assemblies = this.GetAssemblies();
             // Find assembly matching identity.
-            int index = assemblies.IndexOf((assembly, id) => id.Equals(assembly.Identity), identity);
+            int index = this.Module.GetReferencedAssemblies().IndexOf(identity);
             if (index >= 0)
             {
                 return index;
@@ -31,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 // Find placeholder Windows.winmd assembly (created
                 // in MetadataUtilities.MakeAssemblyReferences).
+                var assemblies = this.Module.GetReferencedAssemblySymbols();
                 index = assemblies.IndexOf((assembly, unused) => assembly.Identity.IsWindowsRuntime(), (object)null);
                 if (index >= 0)
                 {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName)
         {
-            var assembly = this.GetAssemblies()[referencedAssemblyIndex];
+            var assembly = this.Module.GetReferencedAssemblySymbols()[referencedAssemblyIndex];
             return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
         }
 
@@ -67,14 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return this.moduleSymbol.LookupTopLevelMetadataType(ref emittedName, out isNoPiaLocalType);
         }
 
-        private ImmutableArray<AssemblySymbol> GetAssemblies()
-        {
-            return _compilation.Assembly.Modules.Single().GetReferencedAssemblySymbols();
-        }
-
         private static AssemblyIdentity GetComponentAssemblyIdentity(ModuleSymbol module)
         {
             return ((PEModuleSymbol)module).Module.ReadAssemblyIdentityOrThrow();
         }
+
+        private ModuleSymbol Module => _compilation.Assembly.Modules.Single();
     }
 }

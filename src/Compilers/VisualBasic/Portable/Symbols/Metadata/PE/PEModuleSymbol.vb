@@ -443,16 +443,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Iterator Function GetForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
-            For Each forwareder As KeyValuePair(Of String, AssemblyReferenceHandle) In Me.Module.GetForwardedTypes()
+            For Each forwarder As KeyValuePair(Of String, AssemblyReferenceHandle) In Me.Module.GetForwardedTypes()
                 Dim assembly As AssemblySymbol
 
                 Try
-                    assembly = Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(forwareder.Value))
+                    assembly = Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value))
                 Catch ex As BadImageFormatException
                     Continue For
                 End Try
 
-                Dim name = MetadataTypeName.FromFullName(forwareder.Key)
+                Dim name = MetadataTypeName.FromFullName(forwarder.Key)
                 Yield assembly.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
             Next
         End Function

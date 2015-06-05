@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
+using Microsoft.AnalyzerPowerPack.Usage;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
+namespace Microsoft.AnalyzerPowerPack.CSharp.Usage
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CA2237 CodeFix provider"), Shared]
     public class CSharpMarkAllNonSerializableFieldsFixer : MarkAllNonSerializableFieldsFixer

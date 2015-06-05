@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -60,19 +62,37 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             Contract.ThrowIfNull(items);
             Contract.ThrowIfTrue(items.IsEmpty());
-            Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value > items.Count);
+            Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Count);
 
             if (argumentIndex < 0)
             {
-                throw new ArgumentException($"{nameof(argumentIndex)} < 0", nameof(argumentIndex));
+                throw new ArgumentException($"{nameof(argumentIndex)} < 0. {argumentIndex} < 0", nameof(argumentIndex));
             }
 
             if (argumentCount < argumentIndex)
             {
-                throw new ArgumentException($"{nameof(argumentCount)} < {nameof(argumentIndex)}", nameof(argumentIndex));
+                throw new ArgumentException($"{nameof(argumentCount)} < {nameof(argumentIndex)}. {argumentCount} < {argumentIndex}", nameof(argumentIndex));
             }
 
-            this.Items = items;
+            // Adjust the `selectedItem` index if duplicates are able to be removed.
+            var distinctItems = items.Distinct().ToList();
+            if (selectedItem.HasValue && items.Count != distinctItems.Count)
+            {
+                // `selectedItem` index has already been determined to be valid, it now needs to be adjusted to point
+                // to the equivalent item in the reduced list to account for duplicates being removed
+                // E.g.,
+                //   items = {A, A, B, B, C, D}
+                //   selectedItem = 4 (index for item C)
+                // ergo
+                //   distinctItems = {A, B, C, D}
+                //   actualItem = C
+                //   selectedItem = 2 (index for item C)
+                var actualItem = items[selectedItem.Value];
+                selectedItem = distinctItems.IndexOf(actualItem);
+                Debug.Assert(selectedItem.Value >= 0, "actual item was not part of the final list");
+            }
+
+            this.Items = distinctItems;
             this.ApplicableSpan = applicableSpan;
             this.ArgumentIndex = argumentIndex;
             this.ArgumentCount = argumentCount;

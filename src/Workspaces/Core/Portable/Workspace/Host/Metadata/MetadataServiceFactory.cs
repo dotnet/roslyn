@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -17,13 +21,14 @@ namespace Microsoft.CodeAnalysis.Host
 
         private sealed class Service : IMetadataService
         {
-            private readonly IDocumentationProviderService _documentationService;
             private readonly Provider _provider;
+            private readonly MetadataReferenceCache _metadataCache;
 
             public Service(IDocumentationProviderService documentationService)
             {
-                _documentationService = documentationService;
                 _provider = new Provider(this);
+                _metadataCache = new MetadataReferenceCache((path, properties) => 
+                    MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
             }
 
             public MetadataFileReferenceProvider GetProvider()
@@ -33,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return MetadataReference.CreateFromFile(resolvedPath, properties, _documentationService.GetDocumentationProvider(resolvedPath));
+                return (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
             }
         }
 

@@ -6,6 +6,7 @@ using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprieta
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
@@ -77,6 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
  
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test);
+        }
+
+        [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
+        [Fact]
+        public void TestBinary()
+        {
+            // use a fixed seed so the test is reproducible
+            var random = new System.Random(12345);
+            const int n = 40 * 1000 * 1000; // 40 million "character"s
+            var builder = new StringBuilder(n+10);
+            for (int i = 0; i < n; i++)
+            {
+                builder.Append((char)random.Next(0xffff));
+            }
+            var source = builder.ToString();
+            var tree = CSharpSyntaxTree.ParseText(source);
         }
     }
 }

@@ -866,6 +866,43 @@ Console.WriteLine(1)/*4*/;
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void MatchExceptionHandlers()
+        {
+            var src1 = @"
+try { throw new InvalidOperationException(1); }
+catch (IOException e) when (filter(e)) { Console.WriteLine(2); }
+catch (Exception e) when (filter(e)) { Console.WriteLine(3); }
+";
+            var src2 = @"
+try { throw new InvalidOperationException(10); }
+catch (IOException e) when (filter(e)) { Console.WriteLine(20); }
+catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "try { throw new InvalidOperationException(1); } catch (IOException e) when (filter(e)) { Console.WriteLine(2); } catch (Exception e) when (filter(e)) { Console.WriteLine(3); }", "try { throw new InvalidOperationException(10); } catch (IOException e) when (filter(e)) { Console.WriteLine(20); } catch (Exception e) when (filter(e)) { Console.WriteLine(30); }" },
+                { "{ throw new InvalidOperationException(1); }", "{ throw new InvalidOperationException(10); }" },
+                { "throw new InvalidOperationException(1);", "throw new InvalidOperationException(10);" },
+                { "catch (IOException e) when (filter(e)) { Console.WriteLine(2); }", "catch (IOException e) when (filter(e)) { Console.WriteLine(20); }" },
+                { "(IOException e)", "(IOException e)" },
+                { "when (filter(e))", "when (filter(e))" },
+                { "{ Console.WriteLine(2); }", "{ Console.WriteLine(20); }" },
+                { "Console.WriteLine(2);", "Console.WriteLine(20);" },
+                { "catch (Exception e) when (filter(e)) { Console.WriteLine(3); }", "catch (Exception e) when (filter(e)) { Console.WriteLine(30); }" },
+                { "(Exception e)", "(Exception e)" },
+                { "when (filter(e))", "when (filter(e))" },
+                { "{ Console.WriteLine(3); }", "{ Console.WriteLine(30); }" },
+                { "Console.WriteLine(3);", "Console.WriteLine(30);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region Variable Declaration
@@ -5436,6 +5473,72 @@ class C
         }
 
         [Fact]
+        public void Queries_Select_Reduced1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a + 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_Select_Reduced2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a + 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         public void Queries_FromSelect_Delete()
         {
             var src1 = "F(from a in b from c in d select a + c);";
@@ -5497,6 +5600,132 @@ class C
 
             edits.VerifyEdits(
                 "Reorder [a.c ascending]@46 -> @30");
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1.0 by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.GroupByClause));
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1 by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced3()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1.0 by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.GroupByClause));
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced4()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1 by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -5803,8 +6032,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", CSharpFeaturesResources.SelectClause));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]

@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return complexifiedTarget;
         }
 
-        private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document)
+        private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document, IEnumerable<ISymbol> newReferencedSymbols)
         {
             var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
-            var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode);
+            var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode, newReferencedSymbols);
             return isConflict;
         }
 

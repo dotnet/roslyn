@@ -917,6 +917,68 @@ End Class
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
 
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_NormalProperty_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Property $$P As Integer
+        Get
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Property P As Integer
+        Get
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_AutoProperty_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Property $$P As Integer
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;Serializable()&gt;
+    Property P As Integer
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
 #End Region
 
 #Region "AddParameter tests"

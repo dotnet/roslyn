@@ -3,7 +3,7 @@
 using Microsoft.VisualStudio.Shell;
 
 [assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.Build.Tasks.Roslyn",
+    AssemblyName = "Microsoft.Build.Tasks.CodeAnalysis",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
     OldVersionUpperBound = Constants.OldVersionUpperBound,
     NewVersion = Constants.NewVersion,

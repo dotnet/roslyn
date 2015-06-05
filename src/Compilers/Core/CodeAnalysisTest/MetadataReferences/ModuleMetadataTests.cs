@@ -130,5 +130,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ObjectDisposedException>(() => copy1.Module);
             Assert.Throws<ObjectDisposedException>(() => copy2.Module);
         }
+
+        [Fact, WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
+        public void EmptyStream()
+        {
+            ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.Default);
+            Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata));
+            Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata | PEStreamOptions.PrefetchEntireImage));
+        }
     }
 }

@@ -97,7 +97,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' this should not be the last store, why would be created such a variable after all???
                 Debug.Assert(locInfo.localDefs.Any(Function(d) _nodeCounter = d.Start AndAlso _nodeCounter <= d.End))
-                Debug.Assert(Not IsLastAccess(locInfo, _nodeCounter))
+
+                If IsLastAccess(locInfo, _nodeCounter) Then
+                    ' assigned local is not used later => just emit the Right 
+                    Return right
+                End If
 
                 ' assigned local used later - keep assignment. 
                 ' codegen will keep value on stack when sees assignment "stackLocal = expr"

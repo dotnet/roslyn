@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Gets the name lookup options for simple generic or non-generic name.
-        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifer)
+        private static LookupOptions GetSimpleNameLookupOptions(NameSyntax node, bool isVerbatimIdentifier)
         {
             if (SyntaxFacts.IsAttributeName(node))
             {
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  SPEC:   such that its right-most identifier is a verbatim identifier (§2.4.2), then only
                 //  SPEC:   an attribute without a suffix is matched, thus enabling such an ambiguity to be resolved.
 
-                return isVerbatimIdentifer ? LookupOptions.VerbatimNameAttributeTypeOnly : LookupOptions.AttributeTypeOnly;
+                return isVerbatimIdentifier ? LookupOptions.VerbatimNameAttributeTypeOnly : LookupOptions.AttributeTypeOnly;
             }
             else
             {
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArguments = node.TypeArgumentList.Arguments;
 
             bool isUnboundTypeExpr = node.IsUnboundGenericName;
-            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifer: false);
+            LookupOptions options = GetSimpleNameLookupOptions(node, isVerbatimIdentifier: false);
 
             NamedTypeSymbol unconstructedType = LookupGenericTypeName(
                 diagnostics, basesBeingResolved, qualifierOpt, node, plainName, node.Arity, options);
@@ -1288,6 +1288,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
+                                Debug.Assert(!best.IsFromCorLibrary);
+
                                 // ErrorCode.ERR_SameFullNameAggAgg: The type '{1}' exists in both '{0}' and '{2}'
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameAggAgg, originalSymbols,
                                     new object[] { first.ContainingAssembly, first, second.ContainingAssembly });
@@ -1300,6 +1302,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     Debug.Assert(best.IsFromCompilation);
                                     reportError = false;
+                                }
+                                else if (this.Flags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes) &&
+                                    secondBest.IsFromCorLibrary)
+                                {
+                                    // Ignore duplicate types from the cor library if necessary.
+                                    // (Specifically the framework assemblies loaded at runtime in
+                                    // the EE may contain types also available from mscorlib.dll.)
+                                    return first;
                                 }
                             }
                         }
@@ -1559,22 +1569,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol.ContainingAssembly ?? ((NamespaceSymbol)symbol).ConstituentNamespaces.First().ContainingAssembly;
         }
 
+        [Flags]
+        private enum BestSymbolLocation
+        {
+            None,
+            FromSourceModule,
+            FromAddedModule,
+            FromReferencedAssembly,
+            FromCorLibrary,
+        }
+
+        [DebuggerDisplay("Location = {_location}, Index = {_index}")]
         private struct BestSymbolInfo
         {
-            [Flags]
-            private enum BestSymbolFlags
-            {
-                None = 0x00000000,
-                IndexMask = 0x0FFFFFFF,
-                LocationMask = 0x70000000,
-
-                // The following flags are mutually exclusive.
-                FromSourceModule = 0x10000000,
-                FromAddedModule = 0x20000000,
-                FromReferencedAssembly = 0x40000000,
-            }
-
-            private readonly BestSymbolFlags _flags;
+            private readonly BestSymbolLocation _location;
+            private readonly int _index;
 
             /// <summary>
             /// Returns -1 if None.
@@ -1583,12 +1592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    if (IsNone)
-                    {
-                        return -1;
-                    }
-
-                    return (int)(_flags & BestSymbolFlags.IndexMask);
+                    return IsNone ? -1 : _index;
                 }
             }
 
@@ -1596,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (_flags & BestSymbolFlags.FromSourceModule) != 0;
+                    return _location == BestSymbolLocation.FromSourceModule;
                 }
             }
 
@@ -1604,7 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (_flags & BestSymbolFlags.FromAddedModule) != 0;
+                    return _location == BestSymbolLocation.FromAddedModule;
                 }
             }
 
@@ -1612,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (_flags & (BestSymbolFlags.FromSourceModule | BestSymbolFlags.FromAddedModule)) != 0;
+                    return (_location == BestSymbolLocation.FromSourceModule) || (_location == BestSymbolLocation.FromAddedModule);
                 }
             }
 
@@ -1620,39 +1624,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return (_flags & BestSymbolFlags.LocationMask) == 0;
+                    return _location == BestSymbolLocation.None;
                 }
             }
 
-            public bool IsFromReferencedAssembly
+            public bool IsFromCorLibrary
             {
                 get
                 {
-                    return (_flags & BestSymbolFlags.FromReferencedAssembly) != 0;
+                    return _location == BestSymbolLocation.FromCorLibrary;
                 }
             }
 
-            private BestSymbolInfo(BestSymbolFlags flags)
+            public BestSymbolInfo(BestSymbolLocation location, int index)
             {
-                _flags = flags;
-            }
-
-            public static BestSymbolInfo FromSourceModule(int index)
-            {
-                Debug.Assert((index & (int)(~BestSymbolFlags.IndexMask)) == 0);
-                return new BestSymbolInfo(BestSymbolFlags.FromSourceModule | (BestSymbolFlags)index);
-            }
-
-            public static BestSymbolInfo FromAddedModule(int index)
-            {
-                Debug.Assert((index & (int)(~BestSymbolFlags.IndexMask)) == 0);
-                return new BestSymbolInfo(BestSymbolFlags.FromAddedModule | (BestSymbolFlags)index);
-            }
-
-            public static BestSymbolInfo FromReferencedAssembly(int index)
-            {
-                Debug.Assert((index & (int)(~BestSymbolFlags.IndexMask)) == 0);
-                return new BestSymbolInfo(BestSymbolFlags.FromReferencedAssembly | (BestSymbolFlags)index);
+                Debug.Assert(location != BestSymbolLocation.None);
+                _location = location;
+                _index = index;
             }
 
             /// <summary>
@@ -1661,8 +1649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public static bool Sort(ref BestSymbolInfo first, ref BestSymbolInfo second)
             {
-                if (!second.IsNone &&
-                    (first.IsNone || (first._flags & BestSymbolFlags.LocationMask) > (second._flags & BestSymbolFlags.LocationMask)))
+                if (IsSecondLocationBetter(first._location, second._location))
                 {
                     BestSymbolInfo temp = first;
                     first = second;
@@ -1672,6 +1659,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
+
+            /// <summary>
+            /// Returns true if the second is a better location than the first.
+            /// </summary>
+            public static bool IsSecondLocationBetter(BestSymbolLocation firstLocation, BestSymbolLocation secondLocation)
+            {
+                Debug.Assert(secondLocation != 0);
+                return (firstLocation == BestSymbolLocation.None) || (firstLocation > secondLocation);
+            }
         }
 
         /// <summary>
@@ -1679,68 +1675,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BestSymbolInfo GetBestSymbolInfo(ArrayBuilder<Symbol> symbols, out BestSymbolInfo secondBest)
         {
-            var assemblyBeingBuilt = this.Compilation.SourceAssembly;
-            var moduleBuilt = this.Compilation.SourceModule;
-
             BestSymbolInfo first = default(BestSymbolInfo);
             BestSymbolInfo second = default(BestSymbolInfo);
+            var compilation = this.Compilation;
 
             for (int i = 0; i < symbols.Count; i++)
             {
                 var symbol = symbols[i];
-
-                BestSymbolInfo third;
+                BestSymbolLocation location;
 
                 if (symbol.Kind == SymbolKind.Namespace)
                 {
-                    var ns = ((NamespaceSymbol)symbol).ConstituentNamespaces;
-                    third = default(BestSymbolInfo);
-
-                    for (int j = 0; j < ns.Length; j++)
+                    location = BestSymbolLocation.None;
+                    foreach (var ns in ((NamespaceSymbol)symbol).ConstituentNamespaces)
                     {
-                        if (ns[j].ContainingAssembly == assemblyBeingBuilt)
+                        var current = GetLocation(compilation, ns);
+                        if (BestSymbolInfo.IsSecondLocationBetter(location, current))
                         {
-                            if (ns[j].ContainingModule == moduleBuilt)
+                            location = current;
+                            if (location == BestSymbolLocation.FromSourceModule)
                             {
-                                third = BestSymbolInfo.FromSourceModule(i);
                                 break;
                             }
-                            else if (!third.IsFromAddedModule)
-                            {
-                                Debug.Assert(!third.IsFromCompilation);
-                                third = BestSymbolInfo.FromAddedModule(i);
-                            }
                         }
-                        else if (third.IsNone)
-                        {
-                            third = BestSymbolInfo.FromReferencedAssembly(i);
-                        }
-                    }
-                }
-                else if (symbol.ContainingAssembly == assemblyBeingBuilt)
-                {
-                    if (symbol.ContainingModule == moduleBuilt)
-                    {
-                        third = BestSymbolInfo.FromSourceModule(i);
-                    }
-                    else
-                    {
-                        third = BestSymbolInfo.FromAddedModule(i);
                     }
                 }
                 else
                 {
-                    third = BestSymbolInfo.FromReferencedAssembly(i);
+                    location = GetLocation(compilation, symbol);
                 }
 
+                var third = new BestSymbolInfo(location, i);
                 if (BestSymbolInfo.Sort(ref second, ref third))
                 {
                     BestSymbolInfo.Sort(ref first, ref second);
                 }
             }
 
+            Debug.Assert(!first.IsNone);
+            Debug.Assert(!second.IsNone);
+
             secondBest = second;
             return first;
+        }
+
+        private static BestSymbolLocation GetLocation(CSharpCompilation compilation, Symbol symbol)
+        {
+            var containingAssembly = symbol.ContainingAssembly;
+            if (containingAssembly == compilation.SourceAssembly)
+            {
+                return (symbol.ContainingModule == compilation.SourceModule) ?
+                    BestSymbolLocation.FromSourceModule :
+                    BestSymbolLocation.FromAddedModule;
+            }
+            else
+            {
+                return (containingAssembly == containingAssembly.CorLibrary) ?
+                    BestSymbolLocation.FromCorLibrary :
+                    BestSymbolLocation.FromReferencedAssembly;
+            }
         }
 
         /// <remarks>
@@ -1921,7 +1914,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
         {
-            LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+            var options = (CSharpParseOptions)location.SourceTree.Options;
+            if (feature.RequiredFeature() != null)
+            {
+                if (!options.IsFeatureEnabled(feature))
+                {
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize());
+                }
+                return;
+            }
+            LanguageVersion availableVersion = options.LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)
             {

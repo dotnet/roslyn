@@ -12570,7 +12570,7 @@ expectedOutput: "-100");
             var methodBodyCompiler = new MethodCompiler(
                 compilation: compilation,
                 moduleBeingBuiltOpt: module,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: null,

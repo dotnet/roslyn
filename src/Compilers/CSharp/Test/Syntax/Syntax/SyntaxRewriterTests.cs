@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(545049, "DevDiv")]
         [WorkItem(896538, "DevDiv")]
         [Fact]
-        public void RewriteMissingIdentiferInExpressionStatement_ImplicitlyCreatedSyntaxTree()
+        public void RewriteMissingIdentifierInExpressionStatement_ImplicitlyCreatedSyntaxTree()
         {
             var ifStmt1 = (IfStatementSyntax)SyntaxFactory.ParseStatement("if (true)");
             var exprStmt1 = (ExpressionStatementSyntax)ifStmt1.Statement;
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(545049, "DevDiv")]
         [WorkItem(896538, "DevDiv")]
         [Fact]
-        public void RewriteMissingIdentiferInExpressionStatement_WithSyntaxTree()
+        public void RewriteMissingIdentifierInExpressionStatement_WithSyntaxTree()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class C { static void Main() { if (true) } }");
             var ifStmt1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<IfStatementSyntax>().Single();

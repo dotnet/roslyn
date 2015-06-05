@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override string Id
+        public override object Id
         {
             get
             {

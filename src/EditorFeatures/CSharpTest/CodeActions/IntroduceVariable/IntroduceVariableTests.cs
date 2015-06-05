@@ -2359,6 +2359,64 @@ class TestClass
             Test(code, expected, index: 2, compareTokens: false);
         }
 
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestNoConstantForInterpolatedStrings1()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""{DateTime.Now.ToString()}Text{args[0]}""|]);
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:v|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        Console.WriteLine(v);
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void TestNoConstantForInterpolatedStrings2()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""Text{{s}}""|]);
+        Console.WriteLine($""Text{{s}}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:v|} = $""Text{{s}}"";
+        Console.WriteLine(v);
+        Console.WriteLine(v);
+    }
+}";
+
+            Test(code, expected, index: 1, compareTokens: false);
+        }
+
         [WorkItem(909152)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public void TestMissingOnNullLiteral()
@@ -2375,6 +2433,150 @@ class Test
     }
 }
 ");
+        }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void InParentConditionalAccessExpressions()
+        {
+            var code =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = [|F(new C())|]?.F(new C())?.F(new C());
+        return x;
+    }
+}";
+
+            var expected =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var {|Rename:c|} = F(new C());
+        var y = c?.F(new C())?.F(new C());
+        return x;
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void InParentConditionalAccessExpression2()
+        {
+            var code =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = [|F(new C()).F(new C())|]?.F(new C());
+        return x;
+    }
+}";
+
+            var expected =
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var {|Rename:c|} = F(new C()).F(new C());
+        var y = c?.F(new C());
+        return x;
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
+
+        [WorkItem(1130990)]
+        [WorkItem(3110, "https://github.com/dotnet/roslyn/issues/3110")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void MissingAcrossMultipleParentConditionalAccessExpressions()
+        {
+            TestMissing(
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = [|F(new C())?.F(new C())|]?.F(new C());
+        return x;
+    }
+}");
+        }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void MissingOnInvocationExpressionInParentConditionalAccessExpressions()
+        {
+            TestMissing(
+    @"using System;
+class C
+{
+    public T F<T>(T x)
+    {
+        var y = F(new C())?.[|F(new C())|]?.F(new C());
+        return x;
+    }
+}");
+        }
+
+        [WorkItem(1130990)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void MissingOnMemberBindingExpressionInParentConditionalAccessExpressions()
+        {
+            TestMissing(
+    @"using System;
+class C
+{
+    static void Test(string s)
+    {
+        var l = s?.[|Length|] ?? 0;
+    }
+}");
+        }
+
+        [WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void HandleFormattableStringTargetTyping1()
+        {
+            const string code = CodeSnippets.FormattableStringType + @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public void M()
+        {
+            var f = FormattableString.Invariant([|$""""|]);
+        }
+    }
+}";
+
+            const string expected = CodeSnippets.FormattableStringType + @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public void M()
+        {
+            FormattableString {|Rename:v|} = $"""";
+            var f = FormattableString.Invariant(v);
+        }
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
         }
     }
 }

@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         ERR_AccessorListAndExpressionBody = 8056,
         ERR_BlockBodyAndExpressionBody = 8057,
-        // ERR_FeatureIsExperimental = 8058,
+        ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8060-8069
         ERR_SwitchFallOut = 8070,
@@ -1310,6 +1310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionOrDeclarationExpected = 8092,
         ERR_NameofExtensionMethod = 8093,
         WRN_AlignmentMagnitude = 8094,
-        ERR_ContantStringTooLong = 8095,
+        ERR_ConstantStringTooLong = 8095,
     }
 }

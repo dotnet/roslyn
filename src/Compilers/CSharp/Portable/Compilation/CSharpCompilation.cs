@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new compilation that can be used in scripting.
         /// </summary>
-        public static CSharpCompilation CreateSubmission(
+        internal static CSharpCompilation CreateSubmission(
             string assemblyName,
             SyntaxTree syntaxTree = null,
             IEnumerable<MetadataReference> references = null,
@@ -2322,7 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken)
@@ -2354,12 +2354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (generateDebugInfo && moduleBeingBuilt != null)
+                if (emittingPdb && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                 {
-                    if (!StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 // Perform initial bind of method bodies in spite of earlier errors. This is the same
@@ -2371,7 +2368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodCompiler.CompileMethodBodies(
                     this,
                     moduleBeingBuilt,
-                    generateDebugInfo,
+                    emittingPdb,
                     hasDeclarationErrors,
                     diagnostics: methodBodyDiagnosticBag,
                     filterOpt: filterOpt,
@@ -2694,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithAssemblyName(assemblyName);
         }
 
-        protected override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
+        internal override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
         {
             return GetSubmissionResultType(out hasValue);
         }
@@ -2714,7 +2711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        protected override Compilation CommonPreviousSubmission
+        internal override Compilation CommonPreviousSubmission
         {
             get { return _previousSubmission; }
         }
@@ -2779,7 +2776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithOptions((CSharpCompilationOptions)options);
         }
 
-        protected override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
+        internal override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return this.WithPreviousSubmission((CSharpCompilation)newPreviousSubmission);
         }
@@ -2819,7 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetTypeByMetadataName(metadataName);
         }
 
-        protected override INamedTypeSymbol CommonScriptClass
+        internal override INamedTypeSymbol CommonScriptClass
         {
             get { return this.ScriptClass; }
         }

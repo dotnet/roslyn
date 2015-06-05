@@ -305,7 +305,7 @@ namespace Microsoft.Cci
             // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
             // that appears in source, not the synthesized ones), Dev10 only emits the ForwardIterator and IteratorLocal
             // custom debug info (e.g. there will be no information about the usings that were in scope).
-            if (!isIterator)
+            if (!isIterator && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
                 if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodToken, out forwardToMethod))
@@ -375,7 +375,7 @@ namespace Microsoft.Cci
             {
                 for (var scope = namespaceScopes; scope != null; scope = scope.Parent)
                 {
-                    foreach (var import in scope.GetUsedNamespaces(Context))
+                    foreach (var import in scope.GetUsedNamespaces())
                     {
                         if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
                         {
@@ -396,7 +396,7 @@ namespace Microsoft.Cci
             // file and namespace level
             for (IImportScope scope = namespaceScopes; scope != null; scope = scope.Parent)
             {
-                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces(Context))
+                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
                 {
                     var importString = TryEncodeImport(import, lazyDeclaredExternAliases, isProjectLevel: false);
                     if (importString != null)
@@ -424,7 +424,7 @@ namespace Microsoft.Cci
                     UsingNamespace("&" + assemblyName, module);
                 }
 
-                foreach (UsedNamespaceOrType import in module.GetImports(Context))
+                foreach (UsedNamespaceOrType import in module.GetImports())
                 {
                     var importString = TryEncodeImport(import, null, isProjectLevel: true);
                     if (importString != null)
@@ -624,6 +624,9 @@ namespace Microsoft.Cci
 
         private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string> declaredExternAliases)
         {
+            // no extern alias defined in scope at all -> error in compiler
+            Debug.Assert(declaredExternAliases != null);
+
             var allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
             foreach (AssemblyReferenceAlias alias in allAliases)
             {
@@ -1341,6 +1344,21 @@ namespace Microsoft.Cci
             }
         }
 
+        [Conditional("DEBUG")]
+        // Used to catch cases where file2definitions contain nonwriteable definitions early
+        // If left unfixed, such scenarios will lead to crashes if happen in winmdobj projects
+        public void AssertAllDefinitionsHaveTokens(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
+        {
+            foreach (var kvp in file2definitions)
+            {
+                foreach (var definition in kvp.Value)
+                {
+                    uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                    Debug.Assert(token != 0);
+                }
+            }
+        }
+
         // Note: only used for WinMD
         public void WriteDefinitionLocations(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {
@@ -1349,7 +1367,7 @@ namespace Microsoft.Cci
             if ((object)writer5 != null)
             {
                 // NOTE: ISymUnmanagedWriter5 reports HRESULT = 0x806D000E in case we open and close 
-                //       the map without writing any resords with MapTokenToSourceSpan(...)
+                //       the map without writing any records with MapTokenToSourceSpan(...)
                 bool open = false;
 
                 foreach (var kvp in file2definitions)

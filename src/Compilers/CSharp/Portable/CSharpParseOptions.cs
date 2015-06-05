@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static readonly CSharpParseOptions Default = new CSharpParseOptions();
 
+        private ImmutableDictionary<string, string> _features;
+
         /// <summary>
         /// Gets the language version.
         /// </summary>
@@ -62,6 +64,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal CSharpParseOptions(
+            LanguageVersion languageVersion,
+            DocumentationMode documentationMode,
+            SourceCodeKind kind,
+            IEnumerable<string> preprocessorSymbols,
+            ImmutableDictionary<string, string> features)
+            : this(languageVersion, documentationMode, kind, preprocessorSymbols)
+        {
+            if (features == null)
+            {
+                throw new ArgumentNullException(nameof(features));
+            }
+
+            this._features = features;
+        }
+
         private CSharpParseOptions(CSharpParseOptions other) : this(
             languageVersion: other.LanguageVersion,
             documentationMode: other.DocumentationMode,
@@ -81,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!preprocessorSymbols.IsDefault);
             this.LanguageVersion = languageVersion;
             this.PreprocessorSymbols = preprocessorSymbols;
+            this._features = ImmutableDictionary<string, string>.Empty;
         }
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
@@ -153,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpParseOptions(this) { DocumentationMode = documentationMode };
         }
 
-        protected override ParseOptions CommonWithKind(SourceCodeKind kind)
+        public override ParseOptions CommonWithKind(SourceCodeKind kind)
         {
             return WithKind(kind);
         }
@@ -178,22 +197,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(features));
             }
 
-            // there are currently no parse options for experimental features
-            if (System.Linq.Enumerable.Any(features))
-            {
-                throw new ArgumentException("Experimental features are not supported", nameof(features));
-            }
-
-            return this;
+            return new CSharpParseOptions(this) { _features = features.ToImmutableDictionary() };
         }
 
         public override IReadOnlyDictionary<string, string> Features
         {
             get
             {
-                // there are currently no parse options for experimental features
-                return new Dictionary<string, string>();
+                return _features;
             }
+        }
+
+        internal bool IsFeatureEnabled(MessageID feature)
+        {
+            string featureFlag = feature.RequiredFeature();
+            if (featureFlag != null)
+            {
+                return Features.ContainsKey(featureFlag);
+            }
+            LanguageVersion availableVersion = LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            return availableVersion >= requiredVersion;
         }
 
         public override bool Equals(object obj)

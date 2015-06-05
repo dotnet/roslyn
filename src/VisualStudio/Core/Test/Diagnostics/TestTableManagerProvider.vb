@@ -1,31 +1,31 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.VisualStudio.TableControl
-Imports Microsoft.VisualStudio.TableManager
+Imports Microsoft.VisualStudio.Shell.TableControl
+Imports Microsoft.VisualStudio.Shell.TableManager
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Friend Class TestTableManagerProvider
         Implements ITableManagerProvider
 
-        Public Function GetTableManager(identifier As Guid) As ITableManager Implements ITableManagerProvider.GetTableManager
+        Public Function GetTableManager(identifier As String) As ITableManager Implements ITableManagerProvider.GetTableManager
             Return New TestTableManager(identifier)
         End Function
 
         Public Class TestTableManager
             Implements ITableManager
 
-            Private ReadOnly _identifier As Guid
+            Private ReadOnly _identifier As String
             Private ReadOnly _sources As Dictionary(Of ITableDataSource, String())
             Private ReadOnly _sinks As Dictionary(Of ITableDataSink, IDisposable)
 
-            Public Sub New(identifier As Guid)
+            Public Sub New(identifier As String)
                 Me._identifier = identifier
                 Me._sources = New Dictionary(Of ITableDataSource, String())()
                 Me._sinks = New Dictionary(Of ITableDataSink, IDisposable)()
             End Sub
 
-            Public ReadOnly Property Identifier As Guid Implements ITableManager.Identifier
+            Public ReadOnly Property Identifier As String Implements ITableManager.Identifier
                 Get
                     Return _identifier
                 End Get
@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Me.Entries.Add(newFactory)
                 End Sub
 
-                Public Sub FactoryUpdated(factory As ITableEntriesSnapshotFactory) Implements ITableDataSink.FactoryUpdated
+                Public Sub FactorySnapshotChanged(factory As ITableEntriesSnapshotFactory) Implements ITableDataSink.FactorySnapshotChanged
                 End Sub
 
                 Public Sub AddEntries(newEntries As IReadOnlyList(Of ITableEntry), Optional removeEverything As Boolean = False) Implements ITableDataSink.AddEntries
@@ -107,10 +107,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 End Sub
 
                 Public Sub AddSnapshot(newSnapshot As ITableEntriesSnapshot, Optional removeEverything As Boolean = False) Implements ITableDataSink.AddSnapshot
-                    Throw New NotImplementedException()
-                End Sub
-
-                Public Sub PostChange(Optional oldEntries As IReadOnlyList(Of ITableEntry) = Nothing, Optional newEntries As IReadOnlyList(Of ITableEntry) = Nothing, Optional oldSnapshot As ITableEntriesSnapshot = Nothing, Optional newSnapshot As ITableEntriesSnapshot = Nothing, Optional oldFactory As ITableEntriesSnapshotFactory = Nothing, Optional newFactory As ITableEntriesSnapshotFactory = Nothing, Optional removeEverything As Boolean = False) Implements ITableDataSink.PostChange
                     Throw New NotImplementedException()
                 End Sub
 
@@ -130,12 +126,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Throw New NotImplementedException()
                 End Sub
 
+                Public Sub RemoveAllEntries() Implements ITableDataSink.RemoveAllEntries
+                    Throw New NotImplementedException()
+                End Sub
+
+                Public Sub RemoveAllSnapshots() Implements ITableDataSink.RemoveAllSnapshots
+                    Throw New NotImplementedException()
+                End Sub
+
+                Public Sub RemoveAllFactories() Implements ITableDataSink.RemoveAllFactories
+                    Throw New NotImplementedException()
+                End Sub
+
                 Public Property IsStable As Boolean Implements ITableDataSink.IsStable
                     Get
-                        Throw New NotImplementedException()
+                        Return True
                     End Get
                     Set(value As Boolean)
-                        Throw New NotImplementedException()
                     End Set
                 End Property
             End Class

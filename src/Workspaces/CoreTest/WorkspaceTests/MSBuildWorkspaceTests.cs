@@ -77,6 +77,99 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(5, compReferences.Count);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void Test_SharedMetadataReferences()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles());
+
+            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var p0 = sol.Projects.ElementAt(0);
+            var p1 = sol.Projects.ElementAt(1);
+
+            Assert.NotSame(p0, p1);
+
+            var p0mscorlib = GetMetadataReference(p0, "mscorlib");
+            var p1mscorlib = GetMetadataReference(p1, "mscorlib");
+
+            Assert.NotNull(p0mscorlib);
+            Assert.NotNull(p1mscorlib);
+
+            // metadata references to mscorlib in both projects are the same
+            Assert.Same(p0mscorlib, p1mscorlib);
+        }
+
+        private static MetadataReference GetMetadataReference(Project project, string name)
+        {
+            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr => mr.FilePath.Contains(name));
+        }
+
+        private static MetadataReference GetMetadataReferenceByAlias(Project project, string aliasName)
+        {
+            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr => 
+            !mr.Properties.Aliases.IsDefault && mr.Properties.Aliases.Contains(aliasName));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]
+        public void Test_SharedMetadataReferencesWithAliases()
+        {
+            var projPath1 = @"CSharpProject\CSharpProject_ExternAlias.csproj";
+            var projPath2 = @"CSharpProject\CSharpProject_ExternAlias2.csproj";
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { projPath1, GetResourceText("CSharpProject_CSharpProject_ExternAlias.csproj") },
+                { projPath2, GetResourceText("CSharpProject_CSharpProject_ExternAlias2.csproj") },
+                { @"CSharpProject\CSharpExternAlias.cs", GetResourceText("CSharpProject_CSharpExternAlias.cs") },
+            });
+
+            CreateFiles(files);
+
+            var fullPath1 = Path.Combine(this.SolutionDirectory.Path, projPath1);
+            var fullPath2 = Path.Combine(this.SolutionDirectory.Path, projPath2);
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var proj1 = ws.OpenProjectAsync(fullPath1).Result;
+                var proj2 = ws.OpenProjectAsync(fullPath2).Result;
+
+                var p1Sys1 = GetMetadataReferenceByAlias(proj1, "Sys1");
+                var p1Sys2 = GetMetadataReferenceByAlias(proj1, "Sys2");
+                var p2Sys1 = GetMetadataReferenceByAlias(proj2, "Sys1");
+                var p2Sys3 = GetMetadataReferenceByAlias(proj2, "Sys3");
+
+                Assert.NotNull(p1Sys1);
+                Assert.NotNull(p1Sys2);
+                Assert.NotNull(p2Sys1);
+                Assert.NotNull(p2Sys3);
+
+                // same filepath but different alias so they are not the same instance
+                Assert.NotSame(p1Sys1, p1Sys2);
+                Assert.NotSame(p2Sys1, p2Sys3);
+
+                // same filepath and alias so they are the same instance
+                Assert.Same(p1Sys1, p2Sys1);
+
+                var mdp1Sys1 = GetMetadata(p1Sys1);
+                var mdp1Sys2 = GetMetadata(p1Sys2);
+                var mdp2Sys1 = GetMetadata(p2Sys1);
+                var mdp2Sys3 = GetMetadata(p2Sys1);
+
+                Assert.NotNull(mdp1Sys1);
+                Assert.NotNull(mdp1Sys2);
+                Assert.NotNull(mdp2Sys1);
+                Assert.NotNull(mdp2Sys3);
+
+                // all references to System.dll share the same metadata bytes
+                Assert.Same(mdp1Sys1, mdp1Sys2);
+                Assert.Same(mdp1Sys1, mdp2Sys1);
+                Assert.Same(mdp1Sys1, mdp2Sys3);
+            }
+        }
+
+        private Metadata GetMetadata(MetadataReference mref)
+        {
+            var fnGetMetadata = mref.GetType().GetMethod("GetMetadata", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            return fnGetMetadata?.Invoke(mref, null) as Metadata;
+        }
+
         [WorkItem(552981, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_DuplicateProjectGuids()
