@@ -16,17 +16,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly ChildReader _childReader;
         private readonly ChildVisitor _childVisitor;
+        private readonly DefaultRewriter _defaultRewriter;
         private List<RewriteItem> _stack;
+
+        private readonly bool _visitIntoStructuredTrivia;
+
+        public virtual bool VisitIntoStructuredTrivia
+        {
+            get { return _visitIntoStructuredTrivia; }
+        }
 
         protected CSharpBottomUpSyntaxRewriter(bool visitIntoStructuredTrivia = false)
         {
             _childReader = new ChildReader();
-            _childVisitor = new ChildVisitor(this, visitIntoStructuredTrivia);
+            _defaultRewriter = new DefaultRewriter(this);
+            _childVisitor = new ChildVisitor(this);
+            _visitIntoStructuredTrivia = visitIntoStructuredTrivia;
         }
 
         // block overrides: not meaningful since this is only called on some of the nodes, use VisitNode(original, rewritten) instead.
+        [Obsolete("Use RewriteNode to initiate rewritting.")]
         public new SyntaxNode Visit(SyntaxNode node)
         {
+            return node;
+        }
+
+        /// <summary>
+        /// Initiates the rewrite operation over the subtree identified by the node.
+        /// </summary>
+        public SyntaxNode RewriteNode(SyntaxNode node)
+        { 
             // can be reentered during rewrite
             bool allocatedStack = false;
             if (_stack == null)
@@ -37,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
+                if (!this.CanVisit(node))
+                {
+                    return node;
+                }
+
                 _stack.Add(new RewriteItem(node, -1));
 
                 while (true)
@@ -51,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (child.Kind == ChildKind.Node)
                         {
-                            if (this.CanVisit(child.Node))
+                            if (child.Node != null && this.CanVisit(child.Node))
                             {
                                 _stack.Add(new RewriteItem(child.Node, item.ChildIndex));
                                 continue;
@@ -100,6 +124,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _stack = null;
                 }
             }
+        }
+
+        /// <summary>
+        /// Initiates the rewrite operation over the subtree identified by the token.
+        /// </summary>
+        public SyntaxToken RewriteToken(SyntaxToken token)
+        {
+            return _defaultRewriter.VisitToken(token);
+        }
+
+        /// <summary>
+        /// Initiates the rewrite operation over the subtree identified by the trivia.
+        /// </summary>
+        public SyntaxTrivia RewriteTrivia(SyntaxTrivia trivia)
+        {
+            return _defaultRewriter.VisitTrivia(trivia);
         }
 
         public override SyntaxNode DefaultVisit(SyntaxNode node)
@@ -162,13 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public int IndexInParent;
             public SyntaxNode Original;
-            public SyntaxNode Updated;
             public int ChildIndex;
 
             public RewriteItem(SyntaxNode node, int indexInParent)
             {
                 this.Original = node;
-                this.Updated = node;
+                this._updated = node;
                 this.IndexInParent = indexInParent;
                 this.ChildIndex = -1;
             }
@@ -178,6 +217,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.ChildIndex++;
                 return this.ChildIndex < this.Original.SlotCount;
             }
+
+            private SyntaxNode _updated;
+            public SyntaxNode Updated
+            {
+                get { return _updated; }
+                set
+                {
+                    if (value != _updated)
+                    {
+                        _updated = value;
+                    }
+                }
+            }
+
         }
 
         private enum ChildKind
@@ -272,10 +325,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             private int _childIndex;
             private int _index;
 
-            public ChildVisitor(CSharpBottomUpSyntaxRewriter rewriter, bool visitIntoStructuredTrivia)
+            public ChildVisitor(CSharpBottomUpSyntaxRewriter rewriter)
             {
                 _rewriter = rewriter;
-                _defaultRewriter = new DefaultRewriter(rewriter, visitIntoStructuredTrivia);
+                _defaultRewriter = _rewriter._defaultRewriter;
+            }
+
+            public override bool VisitIntoStructuredTrivia
+            {
+                get { return _rewriter.VisitIntoStructuredTrivia; }
             }
 
             public SyntaxNode VisitChild(SyntaxNode node, int childIndex, RewriteChild originalChild, RewriteChild updatedChild = default(RewriteChild))
@@ -326,8 +384,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_index == _childIndex && _rewriter.CanVisit(_originalChild.Token))
                 {
-                    var newToken = _defaultRewriter.VisitToken(_originalChild.Token);
-                    return _rewriter.VisitToken(_originalChild.Token, newToken);
+                    var originalToken = _originalChild.Token;
+                    var rewrittenLeading = _rewriter.VisitList(originalToken.LeadingTrivia, _defaultRewriter.VisitList(originalToken.LeadingTrivia));
+                    var rewrittenTrailing = _rewriter.VisitList(originalToken.TrailingTrivia, _defaultRewriter.VisitList(originalToken.TrailingTrivia));
+
+                    var rewrittenToken = originalToken;
+                    if (rewrittenLeading != originalToken.LeadingTrivia)
+                    {
+                        rewrittenToken = rewrittenToken.WithLeadingTrivia(rewrittenLeading);
+                    }
+
+                    if (rewrittenTrailing != originalToken.TrailingTrivia)
+                    {
+                        rewrittenToken = rewrittenToken.WithTrailingTrivia(rewrittenTrailing);
+                    }
+
+                    return _rewriter.VisitToken(_originalChild.Token, rewrittenToken);
                 }
 
                 return token;
@@ -379,16 +451,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly CSharpBottomUpSyntaxRewriter _rewriter;
 
-            public DefaultRewriter(CSharpBottomUpSyntaxRewriter rewriter, bool visitIntoStructuredTrivia)
-                : base(visitIntoStructuredTrivia)
+            public DefaultRewriter(CSharpBottomUpSyntaxRewriter rewriter)
             {
                 _rewriter = rewriter;
+            }
+
+            public override bool VisitIntoStructuredTrivia
+            {
+                get { return _rewriter.VisitIntoStructuredTrivia; }
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
                 // reentrant (recursion) should get trigged on list elements and structured trivia roots
-                return _rewriter.Visit(node);
+                if (node != null)
+                {
+                    return _rewriter.RewriteNode(node);
+                }
+
+                return null;
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)

@@ -631,7 +631,7 @@ class C { }
             public static SyntaxNode Replace(SyntaxNode root, SyntaxNode nodeToReplace, SyntaxNode newNode)
             {
                 var replacer = new RedBottomUpNodeReplacer(nodeToReplace, newNode);
-                return replacer.Visit(root);
+                return replacer.RewriteNode(root);
             }
 
             public override SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (replacer.HasWork)
             {
-                return replacer.Visit(root);
+                return replacer.RewriteNode(root);
             }
             else
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (replacer.HasWork)
             {
-                return replacer.VisitToken(root);
+                return replacer.RewriteToken(root);
             }
             else
             {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private class Replacer<TNode> : CSharpSyntaxRewriter where TNode : SyntaxNode
+        private class Replacer<TNode> : CSharpBottomUpSyntaxRewriter where TNode : SyntaxNode
         {
             private readonly Func<TNode, TNode, SyntaxNode> _computeReplacementNode;
             private readonly Func<SyntaxToken, SyntaxToken, SyntaxToken> _computeReplacementToken;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 foreach (var s in _spanSet)
                 {
-                    if (span.IntersectsWith(s))
+                    if (span.Contains(s))
                     {
                         // node's full span intersects with at least one node to be replaced
                         // so we need to visit node's children to find it.
@@ -174,55 +174,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            public override bool CanVisit(SyntaxNode node)
             {
-                SyntaxNode rewritten = node;
+                return ShouldVisit(node.FullSpan);
+            }
 
-                if (node != null)
+            public override bool CanVisit(SyntaxToken token)
+            {
+                return ShouldVisit(token.FullSpan);
+            }
+
+            public override bool CanVisit(SyntaxTrivia trivia)
+            {
+                return _shouldVisitTrivia && ShouldVisit(trivia.FullSpan);
+            }
+
+            public override SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
+            {
+                if (_nodeSet.Contains(original) && _computeReplacementNode != null)
                 {
-                    if (this.ShouldVisit(node.FullSpan))
-                    {
-                        rewritten = base.Visit(node);
-                    }
-
-                    if (_nodeSet.Contains(node) && _computeReplacementNode != null)
-                    {
-                        rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten);
-                    }
+                    rewritten = _computeReplacementNode((TNode)original, (TNode)rewritten);
                 }
 
                 return rewritten;
             }
 
-            public override SyntaxToken VisitToken(SyntaxToken token)
+            public override SyntaxToken VisitToken(SyntaxToken original, SyntaxToken rewritten)
             {
-                var rewritten = token;
-
-                if (_shouldVisitTrivia && this.ShouldVisit(token.FullSpan))
+                if (_tokenSet.Contains(original) && _computeReplacementToken != null)
                 {
-                    rewritten = base.VisitToken(token);
-                }
-
-                if (_tokenSet.Contains(token) && _computeReplacementToken != null)
-                {
-                    rewritten = _computeReplacementToken(token, rewritten);
+                    rewritten = _computeReplacementToken(original, rewritten);
                 }
 
                 return rewritten;
             }
 
-            public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
+            public override SyntaxTrivia VisitTrivia(SyntaxTrivia original, SyntaxTrivia rewritten)
             {
-                var rewritten = trivia;
-
-                if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
+                if (_triviaSet.Contains(original) && _computeReplacementTrivia != null)
                 {
-                    rewritten = this.VisitTrivia(trivia);
-                }
-
-                if (_triviaSet.Contains(trivia) && _computeReplacementTrivia != null)
-                {
-                    rewritten = _computeReplacementTrivia(trivia, rewritten);
+                    rewritten = _computeReplacementTrivia(original, rewritten);
                 }
 
                 return rewritten;
@@ -231,42 +222,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static SyntaxNode ReplaceNodeInList(SyntaxNode root, SyntaxNode originalNode, IEnumerable<SyntaxNode> newNodes)
         {
-            return new NodeListEditor(originalNode, newNodes, ListEditKind.Replace).Visit(root);
+            return new NodeListEditor(originalNode, newNodes, ListEditKind.Replace).RewriteNode(root);
         }
 
         internal static SyntaxNode InsertNodeInList(SyntaxNode root, SyntaxNode nodeInList, IEnumerable<SyntaxNode> nodesToInsert, bool insertBefore)
         {
-            return new NodeListEditor(nodeInList, nodesToInsert, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).Visit(root);
+            return new NodeListEditor(nodeInList, nodesToInsert, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).RewriteNode(root);
         }
 
         public static SyntaxNode ReplaceTokenInList(SyntaxNode root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens)
         {
-            return new TokenListEditor(tokenInList, newTokens, ListEditKind.Replace).Visit(root);
+            return new TokenListEditor(tokenInList, newTokens, ListEditKind.Replace).RewriteNode(root);
         }
 
         public static SyntaxNode InsertTokenInList(SyntaxNode root, SyntaxToken tokenInList, IEnumerable<SyntaxToken> newTokens, bool insertBefore)
         {
-            return new TokenListEditor(tokenInList, newTokens, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).Visit(root);
+            return new TokenListEditor(tokenInList, newTokens, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).RewriteNode(root);
         }
 
         public static SyntaxNode ReplaceTriviaInList(SyntaxNode root, SyntaxTrivia triviaInList, IEnumerable<SyntaxTrivia> newTrivia)
         {
-            return new TriviaListEditor(triviaInList, newTrivia, ListEditKind.Replace).Visit(root);
+            return new TriviaListEditor(triviaInList, newTrivia, ListEditKind.Replace).RewriteNode(root);
         }
 
         public static SyntaxNode InsertTriviaInList(SyntaxNode root, SyntaxTrivia triviaInList, IEnumerable<SyntaxTrivia> newTrivia, bool insertBefore)
         {
-            return new TriviaListEditor(triviaInList, newTrivia, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).Visit(root);
+            return new TriviaListEditor(triviaInList, newTrivia, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).RewriteNode(root);
         }
 
         public static SyntaxToken ReplaceTriviaInList(SyntaxToken root, SyntaxTrivia triviaInList, IEnumerable<SyntaxTrivia> newTrivia)
         {
-            return new TriviaListEditor(triviaInList, newTrivia, ListEditKind.Replace).VisitToken(root);
+            return new TriviaListEditor(triviaInList, newTrivia, ListEditKind.Replace).RewriteToken(root);
         }
 
         public static SyntaxToken InsertTriviaInList(SyntaxToken root, SyntaxTrivia triviaInList, IEnumerable<SyntaxTrivia> newTrivia, bool insertBefore)
         {
-            return new TriviaListEditor(triviaInList, newTrivia, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).VisitToken(root);
+            return new TriviaListEditor(triviaInList, newTrivia, insertBefore ? ListEditKind.InsertBefore : ListEditKind.InsertAfter).RewriteToken(root);
         }
 
         private enum ListEditKind
@@ -281,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return new InvalidOperationException(CodeAnalysisResources.MissingListItem);
         }
 
-        private abstract class BaseListEditor : CSharpSyntaxRewriter
+        private abstract class BaseListEditor : CSharpBottomUpSyntaxRewriter
         {
             private readonly TextSpan _elementSpan;
             private readonly bool _visitTrivia;
@@ -311,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             private bool ShouldVisit(TextSpan span)
             {
-                if (span.IntersectsWith(_elementSpan))
+                if (span.Contains(_elementSpan))
                 {
                     // node's full span intersects with at least one node to be replaced
                     // so we need to visit node's children to find it.
@@ -321,43 +312,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            public override bool CanVisit(SyntaxNode node)
             {
-                SyntaxNode rewritten = node;
-
-                if (node != null)
-                {
-                    if (this.ShouldVisit(node.FullSpan))
-                    {
-                        rewritten = base.Visit(node);
-                    }
-                }
-
-                return rewritten;
+                return ShouldVisit(node.FullSpan);
             }
 
-            public override SyntaxToken VisitToken(SyntaxToken token)
+            public override bool CanVisit(SyntaxToken token)
             {
-                var rewritten = token;
-
-                if (_visitTrivia && this.ShouldVisit(token.FullSpan))
-                {
-                    rewritten = base.VisitToken(token);
-                }
-
-                return rewritten;
+                return ShouldVisit(token.FullSpan);
             }
 
-            public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
+            public override bool CanVisit(SyntaxTrivia trivia)
             {
-                var rewritten = trivia;
-
-                if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
-                {
-                    rewritten = this.VisitTrivia(trivia);
-                }
-
-                return rewritten;
+                return ShouldVisit(trivia.FullSpan);
             }
         }
 
@@ -365,6 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             private readonly SyntaxNode _originalNode;
             private readonly IEnumerable<SyntaxNode> _newNodes;
+            private bool _seen;
+            private bool _changed;
 
             public NodeListEditor(
                 SyntaxNode originalNode,
@@ -376,62 +345,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _newNodes = replacementNodes;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            public new SyntaxNode RewriteNode(SyntaxNode node)
             {
-                if (node == _originalNode)
+                var result = base.RewriteNode(node);
+
+                if (_seen && !_changed)
                 {
                     throw GetItemNotListElementException();
                 }
 
-                return base.Visit(node);
+                return result;
             }
 
-            public override SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> list)
+            public override SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
+            {
+                if (original == _originalNode)
+                {
+                    _seen = true;
+                }
+
+                return rewritten;
+            }
+
+            public override SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> original, SeparatedSyntaxList<TNode> rewritten)
             {
                 if (_originalNode is TNode)
                 {
-                    var index = list.IndexOf((TNode)_originalNode);
-                    if (index >= 0 && index < list.Count)
+                    var index = original.IndexOf((TNode)_originalNode);
+                    if (index >= 0 && index < original.Count)
                     {
+                        _changed = true;
+
                         switch (this.editKind)
                         {
                             case ListEditKind.Replace:
-                                return list.ReplaceRange((TNode)_originalNode, _newNodes.Cast<TNode>());
+                                return rewritten.ReplaceRange(rewritten[index], _newNodes.Cast<TNode>());
 
                             case ListEditKind.InsertAfter:
-                                return list.InsertRange(index + 1, _newNodes.Cast<TNode>());
+                                return rewritten.InsertRange(index + 1, _newNodes.Cast<TNode>());
 
                             case ListEditKind.InsertBefore:
-                                return list.InsertRange(index, _newNodes.Cast<TNode>());
+                                return rewritten.InsertRange(index, _newNodes.Cast<TNode>());
                         }
                     }
                 }
 
-                return base.VisitList<TNode>(list);
+                return rewritten;
             }
 
-            public override SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list)
+            public override SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> original, SyntaxList<TNode> rewritten)
             {
                 if (_originalNode is TNode)
                 {
-                    var index = list.IndexOf((TNode)_originalNode);
-                    if (index >= 0 && index < list.Count)
+                    var index = original.IndexOf((TNode)_originalNode);
+                    if (index >= 0 && index < original.Count)
                     {
+                        _changed = true;
+
                         switch (this.editKind)
                         {
                             case ListEditKind.Replace:
-                                return list.ReplaceRange((TNode)_originalNode, _newNodes.Cast<TNode>());
+                                return rewritten.ReplaceRange(rewritten[index], _newNodes.Cast<TNode>());
 
                             case ListEditKind.InsertAfter:
-                                return list.InsertRange(index + 1, _newNodes.Cast<TNode>());
+                                return rewritten.InsertRange(index + 1, _newNodes.Cast<TNode>());
 
                             case ListEditKind.InsertBefore:
-                                return list.InsertRange(index, _newNodes.Cast<TNode>());
+                                return rewritten.InsertRange(index, _newNodes.Cast<TNode>());
                         }
                     }
                 }
 
-                return base.VisitList<TNode>(list);
+                return rewritten;
             }
         }
 
@@ -439,6 +424,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             private readonly SyntaxToken _originalToken;
             private readonly IEnumerable<SyntaxToken> _newTokens;
+            private bool _seen;
+            private bool _changed;
 
             public TokenListEditor(
                 SyntaxToken originalToken,
@@ -450,35 +437,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _newTokens = newTokens;
             }
 
-            public override SyntaxToken VisitToken(SyntaxToken token)
+            public new SyntaxNode RewriteNode(SyntaxNode node)
             {
-                if (token == _originalToken)
+                var result = base.RewriteNode(node);
+
+                if (_seen && !_changed)
                 {
                     throw GetItemNotListElementException();
                 }
 
-                return base.VisitToken(token);
+                return result;
             }
 
-            public override SyntaxTokenList VisitList(SyntaxTokenList list)
+            public override SyntaxToken VisitToken(SyntaxToken original, SyntaxToken rewritten)
             {
-                var index = list.IndexOf(_originalToken);
-                if (index >= 0 && index < list.Count)
+                if (original == _originalToken)
                 {
+                    _seen = true;
+                }
+
+                return rewritten;
+            }
+
+            public override SyntaxTokenList VisitList(SyntaxTokenList original, SyntaxTokenList rewritten)
+            {
+                var index = original.IndexOf(_originalToken);
+                if (index >= 0 && index < original.Count)
+                {
+                    _changed = true;
+
                     switch (this.editKind)
                     {
                         case ListEditKind.Replace:
-                            return list.ReplaceRange(_originalToken, _newTokens);
+                            return rewritten.ReplaceRange(rewritten[index], _newTokens);
 
                         case ListEditKind.InsertAfter:
-                            return list.InsertRange(index + 1, _newTokens);
+                            return rewritten.InsertRange(index + 1, _newTokens);
 
                         case ListEditKind.InsertBefore:
-                            return list.InsertRange(index, _newTokens);
+                            return rewritten.InsertRange(index, _newTokens);
                     }
                 }
 
-                return base.VisitList(list);
+                return rewritten;
             }
         }
 
@@ -486,6 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             private readonly SyntaxTrivia _originalTrivia;
             private readonly IEnumerable<SyntaxTrivia> _newTrivia;
+            private bool _seen;
+            private bool _changed;
 
             public TriviaListEditor(
                 SyntaxTrivia originalTrivia,
@@ -497,25 +500,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _newTrivia = newTrivia;
             }
 
-            public override SyntaxTriviaList VisitList(SyntaxTriviaList list)
+            public new SyntaxNode RewriteNode(SyntaxNode node)
             {
-                var index = list.IndexOf(_originalTrivia);
-                if (index >= 0 && index < list.Count)
+                var result = base.RewriteNode(node);
+
+                if (_seen && !_changed)
                 {
+                    throw GetItemNotListElementException();
+                }
+
+                return result;
+            }
+
+            public new SyntaxToken RewriteToken(SyntaxToken token)
+            {
+                var result = base.RewriteToken(token);
+
+                if (_seen && !_changed)
+                {
+                    throw GetItemNotListElementException();
+                }
+
+                return result;
+            }
+
+            public override SyntaxTrivia VisitTrivia(SyntaxTrivia original, SyntaxTrivia rewritten)
+            {
+                if (original == _originalTrivia)
+                {
+                    _seen = true;
+                }
+
+                return rewritten;
+            }
+
+            public override SyntaxTriviaList VisitList(SyntaxTriviaList original, SyntaxTriviaList rewritten)
+            {
+                var index = original.IndexOf(_originalTrivia);
+                if (index >= 0 && index < original.Count)
+                {
+                    _changed = true;
+
                     switch (this.editKind)
                     {
                         case ListEditKind.Replace:
-                            return list.ReplaceRange(_originalTrivia, _newTrivia);
+                            return rewritten.ReplaceRange(rewritten[index], _newTrivia);
 
                         case ListEditKind.InsertAfter:
-                            return list.InsertRange(index + 1, _newTrivia);
+                            return rewritten.InsertRange(index + 1, _newTrivia);
 
                         case ListEditKind.InsertBefore:
-                            return list.InsertRange(index, _newTrivia);
+                            return rewritten.InsertRange(index, _newTrivia);
                     }
                 }
 
-                return base.VisitList(list);
+                return rewritten;
             }
         }
     }
