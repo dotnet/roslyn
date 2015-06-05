@@ -520,6 +520,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End Get
         End Property
 
+        ''' <summary>
+        ''' Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement(Of T)(SyntaxNode)"/>
+        ''' </summary>
         Public Overloads Overrides Function CreateInternalCodeElement(
             state As CodeModelState,
             fileCodeModel As FileCodeModel,

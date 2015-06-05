@@ -253,7 +253,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If castToOuterType.IsUserDefined OrElse expressionToCastType.IsUserDefined Then
                     Return (HaveSameUserDefinedConversion(expressionToCastType, expressionToOuterType) OrElse
                             HaveSameUserDefinedConversion(castToOuterType, expressionToOuterType)) AndAlso
-                           UserDefinedConversionIsAllowed(_castNode, _semanticModel)
+                           (UserDefinedConversionIsAllowed(_castNode, _semanticModel) AndAlso
+                            Not expressionToCastType.IsNarrowing)
                 ElseIf expressionToOuterType.IsUserDefined Then
                     Return False
                 End If
