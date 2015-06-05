@@ -87,5 +87,12 @@ NewLines("Option Strict On \n Module Program \n Sub Main(args As String()) \n Di
             TestMissing(
 NewLines("Option Strict On \n Class A \n End Class \n Class B \n End Class \n Module Program[||] \n Sub Main(args As String()) \n Dim x As A = New B() \n End Sub \n End Module"))
         End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInsertMissingCast)>
+        Public Sub TestOptionStrictOn()
+            Test(
+NewLines("Option Strict On \n Module Module1 \n Sub Main() \n Dim red = ColorF.FromArgb(255, 255, 0, 0) \n Dim c As Color = [|red|] \n End Sub \n End Module \n Public Structure ColorF \n Public A, R, G, B As Single \n Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF \n Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)} \n End Function \n Public Shared Widening Operator CType(x As Color) As ColorF \n Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255) \n End Operator \n Public Shared Narrowing Operator CType(x As ColorF) As Color \n Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255)) \n End Operator \n End Structure \n Public Structure Color \n Public A, R, G, B As Byte \n Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color \n Return New Color With {.A = a, .R = r, .G = g, .B = b} \n End Function \n End Structure"),
+NewLines("Option Strict On \n Module Module1 \n Sub Main() \n Dim red = ColorF.FromArgb(255, 255, 0, 0) \n Dim c As Color = CType(red, Color) \n End Sub \n End Module \n Public Structure ColorF \n Public A, R, G, B As Single \n Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF \n Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)} \n End Function \n Public Shared Widening Operator CType(x As Color) As ColorF \n Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255) \n End Operator \n Public Shared Narrowing Operator CType(x As ColorF) As Color \n Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255)) \n End Operator \n End Structure \n Public Structure Color \n Public A, R, G, B As Byte \n Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color \n Return New Color With {.A = a, .R = r, .G = g, .B = b} \n End Function \n End Structure"))
+        End Sub
     End Class
 End Namespace

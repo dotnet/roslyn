@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 get { throw new NotImplementedException(); }
             }
 
-            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options)
+            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options, ParseOptions parseOptions)
             {
                 throw new NotImplementedException();
             }

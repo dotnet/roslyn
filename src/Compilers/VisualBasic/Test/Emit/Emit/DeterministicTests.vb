@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
         Private Function GetBytesEmitted(source As String, platform As Platform, debug As Boolean) As ImmutableArray(Of Byte)
             Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform)
-            options = options.WithFeatures({"dEtErmInIstIc"}.AsImmutable()) ' expect case-insensitivity
 
-            Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options)
+            Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options,
+                                                            parseOptions:=TestOptions.Regular.WithFeature("dEtErmInIstIc", "true")) ' expect case-insensitivity
 
             ' The resolution of the PE header time date stamp is seconds, and we want to make sure
             ' that has an opportunity to change between calls to Emit.

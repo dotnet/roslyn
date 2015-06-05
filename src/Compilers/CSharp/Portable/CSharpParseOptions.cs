@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(features));
             }
 
-            return new CSharpParseOptions(this) { _features = features.ToImmutableDictionary() };
+            return new CSharpParseOptions(this) { _features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) };
         }
 
         public override IReadOnlyDictionary<string, string> Features

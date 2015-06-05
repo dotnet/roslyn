@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         protected abstract Compilation GetCompilationForEmit(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options);
+            CompilationOptions options,
+            ParseOptions parseOptions);
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
 
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             CompilationOptions options = null,
+            ParseOptions parseOptions = null,
             bool collectEmittedAssembly = true,
             bool verify = true)
         {
@@ -142,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedSignatures: expectedSignatures,
                 expectedOutput: expectedOutput,
                 options: options,
+                parseOptions: parseOptions,
                 collectEmittedAssembly: collectEmittedAssembly,
                 verify: verify);
         }
@@ -157,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             CompilationOptions options = null,
+            ParseOptions parseOptions = null,
             bool collectEmittedAssembly = true,
             bool verify = true)
         {
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 options = CompilationOptionsReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
             }
 
-            var compilation = GetCompilationForEmit(sources, additionalRefs, options);
+            var compilation = GetCompilationForEmit(sources, additionalRefs, options, parseOptions);
 
             return this.CompileAndVerify(
                 compilation,

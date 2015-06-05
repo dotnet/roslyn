@@ -12439,10 +12439,10 @@ static class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var regularComp = CreateCompilationWithMscorlib(text);
 
             // these diagnostics correspond to those produced by the native compiler.
-            comp.VerifyDiagnostics(
+            regularComp.VerifyDiagnostics(
                 // (9,11): error CS0039: Cannot convert type 'int' to 'C' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         M(1 as C);
                 Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "1 as C").WithArguments("int", "C").WithLocation(9, 11),
@@ -12461,8 +12461,8 @@ static class C
                 );
 
             // in strict mode we also diagnose "is" and "as" operators with a static type.
-            comp = comp.WithOptions(comp.Options.WithFeatures(new string[] { "strict" }.ToImmutableArray()));
-            comp.VerifyDiagnostics(
+            var strictComp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithStrictFeature());
+            strictComp.VerifyDiagnostics(
                 // In the native compiler these three produce no errors.
 
                 Diagnostic(ErrorCode.ERR_StaticInAsOrIs, "o as C").WithArguments("C"),

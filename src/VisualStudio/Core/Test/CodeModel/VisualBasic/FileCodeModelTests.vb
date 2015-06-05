@@ -4,6 +4,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
@@ -1019,6 +1021,209 @@ End Class
 
                 End Using
             End Using
+        End Sub
+
+        <WorkItem(858153)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeElements_InheritsStatements()
+            Dim code =
+<code>
+Class A
+End Class
+
+Class C
+    Inherits A
+End Class
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(2), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    Dim inheritsA = TryCast(classC.Children.Item(1), EnvDTE80.CodeElement2)
+                    Assert.NotNull(inheritsA)
+
+                    Dim parent = TryCast(inheritsA.Collection.Parent, EnvDTE.CodeClass)
+                    Assert.NotNull(parent)
+                    Assert.Equal("C", parent.Name)
+
+                    ' This assert is very important!
+                    '
+                    ' We are testing that we don't regress a bug where the VB Inherits statement creates its
+                    ' parent incorrectly such that *existing* Code Model objects for its parent ("C") get a different
+                    ' NodeKey that makes the existing objects invalid. If the bug regresses, the line below will
+                    ' fail with an ArguementException when trying to use classC's NodeKey to lookup its node.
+                    ' (Essentially, its NodeKey will be {C,2} rather than {C,1}).
+                    Assert.Equal("C", classC.Name)
+
+                    ' Sanity: ensure that the NodeKeys are correct
+                    Dim member1 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(parent)
+                    Dim member2 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(classC)
+
+                    Assert.Equal("C", member1.NodeKey.Name)
+                    Assert.Equal(1, member1.NodeKey.Ordinal)
+                    Assert.Equal("C", member2.NodeKey.Name)
+                    Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
+        End Sub
+
+        <WorkItem(858153)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeElements_ImplementsStatements()
+            Dim code =
+<code>
+Interface I
+End Interface
+
+Class C
+    Implements I
+End Class
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(2), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    Dim implementsI = TryCast(classC.Children.Item(1), EnvDTE80.CodeElement2)
+                    Assert.NotNull(implementsI)
+
+                    Dim parent = TryCast(implementsI.Collection.Parent, EnvDTE.CodeClass)
+                    Assert.NotNull(parent)
+                    Assert.Equal("C", parent.Name)
+
+                    ' This assert is very important!
+                    '
+                    ' We are testing that we don't regress a bug where the VB Implements statement creates its
+                    ' parent incorrectly such that *existing* Code Model objects for its parent ("C") get a different
+                    ' NodeKey that makes the existing objects invalid. If the bug regresses, the line below will
+                    ' fail with an ArguementException when trying to use classC's NodeKey to lookup its node.
+                    ' (Essentially, its NodeKey will be {C,2} rather than {C,1}).
+                    Assert.Equal("C", classC.Name)
+
+                    ' Sanity: ensure that the NodeKeys are correct
+                    Dim member1 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(parent)
+                    Dim member2 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(classC)
+
+                    Assert.Equal("C", member1.NodeKey.Name)
+                    Assert.Equal(1, member1.NodeKey.Ordinal)
+                    Assert.Equal("C", member2.NodeKey.Name)
+                    Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
+        End Sub
+
+        <WorkItem(858153)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeElements_PropertyAccessor()
+            Dim code =
+<code>
+Class C
+    ReadOnly Property P As Integer
+        Get
+        End Get
+    End Property
+End Class
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    Dim propertyP = TryCast(classC.Members.Item(1), EnvDTE.CodeProperty)
+                    Assert.NotNull(propertyP)
+                    Assert.Equal("P", propertyP.Name)
+
+                    Dim getter = propertyP.Getter
+                    Assert.NotNull(getter)
+
+                    Dim searchedGetter = fileCodeModel.CodeElementFromPoint(getter.StartPoint, EnvDTE.vsCMElement.vsCMElementFunction)
+
+                    Dim parent = TryCast(getter.Collection.Parent, EnvDTE.CodeProperty)
+                    Assert.NotNull(parent)
+                    Assert.Equal("P", parent.Name)
+
+                    ' This assert is very important!
+                    '
+                    ' We are testing that we don't regress a bug where a property accessor creates its
+                    ' parent incorrectly such that *existing* Code Model objects for its parent ("P") get a different
+                    ' NodeKey that makes the existing objects invalid. If the bug regresses, the line below will
+                    ' fail with an ArguementException when trying to use propertyP's NodeKey to lookup its node.
+                    ' (Essentially, its NodeKey will be {C.P As Integer,2} rather than {C.P As Integer,1}).
+                    Assert.Equal("P", propertyP.Name)
+
+                    ' Sanity: ensure that the NodeKeys are correct
+                    Dim member1 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(parent)
+                    Dim member2 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(propertyP)
+
+                    Assert.Equal("C.P As Integer", member1.NodeKey.Name)
+                    Assert.Equal(1, member1.NodeKey.Ordinal)
+                    Assert.Equal("C.P As Integer", member2.NodeKey.Name)
+                    Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
+        End Sub
+
+        <WorkItem(858153)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeElements_EventAccessor()
+            Dim code =
+<code>
+Class C
+    Custom Event E As System.EventHandler
+        AddHandler(value As System.EventHandler)
+
+        End AddHandler
+        RemoveHandler(value As System.EventHandler)
+
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As System.EventArgs)
+
+        End RaiseEvent
+    End Event
+End Class
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    Dim eventE = TryCast(classC.Members.Item(1), EnvDTE80.CodeEvent)
+                    Assert.NotNull(eventE)
+                    Assert.Equal("E", eventE.Name)
+
+                    Dim adder = eventE.Adder
+                    Assert.NotNull(adder)
+
+                    Dim searchedAdder = fileCodeModel.CodeElementFromPoint(adder.StartPoint, EnvDTE.vsCMElement.vsCMElementFunction)
+
+                    Dim parent = TryCast(adder.Collection.Parent, EnvDTE80.CodeEvent)
+                    Assert.NotNull(parent)
+                    Assert.Equal("E", parent.Name)
+
+                    ' This assert is very important!
+                    '
+                    ' We are testing that we don't regress a bug where an event accessor creates its
+                    ' parent incorrectly such that *existing* Code Model objects for its parent ("E") get a different
+                    ' NodeKey that makes the existing objects invalid. If the bug regresses, the line below will
+                    ' fail with an ArguementException when trying to use propertyP's NodeKey to lookup its node.
+                    ' (Essentially, its NodeKey will be {C.E As System.EventHandler,2} rather than {C.E As System.EventHandler,1}).
+                    Assert.Equal("E", eventE.Name)
+
+                    ' Sanity: ensure that the NodeKeys are correct
+                    Dim member1 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(parent)
+                    Dim member2 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(eventE)
+
+                    Assert.Equal("C.E As System.EventHandler", member1.NodeKey.Name)
+                    Assert.Equal(1, member1.NodeKey.Ordinal)
+                    Assert.Equal("C.E As System.EventHandler", member2.NodeKey.Name)
+                    Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
