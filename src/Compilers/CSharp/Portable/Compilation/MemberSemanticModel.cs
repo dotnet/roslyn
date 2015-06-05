@@ -1127,6 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
+                    case SyntaxKind.LocalFunctionStatement:
                         // We can't use a statement that is inside a lambda.
                         enclosingStatement = null;
                         break;

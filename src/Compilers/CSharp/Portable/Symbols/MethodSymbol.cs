@@ -470,6 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.DelegateInvoke:
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
+                case MethodKind.LocalFunction:
                 case MethodKind.UserDefinedOperator:
                 case MethodKind.Ordinary:
                 case MethodKind.PropertyGet:

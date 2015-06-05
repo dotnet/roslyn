@@ -34,7 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntax = syntax;
             _containingSymbol = containingSymbol;
 
-            _declarationModifiers = (_containingSymbol.IsStatic ? DeclarationModifiers.Static : 0) | syntax.Modifiers.ToDeclarationModifiers();
+            _declarationModifiers =
+                DeclarationModifiers.Private |
+                (_containingSymbol.IsStatic ? DeclarationModifiers.Static : 0) |
+                syntax.Modifiers.ToDeclarationModifiers();
         }
 
         public override bool IsVararg
@@ -72,6 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override int Arity => TypeParameters.Length;
+
+        public override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -108,38 +115,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override Symbol ContainingSymbol => _containingSymbol;
-        public override string Name => _syntax.Identifier.ValueText;
-        public SyntaxToken NameToken => _syntax.Identifier;
-        public override ImmutableArray<Location> Locations => ImmutableArray.Create(_syntax.Identifier.GetLocation());
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create(_syntax.GetReference());
-        internal override bool GenerateDebugInfo => true;
         public override MethodKind MethodKind => MethodKind.LocalFunction;
-        public override int Arity => TypeParameters.Length;
+
+        public sealed override Symbol ContainingSymbol => _containingSymbol;
+
+        public override string Name => _syntax.Identifier.ValueText;
+
+        public SyntaxToken NameToken => _syntax.Identifier;
+
         internal override bool HasSpecialName => false;
-        internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
-        internal override bool HasDeclarativeSecurity => false;
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => null;
-        internal override bool RequiresSecurityObject => false;
+
         public override bool HidesBaseMethodsByName => false;
-        public override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
+
+
+        public override ImmutableArray<Location> Locations => ImmutableArray.Create(_syntax.Identifier.GetLocation());
+
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create(_syntax.GetReference());
+
+
+        internal override bool GenerateDebugInfo => true;
+
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
-        public override Symbol AssociatedSymbol => null;
-        internal override CallingConvention CallingConvention => CallingConvention.Default;
-        public override Accessibility DeclaredAccessibility => Accessibility.Private;
-        public override bool IsAsync => (_declarationModifiers & DeclarationModifiers.Async) != 0;
-        public override bool IsStatic => (_declarationModifiers & DeclarationModifiers.Static) != 0;
-        public override bool IsVirtual => (_declarationModifiers & DeclarationModifiers.Virtual) != 0;
-        public override bool IsOverride => (_declarationModifiers & DeclarationModifiers.Override) != 0;
-        public override bool IsAbstract => (_declarationModifiers & DeclarationModifiers.Abstract) != 0;
-        public override bool IsSealed => (_declarationModifiers & DeclarationModifiers.Sealed) != 0;
-        public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
+
+        internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
+
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
 
+
+        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => null;
+
+        internal override CallingConvention CallingConvention => CallingConvention.Default;
+
+        internal override bool HasDeclarativeSecurity => false;
+        internal override bool RequiresSecurityObject => false;
+
+        public override Symbol AssociatedSymbol => null;
+
+        public override Accessibility DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(_declarationModifiers);
+
+        public override bool IsAsync => (_declarationModifiers & DeclarationModifiers.Async) != 0;
+
+        public override bool IsStatic => (_declarationModifiers & DeclarationModifiers.Static) != 0;
+
+        public override bool IsVirtual => (_declarationModifiers & DeclarationModifiers.Virtual) != 0;
+
+        public override bool IsOverride => (_declarationModifiers & DeclarationModifiers.Override) != 0;
+
+        public override bool IsAbstract => (_declarationModifiers & DeclarationModifiers.Abstract) != 0;
+
+        public override bool IsSealed => (_declarationModifiers & DeclarationModifiers.Sealed) != 0;
+
+        public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
+
+        public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+
+
         public override DllImportData GetDllImportData() => null;
+
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
+
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation()

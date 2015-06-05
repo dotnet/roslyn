@@ -444,8 +444,6 @@ class Program
 ");
         }
 
-        // Parser no longer supports generics on local functions (they were never supported in the lowerer, where the below error came from)
-        /*
         [Fact]
         public void Generic()
         {
@@ -466,13 +464,12 @@ class Program
 ";
             // TODO: Eventually support this
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (8,16): error CS1519: Invalid token '<T>' in class, struct, or interface member declaration
     //         T Local<T>(T val)
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "<T>").WithArguments("<T>").WithLocation(8, 16)
                 );
         }
-        */
 
         [Fact]
         public void GenericClosure()
@@ -534,7 +531,7 @@ class Program
         }
 
         [Fact]
-        public void NoBody()
+        public void Unsafe()
         {
             var source = @"
 using System;
@@ -542,24 +539,149 @@ using System.Collections.Generic;
 
 class Program
 {
+    static void A()
+    {
+        unsafe void Local()
+        {
+            int x = 2;
+            Console.WriteLine(*&x);
+        }
+        Local();
+    }
+    static unsafe void B()
+    {
+        int x = 2;
+        unsafe void Local(int* y)
+        {
+            Console.WriteLine(*y);
+        }
+        Local(&x);
+    }
+    static unsafe void C()
+    {
+        int y = 2;
+        int* x = &y;
+        unsafe void Local()
+        {
+            Console.WriteLine(*x);
+        }
+        Local();
+    }
+
     static void Main(string[] args)
     {
-        void Local1()
-        void Local2();
+        A();
+        B();
+        C();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void BadUnsafe()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void A()
+    {
+        void Local()
+        {
+            int x = 2;
+            Console.WriteLine(*&x);
+        }
+        Local();
+    }
+    static unsafe void B()
+    {
+        void Local()
+        {
+            int x = 2;
+            Console.WriteLine(*&x);
+        }
+        Local();
+    }
+
+    static void Main(string[] args)
+    {
+        A();
+        B();
+    }
+}
+";
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0).WithAllowUnsafe(true);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (12,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+    //             Console.WriteLine(*&x);
+    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(12, 32),
+    // (21,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+    //             Console.WriteLine(*&x);
+    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(21, 32)
+                );
+        }
+
+        [Fact]
+        public void BadClosures()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void A(ref int x)
+    {
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+    }
+    static void B(__arglist)
+    {
+        void Local()
+        {
+            Console.WriteLine(__arglist);
+        }
+    }
+    static void C() // C and D produce different errors
+    {
+        void Local(__arglist)
+        {
+            Console.WriteLine(__arglist);
+        }
+    }
+    static void D(__arglist)
+    {
+        void Local(__arglist)
+        {
+            Console.WriteLine(__arglist);
+        }
     }
 }
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,22): error CS1002: ; expected
-    //         void Local1()
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(9, 22),
-    // (9,14): error CS0501: 'Program.Local1()' must declare a body because it is not marked abstract, extern, or partial
-    //         void Local1()
-    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Local1").WithArguments("Program.Local1()").WithLocation(9, 14),
-    // (10,14): error CS0501: 'Program.Local2()' must declare a body because it is not marked abstract, extern, or partial
-    //         void Local2();
-    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Local2").WithArguments("Program.Local2()").WithLocation(10, 14)
+    // (10,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
+    //             Console.WriteLine(x);
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(10, 31),
+    // (17,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    //             Console.WriteLine(__arglist);
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(17, 31),
+    // (24,31): error CS0190: The __arglist construct is valid only within a variable argument method
+    //             Console.WriteLine(__arglist);
+    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(24, 31),
+    // (31,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    //             Console.WriteLine(__arglist);
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(31, 31)
                 );
         }
 

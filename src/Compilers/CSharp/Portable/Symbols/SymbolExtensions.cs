@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while ((object)containingMember != null && containingMember.Kind == SymbolKind.Method)
             {
                 MethodSymbol method = (MethodSymbol)containingMember;
-                if (method.MethodKind != MethodKind.AnonymousFunction) break;
+                if (method.MethodKind != MethodKind.AnonymousFunction && method.MethodKind != MethodKind.LocalFunction) break;
                 containingMember = containingMember.ContainingSymbol;
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MethodSymbol method = (MethodSymbol)symbol;
 
                         // skip lambdas:
-                        if (method.MethodKind == MethodKind.AnonymousFunction)
+                        if (method.MethodKind == MethodKind.AnonymousFunction || method.MethodKind == MethodKind.LocalFunction)
                         {
                             symbol = method.ContainingSymbol;
                             continue;
