@@ -4482,6 +4482,26 @@ End Class"
 }")
         End Sub
 
+        <Fact>
+        Public Sub NullAnonymousTypeInstance()
+            Const source =
+"Class C
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "If(False, New With {.P = 1}, Nothing)")
+            Dim methodData = testData.GetMethodData("<>x.<>m0")
+            Dim returnType = DirectCast(methodData.Method.ReturnType, NamedTypeSymbol)
+            Assert.True(returnType.IsAnonymousType)
+            methodData.VerifyIL(
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  ret
+}")
+        End Sub
+
     End Class
 
 End Namespace
