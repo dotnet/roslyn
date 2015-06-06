@@ -2,6 +2,8 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -67,6 +69,163 @@ End Module
                                       .CodeTypeFullName = "System.Nullable(Of System.Int32)",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                                   })
+        End Sub
+
+#End Region
+
+#Region "CodeTypeFromFullName"
+
+        <WorkItem(1107453)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeTypeFromFullName_NonGenerated()
+
+            Dim workspace = <Workspace>
+                                <Project Language=<%= LanguageName %> CommonReferences="true">
+                                    <Document FilePath="C.vb"><![CDATA[
+Namespace N
+    Class C
+    End Class
+End Namespace
+]]></Document>
+                                </Project>
+                            </Workspace>
+
+            TestCodeTypeFromFullName(workspace, "N.C",
+                Sub(codeType)
+                    Assert.NotNull(codeType)
+                    Assert.Equal("N.C", codeType.FullName)
+
+                    Dim codeNamespace = TryCast(codeType.Parent, EnvDTE.CodeNamespace)
+                    Assert.NotNull(codeNamespace)
+
+                    Dim fileCodeModel = TryCast(codeNamespace.Parent, EnvDTE.FileCodeModel)
+                    Assert.NotNull(fileCodeModel)
+
+                    Dim underlyingFileCodeModel = ComAggregate.GetManagedObject(Of FileCodeModel)(fileCodeModel)
+                    Assert.NotNull(underlyingFileCodeModel)
+
+                    Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
+                    Assert.Equal("C.vb", filePath)
+                End Sub)
+
+        End Sub
+
+
+        <WorkItem(1107453)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeTypeFromFullName_Generated()
+
+            Dim workspace = <Workspace>
+                                <Project Language=<%= LanguageName %> CommonReferences="true">
+                                    <Document FilePath="C.g.vb"><![CDATA[
+Namespace N
+    Class C
+    End Class
+End Namespace
+]]></Document>
+                                </Project>
+                            </Workspace>
+
+            TestCodeTypeFromFullName(workspace, "N.C",
+                Sub(codeType)
+                    Assert.NotNull(codeType)
+                    Assert.Equal("N.C", codeType.FullName)
+
+                    Dim codeNamespace = TryCast(codeType.Parent, EnvDTE.CodeNamespace)
+                    Assert.NotNull(codeNamespace)
+
+                    Dim fileCodeModel = TryCast(codeNamespace.Parent, EnvDTE.FileCodeModel)
+                    Assert.NotNull(fileCodeModel)
+
+                    Dim underlyingFileCodeModel = ComAggregate.GetManagedObject(Of FileCodeModel)(fileCodeModel)
+                    Assert.NotNull(underlyingFileCodeModel)
+
+                    Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
+                    Assert.Equal("C.g.vb", filePath)
+                End Sub)
+
+        End Sub
+
+        <WorkItem(1107453)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeTypeFromFullName_NonGenerated_Generated()
+
+            Dim workspace = <Workspace>
+                                <Project Language=<%= LanguageName %> CommonReferences="true">
+                                    <Document FilePath="C.vb"><![CDATA[
+Namespace N
+    Class C
+    End Class
+End Namespace
+]]></Document>
+                                    <Document FilePath="C.g.vb"><![CDATA[
+Namespace N
+    Class C
+    End Class
+End Namespace
+]]></Document>
+                                </Project>
+                            </Workspace>
+
+            TestCodeTypeFromFullName(workspace, "N.C",
+                Sub(codeType)
+                    Assert.NotNull(codeType)
+                    Assert.Equal("N.C", codeType.FullName)
+
+                    Dim codeNamespace = TryCast(codeType.Parent, EnvDTE.CodeNamespace)
+                    Assert.NotNull(codeNamespace)
+
+                    Dim fileCodeModel = TryCast(codeNamespace.Parent, EnvDTE.FileCodeModel)
+                    Assert.NotNull(fileCodeModel)
+
+                    Dim underlyingFileCodeModel = ComAggregate.GetManagedObject(Of FileCodeModel)(fileCodeModel)
+                    Assert.NotNull(underlyingFileCodeModel)
+
+                    Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
+                    Assert.Equal("C.vb", filePath)
+                End Sub)
+
+        End Sub
+
+        <WorkItem(1107453)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeTypeFromFullName_Generated_NonGenerated()
+
+            Dim workspace = <Workspace>
+                                <Project Language=<%= LanguageName %> CommonReferences="true">
+                                    <Document FilePath="C.g.vb"><![CDATA[
+Namespace N
+    Class C
+    End Class
+End Namespace
+]]></Document>
+                                    <Document FilePath="C.vb"><![CDATA[
+Namespace N
+    Class C
+    End Class
+End Namespace
+]]></Document>
+                                </Project>
+                            </Workspace>
+
+            TestCodeTypeFromFullName(workspace, "N.C",
+                Sub(codeType)
+                    Assert.NotNull(codeType)
+                    Assert.Equal("N.C", codeType.FullName)
+
+                    Dim codeNamespace = TryCast(codeType.Parent, EnvDTE.CodeNamespace)
+                    Assert.NotNull(codeNamespace)
+
+                    Dim fileCodeModel = TryCast(codeNamespace.Parent, EnvDTE.FileCodeModel)
+                    Assert.NotNull(fileCodeModel)
+
+                    Dim underlyingFileCodeModel = ComAggregate.GetManagedObject(Of FileCodeModel)(fileCodeModel)
+                    Assert.NotNull(underlyingFileCodeModel)
+
+                    Dim filePath = underlyingFileCodeModel.Workspace.GetFilePath(underlyingFileCodeModel.GetDocumentId())
+                    Assert.Equal("C.vb", filePath)
+                End Sub)
+
         End Sub
 
 #End Region

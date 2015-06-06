@@ -1914,7 +1914,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
         {
-            LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+            var options = (CSharpParseOptions)location.SourceTree.Options;
+            if (feature.RequiredFeature() != null)
+            {
+                if (!options.IsFeatureEnabled(feature))
+                {
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize());
+                }
+                return;
+            }
+            LanguageVersion availableVersion = options.LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)
             {

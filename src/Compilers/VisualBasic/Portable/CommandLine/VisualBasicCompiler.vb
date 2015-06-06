@@ -2,10 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Reflection
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -17,12 +15,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared s_responseFileName As String
         Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
+        Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
 
         Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), clientDirectory As String, baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader)
             MyBase.New(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories, analyzerLoader)
 
-            _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
+            _diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory, AddressOf GetAdditionalTextFiles)
+            _additionalTextFiles = Nothing
         End Sub
+
+        Private Function GetAdditionalTextFiles() As ImmutableArray(Of AdditionalTextFile)
+            Debug.Assert(Not _additionalTextFiles.IsDefault, "GetAdditionalTextFiles called before ResolveAdditionalFilesFromArguments")
+            Return _additionalTextFiles
+        End Function
+
+        Protected Overrides Function ResolveAdditionalFilesFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFilesLogger As TouchedFileLogger) As ImmutableArray(Of AdditionalTextFile)
+            _additionalTextFiles = MyBase.ResolveAdditionalFilesFromArguments(diagnostics, messageProvider, touchedFilesLogger)
+            Return _additionalTextFiles
+        End Function
 
         Friend Overloads ReadOnly Property Arguments As VisualBasicCommandLineArguments
             Get

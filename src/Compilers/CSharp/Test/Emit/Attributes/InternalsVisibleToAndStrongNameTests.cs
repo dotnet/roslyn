@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class InternalsVisibleToAndStrongNameTests : CSharpTestBase
+    public partial class InternalsVisibleToAndStrongNameTests : CSharpTestBase
     {
         #region Helpers
 

@@ -3321,6 +3321,43 @@ End Namespace
 </text>
                 TestExtractMethod(code, expected, dontPutOutOrRefOnStruct:=True)
             End Sub
+
+            <WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            Public Sub HandleFormattableStringTargetTyping1()
+                Const code = "
+Imports System
+
+" & FormattableStringType & "
+
+Namespace N
+    Class C
+        Public Sub M()
+            Dim f = FormattableString.Invariant([|$""""|])
+        End Sub
+    End Class
+End Namespace"
+
+                Const expected = "
+Imports System
+
+" & FormattableStringType & "
+
+Namespace N
+    Class C
+        Public Sub M()
+            Dim f = FormattableString.Invariant(NewMethod())
+        End Sub
+
+        Private Shared Function NewMethod() As FormattableString
+            Return $""""
+        End Function
+    End Class
+End Namespace"
+
+                TestExtractMethod(code, expected)
+            End Sub
+
         End Class
     End Class
 End Namespace

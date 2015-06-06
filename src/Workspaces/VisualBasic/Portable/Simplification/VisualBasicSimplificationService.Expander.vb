@@ -202,12 +202,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         .WithAdditionalAnnotations(Simplifier.Annotation)
                 End If
 
-                If (node.Expression.Kind = SyntaxKind.SimpleMemberAccessExpression) Then
+                If node.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                     Dim memberAccess = DirectCast(node.Expression, MemberAccessExpressionSyntax)
                     Dim targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name)
 
-                    If (Not targetSymbol Is Nothing And targetSymbol.IsReducedExtension()) Then
-                        newInvocationExpression = RewriteExtensionMethodInvocation(node, newInvocationExpression, DirectCast(node.Expression, MemberAccessExpressionSyntax).Expression, DirectCast(newInvocationExpression.Expression, MemberAccessExpressionSyntax).Expression, DirectCast(targetSymbol, IMethodSymbol))
+                    If Not targetSymbol Is Nothing And targetSymbol.IsReducedExtension() AndAlso memberAccess.Expression IsNot Nothing Then
+                        newInvocationExpression = RewriteExtensionMethodInvocation(node, newInvocationExpression, memberAccess.Expression, DirectCast(newInvocationExpression.Expression, MemberAccessExpressionSyntax).Expression, DirectCast(targetSymbol, IMethodSymbol))
                     End If
                 End If
 
@@ -215,11 +215,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Function
 
             Private Function RewriteExtensionMethodInvocation(
-            originalNode As InvocationExpressionSyntax,
-            rewrittenNode As InvocationExpressionSyntax,
-            oldThisExpression As ExpressionSyntax,
-            thisExpression As ExpressionSyntax,
-            reducedExtensionMethod As IMethodSymbol) As InvocationExpressionSyntax
+                originalNode As InvocationExpressionSyntax,
+                rewrittenNode As InvocationExpressionSyntax,
+                oldThisExpression As ExpressionSyntax,
+                thisExpression As ExpressionSyntax,
+                reducedExtensionMethod As IMethodSymbol) As InvocationExpressionSyntax
+
+                Dim originalMemberAccess = DirectCast(originalNode.Expression, MemberAccessExpressionSyntax)
+                If originalMemberAccess.GetCorrespondingConditionalAccessExpression IsNot Nothing Then
+                    ' Bail out on extension method invocations in conditional access expression.
+                    ' Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
+                    ' Issue https//github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
+                    Return rewrittenNode
+                End If
+
                 Dim expression = RewriteExtensionMethodInvocation(rewrittenNode, oldThisExpression, thisExpression, reducedExtensionMethod, typeNameFormatWithoutGenerics)
 
                 Dim binding = _semanticModel.GetSpeculativeSymbolInfo(originalNode.SpanStart, expression, SpeculativeBindingOption.BindAsExpression)
@@ -376,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Dim symbolForMemberAccess = _semanticModel.GetSymbolInfo(node).Symbol
 
-                If symbolForMemberAccess.IsModuleMember Then
+                If node.Expression IsNot Nothing AndAlso symbolForMemberAccess.IsModuleMember Then
                     Dim symbolForLeftPart = _semanticModel.GetSymbolInfo(node.Expression).Symbol
 
                     If Not symbolForMemberAccess.ContainingType.Equals(symbolForLeftPart) Then

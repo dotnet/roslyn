@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -60,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    metadataReferenceResolver: metadataReferenceResolver,
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
-                   metadataImportOptions: MetadataImportOptions.Public,
-                   features: ImmutableArray<string>.Empty)
+                   metadataImportOptions: MetadataImportOptions.Public)
         {
         }
 
@@ -90,12 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions,
-            ImmutableArray<string> features)
+            MetadataImportOptions metadataImportOptions)
             : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
                    concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
-                   strongNameProvider, metadataImportOptions, features)
+                   strongNameProvider, metadataImportOptions)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
@@ -125,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             metadataReferenceResolver: other.MetadataReferenceResolver,
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
-            metadataImportOptions: other.MetadataImportOptions,
-            features: other.Features)
+            metadataImportOptions: other.MetadataImportOptions)
         {
         }
 
@@ -360,16 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
         }
 
-        internal new CSharpCompilationOptions WithFeatures(ImmutableArray<string> features)
-        {
-            if (features == this.Features)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { Features = features };
-        }
-
         public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
         {
             if (ReferenceEquals(resolver, this.XmlReferenceResolver))
@@ -462,9 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithStrongNameProvider(provider);
         }
 
+        [Obsolete]
         protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)
         {
-            return WithFeatures(features);
+            throw new NotImplementedException();
         }
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)

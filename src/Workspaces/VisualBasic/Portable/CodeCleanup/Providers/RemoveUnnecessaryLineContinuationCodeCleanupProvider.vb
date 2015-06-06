@@ -20,6 +20,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         End Property
 
         Public Async Function CleanupAsync(document As Document, spans As IEnumerable(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+            ' Is this VB 9? If so, we shouldn't remove line continuations because implicit line continuation was introduced in VB 10.
+            Dim parseOptions = TryCast(document.Project.ParseOptions, VisualBasicParseOptions)
+            If parseOptions?.LanguageVersion <= LanguageVersion.VisualBasic9 Then
+                Return document
+            End If
+
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim newRoot = Cleanup(root, spans, document.Project.Solution.Workspace, cancellationToken)
 

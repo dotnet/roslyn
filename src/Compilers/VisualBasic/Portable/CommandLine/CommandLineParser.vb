@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current command line parser.
         ''' </summary>
-        Public Shared ReadOnly [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
+        Public Shared ReadOnly Property [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
 
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Friend Shared ReadOnly Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
+        Friend Shared ReadOnly Property Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
@@ -1137,7 +1137,8 @@ lVbRuntimePlus:
                     languageVersion:=languageVersion,
                     documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                     kind:=SourceCodeKind.Regular,
-                    preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()))
+                    preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
+                    features:=ParseFeatures(features))
 
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
@@ -1162,7 +1163,7 @@ lVbRuntimePlus:
                         generalDiagnosticOption:=generalDiagnosticOption,
                         specificDiagnosticOptions:=specificDiagnosticOptions,
                         optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                        parseOptions:=parseOptions).WithFeatures(features.AsImmutable())
+                        parseOptions:=parseOptions)
 
             Dim emitOptions = New EmitOptions(
                     metadataOnly:=False,

@@ -8,11 +8,9 @@ usage()
     echo "Options"
     echo "  --mono-path <path>  Path to the mono installation to use for the run" 
     echo "  --os <os>           OS to run (Linux / Darwin)"
-    echo "  --minimal           Run a minimal set of suites (used when upgrading mono)"
 }
 
 XUNIT_VERSION=2.0.0-alpha-build2576
-FULL_RUN=true
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 
@@ -31,10 +29,6 @@ do
         --os)
         OS_NAME=$2
         shift 2
-        ;;
-        --minimal)
-        FULL_RUN=false
-        shift 1
         ;;
         --debug)
         BUILD_CONFIGURATION=Debug
@@ -84,11 +78,7 @@ compile_toolset()
     echo Compiling the toolset compilers
     echo -e "\tCompiling the C# compiler"
     run_xbuild src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
-
-    if [ "$FULL_RUN" = "true" ]; then
-        echo -e "\tCompiling VB compiler"
-        run_xbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
-    fi
+    run_xbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
@@ -99,14 +89,9 @@ save_toolset()
         Microsoft.CodeAnalysis.dll
         Microsoft.CodeAnalysis.CSharp.dll
         System.Collections.Immutable.dll
-        System.Reflection.Metadata.dll)
-
-    if [ "$FULL_RUN" = "true" ]; then
-        compiler_binaries=(
-            ${compiler_binaries[@]} 
-            vbc.exe
-            Microsoft.CodeAnalysis.VisualBasic.dll)
-    fi
+        System.Reflection.Metadata.dll
+        vbc.exe
+        Microsoft.CodeAnalysis.VisualBasic.dll)
 
     mkdir Binaries/Bootstrap
     for i in ${compiler_binaries[@]}; do
@@ -131,15 +116,8 @@ build_roslyn()
 {
     BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
 
-    echo Running the bootstrap build 
-
-    if [ "$FULL_RUN" = "true" ]; then
-        echo -e "\tCompiling CrossPlatform.sln"
-        run_xbuild $BOOTSTRAP_ARG src/CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
-    else
-        echo -e "\tCompiling the C# compiler"
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
-    fi
+    echo Building CrossPlatform.sln
+    run_xbuild $BOOTSTRAP_ARG src/CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
@@ -195,10 +173,6 @@ set_mono_path()
 
 test_roslyn()
 {
-    if [ "$FULL_RUN" != "true" ]; then
-        return
-    fi
-    
     local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
@@ -221,15 +195,6 @@ test_roslyn()
         exit 1
     fi
 }
-
-# As a bootstrap mechanism in Jenkins we assume that Linux is a
-# minimal run.  It is not yet updated to the latest mono build
-# nor is the --minimal switch present for us to take advantage
-# of.  This block will be deleted once everything gets pushed
-# through. 
-if [ "$OS_NAME" = "Linux" ]; then
-    FULL_RUN=false
-fi
 
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 

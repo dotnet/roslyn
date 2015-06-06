@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             _waitIndicator.Wait(
                 title: EditorFeaturesResources.FormatPaste,
                 message: EditorFeaturesResources.FormattingPastedText,
-                allowCancel: false,
+                allowCancel: true,
                 action: c => ExecuteCommandWorker(args, nextHandler, c.CancellationToken));
         }
 

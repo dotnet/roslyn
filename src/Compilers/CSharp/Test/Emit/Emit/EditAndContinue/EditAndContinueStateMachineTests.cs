@@ -315,6 +315,7 @@ class C
                     Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                    Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(1, TableIndex.MethodImpl, EditAndContinueOperation.Default),
                     Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default),
                     Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
@@ -488,6 +489,7 @@ class C
                         Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodImpl, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default),
                         Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
@@ -678,9 +680,12 @@ class C
                         Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
                 }
             }
         }
@@ -875,7 +880,8 @@ class C
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -1915,8 +1921,10 @@ class C
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -2021,7 +2029,8 @@ class C
                 Row(18, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             diff2.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -2130,8 +2139,10 @@ class C
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -2384,8 +2395,10 @@ class C
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             // Note that the new awaiter is allocated slot <>u__3 since <>u__1 and <>u__2 are taken.
             diff1.VerifyIL("C.<F>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
@@ -2527,7 +2540,8 @@ class C
                 Row(12, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             // Note that the new awaiters are allocated slots <>u__4, <>u__5.
             diff2.VerifyIL("C.<F>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
@@ -2675,8 +2689,10 @@ class C
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]

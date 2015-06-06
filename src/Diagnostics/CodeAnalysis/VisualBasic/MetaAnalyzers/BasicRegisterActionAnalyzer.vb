@@ -7,25 +7,25 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicRegisterActionAnalyzer
-        Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, SyntaxKind)
+        Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind)
 
         Private Shared ReadOnly s_basicSyntaxKindFullName As String = GetType(SyntaxKind).FullName
         Private Shared ReadOnly s_CSharpSyntaxKindFullName As String = "Microsoft.CodeAnalysis.CSharp.SyntaxKind"
 
-        Protected Overrides Function GetAnalyzer(compilation As Compilation,
+        Protected Overrides Function GetCodeBlockAnalyzer(compilation As Compilation,
                                                  analysisContext As INamedTypeSymbol,
                                                  compilationStartAnalysisContext As INamedTypeSymbol,
                                                  codeBlockStartAnalysisContext As INamedTypeSymbol,
                                                  symbolKind As INamedTypeSymbol,
                                                  diagnosticAnalyzer As INamedTypeSymbol,
-                                                 diagnosticAnalyzerAttribute As INamedTypeSymbol) As RegisterActionCompilationAnalyzer
+                                                 diagnosticAnalyzerAttribute As INamedTypeSymbol) As RegisterActionCodeBlockAnalyzer
             Dim basicSyntaxKind = compilation.GetTypeByMetadataName(s_basicSyntaxKindFullName)
             Dim csharpSyntaxKind = compilation.GetTypeByMetadataName(s_CSharpSyntaxKindFullName)
-            Return New BasicRegisterActionCompilationAnalyzer(basicSyntaxKind, csharpSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+            Return New BasicRegisterActionCodeBlockAnalyzer(basicSyntaxKind, csharpSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
         End Function
 
-        Private NotInheritable Class BasicRegisterActionCompilationAnalyzer
-            Inherits RegisterActionCompilationAnalyzer
+        Private NotInheritable Class BasicRegisterActionCodeBlockAnalyzer
+            Inherits RegisterActionCodeBlockAnalyzer
 
             Private ReadOnly _csharpSyntaxKind As ITypeSymbol
             Private ReadOnly _basicSyntaxKind As ITypeSymbol
@@ -44,6 +44,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
                 Me._csharpSyntaxKind = csharpSyntaxKind
             End Sub
 
+            Protected Overrides ReadOnly Property InvocationExpressionKind As SyntaxKind
+                Get
+                    Return SyntaxKind.InvocationExpression
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property ArgumentSyntaxKind As SyntaxKind
+                Get
+                    Return SyntaxKind.SimpleArgument
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property ParameterSyntaxKind As SyntaxKind
+                Get
+                    Return SyntaxKind.Parameter
+                End Get
+            End Property
+
             Protected Overrides Function GetArgumentExpressions(invocation As InvocationExpressionSyntax) As IEnumerable(Of SyntaxNode)
                 If invocation.ArgumentList IsNot Nothing Then
                     Return invocation.ArgumentList.Arguments.Select(Function(a) a.GetExpression)
@@ -52,8 +70,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
                 Return Nothing
             End Function
 
+            Protected Overrides Function GetArgumentExpression(argument As ArgumentSyntax) As SyntaxNode
+                Return argument.GetExpression
+            End Function
+
             Protected Overrides Function GetInvocationExpression(invocation As InvocationExpressionSyntax) As SyntaxNode
                 Return invocation.Expression
+            End Function
+
+            Protected Overrides Function GetInvocationReceiver(invocation As InvocationExpressionSyntax) As SyntaxNode
+                Return TryCast(invocation.Expression, MemberAccessExpressionSyntax)?.Expression
             End Function
 
             Protected Overrides Function IsSyntaxKind(type As ITypeSymbol) As Boolean

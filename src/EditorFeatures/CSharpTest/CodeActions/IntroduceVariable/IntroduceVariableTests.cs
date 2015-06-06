@@ -2542,5 +2542,41 @@ class C
     }
 }");
         }
+
+        [WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public void HandleFormattableStringTargetTyping1()
+        {
+            const string code = CodeSnippets.FormattableStringType + @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public void M()
+        {
+            var f = FormattableString.Invariant([|$""""|]);
+        }
+    }
+}";
+
+            const string expected = CodeSnippets.FormattableStringType + @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public void M()
+        {
+            FormattableString {|Rename:v|} = $"""";
+            var f = FormattableString.Invariant(v);
+        }
+    }
+}";
+
+            Test(code, expected, index: 0, compareTokens: false);
+        }
     }
 }

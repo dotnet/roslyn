@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             AssertIsForeground();
 
             var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
-            var preferredProjectid = preferredDocumentId == null ? null : preferredDocumentId.ProjectId;
+            var preferredProjectId = preferredDocumentId?.ProjectId;
 
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
             var previewContent = await extensionManager.PerformFunctionAsync(Provider, async () =>
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     // TakeNextPreviewAsync() needs to run on UI thread.
                     AssertIsForeground();
-                    return await previewResult.TakeNextPreviewAsync(preferredDocumentId, preferredProjectid, cancellationToken).ConfigureAwait(true);
+                    return await previewResult.TakeNextPreviewAsync(preferredDocumentId, preferredProjectId, cancellationToken).ConfigureAwait(true);
                 }
 
                 // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             string language;
             string projectType;
-            Workspace.GetLanguageAndProjectType(preferredProjectid, out language, out projectType);
+            Workspace.GetLanguageAndProjectType(preferredProjectId, out language, out projectType);
 
             return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent);
         }

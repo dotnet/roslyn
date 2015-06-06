@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             _waitIndicator.Wait(
                 title: EditorFeaturesResources.FormatSelection,
                 message: EditorFeaturesResources.FormattingCurrentlySelected,
-                allowCancel: false,
+                allowCancel: true,
                 action: waitContext =>
             {
                 var buffer = args.SubjectBuffer;

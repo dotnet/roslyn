@@ -821,6 +821,154 @@ End Class
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
         End Sub
 
+        <Fact, WorkItem(1179899, "DevDiv")>
+        Public Sub ParameterReference_01()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Function stuff() As Func(Of Program, String)
+        Return Function(a) a.
+    End Function
+
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        Return Function(a) a.
+                             ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1179899, "DevDiv")>
+        Public Sub ParameterReference_02()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Sub stuff()
+        M1(Function(a) a.)
+    End Sub
+
+    Sub M1(l as Func(Of Program, String))
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        M1(Function(a) a.)
+                         ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1179899, "DevDiv")>
+        Public Sub ParameterReference_03()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Sub stuff()
+        Dim l as Func(Of Program, String) = Function(a) a.
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        Dim l as Func(Of Program, String) = Function(a) a.
+                                                          ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString().Trim())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1179899, "DevDiv")>
+        Public Sub ParameterReference_04()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Sub stuff()
+        Dim l = CType(Function(a) a. , Func(Of Program, String))
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        Dim l = CType(Function(a) a. , Func(Of Program, String))
+                                     ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString().Trim())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
     End Class
 
 End Namespace

@@ -148,6 +148,7 @@
     <Compile Include="LocalizableProperties.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItemSource.cs" />
     <Compile Include="DiagnosticItem\DiagnosticItem.cs" />
+    <Compile Include="RuleSetDocumentExtensions.cs" />
     <Compile Include="SolutionExplorerShim.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

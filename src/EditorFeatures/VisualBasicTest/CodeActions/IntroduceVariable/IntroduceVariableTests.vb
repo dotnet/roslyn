@@ -1624,5 +1624,38 @@ End Module
 
             Test(code, expected, index:=1, compareTokens:=False)
         End Sub
+
+        <WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub HandleFormattableStringTargetTyping1()
+            Const code = "
+Imports System
+
+" & FormattableStringType & "
+
+Namespace N
+    Class C
+        Public Sub M()
+            Dim f = FormattableString.Invariant([|$""""|])
+        End Sub
+    End Class
+End Namespace"
+
+            Const expected = "
+Imports System
+
+" & FormattableStringType & "
+
+Namespace N
+    Class C
+        Public Sub M()
+            Dim {|Rename:v|} As FormattableString = $""""
+            Dim f = FormattableString.Invariant(v)
+        End Sub
+    End Class
+End Namespace"
+
+            Test(code, expected, index:=0, compareTokens:=False)
+        End Sub
     End Class
 End Namespace

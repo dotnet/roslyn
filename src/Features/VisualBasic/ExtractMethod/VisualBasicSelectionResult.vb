@@ -187,6 +187,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End If
 
+            ' use FormattableString if conversion between String And FormattableString
+            If info.Type?.SpecialType = SpecialType.System_String AndAlso
+               info.ConvertedType?.IsFormattableString() Then
+
+                Return info.ConvertedType
+            End If
+
             ' get type without considering implicit conversion
             Return If(info.Type.IsObjectType(), info.ConvertedType, info.Type)
         End Function
