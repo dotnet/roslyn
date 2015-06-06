@@ -819,14 +819,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var snapshot = subjectBuffer.CurrentSnapshot;
             var document = _workspace.CurrentSolution.GetDocument(this.Id);
+            if (!document.SupportsSyntaxTree)
+            {
+                return;
+            }
+
             var originalText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
 
             var root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            if (root == null)
-            {
-                return;
-            }
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(_containedLanguage.DataBuffer);
