@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Live.
+        ///   Looks up a localized string similar to Compiler.
         /// </summary>
         internal static string BuildToolLive {
             get {

@@ -766,7 +766,7 @@ Do you want to continue?</value>
     <value>Edit And Continue</value>
   </data>
   <data name="BuildToolLive" xml:space="preserve">
-    <value>Live</value>
+    <value>Compiler</value>
   </data>
   <data name="Namespace" xml:space="preserve">
     <value>namespace</value>
