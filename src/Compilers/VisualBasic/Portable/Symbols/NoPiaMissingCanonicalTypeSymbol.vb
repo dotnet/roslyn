@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' A NoPiaMissingCanonicalTypeSymbol is a special kind of ErrorSymbol that represents
     ''' a NoPia embedded type symbol that was attempted to be substituted with canonical type, 
-    ''' but the canonocal type couldn't be found.
+    ''' but the canonical type couldn't be found.
     ''' </summary>
     Friend Class NoPiaMissingCanonicalTypeSymbol
         Inherits ErrorTypeSymbol ' TODO: Should probably inherit from MissingMetadataType.TopLevel, but review TypeOf checks for MissingMetadataType.

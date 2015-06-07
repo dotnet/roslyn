@@ -2480,7 +2480,7 @@ End Module]]>,
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirective_StatementSeperator1()
+    Public Sub ParseWarningDirective_StatementSeparator1()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning :]]>,
             <errors>
                 <error id="30205" message="End of statement expected." start="17" end="17"/>
@@ -2497,7 +2497,7 @@ End Module]]>,
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirective_StatementSeperator2()
+    Public Sub ParseWarningDirective_StatementSeparator2()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42024 :'comment]]>,
             <errors>
                 <error id="30205" message="End of statement expected." start="23" end="23"/>
@@ -2515,7 +2515,7 @@ End Module]]>,
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirective_StatementSeperator3()
+    Public Sub ParseWarningDirective_StatementSeparator3()
         Dim tree = ParseAndVerify(<![CDATA[#Disable :
 ]]>,
             <errors>

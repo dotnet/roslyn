@@ -2776,7 +2776,7 @@ class C { }";
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(true, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
 
-                // remove reference MyAnalzyer.dll
+                // remove reference MyAnalyzer.dll
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveAnalyzerReference(aref).Solution);
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(false, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));

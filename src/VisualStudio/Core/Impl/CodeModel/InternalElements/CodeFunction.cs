@@ -161,11 +161,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             set
             {
-                // The type is sometimes part of the node key, so we should be sure to reaquire
+                // The type is sometimes part of the node key, so we should be sure to reacquire
                 // it after updating it. Note that we pass trackKinds: false because it's possible
                 // that UpdateType might change the kind of a node (e.g. change a VB Sub to a Function).
 
-                UpdateNodeAndReaquireNodeKey(FileCodeModel.UpdateType, value, trackKinds: false);
+                UpdateNodeAndReacquireNodeKey(FileCodeModel.UpdateType, value, trackKinds: false);
             }
         }
     }

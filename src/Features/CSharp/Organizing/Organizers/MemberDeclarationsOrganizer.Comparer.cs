@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
             private static bool ShouldCompareByName(MemberDeclarationSyntax x)
             {
                 // Constructors, destructors, indexers and operators should not be sorted by name.
-                // Note:  Converation operators should not be sorted by name either, but it's not
+                // Note:  Conversion operators should not be sorted by name either, but it's not
                 //        necessary to deal with that here, because GetNameToken cannot return a
                 //        name for them (there's only a NameSyntax, not a Token).
                 switch (x.Kind())

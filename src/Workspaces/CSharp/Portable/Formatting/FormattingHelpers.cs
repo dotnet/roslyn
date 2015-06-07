@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                      (token.Parent is AnonymousObjectCreationExpressionSyntax));
         }
 
-        public static bool IsIdentiferInLabeledStatement(this SyntaxToken token)
+        public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {
             var labeledStatement = token.Parent as LabeledStatementSyntax;
             return token.Kind() == SyntaxKind.IdentifierToken &&

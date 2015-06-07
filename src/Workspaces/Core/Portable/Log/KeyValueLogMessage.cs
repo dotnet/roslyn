@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
         {
             var logMessage = s_pool.Allocate();
-            logMessage.Constrcut(propertySetter);
+            logMessage.Construct(propertySetter);
 
             return logMessage;
         }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             // prevent it from being created directly
         }
 
-        private void Constrcut(Action<Dictionary<string, object>> propertySetter)
+        private void Construct(Action<Dictionary<string, object>> propertySetter)
         {
             _propertySetter = propertySetter;
         }

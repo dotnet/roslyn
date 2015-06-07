@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Retrieves methods of anonymous type template which are not placed to symbol table.
-        /// In current implementation those are overriden 'ToString', 'Equals' and 'GetHashCode'
+        /// In current implementation those are overridden 'ToString', 'Equals' and 'GetHashCode'
         /// </summary>
         internal static ImmutableArray<MethodSymbol> GetAnonymousTypeHiddenMethods(NamedTypeSymbol type)
         {

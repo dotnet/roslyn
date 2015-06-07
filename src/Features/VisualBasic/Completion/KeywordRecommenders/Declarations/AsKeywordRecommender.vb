@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             ' Function Foo |
-            If targetToken.IsChildToken(Of MethodStatementSyntax)(Function(functonDeclaration) functonDeclaration.Identifier) AndAlso
+            If targetToken.IsChildToken(Of MethodStatementSyntax)(Function(functionDeclaration) functionDeclaration.Identifier) AndAlso
                 Not targetToken.GetAncestor(Of MethodBaseSyntax)().IsKind(SyntaxKind.SubStatement) Then
                 Return asKeyword
             End If

@@ -294,7 +294,7 @@
   <data name="NoValidSelectionToPerform" xml:space="preserve">
     <value>No valid selection to perform extraction</value>
   </data>
-  <data name="NoCommonRootNodeForExtrac" xml:space="preserve">
+  <data name="NoCommonRootNodeForExtraction" xml:space="preserve">
     <value>No common root node for extraction</value>
   </data>
   <data name="Deprecated" xml:space="preserve">
@@ -539,7 +539,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</value>
   </data>
   <data name="ModKeywordToolTip" xml:space="preserve">
     <value>Divides two numbers and returns only the remainder.
-&lt;number1&gt; Mod &lt;numer2&gt;</value>
+&lt;number1&gt; Mod &lt;number2&gt;</value>
   </data>
   <data name="ModuleKeywordToolTip" xml:space="preserve">
     <value>Specifies that an attribute at the beginning of a source file applies to the entire module. Otherwise the attribute will apply only to an individual programming element, such as a class or property.</value>

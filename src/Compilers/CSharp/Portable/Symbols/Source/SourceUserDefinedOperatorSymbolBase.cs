@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: For a given source type S and target type T, if S or T are
             // SPEC: nullable types let S0 and T0 refer to their underlying types,
-            // SPEC: otherise, S0 and T0 are equal to S and T, respectively.
+            // SPEC: otherwise, S0 and T0 are equal to S and T, respectively.
 
             var source = this.ParameterTypes[0];
             var target = this.ReturnType;

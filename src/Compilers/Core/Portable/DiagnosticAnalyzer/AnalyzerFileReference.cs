@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Analyzer are read from the file, owned by the reference, and doesn't change 
     /// since the reference is accessed until the reference object is garbage collected.
     /// 
-    /// If you need to manage the lifetime of the anayzer reference (and the file stream) explicitly use <see cref="AnalyzerImageReference"/>.
+    /// If you need to manage the lifetime of the analyzer reference (and the file stream) explicitly use <see cref="AnalyzerImageReference"/>.
     /// </remarks>
     public sealed partial class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {

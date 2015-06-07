@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Contract.ThrowIfNull(options);
 
             var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, args.TypedChar, options);
-            var isPotentionalFilterCharacter = IsPotentionalFilterCharacter(args);
+            var isPotentialFilterCharacter = IsPotentialFilterCharacter(args);
             var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo(args.TypedChar)
                 .WithIsDebugger(_isDebugger).WithIsImmediateWindow(_isImmediateWindow);
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user types something which is absolutely known to be a filter character
                 // then we can just proceed without blocking.
-                if (isPotentionalFilterCharacter)
+                if (isPotentialFilterCharacter)
                 {
                     if (isTextuallyTriggered)
                     {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         /// A potential filter character is something that can filter a completion lists and is
         /// *guaranteed* to not be a commit character.
         /// </summary>
-        private static bool IsPotentionalFilterCharacter(TypeCharCommandArgs args)
+        private static bool IsPotentialFilterCharacter(TypeCharCommandArgs args)
         {
             // TODO(cyrusn): Actually use the right unicode categories here.
             return char.IsLetter(args.TypedChar)

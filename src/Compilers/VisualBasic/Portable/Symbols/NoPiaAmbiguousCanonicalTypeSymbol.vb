@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' A NoPiaAmbiguousCanonicalTypeSymbol is a special kind of ErrorSymbol that represents
     ''' a NoPia embedded type symbol that was attempted to be substituted with canonical type, 
-    ''' but the canonocal type was ambiguous.
+    ''' but the canonical type was ambiguous.
     ''' </summary>
     Friend Class NoPiaAmbiguousCanonicalTypeSymbol
         Inherits ErrorTypeSymbol

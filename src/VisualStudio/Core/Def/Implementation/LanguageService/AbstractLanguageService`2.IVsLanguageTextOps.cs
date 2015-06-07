@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             // HACK: The formatting engine is inclusive in it's spans, so it won't insert
             // adjust the indentation if there is a token right at the spans we start at.
-            // Instead, we make sure we include preceeding indentation.
+            // Instead, we make sure we include preceding indentation.
             var prevToken = root.FindToken(start).GetPreviousToken();
             if (prevToken != default(SyntaxToken))
             {

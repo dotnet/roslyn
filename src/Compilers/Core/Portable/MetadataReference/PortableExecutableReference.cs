@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         /// Any other exception is considered an unexpected error in the implementation and is not caught.
         ///
         /// <see cref="Metadata"/> objects may cache information decoded from the PE image.
-        /// Reusing <see cref="Metadata"/> instances accross metadata references will result in better performance.
+        /// Reusing <see cref="Metadata"/> instances across metadata references will result in better performance.
         /// 
         /// The calling <see cref="Compilation"/> doesn't take ownership of the <see cref="Metadata"/> objects returned by this method.
         /// The implementation needs to retrieve the object from a provider that manages their lifetime (such as metadata cache).

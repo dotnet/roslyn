@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         SolutionExplorer_AnalyzerItemSource_GetItems,
         SolutionExplorer_DiagnosticItemSource_GetItems,
-        WorkCoordinator_ActivieFileEnqueue,
+        WorkCoordinator_ActiveFileEnqueue,
         SymbolFinder_FindDeclarationsAsync,
         SymbolFinder_Project_AddDeclarationsAsync,
         SymbolFinder_Assembly_AddDeclarationsAsync,

@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: 0);
                 }
 
-                return LineColumnRule.PreserveLinesWithFollowingPreceedingIndentation();
+                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation();
             }
 
             if (trivia2.IsKind(SyntaxKind.SkippedTokensTrivia))

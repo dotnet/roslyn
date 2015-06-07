@@ -7437,7 +7437,7 @@ class Program
 
         [WorkItem(991466)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void DescriptionInAlaisedType()
+        public void DescriptionInAliasedType()
         {
             var markup = @"
 using IAlias = IFoo;

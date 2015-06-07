@@ -2172,7 +2172,7 @@ public static T bar<T>(T i)
         }
 
         /// <summary>
-        /// Tests that we emit ldftn and ldvirtftn instructions corectly.
+        /// Tests that we emit ldftn and ldvirtftn instructions correctly.
         /// </summary>
         [Fact]
         public void CompilationChain_Ldftn()
@@ -2207,7 +2207,7 @@ new System.Func<int>(new C().gh<bool>)()
         }
 
         /// <summary>
-        /// Tests that we emit ldftn and ldvirtftn instructions corectly.
+        /// Tests that we emit ldftn and ldvirtftn instructions correctly.
         /// </summary>
         [Fact]
         public void CompilationChain_Ldftn_GenericType()
@@ -2332,7 +2332,7 @@ int Foo() { return 2;}
         }
 
         [Fact]
-        public void ArithmeticOperators_IdentiferAddition()
+        public void ArithmeticOperators_IdentifierAddition()
         {
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
@@ -2613,7 +2613,7 @@ new object[] { x, y, z }
         }
 
         /// <summary>
-        /// Name of PrivateImplementationDetails type needs to be unique accross submissions.
+        /// Name of PrivateImplementationDetails type needs to be unique across submissions.
         /// The compiler should suffix it with a MVID of the current submission module so we should be fine.
         /// </summary>
         [WorkItem(949559)]

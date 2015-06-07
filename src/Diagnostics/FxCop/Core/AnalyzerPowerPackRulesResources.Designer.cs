@@ -71,7 +71,7 @@ namespace Microsoft.AnalyzerPowerPack {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Change the accessibility of all public contructors in this class to protected..
+        ///   Looks up a localized string similar to Change the accessibility of all public constructors in this class to protected..
         /// </summary>
         public static string AbstractTypesShouldNotHavePublicConstructorsCodeFix {
             get {

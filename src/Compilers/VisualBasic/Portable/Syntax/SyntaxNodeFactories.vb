@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Create a missing punctutation mark.
+        ''' Create a missing punctuation mark.
         ''' </summary>
         Friend Shared Function MissingPunctuation(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.PunctuationSyntax(kind, "",

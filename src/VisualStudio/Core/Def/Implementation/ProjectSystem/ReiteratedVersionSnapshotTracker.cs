@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// hold onto latest ReiteratedVersionNumber snapshot of a textbuffer
         /// there is a bug where many of our features just assume that if they wait, they will end up get the latest snapshot in some ways. 
         /// but, unfortunately that is actually not true. they will, at the end, get latest reiterated version snapshot but 
-        /// not the lastest version snapshot since we might have skipped/swallowed the latest snapshot since its content didn't change.
+        /// not the latest version snapshot since we might have skipped/swallowed the latest snapshot since its content didn't change.
         /// this is especially unfortunate for features that want to move back and forth between source text and ITextSnapshot since holding
         /// on the latest snapshot won't guarantee that. so, in VS, we hold onto right latest snapshot in VS workspace so that all feature under it
         /// doesn't need to worry about it.

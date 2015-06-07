@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // WARNING: Only use this if the node is obtainable without allocating it (even if cached later). E.g., only
         // if the node is stored in the constructor of the symbol. In particular, do not call this on the result of a GetSyntax()
-        // call on a SyntacReference.
+        // call on a SyntaxReference.
         public LexicalSortKey(CSharpSyntaxNode node, CSharpCompilation compilation)
             : this(node.SyntaxTree, node.SpanStart, compilation)
         {

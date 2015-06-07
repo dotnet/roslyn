@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// <summary>
         /// get tokens with given annotation in current document
         /// </summary>
-        public static SyntaxToken GetTokenWithAnnotaton(this SemanticDocument document, SyntaxAnnotation annotation)
+        public static SyntaxToken GetTokenWithAnnotation(this SemanticDocument document, SyntaxAnnotation annotation)
         {
             return document.Root.GetAnnotatedNodesAndTokens(annotation).Single().AsToken();
         }

@@ -231,9 +231,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     // See if there's a matching field we can use.  First test in a case sensitive
                     // manner, then case insensitively.
-                    if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, parameterToNewFieldMap, caseSentitive: true))
+                    if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, parameterToNewFieldMap, caseSensitive: true))
                     {
-                        if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, parameterToNewFieldMap, caseSentitive: false))
+                        if (!TryFindMatchingField(arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap, parameterToNewFieldMap, caseSensitive: false))
                         {
                             parameterToNewFieldMap[parameterNames[i]] = parameterNames[i];
                         }
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 int index,
                 Dictionary<string, ISymbol> parameterToExistingFieldMap,
                 Dictionary<string, string> parameterToNewFieldMap,
-                bool caseSentitive)
+                bool caseSensitive)
             {
                 var parameterName = parameterNames[index];
                 var parameterType = parameterTypes[index];
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // Otherwise, we'll need to choose a different name for this member so that it
                 // doesn't conflict with something already in the type. First check the current type
                 // for a matching field.  If so, defer to it.
-                var comparison = caseSentitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
                 foreach (var type in _state.TypeToGenerateIn.GetBaseTypesAndThis())
                 {

@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     updatedSolution = applyChanges.ChangedSolution;
                     var projectChanges = updatedSolution.GetChanges(oldSolution).GetProjectChanges();
                     var changedDocuments = projectChanges.SelectMany(pd => pd.GetChangedDocuments());
-                    var changedAddiionalDocuments = projectChanges.SelectMany(pd => pd.GetChangedAdditionalDocuments());
-                    var changedFiles = changedDocuments.Concat(changedAddiionalDocuments);
+                    var changedAdditionalDocuments = projectChanges.SelectMany(pd => pd.GetChangedAdditionalDocuments());
+                    var changedFiles = changedDocuments.Concat(changedAdditionalDocuments);
 
                     // 0 file changes
                     if (!changedFiles.Any())
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         {
                             text = oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                         }
-                        else if (changedAddiionalDocuments.Any())
+                        else if (changedAdditionalDocuments.Any())
                         {
-                            text = oldSolution.GetAdditionalDocument(changedAddiionalDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            text = oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                         }
                     }
 

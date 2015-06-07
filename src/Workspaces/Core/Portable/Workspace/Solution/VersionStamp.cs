@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new instance of a version stamp based on the specified DateTime.
         /// </summary>
-        public static VersionStamp Create(DateTime utcIimeLastModified)
+        public static VersionStamp Create(DateTime utcTimeLastModified)
         {
-            return new VersionStamp(utcIimeLastModified);
+            return new VersionStamp(utcTimeLastModified);
         }
 
         /// <summary>

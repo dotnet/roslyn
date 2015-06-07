@@ -740,7 +740,7 @@ index:=0)
 
         <WorkItem(1065647)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForNestedType()
+        Public Sub TestAccessibilityForNestedType()
             Test(
 NewLines("Public Interface I \n  Sub Foo(a As [|X.Y.Z|]) \n End Interface \n Public Class X \n End Class"),
 NewLines("Public Interface I \n  Sub Foo(a As X.Y.Z) \n End Interface \n Public Class X \n Public Class Y \n End Class \n End Class"),
@@ -766,7 +766,7 @@ index:=1)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields()
+        Public Sub TestAccessibilityForPublicFields()
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
 NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
@@ -776,7 +776,7 @@ isAddedDocument:=True)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields2()
+        Public Sub TestAccessibilityForPublicFields2()
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
 NewLines("Public Class A \n Public B As New B() \n End Class \n\n Public Class B \n Public Sub New() \n End Sub \n End Class"),
@@ -785,7 +785,7 @@ index:=1)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields3()
+        Public Sub TestAccessibilityForPublicFields3()
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
 NewLines("Public Class A \n Public B As New B() \n Public Class B \n Public Sub New() \n End Sub \n End Class \n End Class"),
@@ -794,7 +794,7 @@ index:=2)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields4()
+        Public Sub TestAccessibilityForPublicFields4()
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
 NewLines("Public Class B \n End Class"),
@@ -804,7 +804,7 @@ isAddedDocument:=True)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields5()
+        Public Sub TestAccessibilityForPublicFields5()
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
 NewLines("Public Class A \n Public B As New B \n End Class \n\n Public Class B \n End Class"),
@@ -813,7 +813,7 @@ index:=1)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields6()
+        Public Sub TestAccessibilityForPublicFields6()
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
 NewLines("Public Class A \n Public B As New B \n Public Class B \n End Class \n End Class"),
@@ -822,7 +822,7 @@ index:=2)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields7()
+        Public Sub TestAccessibilityForPublicFields7()
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
 NewLines("Public Class B(Of T) \n End Class"),
@@ -832,7 +832,7 @@ isAddedDocument:=True)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields8()
+        Public Sub TestAccessibilityForPublicFields8()
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
 NewLines("Public Class A \n Public B As New B(Of Integer) \n End Class \n\n Public Class B(Of T) \n End Class"),
@@ -841,7 +841,7 @@ index:=1)
 
         <WorkItem(1107929)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestAccesiblityForPublicFields9()
+        Public Sub TestAccessibilityForPublicFields9()
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
 NewLines("Public Class A \n Public B As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),

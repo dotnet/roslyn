@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="symbol">The symbol to check accessibility.</param>
         ''' <param name="within">The assembly to check accessibility within.</param>
-        ''' <returns>True if symbol is acessible. False otherwise.</returns>
+        ''' <returns>True if symbol is accessible. False otherwise.</returns>
         Public Shared Function IsSymbolAccessible(symbol As Symbol,
                                                   within As AssemblySymbol) As Boolean
             If symbol Is Nothing Then

@@ -741,7 +741,7 @@ End Class]]>
 
         End Sub
 
-        ''' Didnot Skip the test - will remove the explist cast (from IMethodSymbol to MethodSymbol)once this bug is fixed
+        ''' Did not Skip the test - will remove the explicit cast (from IMethodSymbol to MethodSymbol) once this bug is fixed
         <WorkItem(528029, "DevDiv")>
         <Fact>
         Public Sub TestInteropAttributesInterface()

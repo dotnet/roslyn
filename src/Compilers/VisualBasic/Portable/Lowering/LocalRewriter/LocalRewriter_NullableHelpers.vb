@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns a NOT-SIDEEFFECTING expression that represents results of the operand
-        ''' If such transformation requires a temp, the temp and its initialising expression
+        ''' If such transformation requires a temp, the temp and its initializing expression
         ''' are returned in temp/init
         ''' </summary>
         Private Function CaptureNullableIfNeeded(operand As BoundExpression,
@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Checks that candidate Null expression is a simples expression that produces Null of the desired type
+        ''' Checks that candidate Null expression is a simple expression that produces Null of the desired type
         ''' (not a conversion or anything like that) and returns it.
         ''' Otherwise creates "New T?()" expression.
         ''' </summary>

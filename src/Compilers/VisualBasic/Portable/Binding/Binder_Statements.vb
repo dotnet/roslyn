@@ -2480,7 +2480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If fireMethod.ContainingType <> Me.ContainingType Then
                     ' Re: Dev10
                     ' // UNDONE: harishk - note that this is different from the check for an
-                    ' // acessible event field for non-block events. This is because there
+                    ' // accessible event field for non-block events. This is because there
                     ' // is a bug for non-block events which contrary to the spec does allow
                     ' // base class events to be raised in some scenarios. Sent email to
                     ' // paulv and amandas to check if we can update all of this according
@@ -3393,7 +3393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' for multidimensional arrays make additional check that array element is castable to iteration variable type
-                ' we need to do this because multidimentsional arrays only implement nongeneric IEnumerable 
+                ' we need to do this because multidimensional arrays only implement nongeneric IEnumerable 
                 ' so the cast from Current --> control variable will statically succeed (since Current returns object)
                 ' We however can know the element type and may know that under no condition the cst will work at run time
                 ' So we will check that here.
@@ -4763,7 +4763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         diagnostics.Add(declaration, useSiteDiagnostics)
 
                         If isBaseType Then
-                            ReportDiagnostic(diagnostics, declaration, ERRID.WRN_OverlapingCatch, exceptionType, previousType)
+                            ReportDiagnostic(diagnostics, declaration, ERRID.WRN_OverlappingCatch, exceptionType, previousType)
                             Exit For
                         End If
                     End If

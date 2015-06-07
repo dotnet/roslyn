@@ -1465,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
 
             Debug.Assert(ordinal <= ordered.Length);
 
-            // If all type builders visited we have an ordering, otherise there were some cycles which 
+            // If all type builders visited we have an ordering, otherwise there were some cycles which 
             // prevented us to add roots in the workitems thus not visiting all types:
             return (ordinal == ordered.Length) ? ordered : null;
         }
@@ -1859,10 +1859,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
             }
         }
 
-        private void ResolveCustomModifiers(ImmutableArray<Cci.ICustomModifier> modifers, out Type[] reqMods, out Type[] optMods)
+        private void ResolveCustomModifiers(ImmutableArray<Cci.ICustomModifier> modifiers, out Type[] reqMods, out Type[] optMods)
         {
             List<Type> reqModList = null, optModList = null;
-            foreach (Cci.ICustomModifier customModifier in modifers)
+            foreach (Cci.ICustomModifier customModifier in modifiers)
             {
                 Type modifier = ResolveType(customModifier.GetModifier(_context));
 

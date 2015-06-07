@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// people should use this to get <see cref="DiagnosticAnalyzer"/>s or <see cref="DiagnosticDescriptor"/>s of a <see cref="AnalyzerReference"/>.
     /// this will do appropriate de-duplication and cache for those information.
     /// 
-    /// this should be alway thread-safe.
+    /// this should be always thread-safe.
     /// </summary>
     internal sealed partial class HostAnalyzerManager
     {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// map from host diagnostic analyzer to package name it came from
         /// </summary>
-        private ImmutableDictionary<DiagnosticAnalyzer, string> _hostDiagnosticAnalzyerPackageNameMap;
+        private ImmutableDictionary<DiagnosticAnalyzer, string> _hostDiagnosticAnalyzerPackageNameMap;
 
         /// <summary>
         /// map to compiler diagnostic analyzer descriptor.
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
-            _hostDiagnosticAnalzyerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
+            _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
         }
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var map = GetHostDiagnosticAnalyzersPerReference(language);
 
             string name;
-            if (_hostDiagnosticAnalzyerPackageNameMap.TryGetValue(analyzer, out name))
+            if (_hostDiagnosticAnalyzerPackageNameMap.TryGetValue(analyzer, out name))
             {
                 return name;
             }
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticAnalyzer>>();
             foreach (var kv in _hostAnalyzerReferencesMap)
             {
-                var referenceIdenity = kv.Key;
+                var referenceIdentity = kv.Key;
                 var reference = kv.Value;
 
                 var analyzers = reference.GetAnalyzers(language);
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 UpdateDiagnosticAnalyzerToPackageNameMap(nameMap, reference, analyzers);
 
                 // there can't be duplication since _hostAnalyzerReferenceMap is already de-duplicated.
-                builder.Add(referenceIdenity, analyzers);
+                builder.Add(referenceIdentity, analyzers);
             }
 
             return builder.ToImmutable();
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var analyzer in analyzers)
             {
-                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalzyerPackageNameMap, analyzer, _ => name);
+                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalyzerPackageNameMap, analyzer, _ => name);
             }
         }
 

@@ -1830,7 +1830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim data = candidate.ObsoleteAttributeData
 
                     ' If we have a synthesized constructor then give an error saying that there is no non-obsolete
-                    ' base constructor. If we have a user-defined constructor then ask the user to explcitly call a
+                    ' base constructor. If we have a user-defined constructor then ask the user to explicitly call a
                     ' constructor so that they have a chance to call a non-obsolete base constructor.
                     If constructor.IsImplicitlyDeclared Then
                         ' Synthesized constructor.

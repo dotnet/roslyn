@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns OrdrBy/OrderByDescending/ThenBy/ThenByDescending method associated with OrderingSyntax.
+        ''' Returns OrderBy/OrderByDescending/ThenBy/ThenByDescending method associated with OrderingSyntax.
         ''' </summary>
         Public Shadows Function GetSymbolInfo(
             orderingSyntax As OrderingSyntax,

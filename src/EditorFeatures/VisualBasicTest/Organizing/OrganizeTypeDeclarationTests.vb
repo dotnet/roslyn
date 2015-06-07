@@ -136,7 +136,7 @@ end class</element>
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestAccessiblity()
+        Public Sub TestAccessibility()
 
             Dim initial =
     <element>class C 
@@ -159,7 +159,7 @@ end class</element>
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
-        Public Sub TestSharedAccessiblity()
+        Public Sub TestSharedAccessibility()
 
             Dim initial =
     <element>class C 

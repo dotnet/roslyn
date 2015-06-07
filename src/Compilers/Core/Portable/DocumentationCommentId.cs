@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
 
         /// <summary>
-        /// Creates an id string used by external documenation comment files to identify declarations
+        /// Creates an id string used by external documentation comment files to identify declarations
         /// of types, namespaces, methods, properties, etc.
         /// </summary>
         public static string CreateDeclarationId(ISymbol symbol)

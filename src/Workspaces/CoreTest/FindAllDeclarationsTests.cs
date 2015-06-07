@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         InlineData("InnerTestCase", true, WorkspaceKind.NestedClass, new[] { "TestCases.TestCase.InnerTestCase" }),
         InlineData("InnerTestCase", false, WorkspaceKind.NestedClass, new[] { "TestCases.TestCase.InnerTestCase" }),
 
-        InlineData("testcase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-        InlineData("testcase", false, WorkspaceKind.TwoNamespacesWithIdenticalClases, new string[0]),
-        InlineData("TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-        InlineData("TestCase", false, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-        InlineData("TestCase1.TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new string[0]),]
+        InlineData("testcase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+        InlineData("testcase", false, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new string[0]),
+        InlineData("TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+        InlineData("TestCase", false, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+        InlineData("TestCase1.TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new string[0]),]
         public static async Task FindDeclarationsAsync_Test(string searchTerm, bool ignoreCase, WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var project = GetProject(workspaceKind);
@@ -213,11 +213,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
          InlineData("InnerTestCase", true, WorkspaceKind.NestedClass, new[] { "TestCases.TestCase.InnerTestCase" }),
          InlineData("InnerTestCase", false, WorkspaceKind.NestedClass, new[] { "TestCases.TestCase.InnerTestCase" }),
 
-         InlineData("testcase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-         InlineData("testcase", false, WorkspaceKind.TwoNamespacesWithIdenticalClases, new string[0]),
-         InlineData("TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-         InlineData("TestCase", false, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-         InlineData("TestCase1.TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new string[0]),]
+         InlineData("testcase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+         InlineData("testcase", false, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new string[0]),
+         InlineData("TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+         InlineData("TestCase", false, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+         InlineData("TestCase1.TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new string[0]),]
         public static async Task FindSourceDeclarationsAsync_Project_Test(string searchTerm, bool ignoreCase, WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var project = GetProject(workspaceKind);
@@ -328,11 +328,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
          InlineData("InnerTestCase", true, WorkspaceKind.NestedClass, new[] { "TestCases.TestCase.InnerTestCase" }),
          InlineData("InnerTestCase", false, WorkspaceKind.NestedClass, new[] { "TestCases.TestCase.InnerTestCase" }),
 
-         InlineData("testcase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-         InlineData("testcase", false, WorkspaceKind.TwoNamespacesWithIdenticalClases, new string[0]),
-         InlineData("TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-         InlineData("TestCase", false, WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
-         InlineData("TestCase1.TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClases, new string[0]),]
+         InlineData("testcase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+         InlineData("testcase", false, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new string[0]),
+         InlineData("TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+         InlineData("TestCase", false, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1.TestCase", "TestCase2.TestCase" }),
+         InlineData("TestCase1.TestCase", true, WorkspaceKind.TwoNamespacesWithIdenticalClasses, new string[0]),]
         public static async Task FindSourceDeclarationsAsync_Solution_Test(string searchTerm, bool ignoreCase, WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var solution = GetSolution(workspaceKind);
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty" }),
         InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField" }),
         InlineData(WorkspaceKind.NestedClass, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.InnerTestCase" }),
-        InlineData(WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1", "TestCase1.TestCase", "TestCase2.TestCase", "TestCase2" }),]
+        InlineData(WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1", "TestCase1.TestCase", "TestCase2.TestCase", "TestCase2" }),]
         public static async Task FindSourceDeclarationsAsync_Project_Func_Test(WorkspaceKind workspaceKind, string[] expectedResults)
         {
             var project = GetProject(workspaceKind);
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty", "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty" }),
         InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField", "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField" }),
         InlineData(WorkspaceKind.NestedClass, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.InnerTestCase" }),
-        InlineData(WorkspaceKind.TwoNamespacesWithIdenticalClases, new[] { "TestCase1", "TestCase1.TestCase", "TestCase2.TestCase", "TestCase2" }),]
+        InlineData(WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1", "TestCase1.TestCase", "TestCase2.TestCase", "TestCase2" }),]
         public static async Task FindSourceDeclarationsAsync_Solution_Func_Test(WorkspaceKind workspaceKind, string[] expectedResult)
         {
             var solution = GetSolution(workspaceKind);

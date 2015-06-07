@@ -208,7 +208,7 @@ End Class
             VerifySyntax(Of GenericNameSyntax)(_g.GenericName("x", _g.IdentifierName("y")), "x(Of y)")
             VerifySyntax(Of GenericNameSyntax)(_g.GenericName("x", _g.IdentifierName("y"), _g.IdentifierName("z")), "x(Of y, z)")
 
-            ' convert identifer name into generic name
+            ' convert identifier name into generic name
             VerifySyntax(Of GenericNameSyntax)(_g.WithTypeArguments(_g.IdentifierName("x"), _g.IdentifierName("y")), "x(Of y)")
 
             ' convert qualified name into qualified generic name

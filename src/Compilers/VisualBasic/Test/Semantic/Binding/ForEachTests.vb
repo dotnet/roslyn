@@ -2196,7 +2196,7 @@ BC30521: Overload resolution failed because no accessible 'Current' is most spec
         End Sub
 
         <Fact()>
-        Public Sub NoPreceedingWarningsWithAmbiguousCurrentImplementationsOnT()
+        Public Sub NoPrecedingWarningsWithAmbiguousCurrentImplementationsOnT()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2206,7 +2206,7 @@ Imports System.Collections.Generic
 
 
 Class C1(Of T)
-    Shared Public Function GetEnumerator() As T     ' without a suceeding error, an instance static mismatch would have been reported as warning.
+    Shared Public Function GetEnumerator() As T     ' without a succeeding error, an instance static mismatch would have been reported as warning.
         Return Nothing
     End Function
 End Class
@@ -2459,7 +2459,7 @@ Class C1
         Next
     End Sub
 
-    Public Shared Sub UnconstraintTypeParameter(Of T)()
+    Public Shared Sub UnconstrainedTypeParameter(Of T)()
         Dim myCollection as T = nothing
         For Each element as Object in myCollection
             Console.WriteLine(element)
@@ -2823,7 +2823,7 @@ l
     <file name="a.vb">
 Class C
     Public Shared Sub Main()
-        For Each x As Char In "Heallo!"
+        For Each x As Char In "Hello!"
             If x = "a"c Then
                 continue For
             end if
@@ -2847,7 +2847,7 @@ o
   .locals init (String V_0,
                 Integer V_1,
                 Char V_2) //x
-  IL_0000:  ldstr      "Heallo!"
+  IL_0000:  ldstr      "Hello!"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
