@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
             public void ClearImplicitCache()
             {
-                _implicitCache.Clear();
+                lock (_gate)
+                {
+                    _implicitCache.Clear();
+                }
             }
 
             public IDisposable EnableCaching(ProjectId key)
