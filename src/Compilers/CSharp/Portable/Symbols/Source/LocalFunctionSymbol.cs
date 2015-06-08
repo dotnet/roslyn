@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -18,11 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly LocalFunctionStatementSyntax _syntax;
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
+        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
-        private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private TypeSymbol _returnType;
-        private TypeSymbol _iteratorElementType;
         private bool _isVararg;
+        private TypeSymbol _iteratorElementType;
+        // TODO: Find a better way to report diagnostics.
+        // We can't put binding in the constructor, as it creates infinite recursion.
+        // We can't report to Compilation.DeclarationDiagnostics as it's already too late and they will be dropped.
+        // The current system is to dump diagnostics into this field, and then grab them out again in Binder_Statements.BindLocalFunctionStatement
+        private ImmutableArray<Diagnostic> _diagnostics;
 
         public LocalFunctionSymbol(
             Binder binder,
@@ -30,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             LocalFunctionStatementSyntax syntax)
         {
-            _binder = binder;
             _syntax = syntax;
             _containingSymbol = containingSymbol;
 
@@ -38,13 +41,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private |
                 (_containingSymbol.IsStatic ? DeclarationModifiers.Static : 0) |
                 syntax.Modifiers.ToDeclarationModifiers();
+
+            var diagnostics = DiagnosticBag.GetInstance();
+
+            if (_syntax.TypeParameterList != null)
+            {
+                // TODO: Generics are broken. Fix binder issues when allowing generics.
+                diagnostics.Add(ErrorCode.ERR_InvalidMemberDecl, syntax.TypeParameterList.Location, syntax.TypeParameterList);
+                binder = new WithMethodTypeParametersBinder(this, binder);
+                _typeParameters = MakeTypeParameters(diagnostics);
+            }
+            else
+            {
+                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+            }
+
+            if (IsExtensionMethod)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
+            }
+
+            _binder = binder;
+            _diagnostics = diagnostics.ToReadOnlyAndFree();
+        }
+
+        internal void GrabDiagnostics(DiagnosticBag addTo)
+        {
+            // force lazy init
+            ComputeParameters();
+            ComputeReturnType();
+
+            var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
+            if (!diags.IsDefault)
+            {
+                addTo.AddRange(diags);
+            }
+        }
+
+        private void AddDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+        {
+            // Atomic update operation. Applies a function (Concat) to a variable repeatedly, until it "gets through" (isn't in a race condition with another concat)
+            var oldDiags = _diagnostics;
+            while (true)
+            {
+                var newDiags = oldDiags.IsDefault ? diagnostics : oldDiags.Concat(diagnostics);
+                var overwriteDiags = ImmutableInterlocked.InterlockedCompareExchange(ref _diagnostics, newDiags, oldDiags);
+                if (overwriteDiags == oldDiags)
+                {
+                    break;
+                }
+                oldDiags = overwriteDiags;
+            }
         }
 
         public override bool IsVararg
         {
             get
             {
-                EnsureLazyInitFinished();
+                ComputeParameters();
                 return _isVararg;
             }
         }
@@ -53,43 +107,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                EnsureLazyInitFinished();
+                ComputeParameters();
                 return _parameters;
             }
+        }
+
+        private void ComputeParameters()
+        {
+            if (!_parameters.IsDefault)
+            {
+                return;
+            }
+            var diagnostics = DiagnosticBag.GetInstance();
+            SyntaxToken arglistToken;
+            _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics);
+            _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
 
         public override TypeSymbol ReturnType
         {
             get
             {
-                EnsureLazyInitFinished();
+                ComputeReturnType();
                 return _returnType;
             }
         }
-        public override bool ReturnsVoid
+
+        private void ComputeReturnType()
         {
-            get
+            if (_returnType != null)
             {
-                EnsureLazyInitFinished();
-                return _returnType.SpecialType == SpecialType.System_Void;
+                return;
             }
+            var diagnostics = DiagnosticBag.GetInstance();
+            bool isVar;
+            _returnType = _binder.BindType(_syntax.ReturnType, diagnostics, out isVar);
+            if (isVar)
+            {
+                // TODO: Add a better message for this
+                diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
+                _returnType = _binder.CreateErrorType("var");
+            }
+            AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
+
+        public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
 
         public override int Arity => TypeParameters.Length;
 
         public override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get
-            {
-                // this if statement breaks a recursive loop, where Parameters needs TypeParameters to bind
-                if (!_typeParameters.IsDefault)
-                    return _typeParameters;
-                EnsureLazyInitFinished();
-                return _typeParameters;
-            }
-        }
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters => _typeParameters;
+
         public override bool IsExtensionMethod
         {
             get
@@ -196,37 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Local function symbols have no "this" parameter
             thisParameter = null;
             return true;
-        }
-
-        private void EnsureLazyInitFinished()
-        {
-            if (_returnType != null)
-                return;
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            MethodChecks(diagnostics, _binder);
-            AddDeclarationDiagnostics(diagnostics);
-            diagnostics.Free();
-        }
-
-        private void MethodChecks(DiagnosticBag diagnostics, Binder parameterBinder)
-        {
-            if (_syntax.TypeParameterList != null)
-            {
-                parameterBinder = new WithMethodTypeParametersBinder(this, parameterBinder);
-                _typeParameters = MakeTypeParameters(diagnostics);
-            }
-            else
-            {
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            SyntaxToken arglistToken;
-            _parameters = ParameterHelpers.MakeParameters(parameterBinder, this, _syntax.ParameterList, true, out arglistToken, diagnostics);
-            _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            _returnType = parameterBinder.BindType(_syntax.ReturnType, diagnostics);
-            if (IsExtensionMethod)
-            {
-                diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
-            }
         }
 
         private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)

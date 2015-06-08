@@ -1493,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
                         }
 
-                        if (((iterator as SourceMethodSymbol).IsUnsafe == true || (iterator as LocalFunctionSymbol).IsUnsafe == true) && compilation.Options.AllowUnsafe) // Don't cascade
+                        if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true) && compilation.Options.AllowUnsafe) // Don't cascade
                         {
                             diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
                         }

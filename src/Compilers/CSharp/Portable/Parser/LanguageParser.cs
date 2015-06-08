@@ -7962,9 +7962,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 this.ParseDeclarationModifiers(mods);
-                var allowLocalFunctions = IsFeatureEnabled(MessageID.IDS_FeatureLocalFunctions);
                 LocalFunctionStatementSyntax localFunction;
-                this.ParseDeclaration(out type, variables, allowLocalFunctions, mods.ToTokenList(), out localFunction);
+                this.ParseDeclaration(out type, variables, true, mods.ToTokenList(), out localFunction);
                 if (localFunction != null)
                 {
                     Debug.Assert(variables.Count == 0);
@@ -8027,7 +8026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 localFunction: out localFunction);
             _termState = saveTerm;
 
-            if (allowLocalFunctions && localFunction == null && type.Kind == SyntaxKind.VoidKeyword)
+            if (allowLocalFunctions && localFunction == null && (type as PredefinedTypeSyntax)?.Keyword.Kind == SyntaxKind.VoidKeyword)
             {
                 type = this.AddError(type, ErrorCode.ERR_NoVoidHere);
             }
@@ -8049,9 +8048,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void ParseDeclarationModifiers(SyntaxListBuilder list)
         {
             SyntaxKind k;
-            while (IsDeclarationModifier(k = this.CurrentToken.Kind) || IsAdditionalLocalFunctionModifier(this.CurrentToken.ContextualKind))
+            while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
-                var mod = this.EatToken();
+                SyntaxToken mod;
+                if (this.CurrentToken.Kind != k)
+                {
+                    mod = this.EatContextualToken(k);
+                    if (k == SyntaxKind.AsyncKeyword)
+                    {
+                        mod = CheckFeatureAvailability(mod, MessageID.IDS_FeatureAsync);
+                    }
+                }
+                else
+                {
+                    mod = this.EatToken();
+                }
                 if (k == SyntaxKind.StaticKeyword || k == SyntaxKind.ReadOnlyKeyword || k == SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
@@ -8148,6 +8159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 semicolon);
 
             decl = CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
+            decl = CheckFeatureAvailability(decl, MessageID.IDS_FeatureLocalFunctions);
             return decl;
         }
 

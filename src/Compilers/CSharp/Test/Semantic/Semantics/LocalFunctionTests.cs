@@ -59,6 +59,7 @@ class Program
         {
             var source = @"
 using System;
+using System.Runtime.CompilerServices;
 
 class Program
 {
@@ -76,6 +77,14 @@ class Program
         {
             Console.WriteLine(x);
         }
+        void CallerMemberName([CallerMemberName] string s = null)
+        {
+            Console.WriteLine(s);
+        }
+        void LocalFuncName()
+        {
+            CallerMemberName();
+        }
         Params(2);
         int a = 1;
         int b;
@@ -84,16 +93,20 @@ class Program
         Console.WriteLine(b);
         NamedOptional(x: 2);
         NamedOptional();
+        LocalFuncName();
+        CallerMemberName();
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 2
 2
 2
 2
+LocalFuncName
+Main
 ");
         }
 
@@ -531,6 +544,62 @@ class Program
         }
 
         [Fact]
+        public void Scoping()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local()
+        {
+            Console.WriteLine(2);
+        }
+        if (true)
+        {
+            Local();
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+2
+");
+        }
+
+        [Fact]
+        public void BadScoping()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        if (true)
+        {
+            void Local()
+            {
+                Console.WriteLine(2);
+            }
+        }
+        Local();
+    }
+}
+";
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (15,9): error CS0103: The name 'Local' does not exist in the current context
+    //         Local();
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
         public void Unsafe()
         {
             var source = @"
@@ -666,6 +735,10 @@ class Program
             Console.WriteLine(__arglist);
         }
     }
+
+    static void Main()
+    {
+    }
 }
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
@@ -710,6 +783,61 @@ class Program
     // (9,40): error CS1623: Iterators cannot have ref or out parameters
     //         IEnumerable<int> Local(ref int x)
     Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(9, 40)
+                );
+        }
+
+        [Fact]
+        public void Extension()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int Local(this int x)
+        {
+            return x;
+        }
+        Console.WriteLine(Local(2));
+    }
+}
+";
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (9,13): error CS1106: Extension method must be defined in a non-generic static class
+    //         int Local(this int x)
+    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Local").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void InferredReturn()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var Local()
+        {
+            return 2;
+        }
+        Console.WriteLine(Local());
+    }
+}
+";
+            // message is temporary
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (9,9): error CS7019: Type of 'Program.Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    //         var Local()
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Program.Local()").WithLocation(9, 9)
                 );
         }
 

@@ -427,10 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
-            if (localSymbol.IsGenericMethod)
-            {
-                diagnostics.Add(ErrorCode.ERR_InvalidMemberDecl, node.TypeParameterList.Location, node.TypeParameterList);
-            }
+            localSymbol.GrabDiagnostics(diagnostics);
 
             var binder = this.GetBinder(node);
 
@@ -450,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     block = null;
                     hasErrors = true;
-                    // TODO: add a message for this?
+                    // TODO: add a message for this? (but parser currently doesn't produce syntax node with both null)
                     diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
                 }
 
@@ -2047,7 +2044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
         {
-            return  (member as MethodSymbol)?.MethodKind == (isStatic ?
+            return (member as MethodSymbol)?.MethodKind == (isStatic ?
                                                                 MethodKind.StaticConstructor :
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;
