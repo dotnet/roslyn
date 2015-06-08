@@ -4,6 +4,7 @@ Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -843,111 +844,140 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Shared Function GetContainerDisplayName(node As SyntaxNode) As String
-            Return GetContainer(node, immediate:=True)
+        Private Function GetContainerDisplayName(node As SyntaxNode) As String
+            Return GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)
         End Function
 
-        Private Shared Function GetFullyQualifiedContainerName(node As SyntaxNode) As String
-            Return GetContainer(node, immediate:=False)
+        Private Function GetFullyQualifiedContainerName(node As SyntaxNode) As String
+            Return GetDisplayName(node, DisplayNameOptions.IncludeNamespaces)
         End Function
 
-        Private Shared Function GetContainer(node As SyntaxNode, immediate As Boolean) As String
+        Private Const dotToken As String = "."
+
+        Public Function GetDisplayName(node As SyntaxNode, options As DisplayNameOptions, Optional rootNamespace As String = Nothing) As String Implements ISyntaxFactsService.GetDisplayName
             If node Is Nothing Then
                 Return String.Empty
             End If
 
-            Dim name = GetNodeName(node, includeTypeParameters:=immediate)
-            Dim names = New List(Of String) From {name}
+            Dim pooled = PooledStringBuilder.GetInstance()
+            Dim builder = pooled.Builder
 
-            Dim parent = node.Parent
-            While TypeOf parent Is TypeBlockSyntax
-                Dim currentParent = CType(parent, TypeBlockSyntax)
-                Dim typeName = currentParent.BlockStatement.Identifier.ValueText
-                names.Add(If(immediate, typeName + ExpandTypeParameterList(currentParent.BlockStatement.TypeParameterList), typeName))
-                parent = currentParent.Parent
-            End While
-
-            ' If they're just asking for the immediate parent, then we're done. Otherwise keep 
-            ' walking all the way to the root, adding the names.
-            If Not immediate Then
-                While parent IsNot Nothing AndAlso parent.Kind() <> SyntaxKind.CompilationUnit
-                    names.Add(GetNodeName(parent, includeTypeParameters:=False))
-                    parent = parent.Parent
-                End While
+            ' member keyword (if any)
+            Dim memberDeclaration = TryCast(node, DeclarationStatementSyntax)
+            If (options And DisplayNameOptions.IncludeMemberKeyword) <> 0 Then
+                Dim keywordToken = memberDeclaration.GetMemberKeywordToken()
+                If keywordToken <> Nothing AndAlso Not keywordToken.IsMissing Then
+                    builder.Append(keywordToken.Text)
+                    builder.Append(" "c)
+                End If
             End If
 
-            names.Reverse()
-            Return String.Join(".", names)
+            Dim names = ArrayBuilder(Of String).GetInstance()
+            ' containing type(s)
+            Dim parent = node.Parent
+            While TypeOf parent Is TypeBlockSyntax
+                names.Push(GetName(parent, options, containsGlobalKeyword:=False))
+                parent = parent.Parent
+            End While
+            If (options And DisplayNameOptions.IncludeNamespaces) <> 0 Then
+                ' containing namespace(s) in source (if any)
+                Dim containsGlobalKeyword As Boolean = False
+                While parent IsNot Nothing AndAlso parent.Kind() = SyntaxKind.NamespaceBlock
+                    names.Push(GetName(parent, options, containsGlobalKeyword))
+                    parent = parent.Parent
+                End While
+                ' root namespace (if any)
+                If Not containsGlobalKeyword AndAlso Not String.IsNullOrEmpty(rootNamespace) Then
+                    builder.Append(rootNamespace)
+                    builder.Append(dotToken)
+                End If
+            End If
+            While Not names.IsEmpty()
+                Dim name = names.Pop()
+                If name IsNot Nothing Then
+                    builder.Append(name)
+                    builder.Append(dotToken)
+                End If
+            End While
+            names.Free()
+
+            ' name (include generic type parameters)
+            builder.Append(GetName(node, options, containsGlobalKeyword:=False))
+
+            ' parameter list (if any)
+            If (options And DisplayNameOptions.IncludeParameters) <> 0 Then
+                builder.Append(memberDeclaration.GetParameterList())
+            End If
+
+            ' As clause (if any)
+            If (options And DisplayNameOptions.IncludeType) <> 0 Then
+                Dim asClause = memberDeclaration.GetAsClause()
+                If asClause IsNot Nothing Then
+                    builder.Append(" "c)
+                    builder.Append(asClause)
+                End If
+            End If
+
+            Return pooled.ToStringAndFree()
         End Function
 
-        Private Shared Function GetNodeName(node As SyntaxNode, includeTypeParameters As Boolean) As String
-            Dim name As String
-            Dim typeParameterList As TypeParameterListSyntax
+        Private Shared Function GetName(node As SyntaxNode, options As DisplayNameOptions, ByRef containsGlobalKeyword As Boolean) As String
+            Const missingTokenPlaceholder As String = "?"
+
             Select Case node.Kind()
-                Case SyntaxKind.ClassBlock
-                    Dim classDecl = CType(node, ClassBlockSyntax)
-                    name = classDecl.ClassStatement.Identifier.ValueText
-                    typeParameterList = classDecl.ClassStatement.TypeParameterList
                 Case SyntaxKind.CompilationUnit
-                    Return String.Empty
-                Case SyntaxKind.EnumBlock
-                    Return CType(node, EnumBlockSyntax).EnumStatement.Identifier.ValueText
+                    Return Nothing
                 Case SyntaxKind.IdentifierName
-                    Return CType(node, IdentifierNameSyntax).Identifier.ValueText
-                Case SyntaxKind.InterfaceBlock
-                    Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
-                    name = interfaceDecl.InterfaceStatement.Identifier.ValueText
-                    typeParameterList = interfaceDecl.InterfaceStatement.TypeParameterList
-                Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
-                    Dim methodDecl = CType(node, MethodBlockSyntax)
-                    name = methodDecl.SubOrFunctionStatement.Identifier.ValueText
-                    typeParameterList = methodDecl.SubOrFunctionStatement.TypeParameterList
-                Case SyntaxKind.ModuleBlock
-                    Dim moduleDecl = CType(node, ModuleBlockSyntax)
-                    name = moduleDecl.ModuleStatement.Identifier.ValueText
-                    typeParameterList = moduleDecl.ModuleStatement.TypeParameterList
+                    Dim identifier = DirectCast(node, IdentifierNameSyntax).Identifier
+                    Return If(identifier.IsMissing, missingTokenPlaceholder, identifier.Text)
                 Case SyntaxKind.NamespaceBlock
                     Dim nameSyntax = CType(node, NamespaceBlockSyntax).NamespaceStatement.Name
                     If nameSyntax.Kind() = SyntaxKind.GlobalName Then
+                        containsGlobalKeyword = True
                         Return Nothing
                     Else
-                        Return GetNodeName(nameSyntax, includeTypeParameters:=False)
+                        Return GetName(nameSyntax, options, containsGlobalKeyword)
                     End If
                 Case SyntaxKind.QualifiedName
                     Dim qualified = CType(node, QualifiedNameSyntax)
                     If qualified.Left.Kind() = SyntaxKind.GlobalName Then
-                        Return GetNodeName(qualified.Right, includeTypeParameters:=False) ' don't use the Global prefix if specified
+                        containsGlobalKeyword = True
+                        Return GetName(qualified.Right, options, containsGlobalKeyword) ' don't use the Global prefix if specified
                     Else
-                        Return GetNodeName(qualified.Left, includeTypeParameters:=False) + "." + GetNodeName(qualified.Right, includeTypeParameters:=False)
+                        Return GetName(qualified.Left, options, containsGlobalKeyword) + dotToken + GetName(qualified.Right, options, containsGlobalKeyword)
                     End If
-                Case SyntaxKind.StructureBlock
-                    Dim structDecl = CType(node, StructureBlockSyntax)
-                    name = structDecl.StructureStatement.Identifier.ValueText
-                    typeParameterList = structDecl.StructureStatement.TypeParameterList
-                Case Else
-                    Debug.Assert(False, "Unexpected node type " + node.Kind().ToString())
-                    Return Nothing
             End Select
 
-            Return If(includeTypeParameters, name + ExpandTypeParameterList(typeParameterList), name)
-        End Function
-
-        Private Shared Function ExpandTypeParameterList(typeParameterList As TypeParameterListSyntax) As String
-            If typeParameterList IsNot Nothing AndAlso typeParameterList.Parameters.Count > 0 Then
-                Dim builder = New StringBuilder()
-                builder.Append("(Of ")
-                builder.Append(typeParameterList.Parameters(0).Identifier.ValueText)
-                For i = 1 To typeParameterList.Parameters.Count - 1
-                    builder.Append(","c)
-                    builder.Append(typeParameterList.Parameters(i).Identifier.ValueText)
-                Next
-
-                builder.Append(")"c)
-                Return builder.ToString()
-            Else
-                Return Nothing
+            Dim name As String = Nothing
+            Dim memberDeclaration = TryCast(node, DeclarationStatementSyntax)
+            If memberDeclaration IsNot Nothing Then
+                Dim nameToken = memberDeclaration.GetNameToken()
+                If nameToken <> Nothing Then
+                    name = If(nameToken.IsMissing, missingTokenPlaceholder, nameToken.Text)
+                    If (options And DisplayNameOptions.IncludeTypeParameters) <> 0 Then
+                        Dim pooled = PooledStringBuilder.GetInstance()
+                        Dim builder = pooled.Builder
+                        builder.Append(name)
+                        AppendTypeParameterList(builder, memberDeclaration.GetTypeParameterList())
+                        name = pooled.ToStringAndFree()
+                    End If
+                End If
             End If
+            Debug.Assert(name IsNot Nothing, "Unexpected node type " + node.Kind().ToString())
+            Return name
         End Function
+
+        Private Shared Sub AppendTypeParameterList(builder As StringBuilder, typeParameterList As TypeParameterListSyntax)
+            If typeParameterList IsNot Nothing AndAlso typeParameterList.Parameters.Count > 0 Then
+                builder.Append("(Of ")
+                builder.Append(typeParameterList.Parameters(0).Identifier.Text)
+                For i = 1 To typeParameterList.Parameters.Count - 1
+                    builder.Append(", ")
+                    builder.Append(typeParameterList.Parameters(i).Identifier.Text)
+                Next
+                builder.Append(")"c)
+            End If
+        End Sub
 
         Private Sub AppendMethodLevelMembers(node As SyntaxNode, list As List(Of SyntaxNode))
             For Each member In node.GetMembers()
