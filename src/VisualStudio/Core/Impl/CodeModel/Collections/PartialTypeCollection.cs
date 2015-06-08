@@ -22,55 +22,58 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
         }
 
-        private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModelHandle;
-
         private PartialTypeCollection(
             CodeModelState state,
             FileCodeModel fileCodeModel,
             AbstractCodeType parent)
             : base(state, parent)
         {
-            _fileCodeModelHandle = new ComHandle<EnvDTE.FileCodeModel, FileCodeModel>(fileCodeModel);
         }
 
-        private FileCodeModel FileCodeModel
-        {
-            get { return _fileCodeModelHandle.Object; }
-        }
+        private ImmutableArray<EnvDTE.CodeElement> _parts;
 
-        private AbstractCodeType ParentType
-        {
-            get { return (AbstractCodeType)this.Parent; }
-        }
+        private AbstractCodeType ParentType => (AbstractCodeType)this.Parent;
 
         private ImmutableArray<EnvDTE.CodeElement> GetParts()
         {
-            var partsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
-            var symbol = ParentType.LookupSymbol();
-
-            foreach (var location in symbol.Locations.Where(l => l.IsInSource))
+            // Retrieving the parts is potentially very expensive because it can force multiple FileCodeModels to be instantiated.
+            // Here, we cache the result to avoid having to perform these calculations each time GetParts() is called.
+            // This *could* be an issue because it means that a PartialTypeCollection will not necessarily reflect the
+            // current state of the user's code. However, because a new PartialTypeCollection is created everytime the Parts
+            // property is accessed on CodeClass, CodeStruct or CodeInterface, consumers would hit this behavior rarely.
+            if (this._parts == null)
             {
-                var tree = location.SourceTree;
-                var document = this.Workspace.CurrentSolution.GetDocument(tree);
+                var partsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
 
-                var fileCodeModelObject = this.Workspace.GetFileCodeModel(document.Id);
-                var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(fileCodeModelObject);
+                var solution = this.Workspace.CurrentSolution;
+                var symbol = ParentType.LookupSymbol();
 
-                var element = fileCodeModel.CodeElementFromPosition(location.SourceSpan.Start, ParentType.Kind);
-                if (element != null)
+                foreach (var location in symbol.Locations.Where(l => l.IsInSource))
                 {
-                    partsBuilder.Add(element);
+                    var document = solution.GetDocument(location.SourceTree);
+                    if (document != null)
+                    {
+                        var fileCodeModelObject = this.Workspace.GetFileCodeModel(document.Id);
+                        if (fileCodeModelObject != null)
+                        {
+                            var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(fileCodeModelObject);
+
+                            var element = fileCodeModel.CodeElementFromPosition(location.SourceSpan.Start, ParentType.Kind);
+                            if (element != null)
+                            {
+                                partsBuilder.Add(element);
+                            }
+                        }
+                    }
                 }
+
+                this._parts = partsBuilder.ToImmutable();
             }
 
-            return partsBuilder.ToImmutable();
+            return this._parts;
         }
 
-        internal override Snapshot CreateSnapshot()
-        {
-            var parts = GetParts();
-            return new CodeElementSnapshot(parts);
-        }
+        internal override Snapshot CreateSnapshot() => new CodeElementSnapshot(GetParts());
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
         {
@@ -100,9 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             return false;
         }
 
-        public override int Count
-        {
-            get { return GetParts().Length; }
-        }
+        public override int Count => GetParts().Length;
     }
 }
