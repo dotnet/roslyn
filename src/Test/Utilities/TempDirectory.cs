@@ -59,6 +59,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         /// <summary>
+        /// Creates a file in this directory that is a copy of the specified file.
+        /// </summary>
+        public TempFile CopyFile(string originalPath)
+        {
+            string name = System.IO.Path.GetFileName(originalPath);
+            string filePath = System.IO.Path.Combine(_path, name);
+            File.Copy(originalPath, filePath);
+            return _root.AddFile(new DisposableFile(filePath));
+        }
+
+        /// <summary>
         /// Creates a subdirectory in this directory.
         /// </summary>
         /// <param name="name">Directory name or unrooted directory path.</param>
