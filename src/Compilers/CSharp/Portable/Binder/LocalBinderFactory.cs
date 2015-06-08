@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // should be defined in the directly enclosing block (see note below)
             foreach (var candidate in _enclosing.LocalFunctions)
             {
-                if (candidate.Name == node.Identifier.Text)
+                if (candidate.Locations[0] == node.Identifier.GetLocation())
                 {
                     match = candidate;
                 }

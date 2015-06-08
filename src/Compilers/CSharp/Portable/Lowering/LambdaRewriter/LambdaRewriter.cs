@@ -68,7 +68,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<ParameterSymbol, ParameterSymbol> _parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
 
         // A mapping from every local function to its lowered method
-        private readonly Dictionary<LocalFunctionSymbol, MethodSymbol> _localFunctionMap = new Dictionary<LocalFunctionSymbol, MethodSymbol>();
+        private struct MappedLocalFunction
+        {
+            public readonly MethodSymbol Symbol;
+            public readonly ClosureKind ClosureKind;
+            public MappedLocalFunction(MethodSymbol symbol, ClosureKind closureKind)
+            {
+                Symbol = symbol;
+                ClosureKind = closureKind;
+            }
+        }
+        private readonly Dictionary<LocalFunctionSymbol, MappedLocalFunction> _localFunctionMap = new Dictionary<LocalFunctionSymbol, MappedLocalFunction>();
 
         // for each block with lifted (captured) variables, the corresponding frame type
         private readonly Dictionary<BoundNode, LambdaFrame> _frames = new Dictionary<BoundNode, LambdaFrame>();
@@ -645,7 +655,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            method = _localFunctionMap[(LocalFunctionSymbol)symbol];
+            var mappedLocalFunction = _localFunctionMap[(LocalFunctionSymbol)symbol];
+            method = mappedLocalFunction.Symbol;
             var translatedLambdaContainer = method.ContainingType;
             var containerAsFrame = translatedLambdaContainer as LambdaFrame;
 
@@ -656,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for instance lambdas, receiver is the frame
             // for static lambdas, get the singleton receiver
-            if (containerAsFrame?.SingletonCache == null)
+            if (mappedLocalFunction.ClosureKind != ClosureKind.Static)
             {
                 receiver = FrameOfType(syntax, constructedFrame);
             }
@@ -965,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
+                if (conversion.ConversionKind == ConversionKind.MethodGroup && conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
                 {
                     BoundExpression receiver;
                     MethodSymbol method;
@@ -1120,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node is BoundLocalFunctionStatement)
             {
-                _localFunctionMap[((BoundLocalFunctionStatement)node).Symbol] = synthesizedMethod;
+                _localFunctionMap[((BoundLocalFunctionStatement)node).Symbol] = new MappedLocalFunction(synthesizedMethod, closureKind);
             }
 
             // rewrite the lambda body as the generated method's body

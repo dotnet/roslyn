@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                 const int methodOrdinal = -1;
 
-                // Previously this was just an async lowering, but local functions can also be iterators, so we need to lower those
+                // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
                 IteratorStateMachine iteratorStateMachine;
                 BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
                 StateMachineTypeSymbol stateMachine = iteratorStateMachine;

@@ -889,16 +889,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(members.Count > 0);
 
-            if (!hasErrors && members[0] is LocalFunctionSymbol)
+            if (!hasErrors)
             {
-                Debug.Assert(members.Count == 1 && members[0].Locations.Length == 1);
-                var localSymbolLocation = members[0].Locations[0];
-                bool usedBeforeDecl =
-                    syntax.SyntaxTree == localSymbolLocation.SourceTree &&
-                    syntax.SpanStart < localSymbolLocation.SourceSpan.Start;
-                if (usedBeforeDecl)
+                // The common case is that if that members contains a local function symbol,
+                // there is only one element. Still do a foreach for potential error cases.
+                foreach (var member in members)
                 {
-                    Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, syntax, syntax);
+                    if (!(member is LocalFunctionSymbol))
+                    {
+                        continue;
+                    }
+                    Debug.Assert(members.Count == 1 && member.Locations.Length == 1);
+                    var localSymbolLocation = member.Locations[0];
+                    bool usedBeforeDecl =
+                        syntax.SyntaxTree == localSymbolLocation.SourceTree &&
+                        syntax.SpanStart < localSymbolLocation.SourceSpan.Start;
+                    if (usedBeforeDecl)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, syntax, syntax);
+                    }
                 }
             }
 

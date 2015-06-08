@@ -975,8 +975,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            if (_trackExceptions) NotePossibleException(node);
-
             // Control-flow analysis does NOT dive into a local function, while data-flow analysis does.
             return null;
         }

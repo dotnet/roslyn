@@ -181,11 +181,14 @@ class Program
         }
         var local2 = new Action(Local2);
         local2();
+        var local3 = (Action)Local2;
+        local3();
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
+2
 2
 2
 ");
@@ -199,27 +202,143 @@ using System;
 
 class Program
 {
+    int _a;
+    static int _sa;
+
+    static void Print(object a)
+    {
+        Console.Write(' ');
+        Console.Write(a);
+    }
+
+    static void Print(int a)
+    {
+        Console.Write(' ');
+        Console.Write(a);
+    }
+
     static void A(int y)
     {
         int x = 1;
         void Local()
         {
-            Console.WriteLine(x);
-            Console.WriteLine(y);
+            Print(x); Print(y);
         }
         Local();
+        Print(x); Print(y);
+        x = 3;
+        y = 4;
+        Local();
+        Print(x); Print(y);
+        void Local2()
+        {
+            Print(x); Print(y);
+            x += 2;
+            y += 2;
+            Print(x); Print(y);
+        }
+        Local2();
+        Print(x); Print(y);
+    }
+
+    void B()
+    {
+        _a = 2;
+        void Local()
+        {
+            Print(_a);
+            _a++;
+            Print(_a);
+        }
+        Print(_a);
+        Local();
+        Print(_a);
+    }
+
+    void C()
+    {
+        _sa = 2;
+        void Local()
+        {
+            Print(_sa);
+            _sa++;
+            Print(_sa);
+        }
+        Print(_sa);
+        Local();
+        Print(_sa);
+    }
+
+    class Gen<T1>
+    {
+        T1 t1;
+
+        public Gen(T1 t1)
+        {
+            this.t1 = t1;
+        }
+
+        public void D<T2>(T2 t2)
+        {
+            T2 Local(T1 x)
+            {
+                Print(x);
+                Print(t1);
+                t1 = (T1)(object)((int)(object)x + 2);
+                t2 = (T2)(object)x;
+                return (T2)(object)((int)(object)t2 + 4);
+            }
+            Print(t1);
+            Print(t2);
+            Print(Local(t1));
+            Print(t1);
+            Print(t2);
+        }
+    }
+
+    static void E()
+    {
+        int a = 2;
+        void M1()
+        {
+            int b = a;
+            Action M2 = () =>
+            {
+                int c = b;
+                void M3()
+                {
+                    int d = c;
+                    Print(d);
+                }
+                M3();
+            };
+            M2();
+        }
+        M1();
     }
 
     static void Main(string[] args)
     {
         A(2);
+        Console.WriteLine();
+        new Program().B(); // this-only closure
+        Console.WriteLine();
+        new Program().C(); // static closure in instance
+        Console.WriteLine();
+        new Gen<int>(2).D<int>(3); // generics
+        Console.WriteLine();
+        E(); // Interaction between functions and lambdas
+        Console.WriteLine();
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
-1
-2
+ 1 2 1 2 3 4 3 4 3 4 5 6 5 6
+ 2 2 3 3
+ 2 2 3 3
+ 2 3 2 2 6 4 2
+ 2
 ");
         }
 
@@ -707,6 +826,8 @@ using System;
 
 class Program
 {
+    int _a;
+
     static void A(ref int x)
     {
         void Local()
@@ -735,6 +856,13 @@ class Program
             Console.WriteLine(__arglist);
         }
     }
+    static void E()
+    {
+        void Local()
+        {
+            Console.WriteLine(_a);
+        }
+    }
 
     static void Main()
     {
@@ -743,18 +871,21 @@ class Program
 ";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (10,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
+    // (12,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
     //             Console.WriteLine(x);
-    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(10, 31),
-    // (17,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(12, 31),
+    // (19,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(17, 31),
-    // (24,31): error CS0190: The __arglist construct is valid only within a variable argument method
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(19, 31),
+    // (26,31): error CS0190: The __arglist construct is valid only within a variable argument method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(24, 31),
-    // (31,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(26, 31),
+    // (33,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(31, 31)
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(33, 31),
+    // (40,31): error CS0120: An object reference is required for the non-static field, method, or property 'Program._a'
+    //             Console.WriteLine(_a);
+    Diagnostic(ErrorCode.ERR_ObjectRequired, "_a").WithArguments("Program._a").WithLocation(40, 31)
                 );
         }
 

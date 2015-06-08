@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                (_containingSymbol.IsStatic ? DeclarationModifiers.Static : 0) |
+                DeclarationModifiers.Static |
                 syntax.Modifiers.ToDeclarationModifiers();
 
             var diagnostics = DiagnosticBag.GetInstance();
@@ -326,12 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var localFunction = symbol as LocalFunctionSymbol;
             return (object)localFunction != null
-                && localFunction._syntax == _syntax
-                && localFunction.ReturnType == this.ReturnType
-                && System.Linq.ImmutableArrayExtensions.SequenceEqual(localFunction.ParameterTypes, this.ParameterTypes)
-                && System.Linq.ImmutableArrayExtensions.SequenceEqual(localFunction.TypeParameters, this.TypeParameters)
-                && localFunction.IsVararg == this.IsVararg
-                && Equals(localFunction.ContainingSymbol, this.ContainingSymbol);
+                && localFunction._syntax == _syntax;
         }
     }
 }

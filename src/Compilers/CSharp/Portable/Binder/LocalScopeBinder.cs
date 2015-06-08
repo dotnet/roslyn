@@ -170,12 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (locals != null)
-            {
-                return locals.ToImmutableAndFree();
-            }
-
-            return ImmutableArray<LocalSymbol>.Empty;
+            return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalSymbol>.Empty;
         }
 
 

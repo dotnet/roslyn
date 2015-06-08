@@ -456,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
                     // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
+                    // It's a bit of code duplication, but refactoring would make things worse.
                     var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
                     if (endIsReachable)
                     {
