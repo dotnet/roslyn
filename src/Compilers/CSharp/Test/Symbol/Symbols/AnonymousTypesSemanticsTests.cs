@@ -869,7 +869,8 @@ public class Program
             var compilation = GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                TestOptions.ReleaseDll
+                TestOptions.ReleaseDll,
+                TestOptions.Regular
             );
 
             compilation.VerifyDiagnostics(diagnostics);
@@ -913,7 +914,8 @@ public class Program
             return GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                TestOptions.ReleaseDll
+                TestOptions.ReleaseDll,
+                TestOptions.Regular
             );
         }
 

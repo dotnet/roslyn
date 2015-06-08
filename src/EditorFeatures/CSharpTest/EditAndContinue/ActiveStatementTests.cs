@@ -7648,6 +7648,45 @@ class C
                 Diagnostic(RudeEditKind.Delete, null, FeaturesResources.Class));
         }
 
+        [Fact]
+        public void PartiallyExecutedActiveStatement()
+        {
+            string src1 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0> 
+        <AS:1>Console.WriteLine(2);</AS:1> 
+        <AS:2>Console.WriteLine(3);</AS:2> 
+        <AS:3>Console.WriteLine(4);</AS:3> 
+    }
+}";
+            string src2 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:0>Console.WriteLine(10);</AS:0> 
+        <AS:1>Console.WriteLine(20);</AS:1> 
+        <AS:2>Console.WriteLine(30);</AS:2> 
+        <AS:3>Console.WriteLine(40);</AS:3> 
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            active.OldSpans[0] = new ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame, active.OldSpans[0].Span);
+            active.OldSpans[1] = new ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted, active.OldSpans[1].Span);
+            active.OldSpans[2] = new ActiveStatementSpan(ActiveStatementFlags.LeafFrame, active.OldSpans[2].Span);
+            active.OldSpans[3] = new ActiveStatementSpan(ActiveStatementFlags.None, active.OldSpans[3].Span);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10);"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(20);"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40);"));
+        }
+
         #endregion
     }
 }

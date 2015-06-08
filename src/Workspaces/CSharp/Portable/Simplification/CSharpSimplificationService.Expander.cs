@@ -910,12 +910,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name);
 
-                    if (targetSymbol != null && targetSymbol.IsReducedExtension())
+                    if (targetSymbol != null && targetSymbol.IsReducedExtension() && memberAccess.Expression != null)
                     {
                         rewrittenNode = RewriteExtensionMethodInvocation(originalNode, rewrittenNode, ((MemberAccessExpressionSyntax)rewrittenNode.Expression).Expression, (IMethodSymbol)targetSymbol);
                     }
@@ -930,6 +930,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ExpressionSyntax thisExpression,
                 IMethodSymbol reducedExtensionMethod)
             {
+                var originalMemberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
+                if (originalMemberAccess.GetParentConditionalAccessExpression() != null)
+                {
+                    // Bail out on extension method invocations in conditional access expression.
+                    // Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
+                    // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
+                    return rewrittenNode;
+                }
+
                 var expression = RewriteExtensionMethodInvocation(rewrittenNode, thisExpression, reducedExtensionMethod, s_typeNameFormatWithoutGenerics);
 
                 // Let's rebind this and verify the original method is being called properly

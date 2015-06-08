@@ -459,6 +459,245 @@ End Module
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub VisualBasic_ExpandExtensionMethodInMemberAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = {|Expand:t.Something().First()|}
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = Global.System.Linq.Enumerable.First((CType((Global.M.Something((CType((t), Global.C)))), Global.System.Collections.Generic.IEnumerable(Of System.String))))
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub VisualBasic_ExpandExtensionMethodInConditionalAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = {|Expand:t?.Something().First()|}
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = Global.System.Linq.Enumerable.First((CType(((CType((t), Global.C))?.Something()), Global.System.Collections.Generic.IEnumerable(Of System.String))))
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub VisualBasic_ExpandExtensionMethodInMemberAccessExpression_2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = {|Expand:t.Something2()().Something().First()|}
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = Global.System.Linq.Enumerable.First((CType((Global.M.Something((CType((Global.M.Something2((CType((t), Global.C)))()), Global.C)))), Global.System.Collections.Generic.IEnumerable(Of System.String))))
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub VisualBasic_ExpandExtensionMethodInConditionalAccessExpression_2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = {|Expand:t?.Something2()?()?.Something().First()|}
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim x = Global.System.Linq.Enumerable.First((CType(((CType(((CType((t), Global.C))?.Something2()?()), Global.C)?.Something())), Global.System.Collections.Generic.IEnumerable(Of System.String))))
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</code>
+
+            Test(input, expected)
+        End Sub
 #End Region
 
 #Region "CSharp ExtensionMethodRewrite Expansion tests"
@@ -952,6 +1191,285 @@ public static class FooExtension
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub CSharp_ExpandExtensionMethodInMemberAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = {|Expand:t.Something().First()|};
+        }
+        return null;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = global::System.Linq.Enumerable.First<global::System.String>(global::M.Something(t));
+        }
+        return null;
+    }
+}]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub CSharp_ExpandExtensionMethodInConditionalAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = {|Expand:t?.Something().First()|};
+        }
+        return null;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = global::System.Linq.Enumerable.First<global::System.String>(t?.Something());
+        }
+        return null;
+    }
+}]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub CSharp_ExpandExtensionMethodInMemberAccessExpression_2()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = {|Expand:(t.Something2())().Something().First()|};
+        }
+        return null;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = global::System.Linq.Enumerable.First<global::System.String>(global::M.Something((global::M.Something2(t))()));
+        }
+        return null;
+    }
+}]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        Public Sub CSharp_ExpandExtensionMethodInConditionalAccessExpression_2()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = {|Expand:(t?.Something2())()?.Something().First()|};
+        }
+        return null;
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var x = global::System.Linq.Enumerable.First<global::System.String>((t?.Something2())()?.Something());
+        }
+        return null;
+    }
+}]]>
+</code>
+
+            Test(input, expected)
+        End Sub
 #End Region
 
     End Class

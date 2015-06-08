@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // a list to accumulate all the loaded projects
-            var loadedProjects = new List<ProjectInfo>();
+            var loadedProjects = new Dictionary<ProjectId, ProjectInfo>();
 
             // load all the projects
             foreach (var project in solutionFile.ProjectsInOrder)
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // a list to accumulate all the loaded projects
-            var loadedProjects = new List<ProjectInfo>();
+            var loadedProjects = new Dictionary<ProjectId, ProjectInfo>();
 
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 #endif
 
             // construct workspace from loaded project infos
-            this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects));
+            this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects.Values));
 
             this.UpdateReferencesAfterAdd();
 
@@ -510,11 +510,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 IProjectFileLoader loader;
                 if (this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out loader))
                 {
-                    var loadedProjects = new List<ProjectInfo>();
+                    var loadedProjects = new Dictionary<ProjectId, ProjectInfo>();
                     var projectId = await GetOrLoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
 
                     // add projects to solution
-                    foreach (var project in loadedProjects)
+                    foreach (var project in loadedProjects.Values)
                     {
                         this.OnProjectAdded(project);
                     }
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return solution;
         }
 
-        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, List<ProjectInfo> loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, Dictionary<ProjectId, ProjectInfo> loadedProjects, CancellationToken cancellationToken)
         {
             var projectId = GetProjectId(projectFilePath);
             if (projectId == null)
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return projectId;
         }
 
-        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, List<ProjectInfo> loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, Dictionary<ProjectId, ProjectInfo> loadedProjects, CancellationToken cancellationToken)
         {
             System.Diagnostics.Debug.Assert(projectFilePath != null);
             System.Diagnostics.Debug.Assert(loader != null);
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             // project references
             var resolvedReferences = await this.ResolveProjectReferencesAsync(
-                projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
+                projectId, projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             var metadataReferences = projectFileInfo.MetadataReferences
                 .Concat(resolvedReferences.MetadataReferences);
@@ -714,6 +714,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             loadedProjects.Add(
+                projectId,
                 ProjectInfo.Create(
                     projectId,
                     version,
@@ -800,10 +801,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         private async Task<ResolvedReferences> ResolveProjectReferencesAsync(
+            ProjectId thisProjectId,
             string thisProjectPath,
             IReadOnlyList<ProjectFileReference> projectFileReferences,
             bool preferMetadata,
-            List<ProjectInfo> loadedProjects,
+            Dictionary<ProjectId, ProjectInfo> loadedProjects,
             CancellationToken cancellationToken)
         {
             var resolvedReferences = new ResolvedReferences();
@@ -842,8 +844,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         // load the project
                         var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-                        resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
-                        continue;
+
+                        // If that other project already has a reference on us, this will cause a circularity.
+                        // This check doesn't need to be in the "already loaded" path above, since in any circularity this path
+                        // must be taken at least once.
+                        if (ProjectAlreadyReferencesProject(loadedProjects, projectId, targetProject: thisProjectId))
+                        {
+                            // We'll try to make this metadata if we can
+                            var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
+                            if (projectMetadata != null)
+                            {
+                                resolvedReferences.MetadataReferences.Add(projectMetadata);
+                            }
+                            continue;
+                        }
+                        else
+                        {
+                            resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
+                            continue;
+                        }
                     }
                 }
                 else
@@ -857,6 +876,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return resolvedReferences;
+        }
+
+        /// <summary>
+        /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
+        /// on the project identified by <paramref name="targetProject"/>.
+        /// </summary>
+        private bool ProjectAlreadyReferencesProject(Dictionary<ProjectId, ProjectInfo> loadedProjects, ProjectId fromProject, ProjectId targetProject)
+        {
+            ProjectInfo info;
+
+            return loadedProjects.TryGetValue(fromProject, out info) && info.ProjectReferences.Any(pr => pr.ProjectId == targetProject ||
+                ProjectAlreadyReferencesProject(loadedProjects, pr.ProjectId, targetProject));
         }
 
         /// <summary>

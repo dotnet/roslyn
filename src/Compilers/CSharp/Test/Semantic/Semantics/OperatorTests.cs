@@ -6423,9 +6423,9 @@ public static class Program
         M(1 - Color.Red);
     }
 }";
-            CreateCompilationWithMscorlib(source1, options: Test.Utilities.TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
-            CreateCompilationWithMscorlib(source1, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable())).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (7,11): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'Color'
                 //         M(1 - Color.Red);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 - Color.Red").WithArguments("-", "int", "Color").WithLocation(7, 11)

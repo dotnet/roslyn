@@ -922,6 +922,33 @@ End Class
 
         End Sub
 
+        <WorkItem(925569)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub ChangeClassNameAndGetNameOfChildFunction()
+            Dim code =
+<Code>
+Class C
+    Sub M()
+    End Sub
+End Class
+</Code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim codeClass = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(codeClass)
+                    Assert.Equal("C", codeClass.Name)
+
+                    Dim codeFunction = TryCast(codeClass.Members.Item(1), EnvDTE.CodeFunction)
+                    Assert.NotNull(codeFunction)
+                    Assert.Equal("M", codeFunction.Name)
+
+                    codeClass.Name = "NewClassName"
+                    Assert.Equal("NewClassName", codeClass.Name)
+                    Assert.Equal("M", codeFunction.Name)
+                End Sub)
+        End Sub
+
         <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub CreateUnknownElementForDeclarationFunctionAndSub()

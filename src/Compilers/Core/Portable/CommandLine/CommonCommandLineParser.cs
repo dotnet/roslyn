@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -622,7 +623,7 @@ namespace Microsoft.CodeAnalysis
 
 
             // unescape escaped \"  and \\
-            for(int i = 0; i < split.Length; i++)
+            for (int i = 0; i < split.Length; i++)
             {
                 if (split[i].IndexOf('\\') >= 0)
                 {
@@ -955,6 +956,31 @@ namespace Microsoft.CodeAnalysis
                     enumerator.Dispose();
                 }
             }
+        }
+
+        internal static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
+        {
+            var set = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var commaFeatures in values)
+            {
+                foreach (var feature in commaFeatures.Split(','))
+                {
+                    int equals = feature.IndexOf('=');
+                    if (equals > 0)
+                    {
+                        string name = feature.Substring(0, equals);
+                        string value = feature.Substring(equals + 1);
+                        set[name] = value;
+                    }
+                    else
+                    {
+                        set[feature] = "true";
+                    }
+                }
+            }
+
+            return set.ToImmutable();
         }
 
         internal abstract void GenerateErrorForNoFilesFoundInRecurse(string path, IList<Diagnostic> errors);
