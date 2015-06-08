@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -83,7 +84,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
-                var commandHandler = new CommentUncommentSelectionCommandHandler(TestWaitIndicator.Default);
+                var commandHandler = new CommentUncommentSelectionCommandHandler(
+                    TestWaitIndicator.Default,
+                    workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
+                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
                 var textView = doc.GetTextView();
                 var textBuffer = doc.GetTextBuffer();
                 commandHandler.ExecuteCommand(textView, textBuffer, CommentUncommentSelectionCommandHandler.Operation.Uncomment);

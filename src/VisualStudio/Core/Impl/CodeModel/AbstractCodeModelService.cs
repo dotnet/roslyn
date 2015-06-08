@@ -266,6 +266,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
+        /// <summary>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// </summary>
         public abstract EnvDTE.CodeElement CreateInternalCodeElement(
             CodeModelState state,
             FileCodeModel fileCodeModel,
@@ -350,15 +353,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE.CodeFunction CreateInternalCodeAccessorFunction(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node.Ancestors()
-                                              .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
+            SyntaxNode parentNode = node
+                .Ancestors()
+                .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 
             if (parentNode == null)
             {
                 throw new InvalidOperationException();
             }
 
-            var parent = CreateInternalCodeElement(state, fileCodeModel, parentNode);
+            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
             var accessorKind = GetAccessorKind(node);
 
@@ -373,7 +377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (IsParameterNode(parentNode))
             {
-                var parentElement = CreateInternalCodeParameter(state, fileCodeModel, parentNode);
+                var parentElement = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
                 parentObject = ComAggregate.GetManagedObject<AbstractCodeElement>(parentElement);
             }
             else
@@ -415,7 +419,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             AbstractCodeElement parentObj = null;
             if (parentNode != null)
             {
-                var parent = CreateInternalCodeElement(state, fileCodeModel, parentNode);
+                var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
                 parentObj = ComAggregate.GetManagedObject<AbstractCodeElement>(parent);
             }
 
@@ -424,8 +428,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE.CodeParameter CreateInternalCodeParameter(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node.Ancestors()
-                                              .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
+            SyntaxNode parentNode = node
+                .Ancestors()
+                .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 
             if (parentNode == null)
             {
@@ -434,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             string name = GetParameterName(node);
 
-            var parent = CreateInternalCodeElement(state, fileCodeModel, parentNode);
+            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
 
             return CodeParameter.Create(state, parentObj, name);
@@ -451,8 +456,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE80.CodeElement2 CreateInternalCodeInheritsStatement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node.Ancestors()
-                                              .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
+            SyntaxNode parentNode = node
+                .Ancestors()
+                .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 
             if (parentNode == null)
             {
@@ -463,7 +469,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             int ordinal;
             GetInheritsNamespaceAndOrdinal(parentNode, node, out namespaceName, out ordinal);
 
-            var parent = CreateInternalCodeElement(state, fileCodeModel, parentNode);
+            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
 
             return CodeInheritsStatement.Create(state, parentObj, namespaceName, ordinal);
@@ -471,8 +477,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE80.CodeElement2 CreateInternalCodeImplementsStatement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
-            SyntaxNode parentNode = node.Ancestors()
-                                              .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
+            SyntaxNode parentNode = node
+                .Ancestors()
+                .FirstOrDefault(n => TryGetNodeKey(n) != SyntaxNodeKey.Empty);
 
             if (parentNode == null)
             {
@@ -483,7 +490,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             int ordinal;
             GetImplementsNamespaceAndOrdinal(parentNode, node, out namespaceName, out ordinal);
 
-            var parent = CreateInternalCodeElement(state, fileCodeModel, parentNode);
+            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
 
             return CodeImplementsStatement.Create(state, parentObj, namespaceName, ordinal);

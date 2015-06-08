@@ -4975,8 +4975,44 @@ End Module"
             Extensions.VerifyUnchangedDocument(src2, active)
         End Sub
 
+
+
 #End Region
 
+        <Fact>
+        Public Sub PartiallyExecutedActiveStatement()
+            Dim src1 As String = "
+Class C
+    Sub F()
+        <AS:0>Console.WriteLine(1)</AS:0> 
+        <AS:1>Console.WriteLine(2)</AS:1> 
+        <AS:2>Console.WriteLine(3)</AS:2> 
+        <AS:3>Console.WriteLine(4)</AS:3> 
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Class C
+    Sub F()
+        <AS:0>Console.WriteLine(10)</AS:0> 
+        <AS:1>Console.WriteLine(20)</AS:1> 
+        <AS:2>Console.WriteLine(30)</AS:2> 
+        <AS:3>Console.WriteLine(40)</AS:3> 
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
 
+            active.OldSpans(0) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame, active.OldSpans(0).Span)
+            active.OldSpans(1) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted, active.OldSpans(1).Span)
+            active.OldSpans(2) = New ActiveStatementSpan(ActiveStatementFlags.LeafFrame, active.OldSpans(2).Span)
+            active.OldSpans(3) = New ActiveStatementSpan(ActiveStatementFlags.None, active.OldSpans(3).Span)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(20)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"))
+        End Sub
     End Class
 End Namespace

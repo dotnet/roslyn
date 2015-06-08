@@ -3749,5 +3749,45 @@ class D : C
 
 }");
         }
+
+        [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void DontRemoveCastToTypeParameterWithExceptionContraint()
+        {
+            TestMissing(
+@"using System;
+
+class Program
+{
+    private static void RequiresCondition<TException>(bool condition, string messageOnFalseCondition)
+            where TException : Exception
+    {
+        if (!condition)
+        {
+            throw [|(TException)Activator.CreateInstance(typeof(TException), messageOnFalseCondition)|];
+        }
+    }
+}");
+        }
+
+        [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void DontRemoveCastToTypeParameterWithExceptionSubTypeContraint()
+        {
+            TestMissing(
+@"using System;
+
+class Program
+{
+    private static void RequiresCondition<TException>(bool condition, string messageOnFalseCondition)
+            where TException : ArgumentException
+    {
+        if (!condition)
+        {
+            throw [|(TException)Activator.CreateInstance(typeof(TException), messageOnFalseCondition)|];
+        }
+    }
+}");
+        }
     }
 }

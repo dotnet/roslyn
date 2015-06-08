@@ -2084,6 +2084,7 @@ static Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(string filePa
 static Microsoft.CodeAnalysis.RuleSet.LoadEffectiveRuleSetFromFile(string filePath) -> Microsoft.CodeAnalysis.RuleSet
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.operator !=(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> left, Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> right) -> bool
 static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.operator ==(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> left, Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> right) -> bool
+static Microsoft.CodeAnalysis.SourceFileResolver.Default.get -> Microsoft.CodeAnalysis.SourceFileResolver
 static Microsoft.CodeAnalysis.SubsystemVersion.Create(int major, int minor) -> Microsoft.CodeAnalysis.SubsystemVersion
 static Microsoft.CodeAnalysis.SubsystemVersion.None.get -> Microsoft.CodeAnalysis.SubsystemVersion
 static Microsoft.CodeAnalysis.SubsystemVersion.TryParse(string str, out Microsoft.CodeAnalysis.SubsystemVersion version) -> bool
@@ -2186,8 +2187,7 @@ static Microsoft.CodeAnalysis.Text.TextLine.operator ==(Microsoft.CodeAnalysis.T
 static Microsoft.CodeAnalysis.Text.TextSpan.FromBounds(int start, int end) -> Microsoft.CodeAnalysis.Text.TextSpan
 static Microsoft.CodeAnalysis.Text.TextSpan.operator !=(Microsoft.CodeAnalysis.Text.TextSpan left, Microsoft.CodeAnalysis.Text.TextSpan right) -> bool
 static Microsoft.CodeAnalysis.Text.TextSpan.operator ==(Microsoft.CodeAnalysis.Text.TextSpan left, Microsoft.CodeAnalysis.Text.TextSpan right) -> bool
-static readonly Microsoft.CodeAnalysis.SourceFileResolver.Default -> Microsoft.CodeAnalysis.SourceFileResolver
-static readonly Microsoft.CodeAnalysis.XmlFileResolver.Default -> Microsoft.CodeAnalysis.XmlFileResolver
+static Microsoft.CodeAnalysis.XmlFileResolver.Default.get -> Microsoft.CodeAnalysis.XmlFileResolver
 virtual Microsoft.CodeAnalysis.Diagnostic.DefaultSeverity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 virtual Microsoft.CodeAnalysis.Diagnostic.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 virtual Microsoft.CodeAnalysis.DiagnosticFormatter.Format(Microsoft.CodeAnalysis.Diagnostic diagnostic, System.IFormatProvider formatter = null) -> string

@@ -158,7 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Optional nonArrayName As Boolean = False,
                             Optional disallowGenericArgumentsOnLastQualifiedName As Boolean = False,
                             Optional allowEmptyGenericArguments As Boolean = False,
-                            Optional ByRef allowedEmptyGenericArguments As Boolean = False
+                            Optional ByRef allowedEmptyGenericArguments As Boolean = False,
+                            Optional isNameInNamespaceDeclaration As Boolean = False
                         ) As NameSyntax
 
             Debug.Assert(allowGenericArguments OrElse Not allowEmptyGenericArguments, "Inconsistency in generic arguments parsing requirements!!!")
@@ -171,7 +172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
 
                 result = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
-                result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+
+                If isNameInNamespaceDeclaration Then
+                    result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+                End If
 
                 GetNextToken()
 
@@ -1641,7 +1645,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 requireQualification:=False,
                 allowGlobalNameSpace:=True,
                 allowGenericArguments:=False,
-                allowGenericsWithoutOf:=True)
+                allowGenericsWithoutOf:=True,
+                isNameInNamespaceDeclaration:=True)
 
             If namespaceName.ContainsDiagnostics Then
                 ' Resync at EOS so we don't get expecting EOS errors
@@ -5990,30 +5995,29 @@ checkNullable:
         ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
         ''' </summary>
         Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Dim languageVersion = _scanner.Options.LanguageVersion
-            If CheckFeatureAvailability(languageVersion, feature) Then
+            Dim parseOptions = _scanner.Options
+            If CheckFeatureAvailability(parseOptions, feature) Then
                 Return node
             End If
 
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, parseOptions.LanguageVersion.GetErrorName(), featureName)
         End Function
 
         Private Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
+            Return CheckFeatureAvailability(_scanner.Options, feature)
         End Function
 
-        Private Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Return CInt(required) <= CInt(languageVersion)
-        End Function
-
-        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
-            If Not CheckFeatureAvailability(languageVersion, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
+            Dim featureFlag = feature.GetFeatureFlag()
+            If featureFlag IsNot Nothing Then
+                Return parseOptions.Features.ContainsKey(featureFlag)
             End If
-        End Sub
+
+            Dim required = feature.GetLanguageVersion()
+            Dim actual = parseOptions.LanguageVersion
+            Return CInt(required) <= CInt(actual)
+        End Function
 
     End Class
 

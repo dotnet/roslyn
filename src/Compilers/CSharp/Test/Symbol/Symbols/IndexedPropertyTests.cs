@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class IndexedPropertyTests : CSharpTestBase
     {
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedProperties()
         {
             var source1 =
@@ -72,7 +72,7 @@ P[2] = 2
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OptionalParameters()
         {
             var source1 =
@@ -164,7 +164,7 @@ P[1, 2].set
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ParamsArrayParameters()
         {
             var source1 =
@@ -232,7 +232,7 @@ End Class";
 ");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void RefParameters()
         {
             var source1 =
@@ -618,7 +618,7 @@ F()
 ");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OptionalRefParameters()
         {
             var source1 =
@@ -818,7 +818,7 @@ F()
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void DefaultProperty()
         {
             var source1 =
@@ -899,7 +899,7 @@ End Class";
         /// Allow calling indexed property accessors
         /// directly, for legacy code.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void CanBeReferencedByName()
         {
             var source1 =
@@ -1048,7 +1048,7 @@ Q[6] = 5
         /// CanBeReferencedByName should return false if
         /// the accessor name is not a valid identifier.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void CanBeReferencedByName_InvalidName()
         {
             // Note: Dev11 treats I.Q as invalid so Q is not recognized from source.
@@ -1147,7 +1147,7 @@ class B
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "R").WithArguments("A", "R").WithLocation(16, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void BaseProperties()
         {
             var source1 =
@@ -1183,7 +1183,7 @@ End Class";
             compilation2.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void StaticProperties()
         {
             var source1 =
@@ -1230,7 +1230,7 @@ End Class";
         /// <summary>
         /// Indexed properties are only supported from [ComImport] types.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void ComImport()
         {
             var source1 =
@@ -1266,7 +1266,7 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Q").WithArguments("IA.Q[object]", "IA.get_Q(object)", "IA.set_Q(object, object)").WithLocation(5, 23));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyAccesses()
         {
             var source1 =
@@ -1334,7 +1334,7 @@ End Interface";
         /// Cases where a PropertyGroup must be converted to a PropertyAccess.
         /// (resulting from an indexed property expression with no args).
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyGroup()
         {
             var source1 =
@@ -1364,7 +1364,7 @@ End Interface";
         /// Overload resolution should be supported for indexed properties,
         /// even though COM does not support overloads.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void OverloadResolution()
         {
             var source1 =
@@ -1402,7 +1402,7 @@ End Interface";
             compilation2.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OverloadResolutionWithSimpleProperty()
         {
             var source1 =
@@ -1488,7 +1488,7 @@ End Class";
             compilation2.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OverridesHidesImplements()
         {
             var source1 =
@@ -1581,7 +1581,7 @@ End Class";
         /// from C# if the accessors are implemented/overridden directly.
         /// </summary>
         [WorkItem(545516, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void InterfaceImplementation()
         {
             var source1 =
@@ -1763,7 +1763,7 @@ B2.set_P(6, ...)
         /// "new" required to hide indexed property accessors, although
         /// property from base class can still be invoked using property syntax.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void Hiding()
         {
             var source1 =
@@ -1876,7 +1876,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 22));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ReadOnlyWriteOnly()
         {
             var source1 =
@@ -1907,7 +1907,7 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "a.Q[null]").WithArguments("IA.Q[object]").WithLocation(6, 21));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ObjectInitializer()
         {
             var source1 =
@@ -2006,7 +2006,7 @@ P3(3).get
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ObjectInitializer_Errors()
         {
             var source1 =
@@ -2058,7 +2058,7 @@ End Class";
                 Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("A.P3[int]").WithLocation(8, 23));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Attributes()
         {
             var source1 =
@@ -2113,7 +2113,7 @@ class B
             var compilation3 = CompileAndVerify(source3, new[] { reference1 }, emitters: TestEmitters.CCI);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LinqMember()
         {
             var source1 =
@@ -2146,7 +2146,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "select o.P").WithArguments("IEnumerableOfA.Select[System.Func<IA, object>]"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void AmbiguityPropertyAndNonProperty()
         {
             var source1 =
@@ -2185,7 +2185,7 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("IA.P", "IB.P[object]").WithLocation(5, 18));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LambdaWithIndexedProperty()
         {
             var source1 = @"
@@ -2271,7 +2271,7 @@ P1(5).get
              */
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void QueryStatementIndexedProperty()
         {
             var source1 = @"
@@ -2348,7 +2348,7 @@ P1(2).get
              */
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void IncrementersAndIndexedProperties()
         {
             var source1 = @"
@@ -2581,7 +2581,7 @@ class Test
         }
 
         [WorkItem(846234, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedPropertyColorColor()
         {
             var source1 =
@@ -2644,7 +2644,7 @@ P[2] = 2
         }
 
         [WorkItem(853401, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedPropertyDynamicInvocation()
         {
             var source1 =
@@ -2703,7 +2703,7 @@ End Class";
 
         [WorkItem(846234, "DevDiv")]
         [WorkItem(853401, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedPropertyDynamicColorColorInvocation()
         {
             var source1 =

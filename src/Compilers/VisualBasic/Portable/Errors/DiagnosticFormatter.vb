@@ -20,6 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current DiagnosticFormatter instance.
         ''' </summary>
-        Public Shared Shadows ReadOnly Instance As VisualBasicDiagnosticFormatter = New VisualBasicDiagnosticFormatter()
+        Public Shared Shadows ReadOnly Property Instance As VisualBasicDiagnosticFormatter = New VisualBasicDiagnosticFormatter()
     End Class
 End Namespace

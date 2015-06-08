@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Represents a <see cref="VisualBasicSyntaxVisitor"/> that descends an entire <see cref="SyntaxNode"/> tree
@@ -12,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Public MustInherit Class VisualBasicSyntaxWalker
         Inherits VisualBasicSyntaxVisitor
 
-        Protected ReadOnly Depth As SyntaxWalkerDepth
+        Protected ReadOnly Property Depth As SyntaxWalkerDepth
 
         Protected Sub New(Optional depth As SyntaxWalkerDepth = SyntaxWalkerDepth.Node)
             Me.Depth = depth

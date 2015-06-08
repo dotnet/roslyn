@@ -187,7 +187,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A set of strings designating experimental compiler features that are to be enabled.
         /// </summary>
-        protected internal ImmutableArray<string> Features { get; protected set; }
+        [Obsolete]
+        protected internal ImmutableArray<string> Features
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            protected set
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
 
@@ -214,8 +225,7 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions,
-            ImmutableArray<string> features)
+            MetadataImportOptions metadataImportOptions)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -239,7 +249,6 @@ namespace Microsoft.CodeAnalysis
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
-            this.Features = features;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -359,11 +368,6 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
-        internal CompilationOptions WithFeatures(ImmutableArray<string> features)
-        {
-            return CommonWithFeatures(features);
-        }
-
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
@@ -375,6 +379,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
+        [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
         /// <summary>
@@ -423,8 +428,7 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
-                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
-                   this.Features.SequenceEqual(other.Features, StringComparer.Ordinal);
+                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
 
             return equal;
         }
@@ -453,8 +457,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 0)))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

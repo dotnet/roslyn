@@ -762,7 +762,7 @@ a.vb
         <Fact>
         Public Sub ManagedResourceOptions()
             Dim parsedArgs As VisualBasicCommandLineArguments
-            Dim resourceDescription As resourceDescription
+            Dim resourceDescription As ResourceDescription
 
             parsedArgs = DefaultParse({"/resource:a", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -5182,22 +5182,22 @@ End Module
             Dim outputFileName As String
             Dim target As String
             Select Case outputKind
-                Case outputKind.ConsoleApplication
+                Case OutputKind.ConsoleApplication
                     outputFileName = "Test.exe"
                     target = "exe"
-                Case outputKind.WindowsApplication
+                Case OutputKind.WindowsApplication
                     outputFileName = "Test.exe"
                     target = "winexe"
-                Case outputKind.DynamicallyLinkedLibrary
+                Case OutputKind.DynamicallyLinkedLibrary
                     outputFileName = "Test.dll"
                     target = "library"
-                Case outputKind.NetModule
+                Case OutputKind.NetModule
                     outputFileName = "Test.netmodule"
                     target = "module"
-                Case outputKind.WindowsRuntimeMetadata
+                Case OutputKind.WindowsRuntimeMetadata
                     outputFileName = "Test.winmdobj"
                     target = "winmdobj"
-                Case outputKind.WindowsRuntimeApplication
+                Case OutputKind.WindowsRuntimeApplication
                     outputFileName = "Test.exe"
                     target = "appcontainerexe"
                 Case Else
@@ -5231,7 +5231,7 @@ End Module
             End If
 
             Const resourceType As String = "#24"
-            Dim resourceId As String = If(outputKind = outputKind.DynamicallyLinkedLibrary, "#2", "#1")
+            Dim resourceId As String = If(outputKind = OutputKind.DynamicallyLinkedLibrary, "#2", "#1")
 
             Dim manifestSize As UInteger = Nothing
             If expectedManifest Is Nothing Then
@@ -6026,31 +6026,31 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         Public Sub ParseFeatures()
             Dim args = DefaultParse({"/features:Test", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test", args.CompilationOptions.Features.Single())
+            Assert.Equal("Test", args.ParseOptions.Features.Single().Key)
 
             args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal(2, args.CompilationOptions.Features.Length)
-            Assert.Equal("Test", args.CompilationOptions.Features(0))
-            Assert.Equal("Experiment", args.CompilationOptions.Features(1))
+            Assert.Equal(2, args.ParseOptions.Features.Count)
+            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
+            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
 
-            args = DefaultParse({"/features:Test:false,Key:value", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/features:Test=false,Key=value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single())
+            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "false"}, {"Key", "value"}}))
 
             ' We don't do any rigorous validation of /features arguments...
 
             args = DefaultParse({"/features", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Empty(args.CompilationOptions.Features)
+            Assert.Empty(args.ParseOptions.Features)
 
             args = DefaultParse({"/features:,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal(",", args.CompilationOptions.Features.Single())
+            Assert.Equal("", args.ParseOptions.Features.Single().Key)
 
             args = DefaultParse({"/features:Test,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test,", args.CompilationOptions.Features.Single())
+            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "true"}, {"", "true"}}))
         End Sub
 
         <Fact>

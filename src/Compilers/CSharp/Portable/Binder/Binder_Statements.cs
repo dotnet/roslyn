@@ -2843,7 +2843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (arg != null)
             {
-                hasErrors = arg.HasAnyErrors;
+                hasErrors = arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
             else
             {
