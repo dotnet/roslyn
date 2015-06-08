@@ -2824,8 +2824,11 @@ Public Module Program
 End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
-            vbCompilation.VerifyDiagnostics() ' no obsolete diagnostic - we select the first one of the given name
-            CompileAndVerify(vbCompilation, expectedOutput:="2")
+            vbCompilation.AssertTheseDiagnostics(<expected>
+BC31429: 'DateTime' is ambiguous because multiple kinds of members with this name exist in enum 'Color'.
+        System.Console.WriteLine(CInt(Color.DateTime))
+                                      ~~~~~~~~~~~~~~
+                                                 </expected>)
         End Sub
 
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
@@ -2838,7 +2841,7 @@ Red,
 Green,
 DateTime,
 [System.Obsolete] Datetime = DateTime,
-DATETIME = DateTime,
+[System.Obsolete] DATETIME = DateTime,
 Blue,
 }
 ]]>,
@@ -2853,8 +2856,11 @@ Public Module Program
 End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
-            vbCompilation.VerifyDiagnostics() ' no obsolete diagnostic - we select the first one of the given name
-            CompileAndVerify(vbCompilation, expectedOutput:="2")
+            vbCompilation.AssertTheseDiagnostics(<expected>
+BC31429: 'DateTime' is ambiguous because multiple kinds of members with this name exist in enum 'Color'.
+        System.Console.WriteLine(CInt(Color.Datetime))
+                                      ~~~~~~~~~~~~~~
+                                                 </expected>)
         End Sub
 
         <Fact, WorkItem(2909, "https://github.com/dotnet/roslyn/issues/2909")>
@@ -3028,8 +3034,10 @@ End Module]]>,
                 referencedAssemblies:={New VisualBasicCompilationReference(vbCompilation1), MscorlibRef, MsvbRef})
             CompilationUtils.AssertTheseDiagnostics(vbCompilation,
                                                     <expected><![CDATA[
+BC31429: 'DateTime' is ambiguous because multiple kinds of members with this name exist in enum 'Color'.
+        System.Console.WriteLine(CInt(Color.DateTime))
+                                      ~~~~~~~~~~~~~~
                                                     ]]></expected>)
-            CompileAndVerify(vbCompilation, expectedOutput:="2")
         End Sub
 
     End Class
