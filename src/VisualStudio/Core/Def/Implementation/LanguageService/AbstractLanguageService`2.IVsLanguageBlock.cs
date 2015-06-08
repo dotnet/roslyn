@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             ref TextSpan span)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            if (document == null || !document.SupportsSyntaxTree)
             {
                 return false;
             }

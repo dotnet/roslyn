@@ -194,6 +194,14 @@ namespace N
 ", LanguageNames.CSharp, "int Program.P")
     End Sub
 
+    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    Public Sub GetCurrentBlock_DocumentDoesNotSupportSyntax()
+        ' NoCompilation is the special Language-Name we use to indicate that a language does not
+        ' support SyntaxTrees/SemanticModels.  This test validates that we do not crash in that
+        ' case and we gracefully bail out with 'false' for VsLanguageBlock.GetCurrentBlock.
+        VerifyNoBlock("$$", languageName:="NoCompilation")
+    End Sub
+
     Private Sub VerifyNoBlock(markup As String, languageName As String)
         Dim xml = <Workspace>
                       <Project Language=<%= languageName %> CommonReferences="True">
