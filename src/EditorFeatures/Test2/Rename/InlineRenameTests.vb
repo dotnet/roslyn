@@ -1313,5 +1313,40 @@ class C
                 VerifyTagsAreCorrect(workspace, "BarFoo")
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(3316, "https://github.com/dotnet/roslyn/issues/3316")>
+        Public Sub InvalidInvocationExpression()
+            ' Everything on the last line of main is parsed as a single invocation expression
+            ' with CType(...) as the receiver and everything else as arguments.
+            ' Rename doesn't expect to see CType as the receiver of an invocation.
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+Module Module1
+    Sub Main()
+        Dim [|$$p|] As IEnumerable(Of Integer) = {1, 2, 3}
+        Dim linked = Enumerable.Aggregate(Of Global.&lt;anonymous type:head As Global.System.Int32, tail As Global.System.Object&gt;)(
+            CType([|p|], IEnumerable(Of Integer)), Nothing, Function(total, curr) Nothing)
+    End Sub
+End Module
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Insert(caretPosition, "q")
+                session.Commit()
+
+                VerifyTagsAreCorrect(workspace, "qp")
+            End Using
+        End Sub
     End Class
 End Namespace
