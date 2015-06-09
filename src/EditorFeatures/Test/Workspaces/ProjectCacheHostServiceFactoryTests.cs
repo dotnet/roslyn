@@ -18,7 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Putting cacheService.CreateStrongReference in a using statement
             // creates a temporary local that isn't collected in Debug builds
             // Wrapping it in a lambda allows it to get collected.
+<<<<<<< HEAD
+            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService("Test", int.MaxValue);
+=======
             var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService(null);
+>>>>>>> bd033cf06fa0c0a5ec2e6453fcc61327b94f7671
             var projectId = ProjectId.CreateNewId();
             var owner = new Owner();
             var instance = new ObjectReference();
@@ -105,7 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [Fact]
         public void TestImplicitCacheKeepsObjectAlive1()
         {
+<<<<<<< HEAD
+            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService("Test", int.MaxValue);
+=======
             var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService(null);
+>>>>>>> bd033cf06fa0c0a5ec2e6453fcc61327b94f7671
             var instance = new object();
             var weak = new WeakReference(instance);
             cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
@@ -158,7 +166,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weakFirst = new WeakReference(compilations[0]);
             var weakLast = new WeakReference(compilations[compilations.Count - 1]);
 
+<<<<<<< HEAD
+            var cache = new ProjectCacheHostServiceFactory.ProjectCacheService("Test", int.MaxValue);
+=======
             var cache = new ProjectCacheHostServiceFactory.ProjectCacheService(null);
+>>>>>>> bd033cf06fa0c0a5ec2e6453fcc61327b94f7671
             for (int i = 0; i < ProjectCacheHostServiceFactory.ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
@@ -182,7 +194,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weak3 = new WeakReference(comp3);
             var weak1 = new WeakReference(comp1);
 
+<<<<<<< HEAD
+            var cache = new ProjectCacheHostServiceFactory.ProjectCacheService("Test", int.MaxValue);
+=======
             var cache = new ProjectCacheHostServiceFactory.ProjectCacheService(null);
+>>>>>>> bd033cf06fa0c0a5ec2e6453fcc61327b94f7671
             var key = ProjectId.CreateNewId();
             var owner = new object();
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp1);

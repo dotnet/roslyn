@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+<<<<<<< HEAD
+=======
 using System.Collections.Generic;
 using System.Collections.Immutable;
+>>>>>>> bd033cf06fa0c0a5ec2e6453fcc61327b94f7671
 using System.Composition;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
@@ -13,11 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
     [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Editor)]
     [Shared]
-    internal class ProjectCacheHostServiceFactory : IWorkspaceServiceFactory
+    internal partial class ProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
+        private const int ImplicitCacheTimeoutInMS = 5000;
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
+<<<<<<< HEAD
+            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace.Kind, ImplicitCacheTimeoutInMS);
+=======
             var projectCacheService = new ProjectCacheService(workspaceServices.Workspace);
+>>>>>>> bd033cf06fa0c0a5ec2e6453fcc61327b94f7671
             var documentTrackingService = workspaceServices.GetService<IDocumentTrackingService>();
 
             // Subscribe to events so that we can cache items from the active document's project
@@ -42,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             return projectCacheService;
         }
 
+<<<<<<< HEAD
+=======
         internal class ProjectCacheService : IProjectCacheHostService
         {
             private readonly object _gate = new object();
@@ -206,6 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             }
         }
 
+>>>>>>> bd033cf06fa0c0a5ec2e6453fcc61327b94f7671
         private class ActiveProjectCacheManager
         {
             private readonly IDocumentTrackingService _documentTrackingService;
