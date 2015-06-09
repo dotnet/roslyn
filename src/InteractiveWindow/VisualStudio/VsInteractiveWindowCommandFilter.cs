@@ -276,15 +276,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case CommandIds.HistoryPrevious:
                     case CommandIds.SearchHistoryNext:
                     case CommandIds.SearchHistoryPrevious:
+                    case CommandIds.SmartExecute: 
                         // TODO: Submit?
                         prgCmds[0].cmdf = _window.CurrentLanguageBuffer != null ? CommandEnabled : CommandDisabled;
-                        break;
+                        prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
+                        return VSConstants.S_OK;
                     case CommandIds.AbortExecution:
                         prgCmds[0].cmdf = _window.IsRunning ? CommandEnabled : CommandDisabled;
-                        break;
+                        prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
+                        return VSConstants.S_OK;
                     case CommandIds.Reset:
                         prgCmds[0].cmdf = !_window.IsResetting ? CommandEnabled : CommandDisabled;
-                        break;
+                        prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
+                        return VSConstants.S_OK;
                     default:
                         prgCmds[0].cmdf = CommandEnabled;
                         break;
