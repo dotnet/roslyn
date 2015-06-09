@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1400,7 +1400,7 @@ static class E
                 "void object.F(object y, object z)");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyGroup()
         {
             var source1 =
@@ -1520,7 +1520,7 @@ End Class";
                 "string A.P[int x, string y]");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyGroupOverloadsOverridesHides()
         {
             var source1 =
