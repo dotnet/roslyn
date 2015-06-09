@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.Documents = documents ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             _projectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
-            _metadataReferences = metadataReferences ?? new MetadataReference[] { MetadataReference.CreateFromAssembly(typeof(int).Assembly) };
+            _metadataReferences = metadataReferences ?? new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";
             _version = VersionStamp.Create();

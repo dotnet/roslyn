@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EvalResult("s", "\u007f\u009f", "string", "s", editableValue: "\"\\u007f\\u009f\"", flags: DkmEvaluationResultFlags.RawString));
 
             // " " with alias
-            value = CreateDkmClrValue(" ", type: stringType, alias: "1", evalFlags: DkmEvaluationResultFlags.HasObjectId);
+            value = CreateDkmClrValue(" ", type: stringType, alias: "$1", evalFlags: DkmEvaluationResultFlags.HasObjectId);
             evalResult = FormatResult("s", value, inspectionContext: inspectionContext);
             Verify(evalResult,
                 EvalResult("s", "  {$1}", "string", "s", editableValue: "\" \"", flags: DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.HasObjectId));

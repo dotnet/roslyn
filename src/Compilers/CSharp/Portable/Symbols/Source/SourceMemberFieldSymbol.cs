@@ -275,16 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    if (IsStatic)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, ErrorLocation, SyntaxFacts.GetText(SyntaxKind.StaticKeyword));
-                    }
-
-                    if (IsVolatile)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, ErrorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
-                    }
-
                     var elementType = ((PointerTypeSymbol)type).PointedAtType;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
@@ -411,6 +401,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_AbstractField, errorLocation);
                 result &= ~DeclarationModifiers.Abstract;
             }
+
+            if ((result & DeclarationModifiers.Fixed) != 0)
+            {
+                if ((result & DeclarationModifiers.Static) != 0)
+                {
+                    // The modifier 'static' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.StaticKeyword));
+                }
+
+                if ((result & DeclarationModifiers.ReadOnly) != 0)
+                {
+                    // The modifier 'readonly' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                }
+
+                if ((result & DeclarationModifiers.Const) != 0)
+                {
+                    // The modifier 'const' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.ConstKeyword));
+                }
+
+                if ((result & DeclarationModifiers.Volatile) != 0)
+                {
+                    // The modifier 'volatile' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
+                }
+
+                result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile);
+                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
+            }
+
 
             if ((result & DeclarationModifiers.Const) != 0)
             {

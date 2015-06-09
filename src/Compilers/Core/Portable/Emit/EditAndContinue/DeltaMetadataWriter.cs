@@ -666,14 +666,22 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private static EncLocalInfo CreateEncLocalInfo(ILocalDefinition localDef, byte[] signature)
+        private EncLocalInfo CreateEncLocalInfo(ILocalDefinition localDef, byte[] signature)
         {
             if (localDef.SlotInfo.Id.IsNone)
             {
                 return new EncLocalInfo(signature);
             }
 
-            return new EncLocalInfo(localDef.SlotInfo, localDef.Type, localDef.Constraints, signature);
+            // local type is already translated, but not recursively
+            ITypeReference translatedType = localDef.Type;
+            ITypeSymbol typeSymbol = translatedType as ITypeSymbol;
+            if (typeSymbol != null)
+            {
+                translatedType = Context.ModuleBuilder.EncTranslateType(typeSymbol, Context.Diagnostics);
+            }
+
+            return new EncLocalInfo(localDef.SlotInfo, translatedType, localDef.Constraints, signature);
         }
 
         protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
@@ -987,7 +995,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     uint token;
                     this.TryGetValue(item, out token);
+
+                    // Fails if we are attempting to make a change that should have been reported as rude,
+                    // e.g. the corresponding definitions type don't match, etc.
                     Debug.Assert(token > 0);
+
                     return token;
                 }
             }
