@@ -144,6 +144,8 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
             }
+
+            public override Compilation SourceCompilation => null;
         }
     }
 }
