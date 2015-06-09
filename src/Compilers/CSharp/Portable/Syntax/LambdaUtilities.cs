@@ -125,6 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var anonymousFunction = (AnonymousFunctionExpressionSyntax)parent;
                     return anonymousFunction.Body == node;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)parent;
+                    return localFunction.Body == node || localFunction.ExpressionBody == node;
+
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)parent;
                     return fromClause.Expression == node && fromClause.Parent is QueryBodySyntax;

@@ -678,6 +678,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            var oldContainingSymbol = _F.CurrentMethod;
+            var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
+
+            _F.CurrentMethod = node.Symbol;
+            _currentAwaitFinallyFrame = new AwaitFinallyFrame();
+
+            var result = base.VisitLocalFunctionStatement(node);
+
+            _F.CurrentMethod = oldContainingSymbol;
+            _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
+
+            return result;
+        }
+
         private AwaitFinallyFrame PushFrame(BoundTryStatement statement)
         {
             var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), (TryStatementSyntax)statement.Syntax);
@@ -825,6 +841,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _seenAwait = false;
 
                 base.VisitLambda(node);
+
+                this.currentLabels = origLabels;
+                _seenAwait = origSeenAwait;
+
+                return null;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                var origLabels = this.currentLabels;
+                var origSeenAwait = _seenAwait;
+
+                this.currentLabels = null;
+                _seenAwait = false;
+
+                base.VisitLocalFunctionStatement(node);
 
                 this.currentLabels = origLabels;
                 _seenAwait = origSeenAwait;

@@ -67,6 +67,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         // A mapping from every lambda parameter to its corresponding method's parameter.
         private readonly Dictionary<ParameterSymbol, ParameterSymbol> _parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
 
+        // A mapping from every local function to its lowered method
+        private struct MappedLocalFunction
+        {
+            public readonly MethodSymbol Symbol;
+            public readonly ClosureKind ClosureKind;
+            public MappedLocalFunction(MethodSymbol symbol, ClosureKind closureKind)
+            {
+                Symbol = symbol;
+                ClosureKind = closureKind;
+            }
+        }
+        private readonly Dictionary<LocalFunctionSymbol, MappedLocalFunction> _localFunctionMap = new Dictionary<LocalFunctionSymbol, MappedLocalFunction>();
+
         // for each block with lifted (captured) variables, the corresponding frame type
         private readonly Dictionary<BoundNode, LambdaFrame> _frames = new Dictionary<BoundNode, LambdaFrame>();
 
@@ -153,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {
-            Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol);
+            Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol ||
+                (localOrParameter as MethodSymbol)?.MethodKind == MethodKind.LocalFunction);
             return _analysis.capturedVariables.ContainsKey(localOrParameter);
         }
 
@@ -280,16 +294,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LambdaFrame frame = GetFrameForScope(scope, closureDebugInfo);
 
-                var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
-                proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
-
-                if (hoistedField.Type.IsRestrictedType())
+                if (captured.Kind != SymbolKind.Method)
                 {
-                    foreach (CSharpSyntaxNode syntax in kvp.Value)
+                    var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
+                    proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
+
+                    if (hoistedField.Type.IsRestrictedType())
                     {
-                        // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                        this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
+                        foreach (CSharpSyntaxNode syntax in kvp.Value)
+                        {
+                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                            this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
+                        }
                     }
                 }
             }
@@ -319,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return frame;
         }
 
-        private LambdaFrame GetStaticFrame(DiagnosticBag diagnostics, BoundNode lambda)
+        private LambdaFrame GetStaticFrame(DiagnosticBag diagnostics, IBoundLambdaOrFunction lambda)
         {
             if (_lazyStaticLambdaFrame == null)
             {
@@ -341,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methodId = GetTopLevelMethodId();
                     }
 
-                    DebugId closureId = default(DebugId); 
+                    DebugId closureId = default(DebugId);
                     _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
                     // nongeneric static lambdas can share the frame
@@ -627,8 +644,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : FramePointer(node.Syntax, _topLevelMethod.ContainingType); // technically, not the correct static type
         }
 
+        private void RemapLocalFunction(CSharpSyntaxNode syntax, MethodSymbol symbol, out BoundExpression receiver, out MethodSymbol method)
+        {
+            Debug.Assert(symbol.MethodKind == MethodKind.LocalFunction);
+
+            var constructed = symbol as SubstitutedMethodSymbol;
+            if (constructed != null)
+            {
+                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method);
+                return;
+            }
+
+            var mappedLocalFunction = _localFunctionMap[(LocalFunctionSymbol)symbol];
+            method = mappedLocalFunction.Symbol;
+            var translatedLambdaContainer = method.ContainingType;
+            var containerAsFrame = translatedLambdaContainer as LambdaFrame;
+
+            // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
+            NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ?
+                translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(_currentTypeParameters)) :
+                translatedLambdaContainer;
+
+            // for instance lambdas, receiver is the frame
+            // for static lambdas, get the singleton receiver
+            if (mappedLocalFunction.ClosureKind != ClosureKind.Static)
+            {
+                receiver = FrameOfType(syntax, constructedFrame);
+            }
+            else
+            {
+                var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
+                receiver = new BoundFieldAccess(syntax, null, field, constantValueOpt: null);
+            }
+
+            method = method.AsMember(constructedFrame);
+            if (method.IsGenericMethod)
+            {
+                method = method.Construct(StaticCast<TypeSymbol>.From(_currentTypeParameters));
+            }
+        }
+
         public override BoundNode VisitCall(BoundCall node)
         {
+            if (node.Method.MethodKind == MethodKind.LocalFunction)
+            {
+                BoundExpression receiver;
+                MethodSymbol method;
+                RemapLocalFunction(node.Syntax, node.Method, out receiver, out method);
+                node = node.Update(receiver, method, node.Arguments);
+            }
             var visited = base.VisitCall(node);
             if (visited.Kind != BoundKind.Call)
             {
@@ -877,6 +941,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+                {
+                    BoundExpression receiver;
+                    MethodSymbol method;
+                    RemapLocalFunction(node.Syntax, node.MethodOpt, out receiver, out method);
+                    var result = new BoundDelegateCreationExpression(node.Syntax, receiver, method, isExtensionMethod: false, type: node.Type);
+                    return result;
+                }
                 return base.VisitDelegateCreationExpression(node);
             }
         }
@@ -904,8 +976,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (conversion.ConversionKind == ConversionKind.MethodGroup && conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
+                {
+                    BoundExpression receiver;
+                    MethodSymbol method;
+                    RemapLocalFunction(conversion.Syntax, conversion.SymbolOpt, out receiver, out method);
+                    var result = new BoundDelegateCreationExpression(conversion.Syntax, receiver, method, isExtensionMethod: false, type: conversion.Type);
+                    return result;
+                }
                 return base.VisitConversion(conversion);
             }
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            ClosureKind closureKind;
+            NamedTypeSymbol translatedLambdaContainer;
+            LambdaFrame containerAsFrame;
+            BoundNode lambdaScope;
+            DebugId topLevelMethodId;
+            DebugId lambdaId;
+            RewriteLambdaOrLocalFunction(
+                node,
+                out closureKind,
+                out translatedLambdaContainer,
+                out containerAsFrame,
+                out lambdaScope,
+                out topLevelMethodId,
+                out lambdaId);
+
+            return new BoundNoOpStatement(node.Syntax, NoOpStatementFlavor.Default);
         }
 
         private DebugId GetTopLevelMethodId()
@@ -940,11 +1040,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode lambdaOrLambdaBodySyntax;
             var anonymousFunction = syntax as AnonymousFunctionExpressionSyntax;
+            var localFunction = syntax as LocalFunctionStatementSyntax;
             bool isLambdaBody;
 
             if (anonymousFunction != null)
             {
                 lambdaOrLambdaBodySyntax = anonymousFunction.Body;
+                isLambdaBody = true;
+            }
+            else if (localFunction != null)
+            {
+                lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
                 isLambdaBody = true;
             }
             else if (LambdaUtilities.IsQueryPairLambda(syntax))
@@ -981,27 +1087,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambdaId;
         }
 
-        private BoundNode RewriteLambdaConversion(BoundLambda node)
+        private SynthesizedLambdaMethod RewriteLambdaOrLocalFunction(
+            IBoundLambdaOrFunction node,
+            out ClosureKind closureKind,
+            out NamedTypeSymbol translatedLambdaContainer,
+            out LambdaFrame containerAsFrame,
+            out BoundNode lambdaScope,
+            out DebugId topLevelMethodId,
+            out DebugId lambdaId)
         {
-            var wasInExpressionLambda = _inExpressionLambda;
-            _inExpressionLambda = _inExpressionLambda || node.Type.IsExpressionTree();
-
-            if (_inExpressionLambda)
-            {
-                var newType = VisitType(node.Type);
-                var newBody = (BoundBlock)Visit(node.Body);
-                node = node.Update(node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
-                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, Diagnostics);
-                _inExpressionLambda = wasInExpressionLambda;
-                return result0;
-            }
-
-            NamedTypeSymbol translatedLambdaContainer;
-            BoundNode lambdaScope = null;
-            LambdaFrame containerAsFrame;
-
             int closureOrdinal;
-            ClosureKind closureKind;
             if (_analysis.lambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
             {
                 translatedLambdaContainer = containerAsFrame = _frames[lambdaScope];
@@ -1023,8 +1118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.
-            DebugId topLevelMethodId = GetTopLevelMethodId();
-            DebugId lambdaId = GetLambdaId(node.Syntax, closureKind, closureOrdinal);
+            topLevelMethodId = GetTopLevelMethodId();
+            lambdaId = GetLambdaId(node.Syntax, closureKind, closureOrdinal);
 
             var synthesizedMethod = new SynthesizedLambdaMethod(translatedLambdaContainer, closureKind, _topLevelMethod, topLevelMethodId, node, lambdaId);
             CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
@@ -1032,6 +1127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var parameter in node.Symbol.Parameters)
             {
                 _parameterMap.Add(parameter, synthesizedMethod.Parameters[parameter.Ordinal]);
+            }
+
+            if (node is BoundLocalFunctionStatement)
+            {
+                _localFunctionMap[((BoundLocalFunctionStatement)node).Symbol] = new MappedLocalFunction(synthesizedMethod, closureKind);
             }
 
             // rewrite the lambda body as the generated method's body
@@ -1084,6 +1184,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentLambdaBodyTypeMap = oldTypeMap;
             _addedLocals = oldAddedLocals;
             _addedStatements = oldAddedStatements;
+
+            return synthesizedMethod;
+        }
+
+        private BoundNode RewriteLambdaConversion(BoundLambda node)
+        {
+            var wasInExpressionLambda = _inExpressionLambda;
+            _inExpressionLambda = _inExpressionLambda || node.Type.IsExpressionTree();
+
+            if (_inExpressionLambda)
+            {
+                var newType = VisitType(node.Type);
+                var newBody = (BoundBlock)Visit(node.Body);
+                node = node.Update(node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
+                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, Diagnostics);
+                _inExpressionLambda = wasInExpressionLambda;
+                return result0;
+            }
+
+            ClosureKind closureKind;
+            NamedTypeSymbol translatedLambdaContainer;
+            LambdaFrame containerAsFrame;
+            BoundNode lambdaScope;
+            DebugId topLevelMethodId;
+            DebugId lambdaId;
+            SynthesizedLambdaMethod synthesizedMethod = RewriteLambdaOrLocalFunction(
+                node,
+                out closureKind,
+                out translatedLambdaContainer,
+                out containerAsFrame,
+                out lambdaScope,
+                out topLevelMethodId,
+                out lambdaId);
 
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
             NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ?
@@ -1239,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-#endregion
+        #endregion
 
 #if CHECK_LOCALS
         /// <summary>

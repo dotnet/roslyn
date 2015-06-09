@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = methodWithBody.Method;
 
                 var lambda = method as SynthesizedLambdaMethod;
-                var variableSlotAllocatorOpt = ((object)lambda != null) ? 
+                var variableSlotAllocatorOpt = ((object)lambda != null) ?
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
 
@@ -602,13 +602,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // any diagnostics emitted into it back into the main diagnostic bag.
                 var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
-                AsyncStateMachine stateMachineType;
-
                 // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
                 // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
                 // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
                 const int methodOrdinal = -1;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
+
+                // Local functions can be iterators as well as be async (lambdas can only be async), so we need to lower both iterators and async
+                IteratorStateMachine iteratorStateMachine;
+                BoundStatement loweredBody = IteratorRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out iteratorStateMachine);
+                StateMachineTypeSymbol stateMachine = iteratorStateMachine;
+
+                if (!loweredBody.HasErrors)
+                {
+                    AsyncStateMachine asyncStateMachine;
+                    loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
+
+                    Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+                    stateMachine = stateMachine ?? asyncStateMachine;
+                }
 
                 MethodBody emittedBody = null;
                 if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
@@ -617,10 +628,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _moduleBeingBuiltOpt,
                         method,
                         methodOrdinal,
-                        bodyWithoutAsync,
+                        loweredBody,
                         ImmutableArray<LambdaDebugInfo>.Empty,
                         ImmutableArray<ClosureDebugInfo>.Empty,
-                        stateMachineType,
+                        stateMachine,
                         variableSlotAllocatorOpt,
                         diagnosticsThisMethod,
                         _debugDocumentProvider,
@@ -1142,6 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool sawLambdas;
+            bool sawLocalFunctions;
             bool sawAwaitInExceptionHandler;
             var loweredBody = LocalRewriter.Rewrite(
                 method.DeclaringCompilation,
@@ -1154,6 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowOmissionOfConditionalCalls: true,
                 diagnostics: diagnostics,
                 sawLambdas: out sawLambdas,
+                sawLocalFunctions: out sawLocalFunctions,
                 sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
             if (loweredBody.HasErrors)
@@ -1188,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundStatement bodyWithoutLambdas = loweredBody;
-            if (sawLambdas)
+            if (sawLambdas || sawLocalFunctions)
             {
                 bodyWithoutLambdas = LambdaRewriter.Rewrite(
                     loweredBody,
@@ -1456,13 +1469,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var inMethodBinder = factory.GetBinder(blockSyntax);
 
-                    Binder binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
+                    var binder = new ExecutableCodeBinder(blockSyntax, sourceMethod, inMethodBinder);
                     body = binder.BindBlock(blockSyntax, diagnostics);
                     importChain = binder.ImportChain;
 
-                    if (inMethodBinder.IsDirectlyInIterator)
+                    foreach (var iterator in binder.MethodSymbolsWithYield)
                     {
-                        foreach (var parameter in method.Parameters)
+                        foreach (var parameter in iterator.Parameters)
                         {
                             if (parameter.RefKind != RefKind.None)
                             {
@@ -1474,15 +1487,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if (sourceMethod.IsUnsafe && compilation.Options.AllowUnsafe) // Don't cascade
-                        {
-                            diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, sourceMethod.Locations[0]);
-                        }
-
-                        if (sourceMethod.IsVararg)
+                        if (iterator.IsVararg)
                         {
                             // error CS1636: __arglist is not allowed in the parameter list of iterators
-                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, sourceMethod.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
+                        }
+
+                        if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true) && compilation.Options.AllowUnsafe) // Don't cascade
+                        {
+                            diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
                         }
                     }
                 }

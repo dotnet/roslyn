@@ -101,6 +101,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+        {
+            var builder = ArrayBuilder<LocalFunctionSymbol>.GetInstance();
+
+            foreach (var section in _switchSyntax.Sections)
+            {
+                builder.AddRange(BuildLocalFunctions(section.Statements));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         internal override GeneratedLabelSymbol BreakLabel
         {
             get

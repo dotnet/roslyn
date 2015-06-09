@@ -1046,7 +1046,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var featureName = feature.Localize();
-            var requiredVersion = feature.RequiredVersion();
 
             if (feature.RequiredFeature() != null)
             {
@@ -1060,6 +1059,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
+                var requiredVersion = feature.RequiredVersion();
+
                 if (forceWarning)
                 {
                     SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());

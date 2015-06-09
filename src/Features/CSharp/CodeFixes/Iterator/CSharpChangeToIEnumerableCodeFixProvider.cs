@@ -50,36 +50,58 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return null;
             }
 
-            var methodDeclarationNode = node as MethodDeclarationSyntax;
-            var typeInfo = model.GetTypeInfo(methodDeclarationNode.ReturnType, cancellationToken);
-            if (typeInfo.Type == null)
-            {
-                return null;
-            }
+            var returnType = methodSymbol.ReturnType;
 
-            if (typeInfo.Type.InheritsFromOrEquals(ienumerableSymbol))
+            if (returnType.InheritsFromOrEquals(ienumerableSymbol))
             {
-                if (typeInfo.Type.GetArity() != 1)
+                if (returnType.GetArity() != 1)
                 {
                     return null;
                 }
 
-                var typeArg = typeInfo.Type.GetTypeArguments().First();
+                var typeArg = returnType.GetTypeArguments().First();
                 ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
             }
             else
             {
-                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeInfo.Type);
+                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(returnType);
             }
 
+            TypeSyntax oldReturnType;
             var newReturnType = ienumerableGenericSymbol.GenerateTypeSyntax();
-            var newMethodDeclarationNode = methodDeclarationNode.WithReturnType(newReturnType);
-            root = root.ReplaceNode(methodDeclarationNode, newMethodDeclarationNode);
+            var newMethodDeclarationNode = WithReturnType(node, newReturnType, out oldReturnType);
+            if (newMethodDeclarationNode == null)
+            {
+                // the language updated and added a new kind of MethodDeclarationSyntax without updating this file
+                return null;
+            }
+
+            root = root.ReplaceNode(node, newMethodDeclarationNode);
             var newDocument = document.WithSyntaxRoot(root);
             return new MyCodeAction(
                 string.Format(CSharpFeaturesResources.ChangeReturnType,
-                    methodDeclarationNode.ReturnType.ToString(),
+                    oldReturnType.ToString(),
                     ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart)), newDocument);
+        }
+
+        private SyntaxNode WithReturnType(SyntaxNode methodOrFunction, TypeSyntax newReturnType, out TypeSyntax oldReturnType)
+        {
+            var method = methodOrFunction as MethodDeclarationSyntax;
+            if (method != null)
+            {
+                oldReturnType = method.ReturnType;
+                return method.WithReturnType(newReturnType);
+            }
+
+            var localFunction = methodOrFunction as LocalFunctionStatementSyntax;
+            if (localFunction != null)
+            {
+                oldReturnType = localFunction.ReturnType;
+                return localFunction.WithReturnType(newReturnType);
+            }
+
+            oldReturnType = null;
+            return null;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

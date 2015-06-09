@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMissingAnnotationsOnNodesOrTokens()
         {
             SyntaxAnnotation annotation = new SyntaxAnnotation();
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
 
             var matchingNodesOrTokens = tree.GetCompilationUnitRoot().GetAnnotatedNodesAndTokens(annotation);
             Assert.Empty(matchingNodesOrTokens);
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMissingAnnotationsOnTrivia()
         {
             SyntaxAnnotation annotation = new SyntaxAnnotation();
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
 
             var matchingTrivia = tree.GetCompilationUnitRoot().GetAnnotatedTrivia(annotation);
             Assert.Empty(matchingTrivia);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCSharpAllInOne()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
 
             TestAnnotation(tree);
         }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCSharpAllInOneRandom()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
 
             TestRandomAnnotations(tree);
         }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCSharpAllInOneManyRandom()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
 
             TestManyRandomAnnotations(tree);
         }
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCSharpAllInOneTrivia()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
 
             TestTriviaAnnotation(tree);
         }
@@ -330,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCopyAnnotations1()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            var tree1 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.ExperimentalParseOptions);
 
             TestCopyAnnotations(tree1, tree2);
         }

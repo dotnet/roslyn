@@ -2462,6 +2462,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a local function declaration syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a member.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
         /// the declaration assembly.
         /// </summary>
@@ -4417,6 +4425,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (member != null)
             {
                 return this.GetDeclaredSymbol(member, cancellationToken);
+            }
+
+            var localFunction = node as LocalFunctionStatementSyntax;
+            if (localFunction != null)
+            {
+                return this.GetDeclaredSymbol(localFunction, cancellationToken);
             }
 
             switch (node.Kind())

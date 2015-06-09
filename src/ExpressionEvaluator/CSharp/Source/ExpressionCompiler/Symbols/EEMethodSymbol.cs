@@ -488,6 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(!body.HasErrors);
 
             bool sawLambdas;
+            bool sawLocalFunctions;
             bool sawAwaitInExceptionHandler;
             body = LocalRewriter.Rewrite(
                 compilation: this.DeclaringCompilation,
@@ -500,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 allowOmissionOfConditionalCalls: false,
                 diagnostics: diagnostics,
                 sawLambdas: out sawLambdas,
+                sawLocalFunctions: out sawLocalFunctions,
                 sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
             Debug.Assert(!sawAwaitInExceptionHandler);
@@ -554,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return;
             }
 
-            if (sawLambdas)
+            if (sawLambdas || sawLocalFunctions)
             {
                 var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                 var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();

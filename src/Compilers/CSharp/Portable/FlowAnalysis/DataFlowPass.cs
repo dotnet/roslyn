@@ -1452,7 +1452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because this code assumes the variable is being read, not written.
             LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
-            if (localSymbol.IsFixed && this.currentMethodOrLambda.MethodKind == MethodKind.AnonymousFunction && _capturedVariables.Contains(localSymbol))
+            if (localSymbol.IsFixed &&
+                (this.currentMethodOrLambda.MethodKind == MethodKind.AnonymousFunction || this.currentMethodOrLambda.MethodKind == MethodKind.LocalFunction) &&
+                _capturedVariables.Contains(localSymbol))
             {
                 Diagnostics.Add(ErrorCode.ERR_FixedLocalInLambda, new SourceLocation(node.Syntax), localSymbol);
             }
@@ -1479,6 +1481,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
+        {
+            return VisitLambdaOrLocalFunction(node);
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            return VisitLambdaOrLocalFunction(node);
+        }
+
+        private BoundNode VisitLambdaOrLocalFunction(IBoundLambdaOrFunction node)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
             this.currentMethodOrLambda = node.Symbol;

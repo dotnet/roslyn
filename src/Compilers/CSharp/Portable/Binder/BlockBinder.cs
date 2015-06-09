@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BuildLocals(_statements);
         }
 
+        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+        {
+            return BuildLocalFunctions(_statements);
+        }
+
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             ArrayBuilder<LabelSymbol> labels = null;

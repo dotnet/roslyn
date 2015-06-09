@@ -589,6 +589,15 @@
   <Node Name="BoundMultipleLocalDeclarations" Base="BoundStatement">
     <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
   </Node>
+
+  <!--
+  Bound node that represents a local function declaration:
+    void Foo() { }
+  -->
+  <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
+    <Field Name="Symbol" Type="LocalFunctionSymbol"/>
+    <Field Name="Body" Type="BoundBlock" Null="allow"/>
+  </Node>
  
   <!-- 
   A node specially to represent the idea of 

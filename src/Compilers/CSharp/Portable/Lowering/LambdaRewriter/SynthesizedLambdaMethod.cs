@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ClosureKind closureKind,
             MethodSymbol topLevelMethod,
             DebugId topLevelMethodId,
-            BoundLambda lambdaNode,
+            IBoundLambdaOrFunction lambdaNode,
             DebugId lambdaId)
             : base(containingType,
                    lambdaNode.Symbol,
                    null,
-                   lambdaNode.SyntaxTree.GetReference(lambdaNode.Body.Syntax),
+                   lambdaNode.Syntax.SyntaxTree.GetReference(lambdaNode.Body.Syntax),
                    lambdaNode.Syntax.GetLocation(),
                    MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    (closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal)
