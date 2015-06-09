@@ -928,6 +928,14 @@ a.vb
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:14", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:14.0", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+
             ' default: "current version"
             parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
