@@ -441,8 +441,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ruleSet.Includes.First().IncludePath, "foo.ruleset");
         }
 
-        [WorkItem(156)]
-        [Fact(Skip = "156")]
+        [WorkItem(1184500, "DevDiv 1184500")]
+        [Fact]
         public void TestRuleSetInclude1()
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -453,7 +453,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.InvalidRuleSetInclude, "foo.ruleset", string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, "foo.ruleset")), otherSources: new string[] { "" });
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.ruleset");
+            file.WriteAllText(source);
+
+            var ruleSet = RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
+
+            Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+            Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
+            Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1013"]);
         }
 
         [Fact]
