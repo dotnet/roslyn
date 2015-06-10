@@ -598,6 +598,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        internal const uint NoILOffset = 0xffffffff;
+
         internal static readonly MetadataReference IntrinsicAssemblyReference = GetIntrinsicAssemblyReference();
 
         internal static ImmutableArray<MetadataReference> AddIntrinsicAssembly(this ImmutableArray<MetadataReference> references)
@@ -739,7 +741,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return metadata.GetReference(filePath: path);
         }
 
-        internal static int GetOffset(int methodToken, ISymUnmanagedReader symReader, int atLineNumber = -1)
+        internal static uint GetOffset(int methodToken, ISymUnmanagedReader symReader, int atLineNumber = -1)
         {
             int ilOffset;
             if (symReader == null)
@@ -762,7 +764,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
             Assert.InRange(ilOffset, 0, int.MaxValue);
-            return ilOffset;
+            return (uint)ilOffset;
         }
 
         internal static string GetMethodOrTypeSignatureParts(string signature, out string[] parameterTypeNames)
