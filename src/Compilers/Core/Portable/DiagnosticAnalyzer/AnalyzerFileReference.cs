@@ -277,7 +277,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Type type;
                 try
                 {
-                    type = Type.GetType(typeName + ", " + analyzerAssembly.FullName, throwOnError: true);
+                    // TODO: Once we move to CoreCLR we should just call GetType(typeName, throwOnError: true, ignoreCase: false) directly.
+                    // For now we fall back to reflection shim in order to report good error message (type load exception).
+                    const bool throwOnError = true;
+                    const bool ignoreCase = false;
+                    type = PortableShim.Assembly.GetType_string_bool_bool(analyzerAssembly, typeName, throwOnError, ignoreCase);
                 }
                 catch (Exception e)
                 {

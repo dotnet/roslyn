@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
@@ -257,9 +258,16 @@ namespace Microsoft.CodeAnalysis
         /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data across these references.
         /// </para>
         /// </remarks>
+        [Obsolete("Use CreateFromFile(assembly.Location) instead", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static MetadataReference CreateFromAssembly(Assembly assembly)
         {
-            return CreateFromAssembly(assembly, default(MetadataReferenceProperties));
+            return CreateFromAssemblyInternal(assembly);
+        }
+
+        internal static MetadataReference CreateFromAssemblyInternal(Assembly assembly)
+        {
+            return CreateFromAssemblyInternal(assembly, default(MetadataReferenceProperties));
         }
 
         /// <summary>
@@ -278,7 +286,17 @@ namespace Microsoft.CodeAnalysis
         /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data across these references.
         /// </para>
         /// </remarks>
+        [Obsolete("Use CreateFromFile(assembly.Location) instead", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static MetadataReference CreateFromAssembly(
+            Assembly assembly,
+            MetadataReferenceProperties properties,
+            DocumentationProvider documentation = null)
+        {
+            return CreateFromAssemblyInternal(assembly, properties, documentation);
+        }
+
+        internal static MetadataReference CreateFromAssemblyInternal(
             Assembly assembly,
             MetadataReferenceProperties properties,
             DocumentationProvider documentation = null)

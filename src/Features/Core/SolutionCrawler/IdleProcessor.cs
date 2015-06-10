@@ -12,10 +12,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private const int MinimumDelayInMS = 50;
 
-        private readonly int _backOffTimeSpanInMS;
-
         protected readonly IAsynchronousOperationListener Listener;
         protected readonly CancellationToken CancellationToken;
+        protected readonly int BackOffTimeSpanInMS;
 
         // points to processor task
         private Task _processorTask;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             this.Listener = listener;
             this.CancellationToken = cancellationToken;
 
-            _backOffTimeSpanInMS = backOffTimeSpanInMS;
+            BackOffTimeSpanInMS = backOffTimeSpanInMS;
             _lastAccessTimeInMS = Environment.TickCount;
         }
 
@@ -61,13 +60,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 var diffInMS = Environment.TickCount - _lastAccessTimeInMS;
-                if (diffInMS >= _backOffTimeSpanInMS)
+                if (diffInMS >= BackOffTimeSpanInMS)
                 {
                     return;
                 }
 
                 // TODO: will safestart/unwarp capture cancellation exception?
-                var timeLeft = _backOffTimeSpanInMS - diffInMS;
+                var timeLeft = BackOffTimeSpanInMS - diffInMS;
                 await Task.Delay(Math.Max(MinimumDelayInMS, timeLeft), this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
             }
         }

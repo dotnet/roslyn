@@ -130,7 +130,7 @@ int index) {} }");
             string file2 = "class Cat : Animal { public override void MakeSound() { } }";
             var compilation = CSharpCompilation.Create("test")
                     .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(file1), SyntaxFactory.ParseSyntaxTree(file2))
-                    .AddReferences(MetadataReference.CreateFromAssembly(typeof(object).Assembly));
+                    .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
 
             var globalNamespace = compilation.SourceModule.GlobalNamespace;
 
@@ -310,7 +310,7 @@ class X
                 Compilation = CSharpCompilation
                     .Create("test")
                     .AddSyntaxTrees(SyntaxTree)
-                    .AddReferences(MetadataReference.CreateFromAssembly(typeof(object).Assembly));
+                    .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
 
                 SemanticModel = Compilation.GetSemanticModel(SyntaxTree);
             }

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal AnonymousTypeKey GetAnonymousTypeKey()
             {
-                var properties = this.Properties.SelectAsArray(p => AnonymousTypeKeyField.CreateField(p.Name));
+                var properties = this.Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
                 return new AnonymousTypeKey(properties);
             }
 

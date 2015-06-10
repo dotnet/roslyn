@@ -293,8 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.NotEqual(0u, id); // Not a valid id.
             var name = $"${id}";
-            var fullName = id.ToString();
-            return new Alias(DkmClrAliasKind.ObjectId, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
         }
 
         internal static Alias ReturnValueAlias(int id = -1, Type type = null)

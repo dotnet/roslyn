@@ -310,8 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Function ObjectIdAlias(id As UInteger, typeAssemblyQualifiedName As String) As [Alias]
             Assert.NotEqual(Of UInteger)(0, id) ' Not a valid id.
             Dim name = $"${id}"
-            Dim fullName = id.ToString()
-            Return New [Alias](DkmClrAliasKind.ObjectId, name, fullName, typeAssemblyQualifiedName, Nothing)
+            Return New [Alias](DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, Nothing)
         End Function
 
         Friend Shared Function ReturnValueAlias(Optional id As Integer = -1, Optional type As Type = Nothing) As [Alias]
