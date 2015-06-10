@@ -651,6 +651,8 @@
     <Compile Include="Implementation\Workspaces\EditorErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
+    <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.ProjectCacheService.cs" />
+    <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.SimpleMRUCache.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="InternalsVisibleTo.cs" />

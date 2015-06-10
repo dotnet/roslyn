@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -21,40 +21,37 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal readonly bool IsKey;
 
-        internal static AnonymousTypeKeyField CreateField(string name)
-        {
-            return new AnonymousTypeKeyField(name, isKey: false);
-        }
+        /// <summary>
+        /// <see cref="Name"/> is case insensitive.
+        /// </summary>
+        internal readonly bool IgnoreCase;
 
-        internal static AnonymousTypeKeyField CreateField(string name, bool isKey)
+        public AnonymousTypeKeyField(string name, bool isKey, bool ignoreCase)
         {
-            return new AnonymousTypeKeyField(name.ToLowerInvariant(), isKey);
-        }
+            Debug.Assert(name != null);
 
-        private AnonymousTypeKeyField(string name, bool isKey)
-        {
-            this.Name = name;
-            this.IsKey = isKey;
+            Name = name;
+            IsKey = isKey;
+            IgnoreCase = ignoreCase;
         }
 
         public bool Equals(AnonymousTypeKeyField other)
         {
-            return (this.Name == other.Name) && (this.IsKey == other.IsKey);
+            return IsKey == other.IsKey &&
+                   IgnoreCase == other.IgnoreCase &&
+                   (IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).Equals(Name, other.Name);
         }
 
         public override bool Equals(object obj)
         {
-            return this.Equals((AnonymousTypeKeyField)obj);
+            return Equals((AnonymousTypeKeyField)obj);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Name.GetHashCode(), this.IsKey.GetHashCode());
-        }
-
-        public override string ToString()
-        {
-            return this.Name + (this.IsKey ? "+" : "-");
+            return Hash.Combine(IsKey,
+                   Hash.Combine(IgnoreCase,
+                   (IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).GetHashCode(Name)));
         }
     }
 

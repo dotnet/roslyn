@@ -78,10 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             private static BoundExpression InvokeGetMethod(MethodSymbol method, CSharpSyntaxNode syntax, string name)
             {
-                if (name.Length > 1 && name[0] == '$')
-                {
-                    name = name.Substring(1);
-                }
                 var argument = new BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),

@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -106,10 +105,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Protected Overrides Sub GetStateMachineFieldMapFromMetadata(stateMachineType As ITypeSymbol,
                                                                     localSlotDebugInfo As ImmutableArray(Of LocalSlotDebugInfo),
                                                                     <Out> ByRef hoistedLocalMap As IReadOnlyDictionary(Of EncHoistedLocalInfo, Integer),
-                                                                    <Out> ByRef awaiterMap As IReadOnlyDictionary(Of ITypeReference, Integer),
+                                                                    <Out> ByRef awaiterMap As IReadOnlyDictionary(Of Cci.ITypeReference, Integer),
                                                                     <Out> ByRef awaiterSlotCount As Integer)
+            ' we are working with PE symbols
+            Debug.Assert(TypeOf stateMachineType.ContainingAssembly Is PEAssemblySymbol)
+
             Dim hoistedLocals = New Dictionary(Of EncHoistedLocalInfo, Integer)()
-            Dim awaiters = New Dictionary(Of ITypeReference, Integer)
+            Dim awaiters = New Dictionary(Of Cci.ITypeReference, Integer)
             Dim maxAwaiterSlotIndex = -1
 
             For Each member In stateMachineType.GetMembers()
@@ -121,10 +123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Case GeneratedNameKind.StateMachineAwaiterField
 
                             If GeneratedNames.TryParseSlotIndex(StringConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
-                                Dim field = TryCast(member, IFieldSymbol)
+                                Dim field = DirectCast(member, IFieldSymbol)
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                                awaiters(TryCast(field.Type, Cci.ITypeReference)) = slotIndex
+                                awaiters(DirectCast(field.Type, Cci.ITypeReference)) = slotIndex
 
                                 If slotIndex > maxAwaiterSlotIndex Then
                                     maxAwaiterSlotIndex = slotIndex
@@ -137,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             Dim _name As String = Nothing
                             If GeneratedNames.TryParseSlotIndex(StringConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
                                GeneratedNames.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
-                                Dim field = TryCast(member, IFieldSymbol)
+                                Dim field = DirectCast(member, IFieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then
                                     ' Invalid metadata
                                     Continue For

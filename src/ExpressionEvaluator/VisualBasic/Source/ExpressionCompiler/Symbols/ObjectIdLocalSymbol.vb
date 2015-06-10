@@ -95,9 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Function
 
             Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As VisualBasicSyntaxNode, name As String) As BoundExpression
-                If (name.Length > 1 AndAlso name(0) = "$"c) Then
-                    name = name.Substring(1)
-                End If
                 Dim argument As New BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),

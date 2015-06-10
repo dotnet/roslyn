@@ -1334,7 +1334,7 @@ End Class
             var compilation = VB.VisualBasicCompilation.Create(
                 "foo",
                 new[] { VB.VisualBasicSyntaxTree.ParseText(source) },
-                new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) },
+                new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
                 new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug));
 
             Assembly a;

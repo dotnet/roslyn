@@ -99,11 +99,34 @@ End Namespace
             Test(<text>
 Namespace NS1
   Class C
-      Sub Method()
-      End Sub$$
+    Sub Method()
+    End Sub$$
   End Class
 End Namespace
 </text>.NormalizedValue, "Root.NS1.C.Method()", 1, rootNamespace:="Root")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
+        Public Sub TestGlobalNamespaceWithRootNamespace()
+            Test(<text>
+Namespace Global.NS1
+  Class C
+    Sub Method()
+    End Sub$$
+  End Class
+End Namespace
+</text>.NormalizedValue, "NS1.C.Method()", 1, rootNamespace:="Root")
+
+            Test(<text>
+Namespace Global
+  Namespace NS1
+    Class C
+      Sub Method()
+      End Sub$$
+    End Class
+  End Namespace
+End Namespace
+</text>.NormalizedValue, "NS1.C.Method()", 1, rootNamespace:="Root")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>

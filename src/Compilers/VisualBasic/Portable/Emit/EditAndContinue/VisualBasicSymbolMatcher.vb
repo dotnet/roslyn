@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                       otherSynthesizedMembersOpt As ImmutableDictionary(Of Cci.ITypeDefinition, ImmutableArray(Of Cci.ITypeDefinitionMember)))
 
             Me._defs = New MatchDefsToSource(sourceContext, otherContext)
-            Me._symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt)
+            Me._symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, New DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)))
         End Sub
 
         Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                       otherAssembly As PEAssemblySymbol)
 
             Me._defs = New MatchDefsToMetadata(sourceContext, otherAssembly)
-            Me._symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt:=Nothing)
+            Me._symbols = New MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt:=Nothing, deepTranslatorOpt:=Nothing)
         End Sub
 
         Public Overrides Function MapDefinition(def As Cci.IDefinition) As Cci.IDefinition
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Sub New(sourceContext As EmitContext)
                 Me._sourceContext = sourceContext
-                Me._matches = New ConcurrentDictionary(Of Cci.IDefinition, Cci.IDefinition)()
+                Me._matches = New ConcurrentDictionary(Of Cci.IDefinition, Cci.IDefinition)(ReferenceEqualityComparer.Instance)
             End Sub
 
             Public Function VisitDef(def As Cci.IDefinition) As Cci.IDefinition
@@ -228,16 +228,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Private ReadOnly _typeMembers As ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Cci.ITypeDefinitionMember)))
 
             Public Sub New(anonymousTypeMap As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue),
-                          sourceAssembly As SourceAssemblySymbol,
+                           sourceAssembly As SourceAssemblySymbol,
                            otherAssembly As AssemblySymbol,
-                           otherSynthesizedMembersOpt As ImmutableDictionary(Of Cci.ITypeDefinition, ImmutableArray(Of Cci.ITypeDefinitionMember)))
+                           otherSynthesizedMembersOpt As ImmutableDictionary(Of Cci.ITypeDefinition, ImmutableArray(Of Cci.ITypeDefinitionMember)),
+                           deepTranslatorOpt As DeepTranslator)
 
                 Me._anonymousTypeMap = anonymousTypeMap
                 Me._sourceAssembly = sourceAssembly
                 Me._otherAssembly = otherAssembly
                 Me._otherSynthesizedMembersOpt = otherSynthesizedMembersOpt
-                Me._comparer = New SymbolComparer(Me)
-                Me._matches = New ConcurrentDictionary(Of Symbol, Symbol)()
+                Me._comparer = New SymbolComparer(Me, deepTranslatorOpt)
+                Me._matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
                 Me._typeMembers = New ConcurrentDictionary(Of NamedTypeSymbol, IReadOnlyDictionary(Of String, ImmutableArray(Of Cci.ITypeDefinitionMember)))()
             End Sub
 
@@ -577,25 +578,85 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return result
             End Function
 
-
             Private Class SymbolComparer
-                Implements IEqualityComparer(Of Symbol)
-
                 Private ReadOnly _matcher As MatchSymbols
+                Private ReadOnly _deepTranslatorOpt As DeepTranslator
 
-                Public Sub New(matcher As MatchSymbols)
-                    Me._matcher = matcher
+                Public Sub New(matcher As MatchSymbols, deepTranslatorOpt As DeepTranslator)
+                    Debug.Assert(matcher IsNot Nothing)
+                    _matcher = matcher
+                    _deepTranslatorOpt = deepTranslatorOpt
                 End Sub
 
-                Public Overloads Function Equals(x As Symbol, y As Symbol) As Boolean Implements IEqualityComparer(Of Symbol).Equals
-                    Return Me._matcher.Visit(x) = y
-                End Function
+                Public Overloads Function Equals(source As TypeSymbol, other As TypeSymbol) As Boolean
+                    Dim visitedSource = _matcher.Visit(source)
+                    Dim visitedOther = If(_deepTranslatorOpt IsNot Nothing, _deepTranslatorOpt.Visit(other), other)
 
-                Public Overloads Function GetHashCode(obj As Symbol) As Integer Implements IEqualityComparer(Of Symbol).GetHashCode
-                    Return obj.GetHashCode()
+                    Return visitedSource = visitedOther
                 End Function
             End Class
+        End Class
 
+        Friend NotInheritable Class DeepTranslator
+            Inherits VisualBasicSymbolVisitor(Of Symbol)
+
+            Private ReadOnly _matches As ConcurrentDictionary(Of Symbol, Symbol)
+            Private ReadOnly _systemObject As NamedTypeSymbol
+
+            Public Sub New(systemObject As NamedTypeSymbol)
+                _matches = New ConcurrentDictionary(Of Symbol, Symbol)(ReferenceEqualityComparer.Instance)
+                _systemObject = systemObject
+            End Sub
+
+            Public Overrides Function DefaultVisit(symbol As Symbol) As Symbol
+                ' Symbol should have been handled elsewhere.
+                Throw New NotImplementedException()
+            End Function
+
+            Public Overrides Function Visit(symbol As Symbol) As Symbol
+                Return _matches.GetOrAdd(symbol, AddressOf MyBase.Visit)
+            End Function
+
+            Public Overrides Function VisitArrayType(symbol As ArrayTypeSymbol) As Symbol
+                Dim translatedElementType As TypeSymbol = DirectCast(Me.Visit(symbol.ElementType), TypeSymbol)
+                Dim translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers)
+                Return New ArrayTypeSymbol(translatedElementType, translatedModifiers, symbol.Rank, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
+            End Function
+
+            Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol
+                Dim originalDef As NamedTypeSymbol = type.OriginalDefinition
+                If originalDef IsNot type Then
+                    Dim translatedTypeArguments = type.GetAllTypeArguments.SelectAsArray(Function(t, v) DirectCast(v.Visit(t), TypeSymbol), Me)
+
+                    Dim translatedOriginalDef = DirectCast(Me.Visit(originalDef), NamedTypeSymbol)
+                    Dim typeMap = TypeSubstitution.Create(translatedOriginalDef, translatedOriginalDef.GetAllTypeParameters(), translatedTypeArguments, False)
+                    Return translatedOriginalDef.Construct(typeMap)
+                End If
+
+                Debug.Assert(type.IsDefinition)
+
+                If type.IsAnonymousType Then
+                    Return Me.Visit(AnonymousTypeManager.TranslateAnonymousTypeSymbol(type))
+                End If
+
+                Return type
+            End Function
+
+            Public Overrides Function VisitTypeParameter(symbol As TypeParameterSymbol) As Symbol
+                Return symbol
+            End Function
+
+            Private Function VisitCustomModifiers(modifiers As ImmutableArray(Of CustomModifier)) As ImmutableArray(Of CustomModifier)
+                Return modifiers.SelectAsArray(AddressOf VisitCustomModifier)
+            End Function
+
+            Private Function VisitCustomModifier(modifier As CustomModifier) As CustomModifier
+                Dim translatedType = DirectCast(Me.Visit(DirectCast(modifier.Modifier, Symbol)), NamedTypeSymbol)
+                Debug.Assert(translatedType IsNot Nothing)
+                Return If(modifier.IsOptional,
+                    VisualBasicCustomModifier.CreateOptional(translatedType),
+                    VisualBasicCustomModifier.CreateRequired(translatedType))
+            End Function
         End Class
     End Class
 End Namespace
