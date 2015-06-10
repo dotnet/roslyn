@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1517,7 +1517,7 @@ public class Test {
         }
 
         [WorkItem(545361, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void NullableIntToStructViaDecimal()
         {
             var source = @"
@@ -1616,7 +1616,7 @@ public struct S
         }
 
         [WorkItem(545471, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void CheckedConversionsInExpressionTrees()
         {
             var source = @"
@@ -1718,7 +1718,7 @@ class C<T>
         }
 
         [WorkItem(715207, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void LiftingReturnTypeOfExplicitUserDefinedConversion()
         {
             var source = @"
@@ -1817,7 +1817,7 @@ public struct C
         }
 
         [WorkItem(742345, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MethodGroupConversion_ContravarianceAndDynamic()
         {
             var source = @"

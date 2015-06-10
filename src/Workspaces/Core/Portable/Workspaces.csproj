@@ -49,6 +49,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
+      <Link>Collections\ArrayBuilderExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\BitVector.cs">
       <Link>InternalUtilities\BitVector.cs</Link>
     </Compile>
@@ -57,6 +60,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
       <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+      <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
       <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>

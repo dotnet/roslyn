@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private void SetChangedOption(IOptionService optionService, IOption option, string languageName)
         {
-            OptionKey key = new OptionKey(option, languageName);
+            OptionKey key = new OptionKey(option, option.IsPerLanguage ? languageName : null);
 
             object currentValue;
             if (this.TryFetch(key, out currentValue))

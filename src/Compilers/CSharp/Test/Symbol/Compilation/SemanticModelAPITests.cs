@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -3207,7 +3207,7 @@ class C
 
         [WorkItem(1019366, "DevDiv")]
         [WorkItem(273, "CodePlex")]
-        [Fact]
+        [ClrOnlyFact]
         public void Bug1019366()
         {
             var source = @"

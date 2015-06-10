@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class IndexerTests : CSharpTestBase
     {
-        [Fact]
+        [ClrOnlyFact]
         public void Indexers()
         {
             var source =
@@ -67,7 +67,7 @@ struct S
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void InterfaceImplementations()
         {
             var source =
@@ -1095,7 +1095,7 @@ public class C : B
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "this").WithArguments("C.this[int]", "B.this[int]"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CanBeReferencedByName()
         {
             var source = @"
@@ -1189,7 +1189,7 @@ class C : I
         /// This is unfortunate, but less so that having something declared with an IndexerDeclarationSyntax
         /// return false for IsIndexer.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void ExplicitInterfaceImplementationIndexers()
         {
             var text = @"
@@ -2479,7 +2479,7 @@ class Test
         }
 
         [WorkItem(543261, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void OverrideOneAccessorOnly()
         {
             var source =

@@ -88,11 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 methodMembersBuilder.AddRange(otherMembersBuilder)
                 otherMembersBuilder.Free()
                 _members = methodMembersBuilder.ToImmutableAndFree()
-
             End Sub
 
             Friend Overrides Function GetAnonymousTypeKey() As AnonymousTypeKey
-                Dim properties = _properties.SelectAsArray(Function(p) AnonymousTypeKeyField.CreateField(p.Name, isKey:=p.IsReadOnly))
+                Dim properties = _properties.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=p.IsReadOnly, ignoreCase:=True))
                 Return New AnonymousTypeKey(properties)
             End Function
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -113,6 +114,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
 
+        string GetDisplayName(SyntaxNode node, DisplayNameOptions options, string rootNamespace = null);
+
         SyntaxNode GetContainingTypeDeclaration(SyntaxNode root, int position);
         SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
         SyntaxNode GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode node);
@@ -146,5 +149,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken);
 
         bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
+    }
+
+    [Flags]
+    internal enum DisplayNameOptions
+    {
+        None = 0,
+        IncludeMemberKeyword = 1,
+        IncludeNamespaces = 1 << 1,
+        IncludeParameters = 1 << 2,
+        IncludeType = 1 << 3,
+        IncludeTypeParameters = 1 << 4
     }
 }

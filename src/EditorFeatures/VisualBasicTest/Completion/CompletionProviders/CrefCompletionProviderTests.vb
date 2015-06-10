@@ -794,6 +794,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
+            Public Function GetDisplayName(node As SyntaxNode, options As DisplayNameOptions, Optional rootNamespace As String = Nothing) As String Implements ISyntaxFactsService.GetDisplayName
+                Throw New NotImplementedException()
+            End Function
+
             Public Function TryGetExternalSourceInfo(directive As SyntaxNode, ByRef info As ExternalSourceInfo) As Boolean Implements ISyntaxFactsService.TryGetExternalSourceInfo
                 Throw New NotImplementedException()
             End Function

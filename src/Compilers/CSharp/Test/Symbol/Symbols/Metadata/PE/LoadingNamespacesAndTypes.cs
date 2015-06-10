@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(dictionary.GetTypeMembers("ValueCollection", 1).Length, 0);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestStructParameterlessConstructor_Explicit()
         {
             var ilSource = @"
@@ -310,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestStructParameterlessConstructor_Implicit1()
         {
             var ilSource = @"
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestStructParameterlessConstructor_Implicit2()
         {
             var ilSource = @"
