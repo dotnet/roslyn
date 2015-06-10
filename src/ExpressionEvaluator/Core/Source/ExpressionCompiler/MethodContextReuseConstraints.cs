@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public bool AreSatisfied(Guid moduleVersionId, int methodToken, int methodVersion, int ilOffset)
         {
+            Debug.Assert(moduleVersionId != default(Guid));
+            Debug.Assert(MetadataTokens.Handle(methodToken).Kind == HandleKind.MethodDefinition);
+            Debug.Assert(methodVersion >= 1);
+            Debug.Assert(ilOffset >= 0);
+
             return moduleVersionId == _moduleVersionId &&
                 methodToken == _methodToken &&
                 methodVersion == _methodVersion &&

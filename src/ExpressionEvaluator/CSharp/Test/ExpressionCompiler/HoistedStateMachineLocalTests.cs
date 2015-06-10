@@ -1324,7 +1324,7 @@ class C
             int localSignatureToken;
             GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
-            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
             var context = EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),
                 blocks,
