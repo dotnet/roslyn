@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_syntax.TypeParameterList != null)
             {
-                // TODO: Generics are broken. Fix binder issues when allowing generics.
-                diagnostics.Add(ErrorCode.ERR_InvalidMemberDecl, syntax.TypeParameterList.Location, syntax.TypeParameterList);
                 binder = new WithMethodTypeParametersBinder(this, binder);
                 _typeParameters = MakeTypeParameters(diagnostics);
             }

@@ -584,35 +584,8 @@ using System;
 
 class Program
 {
-    static void Main(string[] args)
-    {
-        T Local<T>(T val)
-        {
-            return val;
-        }
-        Console.WriteLine(Local<int>(2));
-    }
-}
-";
-            // TODO: Eventually support this
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (8,16): error CS1519: Invalid token '<T>' in class, struct, or interface member declaration
-    //         T Local<T>(T val)
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "<T>").WithArguments("<T>").WithLocation(8, 16)
-                );
-        }
-
-        [Fact]
-        public void GenericClosure()
-        {
-            var source = @"
-using System;
-using System.Collections.Generic;
-
-class Program
-{
-    static T Outer<T>(T val)
+    // No closure. Return 'valu'.
+    static T A1<T>(T val)
     {
         T Local(T valu)
         {
@@ -620,15 +593,630 @@ class Program
         }
         return Local(val);
     }
+    static int B1(int val)
+    {
+        T Local<T>(T valu)
+        {
+            return valu;
+        }
+        return Local(val);
+    }
+    static T1 C1<T1>(T1 val)
+    {
+        T2 Local<T2>(T2 valu)
+        {
+            return valu;
+        }
+        return Local<T1>(val);
+    }
+    // General closure. Return 'val'.
+    static T A2<T>(T val)
+    {
+        T Local(T valu)
+        {
+            return val;
+        }
+        return Local(val);
+    }
+    static int B2(int val)
+    {
+        T Local<T>(T valu)
+        {
+            return (T)(object)val;
+        }
+        return Local(val);
+    }
+    static T1 C2<T1>(T1 val)
+    {
+        T2 Local<T2>(T2 valu)
+        {
+            return (T2)(object)val;
+        }
+        return Local<T1>(val);
+    }
+    // This-only closure. Return 'field'.
+    int field = 2;
+    T A3<T>(T val)
+    {
+        T Local(T valu)
+        {
+            return (T)(object)field;
+        }
+        return Local(val);
+    }
+    int B3(int val)
+    {
+        T Local<T>(T valu)
+        {
+            return (T)(object)field;
+        }
+        return Local(val);
+    }
+    T1 C3<T1>(T1 val)
+    {
+        T2 Local<T2>(T2 valu)
+        {
+            return (T2)(object)field;
+        }
+        return Local<T1>(val);
+    }
     static void Main(string[] args)
     {
-        Console.WriteLine(Outer(2));
+        var program = new Program();
+        Console.WriteLine(Program.A1(2));
+        Console.WriteLine(Program.B1(2));
+        Console.WriteLine(Program.C1(2));
+        Console.WriteLine(Program.A2(2));
+        Console.WriteLine(Program.B2(2));
+        Console.WriteLine(Program.C2(2));
+        Console.WriteLine(program.A3(2));
+        Console.WriteLine(program.B3(2));
+        Console.WriteLine(program.C3(2));
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
-            var verify = CompileAndVerify(comp, expectedOutput: @"
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
 2
+2
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedNoClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        int Local(int aa)
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T2 Local2(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngg(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Three generic
+    static T1 Tggg<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+        Console.WriteLine(Program.Tngg(2));
+        Console.WriteLine(Program.Tggg(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedMiddleClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        int Local(int aa)
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return (T1)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T2 Local2(T2 aaa)
+            {
+                return (T2)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngg(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Three generic
+    static T1 Tggg<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                return (T3)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+        Console.WriteLine(Program.Tngg(2));
+        Console.WriteLine(Program.Tggg(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedOuterClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        int Local(int aa)
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return (T1)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T2 Local2(T2 aaa)
+            {
+                return (T2)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngg(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Three generic
+    static T1 Tggg<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                return (T3)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+        Console.WriteLine(Program.Tngg(2));
+        Console.WriteLine(Program.Tggg(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedNoClosureLambda()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        Func<T1, T1> Local = aa =>
+        {
+            Func<T1, T1> Local2 = aaa =>
+            {
+                return aaa;
+            };
+            return Local2(aa);
+        };
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            Func<T1, T1> Local2 = aaa =>
+            {
+                return aaa;
+            };
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        Func<int, int> Local = aa =>
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        };
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            Func<T2, T2> Local2 = aaa =>
+            {
+                return aaa;
+            };
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        Func<T1, T1> Local = aa =>
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        };
+        return Local(a);
+    }
+    // Tngg and Tggg are impossible with lambdas
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericUpperCall()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static T1 InnerToOuter<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                if ((object)aaa == null)
+                    return InnerToOuter((T3)new object());
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 InnerToMiddle<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                if ((object)aaa == null)
+                    return InnerToMiddle((T3)new object());
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 InnerToOuterScoping<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                if ((object)aaa == null)
+                    return (T3)(object)InnerToOuter((T1)new object());
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Tngg and Tggg are impossible with lambdas
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.InnerToOuter((object)null));
+        Console.WriteLine(Program.InnerToMiddle((object)null));
+        Console.WriteLine(Program.InnerToOuterScoping((object)null));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+System.Object
+System.Object
+System.Object
 ");
         }
 

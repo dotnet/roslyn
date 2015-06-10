@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -36,19 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters;
             LambdaFrame lambdaFrame;
 
-            if (!topLevelMethod.IsGenericMethod)
+            lambdaFrame = this.ContainingType as LambdaFrame;
+            switch (closureKind)
             {
-                typeMap = TypeMap.Empty;
-                typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else if ((object)(lambdaFrame = this.ContainingType as LambdaFrame) != null)
-            {
-                typeMap = lambdaFrame.TypeMap;
-                typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                typeMap = TypeMap.Empty.WithAlphaRename(topLevelMethod, this, out typeParameters);
+                case ClosureKind.Static: // all type parameters on method (except the top level method's)
+                    Debug.Assert(lambdaFrame != null);
+                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.Arity);
+                    break;
+                case ClosureKind.ThisOnly: // all type parameters on method
+                    Debug.Assert(lambdaFrame == null);
+                    typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters);
+                    break;
+                case ClosureKind.General: // only lambda's type parameters on method (rest on class)
+                    Debug.Assert(lambdaFrame != null);
+                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.Arity);
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);

@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly Dictionary<Symbol, BoundNode> variableScope = new Dictionary<Symbol, BoundNode>();
 
             /// <summary>
+            /// For each value in variableScope, identifies the closest owning method, lambda, or local function.
+            /// </summary>
+            public readonly Dictionary<BoundNode, MethodSymbol> scopeOwner = new Dictionary<BoundNode, MethodSymbol>();
+
+            /// <summary>
             /// The syntax nodes associated with each captured variable.
             /// </summary>
             public readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
@@ -102,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void Analyze(BoundNode node)
             {
                 _currentScope = FindNodeToAnalyze(node);
+                scopeOwner[_currentScope] = _currentParent;
 
                 Debug.Assert(!_inExpressionLambda);
                 Debug.Assert((object)_topLevelMethod != null);
@@ -267,6 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     variableScope[local] = _currentScope;
                 }
 
+                scopeOwner[_currentScope] = _currentParent;
+
                 return previousBlock;
             }
 
@@ -362,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _currentParent = node.Symbol;
                 _currentScope = node.Body;
                 scopeParent[_currentScope] = oldBlock;
+                scopeOwner[_currentScope] = _currentParent;
                 var wasInExpressionLambda = _inExpressionLambda;
                 _inExpressionLambda = _inExpressionLambda || ((node as BoundLambda)?.Type.IsExpressionTree() ?? false);
 

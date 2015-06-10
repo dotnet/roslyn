@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(MethodSymbol topLevelMethod, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
-            : base(MakeName(scopeSyntaxOpt, methodId, closureId), topLevelMethod)
+        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
+            : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
             _topLevelMethod = topLevelMethod;
             _constructor = new LambdaFrameConstructor(this);

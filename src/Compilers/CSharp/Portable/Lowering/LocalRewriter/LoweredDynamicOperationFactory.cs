@@ -674,6 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (factory.TopLevelMethod.IsGenericMethod)
             {
+                // TODO: This probably doesn't work with generic local functions
                 return synthesizedContainer.Construct(factory.TopLevelMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
             }
 

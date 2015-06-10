@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedMethodBaseSymbol : SourceMethodSymbol
     {
         protected readonly MethodSymbol BaseMethod;
-        protected TypeMap TypeMap { get; private set; }
+        internal TypeMap TypeMap { get; private set; }
 
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;

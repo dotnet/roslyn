@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
             var body = (CSharpSyntaxNode)node.Body ?? node.ExpressionBody;
-            MethodSymbol match = null;
+            LocalFunctionSymbol match = null;
             // Don't use LookupLocalFunction because it recurses up the tree, as it
             // should be defined in the directly enclosing block (see note below)
             foreach (var candidate in _enclosing.LocalFunctions)
@@ -149,11 +149,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var oldMethod = _method;
                 _method = match;
-                var inMethod = new InMethodBinder(match, _enclosing);
-                AddToMap(node, inMethod);
+                Binder addToMap;
+                if (match.IsGenericMethod)
+                {
+                    addToMap = new WithMethodTypeParametersBinder(match, _enclosing);
+                }
+                else
+                {
+                    addToMap = _enclosing;
+                }
+                addToMap = new InMethodBinder(match, addToMap);
+                AddToMap(node, addToMap);
                 if (body != null)
                 {
-                    Visit(body, inMethod);
+                    Visit(body, addToMap);
                 }
                 _method = oldMethod;
             }

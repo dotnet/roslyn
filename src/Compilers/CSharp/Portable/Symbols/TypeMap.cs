@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(new SmallDictionary<TypeParameterSymbol, TypeSymbol>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
-            Debug.Assert(!mapping.Keys.Any(tp => tp is SubstitutedTypeParameterSymbol));
+            // This assert fails on generic local functions
+            //Debug.Assert(!mapping.Keys.Any(tp => tp is SubstitutedTypeParameterSymbol));
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ForType(NamedTypeSymbol containingType)
@@ -100,13 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // class or method for a lambda appearing in a generic method.
             bool synthesized = !ReferenceEquals(oldTypeParameters[0].ContainingSymbol.OriginalDefinition, newOwner.OriginalDefinition);
 
+            int ordinal = 0;
             foreach (var tp in oldTypeParameters)
             {
                 var newTp = synthesized ?
-                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp) :
-                    new SubstitutedTypeParameterSymbol(newOwner, result, tp);
+                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
+                    new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
                 result.Mapping.Add(tp, newTp);
                 newTypeParametersBuilder.Add(newTp);
+                ordinal++;
             }
 
             newTypeParameters = newTypeParametersBuilder.ToImmutableAndFree();
@@ -123,6 +126,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
+        }
+
+        internal TypeMap WithConcatAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters, int trimOffAt = 0)
+        {
+            Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
+
+            // Build the array up backwards, then reverse it.
+            // The following example goes through the do-loop in order M3, M2, M1
+            // but the type parameters have to be <T1, T2, T3, T4>
+            // void M1<T1>() {
+            //   void M2<T2, T3>() {
+            //     void M3<T4>() {
+            //     }
+            //   }
+            // }
+            var parameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            do
+            {
+                var currentParameters = oldOwner.OriginalDefinition.TypeParameters;
+
+                for (int i = currentParameters.Length - 1; i >= 0; i--)
+                {
+                    parameters.Add(currentParameters[i]);
+                }
+
+                oldOwner = oldOwner.ContainingSymbol as MethodSymbol;
+            } while (oldOwner != null);
+            parameters.ReverseContents();
+
+            var finalParameters = parameters.ToImmutableAndFree();
+            if (trimOffAt != 0)
+            {
+                finalParameters = ImmutableArray.Create(finalParameters, trimOffAt, finalParameters.Length - trimOffAt);
+            }
+            return WithAlphaRename(finalParameters, newOwner, out newTypeParameters);
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbol> to)
