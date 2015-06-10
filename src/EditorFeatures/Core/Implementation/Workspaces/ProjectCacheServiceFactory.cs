@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var projectCacheService = new ProjectCacheService();
+            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace);
             var documentTrackingService = workspaceServices.GetService<IDocumentTrackingService>();
 
             // Subscribe to events so that we can cache items from the active document's project
@@ -43,13 +45,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         internal class ProjectCacheService : IProjectCacheHostService
         {
             private readonly object _gate = new object();
-            private readonly Dictionary<object, Cache> _activeCaches = new Dictionary<object, Cache>();
+
+            private readonly Workspace _workspace;
+            private readonly Dictionary<ProjectId, Cache> _activeCaches = new Dictionary<ProjectId, Cache>();
             private readonly Queue<object> _implicitCache = new Queue<object>();
             internal const int ImplicitCacheSize = 3;
 
+            public ProjectCacheService(Workspace workspace)
+            {
+                _workspace = workspace;
+            }
+
             public void ClearImplicitCache()
             {
-                _implicitCache.Clear();
+                lock (_gate)
+                {
+                    _implicitCache.Clear();
+                }
             }
 
             public IDisposable EnableCaching(ProjectId key)
@@ -77,8 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                     {
                         cache.CreateStrongReference(owner, instance);
                     }
-                    else
+                    else if (!PartOfP2PReferences(key))
                     {
+                        // TODO: improve our implicit cache. this LRU is a bit wrong since already existing item
+                        //       doesn't move to the last slot even if it is most recently used item.
                         if (!_implicitCache.Contains(instance))
                         {
                             if (_implicitCache.Count == ImplicitCacheSize)
@@ -92,6 +106,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
                     return instance;
                 }
+            }
+
+            private bool PartOfP2PReferences(ProjectId key)
+            {
+                if (_activeCaches.Count == 0 || _workspace == null)
+                {
+                    return false;
+                }
+
+                var solution = _workspace.CurrentSolution;
+                var graph = solution.GetProjectDependencyGraph();
+
+                foreach (var projectId in _activeCaches.Keys)
+                {
+                    // this should be cheap. graph is cached everytime project reference is updated.
+                    var p2pReferences = (ImmutableHashSet<ProjectId>)graph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
+                    if (p2pReferences.Contains(key))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             public T CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T instance) where T : class
@@ -109,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 }
             }
 
-            private void DisableCaching(object key, Cache cache)
+            private void DisableCaching(ProjectId key, Cache cache)
             {
                 lock (_gate)
                 {
@@ -126,11 +163,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             {
                 internal int Count;
                 private readonly ProjectCacheService _cacheService;
-                private readonly object _key;
+                private readonly ProjectId _key;
                 private readonly ConditionalWeakTable<object, object> _cache = new ConditionalWeakTable<object, object>();
                 private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new List<WeakReference<ICachedObjectOwner>>();
 
-                public Cache(ProjectCacheService cacheService, object key)
+                public Cache(ProjectCacheService cacheService, ProjectId key)
                 {
                     _cacheService = cacheService;
                     _key = key;

@@ -230,13 +230,13 @@ End Class"
 "{
   // Code size       40 (0x28)
   .maxstack  2
-  IL_0000:  ldstr      ""23""
+  IL_0000:  ldstr      ""$23""
   IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  castclass  ""String""
   IL_000f:  dup
   IL_0010:  brtrue.s   IL_0027
   IL_0012:  pop
-  IL_0013:  ldstr      ""4""
+  IL_0013:  ldstr      ""$4""
   IL_0018:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_001d:  castclass  ""System.Type""
   IL_0022:  callvirt   ""Function System.Type.get_BaseType() As System.Type""
@@ -863,13 +863,13 @@ End Class"
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_0018
   IL_0008:  pop
-  IL_0009:  ldstr      ""1""
+  IL_0009:  ldstr      ""$1""
   IL_000e:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0013:  castclass  ""A(Of B(Of Object))""
   IL_0018:  dup
   IL_0019:  brtrue.s   IL_002b
   IL_001b:  pop
-  IL_001c:  ldstr      ""2""
+  IL_001c:  ldstr      ""$2""
   IL_0021:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_0026:  castclass  ""B(Of A(Of Object)())""
   IL_002b:  ret
@@ -979,7 +979,7 @@ End Class"
   .maxstack  1
   .locals init (Object V_0, //o
                 System.Exception V_1)
-  IL_0000:  ldstr      ""1""
+  IL_0000:  ldstr      ""$1""
   IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  castclass  ""A(Of B)""
   IL_000f:  stloc.0

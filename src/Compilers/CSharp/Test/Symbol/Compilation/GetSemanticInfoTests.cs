@@ -3858,7 +3858,7 @@ class C
         }
 
         [WorkItem(544651, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void SpeculativelyBindPropertyGroup1()
         {
             var source1 =
@@ -3897,7 +3897,7 @@ class C
         }
 
         [WorkItem(544651, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void SpeculativelyBindPropertyGroup2()
         {
             var source1 =
@@ -3946,7 +3946,7 @@ class C
         //public void UnambiguousPropertyGroupWithoutBoundParent1()
 
         [WorkItem(546117, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void UnambiguousPropertyGroupWithoutBoundParent2()
         {
             var source1 =

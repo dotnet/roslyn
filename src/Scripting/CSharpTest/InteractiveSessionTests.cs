@@ -1939,7 +1939,7 @@ class D
         [Fact]
         public void Submissions_EmitToPeStream()
         {
-            var references = new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) };
+            var references = new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) };
 
             CSharpCompilation s0 = CSharpCompilation.CreateSubmission("s0", syntaxTree: SyntaxFactory.ParseSyntaxTree("int a = 1;", options: TestOptions.Interactive), references: references, returnType: typeof(object));
             CSharpCompilation s11 = CSharpCompilation.CreateSubmission("s11", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 1", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
@@ -1955,7 +1955,7 @@ class D
         [Fact]
         public void Submissions_ExecutionOrder3()
         {
-            var references = new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) };
+            var references = new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) };
 
             CSharpCompilation s0 = CSharpCompilation.CreateSubmission("s0.dll", syntaxTree: SyntaxFactory.ParseSyntaxTree("int a = \"x\";", options: TestOptions.Interactive), references: references, returnType: typeof(object));
 
@@ -2012,7 +2012,7 @@ class D
         private CSharpCompilation CreateSubmission(string code, CSharpParseOptions options, int expectedErrorCount = 0)
         {
             var submission = CSharpCompilation.CreateSubmission("sub",
-                references: new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) },
+                references: new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
                 syntaxTree: Parse(code, options: options));
 
             Assert.Equal(expectedErrorCount, submission.GetDiagnostics(CompilationStage.Declare, true, CancellationToken.None).Count());
@@ -3584,7 +3584,7 @@ static int Baz = w;
                 references: new[]
                 {
                     MscorlibRef,
-                    MetadataReference.CreateFromAssembly(typeof(InteractiveSessionTests).Assembly)
+                    MetadataReference.CreateFromAssemblyInternal(typeof(InteractiveSessionTests).Assembly)
                 },
                 hostObjectType: typeof(B));
 

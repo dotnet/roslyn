@@ -4747,56 +4747,58 @@ class B
         [Fact]
         public void AnonymousTypes_DifferentCase()
         {
-            var source0 =
-@"class C
+            var source0 = MarkedSource(@"
+class C
 {
     static void M()
     {
-        var x = new { A = 1, B = 2 };
-        var y = new { a = 3, b = 4 };
+        var <N:0>x = new { A = 1, B = 2 }</N:0>;
+        var <N:1>y = new { a = 3, b = 4 }</N:1>;
     }
-}";
-            var source1 =
-@"class C
+}");
+            var source1 = MarkedSource(@"
+class C
 {
     static void M()
     {
-        var x = new { a = 1, B = 2 };
-        var y = new { AB = 3 };
+        var <N:0>x = new { a = 1, B = 2 }</N:0>;
+        var <N:1>y = new { AB = 3 }</N:1>;
     }
-}";
-            var source2 =
-@"class C
+}");
+            var source2 = MarkedSource(@"
+class C
 {
     static void M()
     {
-        var x = new { a = 1, B = 2 };
-        var y = new { Ab = 5 };
+        var <N:0>x = new { a = 1, B = 2 }</N:0>;
+        var <N:1>y = new { Ab = 5 }</N:1>;
     }
-}";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
-            var compilation2 = compilation1.WithSource(source2);
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
 
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
 
-            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
-            {
-                var generation0 = EmitBaseline.CreateInitialBaseline(md0, testData0.GetMethodData("C.M").EncDebugInfoProvider());
-                var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-                var reader0 = md0.MetadataReader;
-                CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "C");
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
 
-                var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-                var diff1 = compilation1.EmitDifference(
-                    generation0,
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                using (var md1 = diff1.GetMetadata())
-                {
-                    var reader1 = md1.Reader;
-                    CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType2`2", "<>f__AnonymousType3`1");
-                    diff1.VerifyIL("C.M",
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "C");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var reader1 = diff1.GetMetadata().Reader;
+            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType2`2", "<>f__AnonymousType3`1");
+
+            // the first two slots can't be reused since the type changed
+            diff1.VerifyIL("C.M",
 @"{
   // Code size       17 (0x11)
   .maxstack  2
@@ -4815,15 +4817,15 @@ class B
   IL_0010:  ret
 }");
 
-                    var method2 = compilation2.GetMember<MethodSymbol>("C.M");
-                    var diff2 = compilation2.EmitDifference(
-                        diff1.NextGeneration,
-                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables: true)));
-                    using (var md2 = diff2.GetMetadata())
-                    {
-                        var reader2 = md2.Reader;
-                        CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>f__AnonymousType4`1");
-                        diff2.VerifyIL("C.M",
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m1, m2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            var reader2 = diff2.GetMetadata().Reader;
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>f__AnonymousType4`1");
+
+            // we can reuse slot for "x", it's type haven't changed
+            diff2.VerifyIL("C.M",
 @"{
   // Code size       18 (0x12)
   .maxstack  2
@@ -4842,9 +4844,445 @@ class B
   IL_000f:  stloc.s    V_4
   IL_0011:  ret
 }");
-                    }
-                }
-            }
+        }
+
+        [Fact]
+        public void AnonymousTypes_Nested1()
+        {
+            var template = @"
+using System;
+using System.Linq;
+
+class C
+{
+    static void F(string[] args)
+    {
+        var <N:0>result =
+            from a in args
+            <N:1>let x = a.Reverse()</N:1>
+            <N:2>let y = x.Reverse()</N:2>
+            <N:3>where x.SequenceEqual(y)</N:3>
+            <N:4>select new { Value = a, Length = a.Length }</N:4></N:0>;
+
+        Console.WriteLine(<<VALUE>>);
+    }
+}";
+            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation0.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var expectedIL = @"
+{
+  // Code size      155 (0x9b)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> C.<>c.<>9__0_0""
+  IL_0007:  dup
+  IL_0008:  brtrue.s   IL_0021
+  IL_000a:  pop
+  IL_000b:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0010:  ldftn      ""<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> C.<>c.<F>b__0_0(string)""
+  IL_0016:  newobj     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>..ctor(object, System.IntPtr)""
+  IL_001b:  dup
+  IL_001c:  stsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> C.<>c.<>9__0_0""
+  IL_0021:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> System.Linq.Enumerable.Select<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>(System.Collections.Generic.IEnumerable<string>, System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>)""
+  IL_0026:  ldsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> C.<>c.<>9__0_1""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0045
+  IL_002e:  pop
+  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0034:  ldftn      ""<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y> C.<>c.<F>b__0_1(<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>)""
+  IL_003a:  newobj     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>..ctor(object, System.IntPtr)""
+  IL_003f:  dup
+  IL_0040:  stsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> C.<>c.<>9__0_1""
+  IL_0045:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Select<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>, System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>)""
+  IL_004a:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> C.<>c.<>9__0_2""
+  IL_004f:  dup
+  IL_0050:  brtrue.s   IL_0069
+  IL_0052:  pop
+  IL_0053:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0058:  ldftn      ""bool C.<>c.<F>b__0_2(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_005e:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>..ctor(object, System.IntPtr)""
+  IL_0063:  dup
+  IL_0064:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> C.<>c.<>9__0_2""
+  IL_0069:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>)""
+  IL_006e:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> C.<>c.<>9__0_3""
+  IL_0073:  dup
+  IL_0074:  brtrue.s   IL_008d
+  IL_0076:  pop
+  IL_0077:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_007c:  ldftn      ""<anonymous type: string Value, int Length> C.<>c.<F>b__0_3(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_0082:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>..ctor(object, System.IntPtr)""
+  IL_0087:  dup
+  IL_0088:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> C.<>c.<>9__0_3""
+  IL_008d:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>)""
+  IL_0092:  stloc.0
+  IL_0093:  ldc.i4.<<VALUE>>
+  IL_0094:  call       ""void System.Console.WriteLine(int)""
+  IL_0099:  nop
+  IL_009a:  ret
+}
+";
+            v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"));
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3}",
+                "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType0<<a>j__TPar, <x>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3}",
+                "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType0<<a>j__TPar, <x>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
+        }
+
+        [Fact]
+        public void AnonymousTypes_Nested2()
+        {
+            var template = @"
+using System;
+using System.Linq;
+
+class C
+{
+    static void F(string[] args)
+    {
+        var <N:0>result =
+            from a in args
+            <N:1>let x = a.Reverse()</N:1>
+            <N:2>let y = x.Reverse()</N:2>
+            <N:3>where x.SequenceEqual(y)</N:3>
+            <N:4>select new { Value = a, Length = a.Length }</N:4></N:0>;
+
+        Console.WriteLine(<<VALUE>>);
+    }
+}";
+            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation0.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var expectedIL = @"
+{
+  // Code size      155 (0x9b)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> C.<>c.<>9__0_0""
+  IL_0007:  dup
+  IL_0008:  brtrue.s   IL_0021
+  IL_000a:  pop
+  IL_000b:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0010:  ldftn      ""<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> C.<>c.<F>b__0_0(string)""
+  IL_0016:  newobj     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>..ctor(object, System.IntPtr)""
+  IL_001b:  dup
+  IL_001c:  stsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> C.<>c.<>9__0_0""
+  IL_0021:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> System.Linq.Enumerable.Select<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>(System.Collections.Generic.IEnumerable<string>, System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>)""
+  IL_0026:  ldsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> C.<>c.<>9__0_1""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0045
+  IL_002e:  pop
+  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0034:  ldftn      ""<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y> C.<>c.<F>b__0_1(<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>)""
+  IL_003a:  newobj     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>..ctor(object, System.IntPtr)""
+  IL_003f:  dup
+  IL_0040:  stsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> C.<>c.<>9__0_1""
+  IL_0045:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Select<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>, System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>)""
+  IL_004a:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> C.<>c.<>9__0_2""
+  IL_004f:  dup
+  IL_0050:  brtrue.s   IL_0069
+  IL_0052:  pop
+  IL_0053:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0058:  ldftn      ""bool C.<>c.<F>b__0_2(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_005e:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>..ctor(object, System.IntPtr)""
+  IL_0063:  dup
+  IL_0064:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> C.<>c.<>9__0_2""
+  IL_0069:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>)""
+  IL_006e:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> C.<>c.<>9__0_3""
+  IL_0073:  dup
+  IL_0074:  brtrue.s   IL_008d
+  IL_0076:  pop
+  IL_0077:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_007c:  ldftn      ""<anonymous type: string Value, int Length> C.<>c.<F>b__0_3(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_0082:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>..ctor(object, System.IntPtr)""
+  IL_0087:  dup
+  IL_0088:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> C.<>c.<>9__0_3""
+  IL_008d:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>)""
+  IL_0092:  stloc.0
+  IL_0093:  ldc.i4.<<VALUE>>
+  IL_0094:  call       ""void System.Console.WriteLine(int)""
+  IL_0099:  nop
+  IL_009a:  ret
+}
+";
+            v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"));
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3}",
+                "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType0<<a>j__TPar, <x>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3}",
+                "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType0<<a>j__TPar, <x>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
+        }
+
+        [Fact]
+        public void AnonymousTypes_Query1()
+        {
+            var source0 = MarkedSource(@"
+using System.Linq;
+
+class C
+{
+    static void F(string[] args)
+    {
+        args = new[] { ""a"", ""bB"", ""Cc"", ""DD"" };
+        var <N:4>result =
+            from a in args
+            <N:0>let x = a.Reverse()</N:0>
+            <N:1>let y = x.Reverse()</N:1>
+            <N:2>where x.SequenceEqual(y)</N:2>
+            <N:3>select new { Value = a, Length = a.Length }</N:3></N:4>;
+
+        var <N:8>newArgs =
+            from a in result
+            <N:5>let value = a.Value</N:5>
+            <N:6>let length = a.Length</N:6>
+            <N:7>where value.Length == length</N:7>
+            select value</N:8>;
+
+        args = args.Concat(newArgs).ToArray();
+        System.Diagnostics.Debugger.Break();
+        result.ToString();
+    }
+}
+");
+            var source1 = MarkedSource(@"
+using System.Linq;
+
+class C
+{
+    static void F(string[] args)
+    {
+        args = new[] { ""a"", ""bB"", ""Cc"", ""DD"" };
+        var list = false ? null : new { Head = (dynamic)null, Tail = (dynamic)null };
+        for (int i = 0; i < 10; i++)
+        {
+            var <N:4>result =
+                from a in args
+                <N:0>let x = a.Reverse()</N:0>
+                <N:1>let y = x.Reverse()</N:1>
+                <N:2>where x.SequenceEqual(y)</N:2>
+                orderby a.Length ascending, a descending
+                <N:3>select new { Value = a, Length = x.Count() }</N:3></N:4>;
+
+            var linked = result.Aggregate(
+                false ? new { Head = (string)null, Tail = (dynamic)null } : null,
+                (total, curr) => new { Head = curr.Value, Tail = (dynamic)total });
+
+            var str = linked?.Tail?.Head;
+
+            var <N:8>newArgs =
+                from a in result
+                <N:5>let value = a.Value</N:5>
+                <N:6>let length = a.Length</N:6>
+                <N:7>where value.Length == length</N:7>
+                select value + value</N:8>;
+
+            args = args.Concat(newArgs).ToArray();
+            list = new { Head = (dynamic)i, Tail = (dynamic)list };
+            System.Diagnostics.Debugger.Break();
+        }
+        System.Diagnostics.Debugger.Break();
+    }
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            v0.VerifyLocalSignature("C.F", @"
+.locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
+              System.Collections.Generic.IEnumerable<string> V_1) //newArgs
+");
+
+            var diff1 = compilation1.EmitDifference(
+                 generation0,
+                 ImmutableArray.Create(
+                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C.<>o__0#1: {<>p__0}",
+                "C: {<>o__0#1, <>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3#1, <>9__0_4#1, <>9__0_3, <>9__0_6#1, <>9__0_4, <>9__0_5, <>9__0_6, <>9__0_10#1, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3#1, <F>b__0_4#1, <F>b__0_3, <F>b__0_6#1, <F>b__0_4, <F>b__0_5, <F>b__0_6, <F>b__0_10#1}",
+                "<>f__AnonymousType4<<<>h__TransparentIdentifier0>j__TPar, <length>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType5<<Head>j__TPar, <Tail>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType3<<a>j__TPar, <value>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType0<<a>j__TPar, <x>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyLocalSignature("C.F", @"
+.locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
+              System.Collections.Generic.IEnumerable<string> V_1, //newArgs
+              <>f__AnonymousType5<dynamic, dynamic> V_2, //list
+              int V_3, //i
+              <>f__AnonymousType5<string, dynamic> V_4, //linked
+              object V_5, //str
+              <>f__AnonymousType5<string, dynamic> V_6,
+              object V_7,
+              int V_8,
+              bool V_9)
+");
+        }
+
+        [Fact]
+        public void AnonymousTypes_Dynamic1()
+        {
+            var template = @"
+using System;
+
+class C
+{
+    public void F()
+    {
+        var <N:0>x = new { A = (dynamic)null, B = 1 }</N:0>;
+        Console.WriteLine(x.B + <<VALUE>>);
+    }
+}
+";
+            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var baselineIL = @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (<>f__AnonymousType0<dynamic, int> V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  ldc.i4.1
+  IL_0003:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
+  IL_000f:  ldc.i4.<<VALUE>>
+  IL_0010:  add
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  nop
+  IL_0017:  ret
+}
+";
+            v0.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "0"));
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "1"));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff2.VerifyIL("C.F", baselineIL.Replace("<<VALUE>>", "2"));
         }
 
         /// <summary>
@@ -5433,6 +5871,157 @@ class B
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
                 diff1.EmitResult.Diagnostics.Verify();
             }
+        }
+
+        [Fact]
+        public void DynamicLocals()
+        {
+            var template = @"
+using System;
+
+class C
+{
+    public void F()
+    {
+        dynamic <N:0>x = 1</N:0>;
+        Console.WriteLine((int)x + <<VALUE>>);
+    }
+}
+";
+            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            v0.VerifyIL("C.F", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  3
+  .locals init (object V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  box        ""int""
+  IL_0007:  stloc.0
+  IL_0008:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_000d:  brfalse.s  IL_0011
+  IL_000f:  br.s       IL_0036
+  IL_0011:  ldc.i4.s   16
+  IL_0013:  ldtoken    ""int""
+  IL_0018:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001d:  ldtoken    ""C""
+  IL_0022:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0027:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_002c:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0031:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0036:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_003b:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_0040:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0045:  ldloc.0
+  IL_0046:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_004b:  ldc.i4.0
+  IL_004c:  add
+  IL_004d:  call       ""void System.Console.WriteLine(int)""
+  IL_0052:  nop
+  IL_0053:  ret
+}
+");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>o__0#1}",
+                "C.<>o__0#1: {<>p__0}");
+
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  3
+  .locals init (object V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  box        ""int""
+  IL_0007:  stloc.0
+  IL_0008:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#1.<>p__0""
+  IL_000d:  brfalse.s  IL_0011
+  IL_000f:  br.s       IL_0036
+  IL_0011:  ldc.i4.s   16
+  IL_0013:  ldtoken    ""int""
+  IL_0018:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001d:  ldtoken    ""C""
+  IL_0022:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0027:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_002c:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0031:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#1.<>p__0""
+  IL_0036:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#1.<>p__0""
+  IL_003b:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_0040:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#1.<>p__0""
+  IL_0045:  ldloc.0
+  IL_0046:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_004b:  ldc.i4.1
+  IL_004c:  add
+  IL_004d:  call       ""void System.Console.WriteLine(int)""
+  IL_0052:  nop
+  IL_0053:  ret
+}
+");
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>o__0#2, <>o__0#1}",
+                "C.<>o__0#1: {<>p__0}",
+                "C.<>o__0#2: {<>p__0}");
+
+            diff2.VerifyIL("C.F", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  3
+  .locals init (object V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  box        ""int""
+  IL_0007:  stloc.0
+  IL_0008:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#2.<>p__0""
+  IL_000d:  brfalse.s  IL_0011
+  IL_000f:  br.s       IL_0036
+  IL_0011:  ldc.i4.s   16
+  IL_0013:  ldtoken    ""int""
+  IL_0018:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001d:  ldtoken    ""C""
+  IL_0022:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0027:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_002c:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0031:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#2.<>p__0""
+  IL_0036:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#2.<>p__0""
+  IL_003b:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_0040:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0#2.<>p__0""
+  IL_0045:  ldloc.0
+  IL_0046:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_004b:  ldc.i4.2
+  IL_004c:  add
+  IL_004d:  call       ""void System.Console.WriteLine(int)""
+  IL_0052:  nop
+  IL_0053:  ret
+}
+");
         }
 
         [Fact]

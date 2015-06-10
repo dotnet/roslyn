@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (this.GlobalsType != null)
             {
-                var globalsTypeAssembly = MetadataReference.CreateFromAssembly(this.GlobalsType.Assembly);
+                var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(this.GlobalsType.Assembly);
                 if (!references.Contains(globalsTypeAssembly))
                 {
                     references = references.Add(globalsTypeAssembly);

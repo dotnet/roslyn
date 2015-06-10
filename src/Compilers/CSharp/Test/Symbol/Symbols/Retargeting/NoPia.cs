@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -272,7 +272,7 @@ public class LocalTypes3
 }
 ";
 
-        [Fact]
+        [ClrOnlyFact]
         public void HideLocalTypeDefinitions()
         {
             var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
@@ -341,7 +341,7 @@ public class LocalTypes3
             Assert.Null(assemblies[1].GetTypeByMetadataName(fullName_S2.FullName));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LocalTypeSubstitution1_1()
         {
             var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
@@ -638,7 +638,7 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LocalTypeSubstitution1_2()
         {
             var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
@@ -937,7 +937,7 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LocalTypeSubstitution1_3()
         {
             var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
@@ -1239,7 +1239,7 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CyclicReference_1()
         {
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
@@ -1264,7 +1264,7 @@ public class LocalTypes3
             GC.KeepAlive(tc2);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CyclicReference_2()
         {
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
@@ -1290,7 +1290,7 @@ public class LocalTypes3
             GC.KeepAlive(tc2);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CyclicReference_3()
         {
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
@@ -1320,7 +1320,7 @@ public class LocalTypes3
             GC.KeepAlive(tc2);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_1()
         {
             var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3");
@@ -1366,7 +1366,7 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_2()
         {
             var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
@@ -1413,7 +1413,7 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_3()
         {
             var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
@@ -1463,7 +1463,7 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType1()
         {
             string source =
@@ -1589,7 +1589,7 @@ public struct S1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType2()
         {
             string source =
@@ -1714,7 +1714,7 @@ public struct S1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType3()
         {
             string source =
@@ -1839,7 +1839,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType4()
         {
             string piaSource =
@@ -1921,7 +1921,7 @@ interface AttrTest1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericType1()
         {
             string source =
@@ -2047,7 +2047,8 @@ public struct S2<T>
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact, WorkItem(685240, "DevDiv")]
+        [ClrOnlyFact]
+        [WorkItem(685240, "DevDiv")]
         public void Bug685240()
         {
             string piaSource = @"

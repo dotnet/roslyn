@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public static readonly string Build = FeaturesResources.BuildToolBuild;
         public static readonly string EnC = FeaturesResources.BuildToolEnC;
-        public static readonly string Compiler = FeaturesResources.BuildToolLive;
+        public static readonly string Live = FeaturesResources.BuildToolLive;
     }
 }
