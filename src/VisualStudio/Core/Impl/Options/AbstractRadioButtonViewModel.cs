@@ -28,7 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             set
             {
                 SetProperty(ref _isChecked, value);
-                SetOptionAndUpdatePreview(_info, Preview);
+
+                if (_isChecked)
+                {
+                    SetOptionAndUpdatePreview(_info, Preview);
+                }
             }
         }
 

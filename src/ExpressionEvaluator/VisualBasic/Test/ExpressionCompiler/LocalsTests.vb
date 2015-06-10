@@ -192,7 +192,7 @@ End Class"
 "{
   // Code size       16 (0x10)
   .maxstack  1
-  IL_0000:  ldstr      ""2""
+  IL_0000:  ldstr      ""$2""
   IL_0005:  call       ""Function Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(String) As Object""
   IL_000a:  unbox.any  ""Boolean""
   IL_000f:  ret

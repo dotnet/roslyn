@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,
-            int ilOffset,
+            uint ilOffset,
             int localSignatureToken,
             bool useReferencedModulesOnly)
         {

@@ -2696,7 +2696,7 @@ System.Diagnostics.Process.GetCurrentProcess();
             var data = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).Path;
             var core = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).Path;
             var system = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
-            var mscorlibRef = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
+            var mscorlibRef = MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly);
 
             var trees = new[] {
                     SyntaxFactory.ParseSyntaxTree(@"

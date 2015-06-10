@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 string alias = value.Alias;
                 if (!string.IsNullOrEmpty(alias))
                 {
-                    return string.Format("{0} {{${1}}}", valueStr, alias);
+                    return $"{valueStr} {{{alias}}}";
                 }
             }
             return valueStr;

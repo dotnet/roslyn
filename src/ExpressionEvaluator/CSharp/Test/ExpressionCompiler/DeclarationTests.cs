@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_001e:  ldstr      ""C""
   IL_0023:  call       ""System.ValueType Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<System.ValueType>(string)""
-  IL_0028:  ldstr      ""3""
+  IL_0028:  ldstr      ""$3""
   IL_002d:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_0032:  unbox.any  ""int""
   IL_0037:  box        ""int""

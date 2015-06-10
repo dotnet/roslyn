@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract void CompilationFinished();
         internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
+        internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
     }
 
     /// <summary>
@@ -147,6 +148,16 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+
+        internal sealed override Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics)
+        {
+            return EncTranslateLocalVariableType((TTypeSymbol)type, diagnostics);
+        }
+
+        internal virtual Cci.ITypeReference EncTranslateLocalVariableType(TTypeSymbol type, DiagnosticBag diagnostics)
+        {
+            return Translate(type, null, diagnostics);
+        }
 
         protected bool HaveDeterminedTopLevelTypes
         {
