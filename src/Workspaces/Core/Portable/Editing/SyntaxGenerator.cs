@@ -1309,9 +1309,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a catch-clause.
         /// </summary>
-        public SyntaxNode CatchClause(ITypeSymbol type, string identifer, IEnumerable<SyntaxNode> statements)
+        public SyntaxNode CatchClause(ITypeSymbol type, string identifier, IEnumerable<SyntaxNode> statements)
         {
-            return CatchClause(TypeExpression(type), identifer, statements);
+            return CatchClause(TypeExpression(type), identifier, statements);
         }
 
         /// <summary>
