@@ -152,7 +152,6 @@
     <Compile Include="Extensions\IMethodSymbolExtensions.vb" />
     <Compile Include="Extensions\INamespaceOrTypeSymbolExtensions.vb" />
     <Compile Include="Extensions\InvocationExpressionSyntaxExtensions.vb" />
-    <Compile Include="Extensions\ISemanticModelExtensions.vb" />
     <Compile Include="Extensions\ITypeSymbolExtensions.vb" />
     <Compile Include="Extensions\LocationExtensions.vb" />
     <Compile Include="Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
@@ -162,6 +161,7 @@
     <Compile Include="Extensions\OperatorPrecedence.vb" />
     <Compile Include="Extensions\ParameterSyntaxExtensions.vb" />
     <Compile Include="Extensions\ParenthesizedExpressionSyntaxExtensions.vb" />
+    <Compile Include="Extensions\SemanticModelExtensions.vb" />
     <Compile Include="Extensions\SimpleNameSyntaxExtensions.vb" />
     <Compile Include="Extensions\SingleLineRewriter.vb" />
     <Compile Include="Extensions\StatementSyntaxExtensions.vb" />
