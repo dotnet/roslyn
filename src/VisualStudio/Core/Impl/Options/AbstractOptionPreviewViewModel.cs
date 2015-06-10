@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -124,9 +125,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     "System.Core"
                 };
 
+            var metadataService  = workspace.Services.GetService<IMetadataService>();
+
             var referenceAssemblies = Thread.GetDomain().GetAssemblies()
                 .Where(x => references.Contains(x.GetName(true).Name, StringComparer.OrdinalIgnoreCase))
-                .Select(MetadataReference.CreateFromAssembly);
+                .Select(a => metadataService.GetReference(a.Location, MetadataReferenceProperties.Assembly));
 
             project = project.WithMetadataReferences(referenceAssemblies);
 
@@ -177,15 +180,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void UpdateDocument(string text)
         {
             UpdatePreview(text);
-        }
-
-        internal virtual void LoadSettings(IOptionService optionService)
-        {
-            foreach (var checkbox in Items.OfType<CheckBoxOptionViewModel>())
-            {
-                var language = checkbox.Option.IsPerLanguage ? this.Language : null;
-                checkbox.IsChecked = (bool)optionService.GetOption(new OptionKey(checkbox.Option, language));
-            }
         }
 
         internal abstract bool ShouldPersistOption(OptionKey optionKey);

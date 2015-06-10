@@ -2625,5 +2625,232 @@ class C
 }
 ");
         }
+
+        [Fact, WorkItem(1170899, "DevDiv")]
+        public void CapturedAnonymousTypes1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void F()
+    <N:0>{
+        var <N:1>x = new { A = 1 }</N:1>;
+        var <N:2>y = new Func<int>(<N:3>() => x.A</N:3>)</N:2>;
+        Console.WriteLine(1);
+    }</N:0>
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void F()
+    <N:0>{
+        var <N:1>x = new { A = 1 }</N:1>;
+        var <N:2>y = new Func<int>(<N:3>() => x.A</N:3>)</N:2>;
+        Console.WriteLine(2);
+    }</N:0>
+}
+");
+            var source2 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void F()
+    <N:0>{
+        var <N:1>x = new { A = 1 }</N:1>;
+        var <N:2>y = new Func<int>(<N:3>() => x.A</N:3>)</N:2>;
+        Console.WriteLine(3);
+    }</N:0>
+}
+");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            v0.VerifyIL("C.F", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Func<int> V_1) //y
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  nop
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_000e:  stfld      ""<anonymous type: int A> C.<>c__DisplayClass0_0.x""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
+  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  call       ""void System.Console.WriteLine(int)""
+  IL_0026:  nop
+  IL_0027:  ret
+}");
+
+            var diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0}",
+                "C.<>c__DisplayClass0_0: {x, <F>b__0}",
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyIL("C.F", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Func<int> V_1) //y
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  nop
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_000e:  stfld      ""<anonymous type: int A> C.<>c__DisplayClass0_0.x""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
+  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.2
+  IL_0021:  call       ""void System.Console.WriteLine(int)""
+  IL_0026:  nop
+  IL_0027:  ret
+}");
+
+            var diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0}",
+                "C.<>c__DisplayClass0_0: {x, <F>b__0}",
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff2.VerifyIL("C.F", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Func<int> V_1) //y
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  nop
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_000e:  stfld      ""<anonymous type: int A> C.<>c__DisplayClass0_0.x""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
+  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.3
+  IL_0021:  call       ""void System.Console.WriteLine(int)""
+  IL_0026:  nop
+  IL_0027:  ret
+}");
+        }
+
+        [Fact, WorkItem(1170899, "DevDiv")]
+        public void CapturedAnonymousTypes2()
+        {
+            var template = @"
+using System;
+
+class C
+{
+    static void F()
+    <N:0>{
+        var x = new { X = <<VALUE>> };
+        Func<int> <N:2>y = <N:1>() => x.X</N:1></N:2>;
+        Console.WriteLine(y());
+    }</N:0>
+}
+";
+            var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
+            var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
+            var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
+
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            string expectedIL = @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Func<int> V_1) //y
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  nop
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.<<VALUE>>
+  IL_0009:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_000e:  stfld      ""<anonymous type: int X> C.<>c__DisplayClass0_0.x""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
+  IL_001a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_0026:  call       ""void System.Console.WriteLine(int)""
+  IL_002b:  nop
+  IL_002c:  ret
+}";
+
+            v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"));
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0}",
+                "C.<>c__DisplayClass0_0: {x, <F>b__0}",
+                "<>f__AnonymousType0<<X>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0}",
+                "C.<>c__DisplayClass0_0: {x, <F>b__0}",
+                "<>f__AnonymousType0<<X>j__TPar>: {Equals, GetHashCode, ToString}");
+
+            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"));
+        }
     }
 }

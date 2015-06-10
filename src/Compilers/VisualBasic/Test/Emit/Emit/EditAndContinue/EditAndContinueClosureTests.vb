@@ -1357,6 +1357,114 @@ End Class")
         End Sub
 
         <Fact>
+        Public Sub UniqueSynthesizedNames1_Generic()
+            Dim source0 = "
+Imports System
+
+Public Class C
+    Function F(Of T)() As Integer
+        Dim a = 1
+        Dim f1 = New Func(Of Integer)(Function() 1)
+        Dim f2 = New Func(Of Integer)(Function() F(Of T)())
+        Dim f3 = New Func(Of Integer)(Function() a)
+        Return 2
+    End Function
+End Class
+"
+            Dim source1 = "
+Imports System
+
+Public Class C
+    Function F(Of T)(x As Integer) As Integer
+        Dim a = 1
+        Dim f1 = New Func(Of Integer)(Function() 1)
+        Dim f2 = New Func(Of Integer)(Function() F(Of T)())
+        Dim f3 = New Func(Of Integer)(Function() a)
+        Return 2
+    End Function
+
+   Function F(Of T)() As Integer
+        Dim a = 1
+        Dim f1 = New Func(Of Integer)(Function() 1)
+        Dim f2 = New Func(Of Integer)(Function() F(Of T)())
+        Dim f3 = New Func(Of Integer)(Function() a)
+        Return 2
+    End Function
+End Class
+"
+            Dim source2 = "
+Imports System
+
+Public Class C
+    Function F(Of T)(x As Integer) As Integer
+        Dim a = 1
+        Dim f1 = New Func(Of Integer)(Function() 1)
+        Dim f2 = New Func(Of Integer)(Function() F(Of T)())
+        Dim f3 = New Func(Of Integer)(Function() a)
+        Return 2
+    End Function
+
+    Function F(Of T)(x As Byte) As Integer
+        Dim a = 1
+        Dim f1 = New Func(Of Integer)(Function() 1)
+        Dim f2 = New Func(Of Integer)(Function() F(Of T)())
+        Dim f3 = New Func(Of Integer)(Function() a)
+        Return 2
+    End Function
+
+   Function F(Of T)() As Integer
+        Dim a = 1
+        Dim f1 = New Func(Of Integer)(Function() 1)
+        Dim f2 = New Func(Of Integer)(Function() F(Of T)())
+        Dim f3 = New Func(Of Integer)(Function() a)
+        Return 2
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib({source0}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName:="A")
+            Dim compilation1 = compilation0.WithSource(source1)
+            Dim compilation2 = compilation1.WithSource(source2)
+
+            Dim f_int1 = compilation1.GetMembers("C.F").Single(Function(m) m.ToString() = "Public Function F(Of T)(x As Integer) As Integer")
+            Dim f_byte2 = compilation2.GetMembers("C.F").Single(Function(m) m.ToString() = "Public Function F(Of T)(x As Byte) As Integer")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim reader0 = md0.MetadataReader
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "_Closure$__1-0`1", "_Closure$__1`1")
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "F", "_Lambda$__1-1", ".ctor", "_Lambda$__2", ".ctor", ".cctor", "_Lambda$__1-0")
+            CheckNames(reader0, reader0.GetFieldDefNames(), "$VB$Local_a", "$I", "$I1-0")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, f_int1)))
+
+            Dim reader1 = diff1.GetMetadata().Reader
+
+            CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "_Closure$__1#1-0#1`1", "_Closure$__1#1`1")
+            CheckNames({reader0, reader1}, reader1.GetMethodDefNames(), "F", "_Lambda$__1#1-1#1", ".ctor", "_Lambda$__2#1", ".ctor", ".cctor", "_Lambda$__1#1-0#1")
+            CheckNames({reader0, reader1}, reader1.GetFieldDefNames(), "$VB$Local_a", "$I", "$I1#1-0#1")
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Lambda$__1#1-1#1, _Closure$__1#1-0#1, _Closure$__1#1}",
+                "C._Closure$__1#1(Of $CLS0): {$I1#1-0#1, _Lambda$__1#1-0#1}",
+                "C._Closure$__1#1-0#1(Of $CLS0): {_Lambda$__2#1}")
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, f_byte2)))
+
+            Dim reader2 = diff2.GetMetadata().Reader
+
+            CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames(), "_Closure$__2#2-0#2`1", "_Closure$__2#2`1")
+            CheckNames({reader0, reader1, reader2}, reader2.GetMethodDefNames(), "F", "_Lambda$__2#2-1#2", ".ctor", "_Lambda$__2#2", ".ctor", ".cctor", "_Lambda$__2#2-0#2")
+            CheckNames({reader0, reader1, reader2}, reader2.GetFieldDefNames(), "$VB$Local_a", "$I", "$I2#2-0#2")
+        End Sub
+
+        <Fact>
         Public Sub LambdasInInitializers()
             Dim source0 = MarkedSource("
 Imports System
@@ -1634,6 +1742,454 @@ End Class
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
                 "C._Closure$__: {$I0-0, $I0-1#1, $I0-2#1, _Lambda$__0-0, _Lambda$__0-1#1, _Lambda$__0-2#1}")
+        End Sub
+
+        <Fact, WorkItem(1170899, "DevDiv")>
+        Public Sub CapturedAnonymousDelegates()
+            Dim source0 = MarkedSource("
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:3>x</N:3> = <N:1>Function(n As Integer) n + 1</N:1>
+        Dim <N:4>y</N:4> = <N:2>Sub(n As Integer) System.Console.WriteLine(x(n))</N:2>
+        y(1)
+    End Sub</N:0>
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:3>x</N:3> = <N:1>Function(n As Integer) n + 1</N:1>
+        Dim <N:4>y</N:4> = <N:2>Sub(n As Integer) System.Console.WriteLine(x(n))</N:2>
+        y(2)
+    End Sub</N:0>
+End Class
+")
+            Dim source2 = MarkedSource("
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:3>x</N:3> = <N:1>Function(n As Integer) n + 1</N:1>
+        Dim <N:4>y</N:4> = <N:2>Sub(n As Integer) System.Console.WriteLine(x(n))</N:2>
+        y(3)
+    End Sub</N:0>
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            v0.VerifyIL("C.F", "
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                VB$AnonymousDelegate_1(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_000d:  brfalse.s  IL_0016
+  IL_000f:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0014:  br.s       IL_002c
+  IL_0016:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_001b:  ldftn      ""Function C._Closure$__._Lambda$__1-0(Integer) As Integer""
+  IL_0021:  newobj     ""Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)""
+  IL_0026:  dup
+  IL_0027:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_002c:  stfld      ""C._Closure$__1-0.$VB$Local_x As <generated method>""
+  IL_0031:  ldloc.0
+  IL_0032:  ldftn      ""Sub C._Closure$__1-0._Lambda$__1(Integer)""
+  IL_0038:  newobj     ""Sub VB$AnonymousDelegate_1(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_003d:  stloc.1
+  IL_003e:  ldloc.1
+  IL_003f:  ldc.i4.1
+  IL_0040:  callvirt   ""Sub VB$AnonymousDelegate_1(Of Integer).Invoke(Integer)""
+  IL_0045:  nop
+  IL_0046:  ret
+}")
+
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0, _Closure$__}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__1}")
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                VB$AnonymousDelegate_1(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_000d:  brfalse.s  IL_0016
+  IL_000f:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0014:  br.s       IL_002c
+  IL_0016:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_001b:  ldftn      ""Function C._Closure$__._Lambda$__1-0(Integer) As Integer""
+  IL_0021:  newobj     ""Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)""
+  IL_0026:  dup
+  IL_0027:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_002c:  stfld      ""C._Closure$__1-0.$VB$Local_x As <generated method>""
+  IL_0031:  ldloc.0
+  IL_0032:  ldftn      ""Sub C._Closure$__1-0._Lambda$__1(Integer)""
+  IL_0038:  newobj     ""Sub VB$AnonymousDelegate_1(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_003d:  stloc.1
+  IL_003e:  ldloc.1
+  IL_003f:  ldc.i4.2
+  IL_0040:  callvirt   ""Sub VB$AnonymousDelegate_1(Of Integer).Invoke(Integer)""
+  IL_0045:  nop
+  IL_0046:  ret
+}
+")
+
+            Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0, _Closure$__}",
+                "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__1}")
+
+            diff2.VerifyIL("C.F", "
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                VB$AnonymousDelegate_1(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_000d:  brfalse.s  IL_0016
+  IL_000f:  ldsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_0014:  br.s       IL_002c
+  IL_0016:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_001b:  ldftn      ""Function C._Closure$__._Lambda$__1-0(Integer) As Integer""
+  IL_0021:  newobj     ""Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)""
+  IL_0026:  dup
+  IL_0027:  stsfld     ""C._Closure$__.$I1-0 As <generated method>""
+  IL_002c:  stfld      ""C._Closure$__1-0.$VB$Local_x As <generated method>""
+  IL_0031:  ldloc.0
+  IL_0032:  ldftn      ""Sub C._Closure$__1-0._Lambda$__1(Integer)""
+  IL_0038:  newobj     ""Sub VB$AnonymousDelegate_1(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_003d:  stloc.1
+  IL_003e:  ldloc.1
+  IL_003f:  ldc.i4.3
+  IL_0040:  callvirt   ""Sub VB$AnonymousDelegate_1(Of Integer).Invoke(Integer)""
+  IL_0045:  nop
+  IL_0046:  ret
+}
+")
+        End Sub
+
+        <Fact, WorkItem(1170899, "DevDiv")>
+        Public Sub CapturedAnonymousTypes()
+            Dim source0 = MarkedSource("
+Imports System
+
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:1>x</N:1> = New With {.A = 1}
+        Dim <N:2>y</N:2> = New Func(Of Integer)(<N:3>Function() x.A</N:3>)
+        Console.WriteLine(1)
+    End Sub</N:0>
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:1>x</N:1> = New With {.A = 1}
+        Dim <N:2>y</N:2> = New System.Func(Of Integer)(<N:3>Function() x.A</N:3>)
+        Console.WriteLine(2)
+    End Sub</N:0>
+End Class
+")
+            Dim source2 = MarkedSource("
+Imports System
+
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:1>x</N:1> = New With {.A = 1}
+        Dim <N:2>y</N:2> = New Func(Of Integer)(<N:3>Function() x.A</N:3>)
+        Console.WriteLine(3)
+    End Sub</N:0>
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            v0.VerifyIL("C.F", "
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                System.Func(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_000e:  stfld      ""C._Closure$__1-0.$VB$Local_x As <anonymous type: A As Integer>""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""Function C._Closure$__1-0._Lambda$__0() As Integer""
+  IL_001a:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0026:  nop
+  IL_0027:  ret
+}")
+
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__0}")
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                System.Func(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_000e:  stfld      ""C._Closure$__1-0.$VB$Local_x As <anonymous type: A As Integer>""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""Function C._Closure$__1-0._Lambda$__0() As Integer""
+  IL_001a:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.2
+  IL_0021:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0026:  nop
+  IL_0027:  ret
+}
+")
+
+            Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__0}")
+
+            diff2.VerifyIL("C.F", "
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                System.Func(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_000e:  stfld      ""C._Closure$__1-0.$VB$Local_x As <anonymous type: A As Integer>""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""Function C._Closure$__1-0._Lambda$__0() As Integer""
+  IL_001a:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.3
+  IL_0021:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0026:  nop
+  IL_0027:  ret
+}
+")
+        End Sub
+
+        <Fact, WorkItem(1170899, "DevDiv")>
+        Public Sub CapturedAnonymousTypes2()
+            Dim template = "
+Imports System
+
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:1>x</N:1> = New With { .X = <<VALUE>> }
+        Dim <N:2>y</N:2> = New Func(Of Integer)(<N:3>Function() x.X</N:3>)
+        Console.WriteLine(y())
+    End Sub</N:0>
+End Class
+"
+            Dim source0 = MarkedSource(template.Replace("<<VALUE>>", "0"))
+            Dim source1 = MarkedSource(template.Replace("<<VALUE>>", "1"))
+            Dim source2 = MarkedSource(template.Replace("<<VALUE>>", "2"))
+
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim expectedIL As String = "
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                System.Func(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.<<VALUE>>
+  IL_0009:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_000e:  stfld      ""C._Closure$__1-0.$VB$Local_x As <anonymous type: X As Integer>""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""Function C._Closure$__1-0._Lambda$__0() As Integer""
+  IL_001a:  newobj     ""Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  callvirt   ""Function System.Func(Of Integer).Invoke() As Integer""
+  IL_0026:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_002b:  nop
+  IL_002c:  ret
+}"
+            v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"))
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__0}")
+
+            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"))
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__0}")
+
+            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
+        End Sub
+
+        <Fact, WorkItem(1170899, "DevDiv")>
+        Public Sub CapturedAnonymousTypes3()
+            Dim template = "
+Imports System
+
+Class C
+    <N:0>Shared Sub F()
+        Dim <N:1>x</N:1> = New With { .X = <<VALUE>> }
+        Dim <N:2>y</N:2> = <N:3>Function() x.X</N:3>
+        Console.WriteLine(y())
+    End Sub</N:0>
+End Class
+"
+            Dim source0 = MarkedSource(template.Replace("<<VALUE>>", "0"))
+            Dim source1 = MarkedSource(template.Replace("<<VALUE>>", "1"))
+            Dim source2 = MarkedSource(template.Replace("<<VALUE>>", "2"))
+
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim expectedIL As String = "
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C._Closure$__1-0 V_0, //$VB$Closure_0
+                VB$AnonymousDelegate_0(Of Integer) V_1) //y
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub C._Closure$__1-0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.<<VALUE>>
+  IL_0009:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_000e:  stfld      ""C._Closure$__1-0.$VB$Local_x As <anonymous type: X As Integer>""
+  IL_0013:  ldloc.0
+  IL_0014:  ldftn      ""Function C._Closure$__1-0._Lambda$__0() As Integer""
+  IL_001a:  newobj     ""Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  callvirt   ""Function VB$AnonymousDelegate_0(Of Integer).Invoke() As Integer""
+  IL_0026:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_002b:  nop
+  IL_002c:  ret
+}"
+            v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"))
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__0}")
+
+            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"))
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__1-0}",
+                "C._Closure$__1-0: {_Lambda$__0}")
+
+            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
     End Class
 End Namespace

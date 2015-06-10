@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 TestOptions.Regular.WithDeterministicFeature());
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
-                                                       new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) },
+                                                       new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
                                                        new CSharpCompilationOptions(OutputKind.ConsoleApplication));
             var output = new WriteOnlyStream();
             compilation.Emit(output);

@@ -3,9 +3,12 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -16,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _previousGeneration As EmitBaseline
         Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
         Private ReadOnly _changes As SymbolChanges
+        Private ReadOnly _deepTranslator As VisualBasicSymbolMatcher.DeepTranslator
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
@@ -29,17 +33,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
+
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
-            Dim [module] = previousGeneration.OriginalMetadata
-            Dim compilation = sourceAssembly.DeclaringCompilation
-            Dim metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create([module]), MetadataImportOptions.All)
-            Dim metadataDecoder = New Symbols.Metadata.PE.MetadataDecoder(metadataAssembly.PrimaryModule)
 
-            If initialBaseline.LazyOriginalMetadataAnonymousTypeMap Is Nothing Then
-                initialBaseline.LazyOriginalMetadataAnonymousTypeMap = GetAnonymousTypeMapFromMetadata([module].MetadataReader, metadataDecoder)
-            End If
+            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols accross all generations,
+            ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
+            Dim metadataSymbols = GetMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
 
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyOriginalMetadataAnonymousTypeMap, sourceAssembly, context, metadataAssembly)
+            Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
+            Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly)
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
@@ -55,10 +58,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
             End If
 
-            Me._previousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
-            Me._previousGeneration = previousGeneration
-            Me._changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+            _previousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
+            _previousGeneration = previousGeneration
+            _changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+
+            ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
+            ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
+            ' so that next generation can look variables up and reuse their slots if possible.
+            '
+            ' When we are about to allocate a slot for a lifted variable while compiling the next generation
+            ' we map its type to the previous generation and then check the slot types that we stashed earlier.
+            ' If the variable type matches we reuse it. In order to compare the previous variable type with the current one
+            ' both need to be completely lowered (translated). Standard translation only goes one level deep. 
+            ' Generic arguments are not translated until they are needed by metadata writer. 
+            '
+            ' In order to get the fully lowered form we run the type symbols of stashed variables thru a deep translator
+            ' that translates the symbol recursively.
+            _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
         End Sub
+
+        Friend Overrides Function EncTranslateLocalVariableType(type As TypeSymbol, diagnostics As DiagnosticBag) As ITypeReference
+            ' Note: The translator is Not aware of synthesized types. If type is a synthesized type it won't get mapped.
+            ' In such case use the type itself. This can only happen for variables storing lambda display classes.
+            Dim visited = DirectCast(_deepTranslator.Visit(type), TypeSymbol)
+            Debug.Assert(visited IsNot Nothing OrElse TypeOf type Is LambdaFrame OrElse TypeOf DirectCast(type, NamedTypeSymbol).ConstructedFrom Is LambdaFrame)
+            Return Translate(If(visited, type), Nothing, diagnostics)
+        End Function
 
         Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
             Get
@@ -66,9 +91,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private Overloads Shared Function GetAnonymousTypeMapFromMetadata(
-                                                   reader As MetadataReader,
-                                                   metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+        Private Function GetMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
+            If initialBaseline.LazyMetadataSymbols IsNot Nothing Then
+                Return initialBaseline.LazyMetadataSymbols
+            End If
+
+            Dim originalMetadata = initialBaseline.OriginalMetadata
+
+            ' The purpose of this compilation is to provide PE symbols for original metadata.
+            ' We need to transfer the references from the current source compilation but don't need its syntax trees.
+            Dim metadataCompilation = compilation.RemoveAllSyntaxTrees()
+
+            Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All)
+            Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
+            Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder)
+
+            Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
+        End Function
+
+        ' friend for testing
+        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
@@ -120,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim index = typeParameter.Ordinal
                     Debug.Assert(properties(index).Name Is Nothing)
                     ' ReadOnly anonymous type properties were 'Key' properties.
-                    properties(index) = AnonymousTypeKeyField.CreateField([property].Name, isKey:=[property].IsReadOnly)
+                    properties(index) = New AnonymousTypeKeyField([property].Name, isKey:=[property].IsReadOnly, ignoreCase:=True)
                 End If
             Next
 
@@ -138,8 +181,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim method = DirectCast(members(0), MethodSymbol)
             Debug.Assert(method.Parameters.Count + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
             Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
-            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) AnonymousTypeKeyField.CreateField(p.Name, isKey:=False)))
-            parameters.Add(AnonymousTypeKeyField.CreateField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False))
+            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=False, ignoreCase:=True)))
+            parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False, ignoreCase:=True))
             Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
