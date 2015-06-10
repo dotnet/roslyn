@@ -141,7 +141,6 @@
     <Compile Include="Extensions\DocumentationCommentExtensions.cs" />
     <Compile Include="Extensions\ExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\ForEachStatementSyntaxExtensions.cs" />
-    <Compile Include="Extensions\IDocumentExtensions.cs" />
     <Compile Include="Extensions\ISemanticModelExtensions.cs" />
     <Compile Include="Extensions\ITypeParameterSymbolExtensions.cs" />
     <Compile Include="Extensions\ITypeSymbolExtensions.cs" />

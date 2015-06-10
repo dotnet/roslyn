@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(Document document, int position, Workspace workspace, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetCSharpSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
             if (semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
             {
                 var directive = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true).GetAncestor<DirectiveTriviaSyntax>();

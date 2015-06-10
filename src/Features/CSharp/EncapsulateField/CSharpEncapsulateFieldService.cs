@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -104,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
 
         protected override async Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetCSharpSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var fields = root.DescendantNodes(d => d.Span.IntersectsWith(span))
                                     .OfType<FieldDeclarationSyntax>()
