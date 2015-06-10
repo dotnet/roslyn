@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                 ' Therefore, it is important that we make this call as cheap as possible.  Rather than constructing a
                 ' containing Symbol and using ToDisplayString (which might be more *correct*), we'll just do the best we
                 ' can with Syntax.  This approach is capable of providing parity with the pre-Roslyn implementation.
-                Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
                 Dim root = Await tree.GetRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim syntaxFactsService = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
                 Dim memberDeclaration = TryCast(syntaxFactsService.GetContainingMemberDeclaration(root, position, useFullSpan:=True), DeclarationStatementSyntax)
@@ -33,13 +33,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                     Return Nothing
                 End If
 
-                Dim compilation = Await document.GetVisualBasicCompilationAsync(cancellationToken).ConfigureAwait(False)
+                Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
+                Dim options = CType(compilation.Options, VisualBasicCompilationOptions)
                 Dim name = syntaxFactsService.GetDisplayName(memberDeclaration,
                                                              DisplayNameOptions.IncludeNamespaces Or
                                                              DisplayNameOptions.IncludeParameters Or
                                                              DisplayNameOptions.IncludeType Or
                                                              DisplayNameOptions.IncludeTypeParameters,
-                                                             compilation.Options.RootNamespace)
+                                                             options.RootNamespace)
 
                 Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
                 Dim lineNumber = text.Lines.GetLineFromPosition(position).LineNumber

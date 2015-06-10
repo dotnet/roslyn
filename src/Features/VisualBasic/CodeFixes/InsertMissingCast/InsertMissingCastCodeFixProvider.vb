@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
             Dim document = context.Document
             Dim span = context.Span
             Dim cancellationToken = context.CancellationToken
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim node = TryCast(root.FindNode(span, getInnermostNodeForTie:=True), ExpressionSyntax)
 
             If node Is Nothing Then

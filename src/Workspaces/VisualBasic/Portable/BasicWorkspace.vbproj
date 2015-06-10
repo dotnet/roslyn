@@ -148,7 +148,6 @@
     <Compile Include="Extensions\DirectiveSyntaxExtensions.vb" />
     <Compile Include="Extensions\ExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\ExpressionSyntaxGeneratorVisitor.vb" />
-    <Compile Include="Extensions\IDocumentExtensions.vb" />
     <Compile Include="Extensions\IMethodSymbolExtensions.vb" />
     <Compile Include="Extensions\INamespaceOrTypeSymbolExtensions.vb" />
     <Compile Include="Extensions\InvocationExpressionSyntaxExtensions.vb" />
