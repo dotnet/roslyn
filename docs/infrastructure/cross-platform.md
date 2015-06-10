@@ -26,13 +26,15 @@ The universal working method for Linux and Mac is to build Mono from source.  Th
 - [Compiling Mono on Mac](http://www.mono-project.com/docs/compiling-mono/mac/#building-mono-from-a-git-source-code-checkout)
 
 The Mono master branch has merged in all of the necessary fixes and should work.  Roslyn though currently tests against a very specific build hence this will produce the most reliable results.  
+
 ```
 $> cd mono
 $mono> git remote add jaredpar git@github.com:jaredpar/mono.git
+$mono> git fetch jaredpar
 $mono> git checkout -b build-roslyn jaredpar/build-roslyn
 ```
 
-The standard Mono installation needs to be patched with the Portable Class Libraries in order to build parts of Roslyn.  The [setup-pcl.sh] script takes care of this.  Simply point it to the directory where mono is built.  
+Roslyn depends on the Portable Class Libraries to build which is not standard on Mono.  Hence the installation of Mono being used must be patched in order to build Roslyn.  The [setup-pcl.sh](https://github.com/dotnet/roslyn/blob/master/build/linux/setup-pcl.sh) script takes care of this.  
 
 ```
 $> ./roslyn/builds/linux/setup-pcl.sh ~/builds/mono
