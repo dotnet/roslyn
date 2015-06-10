@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             GetContextState(runtime, methodName, blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             Const methodVersion = 1
 
-            Dim ilOffset As Integer = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
+            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
 
             Return EvaluationContext.CreateMethodContext(
                 Nothing,
