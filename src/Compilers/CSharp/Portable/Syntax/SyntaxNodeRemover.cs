@@ -30,24 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             var remover = new SyntaxRemover(nodes.ToArray(), options);
-            var result = remover.Visit(root);
-
-            var residualTrivia = remover.ResidualTrivia;
-
-            if (residualTrivia.Count > 0)
-            {
-                result = result.WithTrailingTrivia(result.GetTrailingTrivia().Concat(residualTrivia));
-            }
-
-            return (TRoot)result;
+            return (TRoot)remover.RewriteNode(root);
         }
 
-        private class SyntaxRemover : CSharpSyntaxRewriter
+        private class SyntaxRemover : CSharpBottomUpSyntaxRewriter
         {
             private readonly HashSet<SyntaxNode> _nodesToRemove;
             private readonly SyntaxRemoveOptions _options;
             private readonly TextSpan _searchSpan;
-            private readonly SyntaxTriviaListBuilder _residualTrivia;
+            private SyntaxTriviaList _residualTrivia;
             private HashSet<SyntaxNode> _directivesToKeep;
 
             public SyntaxRemover(
@@ -58,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _nodesToRemove = new HashSet<SyntaxNode>(nodesToRemove);
                 _options = options;
                 _searchSpan = ComputeTotalSpan(nodesToRemove);
-                _residualTrivia = SyntaxTriviaListBuilder.Create();
+                _residualTrivia = default(SyntaxTriviaList);
             }
 
             private static TextSpan ComputeTotalSpan(SyntaxNode[] nodes)
@@ -75,39 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 return new TextSpan(start, end - start);
-            }
-
-            internal SyntaxTriviaList ResidualTrivia
-            {
-                get
-                {
-                    if (_residualTrivia != null)
-                    {
-                        return _residualTrivia.ToList();
-                    }
-                    else
-                    {
-                        return default(SyntaxTriviaList);
-                    }
-                }
-            }
-
-            private void AddResidualTrivia(SyntaxTriviaList trivia, bool requiresNewLine = false)
-            {
-                if (requiresNewLine)
-                {
-                    this.AddEndOfLine();
-                }
-
-                _residualTrivia.Add(trivia);
-            }
-
-            private void AddEndOfLine()
-            {
-                if (_residualTrivia.Count == 0 || !IsEndOfLine(_residualTrivia[_residualTrivia.Count - 1]))
-                {
-                    _residualTrivia.Add(SyntaxFactory.CarriageReturnLineFeed);
-                }
             }
 
             private static bool IsEndOfLine(SyntaxTrivia trivia)
@@ -127,65 +85,130 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return _nodesToRemove.Contains(node);
             }
 
-            private bool ShouldVisit(SyntaxNode node)
+            private bool ShouldVisit(TextSpan span)
             {
-                return node.FullSpan.IntersectsWith(_searchSpan) || (_residualTrivia != null && _residualTrivia.Count > 0);
+                return span.IntersectsWith(_searchSpan) || (_residualTrivia != null && _residualTrivia.Count > 0);
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            public override bool CanVisit(SyntaxNode node)
             {
-                SyntaxNode result = node;
+                return ShouldVisit(node.FullSpan);
+            }
 
-                if (node != null)
+            public override bool CanVisit(SyntaxToken token)
+            {
+                return ShouldVisit(token.FullSpan);
+            }
+
+            public override bool CanVisit(SyntaxTrivia trivia)
+            {
+                return this.VisitIntoStructuredTrivia && ShouldVisit(trivia.FullSpan);
+            }
+
+            public override SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
+            {
+                // if any residual trivia exists, then it must have come from this node's last child being removed
+                // (otherwise any residual trivia would already be incorporated into the rewritten node)
+                // so it should be attached as trailing trivia.
+                rewritten = WithTrailingResidualTrivia(rewritten);
+
+                if (this.IsForRemoval(original))
                 {
-                    if (this.IsForRemoval(node))
+                    _residualTrivia = AddTrivia(_residualTrivia, rewritten);
+                    return null;
+                }
+                else
+                {
+                    return rewritten;
+                }
+            }
+
+            public override SyntaxToken VisitToken(SyntaxToken original, SyntaxToken rewritten)
+            {
+                // attach any residual trivia from removal of prior sibling (or ancestors' prior sibling) to this token
+                return WithLeadingResidualTrivia(rewritten);
+            }
+
+            public override SyntaxNode VisitListElement(SyntaxNode original, SyntaxNode rewritten)
+            {
+                // don't call VisitNode so we can distinguish between child nodes and list element nodes
+                return rewritten;
+            }
+
+            public override SyntaxToken VisitListSeparator(SyntaxToken original, SyntaxToken rewritten)
+            {
+                // don't call VisitToken so we can distinguish between child tokens and list separator tokens
+                return rewritten;
+            }
+
+            public override SyntaxToken VisitListElement(SyntaxToken original, SyntaxToken rewritten)
+            {
+                // don't call VisitToken so we can distinguish between child tokens and list element tokens
+                return rewritten;
+            }
+
+            public override SyntaxTrivia VisitListElement(SyntaxTrivia original, SyntaxTrivia rewritten)
+            {
+                return rewritten;
+            }
+
+            // rewrite list without removed nodes
+            public override SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> original, SyntaxList<TNode> rewritten)
+            {
+                List<TNode> alternate = null;
+
+                for (int i = 0, n = original.Count; i < n; i++)
+                {
+                    var originalItem = original[i];
+                    var rewrittenItem = rewritten[i];
+                    TNode visited = null;
+
+                    if (IsForRemoval(originalItem))
                     {
-                        this.AddTrivia(node);
-                        result = null;
+                        _residualTrivia = AddTrivia(_residualTrivia, rewrittenItem);
                     }
-                    else if (this.ShouldVisit(node))
+                    else
                     {
-                        result = base.Visit(node);
+                        visited = (TNode)WithLeadingResidualTrivia(rewrittenItem);
+                    }
+
+                    if (rewrittenItem != visited && alternate == null)
+                    {
+                        alternate = new List<TNode>(n);
+                        alternate.AddRange(rewritten.Take(i));
+                    }
+
+                    if (visited != null && alternate != null)
+                    {
+                        alternate.Add(visited);
                     }
                 }
 
-                return result;
+                if (alternate != null)
+                {
+                    return SyntaxFactory.List(alternate);
+                }
+                else
+                {
+                    return rewritten;
+                }
             }
 
-            public override SyntaxToken VisitToken(SyntaxToken token)
+            // rewrite separated list without removed nodes and associated separators
+            public override SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> original, SeparatedSyntaxList<TNode> rewritten)
             {
-                SyntaxToken result = token;
-
-                // only bother visiting trivia if we are removing a node in structured trivia
-                if (this.VisitIntoStructuredTrivia)
-                {
-                    result = base.VisitToken(token);
-                }
-
-                // the next token gets the accrued trivia.
-                if (result.Kind() != SyntaxKind.None && _residualTrivia != null && _residualTrivia.Count > 0)
-                {
-                    _residualTrivia.Add(result.LeadingTrivia);
-                    result = result.WithLeadingTrivia(_residualTrivia.ToList());
-                    _residualTrivia.Clear();
-                }
-
-                return result;
-            }
-
-            // deal with separated lists and removal of associated separators
-            public override SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> list)
-            {
-                var withSeps = list.GetWithSeparators();
+                var originalWithSeps = original.GetWithSeparators();
+                var rewrittenWithSeps = rewritten.GetWithSeparators();
                 bool removeNextSeparator = false;
 
                 SyntaxNodeOrTokenListBuilder alternate = null;
-                for (int i = 0, n = withSeps.Count; i < n; i++)
+                for (int i = 0, n = originalWithSeps.Count; i < n; i++)
                 {
-                    var item = withSeps[i];
+                    var originalItem = originalWithSeps[i];
+                    var rewrittenItem = rewrittenWithSeps[i];
                     SyntaxNodeOrToken visited;
 
-                    if (item.IsToken) // separator
+                    if (originalItem.IsToken) // separator
                     {
                         if (removeNextSeparator)
                         {
@@ -194,52 +217,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         }
                         else
                         {
-                            visited = this.VisitListSeparator(item.AsToken());
+                            visited = WithLeadingResidualTrivia(rewrittenItem.AsToken());
                         }
                     }
                     else
                     {
-                        var node = (TNode)(SyntaxNode)item.AsNode();
+                        var originalNode = (TNode)originalItem.AsNode();
+                        var rewrittenNode = (TNode)rewrittenItem.AsNode();
 
-                        if (this.IsForRemoval(node))
+                        if (this.IsForRemoval(originalNode))
                         {
                             if (alternate == null)
                             {
                                 alternate = new SyntaxNodeOrTokenListBuilder(n);
-                                alternate.Add(withSeps, 0, i);
+                                alternate.Add(rewrittenWithSeps, 0, i);
                             }
 
                             if (alternate.Count > 0 && alternate[alternate.Count - 1].IsToken)
                             {
                                 // remove preceding separator if any
                                 var separator = alternate[alternate.Count - 1].AsToken();
-                                this.AddTrivia(separator, node);
+                                _residualTrivia = AddTrivia(_residualTrivia, separator, rewrittenNode);
                                 alternate.RemoveLast();
                             }
-                            else if (i + 1 < n && withSeps[i + 1].IsToken)
+                            else if (i + 1 < n && rewrittenWithSeps[i + 1].IsToken)
                             {
                                 // otherwise remove following separator if any
-                                var separator = withSeps[i + 1].AsToken();
-                                this.AddTrivia(node, separator);
+                                var separator = rewrittenWithSeps[i + 1].AsToken();
+                                _residualTrivia = AddTrivia(_residualTrivia, rewrittenNode, separator);
                                 removeNextSeparator = true;
                             }
                             else
                             {
-                                this.AddTrivia(node);
+                                _residualTrivia = AddTrivia(_residualTrivia, rewrittenNode);
                             }
 
                             visited = default(SyntaxNodeOrToken);
                         }
                         else
                         {
-                            visited = this.VisitListElement((TNode)(SyntaxNode)item.AsNode());
+                            visited = WithLeadingResidualTrivia(rewrittenItem.AsNode());
                         }
                     }
 
-                    if (item != visited && alternate == null)
+                    if (rewrittenItem != visited && alternate == null)
                     {
                         alternate = new SyntaxNodeOrTokenListBuilder(n);
-                        alternate.Add(withSeps, 0, i);
+                        alternate.Add(rewrittenWithSeps, 0, i);
                     }
 
                     if (alternate != null && visited.Kind() != SyntaxKind.None)
@@ -253,118 +277,167 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return alternate.ToList().AsSeparatedList<TNode>();
                 }
 
+                return rewritten;
+            }
+
+            private SyntaxNode WithLeadingResidualTrivia(SyntaxNode node)
+            {
+                if (node != null && _residualTrivia.Count > 0)
+                {
+                    node = node.WithLeadingTrivia(_residualTrivia.AddRange(node.GetLeadingTrivia()));
+                    _residualTrivia = default(SyntaxTriviaList);
+                }
+
+                return node;
+            }
+
+            private SyntaxNode WithTrailingResidualTrivia(SyntaxNode node)
+            {
+                if (node != null && _residualTrivia.Count > 0)
+                {
+                    node = node.WithTrailingTrivia(node.GetTrailingTrivia().AddRange(_residualTrivia));
+                    _residualTrivia = default(SyntaxTriviaList);
+                }
+
+                return node;
+            }
+
+            private SyntaxToken WithLeadingResidualTrivia(SyntaxToken token)
+            {
+                if (!token.IsKind(SyntaxKind.None) && _residualTrivia.Count > 0)
+                {
+                    token = token.WithLeadingTrivia(_residualTrivia.AddRange(token.LeadingTrivia));
+                    _residualTrivia = default(SyntaxTriviaList);
+                }
+
+                return token;
+            }
+
+            private SyntaxTriviaList AddEndOfLine(SyntaxTriviaList list)
+            {
+                if (list.Count == 0 || !IsEndOfLine(list[list.Count -1]))
+                {
+                    list = list.Add(SyntaxFactory.CarriageReturnLineFeed);
+                }
+
                 return list;
             }
 
-            private void AddTrivia(SyntaxNode node)
+            private SyntaxTriviaList AddTrivia(SyntaxTriviaList list, SyntaxNode node)
             {
                 if ((_options & SyntaxRemoveOptions.KeepLeadingTrivia) != 0)
                 {
-                    this.AddResidualTrivia(node.GetLeadingTrivia());
+                    list = list.AddRange(node.GetLeadingTrivia());
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetLeadingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    list = AddEndOfLine(list);
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
                 {
-                    this.AddDirectives(node, GetRemovedSpan(node.Span, node.FullSpan));
+                    list = AddDirectives(list, node, GetRemovedSpan(node.Span, node.FullSpan));
                 }
 
                 if ((_options & SyntaxRemoveOptions.KeepTrailingTrivia) != 0)
                 {
-                    this.AddResidualTrivia(node.GetTrailingTrivia());
+                    list = list.AddRange(node.GetTrailingTrivia());
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetTrailingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    list = AddEndOfLine(list);
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
                 {
-                    this.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker));
+                    list = list.Add(SyntaxFactory.ElasticMarker);
                 }
+
+                return list;
             }
 
-            private void AddTrivia(SyntaxToken token, SyntaxNode node)
+            private SyntaxTriviaList AddTrivia(SyntaxTriviaList list, SyntaxToken token, SyntaxNode node)
             {
                 if ((_options & SyntaxRemoveOptions.KeepLeadingTrivia) != 0)
                 {
-                    this.AddResidualTrivia(token.LeadingTrivia);
-                    this.AddResidualTrivia(token.TrailingTrivia);
-                    this.AddResidualTrivia(node.GetLeadingTrivia());
+                    list = list.AddRange(token.LeadingTrivia)
+                               .AddRange(token.TrailingTrivia)
+                               .AddRange(node.GetLeadingTrivia());
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && (HasEndOfLine(token.LeadingTrivia) ||
                         HasEndOfLine(token.TrailingTrivia) ||
                         HasEndOfLine(node.GetLeadingTrivia())))
                 {
-                    this.AddEndOfLine();
+                    list = AddEndOfLine(list);
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
                 {
                     var span = TextSpan.FromBounds(token.Span.Start, node.Span.End);
                     var fullSpan = TextSpan.FromBounds(token.FullSpan.Start, node.FullSpan.End);
-                    this.AddDirectives(node.Parent, GetRemovedSpan(span, fullSpan));
+                    list = AddDirectives(list, node.Parent, GetRemovedSpan(span, fullSpan));
                 }
 
                 if ((_options & SyntaxRemoveOptions.KeepTrailingTrivia) != 0)
                 {
-                    this.AddResidualTrivia(node.GetTrailingTrivia());
+                    list = list.AddRange(node.GetTrailingTrivia());
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetTrailingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    list = AddEndOfLine(list);
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
                 {
-                    this.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker));
+                    list = list.Add(SyntaxFactory.ElasticMarker);
                 }
+
+                return list;
             }
 
-            private void AddTrivia(SyntaxNode node, SyntaxToken token)
+            private SyntaxTriviaList AddTrivia(SyntaxTriviaList list, SyntaxNode node, SyntaxToken token)
             {
                 if ((_options & SyntaxRemoveOptions.KeepLeadingTrivia) != 0)
                 {
-                    this.AddResidualTrivia(node.GetLeadingTrivia());
+                    list = list.AddRange(node.GetLeadingTrivia());
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && HasEndOfLine(node.GetLeadingTrivia()))
                 {
-                    this.AddEndOfLine();
+                    list = AddEndOfLine(list);
                 }
 
                 if ((_options & (SyntaxRemoveOptions.KeepDirectives | SyntaxRemoveOptions.KeepUnbalancedDirectives)) != 0)
                 {
                     var span = TextSpan.FromBounds(node.Span.Start, token.Span.End);
                     var fullSpan = TextSpan.FromBounds(node.FullSpan.Start, token.FullSpan.End);
-                    this.AddDirectives(node.Parent, GetRemovedSpan(span, fullSpan));
+                    list = AddDirectives(list, node.Parent, GetRemovedSpan(span, fullSpan));
                 }
 
                 if ((_options & SyntaxRemoveOptions.KeepTrailingTrivia) != 0)
                 {
-                    this.AddResidualTrivia(node.GetTrailingTrivia());
-                    this.AddResidualTrivia(token.LeadingTrivia);
-                    this.AddResidualTrivia(token.TrailingTrivia);
+                    list = list.AddRange(node.GetTrailingTrivia())
+                               .AddRange(token.LeadingTrivia)
+                               .AddRange(token.TrailingTrivia);
                 }
                 else if ((_options & SyntaxRemoveOptions.KeepEndOfLine) != 0
                     && (HasEndOfLine(node.GetTrailingTrivia()) ||
                         HasEndOfLine(token.LeadingTrivia) ||
                         HasEndOfLine(token.TrailingTrivia)))
                 {
-                    this.AddEndOfLine();
+                    list = AddEndOfLine(list);
                 }
 
                 if ((_options & SyntaxRemoveOptions.AddElasticMarker) != 0)
                 {
-                    this.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker));
+                    list = list.Add(SyntaxFactory.ElasticMarker);
                 }
+
+                return list;
             }
 
             private TextSpan GetRemovedSpan(TextSpan span, TextSpan fullSpan)
@@ -384,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return removedSpan;
             }
 
-            private void AddDirectives(SyntaxNode node, TextSpan span)
+            private SyntaxTriviaList AddDirectives(SyntaxTriviaList list, SyntaxNode node, TextSpan span)
             {
                 if (node.ContainsDirectives)
                 {
@@ -431,10 +504,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                         if (_directivesToKeep.Contains(directive))
                         {
-                            AddResidualTrivia(SyntaxFactory.TriviaList(directive.ParentTrivia), requiresNewLine: true);
+                            list = AddEndOfLine(list.Add(directive.ParentTrivia));
                         }
                     }
                 }
+
+                return list;
             }
 
             private static bool HasRelatedDirectives(DirectiveTriviaSyntax directive)

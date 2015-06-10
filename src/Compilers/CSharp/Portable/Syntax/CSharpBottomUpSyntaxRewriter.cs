@@ -61,51 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node;
                 }
 
-                _stack.Add(new RewriteItem(node, -1));
-
-                while (true)
-                {
-                    var itemIndex = _stack.Count - 1;
-                    var item = _stack[itemIndex];
-
-                    if (item.MoveNext())
-                    {
-                        _stack[itemIndex] = item;
-                        var child = _childReader.ReadChild(item.Original, item.ChildIndex);
-
-                        if (child.Kind == ChildKind.Node)
-                        {
-                            if (child.Node != null && this.CanVisit(child.Node))
-                            {
-                                _stack.Add(new RewriteItem(child.Node, item.ChildIndex));
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            item.Updated = _childVisitor.VisitChild(item.Updated, item.ChildIndex, child);
-                            _stack[itemIndex] = item;
-                        }
-                    }
-                    else
-                    {
-                        // pop
-                        _stack[itemIndex] = default(RewriteItem);
-                        _stack.RemoveAt(itemIndex);
-
-                        if (_stack.Count > 0 && item.IndexInParent >= 0)
-                        {
-                            var parentIndex = _stack.Count - 1;
-                            var parent = _stack[parentIndex];
-                            parent.Updated = _childVisitor.VisitChild(parent.Updated, item.IndexInParent, new RewriteChild(item.Original), new RewriteChild(item.Updated));
-                            _stack[parentIndex] = parent;
-                        }
-                        else
-                        {
-                            return this.VisitNode(item.Original, item.Updated);
-                        }
-                    }
-                }
+                var rewritten = RewriteChildren(node);
+                return this.VisitNode(node, rewritten);
             }
             finally
             {
@@ -122,6 +79,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     _stack = null;
+                }
+            }
+        }
+
+        private SyntaxNode RewriteChildren(SyntaxNode node)
+        {
+            var initialCount = _stack.Count;
+            _stack.Add(new RewriteItem(node, -1));
+
+            while (true)
+            {
+                var itemIndex = _stack.Count - 1;
+                var item = _stack[itemIndex];
+
+                if (item.MoveNext())
+                {
+                    _stack[itemIndex] = item;
+                    var child = _childReader.ReadChild(item.Original, item.ChildIndex);
+
+                    if (child.Kind == ChildKind.Node)
+                    {
+                        if (child.Node != null && this.CanVisit(child.Node))
+                        {
+                            _stack.Add(new RewriteItem(child.Node, item.ChildIndex));
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        item.Updated = _childVisitor.VisitChild(item.Updated, item.ChildIndex, child);
+                        _stack[itemIndex] = item;
+                    }
+                }
+                else
+                {
+                    // pop
+                    _stack[itemIndex] = default(RewriteItem);
+                    _stack.RemoveAt(itemIndex);
+
+                    if (_stack.Count > initialCount && item.IndexInParent >= 0)
+                    {
+                        var parentIndex = _stack.Count - 1;
+                        var parent = _stack[parentIndex];
+                        parent.Updated = _childVisitor.VisitChild(parent.Updated, item.IndexInParent, new RewriteChild(item.Original), new RewriteChild(item.Updated));
+                        _stack[parentIndex] = parent;
+                    }
+                    else
+                    {
+                        return item.Updated;
+                    }
                 }
             }
         }
@@ -196,6 +203,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> original, SeparatedSyntaxList<TNode> rewritten) where TNode : SyntaxNode
         {
             return rewritten;
+        }
+
+        public virtual SyntaxNode VisitListElement(SyntaxNode original, SyntaxNode rewritten)
+        {
+            return this.VisitNode(original, rewritten);
+        }
+
+        public virtual SyntaxToken VisitListElement(SyntaxToken original, SyntaxToken rewritten)
+        {
+            return this.VisitToken(original, rewritten);
+        }
+
+        public virtual SyntaxTrivia VisitListElement(SyntaxTrivia original, SyntaxTrivia rewritten)
+        {
+            return this.VisitTrivia(original, rewritten);
+        }
+
+        public virtual SyntaxToken VisitListSeparator(SyntaxToken original, SyntaxToken rewritten)
+        {
+            return this.VisitToken(original, rewritten);
         }
 
         private struct RewriteItem
@@ -463,13 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                // reentrant (recursion) should get trigged on list elements and structured trivia roots
-                if (node != null)
+                if (node != null && _rewriter.CanVisit(node))
                 {
-                    return _rewriter.RewriteNode(node);
+                    // reentrant (recursion) should get trigged on list elements and structured trivia roots
+                    var rewritten = _rewriter.RewriteChildren(node);
+                    return _rewriter.VisitNode(node, rewritten);
                 }
-
-                return null;
+                else
+                {
+                    return node;
+                }
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
@@ -479,8 +509,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var newToken = base.VisitToken(token);
                     return _rewriter.VisitToken(token, newToken);
                 }
-
-                return token;
+                else
+                {
+                    return token;
+                }
             }
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
@@ -488,10 +520,68 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_rewriter.CanVisit(trivia))
                 {
                     var newTrivia = base.VisitTrivia(trivia);
-                    return this._rewriter.VisitTrivia(trivia, newTrivia);
+                    return _rewriter.VisitTrivia(trivia, newTrivia);
                 }
+                else
+                {
+                    return trivia;
+                }
+            }
 
-                return trivia;
+            public override TNode VisitListElement<TNode>(TNode node)
+            {
+                if (_rewriter.CanVisit(node))
+                {
+                    // call RewriteChildren to only rewrite children & not invoke VisitNode
+                    var rewritten = _rewriter.RewriteChildren(node);
+                    return (TNode)_rewriter.VisitListElement(node, rewritten);
+                }
+                else
+                {
+                    return node;
+                }
+            }
+
+            public override SyntaxToken VisitListSeparator(SyntaxToken separator)
+            {
+                if (_rewriter.CanVisit(separator))
+                {
+                    // call base.VisitToken to only rewrite trivia & not invoke VisitToken
+                    var rewritten = base.VisitToken(separator);
+                    return _rewriter.VisitListSeparator(separator, rewritten);
+                }
+                else
+                {
+                    return separator;
+                }
+            }
+
+            public override SyntaxToken VisitListElement(SyntaxToken element)
+            {
+                if (_rewriter.CanVisit(element))
+                {
+                    // call base.VisitToken to only rewrite trivia & not invoke VisitToken
+                    var rewritten = base.VisitToken(element);
+                    return _rewriter.VisitListElement(element, rewritten);
+                }
+                else
+                {
+                    return element;
+                }
+            }
+
+            public override SyntaxTrivia VisitListElement(SyntaxTrivia element)
+            {
+                if (_rewriter.CanVisit(element))
+                {
+                    // call base.VisitTrivia to only rewrite nested structure & not invoke VisitTrivia
+                    var rewritten = base.VisitTrivia(element);
+                    return _rewriter.VisitListElement(element, rewritten);
+                }
+                else
+                {
+                    return element;
+                }
             }
         }
 

@@ -4077,6 +4077,10 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitList(Mic
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitList(Microsoft.CodeAnalysis.SyntaxTriviaList original, Microsoft.CodeAnalysis.SyntaxTriviaList rewritten) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitList<TNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> original, Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> rewritten) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitList<TNode>(Microsoft.CodeAnalysis.SyntaxList<TNode> original, Microsoft.CodeAnalysis.SyntaxList<TNode> rewritten) -> Microsoft.CodeAnalysis.SyntaxList<TNode>
+virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitListElement(Microsoft.CodeAnalysis.SyntaxNode original, Microsoft.CodeAnalysis.SyntaxNode rewritten) -> Microsoft.CodeAnalysis.SyntaxNode
+virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitListElement(Microsoft.CodeAnalysis.SyntaxToken original, Microsoft.CodeAnalysis.SyntaxToken rewritten) -> Microsoft.CodeAnalysis.SyntaxToken
+virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitListElement(Microsoft.CodeAnalysis.SyntaxTrivia original, Microsoft.CodeAnalysis.SyntaxTrivia rewritten) -> Microsoft.CodeAnalysis.SyntaxTrivia
+virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitListSeparator(Microsoft.CodeAnalysis.SyntaxToken original, Microsoft.CodeAnalysis.SyntaxToken rewritten) -> Microsoft.CodeAnalysis.SyntaxToken
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitNode(Microsoft.CodeAnalysis.SyntaxNode original, Microsoft.CodeAnalysis.SyntaxNode rewritten) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitToken(Microsoft.CodeAnalysis.SyntaxToken original, Microsoft.CodeAnalysis.SyntaxToken rewritten) -> Microsoft.CodeAnalysis.SyntaxToken
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia original, Microsoft.CodeAnalysis.SyntaxTrivia rewritten) -> Microsoft.CodeAnalysis.SyntaxTrivia
@@ -4090,6 +4094,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitList(Microsoft.C
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitList(Microsoft.CodeAnalysis.SyntaxTriviaList list) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitList<TNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode> list) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitList<TNode>(Microsoft.CodeAnalysis.SyntaxList<TNode> list) -> Microsoft.CodeAnalysis.SyntaxList<TNode>
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitListElement(Microsoft.CodeAnalysis.SyntaxToken element) -> Microsoft.CodeAnalysis.SyntaxToken
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitListElement(Microsoft.CodeAnalysis.SyntaxTrivia element) -> Microsoft.CodeAnalysis.SyntaxTrivia
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitListElement<TNode>(TNode node) -> TNode
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitListSeparator(Microsoft.CodeAnalysis.SyntaxToken separator) -> Microsoft.CodeAnalysis.SyntaxToken

@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var item in list)
             {
                 index++;
-                var visited = this.VisitToken(item);
+                var visited = this.VisitListElement(item);
                 if (item != visited && alternate == null)
                 {
                     alternate = new SyntaxTokenListBuilder(count);
@@ -276,6 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return list;
+        }
+
+        public virtual SyntaxToken VisitListElement(SyntaxToken element)
+        {
+            return this.VisitToken(element);
         }
 
         public virtual SyntaxTriviaList VisitList(SyntaxTriviaList list)

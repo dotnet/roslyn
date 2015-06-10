@@ -2323,7 +2323,6 @@ void M()
             var expectedText = @"
 class C
 {
-
 #region Fred
 #endregion
 }";
@@ -2358,7 +2357,6 @@ void M()
             var expectedText = @"
 class C
 {
-
 #region Fred
 #if true
 #endif
@@ -2374,6 +2372,29 @@ class C
 
             Assert.Equal(expectedText, text);
         }
+
+#if false
+        [Fact]
+        public void TestRemoveNode_StructuredTrivia()
+        {
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+// xxx
+///<summary>
+/// this is a documentation comment
+///</summary>
+// yyy
+class C
+{
+}
+");
+
+            var dc = cu.DescendantNodes(descendIntoTrivia: true).OfType<DocumentationCommentTriviaSyntax>().FirstOrDefault();
+            Assert.NotNull(dc);
+
+            var cu2 = cu.RemoveNode(dc, SyntaxRemoveOptions.KeepLeadingTrivia);
+            var text = cu2.ToFullString();
+        }
+#endif
 
         [Fact]
         public void SeparatorsOfSeparatedSyntaxLists()
@@ -2518,7 +2539,7 @@ public class Test1
         {
             string code = @"class c1
 {
-    #r
+#r
     void m1()
     {
     }
