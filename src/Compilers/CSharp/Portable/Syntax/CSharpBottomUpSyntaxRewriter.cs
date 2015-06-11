@@ -9,6 +9,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// A rewriter the visits children before visiting parents.
+    /// </summary>
     public abstract partial class CSharpBottomUpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
     {
         private static ObjectPool<List<RewriteItem>> s_listPool 
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Initiates the rewrite operation over the subtree identified by the node.
+        /// Rewrites the node by visiting the children (including all descendants) first and then visiting the node.
         /// </summary>
         public SyntaxNode RewriteNode(SyntaxNode node)
         { 
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Initiates the rewrite operation over the subtree identified by the token.
+        /// Rewrites the token by visiting all leading and trailing trivia first and then visiting the token.
         /// </summary>
         public SyntaxToken RewriteToken(SyntaxToken token)
         {
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Initiates the rewrite operation over the subtree identified by the trivia.
+        /// Rewrites the trivia by visiting any structure first and then visiting the trivia.
         /// </summary>
         public SyntaxTrivia RewriteTrivia(SyntaxTrivia trivia)
         {
@@ -154,72 +157,137 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+        /// <summary>
+        /// Determines whether the node and any of it descendants will be visisted.
+        /// </summary>
         public virtual bool CanVisit(SyntaxNode node)
         {
             return true;
         }
 
+        /// <summary>
+        /// Determines whether the token and any of its leading and trailing trivia will be visited.
+        /// </summary>
         public virtual bool CanVisit(SyntaxToken token)
         {
             return true;
         }
 
+        /// <summary>
+        /// Determines whether the trivia and its structure will be visited.
+        /// </summary>
         public virtual bool CanVisit(SyntaxTrivia trivia)
         {
             return true;
         }
 
+        /// <summary>
+        /// Called after all child nodes and tokens have been visited.
+        /// </summary>
+        /// <param name="original">The node found in the original tree.</param>
+        /// <param name="rewritten">The node with child nodes and tokens potentially updated.</param>
         public virtual SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
         {
             // route to type VisitXXX from syntax visitor base
             return base.Visit(rewritten); 
         }
 
+        /// <summary>
+        /// Called after all leading and trailing trivia have been visited.
+        /// </summary>
+        /// <param name="original">The token found in the original tree.</param>
+        /// <param name="rewritten">The token with leading and trailing trivia potentially updated.</param>
         public virtual SyntaxToken VisitToken(SyntaxToken original, SyntaxToken rewritten)
         {
             return rewritten;
         }
 
+        /// <summary>
+        /// Called after any sub structure has been visited.
+        /// </summary>
+        /// <param name="original">The trivia found in the original tree.</param>
+        /// <param name="rewritten">The trivia with the sub structure potentially updated.</param>
+        /// <returns></returns>
         public virtual SyntaxTrivia VisitTrivia(SyntaxTrivia original, SyntaxTrivia rewritten)
         {
             return rewritten;
         }
 
+        /// <summary>
+        /// Called after all list elements have been visited.
+        /// </summary>
+        /// <param name="original">The list found in the original tree.</param>
+        /// <param name="rewritten">The list with elements potentially updated.</param>
         public virtual SyntaxTokenList VisitList(SyntaxTokenList original, SyntaxTokenList rewritten)
         {
             return rewritten;
         }
 
+        /// <summary>
+        /// Called after all list elements have been visited.
+        /// </summary>
+        /// <param name="original">The list found in the original tree.</param>
+        /// <param name="rewritten">The list with elements potentially updated.</param>
         public virtual SyntaxTriviaList VisitList(SyntaxTriviaList original, SyntaxTriviaList rewritten)
         {
             return rewritten;
         }
 
+        /// <summary>
+        /// Called after all list elements have been visited.
+        /// </summary>
+        /// <param name="original">The list found in the original tree.</param>
+        /// <param name="rewritten">The list with elements potentially updated.</param>
         public virtual SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> original, SyntaxList<TNode> rewritten) where TNode : SyntaxNode
         {
             return rewritten;
         }
 
+        /// <summary>
+        /// Called after all list elements and separators have been visited.
+        /// </summary>
+        /// <param name="original">The list found in the original tree.</param>
+        /// <param name="rewritten">The list with elements and separators potentially updated.</param>
         public virtual SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> original, SeparatedSyntaxList<TNode> rewritten) where TNode : SyntaxNode
         {
             return rewritten;
         }
 
+        /// <summary>
+        /// Called when the element node of a list is being visited. The default behavior is to call <see cref="VisitNode"/>.
+        /// </summary>
+        /// <param name="original">The element node found in the original tree.</param>
+        /// <param name="rewritten">The element node with children potentially updated.</param>
         public virtual SyntaxNode VisitListElement(SyntaxNode original, SyntaxNode rewritten)
         {
             return this.VisitNode(original, rewritten);
         }
 
+        /// <summary>
+        /// Called when the element token of a list is being visited. The default behavior is to call <see cref="VisitToken"/>.
+        /// </summary>
+        /// <param name="original">The element token found in the original tree.</param>
+        /// <param name="rewritten">The element token with leading and trailing trivia potentially updated.</param>
         public virtual SyntaxToken VisitListElement(SyntaxToken original, SyntaxToken rewritten)
         {
             return this.VisitToken(original, rewritten);
         }
 
+        /// <summary>
+        /// Called when the element trivia of a list is being visited. The default behavior is to call <see cref="VisitTrivia"/>.
+        /// </summary>
+        /// <param name="original">The element trivia found in the original tree.</param>
+        /// <param name="rewritten">The element trivia with the sub structure potentially updated.</param>
         public virtual SyntaxTrivia VisitListElement(SyntaxTrivia original, SyntaxTrivia rewritten)
         {
             return this.VisitTrivia(original, rewritten);
         }
 
+        /// <summary>
+        /// Called when the separator token of a list is being visited. The default behavior is to call <see cref="VisitToken"/>.
+        /// </summary>
+        /// <param name="original">The separator token found in the original tree.</param>
+        /// <param name="rewritten">The separator token with leading and trailing trivia potentially updated.</param>
         public virtual SyntaxToken VisitListSeparator(SyntaxToken original, SyntaxToken rewritten)
         {
             return this.VisitToken(original, rewritten);
@@ -268,6 +336,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             List
         }
 
+        /// <summary>
+        /// A union that represents a child of a node
+        /// </summary>
         private struct RewriteChild
         {
             public readonly ChildKind Kind;
@@ -343,6 +414,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A  rewriter used to visit & rewriter individual children of a node.
+        /// </summary>
         private class ChildVisitor : CSharpSyntaxRewriter
         {
             private readonly CSharpBottomUpSyntaxRewriter _rewriter;
@@ -474,6 +548,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A syntax rewriter used to invoke recursive rewriter behavior.
+        /// </summary>
         private class DefaultRewriter : CSharpSyntaxRewriter
         {
             private readonly CSharpBottomUpSyntaxRewriter _rewriter;
@@ -585,6 +662,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A rewriter used to access individual children of a node.
+        /// </summary>
         private class ChildReader : CSharpSyntaxRewriter
         {
             private RewriteChild _child;

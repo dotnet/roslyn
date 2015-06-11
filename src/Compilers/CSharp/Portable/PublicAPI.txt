@@ -14,6 +14,9 @@ Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker
 Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.CSharpBottomUpSyntaxWalker(Microsoft.CodeAnalysis.SyntaxWalkerDepth depth = Microsoft.CodeAnalysis.SyntaxWalkerDepth.Node) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.Depth.get -> Microsoft.CodeAnalysis.SyntaxWalkerDepth
 Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> void
+Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.WalkNode(Microsoft.CodeAnalysis.SyntaxNode node) -> void
+Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.WalkToken(Microsoft.CodeAnalysis.SyntaxToken token) -> void
+Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.WalkTrivia(Microsoft.CodeAnalysis.SyntaxTrivia trivia) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments
 Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.CompilationOptions.get -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.ParseOptions.get -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
@@ -4087,6 +4090,7 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxRewriter.VisitTrivia(M
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.CanVisit(Microsoft.CodeAnalysis.SyntaxNode node) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.CanVisit(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.CanVisit(Microsoft.CodeAnalysis.SyntaxTrivia trivia) -> bool
+virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.VisitNode(Microsoft.CodeAnalysis.SyntaxNode node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.VisitToken(Microsoft.CodeAnalysis.SyntaxToken token) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpBottomUpSyntaxWalker.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia trivia) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitIntoStructuredTrivia.get -> bool

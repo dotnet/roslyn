@@ -9,6 +9,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// A tree walker that visits children before visiting parents.
+    /// </summary>
     public abstract partial class CSharpBottomUpSyntaxWalker : CSharpSyntaxVisitor
     {
         private static ObjectPool<List<ChildSyntaxList.Enumerator>> s_listPool
@@ -23,7 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Depth = depth;
         }
 
+        [Obsolete("Use WalkNode to initiate walking.")]
         public new void Visit(SyntaxNode node)
+        {
+        }
+
+        /// <summary>
+        /// Walks the subtree by visiting all children (including all descendants) and then this node.
+        /// </summary>
+        public void WalkNode(SyntaxNode node)
         {
             bool allocated = false;
             if (stack != null)
@@ -70,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stack.RemoveAt(stack.Count - 1);
 
                         // after all children visit node here..
-                        base.Visit(en.Node);
+                        this.VisitNode(en.Node);
                     }
                 }
             }
@@ -83,7 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void WalkToken(SyntaxToken token)
+        /// <summary>
+        /// Walks the token by visiting the token's leading trivia, then the token, and then the trailing trivia.
+        /// </summary>
+        public void WalkToken(SyntaxToken token)
         {
             if (this.Depth >= SyntaxWalkerDepth.Trivia)
             {
@@ -97,6 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Walks the list by visiting each trivia in source order and then the list.
+        /// </summary>
         private void WalkTriviaList(SyntaxTriviaList list)
         {
             foreach (var tr in list)
@@ -105,35 +122,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void WalkTrivia(SyntaxTrivia trivia)
+        /// <summary>
+        /// Walks the trivia by first visiting the trivia's structure (if it has structure) and then the trivia itself.
+        /// </summary>
+        public void WalkTrivia(SyntaxTrivia trivia)
         {
             if (this.Depth >= SyntaxWalkerDepth.StructuredTrivia && trivia.HasStructure)
             {
-                this.Visit((CSharpSyntaxNode)trivia.GetStructure());
+                this.WalkNode((CSharpSyntaxNode)trivia.GetStructure());
             }
 
             this.VisitTrivia(trivia);
         }
 
+        /// <summary>
+        /// Determines whether the node and any of it descendants will be visisted.
+        /// </summary>
         public virtual bool CanVisit(SyntaxNode node)
         {
             return true;
         }
 
+        /// <summary>
+        /// Determines whether the token and any of its leading and trailing trivia will be visited.
+        /// </summary>
         public virtual bool CanVisit(SyntaxToken token)
         {
             return true;
         }
 
+        /// <summary>
+        /// Determines whether the trivia and its structure will be visited.
+        /// </summary>
         public virtual bool CanVisit(SyntaxTrivia trivia)
         {
             return true;
         }
 
+        /// <summary>
+        /// Called after all child nodes and tokens have been visited.
+        /// </summary>
+        public virtual void VisitNode(SyntaxNode node)
+        {
+            base.Visit(node);
+        }
+
+        /// <summary>
+        /// Called after leading trivia has been visited, but before trailing trivia has been visited.
+        /// </summary>
         public virtual void VisitToken(SyntaxToken token)
         {
         }
 
+        /// <summary>
+        /// Called after any structure has been visited.
+        /// </summary>
         public virtual void VisitTrivia(SyntaxTrivia trivia)
         {
         }
