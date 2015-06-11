@@ -113,7 +113,7 @@ _Sequence points blob_ has the following structure:
 
     Blob ::= first-point-record SubsequentRecord*
     SubsequentRecord ::= subsequent-point-record |
-	                 subsequent-hidden-point-record |
+	                     subsequent-hidden-point-record |
                          subsequent-document-record
 
 #####first-point-record
@@ -136,10 +136,10 @@ If _ΔLines_ and _ΔColumns_ are both 0 the record represents a hidden sequence 
 | _ΔLines_     | _EndLine_ - _StartLine_            | unsigned compressed            |
 | _ΔColumns_   | _EndColumn_ - _StartColumn_        | _ΔLines_ = 0: unsigned compressed, non-zero |
 |              |                                    | _ΔLines_ ≠ 0: signed compressed             |
-| _δStartLine_   | _StartLine_ - _Previous_._StartLine_	    | signed compressed       |
-| _δStartColumn_ | _StartColumn_ - _Previous_._StartColumn_	| signed compressed       |
+| _δStartLine_   | _StartLine_ - _PreviousNonHidden_._StartLine_	    | signed compressed       |
+| _δStartColumn_ | _StartColumn_ - _PreviousNonHidden_._StartColumn_	| signed compressed       |
 
-The sequence point represented by this record inherits the value of _Document_ property from the previous record. The values of _IL Offset_, _Start Line_, _Start Column_, _End Line_ and _End Column_ are calculated based on the values of the previous sequence point and the data stored in the record.
+The sequence point represented by this record inherits the value of _Document_ property from the previous record. The value of _IL Offset_ is calculated using the value of the previous sequence point and the value stored in the record. The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ are calculated based upon the values of the previous non-hidden sequence point and the data stored in the record.
 
 #####subsequent-hidden-point-record
 | component    | value stored                       | integer representation         |
