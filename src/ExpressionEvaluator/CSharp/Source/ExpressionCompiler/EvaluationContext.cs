@@ -120,9 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,
-            int ilOffset,
+            uint ilOffset,
             int localSignatureToken)
         {
+            var offset = NormalizeILOffset(ilOffset);
+
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
             if (previous.Matches(metadataBlocks))
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var previousContext = previous.EvaluationContext;
                 if (previousContext != null &&
                     previousContext.MethodContextReuseConstraints.HasValue &&
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, ilOffset))
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
                 {
                     return previousContext;
                 }
@@ -148,11 +150,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 moduleVersionId,
                 methodToken,
                 methodVersion,
-                ilOffset,
+                offset,
                 localSignatureToken);
         }
 
         internal static EvaluationContext CreateMethodContext(
+            CSharpCompilation compilation,
+            object symReader,
+            Guid moduleVersionId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken)
+        {
+            return CreateMethodContext(
+                compilation,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                NormalizeILOffset(ilOffset),
+                localSignatureToken);
+        }
+
+        private static EvaluationContext CreateMethodContext(
             CSharpCompilation compilation,
             object symReader,
             Guid moduleVersionId,
