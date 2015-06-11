@@ -114,7 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 if (this.IsForRemoval(original))
                 {
-                    _residualTrivia = AddTrivia(_residualTrivia, rewritten);
+                    // don't leave residual trivia from structured trivia nodes since any leading/trailing trivia 
+                    // from this node is logically all part of the same thing.
+                    if (!(original is IStructuredTriviaSyntax))
+                    {
+                        _residualTrivia = AddTrivia(_residualTrivia, rewritten);
+                    }
+
                     return null;
                 }
                 else

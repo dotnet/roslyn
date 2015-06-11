@@ -2373,7 +2373,6 @@ class C
             Assert.Equal(expectedText, text);
         }
 
-#if false
         [Fact]
         public void TestRemoveNode_StructuredTrivia()
         {
@@ -2388,13 +2387,51 @@ class C
 }
 ");
 
+            var expected = @"
+// xxx
+// yyy
+class C
+{
+}
+";
+
             var dc = cu.DescendantNodes(descendIntoTrivia: true).OfType<DocumentationCommentTriviaSyntax>().FirstOrDefault();
             Assert.NotNull(dc);
 
+            // remove node should ignore the remove options for a structured trivia node
             var cu2 = cu.RemoveNode(dc, SyntaxRemoveOptions.KeepLeadingTrivia);
-            var text = cu2.ToFullString();
+
+            var actual = cu2.ToFullString();
+            Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void TestRemoveNode_StructuredTrivia2()
+        {
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+#if true
+class C
+{
+} // foo
 #endif
+");
+
+            var expected = @"
+#if true
+ // foo
+#endif
+";
+
+            var cls = cu.DescendantNodes(descendIntoTrivia: true).OfType<ClassDeclarationSyntax>().FirstOrDefault();
+            Assert.NotNull(cls);
+
+            // residual trivia should accrue to the EndOfFileToken and not be embedded within the following structured trivia
+            var cu2 = cu.RemoveNode(cls, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.KeepTrailingTrivia);
+
+            var actual = cu2.ToFullString();
+            Assert.Equal(expected, actual);
+            Assert.Equal(6, cu2.EndOfFileToken.LeadingTrivia.Count);
+        }
 
         [Fact]
         public void SeparatorsOfSeparatedSyntaxLists()
