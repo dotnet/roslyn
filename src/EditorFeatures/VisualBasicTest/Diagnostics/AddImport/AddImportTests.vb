@@ -441,11 +441,11 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub TestAddImportForCref()
             Dim initialText As String = NewLines("''' <summary>\n''' This is just like <see cref=[|""INotifyPropertyChanged""|]/>, but this one is mine.\n''' </summary>\nInterface IMyInterface\nEnd Interface")
-            Dim expecteText As String = NewLines("Imports System.ComponentModel\n''' <summary>\n''' This is just like <see cref=""INotifyPropertyChanged""/>, but this one is mine.\n''' </summary>\nInterface IMyInterface\nEnd Interface")
+            Dim expectedText As String = NewLines("Imports System.ComponentModel\n''' <summary>\n''' This is just like <see cref=""INotifyPropertyChanged""/>, but this one is mine.\n''' </summary>\nInterface IMyInterface\nEnd Interface")
             Dim options = New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)
             Test(
                 initialText,
-                expecteText,
+                expectedText,
                 parseOptions:=options)
         End Sub
 
@@ -453,11 +453,11 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub TestAddImportForCref2()
             Dim initialText As String = NewLines("''' <summary>\n''' This is just like <see cref=[|""INotifyPropertyChanged.PropertyChanged""|]/>, but this one is mine.\n''' </summary>\nInterface IMyInterface\nEnd Interface")
-            Dim expecteText As String = NewLines("Imports System.ComponentModel\n''' <summary>\n''' This is just like <see cref=""INotifyPropertyChanged.PropertyChanged""/>, but this one is mine.\n''' </summary>\nInterface IMyInterface\nEnd Interface")
+            Dim expectedText As String = NewLines("Imports System.ComponentModel\n''' <summary>\n''' This is just like <see cref=""INotifyPropertyChanged.PropertyChanged""/>, but this one is mine.\n''' </summary>\nInterface IMyInterface\nEnd Interface")
             Dim options = New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)
             Test(
                 initialText,
-                expecteText,
+                expectedText,
                 parseOptions:=options)
         End Sub
 
@@ -486,7 +486,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim expecteText =
+            Dim expectedText =
 "
 Imports Foo
 
@@ -513,7 +513,7 @@ End Module
             Dim options = New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)
             Test(
                 initialText,
-                expecteText,
+                expectedText,
                 parseOptions:=options)
         End Sub
 
@@ -544,7 +544,7 @@ Module Program
     End Sub
 End Module
 "
-            Dim expecteText =
+            Dim expectedText =
 "
 Imports Foo
 Imports Foo.Bar
@@ -572,7 +572,7 @@ End Module
             Dim options = New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)
             Test(
                 initialText,
-                expecteText,
+                expectedText,
                 parseOptions:=options)
         End Sub
 
@@ -592,7 +592,7 @@ Public Class MyClass2
     End Sub
 End Class
 "
-            Dim expecteText =
+            Dim expectedText =
 "
 Imports N1
 
@@ -610,7 +610,7 @@ End Class
             Dim options = New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose)
             Test(
                 initialText,
-                expecteText,
+                expectedText,
                 parseOptions:=options)
         End Sub
 

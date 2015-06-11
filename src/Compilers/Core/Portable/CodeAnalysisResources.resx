@@ -371,7 +371,7 @@
     <value>The changes must be ordered and not overlapping.</value>
   </data>
   <data name="DiagnosticIdCantBeNullOrWhitespace" xml:space="preserve">
-    <value>A DiagnosticDescriptor must have an Id that is neiter null nor an empty string nor a string that only contains white space.</value>
+    <value>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</value>
   </data>
   <data name="RuleSetHasDuplicateRules" xml:space="preserve">
     <value>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</value>

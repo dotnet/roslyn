@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static void RemoveIntersectingLocals(Dictionary<LocalSymbol, LocalDefUseInfo> info, ArrayBuilder<LocalDefUseInfo> dummies)
         {
-            // Add dummy definitons. 
+            // Add dummy definitions. 
             // Although we do not schedule dummies we intend to guarantee that no 
             // local definition span intersects with definition spans of a dummy
             // that will ensure that at any access to dummy is done on same stack state.
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
     // represents a span of a value between definition and use.
     // start/end positions are specified in terms of global node count as visited by 
-    // StackOptimizer visitors. (i.e. recursive walk not looking into constats)
+    // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
     internal class LocalDefUseSpan
     {
         public readonly int start;

@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.InternalUtilities
 {
     /// <summary>
-    /// Cache with a fixed size that evictes the least recently used members.
+    /// Cache with a fixed size that evicts the least recently used members.
     /// Thread-safe.
     /// </summary>
     internal class ConcurrentLruCache<K, V>

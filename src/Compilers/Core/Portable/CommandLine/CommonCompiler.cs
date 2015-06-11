@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        ///   When overriden by a derived class, this property can override the current thread's
+        ///   When overridden by a derived class, this property can override the current thread's
         ///   CurrentUICulture property for diagnostic message resource lookups.
         /// </summary>
         protected virtual CultureInfo Culture

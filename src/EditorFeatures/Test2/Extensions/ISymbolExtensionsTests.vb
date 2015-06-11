@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Worspaces.Compiler
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
     Public Class ISymbolExtensionsTests
         Inherits TestBase

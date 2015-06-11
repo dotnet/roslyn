@@ -2629,7 +2629,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_MissingCoClass" xml:space="preserve">
     <value>The managed coclass wrapper class '{0}' for interface '{1}' cannot be found (are you missing an assembly reference?)</value>
   </data>
-  <data name="ERR_AmbigousAttribute" xml:space="preserve">
+  <data name="ERR_AmbiguousAttribute" xml:space="preserve">
     <value>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</value>
   </data>
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
@@ -3597,10 +3597,10 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The CallerLineNumberAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerFilePathParamForUnconsumedLocation" xml:space="preserve">
-    <value>The CalleFilePathAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+    <value>The CallerFilePathAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerFilePathParamForUnconsumedLocation_Title" xml:space="preserve">
-    <value>The CalleFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+    <value>The CallerFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerMemberNameParamForUnconsumedLocation" xml:space="preserve">
     <value>The CallerMemberNameAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>

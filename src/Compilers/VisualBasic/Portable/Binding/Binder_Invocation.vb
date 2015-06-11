@@ -1891,16 +1891,16 @@ ProduceBoundNode:
                     End If
                 Next
 
-                Dim diagnosticCoumpoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
+                Dim diagnosticCompoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
                 If delegateSymbol Is Nothing Then
                     ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
-                                                        New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
+                                                        New CompoundDiagnosticInfo(diagnosticCompoundInfos)))
                 Else
                     ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
                                                         CustomSymbolDisplayFormatter.DelegateSignature(delegateSymbol),
-                                                        New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
+                                                        New CompoundDiagnosticInfo(diagnosticCompoundInfos)))
                 End If
             End If
 

@@ -2720,7 +2720,7 @@ class C
             // Note that for this test there is no implicit conversion from 's' -> int (SnapshotPoint? -> int), but there is an implicit conversion
             // from stripped type SnapshotPoint -> int.
 
-            // Native compiler instead implements this part based on whether A is a nullable type or not. We maintain comptability with the native compiler:
+            // Native compiler instead implements this part based on whether A is a nullable type or not. We maintain compatibility with the native compiler:
 
             // SPEC PROPOSAL:    Otherwise, if A exists and is a nullable type and if b has a type B and an implicit  conversion exists from A0 to B,
             // SPEC PROPOSAL:    the result type is B. At run-time, a is first evaluated. If a is not null, a is unwrapped to type A0 and converted to type B,

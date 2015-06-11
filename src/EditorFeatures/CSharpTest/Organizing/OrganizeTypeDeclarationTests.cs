@@ -250,7 +250,7 @@ interface I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestAccessiblity()
+        public void TestAccessibility()
         {
             var initial =
 @"class C {
@@ -275,7 +275,7 @@ interface I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestStaticAccessiblity()
+        public void TestStaticAccessibility()
         {
             var initial =
 @"class C {

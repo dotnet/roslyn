@@ -808,8 +808,8 @@ End Class";
 
         private void WaitWaiter(ExportProvider provider)
         {
-            var workspasceWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
-            workspasceWaiter.CreateWaitTask().PumpingWait();
+            var workspaceWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
+            workspaceWaiter.CreateWaitTask().PumpingWait();
 
             var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;
             solutionCrawlerWaiter.CreateWaitTask().PumpingWait();
@@ -1022,9 +1022,9 @@ End Class";
         {
             var sb = new StringBuilder();
 
-            var workspasceWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as TestAsynchronousOperationListener;
+            var workspaceWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as TestAsynchronousOperationListener;
             sb.AppendLine("workspace");
-            sb.AppendLine(workspasceWaiter.Trace());
+            sb.AppendLine(workspaceWaiter.Trace());
 
             var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as TestAsynchronousOperationListener;
             sb.AppendLine("solutionCrawler");

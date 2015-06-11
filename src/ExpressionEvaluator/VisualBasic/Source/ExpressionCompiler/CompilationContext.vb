@@ -1294,7 +1294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' generated.  For example, if <paramref name="candidateSubstitutedSourceMethod"/>
         ''' is a state machine MoveNext method, then we will try to find the iterator or
         ''' async method for which it was generated.  if we are able to find the original
-        ''' method, then we will substitue in the EE type parameters.  Otherwise, we will
+        ''' method, then we will substitute in the EE type parameters.  Otherwise, we will
         ''' return <paramref name="candidateSubstitutedSourceMethod"/>.
         ''' </returns>
         ''' <remarks>

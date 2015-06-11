@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Maky a copy of a bit array.
+        /// Make a copy of a bit array.
         /// </summary>
         /// <returns></returns>
         public BitVector Clone()

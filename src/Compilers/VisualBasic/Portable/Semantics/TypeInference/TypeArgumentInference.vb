@@ -1566,7 +1566,7 @@ HandleAsAGeneralExpression:
                 End If
 
 
-                ' If we didn't find a direct match, we will have to look in base clases for a match.
+                ' If we didn't find a direct match, we will have to look in base classes for a match.
                 ' We'll either fix ParameterType and look amongst the bases of ArgumentType,
                 ' or we'll fix ArgumentType and look amongst the bases of ParameterType,
                 ' depending on the "DigThroughToBasesAndImplements" flag. This flag is affected by

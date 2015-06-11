@@ -297,7 +297,7 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.Attribute(string name, System.Col
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.Attribute(string name, params Microsoft.CodeAnalysis.SyntaxNode[] attributeArguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AttributeArgument(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.ITypeSymbol type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CatchClause(Microsoft.CodeAnalysis.ITypeSymbol type, string identifer, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CatchClause(Microsoft.CodeAnalysis.ITypeSymbol type, string identifier, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CompilationUnit(params Microsoft.CodeAnalysis.SyntaxNode[] declarations) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConstructorDeclaration(Microsoft.CodeAnalysis.IMethodSymbol constructorMethod, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> baseConstructorArguments = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.ITypeSymbol type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -1238,7 +1238,7 @@ static Microsoft.CodeAnalysis.TextAndVersion.Create(Microsoft.CodeAnalysis.Text.
 static Microsoft.CodeAnalysis.TextLoader.From(Microsoft.CodeAnalysis.Text.SourceTextContainer container, Microsoft.CodeAnalysis.VersionStamp version, string filePath = null) -> Microsoft.CodeAnalysis.TextLoader
 static Microsoft.CodeAnalysis.TextLoader.From(Microsoft.CodeAnalysis.TextAndVersion textAndVersion) -> Microsoft.CodeAnalysis.TextLoader
 static Microsoft.CodeAnalysis.VersionStamp.Create() -> Microsoft.CodeAnalysis.VersionStamp
-static Microsoft.CodeAnalysis.VersionStamp.Create(System.DateTime utcIimeLastModified) -> Microsoft.CodeAnalysis.VersionStamp
+static Microsoft.CodeAnalysis.VersionStamp.Create(System.DateTime utcTimeLastModified) -> Microsoft.CodeAnalysis.VersionStamp
 static Microsoft.CodeAnalysis.VersionStamp.Default.get -> Microsoft.CodeAnalysis.VersionStamp
 static Microsoft.CodeAnalysis.VersionStamp.operator !=(Microsoft.CodeAnalysis.VersionStamp left, Microsoft.CodeAnalysis.VersionStamp right) -> bool
 static Microsoft.CodeAnalysis.VersionStamp.operator ==(Microsoft.CodeAnalysis.VersionStamp left, Microsoft.CodeAnalysis.VersionStamp right) -> bool

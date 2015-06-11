@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a token with kind NumericLiteraToken from the text and corresponding 4-byte unsigned integer value.
+        /// Creates a token with kind NumericLiteralToken from the text and corresponding 4-byte unsigned integer value.
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
         /// <param name="text">The raw text of the literal.</param>
@@ -1698,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          currentNode.Kind() == SyntaxKind.ElementBindingExpression);
 
             // In a well formed tree, the corresponding access node should be one of the ancestors
-            // and its "?" token should preceed the binding syntax.
+            // and its "?" token should precede the binding syntax.
             while (currentNode != null)
             {
                 currentNode = currentNode.Parent;

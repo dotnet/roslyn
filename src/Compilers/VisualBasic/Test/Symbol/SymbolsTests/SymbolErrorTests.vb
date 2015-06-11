@@ -10530,7 +10530,7 @@ End Class
         ]]></file>
     </compilation>, s_typeWithMixedProperty)
 
-            ' WARNING: There are no Errors, but setter is actually not overriden!!!
+            ' WARNING: There are no Errors, but setter is actually not overridden!!!
 
             Dim expectedErrors1 = <errors><![CDATA[
                                   ]]></errors>
@@ -19573,7 +19573,7 @@ BC40056: Namespace or type specified in the Imports 'Alias2' doesn't contain any
         End Sub
 
         <Fact>
-        Public Sub BC40057WRN_UndefinedOrEmpyProjectNamespaceOrClass1()
+        Public Sub BC40057WRN_UndefinedOrEmptyProjectNamespaceOrClass1()
             Dim globalImports = GlobalImport.Parse({"Alias2 = System", "N12 = Alias2"})
             Dim options = TestOptions.ReleaseExe.WithGlobalImports(globalImports)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20792,7 +20792,7 @@ BC30926: 'MustInherit' cannot be specified for partial type 'A' because it canno
 
         End Sub
 
-        ' Checks for mising partial on clases
+        ' Checks for mising partial on classes
         <Fact>
         Public Sub ModifierWarningsAcrossPartialTypes()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

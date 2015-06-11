@@ -1075,7 +1075,7 @@ Module Module1
         Inherits base1
     End Class
 
-    ' Expect no ocmpiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Foo5 and base2 are abstract
 
     MustInherit Class Foo5
         Inherits base2
@@ -1286,7 +1286,7 @@ Module Module1
         Inherits base1
     End Class
 
-    ' Expect no ocmpiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Foo5 and base2 are abstract
 
     MustInherit Class Foo5
         Inherits base2

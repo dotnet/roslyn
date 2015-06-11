@@ -1067,7 +1067,7 @@ class C
     public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
-            // TODO: Currently we don't have means neccessary to pass information about the display 
+            // TODO: Currently we don't have means necessary to pass information about the display 
             // class being pushed on evaluation stack, so that EE could find the locals.
             // Thus the locals are not available in EE.
 

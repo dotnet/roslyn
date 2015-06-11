@@ -1954,7 +1954,7 @@ index: 1);
 
         [WorkItem(1107929)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAccesiblityForPublicFields()
+        public void TestAccessibilityForPublicFields()
         {
             Test(
 @"class A { public B b = new [|B|](); }",
@@ -1965,7 +1965,7 @@ isAddedDocument:true);
 
         [WorkItem(1107929)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAccesiblityForPublicFields2()
+        public void TestAccessibilityForPublicFields2()
         {
             Test(
 @"class A { public B b = new [|B|](); }",
@@ -1975,7 +1975,7 @@ index: 1);
 
         [WorkItem(1107929)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAccesiblityForPublicFields3()
+        public void TestAccessibilityForPublicFields3()
         {
             Test(
 @"class A { public B b = new [|B|](); }",
@@ -1985,7 +1985,7 @@ index: 2);
 
         [WorkItem(1107929)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAccesiblityForPublicFields4()
+        public void TestAccessibilityForPublicFields4()
         {
             Test(
 @"class A { public B<int> b = new [|B|]<int>(); }",
@@ -1996,7 +1996,7 @@ isAddedDocument: true);
 
         [WorkItem(1107929)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAccesiblityForPublicFields5()
+        public void TestAccessibilityForPublicFields5()
         {
             Test(
 @"class A { public B<int> b = new [|B|]<int>(); }",
@@ -2006,7 +2006,7 @@ index: 1);
 
         [WorkItem(1107929)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAccesiblityForPublicFields6()
+        public void TestAccessibilityForPublicFields6()
         {
             Test(
 @"class A { public B<int> b = new [|B|]<int>(); }",

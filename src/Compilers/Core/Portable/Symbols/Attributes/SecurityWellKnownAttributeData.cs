@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Used for retreiving applied source security attributes, i.e. attributes derived from well-known SecurityAttribute.
+        /// Used for retrieving applied source security attributes, i.e. attributes derived from well-known SecurityAttribute.
         /// </summary>
         public IEnumerable<Cci.SecurityAttribute> GetSecurityAttributes<T>(ImmutableArray<T> customAttributes)
             where T : Cci.ICustomAttribute

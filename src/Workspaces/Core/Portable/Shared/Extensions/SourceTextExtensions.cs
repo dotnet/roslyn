@@ -181,9 +181,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return -1;
         }
 
-        private static bool Match(char nomalizedLeft, char right, bool caseSensitive)
+        private static bool Match(char normalizedLeft, char right, bool caseSensitive)
         {
-            return caseSensitive ? nomalizedLeft == right : nomalizedLeft == CaseInsensitiveComparison.ToLower(right);
+            return caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
         }
     }
 }

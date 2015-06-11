@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' if "node" argument is a BoundRaiseEvent, returns its underlying boundcall instesd.
+        ''' if "node" argument is a BoundRaiseEvent, returns its underlying boundcall instead.
         ''' Otherwise returns "node" unchanged.
         ''' </summary>
         Private Shared Function UnwrapRaiseEvent(node As BoundNode) As BoundNode
@@ -925,7 +925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim select2 As SymbolInfo = GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
 
-                ' Now let's check if there is another Select call preceeding this one.
+                ' Now let's check if there is another Select call preceding this one.
                 Dim select1Node = DirectCast(CompilerGeneratedNodeFinder.FindIn(bound, node, BoundKind.QueryClause), BoundQueryClause)
 
                 If select1Node IsNot Nothing Then
@@ -1930,7 +1930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ''' <summary>
-            ''' We override GetBinder so that the BindStatement override is stil
+            ''' We override GetBinder so that the BindStatement override is still
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
@@ -1945,7 +1945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             ''' <summary>
-            ''' We override GetBinder so that the BindStatement override is stil
+            ''' We override GetBinder so that the BindStatement override is still
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(list As SyntaxList(Of StatementSyntax)) As Binder

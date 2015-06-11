@@ -84,7 +84,7 @@ False
         ' Function call in return expression 
         <WorkItem(541647, "DevDiv")>
         <Fact()>
-        Public Sub FuntionCallAsArgument()
+        Public Sub FunctionCallAsArgument()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

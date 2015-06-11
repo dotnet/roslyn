@@ -830,7 +830,7 @@ End Class
 Class DerivedClass2
     Inherits DerivedClass
     Sub test()
-        MyBase.mybase.Mymetod()
+        MyBase.mybase.Mymethod()
     End Sub
 End Class
     </file>

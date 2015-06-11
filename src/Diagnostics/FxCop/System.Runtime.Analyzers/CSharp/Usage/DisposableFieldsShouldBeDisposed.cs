@@ -38,8 +38,8 @@ namespace System.Runtime.Analyzers
                         var methodSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Name).Symbol as IMethodSymbol;
                         if (methodSymbol != null && methodSymbol.MetadataName == Dispose)
                         {
-                            var recieverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
-                            if (recieverType.Inherits(_disposableType))
+                            var receiverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
+                            if (receiverType.Inherits(_disposableType))
                             {
                                 // this can be simply x.Dispose() where x is the field.
                                 var fieldSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IFieldSymbol;

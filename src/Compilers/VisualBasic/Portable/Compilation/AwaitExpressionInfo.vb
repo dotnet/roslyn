@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
-    '''  Structure containing all semantic information about an Await expession.
+    '''  Structure containing all semantic information about an Await expression.
     ''' </summary>
     Public Structure AwaitExpressionInfo
 

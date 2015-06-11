@@ -6673,7 +6673,7 @@ class Test
         public void TestErrorsOverridingGenericNestedClasses_HideTypeParameter()
         {
             // Tests:
-            // In signature / name of overriden member, use generic type whose open type (C<T>) matches signature
+            // In signature / name of overridden member, use generic type whose open type (C<T>) matches signature
             // in base class - but the closed type (C<string> / C<U>) does not match
 
             var source = @"

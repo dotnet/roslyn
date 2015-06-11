@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides hash code for current instnce of <see cref="TextChangeRange"/>.
+        /// Provides hash code for current instance of <see cref="TextChangeRange"/>.
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode()

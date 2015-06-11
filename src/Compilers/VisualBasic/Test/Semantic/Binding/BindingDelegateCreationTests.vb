@@ -721,10 +721,10 @@ BC36663: Option Strict On does not allow narrowing in implicit type conversions 
         End Sub
 
         <Fact>
-        Public Sub NoZeroArgumentRelaxationIfAmbigousMatchesExist()
+        Public Sub NoZeroArgumentRelaxationIfAmbiguousMatchesExist()
             For Each optionValue In {"Off"}
                 Dim source =
-    <compilation name="NoZeroArgumentRelaxationIfAmbigousMatchesExist">
+    <compilation>
         <file name="a.vb">
 Option strict <%= optionValue %>    
 Imports System

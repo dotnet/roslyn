@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             if (phase == 0)
                             {
                                 _conflictLocations = conflictResolution.RelatedLocations
-                                    .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossibilyResolvableConflict && loc.IsReference))
+                                    .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference))
                                     .Select(loc => new ConflictLocationInfo(loc))
                                     .ToSet();
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             if (phase == 1)
                             {
                                 _conflictLocations = _conflictLocations.Concat(conflictResolution.RelatedLocations
-                                    .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossibilyResolvableConflict)
+                                    .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict)
                                     .Select(loc => new ConflictLocationInfo(loc)))
                                     .ToSet();
                             }
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 foreach (var relatedLocation in conflictResolution.RelatedLocations)
                 {
-                    if (relatedLocation.Type == RelatedLocationType.PossibilyResolvableConflict)
+                    if (relatedLocation.Type == RelatedLocationType.PossiblyResolvableConflict)
                     {
                         relatedLocation.Type = RelatedLocationType.UnresolvedConflict;
                     }
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             conflictResolution.AddRelatedLocation(new RelatedLocation(
                                 originalLocation,
                                 documentId,
-                                complexifiedTarget != null ? RelatedLocationType.PossibilyResolvableConflict : RelatedLocationType.UnresolvableConflict,
+                                complexifiedTarget != null ? RelatedLocationType.PossiblyResolvableConflict : RelatedLocationType.UnresolvableConflict,
                                 isReference: conflictAnnotation.IsRenameLocation,
                                 complexifiedTargetSpan: complexifiedTarget != null ? complexifiedTarget.Span : default(TextSpan)));
                         }
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     await AddDeclarationConflictsAsync(renamedSymbolInNewSolution, renameSymbol, referencedSymbols, conflictResolution, reverseMappedLocations, _cancellationToken).ConfigureAwait(false);
                 }
 
-                return conflictResolution.RelatedLocations.Any(r => r.Type == RelatedLocationType.PossibilyResolvableConflict);
+                return conflictResolution.RelatedLocations.Any(r => r.Type == RelatedLocationType.PossiblyResolvableConflict);
             }
 
             /// <summary>

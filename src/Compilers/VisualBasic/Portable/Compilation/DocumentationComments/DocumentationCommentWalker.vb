@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If result.IsEmpty Then
                             ' We were not able to find anything by this name,
-                            ' generate diagnostic and use errorneous 
+                            ' generate diagnostic and use erroneous 
                             ProcessErrorLocations(crefAttr, errorLocations, Nothing, ERRID.WRN_XMLDocCrefAttributeNotFound1)
 
                         ElseIf result.Length > 1 AndAlso reference.Signature IsNot Nothing Then
