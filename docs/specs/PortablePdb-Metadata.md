@@ -111,42 +111,37 @@ The values of non-hidden sequence point must satisfy the following constraints
 
 _Sequence points blob_ has the following structure:
 
-    Blob ::= first-point-record SubsequentRecord*
-    SubsequentRecord ::= subsequent-point-record |
-	                     subsequent-hidden-point-record |
-                         subsequent-document-record
+    Blob ::= header SequencePointRecord (SequencePointRecord | document-record)*
+    SequencePointRecord ::= sequence-point-record | hidden-sequence-point-record
 
-#####first-point-record
+#####header
 | component      | value stored                  | integer representation |
 |:---------------|:------------------------------|:-----------------------|
 | _Document_     | Document table row id         | unsigned compressed    |
-| _ILOffset_	 | _ILOffset_                    | unsigned compressed    |
-| _ΔLines_       | _EndLine_ - _StartLine_       | unsigned compressed    |
-| _ΔColumns_     | _EndColumn_ - _StartColumn_   | _ΔLines_ = 0: unsigned compressed, non-zero |
-|                |                               | _ΔLines_ ≠ 0: signed compressed             |
-| _StartLine_    | _StartLine_                   | unsigned compressed    |
-| _StartColumn_  | _StartColumn_                 | unsigned compressed    |
 
-If _ΔLines_ and _ΔColumns_ are both 0 the record represents a hidden sequence point.
+#####sequence-point-record
+| component      | value stored                                         | integer representation                      |
+|:---------------|:-----------------------------------------------------|:--------------------------------------------|
+| _δILOffset_    | _ILOffset_ if this is the first sequence point       | unsigned compressed                         |
+|                | _ILOffset_ - _Previous_._ILOffset_ otherwise         | unsigned compressed, non-zero               |
+| _ΔLines_       | _EndLine_ - _StartLine_                              | unsigned compressed                         |
+| _ΔColumns_     | _EndColumn_ - _StartColumn_                          | _ΔLines_ = 0: unsigned compressed, non-zero |
+|                |                                                      | _ΔLines_ ≠ 0: signed compressed             |
+| _δStartLine_   | _StartLine_ if this is the first non-hidden sequence point   | unsigned compressed |
+|                | _StartLine_ - _PreviousNonHidden_._StartLine_ otherwise      | unsigned compressed |
+| _δStartColumn_ | _StartColumn_ if this is the first non-hidden sequence point | unsigned compressed |
+|                | _StartColumn_ - _PreviousNonHidden_._StartColumn_ otherwise  | signed compressed   |
 
-#####subsequent-point-record
-| component    | value stored                       | integer representation         |
-|:-------------|:-----------------------------------|:-------------------------------|
-| _δILOffset_  | _ILOffset_ - _Previous_._ILOffset_	| unsigned compressed, non-zero  |
-| _ΔLines_     | _EndLine_ - _StartLine_            | unsigned compressed            |
-| _ΔColumns_   | _EndColumn_ - _StartColumn_        | _ΔLines_ = 0: unsigned compressed, non-zero |
-|              |                                    | _ΔLines_ ≠ 0: signed compressed             |
-| _δStartLine_   | _StartLine_ - _PreviousNonHidden_._StartLine_	    | signed compressed       |
-| _δStartColumn_ | _StartColumn_ - _PreviousNonHidden_._StartColumn_	| signed compressed       |
+#####hidden-sequence-point-record
+| component    | value stored                                           | integer representation          |
+|:-------------|:-------------------------------------------------------|:--------------------------------|
+| _δILOffset_  | _ILOffset_ if this is the first sequence point         | unsigned compressed             |
+|              | _ILOffset_ - _Previous_._ILOffset_ otherwise           | unsigned compressed, non-zero   |
+| _ΔLine_      | 0                                                      | unsigned compressed             |
+| _ΔColumn_	   | 0                                                      | unsigned compressed             |
 
-The sequence point represented by this record inherits the value of _Document_ property from the previous record. The value of _IL Offset_ is calculated using the value of the previous sequence point and the value stored in the record. The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ are calculated based upon the values of the previous non-hidden sequence point and the data stored in the record.
+The sequence point represented by this record inherits the value of _Document_ property from the previous record. The value of _IL Offset_ is calculated using the value of the previous sequence point and the value stored in the record. The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ are calculated based upon the values of the previous non-hidden sequence point and the data stored in the record. If there is no such sequence point 
 
-#####subsequent-hidden-point-record
-| component    | value stored                       | integer representation         |
-|:-------------|:-----------------------------------|:-------------------------------|
-| _δILOffset_  | _ILOffset_ - _Previous_._ILOffset_ | unsigned compressed, non-zero  |
-| _ΔLine_      | 0                                  | unsigned compressed            |
-| _ΔColumn_	   | 0                                  | unsigned compressed            |
 
 The hidden sequence point represented by the record inherits the value of _Document_ property from the previous record. The value of _IL Offset_ is calculated based on the value of the previous sequence point and the data stored in the record.
 
