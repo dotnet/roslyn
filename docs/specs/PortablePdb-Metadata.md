@@ -140,16 +140,15 @@ _Sequence points blob_ has the following structure:
 | _ΔLine_      | 0                                                      | unsigned compressed             |
 | _ΔColumn_	   | 0                                                      | unsigned compressed             |
 
-The sequence point represented by this record inherits the value of _Document_ property from the previous record. The value of _IL Offset_ is calculated using the value of the previous sequence point and the value stored in the record. The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ are calculated based upon the values of the previous non-hidden sequence point and the data stored in the record. If there is no such sequence point 
-
-
-The hidden sequence point represented by the record inherits the value of _Document_ property from the previous record. The value of _IL Offset_ is calculated based on the value of the previous sequence point and the data stored in the record.
-
-#####subsequent-document-record
+#####document-record
 | component    | value stored                       | integer representation         |
 |:-------------|:-----------------------------------|:-------------------------------|
 | _δILOffset_  | 0                                  | unsigned compressed            |
 | _Document_   | Document row id                    | unsigned compressed            |
+
+Each _SequencePointRecord_ represents a single sequence point. The sequence point inherits the value of _Document_ property from the previous record (_SequencePointRecord_ or _document-record_) or from the _header_ if its the first sequence point. The value of _IL Offset_ is calculated using the value of the previous sequence point (if any) and the value stored in the record. 
+
+The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ of a non-hidden sequence point are calculated based upon the values of the previous non-hidden sequence point (if any) and the data stored in the record.
 
 ### <a name="LocalScopeTable"></a>LocalScope Table: 0x32
 
