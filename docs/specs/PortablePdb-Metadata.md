@@ -86,7 +86,7 @@ MethodBody table is either empty (missing) or has exactly as many rows as Method
 
 The table is a logical extension of MethodDef table (adding a column to the table) and as such can be indexed by MethodDef row id.
 
-#### <a name="SequencePointsBlob"></a>Sequence Points Blob
+#### <a name="MethodBodyBlob"></a>Method Body Blob
 Sequence point is a quintuple of integers and a document reference:
 
 * IL Offset
@@ -109,15 +109,20 @@ The values of non-hidden sequence point must satisfy the following constraints
 * End Line is greater or equal to Start Line.
 * If Start Line is equal to End Line then End Column is greater than Start Column.
 
-_Sequence points blob_ has the following structure:
+_Method body blob_ has the following structure:
 
     Blob ::= header SequencePointRecord (SequencePointRecord | document-record)*
     SequencePointRecord ::= sequence-point-record | hidden-sequence-point-record
 
 #####header
-| component      | value stored                  | integer representation |
-|:---------------|:------------------------------|:-----------------------|
-| _Document_     | Document table row id         | unsigned compressed    |
+| component        | value stored                  | integer representation |
+|:-----------------|:------------------------------|:-----------------------|
+| _LocalSignature_ | StandAloneSig table row id    | unsigned compressed    |
+| _Document_       | Document table row id         | unsigned compressed    |
+
+_LocalSignature_ stores the row id of the local signature fo the method. 
+
+This information is somewhat redundant since it can be retrieved from the IL stream. However in some scenarios the IL stream is not available or loading it would unnecessary page in memory that might not otherwise be needed.
 
 #####sequence-point-record
 | component      | value stored                                         | integer representation                      |
@@ -126,7 +131,7 @@ _Sequence points blob_ has the following structure:
 |                | _ILOffset_ - _Previous_._ILOffset_ otherwise         | unsigned compressed, non-zero               |
 | _ΔLines_       | _EndLine_ - _StartLine_                              | unsigned compressed                         |
 | _ΔColumns_     | _EndColumn_ - _StartColumn_                          | _ΔLines_ = 0: unsigned compressed, non-zero |
-|                |                                                      | _ΔLines_ ≠ 0: signed compressed             |
+|                |                                                      | _ΔLines_ > 0: signed compressed             |
 | _δStartLine_   | _StartLine_ if this is the first non-hidden sequence point   | unsigned compressed |
 |                | _StartLine_ - _PreviousNonHidden_._StartLine_ otherwise      | signed compressed |
 | _δStartColumn_ | _StartColumn_ if this is the first non-hidden sequence point | unsigned compressed |
