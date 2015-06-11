@@ -128,7 +128,7 @@ _Sequence points blob_ has the following structure:
 | _ΔColumns_     | _EndColumn_ - _StartColumn_                          | _ΔLines_ = 0: unsigned compressed, non-zero |
 |                |                                                      | _ΔLines_ ≠ 0: signed compressed             |
 | _δStartLine_   | _StartLine_ if this is the first non-hidden sequence point   | unsigned compressed |
-|                | _StartLine_ - _PreviousNonHidden_._StartLine_ otherwise      | unsigned compressed |
+|                | _StartLine_ - _PreviousNonHidden_._StartLine_ otherwise      | signed compressed |
 | _δStartColumn_ | _StartColumn_ if this is the first non-hidden sequence point | unsigned compressed |
 |                | _StartColumn_ - _PreviousNonHidden_._StartColumn_ otherwise  | signed compressed   |
 
