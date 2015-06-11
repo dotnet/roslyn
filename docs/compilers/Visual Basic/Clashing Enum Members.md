@@ -34,6 +34,6 @@ A VB client that used `SomeEnum.Datetime` would have received no warning from pr
 
 Although this program is technically in error (the name `Datetime` is ambiguous between two enum members), the Dev12 VB compiler would select the *lexically first* enumeration constant of a given (case-insensitive) name when looking up an enumeration constant within an enumeration type. Since that member does not have the Obsolete attribute in this example, the VB code would continue to compile and run without a problem.
 
-The Roslyn compilers reproduce this bug so that existing code that takes advantage of this will not be broken. See, for example,
+The Roslyn compilers reproduce this bug - but only when the conflicting enumeration constants have the same underlying value, as in the example above - so that existing code that takes advantage of this will not be broken. See, for example,
 - https://bugs.mysql.com/bug.php?id=37406
 - http://lists.mysql.com/commits/48012
