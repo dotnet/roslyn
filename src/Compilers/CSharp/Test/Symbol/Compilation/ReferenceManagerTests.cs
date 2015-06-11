@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
             WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void WinRtCompilationReferences()
         {
             var ifaceDef = CreateCompilationWithMscorlib(
