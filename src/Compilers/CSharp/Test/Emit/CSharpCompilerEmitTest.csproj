@@ -167,6 +167,7 @@
     <Compile Include="PDB\PDBTests.cs" />
     <Compile Include="PDB\PDBUsingTests.cs" />
     <Compile Include="PDB\PDBWinMdExpTests.cs" />
+    <Compile Include="PDB\PortablePdbTests.cs" />
     <Compile Include="Perf.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>

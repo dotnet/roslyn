@@ -80,7 +80,7 @@ namespace Microsoft.Cci
         private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
         private readonly Dictionary<IImportScope, int> _scopeIndex = new Dictionary<IImportScope, int>();
 
-        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid)
+        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int localSignatureRowId)
         {
             if (bodyOpt == null)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.Cci
             int importScopeRid = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : 0;
 
             // documents & sequence points:
-            uint sequencePointsBlob = SerializeSequencePoints(bodyOpt.GetSequencePoints(), _documentIndex);
+            uint sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex);
             _methodBodyTable.Add(new MethodBodyRow { SequencePoints = sequencePointsBlob });
             
             // Unlike native PDB we don't emit an empty root scope.
@@ -572,7 +572,7 @@ namespace Microsoft.Cci
 
         #region Sequence Points
 
-        private uint SerializeSequencePoints(ImmutableArray<SequencePoint> sequencePoints, Dictionary<DebugSourceDocument, int> documentIndex)
+        private uint SerializeSequencePoints(int localSignatureRowId, ImmutableArray<SequencePoint> sequencePoints, Dictionary<DebugSourceDocument, int> documentIndex)
         {
             if (sequencePoints.Length == 0)
             {
@@ -582,16 +582,16 @@ namespace Microsoft.Cci
             MemoryStream sig = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(sig);
 
+            int previousNonHiddenStartLine = -1;
+            int previousNonHiddenStartColumn = -1;
+
             uint currentDocumentRowId = GetOrAddDocument(sequencePoints[0].Document, documentIndex);
 
-            // first record:
+            // header:
+            writer.WriteCompressedUInt((uint)localSignatureRowId);
             writer.WriteCompressedUInt(currentDocumentRowId);
-            writer.WriteCompressedUInt((uint)sequencePoints[0].Offset);
-            SerializeDeltaLinesAndColumns(writer, sequencePoints[0]);
-            writer.WriteCompressedUInt((uint)sequencePoints[0].StartLine);
-            writer.WriteCompressedUInt((uint)sequencePoints[0].StartColumn);
 
-            for (int i = 1; i < sequencePoints.Length; i++)
+            for (int i = 0; i < sequencePoints.Length; i++)
             {
                 uint documentRowId = GetOrAddDocument(sequencePoints[i].Document, documentIndex);
                 if (documentRowId != currentDocumentRowId)
@@ -602,17 +602,40 @@ namespace Microsoft.Cci
                     currentDocumentRowId = documentRowId;
                 }
 
-                // subsequent record:
-                writer.WriteCompressedUInt((uint)(sequencePoints[i].Offset - sequencePoints[i - 1].Offset));
-                SerializeDeltaLinesAndColumns(writer, sequencePoints[i]);
+                // delta IL offset:
+                if (i > 0)
+                {
+                    writer.WriteCompressedUInt((uint)(sequencePoints[i].Offset - sequencePoints[i - 1].Offset));
+                }
+                else
+                {
+                    writer.WriteCompressedUInt((uint)sequencePoints[i].Offset);
+                }
 
                 if (sequencePoints[i].IsHidden)
                 {
+                    writer.WriteShort(0);
                     continue;
                 }
 
-                writer.WriteCompressedSignedInteger(sequencePoints[i].StartLine - sequencePoints[i - 1].StartLine);
-                writer.WriteCompressedSignedInteger(sequencePoints[i].StartColumn - sequencePoints[i - 1].StartColumn);
+                // Delta Lines & Columns:
+                SerializeDeltaLinesAndColumns(writer, sequencePoints[i]);
+
+                // delta Start Lines & Columns:
+                if (previousNonHiddenStartLine < 0)
+                {
+                    Debug.Assert(previousNonHiddenStartColumn < 0);
+                    writer.WriteCompressedUInt((uint)sequencePoints[i].StartLine);
+                    writer.WriteCompressedUInt((uint)sequencePoints[i].StartColumn);
+                }
+                else
+                {
+                    writer.WriteCompressedSignedInteger(sequencePoints[i].StartLine - previousNonHiddenStartLine);
+                    writer.WriteCompressedSignedInteger(sequencePoints[i].StartColumn - previousNonHiddenStartColumn);
+                }
+
+                previousNonHiddenStartLine = sequencePoints[i].StartLine;
+                previousNonHiddenStartColumn = sequencePoints[i].StartColumn;
             }
 
             return debugHeapsOpt.GetBlobIndex(sig);

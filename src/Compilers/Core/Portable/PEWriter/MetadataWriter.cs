@@ -4171,6 +4171,7 @@ namespace Microsoft.Cci
                 _cancellationToken.ThrowIfCancellationRequested();
                 uint rva;
                 IMethodBody body;
+                int localSignatureRid;
 
                 if (method.HasBody())
                 {
@@ -4179,7 +4180,8 @@ namespace Microsoft.Cci
 
                     if (body != null)
                     {
-                        uint localSignatureToken = this.SerializeLocalVariablesSignature(body);
+                        localSignatureRid = this.SerializeLocalVariablesSignature(body);
+                        uint localSignatureToken = (uint)(0x11000000 | localSignatureRid);
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
@@ -4189,6 +4191,7 @@ namespace Microsoft.Cci
                     else
                     {
                         rva = 0;
+                        localSignatureRid = 0;
                     }
                 }
                 else
@@ -4196,11 +4199,12 @@ namespace Microsoft.Cci
                     // 0 is actually written to metadata when the row is serialized
                     rva = uint.MaxValue;
                     body = null;
+                    localSignatureRid = 0;
                 }
 
                 if (debugHeapsOpt != null)
                 {
-                    SerializeMethodDebugInfo(body, methodRid);
+                    SerializeMethodDebugInfo(body, methodRid, localSignatureRid);
                 }
 
                 rvas[methodRid - 1] = rva;
@@ -4270,7 +4274,7 @@ namespace Microsoft.Cci
         /// Serialize the method local signature to the blob.
         /// </summary>
         /// <returns>Standalone signature token</returns>
-        protected virtual uint SerializeLocalVariablesSignature(IMethodBody body)
+        protected virtual int SerializeLocalVariablesSignature(IMethodBody body)
         {
             Debug.Assert(!_tableIndicesAreComplete);
 
@@ -4290,10 +4294,10 @@ namespace Microsoft.Cci
             }
 
             uint blobIndex = heaps.GetBlobIndex(writer.BaseStream);
-            uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
+            int signatureIndex = (int)this.GetOrAddStandAloneSignatureIndex(blobIndex);
             stream.Free();
 
-            return 0x11000000 | signatureIndex;
+            return signatureIndex;
         }
 
         protected void SerializeLocalVariableSignature(BinaryWriter writer, ILocalDefinition local)

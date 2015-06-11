@@ -605,9 +605,9 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected override uint SerializeLocalVariablesSignature(IMethodBody body)
+        protected override int SerializeLocalVariablesSignature(IMethodBody body)
         {
-            uint result = 0;
+            int localSignatureRowId;
             var localVariables = body.LocalVariables;
             var encInfos = ArrayBuilder<EncLocalInfo>.GetInstance();
 
@@ -641,10 +641,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 uint blobIndex = heaps.GetBlobIndex(writer.BaseStream);
-                uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
+                localSignatureRowId = (int)this.GetOrAddStandAloneSignatureIndex(blobIndex);
                 stream.Free();
-
-                result = 0x11000000 | signatureIndex;
+            }
+            else
+            {
+                localSignatureRowId = 0;
             }
 
             var method = body.MethodDefinition;
@@ -663,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             encInfos.Free();
-            return result;
+            return localSignatureRowId;
         }
 
         private EncLocalInfo CreateEncLocalInfo(ILocalDefinition localDef, byte[] signature)
