@@ -63,8 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTags;
 
-        private bool _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-
         /// <summary>
         /// A function that is provided to the producer of this tag source. May be null. In some
         /// scenarios, such as restoring previous REPL history entries, we want to try to use the
@@ -655,7 +653,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
         /// exist for the buffer at all, null is returned.
         /// </summary>
-        public override ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+        public sealed override ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+        {
+            this.WorkQueue.AssertIsForeground();
+
+            // If we're currently pausing updates to the UI, then just use the tags we had before we
+            // were paused so that nothing changes.
+            var map = _previousCachedTags ?? _cachedTags;
+
+            TagSpanIntervalTree<TTag> tags;
+            map.TryGetValue(buffer, out tags);
+            return tags;
+        }
+
+        public sealed override ITagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
         {
             this.WorkQueue.AssertIsForeground();
 
@@ -666,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> tags;
             if (!map.TryGetValue(buffer, out tags))
             {
-                if (ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted && _previousCachedTags == null)
+                if (_previousCachedTags == null)
                 {
                     // We can cancel any background computations currently happening
                     this.WorkQueue.CancelCurrentWork();
@@ -675,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
                     // We shall synchronously compute tags.
                     var producedTags = ConvertToTagTree(
-                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), CancellationToken.None).WaitAndGetResult(CancellationToken.None));
+                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), cancellationToken).WaitAndGetResult(cancellationToken));
 
                     ProcessNewTags(spansToCompute, null, producedTags);
 
@@ -684,20 +695,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             return tags;
-        }
-
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted
-        {
-            get
-            {
-                return _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-            }
-
-            set
-            {
-                this.WorkQueue.AssertIsForeground();
-                _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = value;
-            }
         }
 
         private class DiffSpanComparer : IDiffSpanComparer<ITagSpan<TTag>>

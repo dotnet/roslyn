@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -51,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected abstract TagSpan<TTag> CreateTagSpan(SnapshotSpan span, DiagnosticData diagnostic);
 
         public override ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+        {
+            return GetAccurateTagIntervalTreeForBuffer(buffer, CancellationToken.None);
+        }
+
+        public override ITagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
         {
             if (buffer == this.SubjectBuffer)
             {

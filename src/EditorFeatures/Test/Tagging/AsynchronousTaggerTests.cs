@@ -103,16 +103,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                 var document = workspace.Documents.First();
                 var textBuffer = document.TextBuffer;
-                var tagger = tagProvider.CreateTagger<IOutliningRegionTag>(textBuffer);
+                var tagger = tagProvider.CreateTagger<IOutliningRegionTag>(textBuffer) as IAccurateTagger<IOutliningRegionTag>;
 
                 using (var disposable = (IDisposable)tagger)
                 {
                     ProducerPopulatedTagSource<IOutliningRegionTag> tagSource = null;
                     tagProvider.TryRetrieveTagSource(null, textBuffer, out tagSource);
-                    tagSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = true;
 
                     // The very first all to get tags should return the single outlining span.
-                    var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
+                    var tags = tagger.GetAllTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()), CancellationToken.None);
                     Assert.Equal(1, tags.Count());
                 }
             }

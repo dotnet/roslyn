@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// 
     /// It's responsibility is on interfaction between host and tagger. TagSource has responsibility on how to provide information for this tagger.
     /// </summary>
-    internal sealed partial class AsynchronousTagger<TTag> : ITagger<TTag>, IDisposable
+    internal sealed partial class AsynchronousTagger<TTag> : IAccurateTagger<TTag>, ITagger<TTag>, IDisposable
         where TTag : ITag
     {
         private const int MaxNumberOfRequestedSpans = 100;
@@ -114,6 +114,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }, _uiUpdateDelayInMS, CancellationToken.None);
         }
 
+        public IEnumerable<ITagSpan<TTag>> GetAllTags(NormalizedSnapshotSpanCollection requestedSpans, CancellationToken cancellationToken)
+        {
+            if (requestedSpans.Count == 0)
+            {
+                return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+            }
+
+            var buffer = requestedSpans.First().Snapshot.TextBuffer;
+            var tags = _tagSource.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken);
+            return GetTags(requestedSpans, tags);
+        }
+
         public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
         {
             if (requestedSpans.Count == 0)
@@ -123,28 +135,27 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var buffer = requestedSpans.First().Snapshot.TextBuffer;
             var tags = _tagSource.GetTagIntervalTreeForBuffer(buffer);
+            return GetTags(requestedSpans, tags);
+        }
 
+        private static IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans, ITagSpanIntervalTree<TTag> tags)
+        {
             if (tags == null)
             {
                 return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
             }
 
-            var result = GetTags(requestedSpans, tags);
-
-            DebugVerifyTags(requestedSpans, result);
-
-            return result;
-        }
-
-        private static IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans, ITagSpanIntervalTree<TTag> tags)
-        {
             // Special case the case where there is only one requested span.  In that case, we don't
             // need to allocate any intermediate collections
-            return requestedSpans.Count == 1
+            var result = requestedSpans.Count == 1
                 ? tags.GetIntersectingSpans(requestedSpans[0])
                 : requestedSpans.Count < MaxNumberOfRequestedSpans
                     ? GetTagsForSmallNumberOfSpans(requestedSpans, tags)
                     : GetTagsForLargeNumberOfSpans(requestedSpans, tags);
+
+            DebugVerifyTags(requestedSpans, result);
+
+            return result;
         }
 
         private static IEnumerable<ITagSpan<TTag>> GetTagsForSmallNumberOfSpans(
