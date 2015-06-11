@@ -790,7 +790,7 @@ End Property
 
             Dim expected = "#Const constant = 1 ""A""c"
 
-            Dim actual = SyntaxNormalizer.Normalize(trivia, "  ", useElasticTrivia:=False, useDefaultCasing:=False).ToFullString()
+            Dim actual = trivia.NormalizeWhitespace(indentation:="  ", elasticTrivia:=False, useDefaultCasing:=False).ToFullString()
             Assert.Equal(expected, actual)
         End Sub
 
@@ -867,7 +867,7 @@ End Property
 # enable   warning ,]]>.Value.Replace(vbLf, vbCrLf)
 
             Dim root = Parse(text).GetRoot()
-            Dim normalizedRoot = SyntaxNormalizer.Normalize(root, "    ", useElasticTrivia:=True, useDefaultCasing:=True)
+            Dim normalizedRoot = root.NormalizeWhitespace(indentation:="    ", elasticTrivia:=True, useDefaultCasing:=True)
 
             Dim expected = <![CDATA[#Enable Warning [BC000], Bc123, BC456, _789 '          comment
 #Enable Warning
@@ -888,7 +888,7 @@ End Property
 End Module]]>.Value.Replace(vbLf, vbCrLf)
 
             Dim root = Parse(text).GetRoot()
-            Dim normalizedRoot = SyntaxNormalizer.Normalize(root, "    ", useElasticTrivia:=True, useDefaultCasing:=True)
+            Dim normalizedRoot = root.NormalizeWhitespace(indentation:="    ", elasticTrivia:=True, useDefaultCasing:=True)
 
             Dim expected = <![CDATA[Module Program
 
@@ -902,5 +902,22 @@ End Module]]>.Value.Replace(vbLf, vbCrLf)
 
             Assert.Equal(expected, normalizedRoot.ToFullString())
         End Sub
+
+        <Fact>
+        Public Sub TestNormalizeEOL()
+            Dim code = "Class C" & vbCrLf & "End Class"
+            Dim expected = "Class C" & vbLf & "End Class" & vbLf
+            Dim actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace("  ", eol:=vbLf).ToFullString()
+            Assert.Equal(expected, actual)
+        End Sub
+
+        <Fact>
+        Public Sub TestNormalizeTabs()
+            Dim code = "Class C" & vbCrLf & "Sub M()" & vbCrLf & "End Sub" & vbCrLf & "End Class"
+            Dim expected = "Class C" & vbCrLf & vbCrLf & vbTab & "Sub M()" & vbCrLf & vbTab & "End Sub" & vbCrLf & "End Class" & vbCrLf
+            Dim actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(vbTab).ToFullString()
+            Assert.Equal(expected, actual)
+        End Sub
+
     End Class
 End Namespace

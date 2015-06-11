@@ -470,10 +470,21 @@ int i = 1;
 }");
         }
 
-        private void TestNormalizeTrivia(string text, string expected)
+        [Fact]
+        public void TestNormalizeEOL()
         {
-            var list = SyntaxFactory.ParseLeadingTrivia(text);
-            var actual = SyntaxNormalizer.Normalize(list, "    ").ToFullString();
+            var code = "class c{}";
+            var expected = "class c\n{\n}";
+            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "  ", eol: "\n").ToFullString();
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestNormalizeTabs()
+        {
+            var code = "class c{void m(){}}";
+            var expected = "class c\r\n{\r\n\tvoid m()\r\n\t{\r\n\t}\r\n}";
+            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "\t").ToFullString();
             Assert.Equal(expected, actual);
         }
 
@@ -483,9 +494,15 @@ int i = 1;
             Assert.Equal(expected, actual);
         }
 
+        private void TestNormalizeTrivia(string text, string expected)
+        {
+            var list = SyntaxFactory.ParseLeadingTrivia(text);
+            TestNormalize(list, expected);
+        }
+
         private void TestNormalize(SyntaxTriviaList trivia, string expected)
         {
-            var actual = SyntaxNormalizer.Normalize(trivia, "    ").ToFullString();
+            var actual = trivia.NormalizeWhitespace("    ").ToFullString();
             Assert.Equal(expected, actual);
         }
     }
