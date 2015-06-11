@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(new SmallDictionary<TypeParameterSymbol, TypeSymbol>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
-            // This assert fails on generic local functions
-            //Debug.Assert(!mapping.Keys.Any(tp => tp is SubstitutedTypeParameterSymbol));
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ForType(NamedTypeSymbol containingType)
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
         }
 
-        internal TypeMap WithConcatAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters, int trimOffAt = 0)
+        internal TypeMap WithConcatAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters, MethodSymbol stopAt = null)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
 
@@ -141,8 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //     }
             //   }
             // }
+            // However, if stopAt is M1, then the type parameters would be <T2, T3, T4>
+            // That is, stopAt's type parameters are excluded - the parameters are in the range (stopAt, oldOwner]
+            // A null stopAt means "include everything"
             var parameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-            do
+            while (oldOwner != null && oldOwner != stopAt)
             {
                 var currentParameters = oldOwner.OriginalDefinition.TypeParameters;
 
@@ -152,15 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 oldOwner = oldOwner.ContainingSymbol as MethodSymbol;
-            } while (oldOwner != null);
+            }
             parameters.ReverseContents();
 
-            var finalParameters = parameters.ToImmutableAndFree();
-            if (trimOffAt != 0)
-            {
-                finalParameters = ImmutableArray.Create(finalParameters, trimOffAt, finalParameters.Length - trimOffAt);
-            }
-            return WithAlphaRename(finalParameters, newOwner, out newTypeParameters);
+            // Ensure that if stopAt was provided, it actually was in the chain and we stopped at it.
+            // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain)
+            Debug.Assert(stopAt == oldOwner);
+
+            return WithAlphaRename(parameters.ToImmutableAndFree(), newOwner, out newTypeParameters);
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbol> to)

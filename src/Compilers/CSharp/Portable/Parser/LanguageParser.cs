@@ -8100,6 +8100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private LocalFunctionStatementSyntax TryParseLocalFunctionStatementBody(SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier)
         {
+            var resetPoint = this.GetResetPoint();
+
             bool parentScopeIsInAsync = IsInAsync;
             IsInAsync = false;
             SyntaxListBuilder badBuilder = null;
@@ -8112,6 +8114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
                     case SyntaxKind.UnsafeKeyword:
                         break;
+                    case SyntaxKind.StaticKeyword:
+                    case SyntaxKind.ReadOnlyKeyword:
+                    case SyntaxKind.VolatileKeyword:
+                        break; // already reported earlier, no need to report again
                     default:
                         if (badBuilder == null)
                         {
@@ -8127,8 +8133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 modifiers = badBuilder.ToTokenList();
                 _pool.Free(badBuilder);
             }
-
-            var resetPoint = this.GetResetPoint();
 
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);

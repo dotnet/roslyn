@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     DebugId closureId = default(DebugId);
                     // using _topLevelMethod as containing member because the static frame does not have generic parameters, except for the top level method's
-                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, _topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
+                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, isNonGeneric ? null : _topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
                     // nongeneric static lambdas can share the frame
                     if (isNonGeneric)
@@ -659,9 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var translatedLambdaContainer = synthesizedMethod.ContainingType;
             var containerAsFrame = translatedLambdaContainer as LambdaFrame;
 
-            // All of _currentTypeParameters might not be preserved due to recursively calling upwards in the chain of local functions/lambdas
+            // All of _currentTypeParameters might not be preserved here due to recursively calling upwards in the chain of local functions/lambdas
             Debug.Assert((typeArgumentsOpt.IsDefault && !originalMethod.IsGenericMethod) || (typeArgumentsOpt.Length == originalMethod.Arity));
-            var totalTypeArgumentCount = translatedLambdaContainer.Arity + synthesizedMethod.Arity;
+            var totalTypeArgumentCount = (containerAsFrame?.Arity ?? 0) + synthesizedMethod.Arity;
             var realTypeArguments = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters), 0, totalTypeArgumentCount - originalMethod.Arity);
             if (!typeArgumentsOpt.IsDefault)
             {

@@ -111,6 +111,45 @@ Main
         }
 
         [Fact]
+        public void BadStandardMethodFeatures()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Params(params int x)
+        {
+            Console.WriteLine(x);
+        }
+        void RefOut(ref int x = 2)
+        {
+            x++;
+        }
+        void NamedOptional(string x = 2)
+        {
+            Console.WriteLine(x);
+        }
+        void CallerMemberName([CallerMemberName] int s = 2)
+        {
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            // TODO: SourceComplexParameterSymbol reports to AddDeclarationDiagnostics, which is frozen at the time local functions are bound.
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0).WithAllowUnsafe(true);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (9,21): error CS0225: The params parameter must be a single dimensional array
+    //         void Params(params int x)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
         public void Property()
         {
             var source = @"
@@ -493,6 +532,10 @@ class Program
         {
             yield return 2;
         }
+        IEnumerable<T> LocalGeneric<T>(T val)
+        {
+            yield return val;
+        }
         IEnumerable LocalNongen()
         {
             yield return 2;
@@ -502,6 +545,7 @@ class Program
             yield return 2;
         }
         Console.WriteLine(string.Join("","", Local()));
+        Console.WriteLine(string.Join("","", LocalGeneric(2)));
         foreach (int x in LocalNongen())
         {
             Console.WriteLine(x);
@@ -514,6 +558,7 @@ class Program
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
+2
 2
 2
 2
@@ -1201,12 +1246,30 @@ class Program
         }
         return Local(a);
     }
+    static T1 M1<T1>(T1 a)
+    {
+        T2 M2<T2>(T2 aa)
+        {
+            T2 x = aa;
+            T3 M3<T3>(T3 aaa)
+            {
+                T4 M4<T4>(T4 aaaa)
+                {
+                    return (T4)(object)x;
+                }
+                return M4(aaa);
+            }
+            return M3(aa);
+        }
+        return M2(a);
+    }
     // Tngg and Tggg are impossible with lambdas
     static void Main(string[] args)
     {
         Console.WriteLine(Program.InnerToOuter((object)null));
         Console.WriteLine(Program.InnerToMiddle((object)null));
         Console.WriteLine(Program.InnerToOuterScoping((object)null));
+        Console.WriteLine(Program.M1(2));
     }
 }
 ";
@@ -1217,6 +1280,7 @@ class Program
 System.Object
 System.Object
 System.Object
+2
 ");
         }
 
@@ -1295,6 +1359,12 @@ class Program
             }
         }
         Local();
+
+        Local2();
+        void Local2()
+        {
+            Console.WriteLine(2);
+        }
     }
 }
 ";
@@ -1302,7 +1372,10 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (15,9): error CS0103: The name 'Local' does not exist in the current context
     //         Local();
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(15, 9)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(15, 9),
+    // (17,9): error CS0841: Cannot use local variable 'Local2' before it is declared
+    //         Local2();
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(17, 9)
                 );
         }
 
@@ -1403,6 +1476,71 @@ class Program
     // (21,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
     //             Console.WriteLine(*&x);
     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(21, 32)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void A()
+    {
+        goto Label;
+        int x = 2;
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Label:
+        Local();
+    }
+    static void B()
+    {
+        goto Label;
+        int x = 2;
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Label:
+        Action foo = Local;
+    }
+    static void C()
+    {
+        goto Label;
+        int x = 2;
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Label:
+        var bar = new Action(Local);
+    }
+
+    static void Main(string[] args)
+    {
+        A();
+        B();
+        C();
+    }
+}
+";
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0).WithAllowUnsafe(true);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (16,9): error CS0165: Use of unassigned local variable 'Local'
+    //         Local();
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(16, 9),
+    // (27,22): error CS0165: Use of unassigned local variable 'Local'
+    //         Action foo = Local;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("Local").WithLocation(27, 22),
+    // (38,19): error CS0165: Use of unassigned local variable 'Local'
+    //         var bar = new Action(Local);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "new Action(Local)").WithArguments("Local").WithLocation(38, 19)
                 );
         }
 
@@ -1533,6 +1671,49 @@ class Program
         }
 
         [Fact]
+        public void BadModifiers()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        const void LocalConst()
+        {
+        }
+        static void LocalStatic()
+        {
+        }
+        readonly void LocalReadonly()
+        {
+        }
+        volatile void LocalVolatile()
+        {
+        }
+    }
+}
+";
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (9,9): error CS0106: The modifier 'const' is not valid for this item
+    //         const void LocalConst()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(9, 9),
+    // (12,9): error CS0106: The modifier 'static' is not valid for this item
+    //         static void LocalStatic()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(12, 9),
+    // (15,9): error CS0106: The modifier 'readonly' is not valid for this item
+    //         readonly void LocalReadonly()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(15, 9),
+    // (18,9): error CS0106: The modifier 'volatile' is not valid for this item
+    //         volatile void LocalVolatile()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
         public void InferredReturn()
         {
             var source = @"
@@ -1554,9 +1735,9 @@ class Program
             // message is temporary
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,9): error CS7019: Type of 'Program.Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    // (9,9): error CS7019: Type of 'Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
     //         var Local()
-    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Program.Local()").WithLocation(9, 9)
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(9, 9)
                 );
         }
 

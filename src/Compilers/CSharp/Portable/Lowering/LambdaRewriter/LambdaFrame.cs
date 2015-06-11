@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class LambdaFrame : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly MethodSymbol _topLevelMethod;
+        private readonly MethodSymbol _containingMethod;
         private readonly MethodSymbol _constructor;
         private readonly MethodSymbol _staticConstructor;
         private readonly FieldSymbol _singletonCache;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
             _topLevelMethod = topLevelMethod;
+            _containingMethod = containingMethod;
             _constructor = new LambdaFrameConstructor(this);
             this.ClosureOrdinal = closureId.Ordinal;
 
@@ -86,6 +88,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal MethodSymbol StaticConstructor
         {
             get { return _staticConstructor; }
+        }
+
+        /// <summary>
+        /// The closest method/lambda that this frame is originally from. Null if nongeneric static closure.
+        /// Useful because this frame's type parameters are constructed from this method and all methods containing this method.
+        /// </summary>
+        internal MethodSymbol ContainingMethod
+        {
+            get { return _containingMethod; }
         }
 
         public override ImmutableArray<Symbol> GetMembers()

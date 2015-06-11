@@ -1049,6 +1049,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.LocalFunctionStatement:
+                    {
+                        int slot = GetOrCreateSlot(((BoundLocalFunctionStatement)node).Symbol);
+                        SetSlotState(slot, written);
+                        break;
+                    }
+
                 case BoundKind.BadExpression:
                     {
                         // Sometimes a bad node is not so bad that we cannot analyze it at all.
@@ -1096,6 +1103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((FieldSymbol)s).Type;
                 case SymbolKind.Parameter:
                     return ((ParameterSymbol)s).Type;
+                case SymbolKind.Method:
+                    Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
+                    return null;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(s.Kind);
             }
@@ -1480,6 +1490,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            if (node.Method.MethodKind == MethodKind.LocalFunction)
+            {
+                CheckAssigned(node.Method, node.Syntax);
+            }
+            return base.VisitCall(node);
+        }
+
+        public override BoundNode VisitConversion(BoundConversion node)
+        {
+            if (node.ConversionKind == ConversionKind.MethodGroup && node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
+            {
+                CheckAssigned(node.SymbolOpt, node.Syntax);
+            }
+            return base.VisitConversion(node);
+        }
+
+        public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+        {
+            if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+            {
+                CheckAssigned(node.MethodOpt, node.Syntax);
+            }
+            return base.VisitDelegateCreationExpression(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             return VisitLambdaOrLocalFunction(node);
@@ -1487,6 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
+            Assign(node, value: null);
             return VisitLambdaOrLocalFunction(node);
         }
 

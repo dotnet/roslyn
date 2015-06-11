@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ClosureKind.Static: // all type parameters on method (except the top level method's)
                     Debug.Assert(lambdaFrame != null);
-                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.Arity);
+                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.ContainingMethod);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
                     Debug.Assert(lambdaFrame == null);
-                    typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters);
+                    typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, null);
                     break;
                 case ClosureKind.General: // only lambda's type parameters on method (rest on class)
                     Debug.Assert(lambdaFrame != null);
-                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.Arity);
+                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.ContainingMethod);
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable;
