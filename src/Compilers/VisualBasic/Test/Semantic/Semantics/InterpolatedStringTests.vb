@@ -1206,7 +1206,7 @@ Module Program
     Sub Main()
         Dim v As Object = Nothing
 
-        Write($"Expression {v} is not a value.")
+        WriteLine($"{v}")
 
         WriteLine(v)
     End Sub
@@ -1222,7 +1222,10 @@ End Module
 
             Dim vSymbol = CType(sm.GetDeclaredSymbol(root.DescendantNodes().OfType(Of ModifiedIdentifierSyntax).Single()), ILocalSymbol)
 
-            Dim analysis = sm.AnalyzeDataFlow(root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First())
+            Dim writeLineCall = root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First()
+            Assert.Equal("WriteLine($""{v}"")", writeLineCall.ToString())
+
+            Dim analysis = sm.AnalyzeDataFlow(writeLineCall)
 
             Assert.True(analysis.Succeeded)
             Assert.DoesNotContain(vSymbol, analysis.AlwaysAssigned)
@@ -1252,7 +1255,7 @@ Module Program
     Sub Main()
         Dim v As Object = Nothing
 
-        Write($"Expression {(Function() v)()} is not a value.")
+        WriteLine($"{(Function() v)()}")
 
         WriteLine(v)
     End Sub
@@ -1268,7 +1271,10 @@ End Module
 
             Dim vSymbol = CType(sm.GetDeclaredSymbol(root.DescendantNodes().OfType(Of ModifiedIdentifierSyntax).Single()), ILocalSymbol)
 
-            Dim analysis = sm.AnalyzeDataFlow(root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First())
+            Dim writeLineCall = root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First()
+            Assert.Equal("WriteLine($""{(Function() v)()}"")", writeLineCall.ToString())
+
+            Dim analysis = sm.AnalyzeDataFlow(writeLineCall)
 
             Assert.True(analysis.Succeeded)
             Assert.DoesNotContain(vSymbol, analysis.AlwaysAssigned)

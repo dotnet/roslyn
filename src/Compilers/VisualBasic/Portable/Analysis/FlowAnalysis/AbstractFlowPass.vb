@@ -2539,6 +2539,8 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitInterpolation(node As BoundInterpolation) As BoundNode
             Visit(node.Expression)
+            Visit(node.AlignmentOpt)
+            Visit(node.FormatStringOpt)
             Return Nothing
         End Function
 #End Region
