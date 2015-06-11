@@ -12,19 +12,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class AnalyzerConsistencyChecker
     {
-        private static readonly ImmutableArray<string> s_defaultWhiteList = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis");
+        private static readonly ImmutableArray<string> s_defaultIgnorableReferenceNames = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis");
 
-        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> referenceWhiteList = null)
+        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames = null)
         {
-            if (referenceWhiteList == null)
+            if (ignorableReferenceNames == null)
             {
-                referenceWhiteList = s_defaultWhiteList;
+                ignorableReferenceNames = s_defaultIgnorableReferenceNames;
             }
 
             try
             {
                 CompilerServerLogger.Log("Begin Analyzer Consistency Check");
-                return CheckCore(baseDirectory, analyzerReferences, loader, referenceWhiteList);
+                return CheckCore(baseDirectory, analyzerReferences, loader, ignorableReferenceNames);
             }
             catch (Exception e)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> referenceWhiteList)
+        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames)
         {
             var resolvedPaths = new List<string>();
 
@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Don't worry about paths we can't resolve. The compiler will report an error for that later.
             }
 
-            // First, check that the set of references is complete, modulo items in the whitelist.
+            // First, check that the set of references is complete, modulo items in the safe list.
             foreach (var resolvedPath in resolvedPaths)
             {
                 var missingDependencies = AssemblyUtilities.IdentifyMissingDependencies(resolvedPath, resolvedPaths);
 
                 foreach (var missingDependency in missingDependencies)
                 {
-                    if (!referenceWhiteList.Any(name => missingDependency.Name.StartsWith(name)))
+                    if (!ignorableReferenceNames.Any(name => missingDependency.Name.StartsWith(name)))
                     {
                         CompilerServerLogger.Log($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
                         return false;
