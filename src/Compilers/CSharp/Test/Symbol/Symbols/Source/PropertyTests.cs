@@ -2686,7 +2686,7 @@ public interface IA
         /// (i.e., set_ for dll, put_ for winmdobj)
         /// </summary>
         [Fact]
-        public void WinRtPropertyAccesorNameConflict()
+        public void WinRtPropertyAccessorNameConflict()
         {
             const string libSrc =
 @"namespace Test

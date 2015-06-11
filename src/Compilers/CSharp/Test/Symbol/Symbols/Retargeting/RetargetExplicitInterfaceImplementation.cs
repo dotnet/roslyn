@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class RetargetExplicitInterfaceImplemenation : CSharpTestBase
+    public class RetargetExplicitInterfaceImplementation : CSharpTestBase
     {
         [Fact]
         public void ExplicitInterfaceImplementationRetargeting()

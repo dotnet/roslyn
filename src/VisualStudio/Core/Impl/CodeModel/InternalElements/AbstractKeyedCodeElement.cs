@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         /// <summary>
         /// This function re-acquires the key for this code element using the given syntax path.
         /// </summary>
-        internal void ReaquireNodeKey(SyntaxPath syntaxPath, CancellationToken cancellationToken)
+        internal void ReacquireNodeKey(SyntaxPath syntaxPath, CancellationToken cancellationToken)
         {
             Debug.Assert(syntaxPath != null);
 
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             FileCodeModel.ResetElementNodeKey(this, nodeKey);
         }
 
-        protected void UpdateNodeAndReaquireNodeKey<T>(Action<SyntaxNode, T> updater, T value, bool trackKinds = true)
+        protected void UpdateNodeAndReacquireNodeKey<T>(Action<SyntaxNode, T> updater, T value, bool trackKinds = true)
         {
             FileCodeModel.EnsureEditor(() =>
             {
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 updater(node, value);
 
-                ReaquireNodeKey(nodePath, CancellationToken.None);
+                ReacquireNodeKey(nodePath, CancellationToken.None);
             });
         }
 

@@ -2874,7 +2874,7 @@ Module Module1
         Console.WriteLine(fac_1.GetType)
  
         ' ContraVariance nested in ContraVariance
-        ' We only test this with Stric off, 
+        ' We only test this with Strict off, 
         ' since Dim aad As Action(Of Action(Of D)) = aao is narrowing conversion
  
         Dim aao As Action(Of Action(Of Object)) = ao

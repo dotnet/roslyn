@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' This method is an entry point for the Binder to collect extension methods with the given name
-        ''' declared within this named type. Overriden by RetargetingNamedTypeSymbol.
+        ''' declared within this named type. Overridden by RetargetingNamedTypeSymbol.
         ''' </summary>
         Friend Overridable Sub AppendProbableExtensionMethods(name As String, methods As ArrayBuilder(Of MethodSymbol))
             If Me.MightContainExtensionMethods Then
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks>
         ''' Forces binding and decoding of attributes.
-        ''' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We maintain comptability.
+        ''' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
         Friend ReadOnly Property IsConditional As Boolean
             Get

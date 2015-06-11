@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private readonly int _correlationId;
         private readonly MemberRangeMap _memberRangeMap;
         private readonly AnalyzerExecutor _executor;
-        private readonly StateManager _stateManger;
+        private readonly StateManager _stateManager;
         private readonly SimpleTaskQueue _eventQueue;
 
         public DiagnosticIncrementalAnalyzer(
@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _executor = new AnalyzerExecutor(this);
             _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
 
-            _stateManger = new StateManager(analyzerManager);
-            _stateManger.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
+            _stateManager = new StateManager(analyzerManager);
+            _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
         }
 
         private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             // we remove whatever information we used to have on document open/close and re-calculate diagnostics
             // we had to do this since some diagnostic analyzer changes its behavior based on whether the document is opened or not.
             // so we can't use cached information.
-            ClearDocumentStates(document, _stateManger.GetStateSets(document.Project), raiseEvent, includeProjectState: false, cancellationToken: cancellationToken);
+            ClearDocumentStates(document, _stateManager.GetStateSets(document.Project), raiseEvent, includeProjectState: false, cancellationToken: cancellationToken);
 
             return SpecializedTasks.EmptyTask;
         }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, cancellationToken);
                 var openedDocument = document.IsOpen();
 
-                foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
+                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
                 {
                     if (SkipRunningAnalyzer(document.Project.CompilationOptions, userDiagnosticDriver, openedDocument, skipClosedFileChecks, stateSet))
                     {
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var spanBasedDriver = new DiagnosticAnalyzerDriver(document, member.FullSpan, root, this, cancellationToken);
                 var documentBasedDriver = new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this, cancellationToken);
 
-                foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
+                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
                 {
                     if (spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer))
                     {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var userDiagnosticDriver = new DiagnosticAnalyzerDriver(document, fullSpan, root, this, cancellationToken);
                 bool openedDocument = document.IsOpen();
 
-                foreach (var stateSet in _stateManger.GetOrUpdateStateSets(document.Project))
+                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(document.Project))
                 {
                     if (SkipRunningAnalyzer(document.Project.CompilationOptions, userDiagnosticDriver, openedDocument, skipClosedFileChecks, stateSet))
                     {
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var analyzerDriver = new DiagnosticAnalyzerDriver(project, this, cancellationToken);
 
                 var versions = new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
-                foreach (var stateSet in _stateManger.GetOrUpdateStateSets(project))
+                foreach (var stateSet in _stateManager.GetOrUpdateStateSets(project))
                 {
                     if (SkipRunningAnalyzer(project.CompilationOptions, analyzerDriver, openedDocument: false, skipClosedFileChecks: false, stateSet: stateSet))
                     {
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 _memberRangeMap.Remove(documentId);
 
-                foreach (var stateSet in _stateManger.GetStateSets(documentId.ProjectId))
+                foreach (var stateSet in _stateManager.GetStateSets(documentId.ProjectId))
                 {
                     stateSet.Remove(documentId);
 
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
             {
-                foreach (var stateSet in _stateManger.GetStateSets(projectId))
+                foreach (var stateSet in _stateManager.GetStateSets(projectId))
                 {
                     stateSet.Remove(projectId);
 
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
-            _stateManger.RemoveStateSet(projectId);
+            _stateManager.RemoveStateSet(projectId);
         }
 
         public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)

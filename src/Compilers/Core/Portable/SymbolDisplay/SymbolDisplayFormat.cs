@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a copy of the SymbolDisplayFormat but with replaced <seealso cref="SymbolDisplayGlobalNamespaceStyle"/>.
         /// </summary>
         /// <param name="style">
-        /// An object specifying paramers on how namespace symbols should be formatted.
+        /// An object specifying parameters on how namespace symbols should be formatted.
         /// </param>
         /// <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="SymbolDisplayGlobalNamespaceStyle"/>.</returns>
         public SymbolDisplayFormat WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle style)

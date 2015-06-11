@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        public static void LogWorkCoordiantorShutdownTimeout(int correlationId)
+        public static void LogWorkCoordinatorShutdownTimeout(int correlationId)
         {
             Logger.Log(FunctionId.WorkCoordinator_ShutdownTimeout, KeyValueLogMessage.Create(m =>
             {

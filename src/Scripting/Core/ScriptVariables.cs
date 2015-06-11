@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.Scripting
                 var state = executionState[i];
                 if (state != null)
                 {
-                    AddVaraibles(map, state);
+                    AddVariables(map, state);
                 }
             }
 
             return map;
         }
 
-        private static void AddVaraibles(Dictionary<string, ScriptVariable> map, object instance)
+        private static void AddVariables(Dictionary<string, ScriptVariable> map, object instance)
         {
             var members = instance.GetType().GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var member in members.Where(m => m.MemberType == MemberTypes.Field || m.MemberType == MemberTypes.Property))

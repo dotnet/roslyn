@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// this API doesn't have cancellationToken since it can't be cancelled.
         /// 
-        /// given diagnostics are project wide diagnsotics that doesn't contain a source location.
+        /// given diagnostics are project wide diagnostics that doesn't contain a source location.
         /// </summary>
         public abstract Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics);
 

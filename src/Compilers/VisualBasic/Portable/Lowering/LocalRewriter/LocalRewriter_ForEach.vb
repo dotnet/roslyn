@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim tempForControlVariable = New BoundLocal(node.Syntax, tempLocal, node.ControlVariable.Type)
 
                 Dim replacedControlVariable As Boolean = False
-                replacedCollection = DirectCast(LocalVariableSubstitutor.Replace(originalCollection,
+                replacedCollection = DirectCast(LocalVariableSubstituter.Replace(originalCollection,
                                                                                  node.DeclaredOrInferredLocalOpt,
                                                                                  tempLocal,
                                                                                  replacedControlVariable), BoundExpression)
@@ -777,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Internal helper class to replace local symbols in bound locals of a given bound tree.
         ''' </summary>
-        Private Class LocalVariableSubstitutor
+        Private Class LocalVariableSubstituter
             Inherits BoundTreeRewriter
 
             Private ReadOnly _original As LocalSymbol
@@ -790,7 +790,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 replacement As LocalSymbol,
                 ByRef replacedNode As Boolean
             ) As BoundNode
-                Dim rewriter As New LocalVariableSubstitutor(original, replacement)
+                Dim rewriter As New LocalVariableSubstituter(original, replacement)
 
                 Dim result = rewriter.Visit(node)
                 replacedNode = rewriter.ReplacedNode

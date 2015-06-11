@@ -2697,7 +2697,7 @@ End Class
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastInUserDefinedNarrowingConverionStrictOn()
+        Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOn()
             Dim markup =
 <File>
 Option Strict On
@@ -2736,7 +2736,7 @@ End Structure
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastInUserDefinedNarrowingConverionStrictOff()
+        Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOff()
             Dim markup =
 <File>
 Option Strict Off

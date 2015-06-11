@@ -114,7 +114,7 @@ namespace Microsoft.Cci
     internal interface IAssemblyReference : IModuleReference
     {
         /// <summary>
-        /// Identifies the culture associated with the assembly reference. Typically specified for sattelite assemblies with localized resources.
+        /// Identifies the culture associated with the assembly reference. Typically specified for satellite assemblies with localized resources.
         /// Empty if not specified.
         /// </summary>
         string Culture { get; }

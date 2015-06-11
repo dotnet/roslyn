@@ -2749,7 +2749,7 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
@@ -3077,7 +3077,7 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
@@ -3179,7 +3179,7 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
@@ -3442,7 +3442,7 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
@@ -3556,7 +3556,7 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
@@ -3775,7 +3775,7 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler: no errors, nothing is overriden
+            ' Native compiler: no errors, nothing is overridden
             Dim reference As MetadataReference = Nothing
             Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))

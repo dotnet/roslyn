@@ -978,7 +978,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B, args As String())
             End Sub
@@ -997,7 +997,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B)
             End Sub
@@ -1016,7 +1016,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As String)
             End Sub
@@ -1269,7 +1269,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B, args As String())
             End Sub
@@ -1279,8 +1279,8 @@ End Class
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("B")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("B"))
 
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("extention")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("extention"))
+            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("Extension")).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("Extension"))
         End Sub
 
         <Fact()>

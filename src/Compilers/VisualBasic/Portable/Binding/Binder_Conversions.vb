@@ -633,7 +633,7 @@ DoneWithDiagnostics:
         ''' <summary>
         ''' Returns True if error or warning was reported.
         ''' 
-        ''' This function is invoked on the occassion of a Narrowing or NoConversion.
+        ''' This function is invoked on the occasion of a Narrowing or NoConversion.
         ''' It looks at the conversion. If the conversion could have been helped by variance in
         ''' some way, it reports an error/warning message to that effect and returns true. This
         ''' message is a substitute for whatever other conversion-failed message might have been displayed.

@@ -72,7 +72,7 @@ class C
         /// <summary>
         /// This error is specific to netmodule scenarios
         /// We used to give error CS0011: The base class or interface 'A' in assembly 'xxx' referenced by type 'B' could not be resolved
-        /// In Roslyn we do not know the context in which the lookup was occuring, so we give a new, more generic message.
+        /// In Roslyn we do not know the context in which the lookup was occurring, so we give a new, more generic message.
         /// </summary>
         [WorkItem(546451, "DevDiv")]
         [Fact()]
@@ -14259,7 +14259,7 @@ class AAttribute : Attribute { }
 [A][@A][AAttribute] class C { }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigousAttribute, Line = 4, Column = 2 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_AmbiguousAttribute, Line = 4, Column = 2 });
         }
 
         [Fact]

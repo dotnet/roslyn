@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if the specified <paramref name="node"/> represents a body of a lambda.
         /// </summary>
-        public static bool IsLambdaBody(SyntaxNode node, bool allowReducedLambas = false)
+        public static bool IsLambdaBody(SyntaxNode node, bool allowReducedLambdas = false)
         {
             var parent = node?.Parent;
             if (parent == null)
@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.SelectClause:
                     var selectClause = (SelectClauseSyntax)parent;
-                    return selectClause.Expression == node && (allowReducedLambas || !IsReducedSelectOrGroupByClause(selectClause, selectClause.Expression));
+                    return selectClause.Expression == node && (allowReducedLambdas || !IsReducedSelectOrGroupByClause(selectClause, selectClause.Expression));
 
                 case SyntaxKind.GroupClause:
                     var groupClause = (GroupClauseSyntax)parent;
-                    return (groupClause.GroupExpression == node && (allowReducedLambas || !IsReducedSelectOrGroupByClause(groupClause, groupClause.GroupExpression))) || 
+                    return (groupClause.GroupExpression == node && (allowReducedLambdas || !IsReducedSelectOrGroupByClause(groupClause, groupClause.GroupExpression))) || 
                            groupClause.ByExpression == node;
             }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// do not translate into lambdas.
         /// By "source" identifier we mean the identifier specified in the from clause that initiates the query or the query continuation that includes the body.
         /// 
-        /// The above condition can be dervied from the language specification (chapter 7.16.2) as follows:
+        /// The above condition can be derived from the language specification (chapter 7.16.2) as follows:
         /// - In order for 7.16.2.5 "Select clauses" to be applicable the following conditions must hold:
         ///   - There has to be at least one clause in the body, otherwise the query is reduced into a final form by 7.16.2.3 "Degenerate query expressions".
         ///   - Only where and order-by clauses may be present in the query body, otherwise a transformation in 7.16.2.4 "From, let, where, join and orderby clauses"

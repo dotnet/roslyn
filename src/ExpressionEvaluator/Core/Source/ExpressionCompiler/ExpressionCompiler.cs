@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,
-            int ilOffset,
+            uint ilOffset,
             int localSignatureToken,
             bool useReferencedModulesOnly);
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 moduleVersionId: moduleInstance.Mvid,
                 methodToken: methodToken,
                 methodVersion: (int)instructionAddress.MethodId.Version,
-                ilOffset: (int)instructionAddress.ILOffset,
+                ilOffset: instructionAddress.ILOffset,
                 localSignatureToken: localSignatureToken,
                 useReferencedModulesOnly: useReferencedModulesOnly);
         }

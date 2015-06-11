@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new tokne from this token with the leading and trailing trivia from the specified token.
+        /// Creates a new token from this token with the leading and trailing trivia from the specified token.
         /// </summary>
         public SyntaxToken WithTriviaFrom(SyntaxToken token)
         {

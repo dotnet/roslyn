@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ImmutableArray(Of Symbol).Empty
             End If
 
-            RemoveOverridenMethodsAndProperties(symbols)
+            RemoveOverriddenMethodsAndProperties(symbols)
 
             ' Bind signature and return type if present
             Dim signatureTypes As ArrayBuilder(Of SignatureElement) = Nothing
@@ -377,7 +377,7 @@ lAgain:
             Dim symbols = ArrayBuilder(Of Symbol).GetInstance
             CollectCrefNameSymbolsStrict(name, argCount, New Dictionary(Of String, CrefTypeParameterSymbol)(IdentifierComparison.Comparer), symbols, preserveAliases, useSiteDiagnostics)
 
-            RemoveOverridenMethodsAndProperties(symbols)
+            RemoveOverriddenMethodsAndProperties(symbols)
 
             If symbols.Count = 1 AndAlso checkForColorColor Then
                 Dim symbol As Symbol = symbols(0)

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // re-classify the file. We do this, since the edit may have non-local changes, or the user
             // may have made a change that introduced text that we didn't classify because we hadn't
             // parsed it yet, and we want to get back to a known state.
-            private const int ReportChangeDelayinMilliseconds = TaggerConstants.ShortDelay;
+            private const int ReportChangeDelayInMilliseconds = TaggerConstants.ShortDelay;
 
             private readonly ITextBuffer _subjectBuffer;
             private readonly WorkspaceRegistration _workspaceRegistration;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         _workQueue.AssertIsForeground();
                         ReportChangedSpan(new SnapshotSpan(snapshot, 0, snapshot.Length));
                     },
-                    ReportChangeDelayinMilliseconds,
+                    ReportChangeDelayInMilliseconds,
                     _listener.BeginAsyncOperation("ReportEntireFileChanged"),
                     _reportChangeCancellationSource.Token);
             }

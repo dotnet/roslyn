@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -540,5 +542,69 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
+        public void StructLayout_01()
+        {
+            foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
+            {
+                foreach (var charSet in new[] { CharSet.Ansi, CharSet.Auto, CharSet.None, CharSet.Unicode })
+                {
+                    var text = 
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind." + layout.ToString() + ", CharSet = CharSet." + charSet.ToString() + @")]
+public unsafe struct Test
+{
+    " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") +  @"public fixed UInt32 Field[ 16 ];
+}
+";
+                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll,
+                        symbolValidator: (m) =>
+                        {
+                            var test = m.GlobalNamespace.GetTypeMember("Test");
+                            Assert.Equal(layout, test.Layout.Kind);
+                            Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, test.MarshallingCharSet);
+
+                            var bufferType = test.GetTypeMembers().Single();
+                            Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
+                            Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
+                            Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, bufferType.MarshallingCharSet);
+                        });
+                }
+            }
+        }
+
+        [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
+        public void StructLayout_02()
+        {
+            foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
+            {
+                var text =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[StructLayout( LayoutKind." + layout.ToString() + @")]
+public unsafe struct Test
+{
+    " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
+}
+";
+                CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll,
+                    symbolValidator: (m) =>
+                    {
+                        var test = m.GlobalNamespace.GetTypeMember("Test");
+                        Assert.Equal(layout, test.Layout.Kind);
+                        Assert.Equal(CharSet.Ansi, test.MarshallingCharSet);
+
+                        var bufferType = test.GetTypeMembers().Single();
+                        Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
+                        Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
+                        Assert.Equal(CharSet.Ansi, bufferType.MarshallingCharSet);
+                    });
+            }
+        }
     }
 }

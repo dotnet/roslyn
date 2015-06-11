@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' 
         ''' Its purpose is to add names of probable extension methods found in membersByName parameter
         ''' to nameSet parameter. Method's viability check is delegated to overridable method
-        ''' AddExtensionMethodLookupSymbolsInfoViabilityCheck, which is overriden by RetargetingNamedtypeSymbol
+        ''' AddExtensionMethodLookupSymbolsInfoViabilityCheck, which is overridden by RetargetingNamedtypeSymbol
         ''' and RetargetingNamespaceSymbol in order to perform the check on corresponding RetargetingMethodSymbol.
         ''' 
         ''' Returns true if there were extension methods among the members, 
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Perform extension method viability check within AppendExtensionMethodNames method above.
-        ''' This method is overriden by RetargetingNamedtypeSymbol and RetargetingNamespaceSymbol in order to 
+        ''' This method is overridden by RetargetingNamedtypeSymbol and RetargetingNamespaceSymbol in order to 
         ''' perform the check on corresponding RetargetingMethodSymbol.
         ''' 
         ''' Returns true if the method is viable. 

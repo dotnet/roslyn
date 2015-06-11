@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (!shutdownTask.IsCompleted)
                     {
-                        SolutionCrawlerLogger.LogWorkCoordiantorShutdownTimeout(CorrelationId);
+                        SolutionCrawlerLogger.LogWorkCoordinatorShutdownTimeout(CorrelationId);
                     }
                 }
             }

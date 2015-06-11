@@ -1039,7 +1039,7 @@
     <Field Name="Name" Type="IdentifierNameSyntax">
       <Kind Name="IdentifierName"/>
       <PropertyComment>
-        <summary>IdentifierNameSyntax representing the identifer name.</summary>
+        <summary>IdentifierNameSyntax representing the identifier name.</summary>
       </PropertyComment>
     </Field>
     <Field Name="ColonToken" Type="SyntaxToken">

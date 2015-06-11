@@ -9,9 +9,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This pass detects and reports diagnostics that do not affect lambda convertability.
+    /// This pass detects and reports diagnostics that do not affect lambda convertibility.
     /// This part of the partial class focuses on features that cannot be used in expression trees.
-    /// CAVEAT: Errors may be produced for ObsoleteAttribute, but such errors don't affect lambda convertability.
+    /// CAVEAT: Errors may be produced for ObsoleteAttribute, but such errors don't affect lambda convertibility.
     /// </summary>
     internal sealed partial class DiagnosticsPass : BoundTreeWalker
     {

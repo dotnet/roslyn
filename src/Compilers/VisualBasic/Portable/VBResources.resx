@@ -3670,10 +3670,10 @@
   <data name="WRN_UndefinedOrEmptyNamespaceOrClass1_Title" xml:space="preserve">
     <value>Namespace or type specified in Imports statement doesn't contain any public member or cannot be found</value>
   </data>
-  <data name="WRN_UndefinedOrEmpyProjectNamespaceOrClass1" xml:space="preserve">
+  <data name="WRN_UndefinedOrEmptyProjectNamespaceOrClass1" xml:space="preserve">
     <value>Namespace or type specified in the project-level Imports '{0}' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.</value>
   </data>
-  <data name="WRN_UndefinedOrEmpyProjectNamespaceOrClass1_Title" xml:space="preserve">
+  <data name="WRN_UndefinedOrEmptyProjectNamespaceOrClass1_Title" xml:space="preserve">
     <value>Namespace or type imported at project level doesn't contain any public member or cannot be found</value>
   </data>
   <data name="WRN_IndirectRefToLinkedAssembly2" xml:space="preserve">
@@ -3850,10 +3850,10 @@
   <data name="WRN_RecursivePropertyCall_Title" xml:space="preserve">
     <value>Expression recursively calls the containing property</value>
   </data>
-  <data name="WRN_OverlapingCatch" xml:space="preserve">
+  <data name="WRN_OverlappingCatch" xml:space="preserve">
     <value>'Catch' block never reached, because '{0}' inherits from '{1}'.</value>
   </data>
-  <data name="WRN_OverlapingCatch_Title" xml:space="preserve">
+  <data name="WRN_OverlappingCatch_Title" xml:space="preserve">
     <value>'Catch' block never reached; exception type's base type handled above in the same Try statement</value>
   </data>
   <data name="WRN_DefAsgUseNullRefByRef" xml:space="preserve">

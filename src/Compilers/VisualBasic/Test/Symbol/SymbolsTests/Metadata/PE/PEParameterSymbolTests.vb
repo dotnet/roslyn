@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub NoParameterNames()
             ' Create simple interface where method parameters have no names.
-            ' Inteface I
+            ' Interface I
             '   Sub M(... As Object, ... As Object)
             ' End Interface
             Dim reference = CreateReflectionEmitAssembly(

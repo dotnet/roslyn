@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
             Dim throughType As ITypeSymbol = Nothing
             Dim expression = TryCast(invocationExpression.Expression, MemberAccessExpressionSyntax).GetExpressionOfMemberAccessExpression()
 
-            ' if it is via a base expession "MyBase.", we know the "throughType" is the base class but
+            ' if it is via a base expression "MyBase.", we know the "throughType" is the base class but
             ' we need to be able to tell between "New Base().M()" and "MyBase.M()".
             ' currently, Access check methods do not differentiate between them.
             ' so handle "MyBase." primary-expression here by nulling out "throughType"

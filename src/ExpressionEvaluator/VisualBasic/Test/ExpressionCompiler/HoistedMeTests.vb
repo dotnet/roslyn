@@ -1008,7 +1008,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub IteratorOverloading_MustOverideness()
+        Public Sub IteratorOverloading_MustOverrideness()
             Const source = "
 Imports System.Collections
 

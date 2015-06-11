@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 2) Await containing catches:
         ///     try{
         ///         code;
-        ///     }catch (Exeption ex){
+        ///     }catch (Exception ex){
         ///         handler;
         ///         throw;
         ///     }

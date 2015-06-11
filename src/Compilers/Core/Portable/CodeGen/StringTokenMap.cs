@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// they are uniquely "associated" with fake token, which is basically a sequential number.
     /// IL gen will use these fake tokens during codegen and later, when actual token values 
     /// are known the method bodies will be patched.
-    /// To support thse two scenarios we need two maps - Item-->uint, and uint-->Item.  (the second is really just a list).
+    /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item.  (the second is really just a list).
     /// </summary>
     internal sealed class StringTokenMap
     {

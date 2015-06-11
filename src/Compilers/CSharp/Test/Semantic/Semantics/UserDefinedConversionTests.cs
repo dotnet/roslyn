@@ -511,7 +511,7 @@ public class X
     }
 }
 ";
-            // Dev11 doens't use identity conversion and reports an error, which is wrong:
+            // Dev11 doesn't use identity conversion and reports an error, which is wrong:
             // error CS0457: Ambiguous user defined conversions 'A<dynamic>.explicit operator T(A<dynamic>)' and 'A<object>.explicit operator T(A<object>)' when converting from 'S' to 'T'
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }

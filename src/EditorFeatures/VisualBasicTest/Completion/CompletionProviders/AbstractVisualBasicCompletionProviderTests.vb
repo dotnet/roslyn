@@ -120,9 +120,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         Protected Sub TestCommonIsCommitCharacter()
-            Dim commitChararacters = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
+            Dim commitCharacters = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
 
-            For Each ch In commitChararacters
+            For Each ch In commitCharacters
                 Assert.True(CompletionProvider.IsCommitCharacter(Nothing, ch, Nothing), "Expected '" + ch + "' to be a commit character")
             Next
 

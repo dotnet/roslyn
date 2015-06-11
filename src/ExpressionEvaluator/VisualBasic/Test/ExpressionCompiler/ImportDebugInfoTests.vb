@@ -196,9 +196,9 @@ End Class
             Dim comp = CreateCompilationWithMscorlib({source})
 
             Dim exeBytes As Byte() = Nothing
-            Dim unusedPdbBypes As Byte() = Nothing
+            Dim unusedPdbBytes As Byte() = Nothing
             Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBypes, references)
+            Dim result = comp.EmitAndGetReferences(exeBytes, unusedPdbBytes, references)
             Assert.True(result)
 
             Dim symReader = ExpressionCompilerTestHelpers.ConstructSymReaderWithImports(

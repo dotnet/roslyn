@@ -2065,9 +2065,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             bool ignore;
                             // Since we are dealing with variance delegate conversion and delegates have identical parameter
-                            // lists, return types must be implicitly convertable in the same direction.
+                            // lists, return types must be implicitly convertible in the same direction.
                             // Or we might be dealing with error return types and we may have one error delegate matching exactly
-                            // while another not being an error and not convertable.
+                            // while another not being an error and not convertible.
                             Debug.Assert(
                                 r1.IsErrorType() ||
                                 r2.IsErrorType() ||

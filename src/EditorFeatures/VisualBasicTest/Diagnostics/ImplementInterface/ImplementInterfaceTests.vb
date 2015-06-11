@@ -2130,7 +2130,7 @@ End Interface", index:=1, compareTokens:=False)
 
         <WorkItem(1132014)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-        Public Sub TestInaccesibleAttributes()
+        Public Sub TestInaccessibleAttributes()
             Test(
 "Imports System
 

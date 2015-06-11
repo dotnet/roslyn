@@ -4139,7 +4139,7 @@ class C {
 
         [WorkItem(528622, "DevDiv")]
         [Fact]
-        public void AlwayaAssignedParameterLambda()
+        public void AlwaysAssignedParameterLambda()
         {
             var dataFlows = CompileAndAnalyzeDataFlowExpression(@"
 using System;
