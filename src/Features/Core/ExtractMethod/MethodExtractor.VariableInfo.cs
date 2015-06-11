@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
             {
-                return document.GetTokenWithAnnotaton(_variableSymbol.IdentifierTokenAnnotation);
+                return document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
             }
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)

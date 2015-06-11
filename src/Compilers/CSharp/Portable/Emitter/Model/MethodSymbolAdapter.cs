@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Enforce C#'s notion of internal virtual
                 // If the method is private or internal and virtual but not final
-                // Set the new bit to indicate that it can only be overriden
+                // Set the new bit to indicate that it can only be overridden
                 // by classes that can normally access this member.
                 Accessibility accessibility = this.DeclaredAccessibility;
                 return (accessibility == Accessibility.Private ||

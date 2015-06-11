@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             set
             {
-                UpdateNodeAndReaquireNodeKey(FileCodeModel.UpdateIsShared, value);
+                UpdateNodeAndReacquireNodeKey(FileCodeModel.UpdateIsShared, value);
             }
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 var parameter = FileCodeModel.AddParameter(this, node, name, type, position);
 
-                ReaquireNodeKey(nodePath, CancellationToken.None);
+                ReacquireNodeKey(nodePath, CancellationToken.None);
 
                 return parameter;
             });
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 codeElement.Delete();
 
-                ReaquireNodeKey(nodePath, CancellationToken.None);
+                ReacquireNodeKey(nodePath, CancellationToken.None);
             });
         }
 

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
             }
 
-            return GetIndentationOfCurrentPosition(root, token, list, token.SpanStart, /* extracSpaces */ 0, tokenColumnGetter, cancellationToken);
+            return GetIndentationOfCurrentPosition(root, token, list, token.SpanStart, /* extraSpaces */ 0, tokenColumnGetter, cancellationToken);
         }
 
         private int GetIndentationOfCurrentPosition(

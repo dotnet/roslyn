@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int localSignatureToken;
             GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
-            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
 
             return EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),

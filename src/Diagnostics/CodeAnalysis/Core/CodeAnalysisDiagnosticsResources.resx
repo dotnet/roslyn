@@ -210,7 +210,7 @@
     <value>Avoid storing per-compilation data into the fields of a diagnostic analyzer.</value>
   </data>
   <data name="DoNotStorePerCompilationDataOntoFieldsDescription" xml:space="preserve">
-    <value>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiatied in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</value>
+    <value>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</value>
   </data>
   <data name="InternalImplementationOnlyDescription" xml:space="preserve">
     <value>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</value>

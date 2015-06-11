@@ -77,6 +77,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic);
 
+        // ILOffset == 0xffffffff indicates an instruction outside of IL.
+        // Treat such values as the beginning of the IL.
+        protected static int NormalizeILOffset(uint ilOffset)
+        {
+            return (ilOffset == uint.MaxValue) ? 0 : (int)ilOffset;
+        }
+
         protected sealed class SimpleMessageDiagnostic : Diagnostic
         {
             private readonly string _message;

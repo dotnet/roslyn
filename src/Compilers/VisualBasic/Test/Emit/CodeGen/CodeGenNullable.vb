@@ -2458,26 +2458,26 @@ Module Module1
         Dim a2 As New S1?(av)
         Dim b2 As T1
         b2 = a2
-        Console.WriteLine("regular UD conversion+PDconversion:  S1?->S1 -->T1, value passsed:{0}" &amp; vbCrLf, b2.i) 'expect 7
+        Console.WriteLine("regular UD conversion+PDconversion:  S1?->S1 -->T1, value passed:{0}" &amp; vbCrLf, b2.i) 'expect 7
 
         Dim a21 As New S1
         a21.i = 8
         Dim b21 As T1?
         b21 = a21
-        Console.WriteLine("regular UD conversion+PD conversion: S1-->T1->T1?, value passsed:{0}" &amp; vbCrLf, b21.Value.i) 'expect 8
+        Console.WriteLine("regular UD conversion+PD conversion: S1-->T1->T1?, value passed:{0}" &amp; vbCrLf, b21.Value.i) 'expect 8
 
         Dim val As New S1
         val.i = 3
         c = New S1?(val)
         d = c
-        Console.WriteLine("lifted UD conversion, value passsed:{0}" &amp; vbCrLf, d.Value.i) 'expect 3
+        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; vbCrLf, d.Value.i) 'expect 3
 
         Dim k As New S2
         k.i = 2
         Dim c2 As New S2?(k)
         Dim d2 As T2?
         d2 = c2 'UD conversion on nullable preferred over lifting
-        Console.WriteLine(" UD nullable conversion, preferred over lifted value passsed: {0}" &amp; vbCrLf, d2.Value.i) 'expect 2
+        Console.WriteLine(" UD nullable conversion, preferred over lifted value passed: {0}" &amp; vbCrLf, d2.Value.i) 'expect 2
 
 
         av.i = 5
@@ -2485,26 +2485,26 @@ Module Module1
         'a.i = 2
         Dim b As T1?
         b = a
-        Console.WriteLine("lifted UD conversion, value passsed:{0}" &amp; vbCrLf, b.Value.i) 'expect 5
+        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; vbCrLf, b.Value.i) 'expect 5
 
         Dim a1 As S1
         a1.i = 6
         Dim b1 As T1
         b1 = a1
-        Console.WriteLine("regular UD conversion, value passsed:{0}" &amp; vbCrLf, b1.i) 'expect 6
+        Console.WriteLine("regular UD conversion, value passed:{0}" &amp; vbCrLf, b1.i) 'expect 6
 
         Dim a3 As S1
         a3.i = 8
         Dim b3 As T1?
         b3 = a3
-        Console.WriteLine("regular UD conversion+PD conversion, value passsed:{0}" &amp; vbCrLf, b3.Value.i) 'expect 8
+        Console.WriteLine("regular UD conversion+PD conversion, value passed:{0}" &amp; vbCrLf, b3.Value.i) 'expect 8
 
         Dim atv = New st(Of Integer)
         atv.i = 9
         Dim at As New st(Of Integer)?(atv)
         Dim bt As Integer?
         bt = at
-        Console.WriteLine("generic UD, value passsed bt.value = :{0}" &amp; vbCrLf, bt.Value) 'expect 8
+        Console.WriteLine("generic UD, value passed bt.value = :{0}" &amp; vbCrLf, bt.Value) 'expect 8
     End Sub
 
     Structure S1
@@ -2594,28 +2594,28 @@ widening to nullable UD conversion: c=1;  c.value= 1
 widening to nullable UD conversion: c=Nothing;  c.HasValue= False
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion+PDconversion:  S1?->S1 -->T1, value passsed:7
+regular UD conversion+PDconversion:  S1?->S1 -->T1, value passed:7
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion+PD conversion: S1-->T1->T1?, value passsed:8
+regular UD conversion+PD conversion: S1-->T1->T1?, value passed:8
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-lifted UD conversion, value passsed:3
+lifted UD conversion, value passed:3
 
 UD S2?->T2? conversion on nullable invoked
- UD nullable conversion, preferred over lifted value passsed: 2
+ UD nullable conversion, preferred over lifted value passed: 2
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-lifted UD conversion, value passsed:5
+lifted UD conversion, value passed:5
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion, value passsed:6
+regular UD conversion, value passed:6
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion+PD conversion, value passsed:8
+regular UD conversion+PD conversion, value passed:8
 
 UD generic regular conversion st(of T)->T (possible by lifting) invoked
-generic UD, value passsed bt.value = :9
+generic UD, value passed bt.value = :9
 
 ]]>)
         End Sub

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// Overload resolution (effectively) starts out assuming that all candidates are valid and then
-        /// gradually disqualifies them.  Therefore, our strategry will be to perform our checks in the
+        /// gradually disqualifies them.  Therefore, our strategy will be to perform our checks in the
         /// reverse order - the farther a candidate got through the process without being flagged, the
         /// "better" it was.
         /// 

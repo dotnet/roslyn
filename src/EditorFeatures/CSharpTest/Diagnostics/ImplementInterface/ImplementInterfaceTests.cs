@@ -2644,7 +2644,7 @@ partial class C
 
         [WorkItem(1132014)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public void TestInaccesibleAttributes()
+        public void TestInaccessibleAttributes()
         {
             Test(
 @"using System;

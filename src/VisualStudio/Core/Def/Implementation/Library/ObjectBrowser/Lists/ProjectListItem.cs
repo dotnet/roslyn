@@ -11,12 +11,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private readonly string _displayText;
 
         public ProjectListItem(Project project)
-            : base(project.Id, GetProjectGlpyh(project))
+            : base(project.Id, GetProjectGlyph(project))
         {
             _displayText = project.GetProjectDisplayName();
         }
 
-        private static StandardGlyphGroup GetProjectGlpyh(Project project)
+        private static StandardGlyphGroup GetProjectGlyph(Project project)
         {
             switch (project.Language)
             {

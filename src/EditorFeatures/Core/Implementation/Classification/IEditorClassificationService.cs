@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// 
         /// Important: The classification should not consider the context the text exists in, and how
         /// that may affect the final classifications.  This may result in incorrect classification
-        /// (i.e. indentifiers being classified as keywords).  These incorrect results will be patched
+        /// (i.e. identifiers being classified as keywords).  These incorrect results will be patched
         /// up when the lexical results are superceded by the calls to AddSyntacticClassifications.
         /// </summary>
         void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);

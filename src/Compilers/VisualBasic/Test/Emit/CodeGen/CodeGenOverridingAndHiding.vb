@@ -107,17 +107,17 @@ Partial Class B
   Inherits A
 
   'This would normally be an error if this partial part for class B
-  'had the NotIheritable modifier (i.e. NotOverridable and NotInheritable
+  'had the NotInheritable modifier (i.e. NotOverridable and NotInheritable
   'can't be combined). Strangely Dev10 doesn't report the same error
-  'when the NotInhertable modifier appears on a different partial part.
+  'when the NotInheritable modifier appears on a different partial part.
   NotOverridable Overrides Function F() As Integer
     Return 1
   End Function
 
   'This would normally be an error if this partial part for class B
-  'had the NotIheritable modifier (i.e. NotOverridable and NotInheritable
+  'had the NotInheritable modifier (i.e. NotOverridable and NotInheritable
   'can't be combined). Strangely Dev10 doesn't report the same error
-  'when the NotInhertable modifier appears on a different partial part.
+  'when the NotInheritable modifier appears on a different partial part.
   NotOverridable Overrides Sub G()
   End Sub
 End Class</file>

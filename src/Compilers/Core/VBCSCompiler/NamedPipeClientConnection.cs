@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Return the current user name and whether the current user is in the administator role.
+        /// Return the current user name and whether the current user is in the administrator role.
         /// </summary>
         private static Tuple<string, bool> GetIdentity(bool impersonating)
         {

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Metadata observed by the compiler.
-        /// May be shared accoss multiple Reference Managers.
+        /// May be shared across multiple Reference Managers.
         /// Access only under lock(<see cref="ObservedMetadata"/>).
         /// </summary>
         internal readonly Dictionary<MetadataReference, MetadataOrDiagnostic> ObservedMetadata;

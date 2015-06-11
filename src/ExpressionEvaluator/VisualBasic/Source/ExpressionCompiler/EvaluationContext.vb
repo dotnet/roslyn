@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' <param name="previous">Previous context, if any, for possible re-use.</param>
         ''' <param name="metadataBlocks">Module metadata.</param>
         ''' <param name="moduleVersionId">Module containing type.</param>
-        ''' <param name="typeToken">Type metdata token.</param>
+        ''' <param name="typeToken">Type metadata token.</param>
         ''' <returns>Evaluation context.</returns>
         ''' <remarks>
         ''' No locals since locals are associated with methods, not types.
@@ -125,8 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             moduleVersionId As Guid,
             methodToken As Integer,
             methodVersion As Integer,
-            ilOffset As Integer,
+            ilOffset As UInteger,
             localSignatureToken As Integer) As EvaluationContext
+
+            Dim offset = NormalizeILOffset(ilOffset)
 
             ' Re-use the previous compilation if possible.
             Dim compilation As VisualBasicCompilation
@@ -135,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim previousContext = previous.EvaluationContext
                 If previousContext IsNot Nothing AndAlso
                     previousContext.MethodContextReuseConstraints.HasValue AndAlso
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, ilOffset) Then
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset) Then
                     Return previousContext
                 End If
                 compilation = previous.Compilation
@@ -150,11 +152,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 moduleVersionId,
                 methodToken,
                 methodVersion,
-                ilOffset,
+                offset,
                 localSignatureToken)
         End Function
 
         Friend Shared Function CreateMethodContext(
+            compilation As VisualBasicCompilation,
+            lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
+            symReader As Object,
+            moduleVersionId As Guid,
+            methodToken As Integer,
+            methodVersion As Integer,
+            ilOffset As UInteger,
+            localSignatureToken As Integer) As EvaluationContext
+
+            Return CreateMethodContext(
+                compilation,
+                lazyAssemblyReaders,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                NormalizeILOffset(ilOffset),
+                localSignatureToken)
+        End Function
+
+        Private Shared Function CreateMethodContext(
             compilation As VisualBasicCompilation,
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,

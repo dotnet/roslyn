@@ -12,13 +12,13 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public MustInherit Class AbstractSimplificationTests
 
-        Protected Sub Test(definition As XElement, expected As XElement, Optional simplifcationOptions As Dictionary(Of OptionKey, Object) = Nothing)
+        Protected Sub Test(definition As XElement, expected As XElement, Optional simplificationOptions As Dictionary(Of OptionKey, Object) = Nothing)
             Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
                 Dim hostDocument = workspace.Documents.Single()
 
-                Dim spansToAddSimpliferAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
+                Dim spansToAddSimplifierAnnotation = hostDocument.AnnotatedSpans.Where(Function(kvp) kvp.Key.StartsWith("Simplify", StringComparison.Ordinal))
 
-                Dim explicitSpanToSimplifyAnnotatedSpans = hostDocument.AnnotatedSpans.Where(Function(kvp) Not spansToAddSimpliferAnnotation.Contains(kvp))
+                Dim explicitSpanToSimplifyAnnotatedSpans = hostDocument.AnnotatedSpans.Where(Function(kvp) Not spansToAddSimplifierAnnotation.Contains(kvp))
                 If explicitSpanToSimplifyAnnotatedSpans.Count <> 1 OrElse explicitSpanToSimplifyAnnotatedSpans.Single().Key <> "SpanToSimplify" Then
                     For Each span In explicitSpanToSimplifyAnnotatedSpans
                         If span.Key <> "SpanToSimplify" Then
@@ -31,51 +31,51 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                                                         explicitSpanToSimplifyAnnotatedSpans.Single().Value,
                                                         Nothing)
 
-                Test(workspace, spansToAddSimpliferAnnotation, explicitSpansToSimplifyWithin, expected, simplifcationOptions)
+                Test(workspace, spansToAddSimplifierAnnotation, explicitSpansToSimplifyWithin, expected, simplificationOptions)
             End Using
 
         End Sub
 
         Private Sub Test(workspace As Workspace,
-                         listOfLabelToAddSimpliferAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, IList(Of TextSpan))),
+                         listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, IList(Of TextSpan))),
                          explicitSpansToSimplifyWithin As IEnumerable(Of TextSpan),
                          expected As XElement,
-                         simplifcationOptions As Dictionary(Of OptionKey, Object))
+                         simplificationOptions As Dictionary(Of OptionKey, Object))
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
             Dim root = document.GetSyntaxRootAsync().Result
 
-            For Each labelToAddSimpliferAnnotationSpans In listOfLabelToAddSimpliferAnnotationSpans
-                Dim simplifyKind = labelToAddSimpliferAnnotationSpans.Key
-                Dim spansToAddSimpliferAnnotation = labelToAddSimpliferAnnotationSpans.Value
+            For Each labelToAddSimplifierAnnotationSpans In listOfLabelToAddSimplifierAnnotationSpans
+                Dim simplifyKind = labelToAddSimplifierAnnotationSpans.Key
+                Dim spansToAddSimplifierAnnotation = labelToAddSimplifierAnnotationSpans.Value
 
                 Select Case simplifyKind
                     Case "Simplify"
-                        For Each span In spansToAddSimpliferAnnotation
+                        For Each span In spansToAddSimplifierAnnotation
                             Dim node = root.FindToken(span.Start).Parent
                             root = root.ReplaceNode(node, node.WithAdditionalAnnotations(Simplifier.Annotation))
                         Next
 
                     Case "SimplifyToken"
-                        For Each span In spansToAddSimpliferAnnotation
+                        For Each span In spansToAddSimplifierAnnotation
                             Dim token = root.FindToken(span.Start)
                             root = root.ReplaceToken(token, token.WithAdditionalAnnotations(Simplifier.Annotation))
                         Next
 
                     Case "SimplifyParent"
-                        For Each span In spansToAddSimpliferAnnotation
+                        For Each span In spansToAddSimplifierAnnotation
                             Dim node = root.FindToken(span.Start).Parent.Parent
                             root = root.ReplaceNode(node, node.WithAdditionalAnnotations(Simplifier.Annotation))
                         Next
 
                     Case "SimplifyParentParent"
-                        For Each span In spansToAddSimpliferAnnotation
+                        For Each span In spansToAddSimplifierAnnotation
                             Dim node = root.FindToken(span.Start).Parent.Parent.Parent
                             root = root.ReplaceNode(node, node.WithAdditionalAnnotations(Simplifier.Annotation))
                         Next
 
                     Case "SimplifyExtension"
-                        For Each span In spansToAddSimpliferAnnotation
+                        For Each span In spansToAddSimplifierAnnotation
                             Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                             root = root.ReplaceNode(node, node.WithAdditionalAnnotations(Simplifier.Annotation))
                         Next
@@ -83,8 +83,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Next
 
             Dim optionSet = workspace.Options
-            If simplifcationOptions IsNot Nothing Then
-                For Each entry In simplifcationOptions
+            If simplificationOptions IsNot Nothing Then
+                For Each entry In simplificationOptions
                     optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
                 Next
             End If

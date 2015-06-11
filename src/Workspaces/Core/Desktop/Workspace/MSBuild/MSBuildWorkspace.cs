@@ -674,14 +674,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     docFileInfo.IsGenerated));
             }
 
-            var additonalDocs = new List<DocumentInfo>();
+            var additionalDocs = new List<DocumentInfo>();
             foreach (var docFileInfo in projectFileInfo.AdditionalDocuments)
             {
                 string name;
                 ImmutableArray<string> folders;
                 GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
 
-                additonalDocs.Add(DocumentInfo.Create(
+                additionalDocs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
                     name,
                     folders,
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     resolvedReferences.ProjectReferences,
                     metadataReferences,
                     analyzerReferences: projectFileInfo.AnalyzerReferences,
-                    additionalDocuments: additonalDocs,
+                    additionalDocuments: additionalDocs,
                     isSubmission: false,
                     hostObjectType: null));
 

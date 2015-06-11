@@ -85,8 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Get all the pairs of substitutions, including from the parent substitutations. The substutitions
-        ''' are in order from outside-in (parent substutitions before child substitutions).
+        ''' Get all the pairs of substitutions, including from the parent substitutions. The substitutions
+        ''' are in order from outside-in (parent substitutions before child substitutions).
         ''' </summary>
         Public ReadOnly Property PairsIncludingParent As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol))
             Get
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Combine two substitutions into one by concatinating. 
+        ''' Combine two substitutions into one by concatenating. 
         ''' 
         ''' They may not directly or indirectly (through Parent) target the same generic definition.
         ''' sub2 is expected to target types lower in the containership hierarchy.

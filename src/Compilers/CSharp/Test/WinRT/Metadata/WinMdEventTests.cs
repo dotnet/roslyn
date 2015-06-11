@@ -324,7 +324,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2")
             });
 
-            var verifer = CompileAndVerifyOnWin8Only(
+            var verifier = CompileAndVerifyOnWin8Only(
                 src,
                 additionalRefs: new[] {
                     MscorlibRef_v4_0_30316_17626,
@@ -334,7 +334,7 @@ class C
                     dynamicCommonRef
                 },
                 emitOptions: TestEmitters.RefEmitBug);
-            verifer.VerifyIL("C.Main",
+            verifier.VerifyIL("C.Main",
 @"
 {
   // Code size     6300 (0x189c)

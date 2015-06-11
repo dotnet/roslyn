@@ -5122,7 +5122,7 @@ End Class
 
         <WorkItem(991466)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DescriptionInAlaisedType()
+        Public Sub DescriptionInAliasedType()
             Dim text =
 <code><![CDATA[
 Imports IAlias = IFoo

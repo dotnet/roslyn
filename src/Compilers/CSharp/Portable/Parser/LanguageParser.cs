@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool ContainsAlias(NameSyntax name)
+        private static bool ContainsAlias(NameSyntax name)
         {
             switch (name.Kind)
             {
@@ -503,14 +503,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.AliasQualifiedName:
                     return true;
                 case SyntaxKind.QualifiedName:
-                    var qualifedName = (QualifiedNameSyntax)name;
-                    return ContainsAlias(qualifedName.Left);
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsAlias(qualifiedName.Left);
             }
 
             return false;
         }
 
-        private bool ContainsGeneric(NameSyntax name)
+        private static bool ContainsGeneric(NameSyntax name)
         {
             switch (name.Kind)
             {
@@ -519,8 +519,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.AliasQualifiedName:
                     return ContainsGeneric(((AliasQualifiedNameSyntax)name).Name);
                 case SyntaxKind.QualifiedName:
-                    var qualifedName = (QualifiedNameSyntax)name;
-                    return ContainsGeneric(qualifedName.Left) || ContainsGeneric(qualifedName.Right);
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsGeneric(qualifiedName.Left) || ContainsGeneric(qualifiedName.Right);
             }
 
             return false;

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected StateManager StateManager
             {
-                get { return this.Owner._stateManger; }
+                get { return this.Owner._stateManager; }
             }
 
             protected virtual bool ConcurrentDocumentComputation => false;

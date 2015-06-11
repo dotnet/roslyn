@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     sourceNode = DirectCast(updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode(), SyntaxNode)
 
                     ' we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
-                    ' a member access now instead of the identifer. So more syntax fiddling is needed.
+                    ' a member access now instead of the identifier. So more syntax fiddling is needed.
                     If sourceNode.Parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso
                         DirectCast(sourceNode, ExpressionSyntax).IsRightSideOfDot() Then
 

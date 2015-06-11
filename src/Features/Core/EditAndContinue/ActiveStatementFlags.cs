@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <remarks>
         /// An active statement is partially executed if the thread is stopped in between two sequence points.
-        /// This may happen when the users steps trhough the code in disassembly window (stepping over machine instructions),
+        /// This may happen when the users steps through the code in disassembly window (stepping over machine instructions),
         /// when the compiler emits a call to Debugger.Break (VB Stop statement), etc.
         /// 
         /// Partially executed active statement can't be edited.

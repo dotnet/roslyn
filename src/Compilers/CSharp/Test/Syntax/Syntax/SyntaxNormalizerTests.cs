@@ -422,7 +422,7 @@ int i = 1;
 @"class c1
 {
     ///<summary>
-    /// A documenation comment
+    /// A documentation comment
     ///</summary>
     void foo()
     {
@@ -433,7 +433,7 @@ int i = 1;
 @"class c1
 {
   ///<summary>
-  /// A documenation comment
+  /// A documentation comment
   ///</summary>
   void foo()
   {
@@ -448,7 +448,7 @@ int i = 1;
 @"class c1
 {
     ///  <summary>
-    ///  A documenation comment
+    ///  A documentation comment
     ///  </summary>
     void foo()
     {
@@ -459,7 +459,7 @@ int i = 1;
 @"class c1
 {
   ///  <summary>
-  ///  A documenation comment
+  ///  A documentation comment
   ///  </summary>
   void foo()
   {

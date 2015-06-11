@@ -15955,7 +15955,7 @@ BC33035: Type 'c2' must define operator 'IsTrue' to be used in a 'OrElse' expres
             compilation1.VerifyDiagnostics(Diagnostic(ERRID.ERR_CopyBackTypeMismatch3, "o").WithArguments("x", "Integer", "c2"))
         End Sub
 
-        ' Rosly extra errors (last 3)
+        ' Roslyn extra errors (last 3)
         <Fact()>
         Public Sub BC33038ERR_ForLoopOperatorRequired2()
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -19378,9 +19378,9 @@ BC42026: Expression recursively calls the containing property 'Public Property P
         End Sub
 
         <Fact()>
-        Public Sub BC42029WRN_OverlapingCatch()
+        Public Sub BC42029WRN_OverlappingCatch()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="OverlapingCatch">
+    <compilation>
         <file name="a.vb">
             Imports System
             Module Module1
@@ -20955,13 +20955,13 @@ BC42349: Using DirectCast operator to cast a value-type to the same type is obso
 
                     Module M1
                         Sub foo()
-                            ' resouce type is a concrete structure + immutable (OK)
+                            ' resource type is a concrete structure + immutable (OK)
                             Using a As New ImmutableStructure()
                             End Using
                             Using New ImmutableStructure() ' ok
                             End Using
 
-                            ' resouce type is a concrete structure + mutable (Warning)
+                            ' resource type is a concrete structure + mutable (Warning)
                             Using b As New MutableStructure()
                             End Using
                             Using New MutableStructure() ' as expression also ok.
@@ -21644,6 +21644,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
                                   </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
+
         <Fact(), WorkItem(530126, "DevDiv")>
         Public Sub Bug_15314_Structure()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21666,6 +21667,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
                                   </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
+
         <Fact()>
         Public Sub Bug4185()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

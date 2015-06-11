@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         InlineValue,
 
         /// <summary>
-        /// Displays a siple description of the object followed by list of members. Each member is
+        /// Displays a simple description of the object followed by list of members. Each member is
         /// displayed on a separate line.
         /// </summary>
         List,

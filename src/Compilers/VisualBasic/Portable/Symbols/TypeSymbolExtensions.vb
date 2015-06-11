@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Dig through possibly jugged array type to the ultimate element type
+        ''' Dig through possibly jagged array type to the ultimate element type
         ''' </summary>
         <Extension()>
         Public Function DigThroughArrayType(possiblyArrayType As TypeSymbol) As TypeSymbol

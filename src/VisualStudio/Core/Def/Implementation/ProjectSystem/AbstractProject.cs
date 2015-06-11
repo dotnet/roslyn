@@ -899,7 +899,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void UndoProjectReferenceConversionForDissappearingOutputPath(string binPath)
+        internal void UndoProjectReferenceConversionForDisappearingOutputPath(string binPath)
         {
             ProjectReference projectReference;
             if (_metadataFileNameToConvertedProjectReference.TryGetValue(binPath, out projectReference))

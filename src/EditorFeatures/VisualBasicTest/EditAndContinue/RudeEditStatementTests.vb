@@ -756,7 +756,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        ' TODO: test GroupBy with known matches accross CRVs (coming from active statement tracking)
+        ' TODO: test GroupBy with known matches across CRVs (coming from active statement tracking)
 
         <Fact>
         Public Sub MatchLambdas1()

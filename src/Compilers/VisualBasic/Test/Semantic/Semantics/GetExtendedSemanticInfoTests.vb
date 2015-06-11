@@ -874,7 +874,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InaccesibleConstructorsFiltered_ObjectCreationExpressionSyntax()
+        Public Sub InaccessibleConstructorsFiltered_ObjectCreationExpressionSyntax()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
@@ -925,7 +925,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InaccesibleConstructorsFiltered_IdentifierNameSyntax()
+        Public Sub InaccessibleConstructorsFiltered_IdentifierNameSyntax()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
@@ -969,7 +969,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InaccesibleConstructorsFiltered_IdentifierNameSyntax2()
+        Public Sub InaccessibleConstructorsFiltered_IdentifierNameSyntax2()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
@@ -1018,7 +1018,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InaccesibleConstructorsFiltered_AttributeSyntax()
+        Public Sub InaccessibleConstructorsFiltered_AttributeSyntax()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
@@ -1069,7 +1069,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InaccesibleConstructorsFiltered_Attribute_IdentifierNameSyntax()
+        Public Sub InaccessibleConstructorsFiltered_Attribute_IdentifierNameSyntax()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb"><![CDATA[
@@ -9464,7 +9464,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub NewOfUnconstraintedTypeParameter()
+        Public Sub NewOfUnconstrainedTypeParameter()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -9501,7 +9501,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub NewOfUnconstraintedTypeParameter2()
+        Public Sub NewOfUnconstrainedTypeParameter2()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[

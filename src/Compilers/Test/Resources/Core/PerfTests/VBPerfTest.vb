@@ -147,7 +147,7 @@ Namespace ns1
             End If
         End Sub
 
-        ' Overriden Abstract Methods
+        ' Overridden Abstract Methods
         Public Overrides Function abst(ByRef x As String, ParamArray y As Integer()) As Integer
             Console.WriteLine("    c1.abst(ref string, params int[])")
             x = x.ToString() : y = New Integer() {y(0)} ' Read, Write Ref + Paramarrays
@@ -469,7 +469,7 @@ Namespace ns1
             End If
         End Sub
 
-        ' Overriden Abstract Methods
+        ' Overridden Abstract Methods
         Public Overrides Function abst(ByRef x As String, ParamArray y As Integer()) As Integer
             Console.WriteLine("    c2<T>.abst(ref string, params int[])")
             x = y(0).ToString() : y = Nothing ' Read, Write Ref + Paramarrays
@@ -482,7 +482,7 @@ Namespace ns1
             Return 1
         End Function
 
-        ' Overriden Virtual Methods
+        ' Overridden Virtual Methods
         Public Overrides Function virt(ByRef x As Integer, y As c1, ParamArray z As c2(Of String)()) As Integer
             Console.WriteLine("    c2<T>.virt(ref int, c1, params c2<string>[])")
             x = 0 : x = y.GetHashCode() : z = Nothing ' Read, Write Ref + Paramarrays

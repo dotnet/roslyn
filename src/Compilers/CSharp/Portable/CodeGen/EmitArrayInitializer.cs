@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Produces a serialized blob of all constant initializers.
-        /// Nonconstat initializers are matched with a zero of corresponding size.
+        /// Nonconstant initializers are matched with a zero of corresponding size.
         /// </summary>
         private ImmutableArray<byte> GetRawData(ImmutableArray<BoundExpression> initializers)
         {

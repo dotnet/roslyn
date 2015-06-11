@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public readonly string InsertionText;
         public readonly int Position;
         public readonly List<ISymbol> Symbols;
-        private readonly SupportedPlatformData _supportedPlatorms;
+        private readonly SupportedPlatformData _supportedPlatforms;
 
         public SymbolCompletionItem(
             ICompletionProvider completionProvider,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             this.Position = position;
             this.Symbols = symbols;
             this.Context = context;
-            _supportedPlatorms = supportedPlatforms;
+            _supportedPlatforms = supportedPlatforms;
         }
 
         public SymbolCompletionItem(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             this.Position = position;
             this.Symbols = symbols;
             this.Context = context;
-            _supportedPlatorms = supportedPlatforms;
+            _supportedPlatforms = supportedPlatforms;
         }
 
         public override async Task<ImmutableArray<SymbolDisplayPart>> GetDescriptionAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Interlocked.CompareExchange(
                     ref this.LazyDescription,
                     new AsyncLazy<ImmutableArray<SymbolDisplayPart>>(
-                        CommonCompletionUtilities.CreateDescriptionFactory(this.Context.Workspace, this.Context.SemanticModel, this.Position, this.Symbols, _supportedPlatorms), cacheResult: true),
+                        CommonCompletionUtilities.CreateDescriptionFactory(this.Context.Workspace, this.Context.SemanticModel, this.Position, this.Symbols, _supportedPlatforms), cacheResult: true),
                     null);
             }
 

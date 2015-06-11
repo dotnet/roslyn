@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // If the project we're looking at doesn't even support compilations, then there's no 
-            // way for it to have an IAssemblySymbo.  And without that, there is no way for it
+            // way for it to have an IAssemblySymbol.  And without that, there is no way for it
             // to have any sort of 'ReferenceTo' the provided 'containingAssembly' symbol.
             if (!project.SupportsCompilation)
             {

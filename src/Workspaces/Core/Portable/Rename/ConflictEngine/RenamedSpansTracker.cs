@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             throw new ArgumentException("originalComplexifiedSpan");
         }
 
-        // Given a position in the old solution, we get back the new adjusted postion 
+        // Given a position in the old solution, we get back the new adjusted position 
         internal int GetAdjustedPosition(int startingPosition, DocumentId documentId)
         {
             var documentReplacementSpans = _documentToModifiedSpansMap.ContainsKey(documentId)

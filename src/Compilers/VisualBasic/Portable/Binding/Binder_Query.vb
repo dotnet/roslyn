@@ -4652,7 +4652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' NOTE: Lookup may return Kind = LookupResultKind.Inaccessible or LookupResultKind.MustBeInstance;
             '
-            '       It looks we intentinally pass LookupResultKind.Inaccessible to CreateBoundMethodGroup(...) 
+            '       It looks we intentionally pass LookupResultKind.Inaccessible to CreateBoundMethodGroup(...) 
             '       causing BC30390 to be generated instead of BC36594 reported by Dev11 (more accurate message?)
             '
             '       As CreateBoundMethodGroup(...) only expects Kind = LookupResultKind.Good or 

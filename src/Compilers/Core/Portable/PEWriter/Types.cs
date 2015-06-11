@@ -343,7 +343,7 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Models an explicit implemenation or override of a base class virtual method or an explicit implementation of an interface method.
+    /// Models an explicit implementation or override of a base class virtual method or an explicit implementation of an interface method.
     /// </summary>
     internal struct MethodImplementation
     {
@@ -699,7 +699,7 @@ namespace Microsoft.Cci
         UIntPtr,
 
         /// <summary>
-        /// A type that denotes the absense of a value.
+        /// A type that denotes the absence of a value.
         /// </summary>
         Void,
 

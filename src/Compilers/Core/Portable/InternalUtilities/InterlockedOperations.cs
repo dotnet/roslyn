@@ -13,7 +13,7 @@ namespace Roslyn.Utilities
         /// The value is changed to <paramref name="value"/> only if the current value is null.
         /// </summary>
         /// <typeparam name="T">Type of value.</typeparam>
-        /// <param name="target">Referene to the target location.</param>
+        /// <param name="target">Reference to the target location.</param>
         /// <param name="value">The value to use if the target is currently null.</param>
         /// <returns>The new value referenced by <paramref name="target"/>. Note that this is
         /// nearly always more useful than the usual return from <see cref="Interlocked.CompareExchange{T}(ref T, T, T)"/>
@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
         /// is <paramref name="uninitializedValue"/>.
         /// </summary>
         /// <typeparam name="T">Type of value.</typeparam>
-        /// <param name="target">Referene to the target location.</param>
+        /// <param name="target">Reference to the target location.</param>
         /// <param name="initializedValue">The value to use if the target is currently uninitialized.</param>
         /// <param name="uninitializedValue">The uninitialized value.</param>
         /// <returns>The new value referenced by <paramref name="target"/>. Note that this is
@@ -47,7 +47,7 @@ namespace Roslyn.Utilities
         /// Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
         /// </summary>
         /// <typeparam name="T">Elemental type of the array.</typeparam>
-        /// <param name="target">Referene to the target location.</param>
+        /// <param name="target">Reference to the target location.</param>
         /// <param name="initializedValue">The value to use if the target is currently uninitialized (default).</param>
         /// <returns>The new value referenced by <paramref name="target"/>. Note that this is
         /// nearly always more useful than the usual return from <see cref="Interlocked.CompareExchange{T}(ref T, T, T)"/>

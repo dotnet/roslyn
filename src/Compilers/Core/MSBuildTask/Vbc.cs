@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         // The following 1 fields are used, set and re-set in LogEventsFromTextOutput()
         /// <summary>
-        /// This stores the origional lines and error priority together in the order in which they were recieved.
+        /// This stores the original lines and error priority together in the order in which they were received.
         /// </summary>
         private readonly Queue<VBError> _vbErrorLines = new Queue<VBError>();
 
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     int endParenthesisLocation = originalVBErrorString.IndexOf(')');
 
                     // If for some reason the line does not contain any ~ then something went wrong
-                    // so abort and return the origional string.
+                    // so abort and return the original string.
                     if (column < 0 || endParenthesisLocation < 0)
                     {
                         // we need to output all of the original lines we ate.

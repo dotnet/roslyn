@@ -1897,7 +1897,7 @@ namespace ConsoleApplication3
         public abstract event Action MyEvent;
     }
 
-    public class SuperWithOverridenEvent : BaseWithAbstractEvent
+    public class SuperWithOverriddenEvent : BaseWithAbstractEvent
     {
         public override event Action MyEvent
         {
@@ -1915,7 +1915,7 @@ namespace ConsoleApplication3
     {
         static void Main()
         {
-            SuperWithOverridenEvent swoe = new SuperWithOverridenEvent();
+            SuperWithOverriddenEvent swoe = new SuperWithOverriddenEvent();
             swoe.MyEvent += Main;
         }
     }

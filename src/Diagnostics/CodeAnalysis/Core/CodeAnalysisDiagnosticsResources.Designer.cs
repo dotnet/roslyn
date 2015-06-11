@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiatied in a compilation start action, registered using &apos;{0}.{1}&apos; API. An instance of this type will be created per-compilation and it won&apos;t outlive compilation&apos;s lifetime, hence avoiding memory leaks..
+        ///   Looks up a localized string similar to Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using &apos;{0}.{1}&apos; API. An instance of this type will be created per-compilation and it won&apos;t outlive compilation&apos;s lifetime, hence avoiding memory leaks..
         /// </summary>
         internal static string DoNotStorePerCompilationDataOntoFieldsDescription {
             get {
@@ -296,6 +296,24 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; has the default value of &apos;null&apos; for property &apos;{1}&apos;. Either override this property on &apos;{0}&apos; to return a non-null and unique value across all code actions per-fixer or use such an existing code action..
+        /// </summary>
+        internal static string OverrideCodeActionEquivalenceKeyMessage {
+            get {
+                return ResourceManager.GetString("OverrideCodeActionEquivalenceKeyMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use code actions that have a unique EquivalenceKey for FixAll occurrences support..
+        /// </summary>
+        internal static string OverrideCodeActionEquivalenceKeyTitle {
+            get {
+                return ResourceManager.GetString("OverrideCodeActionEquivalenceKeyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; does not register any analyzer actions. Consider moving actions registered in &apos;{1}&apos; that depend on this start action to &apos;{0}&apos;..
         /// </summary>
         internal static string StartActionWithNoRegisteredActionsMessage {
@@ -340,24 +358,6 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         internal static string StatefulAnalyzerRegisterActionsDescription {
             get {
                 return ResourceManager.GetString("StatefulAnalyzerRegisterActionsDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; has the default value of &apos;null&apos; for property &apos;{1}&apos;. Either override this property on &apos;{0}&apos; to return a non-null and unique value across all code actions per-fixer or use such an existing code action..
-        /// </summary>
-        internal static string OverrideCodeActionEquivalenceKeyMessage {
-            get {
-                return ResourceManager.GetString("OverrideCodeActionEquivalenceKeyMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use code actions that have a unique EquivalenceKey for FixAll occurrences support..
-        /// </summary>
-        internal static string OverrideCodeActionEquivalenceKeyTitle {
-            get {
-                return ResourceManager.GetString("OverrideCodeActionEquivalenceKeyTitle", resourceCulture);
             }
         }
         

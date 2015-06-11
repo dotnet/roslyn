@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// The strategy of this rewrite is to do rewrite "locally".
-        /// We analyze arguments of the concat in a shallow fasion assuming that 
+        /// We analyze arguments of the concat in a shallow fashion assuming that 
         /// lowering and optimizations (including this one) is already done for the arguments.
         /// Based on the arguments we select the most appropriate pattern for the current node.
         /// 
