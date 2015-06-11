@@ -69,6 +69,8 @@ run_nuget()
         mono src/.nuget/NuGet.exe "$@"
         if [ $? -eq 0 ]; then
             i=0
+        else
+            i=$((i - 1))
         fi
     done
 
