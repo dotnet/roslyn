@@ -512,7 +512,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 if (projectChanges.GetAddedMetadataReferences().Any() || projectChanges.GetAddedProjectReferences().Any() || projectChanges.GetAddedAnalyzerReferences().Any() ||
                     projectChanges.GetRemovedMetadataReferences().Any() || projectChanges.GetRemovedProjectReferences().Any() || projectChanges.GetRemovedAnalyzerReferences().Any() ||
-                    !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions))
+                    !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
+                    !object.Equals(oldProject.AssemblyName, newProject.AssemblyName))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
                 }
