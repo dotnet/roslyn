@@ -229,6 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("[a(b,c)]class d{}", "[a(b, c)]\r\nclass d\r\n{\r\n}");
             TestNormalizeDeclaration("[a][b]class c{}", "[a]\r\n[b]\r\nclass c\r\n{\r\n}");
             TestNormalizeDeclaration("[a:b]class c{}", "[a: b]\r\nclass c\r\n{\r\n}");
+
+            // parameter attributes
+            TestNormalizeDeclaration("class c{void M([a]int x,[b] [c,d]int y){}}", "class c\r\n{\r\n  void M([a] int x, [b][c, d] int y)\r\n  {\r\n  }\r\n}");
         }
 
         [WorkItem(541684, "DevDiv")]

@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         || nextToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
-                    if (currentToken.Parent is AttributeListSyntax)
+                    if (currentToken.Parent is AttributeListSyntax && !(currentToken.Parent.Parent is ParameterSyntax))
                     {
                         return 1;
                     }
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.FinallyKeyword:
                     return 1;
                 case SyntaxKind.OpenBracketToken:
-                    return nextToken.Parent is AttributeListSyntax ? 1 : 0;
+                    return (nextToken.Parent is AttributeListSyntax && !(nextToken.Parent.Parent is ParameterSyntax)) ? 1 : 0;
                 case SyntaxKind.WhereKeyword:
                     return currentToken.Parent is TypeParameterListSyntax ? 1 : 0;
             }

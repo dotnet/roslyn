@@ -1299,7 +1299,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 _g.AddAttributes(
                     _g.ParameterDeclaration("p", _g.IdentifierName("t")),
                     _g.Attribute("a")),
-                "[a]\r\nt p");
+                "[a] t p");
 
             VerifySyntax<CompilationUnitSyntax>(
                 _g.AddAttributes(
