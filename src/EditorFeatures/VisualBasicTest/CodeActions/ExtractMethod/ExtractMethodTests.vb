@@ -112,20 +112,6 @@ NewLines("Module M \n Sub Main() \n Dim x = 0 \n Do While [|x * x < 100|] \n x +
 NewLines("Module M \n Sub Main() \n Dim x = 0 \n Do While {|Rename:NewMethod|}(x) \n x += 1 \n Loop \n End Sub \n Private Function NewMethod(x As Integer) As Boolean \n Return x * x < 100 \n End Function \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
-        Public Sub TestInInterpolation1()
-            Test(
-NewLines("Module M \n Sub Main() \n Dim v As New Object \n [|System.Console.WriteLine($""{v}"")|] \n System.Console.WriteLine(v) \n End Sub \n End Module"),
-NewLines("Module M \n Sub Main() \n Dim v As New Object \n {|Rename:NewMethod|}(v) \n System.Console.WriteLine(v) \n End Sub \n Private Sub NewMethod(v As Object) \n System.Console.WriteLine($""{v}"") \n End Sub \n End Module"))
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
-        Public Sub TestInInterpolation2()
-            Test(
-NewLines("Module M \n Sub Main() \n Dim v As New Object \n System.Console.WriteLine([|$""{v}""|]) \n System.Console.WriteLine(v) \n End Sub \n End Module"),
-NewLines("Module M \n Sub Main() \n Dim v As New Object \n System.Console.WriteLine({|Rename:NewMethod|}(v)) \n System.Console.WriteLine(v) \n End Sub \n Private Function NewMethod(v As Object) As Object \n Return $""{v}"" \n End Function \n End Module"))
-        End Sub
-
         <WorkItem(545829)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestMissingOnImplicitMemberAccess()

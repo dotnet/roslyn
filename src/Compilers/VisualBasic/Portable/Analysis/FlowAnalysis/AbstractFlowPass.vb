@@ -2528,19 +2528,6 @@ lUnsplitAndFinish:
             Visit(node.Expression)
             Return Nothing
         End Function
-
-        Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
-            For Each item In node.Contents
-                Visit(item)
-            Next
-
-            Return Nothing
-        End Function
-
-        Public Overrides Function VisitInterpolation(node As BoundInterpolation) As BoundNode
-            Visit(node.Expression)
-            Return Nothing
-        End Function
 #End Region
 
     End Class
