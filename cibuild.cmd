@@ -12,7 +12,7 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 call :Usage && exit /b 1
 :DoneParsing
 
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
 REM Build the compiler so we can self host it for the full build
 src\.nuget\NuGet.exe restore %RoslynRoot%/src/Toolset.sln -packagesdirectory packages
