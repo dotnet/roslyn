@@ -2496,7 +2496,7 @@ End Class
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
-            
+
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
             context.CompileExpression("e.HasValue", errorMessage, testData)
