@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22216.0
+VisualStudioVersion = 14.0.22905.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APISampleUnitTestsCS", "CSharp\APISampleUnitTests\APISampleUnitTestsCS.csproj", "{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}"
 EndProject
@@ -54,6 +54,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{B00C02
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzers", "Analyzers", "{2E4063D7-5ADF-4CDF-B031-88892FD0E9FE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzers", "Analyzers", "{A0F48C20-F9A3-4432-8115-F9B6DEA11E18}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpAnalyzers", "CSharp\Analyzers\CSharpAnalyzers\CSharpAnalyzers\CSharpAnalyzers.csproj", "{409C5A1C-D4DE-43C4-86E1-F598C60B794B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpAnalyzers.Test", "CSharp\Analyzers\CSharpAnalyzers\CSharpAnalyzers.Test\CSharpAnalyzers.Test.csproj", "{E5603AB0-C831-4044-8E44-3CA853B6A152}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpAnalyzers.Vsix", "CSharp\Analyzers\CSharpAnalyzers\CSharpAnalyzers.Vsix\CSharpAnalyzers.Vsix.csproj", "{D4277F22-5942-4DE7-9E42-B33168118D34}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicAnalyzers", "VisualBasic\Analyzers\BasicAnalyzers\BasicAnalyzers\BasicAnalyzers.vbproj", "{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicAnalyzers.Test", "VisualBasic\Analyzers\BasicAnalyzers\BasicAnalyzers.Test\BasicAnalyzers.Test.vbproj", "{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicAnalyzers.Vsix", "VisualBasic\Analyzers\BasicAnalyzers\BasicAnalyzers.Vsix\BasicAnalyzers.Vsix.vbproj", "{6E9FD555-EC3F-4865-A164-CB11A424B910}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -223,6 +239,54 @@ Global
 		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E5603AB0-C831-4044-8E44-3CA853B6A152}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D4277F22-5942-4DE7-9E42-B33168118D34}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{6E9FD555-EC3F-4865-A164-CB11A424B910}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -248,91 +312,13 @@ Global
 		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
 		{68D3FDD2-DA02-453B-9DF9-022F65F9265E} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
 		{0D9287FD-F17F-4CB8-B622-904E69994AC6} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
-	EndGlobalSection
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 21
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = CSharp\\APISampleUnitTests\\APISampleUnitTestsCS.csproj
-		SccProjectTopLevelParentUniqueName1 = Samples.sln
-		SccProjectName1 = CSharp/APISampleUnitTests
-		SccLocalPath1 = CSharp\\APISampleUnitTests
-		SccProjectUniqueName2 = CSharp\\ConsoleClassifier\\ConsoleClassifierCS.csproj
-		SccProjectTopLevelParentUniqueName2 = Samples.sln
-		SccProjectName2 = CSharp/ConsoleClassifier
-		SccLocalPath2 = CSharp\\ConsoleClassifier
-		SccProjectUniqueName3 = CSharp\\ConvertToAutoProperty\\Impl\\ConvertToAutoPropertyCS.csproj
-		SccProjectTopLevelParentUniqueName3 = Samples.sln
-		SccProjectName3 = CSharp/ConvertToAutoProperty/Impl
-		SccLocalPath3 = CSharp\\ConvertToAutoProperty\\Impl
-		SccProjectUniqueName4 = CSharp\\FormatSolution\\FormatSolutionCS.csproj
-		SccProjectTopLevelParentUniqueName4 = Samples.sln
-		SccProjectName4 = CSharp/FormatSolution
-		SccLocalPath4 = CSharp\\FormatSolution
-		SccProjectUniqueName5 = CSharp\\ImplementNotifyPropertyChanged\\Impl\\ImplementNotifyPropertyChangedCS.csproj
-		SccProjectTopLevelParentUniqueName5 = Samples.sln
-		SccProjectName5 = CSharp/ImplementNotifyPropertyChanged/Impl
-		SccLocalPath5 = CSharp\\ImplementNotifyPropertyChanged\\Impl
-		SccProjectUniqueName6 = CSharp\\ImplementNotifyPropertyChanged\\Test\\ImplementNotifyPropertyChangedCS.UnitTests.csproj
-		SccProjectTopLevelParentUniqueName6 = Samples.sln
-		SccProjectName6 = CSharp/ImplementNotifyPropertyChanged/Test
-		SccLocalPath6 = CSharp\\ImplementNotifyPropertyChanged\\Test
-		SccProjectUniqueName7 = CSharp\\MakeConst\\Impl\\MakeConstCS.csproj
-		SccProjectTopLevelParentUniqueName7 = Samples.sln
-		SccProjectName7 = CSharp/MakeConst/Impl
-		SccLocalPath7 = CSharp\\MakeConst\\Impl
-		SccProjectUniqueName8 = CSharp\\MakeConst\\Test\\MakeConstCS.UnitTests.csproj
-		SccProjectTopLevelParentUniqueName8 = Samples.sln
-		SccProjectName8 = CSharp/MakeConst/Test
-		SccLocalPath8 = CSharp\\MakeConst\\Test
-		SccProjectUniqueName9 = Shared\\UnitTestFramework\\UnitTestFramework.csproj
-		SccProjectTopLevelParentUniqueName9 = Samples.sln
-		SccProjectName9 = Shared/UnitTestFramework
-		SccLocalPath9 = Shared\\UnitTestFramework
-		SccProjectUniqueName10 = VisualBasic\\APISampleUnitTests\\APISampleUnitTestsVB.vbproj
-		SccProjectTopLevelParentUniqueName10 = Samples.sln
-		SccProjectName10 = VisualBasic/APISampleUnitTests
-		SccLocalPath10 = VisualBasic\\APISampleUnitTests
-		SccProjectUniqueName11 = VisualBasic\\ConsoleClassifier\\ConsoleClassifierVB.vbproj
-		SccProjectTopLevelParentUniqueName11 = Samples.sln
-		SccProjectName11 = VisualBasic/ConsoleClassifier
-		SccLocalPath11 = VisualBasic\\ConsoleClassifier
-		SccProjectUniqueName12 = VisualBasic\\ConvertToAutoProperty\\Impl\\ConvertToAutoPropertyVB.vbproj
-		SccProjectTopLevelParentUniqueName12 = Samples.sln
-		SccProjectName12 = VisualBasic/ConvertToAutoProperty/Impl
-		SccLocalPath12 = VisualBasic\\ConvertToAutoProperty\\Impl
-		SccProjectUniqueName13 = VisualBasic\\ConvertToAutoProperty\\Test\\ConvertToAutoPropertyVB.UnitTests.vbproj
-		SccProjectTopLevelParentUniqueName13 = Samples.sln
-		SccProjectName13 = VisualBasic/ConvertToAutoProperty/Test
-		SccLocalPath13 = VisualBasic\\ConvertToAutoProperty\\Test
-		SccProjectUniqueName14 = VisualBasic\\FormatSolution\\FormatSolutionVB.vbproj
-		SccProjectTopLevelParentUniqueName14 = Samples.sln
-		SccProjectName14 = VisualBasic/FormatSolution
-		SccLocalPath14 = VisualBasic\\FormatSolution
-		SccProjectUniqueName15 = VisualBasic\\ImplementNotifyPropertyChanged\\Impl\\ImplementNotifyPropertyChangedVB.vbproj
-		SccProjectTopLevelParentUniqueName15 = Samples.sln
-		SccProjectName15 = VisualBasic/ImplementNotifyPropertyChanged/Impl
-		SccLocalPath15 = VisualBasic\\ImplementNotifyPropertyChanged\\Impl
-		SccProjectUniqueName16 = VisualBasic\\ImplementNotifyPropertyChanged\\Test\\ImplementNotifyPropertyChangedVB.UnitTests.vbproj
-		SccProjectTopLevelParentUniqueName16 = Samples.sln
-		SccProjectName16 = VisualBasic/ImplementNotifyPropertyChanged/Test
-		SccLocalPath16 = VisualBasic\\ImplementNotifyPropertyChanged\\Test
-		SccProjectUniqueName17 = VisualBasic\\MakeConst\\Impl\\MakeConstVB.vbproj
-		SccProjectTopLevelParentUniqueName17 = Samples.sln
-		SccProjectName17 = VisualBasic/MakeConst/Impl
-		SccLocalPath17 = VisualBasic\\MakeConst\\Impl
-		SccProjectUniqueName18 = VisualBasic\\MakeConst\\Test\\MakeConstVB.UnitTests.vbproj
-		SccProjectTopLevelParentUniqueName18 = Samples.sln
-		SccProjectName18 = VisualBasic/MakeConst/Test
-		SccLocalPath18 = VisualBasic\\MakeConst\\Test
-		SccProjectUniqueName19 = CSharp\\AsyncPackage\\AsyncPackage.csproj
-		SccProjectTopLevelParentUniqueName19 = Samples.sln
-		SccProjectName19 = CSharp/AsyncPackage
-		SccLocalPath19 = CSharp\\AsyncPackage
-		SccProjectUniqueName20 = CSharp\\AsyncPackage\\Test\\AsyncPackage.Test.csproj
-		SccProjectTopLevelParentUniqueName20 = Samples.sln
-		SccProjectName20 = CSharp/AsyncPackage/Test
-		SccLocalPath20 = CSharp\\AsyncPackage\\Test
+		{2E4063D7-5ADF-4CDF-B031-88892FD0E9FE} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
+		{A0F48C20-F9A3-4432-8115-F9B6DEA11E18} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
+		{409C5A1C-D4DE-43C4-86E1-F598C60B794B} = {2E4063D7-5ADF-4CDF-B031-88892FD0E9FE}
+		{E5603AB0-C831-4044-8E44-3CA853B6A152} = {2E4063D7-5ADF-4CDF-B031-88892FD0E9FE}
+		{D4277F22-5942-4DE7-9E42-B33168118D34} = {2E4063D7-5ADF-4CDF-B031-88892FD0E9FE}
+		{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A} = {A0F48C20-F9A3-4432-8115-F9B6DEA11E18}
+		{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D} = {A0F48C20-F9A3-4432-8115-F9B6DEA11E18}
+		{6E9FD555-EC3F-4865-A164-CB11A424B910} = {A0F48C20-F9A3-4432-8115-F9B6DEA11E18}
 	EndGlobalSection
 EndGlobal
