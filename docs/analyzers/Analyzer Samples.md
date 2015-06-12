@@ -1,6 +1,6 @@
 ﻿**Samples Location:**
 
-Sample C# and VB analyzers to demonstrate recommended implementation models for different analysis scenarios have been added to [Samples.sln](..//..//src//Samples//Samples.sln).
+Sample analyzers to demonstrate recommended implementation models for different analysis scenarios have been added to [CSharpAnalyzers.sln](..//..//src//Samples//CSharp//Analyzers//CSharpAnalyzers.sln) and [BasicAnalyzers.sln](..//..//src//Samples//VisualBasic//Analyzers//BasicAnalyzers.sln).
 
 **Description:**
 
