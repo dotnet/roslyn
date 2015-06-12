@@ -5,7 +5,7 @@ The Portable PDB (Program Database) format describes an encoding of debugging in
 
 ## Debugging Metadata Format
 ### Overview
-The format is based on the ECMA-335 Partition II metadata standard. The physical layout of the data is described in the ECMA-335-II Chapter 24 and the Portable PDB debugging metadata format introduces no changes to the file headers, metadata streams, etc.
+The format is based on the ECMA-335 Partition II metadata standard. The physical layout of the data is described in the ECMA-335-II Chapter 24 and the Portable PDB debugging metadata format introduces no changes to the fundamental structure.
 
 The ECMA-335-II standard is amended by an addition of the following tables to the “#~” metadata stream:
 
@@ -24,11 +24,27 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
     * [EditAndContinueLocalSlotMap](#EditAndContinueLocalSlotMap)
     * [EditAndContinueLambdaAndClosureMap](#EditAndContinueLambdaAndClosureMap)
 
-These tables refer to data in #Guid, #String and #Blob heaps whose structure hasn’t changed.
+Debugging metadata tables may be combined with type system metadata into a single schema and stored as one data blob (embedded in a PE file, for example). Alternatively debugging metadata can be stored in a separate data blob (.pdb file). In the latter case additional information is included that connects the debugging metadata to the type system metadata.
 
-Debugging metadata may be generated to the same metadata stream that stores type system metadata, or as a standalone stream. In the latter case the standalone stream shall contain a copy of the Module table from the type system metadata. The Module table effectively links the debugging metadata to the corresponding type system metadata.
+### Standalone debug metadata
 
-Debugging metadata generated as a standalone stream refers to the type system metadata entities. All references to tables (tokens, row ids) are references to tables of the metadata stream. References to heaps (strings, blobs, guids) are references to heaps of the debugging metadata stream.
+When debugging metadata is generated to a separate data blob "#Pdb" and "#~" streams shall be present. The standalone debugging metadata may also include #Guid, #String and #Blob heaps, which have the same physical layout but are distict from the corresponding streams of the type system metadata.
+
+#### #Pdb stream
+ 
+| Offset | Size | Field          | Description                                                   |
+|:-------|:-----|:---------------|---------------------------------------------------------------|
+| 0      | 1    | MajorVersion   | Major version of the Portable PDB format; shall be 0.          |
+| 1      | 1    | Minor version  | Minor version of the Portable PDB format; shall be 1.          | 
+| 2      | 4    | EntryPoint     | MethodDef token that designates an entry point of the program. The same value as  specified in COR Header of the corresponding PE file. |
+| 6      | 8    | ReferencedTypeSystemTables | Bit vector of referenced type system metadata tables, let n be the number of bits that are 1. |
+| 14     | 4*n  | TypeSystemTableRows     | Array of n 4-byte unsigned integers indicating the number of rows for each referenced type system metadata table. |
+
+#### #~ stream 
+
+"#~" stream shall only contain debugging information tables defined above and a copy of the Module table from the type system metadata but no other type system metadata table. The Module table effectively links the debugging metadata to the corresponding type system metadata.
+ 
+References to heaps (strings, blobs, guids) are references to heaps of the debugging metadata. The sizes of references to type system tables are determined using the algorithm described in ECMA-335-II Chapter 24.2.6, except for their respective row counts are found in _TypeSystemTableRows_ field of the #Pdb stream.
 
 ### <a name="DocumentTable"></a>Document Table: 0x30
 
