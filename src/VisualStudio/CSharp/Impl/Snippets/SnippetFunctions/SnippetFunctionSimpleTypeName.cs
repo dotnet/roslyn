@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             simplifiedTypeName = string.Empty;
 
             var typeAnnotation = new SyntaxAnnotation();
-            var syntaxRoot = documentWithFullyQualifiedTypeName.GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxRoot = documentWithFullyQualifiedTypeName.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var nodeToReplace = syntaxRoot.DescendantNodes().FirstOrDefault(n => n.Span == updatedTextSpan);
 
             if (nodeToReplace == null)
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var documentWithAnnotations = documentWithFullyQualifiedTypeName.WithSyntaxRoot(updatedRoot);
 
             var simplifiedDocument = Simplifier.ReduceAsync(documentWithAnnotations, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-            simplifiedTypeName = simplifiedDocument.GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
+            simplifiedTypeName = simplifiedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
             return true;
         }
     }

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            var root = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
             if (!token.Span.Contains(textSpan))
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 .Select(loc => (IdentifierNameSyntax)syntaxRoot.FindToken(loc.Location.SourceSpan.Start).Parent)
                 .Where(ident => !HasConflict(ident, variableDeclarator));
 
-            // Add referenceAnnotions to identifier nodes being replaced.
+            // Add referenceAnnotations to identifier nodes being replaced.
             updatedDocument = await updatedDocument.ReplaceNodesAsync(
                 nonConflictingIdentifierNodes,
                 (o, n) => n.WithAdditionalAnnotations(ReferenceAnnotation),
@@ -526,13 +526,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                         ExpressionSyntax innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeorToken.IsNode ?
                             innerInitializerInInlineNodeorToken.AsNode() :
                             innerInitializerInInlineNodeorToken.AsToken().Parent);
-                        var newInializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
+                        var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
 
                         // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
-                        if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInializerSymbolInfo, performEquivalenceCheck: true))
+                        if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                         {
-                            newInializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
-                            if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInializerSymbolInfo, performEquivalenceCheck: true))
+                            newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
+                            if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                             {
                                 if (replacementNodesWithChangedSemantics == null)
                                 {

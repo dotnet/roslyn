@@ -279,9 +279,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Assigning to readonly fields must be done in a constructor : [{0}]..
         /// </summary>
-        internal static string AssingingToReadonlyFields {
+        internal static string AssigningToReadonlyFields {
             get {
-                return ResourceManager.GetString("AssingingToReadonlyFields", resourceCulture);
+                return ResourceManager.GetString("AssigningToReadonlyFields", resourceCulture);
             }
         }
         

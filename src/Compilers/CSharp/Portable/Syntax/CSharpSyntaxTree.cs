@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
         /// </para>
         /// <para>
-        /// A location path is considered mapped if the first <c>#line</c> directive that preceeds it and that
+        /// A location path is considered mapped if the first <c>#line</c> directive that precedes it and that
         /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
         /// </para>
         /// </returns>

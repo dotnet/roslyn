@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Sub
 
         Protected Overrides Function IsSnippetExpansionContext(document As Document, startPosition As Integer, cancellationToken As CancellationToken) As Boolean
-            Dim syntaxTree = document.GetVisualBasicSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(cancellationToken)
+            Dim syntaxTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(cancellationToken)
 
             Return Not syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(startPosition, cancellationToken) AndAlso
                 Not syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken) AndAlso

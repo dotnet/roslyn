@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="StackOverflowWhileEvaluat" xml:space="preserve">
+  <data name="StackOverflowWhileEvaluating" xml:space="preserve">
     <value>!&lt;Stack overflow while evaluating object&gt;</value>
   </data>
   <data name="CantAssignTo" xml:space="preserve">

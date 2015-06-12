@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
-        /// <param name="syntaxTree">The specificed syntax tree.</param>
+        /// <param name="syntaxTree">The specified syntax tree.</param>
         /// <param name="ignoreAccessibility">
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>

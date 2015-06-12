@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             Dim document = context.Document
             Dim span = context.Span
             Dim cancellationToken = context.CancellationToken
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim token = root.FindToken(span.Start)
             If Not token.Span.IntersectsWith(span) Then

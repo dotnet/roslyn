@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim typeDecl = DirectCast(decl, MergedTypeDeclaration)
 #If DEBUG Then
                 ' Ensure that the type declaration is either from user code or embedded
-                ' code, but not merged accross embedded code/user code boundary.
+                ' code, but not merged across embedded code/user code boundary.
                 Dim embedded = EmbeddedSymbolKind.Unset
                 For Each ref In typeDecl.SyntaxReferences
                     Dim refKind = ref.SyntaxTree.GetEmbeddedKind()

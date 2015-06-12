@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 }
             }
 
-            public void ClearExpiredImplicitCache(int expirationTimeInMS)
+            public void ClearExpiredImplicitCache(DateTime expirationTime)
             {
                 lock (_gate)
                 {
-                    _implicitCache.ClearExpiredItems(expirationTimeInMS);
+                    _implicitCache.ClearExpiredItems(expirationTime);
                 }
             }
 
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                     }
                     else if (!PartOfP2PReferences(key))
                     {
-                        _implicitCacheMonitor?.Touch();
                         _implicitCache.Touch(instance);
+                        _implicitCacheMonitor?.Touch();
                     }
 
                     return instance;

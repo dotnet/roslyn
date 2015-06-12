@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Host
                 ~SharedReadableStream()
                 {
                     // we don't have control on stream we give out to others such as
-                    // compiler (ImageOnlyMetdataReferece), make sure we dispose resource 
+                    // compiler (ImageOnlyMetadataReferece), make sure we dispose resource 
                     // at the end if Disposed is not called explicitly.
                     Dispose(false);
                 }

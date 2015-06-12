@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -20,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             // Therefore, it is important that we make this call as cheap as possible.  Rather than constructing a
             // containing Symbol and using ToDisplayString (which might be more *correct*), we'll just do the best we
             // can with Syntax.  This approach is capable of providing parity with the pre-Roslyn implementation.
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, position, useFullSpan: true);

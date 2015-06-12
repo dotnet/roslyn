@@ -3456,7 +3456,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccesibleInterface()
+        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccessibleInterface()
         {
             string source = @"
 using System;
@@ -3490,7 +3490,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccesibleInterface()
+        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccessibleInterface()
         {
             var source = @"
 using System;
@@ -3509,7 +3509,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccesibleInterface");
+            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleInterface");
 
             var source2 = @"
 public class MainClass
@@ -3534,7 +3534,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccesibleCoClass()
+        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccessibleCoClass()
         {
             string source = @"
 using System;
@@ -3568,7 +3568,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccesibleCoClass()
+        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccessibleCoClass()
         {
             var source = @"
 using System;
@@ -3587,7 +3587,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccesibleCoClass");
+            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleCoClass");
 
             var source2 = @"
 public class MainClass
@@ -3776,7 +3776,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_InaccesibleTypeInCoClassAttribute()
+        public void TestCoClassAttribute_NewOnInterface_InaccessibleTypeInCoClassAttribute()
         {
             string source = @"
 using System;

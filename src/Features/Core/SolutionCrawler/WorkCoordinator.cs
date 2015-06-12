@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (!shutdownTask.IsCompleted)
                     {
-                        SolutionCrawlerLogger.LogWorkCoordiantorShutdownTimeout(CorrelationId);
+                        SolutionCrawlerLogger.LogWorkCoordinatorShutdownTimeout(CorrelationId);
                     }
                 }
             }
@@ -512,7 +512,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 if (projectChanges.GetAddedMetadataReferences().Any() || projectChanges.GetAddedProjectReferences().Any() || projectChanges.GetAddedAnalyzerReferences().Any() ||
                     projectChanges.GetRemovedMetadataReferences().Any() || projectChanges.GetRemovedProjectReferences().Any() || projectChanges.GetRemovedAnalyzerReferences().Any() ||
-                    !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions))
+                    !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
+                    !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
+                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
                 }

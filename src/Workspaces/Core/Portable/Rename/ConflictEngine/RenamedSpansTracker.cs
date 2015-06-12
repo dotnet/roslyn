@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             throw new ArgumentException("originalComplexifiedSpan");
         }
 
-        // Given a position in the old solution, we get back the new adjusted postion 
+        // Given a position in the old solution, we get back the new adjusted position 
         internal int GetAdjustedPosition(int startingPosition, DocumentId documentId)
         {
             var documentReplacementSpans = _documentToModifiedSpansMap.ContainsKey(documentId)
@@ -133,7 +133,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return _documentToModifiedSpansMap[documentId].First(t => t.Item1 == originalSpan).Item2;
             }
 
-            return _documentToComplexifiedSpansMap[documentId].First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
+            if (_documentToComplexifiedSpansMap.ContainsKey(documentId))
+            {
+                return _documentToComplexifiedSpansMap[documentId].First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
+            }
+            
+            // The RenamedSpansTracker doesn't currently track unresolved conflicts for
+            // unmodified locations.  If the document wasn't modified, we can just use the 
+            // original span as the new span.
+            return originalSpan;
         }
 
         /// <summary>

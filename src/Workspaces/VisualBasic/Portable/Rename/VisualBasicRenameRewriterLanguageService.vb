@@ -427,14 +427,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             expressionOfInvocation = DirectCast(expressionOfInvocation, ParenthesizedExpressionSyntax).Expression
                         Case SyntaxKind.MeExpression
                             Exit While
-                        Case SyntaxKind.SingleLineSubLambdaExpression,
-                                SyntaxKind.SingleLineFunctionLambdaExpression,
-                                SyntaxKind.MultiLineSubLambdaExpression,
-                                SyntaxKind.MultiLineFunctionLambdaExpression,
-                                SyntaxKind.InvocationExpression
-                            Return Nothing
                         Case Else
-                            ExceptionUtilities.UnexpectedValue(expressionOfInvocation.Kind)
+                            ' This isn't actually an invocation, so there's no member name to check.
+                            Return Nothing
                     End Select
                 End While
 

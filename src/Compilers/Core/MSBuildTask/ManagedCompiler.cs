@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Configure the debug switches which will be placed on the compiler commandline.
         /// The matrix of debug type and symbol inputs and the desired results is as follows:
         /// 
-        /// Debug Symbols              DebugType   Desired Resilts
+        /// Debug Symbols              DebugType   Desired Results
         ///          True               Full        /debug+ /debug:full
         ///          True               PdbOnly     /debug+ /debug:PdbOnly
         ///          True               None        /debug-
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///          Blank              Full                /debug:full
         ///          Blank              PdbOnly             /debug:PdbOnly
         ///          Blank              None        /debug-
-        /// Debug:   Blank              Blank       /debug+ //Microsof.common.targets will set this
+        /// Debug:   Blank              Blank       /debug+ //Microsoft.common.targets will set this
         /// Release: Blank              Blank       "Nothing for either switch"
         /// 
         /// The logic is as follows:
@@ -849,11 +849,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// The IDE and command line compilers unfortunately differ in how win32 
         /// manifests are specified.  In particular, the command line compiler offers a 
-        /// "/nowin32manifest" switch, while the IDE compiler does not offer analagous 
+        /// "/nowin32manifest" switch, while the IDE compiler does not offer analogous 
         /// functionality. If this switch is omitted from the command line and no win32 
         /// manifest is specified, the compiler will include a default win32 manifest 
         /// named "default.win32manifest" found in the same directory as the compiler 
-        /// executable. Again, the IDE compiler does not offer analagous support.
+        /// executable. Again, the IDE compiler does not offer analogous support.
         /// 
         /// We'd like to imitate the command line compiler's behavior in the IDE, but 
         /// it isn't aware of the default file, so we must compute the path to it if 

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// It is recommended to use <see cref="AssemblyMetadata.CreateFromImage(ImmutableArray{byte})"/> or <see cref="ModuleMetadata.CreateFromImage(ImmutableArray{byte})"/> 
         /// API when creating multiple references to the same metadata.
-        /// Reusing <see cref="Metadata"/> object to create multiple references allows for sharing data accross these references.
+        /// Reusing <see cref="Metadata"/> object to create multiple references allows for sharing data across these references.
         /// </para> 
         /// <para>
         /// The method pins <paramref name="peImage"/> in managed heap. The pinned memory is released 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// It is recommended to use <see cref="AssemblyMetadata.CreateFromImage(IEnumerable{byte})"/> or <see cref="ModuleMetadata.CreateFromImage(IEnumerable{byte})"/> 
         /// API when creating multiple references to the same metadata.
-        /// Reusing <see cref="Metadata"/> object to create multiple references allows for sharing data accross these references.
+        /// Reusing <see cref="Metadata"/> object to create multiple references allows for sharing data across these references.
         /// </para> 
         /// <para>
         /// The method makes a copy of the data and pins it. To avoid making a copy use an overload that takes an <see cref="ImmutableArray{T}"/>.
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// It is recommended to use <see cref="AssemblyMetadata.CreateFromStream(Stream, PEStreamOptions)"/> or <see cref="ModuleMetadata.CreateFromStream(Stream, PEStreamOptions)"/> 
         /// API when creating multiple references to the same metadata.
-        /// Reusing <see cref="Metadata"/> object to create multiple references allows for sharing data accross these references.
+        /// Reusing <see cref="Metadata"/> object to create multiple references allows for sharing data across these references.
         /// </para> 
         /// <para>
         /// The method eagerly reads the entire content of <paramref name="peStream"/> into native heap. The native memory block is released 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// It is recommended to use <see cref="AssemblyMetadata.CreateFromFile(string)"/> or <see cref="ModuleMetadata.CreateFromFile(string)"/> 
         /// API when creating multiple references to the same file.
-        /// Reusing <see cref="Metadata"/> object allows for sharing data accross these references.
+        /// Reusing <see cref="Metadata"/> object allows for sharing data across these references.
         /// </para> 
         /// <para>
         /// The method eagerly reads the entire content of the file into native heap. The native memory block is released 
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis
         /// Performance considerations:
         /// <para>
         /// It is recommended to use <see cref="AssemblyMetadata.CreateFromFile(string)"/> API when creating multiple references to the same assembly.
-        /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data accross these references.
+        /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data across these references.
         /// </para>
         /// </remarks>
         [Obsolete("Use CreateFromFile(assembly.Location) instead", error: true)]
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
         /// Performance considerations:
         /// <para>
         /// It is recommended to use <see cref="AssemblyMetadata.CreateFromFile(string)"/> API when creating multiple references to the same assembly.
-        /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data accross these references.
+        /// Reusing <see cref="AssemblyMetadata"/> object allows for sharing data across these references.
         /// </para>
         /// </remarks>
         [Obsolete("Use CreateFromFile(assembly.Location) instead", error: true)]

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var lookup = CreateDiagnosticIdLookup(diagnostics);
 
-                foreach (var stateSet in _stateManger.GetStateSets(project))
+                foreach (var stateSet in _stateManager.GetStateSets(project))
                 {
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var lookup = CreateDiagnosticIdLookup(diagnostics);
 
-                foreach (var stateSet in _stateManger.GetStateSets(document.Project))
+                foreach (var stateSet in _stateManager.GetStateSets(document.Project))
                 {
                     // we are using Default so that things like LB can't use cached information
                     var textVersion = VersionStamp.Default;

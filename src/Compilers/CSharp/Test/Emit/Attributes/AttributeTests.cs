@@ -3653,7 +3653,7 @@ class Class4 { }
             compilation.VerifyDiagnostics(
                 // (10,2): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
                 // [X]                 // Error: Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "X").WithArguments("X", "X", "XAttribute").WithLocation(10, 2));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "X").WithArguments("X", "X", "XAttribute").WithLocation(10, 2));
         }
 
         [Fact]
@@ -4439,7 +4439,7 @@ namespace TestNamespace_01
             compilation.VerifyDiagnostics(
                 // (23,6): error CS1614: 'Description' is ambiguous between 'ValidWithoutSuffix.Description' and 'ValidWithSuffix.DescriptionAttribute'; use either '@Description' or 'DescriptionAttribute'
                 //     [Description(null)]
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Description").WithArguments("Description", "ValidWithoutSuffix.Description", "ValidWithSuffix.DescriptionAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Description").WithArguments("Description", "ValidWithoutSuffix.Description", "ValidWithSuffix.DescriptionAttribute"));
         }
 
         [Fact]
@@ -4965,7 +4965,7 @@ class A2 : System.Attribute { }
 [A]class C { }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (5,2): error CS1614: 'A' is ambiguous between 'A2' and 'A1'; use either '@A' or 'AAttribute'
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "A").WithArguments("A", "A1", "A2").WithLocation(5, 2));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A").WithArguments("A", "A1", "A2").WithLocation(5, 2));
         }
 
         [WorkItem(542279, "DevDiv")]
@@ -6491,7 +6491,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,6): error CS1614: 'Action' is ambiguous between 'A.ActionAttribute' and 'A.ActionAttribute'; use either '@Action' or 'ActionAttribute'
                 //     [Action]
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
         [WorkItem(687816, "DevDiv")]
@@ -6517,7 +6517,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,6): error CS1614: 'Action' is ambiguous between 'A.ActionAttribute' and 'A.ActionAttribute'; use either '@Action' or 'ActionAttribute'
                 //     [Action]
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
         [WorkItem(728865, "DevDiv")]

@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     foreach (var projectToUpdate in _projectMap.Values)
                     {
-                        projectToUpdate.UndoProjectReferenceConversionForDissappearingOutputPath(path);
+                        projectToUpdate.UndoProjectReferenceConversionForDisappearingOutputPath(path);
                     }
                 }
             }

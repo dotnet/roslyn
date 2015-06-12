@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a set of rules as specified in a rulset file.
+    /// Represents a set of rules as specified in a ruleset file.
     /// </summary>
     public class RuleSet
     {

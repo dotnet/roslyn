@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (originalArgument.Kind == BoundKind.MethodGroup && rewrittenArgument.Kind == BoundKind.MethodGroup)
             {
                 //  if the original argument was a method group AND the receiver was BoundKind.BaseReference
-                //  and the visited argument is still a method group with receiver overriden, change the 
+                //  and the visited argument is still a method group with receiver overridden, change the 
                 //  method to point to the wrapper method
                 var originalReceiver = ((BoundMethodGroup)originalArgument).ReceiverOpt;
                 var newReceiver = ((BoundMethodGroup)rewrittenArgument).ReceiverOpt;

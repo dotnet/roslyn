@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
 
-                ' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We will maintain comptability.
+                ' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We will maintain compatibility.
                 Return True
             Else
                 Return False
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks>
         ''' Forces binding and decoding of attributes.
-        ''' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We maintain comptability.
+        ''' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
         Friend ReadOnly Property IsConditional As Boolean
             Get

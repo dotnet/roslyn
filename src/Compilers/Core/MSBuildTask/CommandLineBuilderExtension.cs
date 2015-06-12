@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// Returns true if the parameter is empty in spirits, 
-        /// even if it contains the seperators and white space only
+        /// even if it contains the separators and white space only
         /// Split on the characters provided.
         /// </summary>
         internal static bool IsParameterEmpty(string parameter, params char[] splitOn)
@@ -186,13 +186,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
         /// <summary>
-        /// Designed to handle the /link and /embed swithes:
+        /// Designed to handle the /link and /embed switches:
         ///
         ///      /embed[resource]:&lt;filename>[,&lt;name>[,Private]]
         ///      /link[resource]:&lt;filename>[,&lt;name>[,Private]]
         /// 
         /// Where the last flag--Private--is either present or not present
-        /// depending on whether the ITaskItem has a Private="True" attribue.
+        /// depending on whether the ITaskItem has a Private="True" attribute.
         /// </summary>
         internal void AppendSwitchIfNotNull
         (

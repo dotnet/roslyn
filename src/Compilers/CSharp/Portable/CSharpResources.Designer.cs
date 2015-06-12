@@ -341,15 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is ambiguous between &apos;{1}&apos; and &apos;{2}&apos;; use either &apos;@{0}&apos; or &apos;{0}Attribute&apos;.
-        /// </summary>
-        internal static string ERR_AmbigousAttribute {
-            get {
-                return ResourceManager.GetString("ERR_AmbigousAttribute", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The inherited members &apos;{0}&apos; and &apos;{1}&apos; have the same signature in type &apos;{2}&apos;, so they cannot be overridden.
         /// </summary>
         internal static string ERR_AmbigOverride {
@@ -382,6 +373,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AmbigUnaryOp {
             get {
                 return ResourceManager.GetString("ERR_AmbigUnaryOp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is ambiguous between &apos;{1}&apos; and &apos;{2}&apos;; use either &apos;@{0}&apos; or &apos;{0}Attribute&apos;.
+        /// </summary>
+        internal static string ERR_AmbiguousAttribute {
+            get {
+                return ResourceManager.GetString("ERR_AmbiguousAttribute", resourceCulture);
             }
         }
         
@@ -10242,7 +10242,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CalleFilePathAttribute applied to parameter &apos;{0}&apos; will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
+        ///   Looks up a localized string similar to The CallerFilePathAttribute applied to parameter &apos;{0}&apos; will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
         /// </summary>
         internal static string WRN_CallerFilePathParamForUnconsumedLocation {
             get {
@@ -10251,7 +10251,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CalleFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
+        ///   Looks up a localized string similar to The CallerFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
         /// </summary>
         internal static string WRN_CallerFilePathParamForUnconsumedLocation_Title {
             get {

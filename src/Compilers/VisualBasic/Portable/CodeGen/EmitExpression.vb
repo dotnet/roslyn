@@ -953,7 +953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             ' is not the one from the structure, so we take the one we override
                             If IsVerifierValue(methodContainingType) Then
 
-                                ' NOTE: the most overriden method needs to be used to match Dev10 behavior
+                                ' NOTE: the most overridden method needs to be used to match Dev10 behavior
                                 While method.OverriddenMethod IsNot Nothing
                                     method = method.OverriddenMethod
                                 End While

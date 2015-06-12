@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="outputKind">The compilation output kind. <see cref="CodeAnalysis.OutputKind"/></param>
         ''' <param name="moduleName">An optional parameter to specify the name of the assembly that this module will be a part of.</param>
         ''' <param name="mainTypeName">An optional parameter to specify the class or module that contains the Sub Main procedure.</param>
-        ''' <param name="scriptClassName">An optional parameter to specify an alteranate DefaultScriptClassName object to be used.</param>
+        ''' <param name="scriptClassName">An optional parameter to specify an alternate DefaultScriptClassName object to be used.</param>
         ''' <param name="globalImports">An optional collection of GlobalImports <see cref="GlobalImports"/> .</param>
         ''' <param name="rootNamespace">An optional parameter to specify the name of the default root namespace.</param>
         ''' <param name="optionStrict">An optional parameter to specify the default Option Strict behavior. <see cref="VisualBasic.OptionStrict"/></param>

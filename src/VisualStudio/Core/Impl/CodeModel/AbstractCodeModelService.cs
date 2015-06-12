@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// as immediate children. For example, a namespace would return the namespaces and types within.
         /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
         /// also be returned.</param>
-        /// <param name="logicalFields">If true, field declarations are broken into their respecitive declarators.
+        /// <param name="logicalFields">If true, field declarations are broken into their respective declarators.
         /// For example, the field "int x, y" would return two declarators, one for x and one for y in place
         /// of the field.</param>
         /// <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>

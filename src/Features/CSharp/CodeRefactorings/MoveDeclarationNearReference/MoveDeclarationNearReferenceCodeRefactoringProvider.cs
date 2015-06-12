@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             var newInnermostBlock = state.InnermostBlock.WithStatements(
                     SyntaxFactory.List<StatementSyntax>(innermostStatements)).WithAdditionalAnnotations(Formatter.Annotation);
 
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var rewriter = new Rewriter(state.InnermostBlock, newInnermostBlock, state.OutermostBlock, state.DeclarationStatement);
             var newRoot = rewriter.Visit(tree.GetRoot(cancellationToken));
 

@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' A draft version of initializers which will be used in this With statement. 
-        ''' Initializers are expressinos which are used to capture expression in the current
+        ''' Initializers are expressions which are used to capture expression in the current
         ''' With statement; they can be empty in some cases like if the expression is a local 
         ''' variable of value type.
         ''' 
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary> 
             ''' Draft substitute for With expression placeholder, is based on initial 
             ''' binding tree and is only to be used for warnings generation as well as 
-            ''' for flow analysis and semantic API; real substite will be re-calculated 
+            ''' for flow analysis and semantic API; real substitute will be re-calculated 
             ''' in lowering
             ''' </summary>
             Public ReadOnly DraftSubstitute As BoundExpression

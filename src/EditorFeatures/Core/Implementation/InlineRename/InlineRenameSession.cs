@@ -130,7 +130,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (args.After == DebuggingState.Run)
             {
-                Commit();
+                // It's too late for us to change anything, which means we can neither commit nor
+                // rollback changes to cancel. End the rename session but keep all open buffers in
+                // their current state.
+                Cancel(rollbackTemporaryEdits: false);
             }
         }
 
@@ -270,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void DismissAndRollbackTemporaryEdits()
+        private void Dismiss(bool rollbackTemporaryEdits)
         {
             _dismissed = true;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -282,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var isClosed = document == null;
 
                 var openBuffer = _openTextBuffers[textBuffer];
-                openBuffer.Disconnect(isClosed);
+                openBuffer.Disconnect(isClosed, rollbackTemporaryEdits);
             }
 
             this.UndoManager.Disconnect();
@@ -501,11 +504,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public void Cancel()
         {
+            Cancel(rollbackTemporaryEdits: true);
+        }
+
+        private void Cancel(bool rollbackTemporaryEdits)
+        {
             AssertIsForeground();
             VerifyNotDismissed();
 
             LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
-            DismissAndRollbackTemporaryEdits();
+            Dismiss(rollbackTemporaryEdits);
             EndRenameSession();
         }
 
@@ -531,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (result == WaitIndicatorResult.Canceled)
             {
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
-                DismissAndRollbackTemporaryEdits();
+                Dismiss(rollbackTemporaryEdits: true);
                 EndRenameSession();
             }
         }
@@ -582,7 +590,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // rename!
                 waitContext.Message = EditorFeaturesResources.UpdatingFiles;
 
-                DismissAndRollbackTemporaryEdits();
+                Dismiss(rollbackTemporaryEdits: true);
                 CancelAllOpenDocumentTrackingTasks();
 
                 ApplyRename(newSolution, waitContext);

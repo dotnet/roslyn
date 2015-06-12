@@ -18,9 +18,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             this.Kind = kind;
         }
 
-        public ReplSpan(string litaral, ReplSpanKind kind)
+        public ReplSpan(string literal, ReplSpanKind kind)
         {
-            this.Span = litaral;
+            this.Span = literal;
             this.Kind = kind;
         }
 

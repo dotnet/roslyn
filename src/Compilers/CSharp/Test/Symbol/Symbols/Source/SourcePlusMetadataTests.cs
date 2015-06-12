@@ -207,7 +207,7 @@ namespace NS
 
         [WorkItem(4084, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public void AccessibilityOfExplictitImpInterfaceMethod()
+        public void AccessibilityOfExplicititImpInterfaceMethod()
         {
             var text = @"
     interface I1

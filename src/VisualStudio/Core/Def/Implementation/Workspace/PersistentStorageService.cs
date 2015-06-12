@@ -43,10 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public PersistentStorageService(
             IOptionService optionService,
-            SolutionSizeTracker solutoinSizeTracker)
+            SolutionSizeTracker solutionSizeTracker)
         {
             _optionService = optionService;
-            _solutionSizeTracker = solutoinSizeTracker;
+            _solutionSizeTracker = solutionSizeTracker;
 
             _lookupAccessLock = new object();
             _lookup = new Dictionary<string, AbstractPersistentStorage>();

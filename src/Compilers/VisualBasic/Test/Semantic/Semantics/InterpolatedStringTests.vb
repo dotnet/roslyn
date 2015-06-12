@@ -1140,6 +1140,157 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <Fact>
+        Public Sub FlowAnalysis_Warning_InterpoledVariableUsedBeforeBeingAssigned()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim v As Object
+
+        Write($"{v}")
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertTheseCompileDiagnostics(compilation,
+<expected>
+BC42104: Variable 'v' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Write($"{v}")
+                 ~
+</expected>)
+
+        End Sub
+
+        <Fact>
+        Public Sub FlowAnalysis_InterpolatedLocalConstNotConsideredUnused()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Const v As Object = Nothing
+
+        Write($"{v}")
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertNoDiagnostics(compilation)
+
+        End Sub
+
+        <Fact>
+        Public Sub FlowAnalysis_AnalyzeDataFlowReportsCorrectResultsForVariablesUsedInInterpolations()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim v As Object = Nothing
+
+        WriteLine($"{v}")
+
+        WriteLine(v)
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertNoDiagnostics(compilation)
+
+            Dim mainTree = Aggregate t In compilation.SyntaxTrees Where t.FilePath = "a.vb" Into [Single]()
+            Dim root = mainTree.GetRoot()
+            Dim sm = compilation.GetSemanticModel(mainTree)
+
+            Dim vSymbol = CType(sm.GetDeclaredSymbol(root.DescendantNodes().OfType(Of ModifiedIdentifierSyntax).Single()), ILocalSymbol)
+
+            Dim writeLineCall = root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First()
+            Assert.Equal("WriteLine($""{v}"")", writeLineCall.ToString())
+
+            Dim analysis = sm.AnalyzeDataFlow(writeLineCall)
+
+            Assert.True(analysis.Succeeded)
+            Assert.DoesNotContain(vSymbol, analysis.AlwaysAssigned)
+            Assert.DoesNotContain(vSymbol, analysis.Captured)
+            Assert.Contains(vSymbol, analysis.DataFlowsIn)
+            Assert.DoesNotContain(vSymbol, analysis.DataFlowsOut)
+            Assert.Contains(vSymbol, analysis.ReadInside)
+            Assert.Contains(vSymbol, analysis.ReadOutside)
+            Assert.DoesNotContain(vSymbol, analysis.UnsafeAddressTaken)
+            Assert.DoesNotContain(vSymbol, analysis.VariablesDeclared)
+            Assert.DoesNotContain(vSymbol, analysis.WrittenInside)
+            Assert.Contains(vSymbol, analysis.WrittenOutside)
+
+        End Sub
+
+        <Fact>
+        Public Sub FlowAnalysis_AnalyzeDataFlowReportsCorrectResultsForVariablesCapturedInInterpolations()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim v As Object = Nothing
+
+        WriteLine($"{(Function() v)()}")
+
+        WriteLine(v)
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertNoDiagnostics(compilation)
+
+            Dim mainTree = Aggregate t In compilation.SyntaxTrees Where t.FilePath = "a.vb" Into [Single]()
+            Dim root = mainTree.GetRoot()
+            Dim sm = compilation.GetSemanticModel(mainTree)
+
+            Dim vSymbol = CType(sm.GetDeclaredSymbol(root.DescendantNodes().OfType(Of ModifiedIdentifierSyntax).Single()), ILocalSymbol)
+
+            Dim writeLineCall = root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First()
+            Assert.Equal("WriteLine($""{(Function() v)()}"")", writeLineCall.ToString())
+
+            Dim analysis = sm.AnalyzeDataFlow(writeLineCall)
+
+            Assert.True(analysis.Succeeded)
+            Assert.DoesNotContain(vSymbol, analysis.AlwaysAssigned)
+            Assert.Contains(vSymbol, analysis.Captured)
+            Assert.Contains(vSymbol, analysis.DataFlowsIn)
+            Assert.DoesNotContain(vSymbol, analysis.DataFlowsOut)
+            Assert.Contains(vSymbol, analysis.ReadInside)
+            Assert.Contains(vSymbol, analysis.ReadOutside)
+            Assert.DoesNotContain(vSymbol, analysis.UnsafeAddressTaken)
+            Assert.DoesNotContain(vSymbol, analysis.VariablesDeclared)
+            Assert.DoesNotContain(vSymbol, analysis.WrittenInside)
+            Assert.Contains(vSymbol, analysis.WrittenOutside)
+
+        End Sub
+
+        <Fact>
         Public Sub Lowering_MissingFormattableStringDoesntProduceErrorIfFactoryMethodReturnsTypeConvertableToIFormattable()
 
             Dim verifier = CompileAndVerify(
@@ -1686,7 +1837,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateReturnIsNotConvertable()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateReturnIsNotConvertible()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -1768,7 +1919,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Public Sub Lowering_ERR_InterpolatedStringFactoryError_ArgArrayIsNotConvertable()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_ArgArrayIsNotConvertible()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>

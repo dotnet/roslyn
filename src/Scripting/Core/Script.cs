@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <summary>
-        /// Creates a new verion of this script with the <see cref="ScriptBuilder"/> specified.
+        /// Creates a new version of this script with the <see cref="ScriptBuilder"/> specified.
         /// </summary>
         internal Script WithBuilder(ScriptBuilder builder)
         {

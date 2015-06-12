@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).
-        /// <see cref="OverflowChecks.Disabled"/> if we are in an explcitly unchecked context (within unchecked block or expression).
+        /// <see cref="OverflowChecks.Disabled"/> if we are in an explicitly unchecked context (within unchecked block or expression).
         /// <see cref="OverflowChecks.Implicit"/> otherwise.
         /// </summary>
         protected OverflowChecks CheckOverflow

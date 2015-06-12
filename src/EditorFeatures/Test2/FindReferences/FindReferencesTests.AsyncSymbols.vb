@@ -383,7 +383,7 @@ class Program
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncFuntionWithAsyncParameters1()
+        Public Sub TestAsyncFunctionWithAsyncParameters1()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -412,7 +412,7 @@ class Test
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncVBFuntionWithAsyncParameters1()
+        Public Sub TestAsyncVBFunctionWithAsyncParameters1()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -435,7 +435,7 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncVBFuntionWithAsyncParameters2()
+        Public Sub TestAsyncVBFunctionWithAsyncParameters2()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -458,7 +458,7 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncFuntionWithAsyncParameters2()
+        Public Sub TestAsyncFunctionWithAsyncParameters2()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -487,7 +487,7 @@ class Test
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncFuntionWithAsyncParameters3()
+        Public Sub TestAsyncFunctionWithAsyncParameters3()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -513,7 +513,7 @@ class Test
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncFuntionWithAsyncParameters4()
+        Public Sub TestAsyncFunctionWithAsyncParameters4()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -539,7 +539,7 @@ class Test
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncCSFuntionWithRecursion()
+        Public Sub TestAsyncCSFunctionWithRecursion()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -565,7 +565,7 @@ class Test
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncCSFuntionWithOverloading1()
+        Public Sub TestAsyncCSFunctionWithOverloading1()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -598,7 +598,7 @@ class Test
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncVBFuntionWithOverloading1()
+        Public Sub TestAsyncVBFunctionWithOverloading1()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -626,7 +626,7 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncVBFuntionWithOverloading2()
+        Public Sub TestAsyncVBFunctionWithOverloading2()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -654,7 +654,7 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestAsyncCSFuntionWithOverloading2()
+        Public Sub TestAsyncCSFunctionWithOverloading2()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

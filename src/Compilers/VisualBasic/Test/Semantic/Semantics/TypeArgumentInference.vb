@@ -1716,7 +1716,7 @@ Public Module Test
     Function t5(Of S)(a1 As Integer) As S
         Return Nothing
     End Function
-    ' usefull to infer on
+    ' useful to infer on
     Function t5(Of S)(a1 As S) As S
         Return Nothing
     End Function

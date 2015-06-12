@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
         where TAssemblySymbol : class, IAssemblySymbol
     {
         /// <summary>
-        /// Identities of referenced assemblies (those that are or will be emitted to metadada).
+        /// Identities of referenced assemblies (those that are or will be emitted to metadata).
         /// </summary>
         /// <remarks>
         /// Names[i] is the identity of assembly Symbols[i].

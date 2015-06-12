@@ -177,7 +177,7 @@
   <data name="TheAddressOfAVariableIsUsed" xml:space="preserve">
     <value>The address of a variable is used inside the selected code.</value>
   </data>
-  <data name="AssingingToReadonlyFields" xml:space="preserve">
+  <data name="AssigningToReadonlyFields" xml:space="preserve">
     <value>Assigning to readonly fields must be done in a constructor : [{0}].</value>
   </data>
   <data name="GeneratedCodeIsOverlapping" xml:space="preserve">

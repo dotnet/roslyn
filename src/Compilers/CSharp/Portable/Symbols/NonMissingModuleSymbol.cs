@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// by this module. Items at the same position from GetReferencedAssemblies and 
         /// from GetReferencedAssemblySymbols should correspond to each other. If reference is 
         /// not resolved by compiler, GetReferencedAssemblySymbols returns MissingAssemblySymbol in the
-        /// correspnding item.
+        /// corresponding item.
         /// 
         /// The array and its content is provided by ReferenceManager and must not be modified.
         /// </summary>
