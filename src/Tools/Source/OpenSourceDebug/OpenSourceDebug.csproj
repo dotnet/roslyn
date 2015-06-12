@@ -75,7 +75,7 @@
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion)" />
+    <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion)"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0"><Private>false</Private></Reference>
