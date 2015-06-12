@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         protected ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(
-            IEnumerable<ITagSpan<TTag>> tagSpans, IEnumerable<DocumentSnapshotSpan> spansToCompute = null)
+            IEnumerable<ITagSpan<TTag>> tagSpans, IEnumerable<DocumentSnapshotSpan> spansToCompute = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // NOTE: we assume that the following list is already realized and is _not_ lazily
             // computed. It's not clear what the contract is of this API.
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // common case where there is only one buffer 
             if (spansToCompute != null && spansToCompute.IsSingle())
             {
-                return ConvertToTagTree(tagSpans, spansToCompute.Single().SnapshotSpan);
+                return ConvertToTagTree(tagSpans, spansToCompute.Single().SnapshotSpan, cancellationToken);
             }
 
             // heavy generic case 
@@ -463,6 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
             foreach (var tagsInBuffer in tagsByBuffer)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 IEnumerable<ITagSpan<TTag>> tags;
                 if (tagsToKeepByBuffer.TryGetValue(tagsInBuffer.Key, out tags))
                 {
@@ -478,6 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             foreach (var kv in tagsToKeepByBuffer)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!map.ContainsKey(kv.Key) && kv.Value.Any())
                 {
                     map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _spanTrackingMode, kv.Value));
@@ -487,8 +489,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return map;
         }
 
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(IEnumerable<ITagSpan<TTag>> tagSpans, SnapshotSpan spanToInvalidate)
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(IEnumerable<ITagSpan<TTag>> tagSpans, SnapshotSpan spanToInvalidate, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var tagsByBuffer = tagSpans.GroupBy(t => t.Span.Snapshot.TextBuffer);
 
             var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -498,6 +502,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             foreach (var tagsInBuffer in tagsByBuffer)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var tags = tagsInBuffer.Key == invalidBuffer ? tagsInBuffer.Concat(tagsToKeep) : tagsInBuffer;
                 map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
             }
@@ -572,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>() :
                 await _tagProducer.ProduceTagsAsync(spansToCompute, caretPosition, cancellationToken).ConfigureAwait(false);
 
-            var map = ConvertToTagTree(tagSpans, spansToCompute);
+            var map = ConvertToTagTree(tagSpans, spansToCompute, cancellationToken);
 
             ProcessNewTags(spansToCompute, textChangeRange, map);
         }
@@ -686,7 +691,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
                     // We shall synchronously compute tags.
                     var producedTags = ConvertToTagTree(
-                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), cancellationToken).WaitAndGetResult(cancellationToken));
+                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), cancellationToken).WaitAndGetResult(cancellationToken),
+                        spansToCompute: null, cancellationToken: cancellationToken);
 
                     ProcessNewTags(spansToCompute, null, producedTags);
 

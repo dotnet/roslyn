@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
             var tagSpans = SpecializedCollections.EmptyEnumerable<ITagSpan<AbstractNavigatableReferenceHighlightingTag>>();
 
-            var map = ConvertToTagTree(tagSpans, spansToTag);
+            var map = ConvertToTagTree(tagSpans, spansToTag, cancellationToken);
 
             // here we call base.ProcessNewTags so that we can clear tags without setting last solution version
             // clear tags is a special update mechanism where it represents clearing tags not updating tags.
