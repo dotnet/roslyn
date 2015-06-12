@@ -24,9 +24,9 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
     * [EditAndContinueLocalSlotMap](#EditAndContinueLocalSlotMap)
     * [EditAndContinueLambdaAndClosureMap](#EditAndContinueLambdaAndClosureMap)
 
-Debugging metadata tables may be combined with type system metadata into a single schema and stored as one data blob (embedded in a PE file, for example). Alternatively debugging metadata can be stored in a separate data blob (.pdb file). In the latter case additional information is included that connects the debugging metadata to the type system metadata.
+Debugging metadata tables may be embedded into type system metadata (and part of a PE file), or they may be stored separately in a metadata blob contained in a .pdb file. In the latter case additional information is included that connects the debugging metadata to the type system metadata.
 
-### Standalone debug metadata
+### Standalone debugging metadata
 
 When debugging metadata is generated to a separate data blob "#Pdb" and "#~" streams shall be present. The standalone debugging metadata may also include #Guid, #String and #Blob heaps, which have the same physical layout but are distict from the corresponding streams of the type system metadata.
 
