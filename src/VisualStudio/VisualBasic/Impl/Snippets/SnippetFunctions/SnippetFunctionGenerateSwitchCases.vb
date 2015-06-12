@@ -6,13 +6,9 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.VisualStudio
-Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.TextManager.Interop
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
 Imports TextSpan = Microsoft.CodeAnalysis.Text.TextSpan
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
@@ -55,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
                 Return False
             End If
 
-            Dim syntaxTree = document.GetVisualBasicSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Dim syntaxTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
             Dim token = syntaxTree.FindTokenOnRightOfPosition(subjectBufferFieldSpan.Start.Position, cancellationToken)
             Dim expressionNode = token.FirstAncestorOrSelf(Function(n) n.Span = subjectBufferFieldSpan.Span.ToTextSpan())
 
@@ -63,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
                 Return False
             End If
 
-            Dim model As SemanticModel = document.GetVisualBasicSemanticModelAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Dim model As SemanticModel = document.GetSemanticModelAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
             typeSymbol = model.GetTypeInfo(expressionNode).Type
 
             Return typeSymbol IsNot Nothing
@@ -80,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
             Dim textWithCaseAdded = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange)
             Dim documentWithCaseAdded = document.WithText(textWithCaseAdded)
 
-            Dim syntaxRoot = documentWithCaseAdded.GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim syntaxRoot = documentWithCaseAdded.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim nodeToReplace = syntaxRoot.DescendantNodes().FirstOrDefault(Function(n) n.Span = typeSpanToAnnotate)
 
             If nodeToReplace Is Nothing Then
@@ -91,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
             Dim documentWithAnnotations = documentWithCaseAdded.WithSyntaxRoot(updatedRoot)
 
             Dim simplifiedDocument = Simplifier.ReduceAsync(documentWithAnnotations, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
-            simplifiedTypeName = simplifiedDocument.GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString()
+            simplifiedTypeName = simplifiedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString()
             Return True
         End Function
 

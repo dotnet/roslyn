@@ -194,6 +194,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [Fact]
+        public void Project_AssemblyName_Change()
+        {
+            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            {
+                var solutionInfo = GetInitialSolutionInfo(workspace);
+                workspace.OnSolutionAdded(solutionInfo);
+                WaitWaiter(workspace.ExportProvider);
+
+                var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").WithAssemblyName("newName");
+                var worker = ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+
+                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.DocumentIds.Count);
+            }
+        }
+
+        [Fact]
+        public void Project_AnalyzerOptions_Change()
+        {
+            using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            {
+                var solutionInfo = GetInitialSolutionInfo(workspace);
+                workspace.OnSolutionAdded(solutionInfo);
+                WaitWaiter(workspace.ExportProvider);
+
+                var project = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").AddAdditionalDocument("a1", SourceText.From("")).Project;
+                var worker = ExecuteOperation(workspace, w => w.ChangeProject(project.Id, project.Solution));
+
+                Assert.Equal(0, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.DocumentIds.Count);
+            }
+        }
+
+        [Fact]
         public void Project_Reload()
         {
             using (var workspace = new TestWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))

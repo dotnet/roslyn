@@ -4,8 +4,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
@@ -22,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
             simplifiedTypeName = String.Empty
 
             Dim typeAnnotation = New SyntaxAnnotation()
-            Dim syntaxRoot = documentWithFullyQualifiedTypeName.GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim syntaxRoot = documentWithFullyQualifiedTypeName.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim nodeToReplace = syntaxRoot.DescendantNodes().FirstOrDefault(Function(n) n.Span = updatedTextSpan)
 
             If nodeToReplace Is Nothing Then
@@ -33,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
             Dim documentWithAnnotations = documentWithFullyQualifiedTypeName.WithSyntaxRoot(updatedRoot)
 
             Dim simplifiedDocument = Simplifier.ReduceAsync(documentWithAnnotations, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
-            simplifiedTypeName = simplifiedDocument.GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString()
+            simplifiedTypeName = simplifiedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString()
             Return True
         End Function
     End Class
