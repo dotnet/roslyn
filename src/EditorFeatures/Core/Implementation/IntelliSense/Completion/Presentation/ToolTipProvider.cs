@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // Set our content to be "..." initially.
                 this.Content = toolTipProvider._defaultTextBlock;
 
-                // Kick of the task to produce the new content.  When it completes, call back on 
+                // Kick off the task to produce the new content.  When it completes, call back on 
                 // the UI thread to update the display.
                 var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
                 completionItem.GetDescriptionAsync(cancellationTokenSource.Token)
