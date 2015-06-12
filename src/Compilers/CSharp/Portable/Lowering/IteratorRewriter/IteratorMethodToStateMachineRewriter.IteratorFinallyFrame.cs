@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // proxy labels for branches leaving the frame. 
             // we build this on demand once we encounter leaving branches.
             // subsequent leaves to an already proxied label redirected to the proxy.
-            // At the proxy lable we will execute finally and forward the control flow 
+            // At the proxy label we will execute finally and forward the control flow 
             // to the actual destination. (which could be proxied again in the parent)
             public Dictionary<LabelSymbol, LabelSymbol> proxyLabels;
 

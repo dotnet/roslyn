@@ -513,6 +513,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal virtual bool IsScriptInitializer
+        {
+            get { return false; }
+        }
+
         /// <summary>
         /// Returns if the method is implicit constructor (normal and static)
         /// </summary>
@@ -543,6 +548,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return IsScriptConstructor && ContainingAssembly.IsInteractive;
+            }
+        }
+
+        internal bool IsSubmissionInitializer
+        {
+            get
+            {
+                return IsScriptInitializer && ContainingAssembly.IsInteractive;
             }
         }
 

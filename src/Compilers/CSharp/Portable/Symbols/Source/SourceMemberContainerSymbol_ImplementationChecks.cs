@@ -375,9 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                // synthesized constructors are the exception, but they should have been weeded out by the caller
-                                var isNew = ((SourceMethodSymbol)method).IsNew;
-                                CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                var sourceMethod = method as SourceMethodSymbol;
+                                if ((object)sourceMethod != null) // skip submission initializer
+                                {
+                                    var isNew = sourceMethod.IsNew;
+                                    CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                }
                             }
                         }
                         else if (method.MethodKind == MethodKind.Destructor)

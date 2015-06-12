@@ -4,9 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,15 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.ReturnsVoid || method.IsIterator ||
                 (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
             {
-                var sourceMethod = method as SourceMethodSymbol;
-
+                // we don't analyze synthesized void methods.
                 if (method.IsImplicitlyDeclared || Analyze(compilation, method, block, diagnostics))
                 {
-                    // we don't analyze synthesized void methods.
+                    var sourceMethod = method as SourceMethodSymbol;
                     block = AppendImplicitReturn(block, method, ((object)sourceMethod != null) ? sourceMethod.BodySyntax as BlockSyntax : null);
                 }
             }
-            else if (Analyze(compilation, method, block, diagnostics))
+            else if (!method.IsScriptInitializer && Analyze(compilation, method, block, diagnostics))
             {
                 // If the method is a lambda expression being converted to a non-void delegate type
                 // and the end point is reachable then suppress the error here; a special error
@@ -60,22 +56,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         // insert the implicit "return" statement at the end of the method body
         // Normally, we wouldn't bother attaching syntax trees to compiler-generated nodes, but these
         // ones are going to have sequence points.
-        internal static BoundBlock AppendImplicitReturn(BoundStatement node, MethodSymbol method = null, CSharpSyntaxNode syntax = null)
+        internal static BoundBlock AppendImplicitReturn(BoundStatement node, MethodSymbol method, CSharpSyntaxNode syntax = null)
         {
+            Debug.Assert(method != null);
+
             if (syntax == null)
             {
                 syntax = node.Syntax;
             }
 
-            BoundStatement ret =
-                (object)method != null && method.IsIterator
-                ? BoundYieldBreakStatement.Synthesized(syntax) as BoundStatement
+            BoundStatement ret = method.IsIterator
+                ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, null);
 
             if (syntax.Kind() == SyntaxKind.Block)
             {
                 // Implicitly added return for async method does not need sequence points since lowering would add one.
-                if (method == null || !method.IsAsync)
+                if (!method.IsAsync)
                 {
                     var blockSyntax = (BlockSyntax)syntax;
 
