@@ -413,7 +413,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // dev11 sometimes gives us output path w/o extension, so removing extension becomes problematic
             if (outputPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
                 outputPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
-                outputPath.EndsWith(".netmodule", StringComparison.OrdinalIgnoreCase))
+                outputPath.EndsWith(".netmodule", StringComparison.OrdinalIgnoreCase) ||
+                outputPath.EndsWith(".winmdobj", StringComparison.OrdinalIgnoreCase))
             {
                 return Path.GetFileNameWithoutExtension(outputPath);
             }
