@@ -31,11 +31,13 @@ Debugging metadata tables may be combined with type system metadata into a singl
 When debugging metadata is generated to a separate data blob "#Pdb" and "#~" streams shall be present. The standalone debugging metadata may also include #Guid, #String and #Blob heaps, which have the same physical layout but are distict from the corresponding streams of the type system metadata.
 
 #### #Pdb stream
+
+The #Pdb stream has the following structure:
  
-| Offset | Size | Field          | Description                                                   |
-|:-------|:-----|:---------------|---------------------------------------------------------------|
+| Offset | Size | Field          | Description                                                    |
+|:-------|:-----|:---------------|----------------------------------------------------------------|
 | 0      | 1    | MajorVersion   | Major version of the Portable PDB format; shall be 0.          |
-| 1      | 1    | Minor version  | Minor version of the Portable PDB format; shall be 1.          | 
+| 1      | 1    | MinorVersion   | Minor version of the Portable PDB format; shall be 1.          | 
 | 2      | 4    | EntryPoint     | MethodDef token that designates an entry point of the program. The same value as  specified in COR Header of the corresponding PE file. |
 | 6      | 8    | ReferencedTypeSystemTables | Bit vector of referenced type system metadata tables, let n be the number of bits that are 1. |
 | 14     | 4*n  | TypeSystemTableRows     | Array of n 4-byte unsigned integers indicating the number of rows for each referenced type system metadata table. |
