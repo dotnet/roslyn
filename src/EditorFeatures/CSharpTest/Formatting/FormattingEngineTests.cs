@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -1080,6 +1081,38 @@ class C : Attribute
                             {
                                 { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
+            AssertFormatAfterTypeChar(code, expected, optionSet);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void StillAutoIndentCloseBraceWhenFormatOnCloseBraceIsOff()
+        {
+            var code = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+        }$$
+}
+";
+
+            var expected = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+            };
+
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 

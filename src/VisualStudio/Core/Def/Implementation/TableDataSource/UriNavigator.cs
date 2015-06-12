@@ -15,19 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private static UriNavigator s_instance;
 
-        private IServiceProvider _serviceProvider;
-
-        public UriNavigator(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-
         public static void AttachRequestNaviateEventHandler(Hyperlink hyperLink, IServiceProvider serviceProvider)
         {
             if (s_instance == null)
             {
                 // this has a race, so we might end up have more than one navigator. but it shouldn't matter.
-                s_instance = new UriNavigator(serviceProvider);
+                s_instance = new UriNavigator();
             }
 
             hyperLink.RequestNavigate += s_instance.OnRequestNavigate;
@@ -40,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return;
             }
 
-            BrowserHelper.StartBrowser(_serviceProvider, e.Uri);
+            BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
             var hyperlink = sender as Hyperlink;

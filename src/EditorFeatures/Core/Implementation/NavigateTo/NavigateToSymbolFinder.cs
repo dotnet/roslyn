@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -14,14 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal static class NavigateToSymbolFinder
     {
-        private static readonly char[] s_dotArray = new char[] { '.' };
-
         internal static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(Project project, string pattern, CancellationToken cancellationToken)
         {
+            var generatedCodeRecognitionService = project.LanguageServices.WorkspaceServices.GetService<IGeneratedCodeRecognitionService>();
             var patternMatcher = new PatternMatcher(pattern);
 
             var result = new List<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
-            foreach (var document in project.Documents)
+            foreach (var document in project.Documents.Where(d => !generatedCodeRecognitionService?.IsGeneratedCode(d) ?? true))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var declaredSymbolInfos = await document.GetDeclaredSymbolInfosAsync(cancellationToken).ConfigureAwait(false);

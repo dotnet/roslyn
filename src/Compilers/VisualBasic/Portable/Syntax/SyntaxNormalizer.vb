@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private ReadOnly _consideredSpan As TextSpan
         Private ReadOnly _indentWhitespace As String
+        Private ReadOnly _eolTrivia As SyntaxTrivia
         Private ReadOnly _useElasticTrivia As Boolean
         Private ReadOnly _useDefaultCasing As Boolean
 
@@ -33,36 +34,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' Creates a syntax trivia normalizing visitor
         ''' </summary>
         ''' <param name="indentWhitespace">The whitespace to indent with</param>
+        ''' <param name="eolWhitespace">The whitespace to use for end of line</param>
         ''' <param name="useElasticTrivia">Whether to use elastic trivia or not</param>
         ''' <param name="useDefaultCasing">Whether to rewrite keywords in default casing or not</param>
         ''' <remarks></remarks>
-        Private Sub New(consideredSpan As TextSpan, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False)
+        Private Sub New(consideredSpan As TextSpan, indentWhitespace As String, eolWhitespace As String, useElasticTrivia As Boolean, useDefaultCasing As Boolean)
             MyBase.New(visitIntoStructuredTrivia:=True)
 
             Me._consideredSpan = consideredSpan
             Me._indentWhitespace = indentWhitespace
             Me._useElasticTrivia = useElasticTrivia
+            Me._eolTrivia = If(useElasticTrivia, SyntaxFactory.ElasticEndOfLine(eolWhitespace), SyntaxFactory.EndOfLine(eolWhitespace))
             Me._useDefaultCasing = useDefaultCasing
 
             Me._afterLineBreak = True
         End Sub
 
-        Friend Shared Function Normalize(Of TNode As SyntaxNode)(node As TNode, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxNode
-            Dim normalizer As New SyntaxNormalizer(node.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
+        Friend Shared Function Normalize(Of TNode As SyntaxNode)(node As TNode, indentWhitespace As String, eolWhitespace As String, useElasticTrivia As Boolean, useDefaultCasing As Boolean) As SyntaxNode
+            Dim normalizer As New SyntaxNormalizer(node.FullSpan, indentWhitespace, eolWhitespace, useElasticTrivia, useDefaultCasing)
             Dim result As TNode = CType(normalizer.Visit(node), TNode)
             normalizer.Free()
             Return result
         End Function
 
-        Friend Shared Function Normalize(token As SyntaxToken, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxToken
-            Dim normalizer As New SyntaxNormalizer(token.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
+        Friend Shared Function Normalize(token As SyntaxToken, indentWhitespace As String, eolWhitespace As String, useElasticTrivia As Boolean, useDefaultCasing As Boolean) As SyntaxToken
+            Dim normalizer As New SyntaxNormalizer(token.FullSpan, indentWhitespace, eolWhitespace, useElasticTrivia, useDefaultCasing)
             Dim result As SyntaxToken = normalizer.VisitToken(token)
             normalizer.Free()
             Return result
         End Function
 
-        Friend Shared Function Normalize(trivia As SyntaxTriviaList, indentWhitespace As String, Optional useElasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxTriviaList
-            Dim normalizer = New SyntaxNormalizer(trivia.FullSpan, indentWhitespace, useElasticTrivia, useDefaultCasing)
+        Friend Shared Function Normalize(trivia As SyntaxTriviaList, indentWhitespace As String, eolWhitespace As String, useElasticTrivia As Boolean, useDefaultCasing As Boolean) As SyntaxTriviaList
+            Dim normalizer = New SyntaxNormalizer(trivia.FullSpan, indentWhitespace, eolWhitespace, useElasticTrivia, useDefaultCasing)
             Dim result As SyntaxTriviaList = normalizer.RewriteTrivia(trivia,
                                             normalizer.GetIndentationDepth(),
                                             isTrailing:=False,
@@ -184,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim currentTriviaList As ArrayBuilder(Of SyntaxTrivia) = ArrayBuilder(Of SyntaxTrivia).GetInstance()
             Try
                 For i = 1 To lineBreaksBefore
-                    currentTriviaList.Add(GetCarriageReturnLineFeed())
+                    currentTriviaList.Add(GetEndOfLine())
                     _afterLineBreak = True
                     _afterIndentation = False
                 Next
@@ -214,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         (currentTriviaList.Count > 0 AndAlso NeedsLineBreakBetween(currentTriviaList.Last(), trivia, isTrailing))
 
                     If needsLineBreak AndAlso Not _afterLineBreak Then
-                        currentTriviaList.Add(GetCarriageReturnLineFeed())
+                        currentTriviaList.Add(GetEndOfLine())
                         _afterLineBreak = True
                         _afterIndentation = False
                     End If
@@ -245,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                     If NeedsLineBreakAfter(trivia) Then
                         If Not isTrailing Then
-                            currentTriviaList.Add(GetCarriageReturnLineFeed())
+                            currentTriviaList.Add(GetEndOfLine())
                             _afterLineBreak = True
                             _afterIndentation = False
                         End If
@@ -260,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     End If
 
                     For i = 0 To lineBreaksAfter - 1
-                        currentTriviaList.Add(GetCarriageReturnLineFeed())
+                        currentTriviaList.Add(GetEndOfLine())
                         _afterLineBreak = True
                         _afterIndentation = False
                     Next i
@@ -333,8 +336,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return If(Me._useElasticTrivia, SyntaxFactory.ElasticSpace, SyntaxFactory.Space)
         End Function
 
-        Private Function GetCarriageReturnLineFeed() As SyntaxTrivia
-            Return If(Me._useElasticTrivia, SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxFactory.CarriageReturnLineFeed)
+        Private Function GetEndOfLine() As SyntaxTrivia
+            Return _eolTrivia
         End Function
 
         Private Function NeedsSeparatorBetween(trivia As SyntaxTrivia) As Boolean

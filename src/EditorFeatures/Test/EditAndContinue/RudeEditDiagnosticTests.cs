@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
             var arg0 = new HashSet<RudeEditKind>()
             {
                 RudeEditKind.ActiveStatementUpdate,
+                RudeEditKind.PartiallyExecutedActiveStatementUpdate,
                 RudeEditKind.DeleteActiveStatement,
                 RudeEditKind.UpdateExceptionHandlerOfActiveTry,
                 RudeEditKind.UpdateTryOrCatchWithActiveFinally,

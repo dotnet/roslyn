@@ -7,10 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Security;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 using System.Reflection;
 using System.Diagnostics;
 
@@ -19,16 +17,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class AnalyzerDependencyChecker
     {
         private readonly HashSet<string> _analyzerFilePaths;
-        private readonly HashSet<AssemblyIdentity> _assemblyWhiteList;
+        private readonly List<IAssemblyWhiteList> _assemblyWhiteLists;
         private readonly IBindingRedirectionService _bindingRedirectionService;
 
-        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<AssemblyIdentity> assemblyWhiteList, IBindingRedirectionService bindingRedirectionService = null)
+        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<IAssemblyWhiteList> assemblyWhiteLists, IBindingRedirectionService bindingRedirectionService = null)
         {
             Debug.Assert(analyzerFilePaths != null);
-            Debug.Assert(assemblyWhiteList != null);
+            Debug.Assert(assemblyWhiteLists != null);
 
             _analyzerFilePaths = new HashSet<string>(analyzerFilePaths, StringComparer.OrdinalIgnoreCase);
-            _assemblyWhiteList = new HashSet<AssemblyIdentity>(assemblyWhiteList);
+            _assemblyWhiteLists = assemblyWhiteLists.ToList();
             _bindingRedirectionService = bindingRedirectionService;
         }
 
@@ -48,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            _assemblyWhiteList.UnionWith(analyzerInfos.Select(info => info.Identity));
+            _assemblyWhiteLists.Add(new AssemblyIdentityWhiteList(analyzerInfos.Select(info => info.Identity)));
 
             // First check for analyzers with the same identity but different
             // contents (that is, different MVIDs).
@@ -76,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         ? _bindingRedirectionService.ApplyBindingRedirects(reference)
                         : reference;
 
-                    if (!_assemblyWhiteList.Contains(redirectedReference))
+                    if (!_assemblyWhiteLists.Any(whiteList => whiteList.Includes(redirectedReference)))
                     {
                         builder.Add(new MissingAnalyzerDependency(
                             analyzerInfo.Path,

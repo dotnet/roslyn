@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A NoPiaAmbiguousCanonicalTypeSymbol is a special kind of ErrorSymbol that represents a NoPia
     /// embedded type symbol that was attempted to be substituted with canonical type, but the
-    /// canonocal type was ambiguous.
+    /// canonical type was ambiguous.
     /// </summary>
     internal class NoPiaAmbiguousCanonicalTypeSymbol : ErrorTypeSymbol
     {

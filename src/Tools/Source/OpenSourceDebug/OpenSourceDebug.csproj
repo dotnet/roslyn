@@ -59,12 +59,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -74,11 +74,11 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0">
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion)" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0" />
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion)"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0"><Private>false</Private></Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -122,21 +122,21 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\FxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{36755424-5267-478C-9434-37A507E22711}</Project>
-      <Name>FxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\AnalyzerPowerPack.Common.csproj">
+      <Project>{36755424-5267-478c-9434-37a507e22711}</Project>
+      <Name>AnalyzerPowerPack.Common</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\CSharpFxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{3BA13187-2A3B-4B08-9199-C11FDA1D5AD0}</Project>
-      <Name>CSharpFxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\AnalyzerPowerPack.CSharp.csproj">
+      <Project>{3ba13187-2a3b-4b08-9199-c11fda1d5ad0}</Project>
+      <Name>AnalyzerPowerPack.CSharp</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\BasicFxCopRulesDiagnosticAnalyzers.vbproj">
-      <Project>{2FCCB9BE-DD4E-48F2-B678-80E6FB196948}</Project>
-      <Name>BasicFxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\AnalyzerPowerPack.VisualBasic.vbproj">
+      <Project>{2fccb9be-dd4e-48f2-b678-80e6fb196948}</Project>
+      <Name>AnalyzerPowerPack.VisualBasic</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>

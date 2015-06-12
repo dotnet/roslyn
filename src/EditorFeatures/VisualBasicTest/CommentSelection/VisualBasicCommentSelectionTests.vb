@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     Public Class VisualBasicCommentSelectionTests
@@ -78,7 +79,10 @@ End Module</code>
                 Dim doc = workspace.Documents.First()
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 
-                Dim commandHandler = New CommentUncommentSelectionCommandHandler(TestWaitIndicator.Default)
+                Dim commandHandler = New CommentUncommentSelectionCommandHandler(
+                    TestWaitIndicator.Default,
+                    workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry),
+                    workspace.ExportProvider.GetExportedValue(Of IEditorOperationsFactoryService))
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation)

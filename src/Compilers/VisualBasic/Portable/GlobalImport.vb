@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Parses a collection of strings representing imports to create a collecion of GlobalImport instance and diagnostics
+        ''' Parses a collection of strings representing imports to create a collection of GlobalImport instance and diagnostics
         ''' </summary>
         ''' <param name="importedNames">A collection of strings to be parsed.</param>
         ''' <param name="diagnostics">A ImmutableArray of diagnostics.</param>
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Map a diagnostic to the diagnostic we want to give.
         Friend Function MapDiagnostic(unmappedDiag As Diagnostic) As Diagnostic
             If unmappedDiag.Code = ERRID.WRN_UndefinedOrEmptyNamespaceOrClass1 Then
-                Return New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_UndefinedOrEmpyProjectNamespaceOrClass1, _importedName), NoLocation.Singleton)
+                Return New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_UndefinedOrEmptyProjectNamespaceOrClass1, _importedName), NoLocation.Singleton)
             Else
                 ' Determine the text of the import, plus the startIndex/length within that text
                 ' that the error is.

@@ -3,7 +3,6 @@
 Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -45,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
         Public Async Function GetLineSeparatorsAsync(document As Document,
                                           textSpan As TextSpan,
                                           Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of TextSpan)) Implements ILineSeparatorService.GetLineSeparatorsAsync
-            Dim syntaxTree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim root = Await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim spans As New List(Of TextSpan)

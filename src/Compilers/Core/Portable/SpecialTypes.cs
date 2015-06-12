@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     internal static class SpecialTypes
     {
         /// <summary>
-        /// Array of names for types from Cor Libraray.
+        /// Array of names for types from Cor Library.
         /// The names should correspond to ids from TypeId enum so
         /// that we could use ids to index into the array
         /// </summary>

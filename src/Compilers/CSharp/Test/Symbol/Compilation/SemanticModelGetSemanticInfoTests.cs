@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1400,7 +1400,7 @@ static class E
                 "void object.F(object y, object z)");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyGroup()
         {
             var source1 =
@@ -1520,7 +1520,7 @@ End Class";
                 "string A.P[int x, string y]");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyGroupOverloadsOverridesHides()
         {
             var source1 =
@@ -5107,7 +5107,7 @@ class Class1 : Attribute
 
         [WorkItem(542782, "DevDiv")]
         [Fact]
-        public void InaccesibleConstructorsFiltered_ObjectCreationExpressionSyntax()
+        public void InaccessibleConstructorsFiltered_ObjectCreationExpressionSyntax()
         {
             string sourceCode = @"
 using System;
@@ -5149,7 +5149,7 @@ class Class1
 
         [WorkItem(542782, "DevDiv")]
         [Fact]
-        public void InaccesibleConstructorsFiltered_IdentifierNameSyntax()
+        public void InaccessibleConstructorsFiltered_IdentifierNameSyntax()
         {
             string sourceCode = @"
 using System;
@@ -5186,7 +5186,7 @@ class Class1
 
         [WorkItem(542782, "DevDiv")]
         [Fact]
-        public void InaccesibleConstructorsFiltered_AttributeSyntax()
+        public void InaccessibleConstructorsFiltered_AttributeSyntax()
         {
             string sourceCode = @"
 using System;
@@ -5228,7 +5228,7 @@ class Class1 : Attribute
 
         [WorkItem(542782, "DevDiv")]
         [Fact]
-        public void InaccesibleConstructorsFiltered_Attribute_IdentifierNameSyntax()
+        public void InaccessibleConstructorsFiltered_Attribute_IdentifierNameSyntax()
         {
             string sourceCode = @"
 using System;

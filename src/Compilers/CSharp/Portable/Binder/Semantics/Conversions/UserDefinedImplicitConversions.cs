@@ -381,10 +381,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If U contains exactly one user-defined conversion operator from SX to TX 
             // SPEC: then that is the most-specific conversion operator;
             //
-            // SPEC: Otherise, if U contains exactly one lifted conversion operator that converts from
+            // SPEC: Otherwise, if U contains exactly one lifted conversion operator that converts from
             // SPEC: SX to TX then this is the most specific operator.
             //
-            // SPEC: Otherise, the conversion is ambiguous and a compile-time error occurs.
+            // SPEC: Otherwise, the conversion is ambiguous and a compile-time error occurs.
             //
             // SPEC ERROR:
             //

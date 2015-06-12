@@ -1159,5 +1159,142 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantReturnVoid, "System.Console.Beep()").WithLocation(8, 27)
                 );
         }
+
+        [Fact, WorkItem(1179899, "DevDiv")]
+        public void ParameterReference_01()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static Func<Program, string> stuff()
+    {
+        return a => a.
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,23): error CS1001: Identifier expected
+    //         return a => a.
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 23),
+    // (8,23): error CS1002: ; expected
+    //         return a => a.
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 23)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1179899, "DevDiv")]
+        public void ParameterReference_02()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static void stuff()
+    {
+        Func<Program, string> l = a => a.
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,42): error CS1001: Identifier expected
+    //         Func<Program, string> l = a => a.
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 42),
+    // (8,42): error CS1002: ; expected
+    //         Func<Program, string> l = a => a.
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 42)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1179899, "DevDiv")]
+        public void ParameterReference_03()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static void stuff()
+    {
+         M1(a => a.);
+    }
+
+    static void M1(Func<Program, string> l){}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,20): error CS1001: Identifier expected
+    //          M1(a => a.);
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1179899, "DevDiv")]
+        public void ParameterReference_04()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static void stuff()
+    {
+        var l = (Func<Program, string>) (a => a.);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,49): error CS1001: Identifier expected
+    //         var l = (Func<Program, string>) (a => a.);
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 49)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
     }
 }

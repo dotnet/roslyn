@@ -132,17 +132,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             continue;
                         }
 
-                        var errorSourceName = analyzer == compilerAnalyzer ?
-                            PredefinedBuildTools.Compiler : GetErrorSourceName(analyzerManager, language, analyzer);
+                        var buildToolName = analyzer == compilerAnalyzer ?
+                            PredefinedBuildTools.Live : GetBuildToolName(analyzerManager, language, analyzer);
 
-                        builder.Add(analyzer, new StateSet(language, analyzer, errorSourceName));
+                        builder.Add(analyzer, new StateSet(language, analyzer, buildToolName));
                     }
                 }
 
                 return builder.ToImmutable();
             }
 
-            private static string GetErrorSourceName(HostAnalyzerManager analyzerManager, string language, DiagnosticAnalyzer analyzer)
+            private static string GetBuildToolName(HostAnalyzerManager analyzerManager, string language, DiagnosticAnalyzer analyzer)
             {
                 var packageName = analyzerManager.GetDiagnosticAnalyzerPackageName(language, analyzer);
                 if (packageName == null)
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 if (packageName == RoslynLanguageServices)
                 {
-                    return PredefinedBuildTools.Compiler;
+                    return PredefinedBuildTools.Live;
                 }
 
                 return $"{analyzer.GetAnalyzerAssemblyName()} [{packageName}]";

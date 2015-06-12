@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -419,7 +419,7 @@ class C1
             Assert.Equal("@out", dout.ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyNonDefaultAccessorNames()
         {
             var source = @"
@@ -505,7 +505,7 @@ class Program
         /// Properties should refer to methods
         /// in the type members collection.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void MethodsAndAccessorsSame()
         {
             var source =
@@ -605,7 +605,7 @@ class Program
         /// <summary>
         /// Calling bogus methods directly should be allowed.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void CallMethodsDirectly()
         {
             var source = @"
@@ -640,7 +640,7 @@ class Program
 ");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void MethodsReferencedInMultipleProperties()
         {
             var source = @"
@@ -845,7 +845,7 @@ class C
         /// Properties where the property and accessor signatures differ by
         /// modopt only should be supported (as in the native compiler).
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void SignaturesDifferByModOptsOnly()
         {
             const string ilSource =
@@ -929,7 +929,7 @@ class C
         }
 
         [WorkItem(538956, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyAccessorDoesNotHideMethod()
         {
             const string cSharpSource = @"
@@ -952,7 +952,7 @@ class Program {
         }
 
         [WorkItem(538956, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyAccessorDoesNotConflictWithMethod()
         {
             const string cSharpSource = @"
@@ -1019,7 +1019,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CanReadInstancePropertyWithStaticGetterAsStatic()
         {
             const string ilSource = @"
@@ -1760,7 +1760,7 @@ class C : N.I<int>
         }
 
         [WorkItem(539998, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ImportDefaultPropertiesWithParameters()
         {
             var source = @"
@@ -1811,7 +1811,7 @@ class Program
         }
 
         [WorkItem(540342, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void NoSequencePointsForAutoPropertyAccessors()
         {
             var text = @"
@@ -1889,7 +1889,7 @@ class Test
         }
 
         [WorkItem(545682, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersHidingMethod01()
         {
             var source1 =
@@ -1970,7 +1970,7 @@ End Class";
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Q").WithArguments("Q", "object").WithLocation(8, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersHidingMethod02()
         {
             var source1 =
@@ -2024,7 +2024,7 @@ static class E
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersHidingMethod03()
         {
             var source1 =
@@ -2161,7 +2161,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "P9").WithArguments("B.P9[object]").WithLocation(30, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersAndOtherErrors()
         {
             var source1 =
@@ -2204,7 +2204,7 @@ End Class";
                 Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("A.P3[object]").WithLocation(8, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SubstitutedPropertyWithParameters()
         {
             var source1 =
@@ -2625,7 +2625,7 @@ public interface IA
         /// When the output type is .winmdobj properties should emit put_Property methods instead
         /// of set_Property methods.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void WinRtPropertySet()
         {
             const string libSrc =
@@ -2686,7 +2686,7 @@ public interface IA
         /// (i.e., set_ for dll, put_ for winmdobj)
         /// </summary>
         [Fact]
-        public void WinRtPropertyAccesorNameConflict()
+        public void WinRtPropertyAccessorNameConflict()
         {
             const string libSrc =
 @"namespace Test
@@ -2742,7 +2742,7 @@ class C
         }
 
         [WorkItem(1073332, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void Bug1073332_01()
         {
             var text = @"

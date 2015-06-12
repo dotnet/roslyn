@@ -435,7 +435,7 @@
   <data name="CommentingCurrentlySelected" xml:space="preserve">
     <value>Commenting currently selected text...</value>
   </data>
-  <data name="UncommentingCurrentlySelecte" xml:space="preserve">
+  <data name="UncommentingCurrentlySelected" xml:space="preserve">
     <value>Uncommenting currently selected text...</value>
   </data>
   <data name="InsertNewLine" xml:space="preserve">
@@ -444,7 +444,7 @@
   <data name="DocumentationComment" xml:space="preserve">
     <value>Documentation Comment</value>
   </data>
-  <data name="InsertingDocumentationCommen" xml:space="preserve">
+  <data name="InsertingDocumentationComment" xml:space="preserve">
     <value>Inserting documentation comment...</value>
   </data>
   <data name="ExtractMethod" xml:space="preserve">

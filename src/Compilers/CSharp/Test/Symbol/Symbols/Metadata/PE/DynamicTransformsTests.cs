@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -204,8 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             //public Outer<dynamic>.Inner<dynamic, dynamic>.InnerInner<dynamic> field14 = null;
             var field14 = _derivedClass.GetMember<FieldSymbol>("field14");
             // Outer<dynamic>.Inner<dynamic, dynamic>
-            var innerOfDynamicDymanicWithOuterOfDynamic = outerClassOfDynamic.GetTypeMember("Inner").Construct(s_dynamicType, s_dynamicType);
-            complicatedInnerInner = innerOfDynamicDymanicWithOuterOfDynamic.GetTypeMember("InnerInner").Construct(s_dynamicType);
+            var innerOfDynamicDynamicWithOuterOfDynamic = outerClassOfDynamic.GetTypeMember("Inner").Construct(s_dynamicType, s_dynamicType);
+            complicatedInnerInner = innerOfDynamicDynamicWithOuterOfDynamic.GetTypeMember("InnerInner").Construct(s_dynamicType);
             Assert.Equal(complicatedInnerInner, field14.Type);
 
             //public Outer<dynamic>.Inner<Outer<dynamic>, T>.InnerInner<dynamic>[] field15 = null;
@@ -448,7 +449,7 @@ class D
                 Diagnostic(ErrorCode.ERR_BindToBogus, "P2").WithArguments("C.P2"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TestDynamicTransformsBadMetadata()
         {
             var il = @"

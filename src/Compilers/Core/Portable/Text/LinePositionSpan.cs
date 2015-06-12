@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <param name="start">Start position.</param>
         /// <param name="end">End position.</param>
-        /// <exception cref="ArgumentException"><paramref name="end"/> preceeds <paramref name="start"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="end"/> precedes <paramref name="start"/>.</exception>
         public LinePositionSpan(LinePosition start, LinePosition end)
         {
             if (end < start)

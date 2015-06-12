@@ -19,20 +19,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly string _id;
         private readonly bool _logIdVerbatimInTelemetry;
 
-        private readonly IServiceProvider _serviceProvider;
-
         private bool _isExpanded;
         private double _heightForThreeLineTitle;
         private IWpfDifferenceViewer _previewDiffViewer;
 
         public PreviewPane(Image severityIcon, string id, string title, string description, Uri helpLink, string helpLinkToolTipText,
-            object previewContent, bool logIdVerbatimInTelemetry, IServiceProvider serviceProvider)
+            object previewContent, bool logIdVerbatimInTelemetry)
         {
             InitializeComponent();
 
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
-            _serviceProvider = serviceProvider;
 
             // Initialize header portion.
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
@@ -236,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 return;
             }
 
-            BrowserHelper.StartBrowser(_serviceProvider, e.Uri);
+            BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
             var hyperlink = sender as Hyperlink;

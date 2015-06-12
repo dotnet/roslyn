@@ -4,11 +4,11 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
-    Public Class CodeGenMulti_dimentional
+    Public Class CodeGenMultiDimensionalArray
         Inherits BasicTestBase
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer()
+        Public Sub MultiDimensionalArrayCreateWithInitializer()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -42,7 +42,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer001()
+        Public Sub MultiDimensionalArrayCreateWithInitializer001()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -82,7 +82,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer002()
+        Public Sub MultiDimensionalArrayCreateWithInitializer002()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -149,7 +149,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer003()
+        Public Sub MultiDimensionalArrayCreateWithInitializer003()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -178,7 +178,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer004()
+        Public Sub MultiDimensionalArrayCreateWithInitializer004()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -207,7 +207,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreate()
+        Public Sub MultiDimensionalArrayCreate()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -236,7 +236,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateGeneric()
+        Public Sub MultiDimensionalArrayCreateGeneric()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -277,7 +277,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayGetSetAddress()
+        Public Sub MultiDimensionalArrayGetSetAddress()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">

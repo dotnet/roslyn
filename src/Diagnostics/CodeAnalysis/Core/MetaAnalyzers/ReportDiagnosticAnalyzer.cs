@@ -39,8 +39,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+        protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
+            var compilation = compilationContext.Compilation;
+
             var compilationEndAnalysisContext = compilation.GetTypeByMetadataName(CompilationEndAnalysisContextFullName);
             if (compilationEndAnalysisContext == null)
             {

@@ -527,7 +527,7 @@ End Class
 
         <WorkItem(538773)>
         <Fact>
-        Public Sub TestOverridenMethod()
+        Public Sub TestOverriddenMethod()
             Test(<Text>
 Class A
     Public Overridable Sub G()

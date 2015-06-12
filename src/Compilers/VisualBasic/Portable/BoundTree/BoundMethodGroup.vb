@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _lookupBinder As Binder
         Private ReadOnly _lookupOptions As LookupOptions
         Private _lazyMethods As ImmutableArray(Of MethodSymbol)
-        Private _lasyUseSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        Private _lazyUseSiteDiagnostics As HashSet(Of DiagnosticInfo)
 
         Public Sub New(lookupBinder As Binder, lookupOptions As LookupOptions)
             Debug.Assert(lookupBinder IsNot Nothing)
@@ -72,16 +72,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     lookup.Free()
                 End If
 
-                Interlocked.CompareExchange(_lasyUseSiteDiagnostics, localUseSiteDiagnostics, Nothing)
+                Interlocked.CompareExchange(_lazyUseSiteDiagnostics, localUseSiteDiagnostics, Nothing)
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyMethods, methods, Nothing)
             End If
 
-            If Not _lasyUseSiteDiagnostics.IsNullOrEmpty Then
+            If Not _lazyUseSiteDiagnostics.IsNullOrEmpty Then
                 If useSiteDiagnostics Is Nothing Then
                     useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
                 End If
 
-                For Each info In _lasyUseSiteDiagnostics
+                For Each info In _lazyUseSiteDiagnostics
                     useSiteDiagnostics.Add(info)
                 Next
             End If

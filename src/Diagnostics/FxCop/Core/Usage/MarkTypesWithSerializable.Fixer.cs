@@ -8,9 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+namespace Microsoft.AnalyzerPowerPack.Usage
 {
     /// <summary>
     /// CA2237: Mark ISerializable types with SerializableAttribute
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             }
 
             var diagnostic = context.Diagnostics.Single();
-            context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.AddSerializableAttribute,
+            context.RegisterCodeFix(new MyCodeAction(AnalyzerPowerPackFixersResources.AddSerializableAttribute,
                                         async ct => await AddSerializableAttribute(context.Document, node, ct).ConfigureAwait(false)),
                                     diagnostic);
         }

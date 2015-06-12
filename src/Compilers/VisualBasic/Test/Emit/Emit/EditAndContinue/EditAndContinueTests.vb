@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -773,7 +774,6 @@ End Class
 ")
         End Sub
 
-
         <Fact>
         Public Sub SymbolMatcher_TypeArguments()
             Dim source =
@@ -1117,6 +1117,76 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
 }
 ]]>.Value)
             End Using
+        End Sub
+
+        <Fact, WorkItem(1175704, "DevDiv")>
+        Public Sub EventFields()
+            Dim source0 = MarkedSource("
+Imports System
+
+Class C
+    Shared Event handler As EventHandler
+
+    Shared Function F() As Integer
+        RaiseEvent handler(Nothing, Nothing)
+        Return 1
+    End Function
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System
+
+Class C
+    Shared Event handler As EventHandler
+
+    Shared Function F() As Integer
+        RaiseEvent handler(Nothing, Nothing)
+        Return 10
+    End Function
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+
+            compilation0.AssertNoDiagnostics()
+
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+               generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (Integer V_0, //F
+                [unchanged] V_1,
+                System.EventHandler V_2)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""C.handlerEvent As System.EventHandler""
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.2
+  IL_000b:  ldnull
+  IL_000c:  ldnull
+  IL_000d:  callvirt   ""Sub System.EventHandler.Invoke(Object, System.EventArgs)""
+  IL_0012:  nop
+  IL_0013:  ldc.i4.s   10
+  IL_0015:  stloc.0
+  IL_0016:  br.s       IL_0018
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}
+")
         End Sub
 
         ''' <summary>
@@ -3354,6 +3424,173 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub AnonymousTypes_Update()
+            Dim source0 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 1 }
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 2 }
+    End Sub
+End Class
+")
+            Dim source2 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 3 }
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            v0.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            ' expect a single TypeRef for System.Object
+            Dim md1 = diff1.GetMetadata()
+            AssertEx.Equal({"[0x23000002] 0x00000232.0x0000023f"}, DumpTypeRefs(md1.Reader))
+
+            Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            ' expect a single TypeRef for System.Object
+            Dim md2 = diff2.GetMetadata()
+            AssertEx.Equal({"[0x23000003] 0x000002a0.0x000002ad"}, DumpTypeRefs(md2.Reader))
+        End Sub
+
+        <Fact>
+        Public Sub AnonymousTypes_UpdateAfterAdd()
+            Dim source0 = MarkedSource("
+Class C
+    Shared Sub F()
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 2 }
+    End Sub
+End Class
+")
+            Dim source2 = MarkedSource("
+Class C
+    Shared Sub F()
+        Dim <N:0>x</N:0> = New With { .A = 3 }
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim diff1 = compilation1.EmitDifference(generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifyIL("C.F", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (VB$AnonymousType_0(Of Integer) V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.3
+  IL_0002:  newobj     ""Sub VB$AnonymousType_0(Of Integer)..ctor(Integer)""
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+")
+            ' expect a single TypeRef for System.Object
+            Dim md2 = diff2.GetMetadata()
+            AssertEx.Equal({"[0x23000003] 0x000002d3.0x000002e0"}, DumpTypeRefs(md2.Reader))
+        End Sub
+
+        Private Shared Iterator Function DumpTypeRefs(reader As MetadataReader) As IEnumerable(Of String)
+            For Each typeRefHandle In reader.TypeReferences
+                Dim typeRef = reader.GetTypeReference(typeRefHandle)
+                Yield $"[0x{MetadataTokens.GetToken(typeRef.ResolutionScope):x8}] 0x{MetadataTokens.GetHeapOffset(typeRef.Namespace):x8}.0x{MetadataTokens.GetHeapOffset(typeRef.Name):x8}"
+            Next
+        End Function
+
+        <Fact>
         Public Sub AnonymousTypes()
             Dim sources0 = <compilation>
                                <file name="a.vb"><![CDATA[
@@ -3919,6 +4156,121 @@ End Class
                     End Using
                 End Using
             End Using
+        End Sub
+
+        <Fact>
+        Public Sub AnonymousTypes_Nested()
+            Dim template = "
+Imports System
+Imports System.Linq
+
+Class C
+    Sub F(args As String())
+        Dim <N:4>result</N:4> =
+            From a in args
+            Let <N:0>x = a.Reverse()</N:0>
+            Let <N:1>y = x.Reverse()</N:1>
+            <N:2>Where x.SequenceEqual(y)</N:2>
+            Select <N:3>Value = a</N:3>, Length = a.Length
+
+        Console.WriteLine(<<VALUE>>)
+    End Sub
+End Class
+"
+            Dim source0 = MarkedSource(template.Replace("<<VALUE>>", "0"))
+            Dim source1 = MarkedSource(template.Replace("<<VALUE>>", "1"))
+            Dim source2 = MarkedSource(template.Replace("<<VALUE>>", "2"))
+
+            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation0.WithSource(source2.Tree)
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim expectedIL = "
+{
+  // Code size      175 (0xaf)
+  .maxstack  3
+  .locals init (System.Collections.Generic.IEnumerable(Of <anonymous type: Key Value As String, Key Length As Integer>) V_0) //result
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldsfld     ""C._Closure$__.$I1-0 As System.Func(Of String, <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_0007:  brfalse.s  IL_0010
+  IL_0009:  ldsfld     ""C._Closure$__.$I1-0 As System.Func(Of String, <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_000e:  br.s       IL_0026
+  IL_0010:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_0015:  ldftn      ""Function C._Closure$__._Lambda$__1-0(String) As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>""
+  IL_001b:  newobj     ""Sub System.Func(Of String, <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>)..ctor(Object, System.IntPtr)""
+  IL_0020:  dup
+  IL_0021:  stsfld     ""C._Closure$__.$I1-0 As System.Func(Of String, <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_0026:  call       ""Function System.Linq.Enumerable.Select(Of String, <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>)(System.Collections.Generic.IEnumerable(Of String), System.Func(Of String, <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_002b:  ldsfld     ""C._Closure$__.$I1-1 As System.Func(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_0030:  brfalse.s  IL_0039
+  IL_0032:  ldsfld     ""C._Closure$__.$I1-1 As System.Func(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_0037:  br.s       IL_004f
+  IL_0039:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_003e:  ldftn      ""Function C._Closure$__._Lambda$__1-1(<anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>) As <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>""
+  IL_0044:  newobj     ""Sub System.Func(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)..ctor(Object, System.IntPtr)""
+  IL_0049:  dup
+  IL_004a:  stsfld     ""C._Closure$__.$I1-1 As System.Func(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_004f:  call       ""Function System.Linq.Enumerable.Select(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)(System.Collections.Generic.IEnumerable(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>), System.Func(Of <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_0054:  ldsfld     ""C._Closure$__.$I1-2 As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, Boolean)""
+  IL_0059:  brfalse.s  IL_0062
+  IL_005b:  ldsfld     ""C._Closure$__.$I1-2 As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, Boolean)""
+  IL_0060:  br.s       IL_0078
+  IL_0062:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_0067:  ldftn      ""Function C._Closure$__._Lambda$__1-2(<anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>) As Boolean""
+  IL_006d:  newobj     ""Sub System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, Boolean)..ctor(Object, System.IntPtr)""
+  IL_0072:  dup
+  IL_0073:  stsfld     ""C._Closure$__.$I1-2 As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, Boolean)""
+  IL_0078:  call       ""Function System.Linq.Enumerable.Where(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)(System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>), System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, Boolean)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>)""
+  IL_007d:  ldsfld     ""C._Closure$__.$I1-3 As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key Value As String, Key Length As Integer>)""
+  IL_0082:  brfalse.s  IL_008b
+  IL_0084:  ldsfld     ""C._Closure$__.$I1-3 As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key Value As String, Key Length As Integer>)""
+  IL_0089:  br.s       IL_00a1
+  IL_008b:  ldsfld     ""C._Closure$__.$I As C._Closure$__""
+  IL_0090:  ldftn      ""Function C._Closure$__._Lambda$__1-3(<anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>) As <anonymous type: Key Value As String, Key Length As Integer>""
+  IL_0096:  newobj     ""Sub System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key Value As String, Key Length As Integer>)..ctor(Object, System.IntPtr)""
+  IL_009b:  dup
+  IL_009c:  stsfld     ""C._Closure$__.$I1-3 As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key Value As String, Key Length As Integer>)""
+  IL_00a1:  call       ""Function System.Linq.Enumerable.Select(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key Value As String, Key Length As Integer>)(System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>), System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key a As String, Key x As System.Collections.Generic.IEnumerable(Of Char)>, Key y As System.Collections.Generic.IEnumerable(Of Char)>, <anonymous type: Key Value As String, Key Length As Integer>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key Value As String, Key Length As Integer>)""
+  IL_00a6:  stloc.0
+  IL_00a7:  ldc.i4.<<VALUE>>
+  IL_00a8:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_00ad:  nop
+  IL_00ae:  ret
+}"
+
+            v0.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "0"))
+
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, $I1-3, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3}")
+
+            diff1.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "1"))
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifySynthesizedMembers(
+                "C: {_Closure$__}",
+                "C._Closure$__: {$I1-0, $I1-1, $I1-2, $I1-3, _Lambda$__1-0, _Lambda$__1-1, _Lambda$__1-2, _Lambda$__1-3}")
+
+            diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
 
         ''' <summary>

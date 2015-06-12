@@ -3,7 +3,7 @@
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
     Friend Module ExtenderNames
 
-        Public Const ExtenalLocation As String = "ExternalLocation"
+        Public Const ExternalLocation As String = "ExternalLocation"
         Public Const VBAutoPropertyExtender As String = "VBAutoPropertyExtender"
         Public Const VBGenericExtender As String = "VBGenericExtender"
         Public Const VBPartialMethodExtender As String = "VBPartialMethodExtender"

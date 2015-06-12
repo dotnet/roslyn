@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return new CompletionItem(this, "", CompletionUtilities.GetTextChangeSpan(text, position), isBuilder: true);
                 }
 
-                var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
                 if (token.Kind() == SyntaxKind.None)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
 
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))

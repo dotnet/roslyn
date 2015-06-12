@@ -1075,8 +1075,8 @@ Namespace Project1
         End Class
     End Class
 
-    'My own pathalogical case for determining access inside inheritance relationships
-     Public Class PathalogicalC2
+    'My own pathological case for determining access inside inheritance relationships
+     Public Class PathologicalC2
 	    Friend Class c3
 	        Public Enum bob
 	            asdf
@@ -1084,8 +1084,8 @@ Namespace Project1
 	    End Class
      End Class
 
-     Public Class PathalogicalC4
-	    Inherits PathalogicalC2
+     Public Class PathologicalC4
+	    Inherits PathologicalC2
 	    Public Function y() As c3.bob
             Return Nothing
 	    End Function
@@ -1607,7 +1607,7 @@ BC30910: 'C1' cannot inherit from class 'FriendModule1.Cls2' because it expands 
 BC30509: 'c1' cannot inherit from class 'PublicClass1.c2' because it expands the access of the base class to namespace 'Project1'.
             Inherits c2 'Need a compile error
                      ~~
-BC30909: 'y' cannot expose type 'PathalogicalC2.c3.bob' outside the project through class 'PathalogicalC4'.
+BC30909: 'y' cannot expose type 'PathologicalC2.c3.bob' outside the project through class 'PathologicalC4'.
 	    Public Function y() As c3.bob
                             ~~~~~~
 BC30508: 'x' cannot expose type 'foo.foo2.foo3.foo4' in class 'foo' through class 'foo2'.

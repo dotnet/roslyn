@@ -2,12 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         internal const string CompilerDiagnosticCategory = "Compiler";
 
         /// <summary>
-        /// Highest valid warning level for non-error diagnostcs.
+        /// Highest valid warning level for non-error diagnostics.
         /// </summary>
         internal const int HighestValidWarningLevel = 4;
 

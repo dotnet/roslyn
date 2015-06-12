@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If lastNonArrayLiteral > -1 Then
                     resultList.Clip(lastNonArrayLiteral + 1)
                 Else
-                    ' All candidates are array literals convertable to each other,
+                    ' All candidates are array literals convertible to each other,
                     ' Let's infer element type across all of them.
 
                     ' Trivial case - all types are the same

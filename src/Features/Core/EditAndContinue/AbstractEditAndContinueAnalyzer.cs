@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Returns all lambda bodies of a node representing a lambda, 
-        /// or false if the node doens't repesent a lambda.
+        /// or false if the node doesn't represent a lambda.
         /// </summary>
         /// <remarks>
         /// C# anonymous function expression and VB lambda expression both have a single body
@@ -991,6 +991,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 int ordinal = start + i;
                 bool hasMatching = false;
                 bool isLeaf = (oldActiveStatements[ordinal].Flags & ActiveStatementFlags.LeafFrame) != 0;
+                bool isPartiallyExecuted = (oldActiveStatements[ordinal].Flags & ActiveStatementFlags.PartiallyExecuted) != 0;
                 int statementPart = activeNodes[i].StatementPart;
                 var oldStatementSyntax = activeNodes[i].OldNode;
                 var oldEnclosingLambdaBody = activeNodes[i].EnclosingLambdaBodyOpt;
@@ -1036,10 +1037,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
                     newSpan = FindClosestActiveSpan(newStatementSyntax, statementPart);
 
-                    if (!isLeaf && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntax, statementPart))
+                    if ((!isLeaf || isPartiallyExecuted) && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntax, statementPart))
                     {
                         // rude edit: internal active statement changed
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementUpdate, newSpan));
+                        diagnostics.Add(new RudeEditDiagnostic(isLeaf ? RudeEditKind.PartiallyExecutedActiveStatementUpdate : RudeEditKind.ActiveStatementUpdate, newSpan));
                     }
 
                     // exception handling around the statement:
@@ -1462,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            // This might occur in cases where we report rude edit, so the exact location of the active span doens't matter.
+            // This might occur in cases where we report rude edit, so the exact location of the active span doesn't matter.
             // For example, when a method expression body is removed in C#.
             return statement.Span;
         }
@@ -1950,7 +1951,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance);
+        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance, distinguishRefFromOut: true);
 
         protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
         {
@@ -2726,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
 
                         // If no initializer updates were made in the type we only need to produce semantic edits for constructors
-                        // whose body has been updated, otherwise we need to produce edits for all contructors that include initializers.
+                        // whose body has been updated, otherwise we need to produce edits for all constructors that include initializers.
                         if (!anyInitializerUpdates && !update.ChangedDeclarations.ContainsKey(newDeclaration))
                         {
                             continue;

@@ -203,19 +203,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Dim defaultValue As ConstantValue = ConstantValue.NotAvailable
 
-                    If IsOptional Then
-                        Dim peModule = Me.PEModule
-                        Dim handle = Me._handle
+                    Dim peModule = Me.PEModule
+                    Dim handle = Me._handle
 
-                        If (_flags And ParameterAttributes.HasDefault) <> 0 Then
-                            defaultValue = peModule.GetParamDefaultValue(handle)
-                        Else
-                            ' Dev10 behavior just checks for Decimal then DateTime.  If both are specified, DateTime wins
-                            ' regardless of the parameter's type.
+                    If (_flags And ParameterAttributes.HasDefault) <> 0 Then
+                        defaultValue = peModule.GetParamDefaultValue(handle)
+                    ElseIf IsOptional
+                        ' Dev10 behavior just checks for Decimal then DateTime.  If both are specified, DateTime wins
+                        ' regardless of the parameter's type.
 
-                            If Not peModule.HasDateTimeConstantAttribute(handle, defaultValue) Then
-                                peModule.HasDecimalConstantAttribute(handle, defaultValue)
-                            End If
+                        If Not peModule.HasDateTimeConstantAttribute(handle, defaultValue) Then
+                            peModule.HasDecimalConstantAttribute(handle, defaultValue)
                         End If
                     End If
 

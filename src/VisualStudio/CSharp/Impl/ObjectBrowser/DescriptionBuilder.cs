@@ -13,10 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
     {
         public DescriptionBuilder(
             IVsObjectBrowserDescription3 description,
-            ObjectBrowserLibraryManager librayManager,
+            ObjectBrowserLibraryManager libraryManager,
             ObjectListItem listItem,
             Project project)
-            : base(description, librayManager, listItem, project)
+            : base(description, libraryManager, listItem, project)
         {
         }
 

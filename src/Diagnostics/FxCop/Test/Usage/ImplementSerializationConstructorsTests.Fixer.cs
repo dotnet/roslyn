@@ -2,12 +2,13 @@
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
+using Microsoft.AnalyzerPowerPack.Usage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.UnitTests;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public partial class CA2229FixerTests : CodeFixTestBase
     {

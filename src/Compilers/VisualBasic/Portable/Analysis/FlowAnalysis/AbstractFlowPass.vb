@@ -919,7 +919,7 @@ lUnsplitAndFinish:
 
                 Else
                     ' If any of the initializers contained region, we must have exited the region by now or the node is a literal 
-                    ' which was not captured in initializers, but just reused accross when/if needed in With statement body
+                    ' which was not captured in initializers, but just reused across when/if needed in With statement body
 #If DEBUG Then
                     Debug.Assert(Me._regionPlace = RegionPlace.After OrElse IsNotCapturedExpression(Me._firstInRegion))
 #End If
@@ -1197,8 +1197,8 @@ lUnsplitAndFinish:
                 ' method is not an extension method, note that extension method may 
                 ' write to ByRef parameter
 
-                Dim redusedFrom As MethodSymbol = method.CallsiteReducedFromMethod
-                If redusedFrom Is Nothing OrElse redusedFrom.ParameterCount = 0 OrElse Not redusedFrom.Parameters(0).IsByRef Then
+                Dim reducedFrom As MethodSymbol = method.CallsiteReducedFromMethod
+                If reducedFrom Is Nothing OrElse reducedFrom.ParameterCount = 0 OrElse Not reducedFrom.Parameters(0).IsByRef Then
                     Return
                 End If
             End If
@@ -2526,6 +2526,21 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitTypeAsValueExpression(node As BoundTypeAsValueExpression) As BoundNode
             Visit(node.Expression)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
+            For Each item In node.Contents
+                Visit(item)
+            Next
+
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitInterpolation(node As BoundInterpolation) As BoundNode
+            Visit(node.Expression)
+            Visit(node.AlignmentOpt)
+            Visit(node.FormatStringOpt)
             Return Nothing
         End Function
 #End Region

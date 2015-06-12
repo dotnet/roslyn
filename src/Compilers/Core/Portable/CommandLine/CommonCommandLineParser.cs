@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly CommonMessageProvider _messageProvider;
         private readonly bool _isInteractive;
-        private static readonly char[] s_searchPatterTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
+        private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isInteractive)
         {
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis
         internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;
 
         /// <summary>
-        /// Parse a response file into a set of arguments. Errors openening the response file are output into "errors".
+        /// Parse a response file into a set of arguments. Errors opening the response file are output into "errors".
         /// </summary>
         internal IEnumerable<string> ParseResponseFile(string fullPath, IList<Diagnostic> errors)
         {
@@ -622,7 +623,7 @@ namespace Microsoft.CodeAnalysis
 
 
             // unescape escaped \"  and \\
-            for(int i = 0; i < split.Length; i++)
+            for (int i = 0; i < split.Length; i++)
             {
                 if (split[i].IndexOf('\\') >= 0)
                 {
@@ -889,7 +890,7 @@ namespace Microsoft.CodeAnalysis
                 // NOTE: Directory.EnumerateFiles(...) surprisingly treats pattern "." the 
                 //       same way as "*"; as we don't expect anything to be found by this 
                 //       pattern, let's just not search in this case
-                pattern = pattern.Trim(s_searchPatterTrimChars);
+                pattern = pattern.Trim(s_searchPatternTrimChars);
                 bool singleDotPattern = string.Equals(pattern, ".", StringComparison.Ordinal);
 
                 if (!singleDotPattern)
@@ -955,6 +956,31 @@ namespace Microsoft.CodeAnalysis
                     enumerator.Dispose();
                 }
             }
+        }
+
+        internal static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
+        {
+            var set = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var commaFeatures in values)
+            {
+                foreach (var feature in commaFeatures.Split(','))
+                {
+                    int equals = feature.IndexOf('=');
+                    if (equals > 0)
+                    {
+                        string name = feature.Substring(0, equals);
+                        string value = feature.Substring(equals + 1);
+                        set[name] = value;
+                    }
+                    else
+                    {
+                        set[feature] = "true";
+                    }
+                }
+            }
+
+            return set.ToImmutable();
         }
 
         internal abstract void GenerateErrorForNoFilesFoundInRecurse(string path, IList<Diagnostic> errors);

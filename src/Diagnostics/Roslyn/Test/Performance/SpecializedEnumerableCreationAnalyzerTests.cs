@@ -15,6 +15,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Performance
 {
     public class SpecializedEnumerableCreationAnalyzerTests : DiagnosticAnalyzerTestBase
     {
+        private string _csharpSpecializedCollectionsDefinition = @"
+namespace Roslyn.Utilities
+{
+    public class SpecializedCollections { }
+}
+";
+        private string _basicSpecializedCollectionsDefinition = @"
+Namespace Roslyn.Utilities
+    Public Class SpecializedCollections
+    End Class
+End Namespace
+";
+
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpSpecializedEnumerableCreationAnalyzer();
@@ -37,7 +50,7 @@ class C
     IEnumerable<int> M2() { return new int[0] { }; }
     int[] M3() { return new int[0]; }
 }
-",
+" + _csharpSpecializedCollectionsDefinition,
                 GetCSharpResultAt(6, 36, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
                 GetCSharpResultAt(7, 36, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
         }
@@ -55,7 +68,7 @@ class C
     IEnumerable<int> M3() { return new[] { 1 }; }
     int[] M4() { return new[] { 1 }; }
 }
-",
+" + _csharpSpecializedCollectionsDefinition,
                 GetCSharpResultAt(6, 36, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetCSharpResultAt(7, 36, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetCSharpResultAt(8, 36, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
@@ -72,7 +85,7 @@ class C
 {
     IEnumerable<int> M1() { return Enumerable.Empty<int>(); }
 }
-",
+" + _csharpSpecializedCollectionsDefinition,
                 GetCSharpResultAt(7, 36, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
         }
 
@@ -87,7 +100,7 @@ class C
     IEnumerable<int> M1() { return 0 == 1 ? new[] { 1 } : new[] { 2 }; }
     IEnumerable<int> M2() { return null ?? new int[0]; }
 }
-",
+" + _csharpSpecializedCollectionsDefinition,
                 GetCSharpResultAt(6, 45, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetCSharpResultAt(6, 59, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetCSharpResultAt(7, 44, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
@@ -105,7 +118,7 @@ class C
     IEnumerable<int> M1() { return 0 == 1 ? Enumerable.Empty<int>() : null; }
     IEnumerable<int> M2() { return null ?? Enumerable.Empty<int>(); }
 }
-",
+" + _csharpSpecializedCollectionsDefinition,
                 GetCSharpResultAt(7, 45, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
                 GetCSharpResultAt(8, 44, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
         }
@@ -123,7 +136,7 @@ class C
     IEnumerable<int> M3() { return new[] { 1, 2 }; }
     int[] M4() { return new[] { 1, 2 }; }
 }
-");
+" + _csharpSpecializedCollectionsDefinition);
         }
 
         [Fact]
@@ -138,7 +151,7 @@ class C
     IEnumerable<int[]> M2() { return new[] { new[] { 1 } }; }
     IEnumerable<int[]> M3() { return new[] { new[] { 1, 2, 3 }, new[] { 1 } }; }
 }
-",
+" + _csharpSpecializedCollectionsDefinition,
                 GetCSharpResultAt(7, 38, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
         }
 
@@ -152,7 +165,7 @@ class C
 {
     IEnumerable<IEnumerable<int>> M1() { return new[] { new[] { 1 } }; }
 }
-",
+" + _csharpSpecializedCollectionsDefinition,
                 GetCSharpResultAt(5, 49, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetCSharpResultAt(5, 57, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
         }
@@ -171,7 +184,7 @@ Class C
         Return {}
     End Function
 End Class
-",
+" + _basicSpecializedCollectionsDefinition,
             GetBasicResultAt(6, 16, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
             GetBasicResultAt(9, 16, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
         }
@@ -188,7 +201,7 @@ Class C
         Return Enumerable.Empty(Of Integer)()
     End Function
 End Class
-",
+" + _basicSpecializedCollectionsDefinition,
                 GetBasicResultAt(7, 16, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
         }
 
@@ -206,7 +219,7 @@ Class C
         Return {1}
     End Function
 End Class
-",
+" + _basicSpecializedCollectionsDefinition,
                 GetBasicResultAt(6, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetBasicResultAt(9, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
         }
@@ -225,7 +238,7 @@ Class C
         Return If(True, {1})
     End Function
 End Class
-",
+" + _basicSpecializedCollectionsDefinition,
                 GetBasicResultAt(6, 25, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetBasicResultAt(6, 30, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetBasicResultAt(9, 25, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
@@ -246,7 +259,7 @@ Class C
         Return If(True, Enumerable.Empty(Of Integer)())
     End Function
 End Class
-",
+" + _basicSpecializedCollectionsDefinition,
                 GetBasicResultAt(7, 25, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule),
                 GetBasicResultAt(10, 25, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
         }
@@ -265,7 +278,7 @@ Class C
         Return {1, 2}
     End Function
 End Class
-");
+" + _basicSpecializedCollectionsDefinition);
         }
 
         [Fact]
@@ -285,7 +298,7 @@ Class C
         Return {({1, 2, 3}), ({1})}
     End Function
 End Class
-",
+" + _basicSpecializedCollectionsDefinition,
                 GetBasicResultAt(9, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
         }
 
@@ -300,7 +313,7 @@ Class C
         Return {({1})}
     End Function
 End Class
-",
+" + _basicSpecializedCollectionsDefinition,
                 GetBasicResultAt(6, 16, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule),
                 GetBasicResultAt(6, 17, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
         }

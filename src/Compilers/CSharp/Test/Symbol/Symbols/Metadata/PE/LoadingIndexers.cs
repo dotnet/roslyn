@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LoadNonIndexer_NoDefaultMember()
         {
             string ilSource = @"
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             emitOptions: TestEmitters.RefEmitBug);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LoadParameterNames()
         {
             string ilSource = @"
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         /// types of bogus properties - just setter param name if setter available and getter
         /// param name if getter available (i.e. same as success case).
         /// </remarks>
-        [Fact]
+        [ClrOnlyFact]
         public void LoadBogusParameterNames()
         {
             string ilSource = @"

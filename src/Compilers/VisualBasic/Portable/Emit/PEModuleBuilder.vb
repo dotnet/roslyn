@@ -236,9 +236,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                                     Case SymbolKind.Method
                                         Dim method = DirectCast(member, MethodSymbol)
-                                        If Not method.IsDefaultValueTypeConstructor() Then
-                                            AddSymbolLocation(result, member)
+                                        If method.IsDefaultValueTypeConstructor() OrElse
+                                           method.IsPartialWithoutImplementation Then
+                                            Exit Select
                                         End If
+
+                                        AddSymbolLocation(result, member)
 
                                     Case SymbolKind.Property,
                                          SymbolKind.Field

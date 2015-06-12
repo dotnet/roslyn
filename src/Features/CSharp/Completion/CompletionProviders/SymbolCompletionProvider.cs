@@ -1,21 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -71,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // don't want to trigger after a number.  All other cases after dot are ok.
-            var tree = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindToken(characterPosition);
             if (token.Kind() == SyntaxKind.DotToken)
             {
@@ -90,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var workspace = document.Project.Solution.Workspace;
             var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetCSharpSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 

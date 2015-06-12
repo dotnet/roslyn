@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.CSharp.Usage;
+using Microsoft.AnalyzerPowerPack.VisualBasic.Usage;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public partial class CA2200Tests : DiagnosticAnalyzerTestBase
     {
@@ -367,7 +367,7 @@ End Class",
         }
 
         internal static string CA2200Name = "CA2200";
-        internal static string CA2200Message = FxCopRulesResources.RethrowException;
+        internal static string CA2200Message = AnalyzerPowerPackRulesResources.RethrowException;
 
         private static DiagnosticResult GetCA2200BasicResultAt(int line, int column)
         {

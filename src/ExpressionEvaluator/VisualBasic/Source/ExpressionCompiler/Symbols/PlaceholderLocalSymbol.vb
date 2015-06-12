@@ -45,8 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     PseudoVariableUtilities.TryParseReturnValueIndex(name, index)
                     Return New ReturnValueLocalSymbol(containingMethod, name, displayName, type, index)
                 Case DkmClrAliasKind.ObjectId
-                    Debug.Assert(name.Length > 0 AndAlso name(0) <> "$"c)
-                    Return New ObjectIdLocalSymbol(containingMethod, type, "$" + name, displayName, isReadOnly:=True)
+                    Return New ObjectIdLocalSymbol(containingMethod, type, name, displayName, isReadOnly:=True)
                 Case DkmClrAliasKind.Variable
                     Return New ObjectIdLocalSymbol(containingMethod, type, name, displayName, isReadOnly:=False)
                 Case Else

@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetErrorSource(_factory._buildTool);
                                 return true;
                             case StandardTableKeyNames.BuildTool:
-                                content = _factory._buildTool;
+                                content = GetBuildTool(_factory._buildTool);
                                 return content != null;
                             case StandardTableKeyNames.Text:
                                 content = item.Message;
@@ -198,6 +198,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = null;
                                 return false;
                         }
+                    }
+
+                    private string GetBuildTool(string buildTool)
+                    {
+                        // for build tool, regardless where error is comming from ("build" or "live"), 
+                        // we show "compiler" to users.
+                        if (buildTool == PredefinedBuildTools.Live)
+                        {
+                            return PredefinedBuildTools.Build;
+                        }
+
+                        return _factory._buildTool;
                     }
 
                     private ErrorSource GetErrorSource(string buildTool)

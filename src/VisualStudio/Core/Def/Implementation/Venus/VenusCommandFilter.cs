@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Editor;
@@ -52,14 +53,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return VSConstants.E_INVALIDARG;
             }
 
-            // We need to map the TextSpan from the DataBuffer to our subject buffer
-            // In the event that the position is on a seam and maps to multiple 
-            // source spans, take the one that had a length of 1 (since that's how long
-            // our input span was).
-            // If we had no such spans, just return.
+            // We need to map the TextSpan from the DataBuffer to our subject buffer. We'll
+            // only consider spans whose length matches our input span (which we expect to
+            // always be zero). This is to address the case where the position is on a seam
+            // and maps to multiple source spans.
+            // If there is not exactly one matching span, just return.
             var span = WpfTextView.TextViewModel.DataBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
+            var spanLength = span.Length;
+            Debug.Assert(spanLength == 0, $"Expected zero length span (got '{spanLength}'.");
             var subjectSpan = WpfTextView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeInclusive, _subjectBuffer)
-                                .SingleOrDefault(x => x.Length == 1);
+                                .SingleOrDefault(x => x.Length == spanLength);
 
             if (subjectSpan == default(SnapshotSpan))
             {

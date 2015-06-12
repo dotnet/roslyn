@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.Naming;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Naming;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public class CA1715Test : DiagnosticAnalyzerTestBase
     {
@@ -291,8 +292,8 @@ End Class
                 GetCA1715BasicResultAt(46, 30, CA1715TypeParameterMessage));
         }
 
-        internal static string CA1715InterfaceMessage = FxCopRulesResources.InterfaceNamesShouldStartWithI;
-        internal static string CA1715TypeParameterMessage = FxCopRulesResources.TypeParameterNamesShouldStartWithT;
+        internal static string CA1715InterfaceMessage = AnalyzerPowerPackRulesResources.InterfaceNamesShouldStartWithI;
+        internal static string CA1715TypeParameterMessage = AnalyzerPowerPackRulesResources.TypeParameterNamesShouldStartWithT;
 
         private static DiagnosticResult GetCA1715CSharpResultAt(int line, int column, string message)
         {

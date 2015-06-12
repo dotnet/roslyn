@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns an empty array if the input array is null (defaut)
+        /// Returns an empty array if the input array is null (default)
         /// </summary>
         public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T> array)
         {

@@ -139,7 +139,7 @@
 
     <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
         <VsixToSign Include="$(TargetVsixContainer)">
-            <Authenticode>Vsix</Authenticode>
+            <Authenticode>VsixSHA2</Authenticode>
         </VsixToSign>
     </ItemGroup>
     

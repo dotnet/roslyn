@@ -5,14 +5,11 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
     {
         internal override SyntaxNode GetTypeDeclaration(Document document, int position, TypeDiscoveryRule typeDiscoveryRule, CancellationToken cancellationToken)
         {
-            var tree = document.GetCSharpSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
             var typeDeclaration = token.GetAncestor<TypeDeclarationSyntax>();
 
@@ -53,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             CancellationToken cancellationToken)
         {
             var documentWithTypeNode = solutionWithFormattedInterfaceDocument.GetDocument(documentIdWithTypeNode);
-            var root = documentWithTypeNode.GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = documentWithTypeNode.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var typeDeclaration = root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
 
             var docId = solutionWithFormattedInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id;

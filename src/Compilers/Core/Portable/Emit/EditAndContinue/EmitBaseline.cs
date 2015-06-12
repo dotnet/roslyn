@@ -56,6 +56,21 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         private static readonly ImmutableArray<int> s_emptyTableSizes = ImmutableArray.Create(new int[MetadataTokens.TableCount]);
 
+        internal sealed class MetadataSymbols
+        {
+            public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
+            public readonly object MetadataDecoder;
+
+            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, object metadataDecoder)
+            {
+                Debug.Assert(anonymousTypes != null);
+                Debug.Assert(metadataDecoder != null);
+
+                this.AnonymousTypes = anonymousTypes;
+                this.MetadataDecoder = metadataDecoder;
+            }
+        }
+
         /// <summary>
         /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
         /// and from a function that maps from a method to an array of local names. 
@@ -102,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var moduleVersionId = module.GetModuleVersionId();
 
             return new EmitBaseline(
+                null,
                 module,
                 compilation: null,
                 moduleBuilder: null,
@@ -130,11 +146,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 methodImpls: CalculateMethodImpls(reader));
         }
 
+        internal EmitBaseline InitialBaseline { get; }
+
         /// <summary>
         /// The original metadata of the module.
         /// </summary>
         public ModuleMetadata OriginalMetadata { get; }
 
+        // Symbols hydrated from the original metadata. Lazy since we don't know the language at the time the baseline is constructed.
+        internal MetadataSymbols LazyMetadataSymbols;
+        
         internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder PEModuleBuilder;
         internal readonly Guid ModuleVersionId;
@@ -182,10 +203,11 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<uint, uint> TypeToEventMap;
         internal readonly IReadOnlyDictionary<uint, uint> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, uint> MethodImpls;
-        internal readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypeMap;
+        private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
         internal readonly ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> SynthesizedMembers;
 
         private EmitBaseline(
+            EmitBaseline initialBaseline,
             ModuleMetadata module,
             Compilation compilation,
             CommonPEModuleBuilder moduleBuilder,
@@ -215,6 +237,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(module != null);
             Debug.Assert((ordinal == 0) == (encId == default(Guid)));
+            Debug.Assert((ordinal == 0) == (initialBaseline == null));
             Debug.Assert(encId != module.GetModuleVersionId());
             Debug.Assert(debugInformationProvider != null);
             Debug.Assert(typeToEventMap != null);
@@ -239,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var reader = module.Module.MetadataReader;
 
+            this.InitialBaseline = initialBaseline ?? this;
             this.OriginalMetadata = module;
             this.Compilation = compilation;
             this.PEModuleBuilder = moduleBuilder;
@@ -259,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.StringStreamLengthAdded = stringStreamLengthAdded;
             this.UserStringStreamLengthAdded = userStringStreamLengthAdded;
             this.GuidStreamLengthAdded = guidStreamLengthAdded;
-            this.AnonymousTypeMap = anonymousTypeMap;
+            this._anonymousTypeMap = anonymousTypeMap;
             this.SynthesizedMembers = synthesizedMembers;
             this.AddedOrChangedMethods = methodsAddedOrChanged;
 
@@ -293,10 +317,11 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<uint, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
         {
-            Debug.Assert((this.AnonymousTypeMap == null) || (anonymousTypeMap != null));
-            Debug.Assert((this.AnonymousTypeMap == null) || (anonymousTypeMap.Count >= this.AnonymousTypeMap.Count));
+            Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap != null);
+            Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap.Count >= _anonymousTypeMap.Count);
 
             return new EmitBaseline(
+                this.InitialBaseline,
                 this.OriginalMetadata,
                 compilation,
                 moduleBuilder,
@@ -325,35 +350,18 @@ namespace Microsoft.CodeAnalysis.Emit
                 methodImpls: this.MethodImpls);
         }
 
-        internal EmitBaseline WithAnonymousTypeMap(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap)
+        internal IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypeMap
         {
-            return new EmitBaseline(
-                this.OriginalMetadata,
-                this.Compilation,
-                this.PEModuleBuilder,
-                this.ModuleVersionId,
-                this.Ordinal,
-                this.EncId,
-                this.TypesAdded,
-                this.EventsAdded,
-                this.FieldsAdded,
-                this.MethodsAdded,
-                this.PropertiesAdded,
-                this.EventMapAdded,
-                this.PropertyMapAdded,
-                this.MethodImplsAdded,
-                this.TableEntriesAdded,
-                this.BlobStreamLengthAdded,
-                this.StringStreamLengthAdded,
-                this.UserStringStreamLengthAdded,
-                this.GuidStreamLengthAdded,
-                anonymousTypeMap,
-                this.SynthesizedMembers,
-                this.AddedOrChangedMethods,
-                this.DebugInformationProvider,
-                this.TypeToEventMap,
-                this.TypeToPropertyMap,
-                this.MethodImpls);
+            get
+            {
+                if (Ordinal > 0)
+                {
+                    return _anonymousTypeMap;
+                }
+
+                Debug.Assert(LazyMetadataSymbols != null);
+                return LazyMetadataSymbols.AnonymousTypes;
+            }
         }
 
         internal MetadataReader MetadataReader

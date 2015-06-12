@@ -158,7 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Optional nonArrayName As Boolean = False,
                             Optional disallowGenericArgumentsOnLastQualifiedName As Boolean = False,
                             Optional allowEmptyGenericArguments As Boolean = False,
-                            Optional ByRef allowedEmptyGenericArguments As Boolean = False
+                            Optional ByRef allowedEmptyGenericArguments As Boolean = False,
+                            Optional isNameInNamespaceDeclaration As Boolean = False
                         ) As NameSyntax
 
             Debug.Assert(allowGenericArguments OrElse Not allowEmptyGenericArguments, "Inconsistency in generic arguments parsing requirements!!!")
@@ -171,7 +172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
 
                 result = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
-                result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+
+                If isNameInNamespaceDeclaration Then
+                    result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+                End If
 
                 GetNextToken()
 
@@ -1641,7 +1645,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 requireQualification:=False,
                 allowGlobalNameSpace:=True,
                 allowGenericArguments:=False,
-                allowGenericsWithoutOf:=True)
+                allowGenericsWithoutOf:=True,
+                isNameInNamespaceDeclaration:=True)
 
             If namespaceName.ContainsDiagnostics Then
                 ' Resync at EOS so we don't get expecting EOS errors
@@ -2501,7 +2506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '''       RequireAtleastOneInitializer = false
         ''' 
         '''  While the grammar uses the nonterminal CollectionInitializer is modeled as an
-        '''  AnnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
+        '''  AnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
         ''' </remarks>
         ''' 
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
@@ -2631,9 +2636,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
-        ' TOO - davidsch - handle annonymous type initialization
-        ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
-
         ' /*********************************************************************
         ' *
         ' * Function:
@@ -2683,7 +2685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' We want to check for this and give a more informative error.
             If SyntaxFacts.IsSpecifier(identifierStart.Kind) Then
 
-                ' We don't want to look for specifiers if the errorneous declarator starts on a new line.
+                ' We don't want to look for specifiers if the erroneous declarator starts on a new line.
                 ' This is because we want to recover the error on the previous line and treat the line with the
                 ' specifier as a new statement
                 If identifierStartPrev IsNot Nothing AndAlso identifierStartPrev.IsEndOfLine Then
@@ -5479,7 +5481,7 @@ checkNullable:
 
         Private Shared Function StartsValidConditionalCompilationExpr(t As SyntaxToken) As Boolean
             Select Case (t.Kind)
-                ' Identifiers - note that only simple indentifiers are allowed.
+                ' Identifiers - note that only simple identifiers are allowed.
                 ' This check is done in ParseTerm.
 
                 ' Parenthesized expressions
@@ -5925,7 +5927,7 @@ checkNullable:
         '
 
         ' IdentifierAsKeyword returns the token type of a identifier token,
-        ' interpreting non-bracketed indentifiers as (non-reserved) keywords as appropriate.
+        ' interpreting non-bracketed identifiers as (non-reserved) keywords as appropriate.
 
         Private Shared Function TryIdentifierAsContextualKeyword(id As SyntaxToken, ByRef kind As SyntaxKind) As Boolean
             Debug.Assert(id IsNot Nothing)
@@ -5990,30 +5992,29 @@ checkNullable:
         ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
         ''' </summary>
         Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Dim languageVersion = _scanner.Options.LanguageVersion
-            If CheckFeatureAvailability(languageVersion, feature) Then
+            Dim parseOptions = _scanner.Options
+            If CheckFeatureAvailability(parseOptions, feature) Then
                 Return node
             End If
 
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, parseOptions.LanguageVersion.GetErrorName(), featureName)
         End Function
 
         Private Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
+            Return CheckFeatureAvailability(_scanner.Options, feature)
         End Function
 
-        Private Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Return CInt(required) <= CInt(languageVersion)
-        End Function
-
-        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
-            If Not CheckFeatureAvailability(languageVersion, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
+            Dim featureFlag = feature.GetFeatureFlag()
+            If featureFlag IsNot Nothing Then
+                Return parseOptions.Features.ContainsKey(featureFlag)
             End If
-        End Sub
+
+            Dim required = feature.GetLanguageVersion()
+            Dim actual = parseOptions.LanguageVersion
+            Return CInt(required) <= CInt(actual)
+        End Function
 
     End Class
 

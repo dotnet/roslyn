@@ -628,15 +628,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return true;
                 }
 
-                var contanerScope = currentHandler.ContainingExceptionScope;
-                if (!contanerScope.FinallyOnly())
+                var containerScope = currentHandler.ContainingExceptionScope;
+                if (!containerScope.FinallyOnly())
                 {
                     // this may move the label outside of catch-protected region
                     // we will disallow that.
                     return false;
                 }
 
-                currentHandler = contanerScope.ContainingHandler;
+                currentHandler = containerScope.ContainingHandler;
             } while (currentHandler != null);
 
             return false;

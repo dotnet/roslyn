@@ -995,15 +995,15 @@ class B
 class B
 {
 }
-static class extention
+static class Extension
 {
     public static void Main(this B x, string[] args)
     { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (8,24): warning CS0028: 'extention.Main(B, string[])' has the wrong signature to be an entry point
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (8,24): warning CS0028: 'Extension.Main(B, string[])' has the wrong signature to be an entry point
                                                                                                                   //     public static void Main(this B x, string[] args)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("extention.Main(B, string[])"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Extension.Main(B, string[])"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
@@ -1015,15 +1015,15 @@ static class extention
 class B
 {
 }
-static class extention
+static class Extension
 {
     public static int Main(this B x)
     { return 1; }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (8,23): warning CS0028: 'extention.Main(B)' has the wrong signature to be an entry point
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (8,23): warning CS0028: 'Extension.Main(B)' has the wrong signature to be an entry point
                                                                                                                   //     public static int Main(this B x)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("extention.Main(B)"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Extension.Main(B)"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }
@@ -1032,15 +1032,15 @@ static class extention
         public void MainAsExtensionMethod_2()
         {
             string source = @"
-static class extention
+static class Extension
 {
     public static int Main(this string str)
     { return 1; }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (5,23): warning CS0028: 'extention.Main(string)' has the wrong signature to be an entry point
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(// (5,23): warning CS0028: 'Extension.Main(string)' has the wrong signature to be an entry point
                                                                                                                   //     public static int Main(this string str)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("extention.Main(string)"),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Extension.Main(string)"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint));
         }

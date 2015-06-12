@@ -547,6 +547,33 @@ BC37205: Module name 'ModuleNameMismatch.netmodule' stored in 'ModuleNameMismatc
 </expected>)
         End Sub
 
+        <Fact, WorkItem(2774, "https://github.com/dotnet/roslyn/issues/2774")>
+        Public Sub DoNotCrashOrAssertBecauseOfAMissingHelper()
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System.Linq
+
+Class C
+    Sub M(args As String())
+        Dim concat =
+            From x In args
+            Let y = x.ToString()
+            Let z = x.GetHashCode()
+            Select x & y & z
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, {SystemCoreRef})
+
+            AssertTheseEmitDiagnostics(compilation,
+<expected><![CDATA[
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
+            Select x & y & z
+                           ~
+]]></expected>)
+        End Sub
+
 #End Region
 
     End Class

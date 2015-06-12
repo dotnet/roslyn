@@ -2183,6 +2183,22 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n Private Function Prop() As TypeOfIsNotDerived \n Throw New NotImplementedException() \n End Function \n End Module"))
         End Sub
 
+        <WorkItem(529480)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestInCollectionInitializers1()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New List ( Of Integer ) From { [|T|]() } \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New List ( Of Integer ) From { T() } \n End Sub \n Private Function T() As Integer \n Throw New NotImplementedException() \n End Function \n End Module"))
+        End Sub
+
+        <WorkItem(529480)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestInCollectionInitializers2()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New Dictionary ( Of Integer , Boolean ) From { { 1, [|T|]() } } \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New Dictionary ( Of Integer , Boolean ) From { { 1, T() } } \n End Sub \n Private Function T() As Boolean \n Throw New NotImplementedException() \n End Function \n End Module"))
+        End Sub
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static
         Private Shared s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
-        Private Shared s_constructorModifers As DeclarationModifiers = DeclarationModifiers.Static
+        Private Shared s_constructorModifiers As DeclarationModifiers = DeclarationModifiers.Static
         Private Shared s_propertyModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
         Private Shared s_indexerModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
         Private Shared s_classModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static
@@ -564,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
                 Case SyntaxKind.ConstructorBlock,
                      SyntaxKind.SubNewStatement
-                    Return s_constructorModifers
+                    Return s_constructorModifiers
 
                 Case SyntaxKind.FieldDeclaration
                     Return s_fieldModifiers
@@ -1014,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ConstructorBlock(
                 subNewStatement:=SyntaxFactory.SubNewStatement(
                     attributeLists:=Nothing,
-                    modifiers:=GetModifierList(accessibility, modifiers And s_constructorModifers),
+                    modifiers:=GetModifierList(accessibility, modifiers And s_constructorModifiers),
                     parameterList:=If(parameters IsNot Nothing, SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast(Of ParameterSyntax)())), SyntaxFactory.ParameterList())),
                 statements:=stats)
         End Function

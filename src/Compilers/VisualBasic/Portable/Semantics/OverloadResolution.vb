@@ -3473,7 +3473,7 @@ Bailout:
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             delegateReturnType As TypeSymbol,
-            delegateReturnTypeReferenceBoundeNode As BoundNode,
+            delegateReturnTypeReferenceBoundNode As BoundNode,
             includeEliminatedCandidates As Boolean,
             isQueryOperatorInvocation As Boolean,
             forceExpandedForm As Boolean,
@@ -3500,7 +3500,7 @@ Bailout:
 
                 If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule Then
                     CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
-                                               delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                               delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                useSiteDiagnostics)
                     Continue For
@@ -3615,12 +3615,12 @@ Bailout:
 
                     If info.State <> CandidateAnalysisResultState.Ambiguous Then
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
-                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                    useSiteDiagnostics)
                     ElseIf includeEliminatedCandidates Then
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
-                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                    useSiteDiagnostics)
 
@@ -3630,7 +3630,7 @@ Bailout:
                             If info2.Candidate IsNot Nothing AndAlso info2.State = CandidateAnalysisResultState.Ambiguous Then
                                 quickInfo(l) = Nothing
                                 CollectOverloadedCandidate(results, info2, typeArguments, arguments, argumentNames,
-                                                           delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                           delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                            includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                            useSiteDiagnostics)
                             End If
@@ -3765,7 +3765,7 @@ Bailout:
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             delegateReturnType As TypeSymbol,
-            delegateReturnTypeReferenceBoundeNode As BoundNode,
+            delegateReturnTypeReferenceBoundNode As BoundNode,
             includeEliminatedCandidates As Boolean,
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
@@ -3820,7 +3820,7 @@ Bailout:
 #End If
                         InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(results, candidateAnalysis, typeArguments,
                                                                                    arguments, argumentNames,
-                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
                                                                                    useSiteDiagnostics)
                     End If
@@ -3836,7 +3836,7 @@ Bailout:
                         candidateAnalysis.ExpandedParamArrayArgumentsUsed = Math.Max(arguments.Length - candidate.Candidate.ParameterCount + 1, 0)
                         InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(results, candidateAnalysis, typeArguments,
                                                                                    arguments, argumentNames,
-                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
                                                                                    useSiteDiagnostics)
                     End If

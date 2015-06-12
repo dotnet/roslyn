@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' A draft version of initializers which will be used in this With statement. 
-        ''' Initializers are expressinos which are used to capture expression in the current
+        ''' Initializers are expressions which are used to capture expression in the current
         ''' With statement; they can be empty in some cases like if the expression is a local 
         ''' variable of value type.
         ''' 

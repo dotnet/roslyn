@@ -365,7 +365,7 @@ end class";
 
         [WorkItem(541612, "DevDiv")]
         [Fact]
-        public void DiagnsoticsGetLineSpanForErrorinTryCatch()
+        public void DiagnosticsGetLineSpanForErrorinTryCatch()
         {
             string sampleProgram = @"
 class Program

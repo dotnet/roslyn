@@ -9,7 +9,6 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
-
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFunctions
     Friend NotInheritable Class SnippetFunctionClassName
         Inherits AbstractSnippetFunctionClassName
@@ -19,13 +18,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
         End Sub
 
         Protected Overrides Function GetContainingClassName(document As Document, subjectBufferFieldSpan As SnapshotSpan, cancellationToken As CancellationToken, ByRef value As String, ByRef hasDefaultValue As Integer) As Integer
-            Dim syntaxTree = document.GetVisualBasicSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim typeBlock = syntaxTree.FindTokenOnLeftOfPosition(subjectBufferFieldSpan.Start.Position, cancellationToken).GetAncestor(Of TypeBlockSyntax)
 
             If typeBlock IsNot Nothing AndAlso
-               Not String.IsNullOrWhiteSpace(typeBlock.GetNameTokenOrNothing().ValueText) Then
+               Not String.IsNullOrWhiteSpace(typeBlock.GetNameToken().ValueText) Then
 
-                value = typeBlock.GetNameTokenOrNothing().ValueText
+                value = typeBlock.GetNameToken().ValueText
                 hasDefaultValue = 1
             End If
 

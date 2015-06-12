@@ -309,7 +309,7 @@ End Class
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_Keyword_NameClash_Property_NoEscapingRequired()
-            'declare Property called static doesnt need escaping because of preceeding .
+            'declare Property called static doesnt need escaping because of preceding .
             Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">
@@ -506,7 +506,7 @@ End Module
         <file name="a.vb">
         Imports System
 
-'Used my own attribute for Extesnion attribute based upon necessary signature rather than adding a specific reference to 
+'Used my own attribute for Extension attribute based upon necessary signature rather than adding a specific reference to 
 'System.Core which contains this normally
 
         Namespace System.Runtime.CompilerServices
@@ -1031,7 +1031,7 @@ End Class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub Semantic_OverridenMethod()
+        Public Sub Semantic_OverriddenMethod()
             'The Use of Static Locals in both a base and derived class with ovverriden method
 
             Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(

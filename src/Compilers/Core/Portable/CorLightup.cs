@@ -9,7 +9,7 @@ namespace Roslyn.Utilities
 {
     /// <summary>
     /// This type contains the light up scenarios for various platform and runtimes.  Any function
-    /// in this type can, and is expected to, fail on various platforms.  These are light up sceanrios
+    /// in this type can, and is expected to, fail on various platforms.  These are light up scenarios
     /// only.
     /// </summary>
     internal static class CorLightup

@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+        protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
             return new AttributeAnalyzer(diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
-        private sealed class AttributeAnalyzer : CompilationAnalyzer
+        private sealed class AttributeAnalyzer : DiagnosticAnalyzerSymbolAnalyzer
         {
             private static readonly string s_csharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
             private static readonly string s_basicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";

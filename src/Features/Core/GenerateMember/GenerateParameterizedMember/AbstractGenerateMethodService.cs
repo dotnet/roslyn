@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         protected abstract bool IsExplicitInterfaceGeneration(SyntaxNode node);
         protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IMethodSymbol methodSymbol, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleNameState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out TInvocationExpressionSyntax invocationExpressionOpt, out bool isInConditionalExpression);
-        protected abstract ITypeSymbol CanGenerateMethodForSimpleNameOrMemberAccessExpression(ITypeInferenceService typeInferenceService, SemanticModel semanticModel, TExpressionSyntax expresion, CancellationToken cancellationToken);
+        protected abstract ITypeSymbol CanGenerateMethodForSimpleNameOrMemberAccessExpression(ITypeInferenceService typeInferenceService, SemanticModel semanticModel, TExpressionSyntax expression, CancellationToken cancellationToken);
 
         public async Task<IEnumerable<CodeAction>> GenerateMethodAsync(
             Document document,

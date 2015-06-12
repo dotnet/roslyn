@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Does this node represent a property or latebound access not yet determied to be Get?
+        ''' Does this node represent a property or latebound access not yet determined to be Get?
         ''' </summary>
         <Extension()>
         Public Function IsSupportingAssignment(node As BoundExpression) As Boolean

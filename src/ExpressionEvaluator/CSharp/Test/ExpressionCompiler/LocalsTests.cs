@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"{
   // Code size       16 (0x10)
   .maxstack  1
-  IL_0000:  ldstr      ""2""
+  IL_0000:  ldstr      ""$2""
   IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  unbox.any  ""bool""
   IL_000f:  ret
@@ -2961,6 +2961,59 @@ class C
             context.CompileExpression("y", out error, testData);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(yIL);
+        }
+
+        [WorkItem(3236, "https://github.com/dotnet/roslyn/pull/3236")]
+        [Fact]
+        public void AnonymousTypeParameter()
+        {
+            const string source = @"
+using System.Linq;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        var anonymousTypes =
+            from a in args
+            select new { Value = a, Length = a.Length };
+        var values =
+            from t in anonymousTypes
+            select t.Value;
+    }
+}
+";
+
+            const string methodName = "C.<>c.<Main>b__0_1";
+
+            const string tIL = @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var runtime = CreateRuntimeInstance(comp);
+
+            string typeName;
+            var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+            CompilationTestData testData;
+            GetLocals(runtime, methodName, argumentsOnly: false, locals: locals, count: 1, typeName: out typeName, testData: out testData);
+
+            VerifyLocal(testData, typeName, locals[0], "<>m0", "t", expectedILOpt: tIL);
+
+            locals.Free();
+
+            var context = CreateMethodContext(runtime, methodName);
+            string error;
+
+            testData = new CompilationTestData();
+            context.CompileExpression("t", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(tIL);
         }
 
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)

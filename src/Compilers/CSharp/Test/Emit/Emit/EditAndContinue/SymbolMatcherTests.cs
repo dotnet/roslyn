@@ -2,13 +2,17 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -342,6 +346,145 @@ class C
             var other = matcher.MapReference((Cci.ITypeReference)member.Type);
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
+        }
+
+        [Fact]
+        public void HoistedAnonymousTypes()
+        {
+            var source0 = @"
+using System;
+
+class C
+{
+    static void F()
+    {
+        var x1 = new { A = 1 };
+        var x2 = new { B = 1 };
+        var y = new Func<int>(() => x1.A + x2.B);
+    }
+}
+";
+            var source1 = @"
+using System;
+
+class C
+{
+    static void F()
+    {
+        var x1 = new { A = 1 };
+        var x2 = new { b = 1 };
+        var y = new Func<int>(() => x1.A + x2.b);
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+
+            var peRef0 = compilation0.EmitToImageReference();
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilationWithMscorlib("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
+
+            var reader0 = peModule0.Module.MetadataReader;
+            var decoder0 = new MetadataDecoder(peModule0);
+
+            var anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0);
+            Assert.Equal("<>f__AnonymousType0", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("A", isKey: false, ignoreCase: false)))].Name);
+            Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("B", isKey: false, ignoreCase: false)))].Name);
+            Assert.Equal(2, anonymousTypeMap0.Count);
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+
+            var testData = new CompilationTestData();
+            compilation1.EmitToArray(testData: testData);
+            var peAssemblyBuilder = (PEAssemblyBuilder)testData.Module;
+
+            var c = compilation1.GetMember<NamedTypeSymbol>("C");
+            var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
+            Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
+
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag());
+
+            var fields = displayClass.GetFields(emitContext).ToArray();
+            var x1 = fields[0];
+            var x2 = fields[1];
+            Assert.Equal("x1", x1.Name);
+            Assert.Equal("x2", x2.Name);
+
+            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+
+            var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
+            var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);
+
+            Assert.Equal("x1", mappedX1.Name);
+            Assert.Null(mappedX2);
+        }
+
+        [Fact]
+        public void HoistedAnonymousTypes_Complex()
+        {
+            var source0 = @"
+using System;
+
+class C
+{
+    static void F()
+    {
+        var x1 = new[] { new { A = new { X = 1 } } };
+        var x2 = new[] { new { A = new { Y = 1 } } };
+        var y = new Func<int>(() => x1[0].A.X + x2[0].A.Y);
+    }
+}
+";
+            var source1 = @"
+using System;
+
+class C
+{
+    static void F()
+    {
+        var x1 = new[] { new { A = new { X = 1 } } };
+        var x2 = new[] { new { A = new { Z = 1 } } };
+        var y = new Func<int>(() => x1[0].A.X + x2[0].A.Z);
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+
+            var peRef0 = compilation0.EmitToImageReference();
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilationWithMscorlib("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
+
+            var reader0 = peModule0.Module.MetadataReader;
+            var decoder0 = new MetadataDecoder(peModule0);
+
+            var anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0);
+            Assert.Equal("<>f__AnonymousType0", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("A", isKey: false, ignoreCase: false)))].Name);
+            Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("X", isKey: false, ignoreCase: false)))].Name);
+            Assert.Equal("<>f__AnonymousType2", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("Y", isKey: false, ignoreCase: false)))].Name);
+            Assert.Equal(3, anonymousTypeMap0.Count);
+
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+
+            var testData = new CompilationTestData();
+            compilation1.EmitToArray(testData: testData);
+            var peAssemblyBuilder = (PEAssemblyBuilder)testData.Module;
+
+            var c = compilation1.GetMember<NamedTypeSymbol>("C");
+            var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
+            Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
+
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag());
+
+            var fields = displayClass.GetFields(emitContext).ToArray();
+            var x1 = fields[0];
+            var x2 = fields[1];
+            Assert.Equal("x1", x1.Name);
+            Assert.Equal("x2", x2.Name);
+
+            var matcher = new CSharpSymbolMatcher(anonymousTypeMap0, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
+
+            var mappedX1 = (Cci.IFieldDefinition)matcher.MapDefinition(x1);
+            var mappedX2 = (Cci.IFieldDefinition)matcher.MapDefinition(x2);
+
+            Assert.Equal("x1", mappedX1.Name);
+            Assert.Null(mappedX2);
         }
     }
 }

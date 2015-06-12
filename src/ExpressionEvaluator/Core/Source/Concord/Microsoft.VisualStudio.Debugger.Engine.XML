@@ -36186,20 +36186,6 @@
              This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
              </summary>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmNativeEditAndContinueUpdate.BackupSourceFiles(Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance,System.String[],System.String[])">
-            <summary>
-            Backup the edited source file for later line merging and rollback.
-            </summary>
-            <param name="nativeRuntimeInstance">
-            [In] Represents the native code executing in a target process.
-            </param>
-            <param name="editSourceFilePaths">
-            [In] The edited source file path.
-            </param>
-            <param name="backupSourceFilePaths">
-            [In] The backup source file path, i.e. c:\enc6C8A.tmp.
-            </param>
-        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.ComponentInterfaces.IDkmNativeEditAndContinueUpdate.ApplyCodeChange(Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance,Microsoft.VisualStudio.Debugger.Native.DkmNativeInstructionAddress[],System.UInt32[],System.Collections.ObjectModel.ReadOnlyCollection{System.String}@,System.Collections.ObjectModel.ReadOnlyCollection{System.String}@)">
             <summary>
             Validate and merge code/symbols for the previous added pending edit compiland.
@@ -36214,7 +36200,7 @@
             line hints for IP remapping.
             </param>
             <param name="lineHints">
-            [In] The source line number hints for the edited stack IPs.
+            [In] The 1-based source line number hints for the edited stack IPs.
             </param>
             <param name="warnings">
             [Out,Optional] Warning messages, if any.
@@ -52766,22 +52752,6 @@
             [Out] Array containing the enumerated elements.
             </returns>
         </member>
-        <member name="M:Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance.BackupSourceFiles(System.String[],System.String[])">
-             <summary>
-             Backup the edited source file for later line merging and rollback.
-            
-             Location constraint: API must be called from an IDE component (component level
-             &gt; 100,000).
-            
-             This API was introduced in Visual Studio 14 RTM (DkmApiVersion.VS14RTM).
-             </summary>
-             <param name="EditSourceFilePaths">
-             [In] The edited source file path.
-             </param>
-             <param name="BackupSourceFilePaths">
-             [In] The backup source file path, i.e. c:\enc6C8A.tmp.
-             </param>
-        </member>
         <member name="M:Microsoft.VisualStudio.Debugger.Native.DkmNativeRuntimeInstance.ApplyCodeChange(Microsoft.VisualStudio.Debugger.Native.DkmNativeInstructionAddress[],System.UInt32[],System.Collections.ObjectModel.ReadOnlyCollection{System.String}@,System.Collections.ObjectModel.ReadOnlyCollection{System.String}@)">
              <summary>
              Validate and merge code/symbols for the previous added pending edit compiland.
@@ -52798,7 +52768,7 @@
              line hints for IP remapping.
              </param>
              <param name="LineHints">
-             [In] The source line number hints for the edited stack IPs.
+             [In] The 1-based source line number hints for the edited stack IPs.
              </param>
              <param name="Warnings">
              [Out,Optional] Warning messages, if any.

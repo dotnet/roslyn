@@ -762,7 +762,7 @@ a.vb
         <Fact>
         Public Sub ManagedResourceOptions()
             Dim parsedArgs As VisualBasicCommandLineArguments
-            Dim resourceDescription As resourceDescription
+            Dim resourceDescription As ResourceDescription
 
             parsedArgs = DefaultParse({"/resource:a", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -927,6 +927,14 @@ a.vb
             parsedArgs = DefaultParse({"/langVERSION:12.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:14", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:14.0", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
             parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
@@ -5210,22 +5218,22 @@ End Module
             Dim outputFileName As String
             Dim target As String
             Select Case outputKind
-                Case outputKind.ConsoleApplication
+                Case OutputKind.ConsoleApplication
                     outputFileName = "Test.exe"
                     target = "exe"
-                Case outputKind.WindowsApplication
+                Case OutputKind.WindowsApplication
                     outputFileName = "Test.exe"
                     target = "winexe"
-                Case outputKind.DynamicallyLinkedLibrary
+                Case OutputKind.DynamicallyLinkedLibrary
                     outputFileName = "Test.dll"
                     target = "library"
-                Case outputKind.NetModule
+                Case OutputKind.NetModule
                     outputFileName = "Test.netmodule"
                     target = "module"
-                Case outputKind.WindowsRuntimeMetadata
+                Case OutputKind.WindowsRuntimeMetadata
                     outputFileName = "Test.winmdobj"
                     target = "winmdobj"
-                Case outputKind.WindowsRuntimeApplication
+                Case OutputKind.WindowsRuntimeApplication
                     outputFileName = "Test.exe"
                     target = "appcontainerexe"
                 Case Else
@@ -5259,7 +5267,7 @@ End Module
             End If
 
             Const resourceType As String = "#24"
-            Dim resourceId As String = If(outputKind = outputKind.DynamicallyLinkedLibrary, "#2", "#1")
+            Dim resourceId As String = If(outputKind = OutputKind.DynamicallyLinkedLibrary, "#2", "#1")
 
             Dim manifestSize As UInteger = Nothing
             If expectedManifest Is Nothing Then
@@ -6054,31 +6062,31 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         Public Sub ParseFeatures()
             Dim args = DefaultParse({"/features:Test", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test", args.CompilationOptions.Features.Single())
+            Assert.Equal("Test", args.ParseOptions.Features.Single().Key)
 
             args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal(2, args.CompilationOptions.Features.Length)
-            Assert.Equal("Test", args.CompilationOptions.Features(0))
-            Assert.Equal("Experiment", args.CompilationOptions.Features(1))
+            Assert.Equal(2, args.ParseOptions.Features.Count)
+            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
+            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
 
-            args = DefaultParse({"/features:Test:false,Key:value", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/features:Test=false,Key=value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single())
+            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "false"}, {"Key", "value"}}))
 
             ' We don't do any rigorous validation of /features arguments...
 
             args = DefaultParse({"/features", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Empty(args.CompilationOptions.Features)
+            Assert.Empty(args.ParseOptions.Features)
 
             args = DefaultParse({"/features:,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal(",", args.CompilationOptions.Features.Single())
+            Assert.Equal("", args.ParseOptions.Features.Single().Key)
 
             args = DefaultParse({"/features:Test,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test,", args.CompilationOptions.Features.Single())
+            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "true"}, {"", "true"}}))
         End Sub
 
         <Fact>
@@ -7163,6 +7171,76 @@ End Class
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(source)
         End Sub
+
+        <Fact>
+        Public Sub AdditionalFileDiagnostics()
+            Dim dir = Temp.CreateDirectory()
+            Dim source = dir.CreateFile("a.vb").WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim additionalFile = dir.CreateFile("AdditionalFile.txt").WriteAllText(<text>
+Additional File Line 1!
+Additional File Line 2!
+</text>.Value).Path
+
+            Dim nonCompilerInputFile = dir.CreateFile("DummyFile.txt").WriteAllText(<text>
+Dummy File Line 1!
+</text>.Value).Path
+
+            Dim analyzer = New AdditionalFileDiagnosticAnalyzer(nonCompilerInputFile)
+            Dim arguments = {"/nologo", "/preferreduilang:en", "/vbruntime", "/t:library",
+                "/additionalfile:" & additionalFile, ' Valid additional text file
+                "/additionalfile:" & Assembly.GetExecutingAssembly.Location, ' Non-text file specified as an additional text file
+                source}
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, arguments, analyzer)
+
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(1, exitCode)
+            Dim output = outWriter.ToString()
+
+            AssertOutput(
+    String.Format(<text>
+AdditionalFile.txt(1) : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
+Additional File Line 1!
+~~~~~~~~~~             
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: {0}
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: DummyFile
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: NonExistentPath
+vbc : error BC2015: the file '{1}' is not a text file
+</text>.Value.ToString(),
+        IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly.Location),
+        Assembly.GetExecutingAssembly.Location),
+    output, fileName:="AdditionalFile.txt")
+
+            CleanupAllGeneratedFiles(source)
+            CleanupAllGeneratedFiles(additionalFile)
+            CleanupAllGeneratedFiles(nonCompilerInputFile)
+        End Sub
+
+        <Fact, WorkItem(1093063, "DevDiv")>
+        Public Sub VerifyDiagnosticSeverityNotLocalized()
+            Dim source = <![CDATA[
+Class A
+End Class
+]]>
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source.Value)
+
+            Dim output As New StringWriter()
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/target:exe", fileName})
+            vbc.Run(output, Nothing)
+
+            ' If "error" was localized, below assert will fail on PLOC builds. The output would be something like: "!pTCvB!vbc : !FLxft!error 表! BC30420:"
+            Assert.Contains("error BC30420:", output.ToString())
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -7278,6 +7356,57 @@ End Class
 
         Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
             context.ReportDiagnostic(Diagnostic.Create(Error01, context.Node.GetLocation()))
+        End Sub
+    End Class
+
+    Friend Class AdditionalFileDiagnosticAnalyzer
+        Inherits MockAbstractDiagnosticAnalyzer
+
+        Friend Shared ReadOnly Rule As DiagnosticDescriptor = New DiagnosticDescriptor("AdditionalFileDiagnostic", "", "Additional File Diagnostic: {0}", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+        Private ReadOnly _nonCompilerInputFile As String
+
+        Public Sub New(nonCompilerInputFile As String)
+            _nonCompilerInputFile = nonCompilerInputFile
+        End Sub
+
+        Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+            Get
+                Return ImmutableArray.Create(Rule)
+            End Get
+        End Property
+
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
+        End Sub
+
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterCompilationEndAction(AddressOf CompilationEndAction)
+        End Sub
+
+        Private Sub CompilationEndAction(context As CompilationAnalysisContext)
+            ' Diagnostic reported on additionals file, with valid span.
+            For Each additionalFile In context.Options.AdditionalFiles
+                ReportDiagnostic(additionalFile.Path, context)
+            Next
+
+            ' Diagnostic reported on an additional file, but with an invalid span.
+            ReportDiagnostic(context.Options.AdditionalFiles.First().Path, context, New TextSpan(0, 1000000)) ' Overflow span
+
+            ' Diagnostic reported on a file which is not an input for the compiler.
+            ReportDiagnostic(_nonCompilerInputFile, context)
+
+            ' Diagnostic reported on a non-existent file.
+            ReportDiagnostic("NonExistentPath", context)
+        End Sub
+
+        Private Sub ReportDiagnostic(path As String, context As CompilationAnalysisContext, Optional span As TextSpan = Nothing)
+            If span = Nothing Then
+                span = New TextSpan(0, 11)
+            End If
+
+            Dim linePosSpan = New LinePositionSpan(New LinePosition(0, 0), New LinePosition(0, span.End))
+            Dim diagLocation = Location.Create(path, span, linePosSpan)
+            Dim diag = Diagnostic.Create(Rule, diagLocation, IO.Path.GetFileNameWithoutExtension(path))
+            context.ReportDiagnostic(diag)
         End Sub
     End Class
 End Namespace

@@ -90,10 +90,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 Dim text = currentLine.GetText()
                 Contract.Assert(String.IsNullOrWhiteSpace(text) = False)
 
-                Dim trimedText = text.Trim()
+                Dim trimmedText = text.Trim()
 
                 Contract.Assert(SyntaxFacts.GetText(SyntaxKind.HashToken).Length = 1)
-                Return trimedText(0) = SyntaxFacts.GetText(SyntaxKind.HashToken)(0)
+                Return trimmedText(0) = SyntaxFacts.GetText(SyntaxKind.HashToken)(0)
             End Function
 
             Private Function GetIndentationBasedOnToken(token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult?

@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// SourceText. May advance the window if we are at the end.
         /// </summary>
         /// <returns>
-        /// The next character if any are available. InvalidCharacterSentinal otherwise.
+        /// The next character if any are available. InvalidCharacter otherwise.
         /// </returns>
         public char PeekChar()
         {
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// the position is valid within the SourceText.
         /// </summary>
         /// <returns>
-        /// The next character if any are available. InvalidCharacterSentinal otherwise.
+        /// The next character if any are available. InvalidCharacter otherwise.
         /// </returns>
         public char PeekChar(int delta)
         {

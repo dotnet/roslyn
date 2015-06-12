@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return null;
                 }
 
-                // special case for array initializer and explict cast
+                // special case for array initializer and explicit cast
                 if (node.IsArrayInitializer())
                 {
                     var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
@@ -112,6 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // check implicit conversion
                 if (conv.IsImplicit && (conv.IsConstantExpression || conv.IsEnumeration))
+                {
+                    return info.ConvertedType;
+                }
+
+                // use FormattableString if conversion between String and FormattableString
+                if (info.Type?.SpecialType == SpecialType.System_String &&
+                    info.ConvertedType?.IsFormattableString() == true)
                 {
                     return info.ConvertedType;
                 }

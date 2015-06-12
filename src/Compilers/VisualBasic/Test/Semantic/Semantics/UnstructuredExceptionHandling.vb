@@ -18233,7 +18233,7 @@ Imports System
 Imports System.Runtime.CompilerServices
 Imports System.Collections.Generic
 
-'Used my own attribute for Extesnion attribute based upon necessary signature rather than adding a specific reference to 
+'Used my own attribute for Extension attribute based upon necessary signature rather than adding a specific reference to 
 'System.Core which contains this normally
 
 Namespace System.Runtime.CompilerServices
@@ -18713,7 +18713,7 @@ Module Module1
         ' Prints left, right, top, and bottom positions of a window in pixels.
 
         Dim rectWindow As RECT
-        Dim HWND = 0 '//Intentional erorr for incorrect windows handle
+        Dim HWND = 0 '//Intentional error for incorrect windows handle
 
         ' Pass in window handle and empty the data structure.
         ' If function returns 0, an error occurred.

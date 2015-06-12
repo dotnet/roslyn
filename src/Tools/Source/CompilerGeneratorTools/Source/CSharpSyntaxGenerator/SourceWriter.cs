@@ -1458,7 +1458,7 @@ namespace CSharpSyntaxGenerator
 
         protected bool CanBeAutoCreated(Node node, Field field)
         {
-            return IsAutoCreatableToken(node, field) || IsAutoCreateableNode(node, field);
+            return IsAutoCreatableToken(node, field) || IsAutoCreatableNode(node, field);
         }
 
         private bool IsAutoCreatableToken(Node node, Field field)
@@ -1468,7 +1468,7 @@ namespace CSharpSyntaxGenerator
                 && ((field.Kinds.Count == 1 && field.Kinds[0].Name != "IdentifierToken" && !field.Kinds[0].Name.EndsWith("LiteralToken", StringComparison.Ordinal)) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
         }
 
-        private bool IsAutoCreateableNode(Node node, Field field)
+        private bool IsAutoCreatableNode(Node node, Field field)
         {
             var referencedNode = GetNode(field.Type);
             return (referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0);

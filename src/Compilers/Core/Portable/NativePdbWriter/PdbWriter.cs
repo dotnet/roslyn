@@ -717,7 +717,6 @@ namespace Microsoft.Cci
 
         const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
-#if DETERMINISTIC_PDB // workitem 926
         private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
 
         [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
@@ -725,7 +724,7 @@ namespace Microsoft.Cci
 
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
-#endif
+
         private static Type GetCorSymWriterSxSType()
         {
             if (s_lazyCorSymWriterSxSType == null)
@@ -741,7 +740,6 @@ namespace Microsoft.Cci
         {
             object symWriter = null;
 
-#if DETERMINISTIC_PDB
             // First try to load an implementation from Microsoft.DiaSymReader.Native, which supports determinism.
             if (!s_MicrosoftDiaSymReaderNativeLoadFailed)
             {
@@ -763,7 +761,7 @@ namespace Microsoft.Cci
                     symWriter = null;
                 }
             }
-#endif
+
             if (symWriter == null)
             {
                 // Try to find a registered CLR implementation
@@ -785,7 +783,6 @@ namespace Microsoft.Cci
 
                 if (_deterministic)
                 {
-#if DETERMINISTIC_PDB
                     var deterministicSymWriter = symWriter as ISymUnmanagedWriter6;
                     if (deterministicSymWriter == null)
                     {
@@ -793,9 +790,6 @@ namespace Microsoft.Cci
                     }
 
                     deterministicSymWriter.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
-#else
-                    throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
-#endif
                 }
                 else
                 {
@@ -813,7 +807,6 @@ namespace Microsoft.Cci
 
         public unsafe ContentId GetContentId()
         {
-#if DETERMINISTIC_PDB
             if (_deterministic)
             {
                 // Call to GetDebugInfo fails for SymWriter initialized using InitializeDeterministic.
@@ -831,7 +824,7 @@ namespace Microsoft.Cci
 
                 return id;
             }
-#endif
+
             // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.
             // The writer only sets two values of the ImageDebugDirectory struct.
             // 
@@ -1350,6 +1343,21 @@ namespace Microsoft.Cci
             }
         }
 
+        [Conditional("DEBUG")]
+        // Used to catch cases where file2definitions contain nonwriteable definitions early
+        // If left unfixed, such scenarios will lead to crashes if happen in winmdobj projects
+        public void AssertAllDefinitionsHaveTokens(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
+        {
+            foreach (var kvp in file2definitions)
+            {
+                foreach (var definition in kvp.Value)
+                {
+                    uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                    Debug.Assert(token != 0);
+                }
+            }
+        }
+
         // Note: only used for WinMD
         public void WriteDefinitionLocations(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {
@@ -1358,7 +1366,7 @@ namespace Microsoft.Cci
             if ((object)writer5 != null)
             {
                 // NOTE: ISymUnmanagedWriter5 reports HRESULT = 0x806D000E in case we open and close 
-                //       the map without writing any resords with MapTokenToSourceSpan(...)
+                //       the map without writing any records with MapTokenToSourceSpan(...)
                 bool open = false;
 
                 foreach (var kvp in file2definitions)
@@ -1425,6 +1433,6 @@ namespace Microsoft.Cci
             }
         }
 
-#endregion
+        #endregion
     }
 }

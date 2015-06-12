@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 using (Logger.LogBlock(FunctionId.Rename_Tracking_BufferChanged, CancellationToken.None))
                 {
                     // When the buffer changes, several things might be happening:
-                    // 1. If a non-identifer character has been added or deleted, we stop tracking
+                    // 1. If a non-identifier character has been added or deleted, we stop tracking
                     //    completely.
                     // 2. Otherwise, if the changes are completely contained an existing session, then
                     //    continue that session.

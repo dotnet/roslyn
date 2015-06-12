@@ -1543,7 +1543,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim stateMachineAwaiterSlots As ImmutableArray(Of Cci.ITypeReference) = Nothing
                 If optimizations = OptimizationLevel.Debug AndAlso stateMachineTypeOpt IsNot Nothing Then
                     Debug.Assert(method.IsAsync OrElse method.IsIterator)
-                    GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), stateMachineHoistedLocalSlots, stateMachineAwaiterSlots)
+                    GetStateMachineSlotDebugInfo(moduleBuilder, moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), variableSlotAllocatorOpt, diagnostics, stateMachineHoistedLocalSlots, stateMachineAwaiterSlots)
+                    Debug.Assert(Not diagnostics.HasAnyErrors())
                 End If
 
                 Dim localScopes = builder.GetAllScopes()
@@ -1572,7 +1573,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Try
         End Function
 
-        Private Shared Sub GetStateMachineSlotDebugInfo(fieldDefs As IEnumerable(Of Cci.IFieldDefinition),
+        Private Shared Sub GetStateMachineSlotDebugInfo(moduleBuilder As PEModuleBuilder,
+                                                        fieldDefs As IEnumerable(Of Cci.IFieldDefinition),
+                                                        variableSlotAllocatorOpt As VariableSlotAllocator,
+                                                        diagnostics As DiagnosticBag,
                                                         ByRef hoistedVariableSlots As ImmutableArray(Of EncHoistedLocalInfo),
                                                         ByRef awaiterSlots As ImmutableArray(Of Cci.ITypeReference))
 
@@ -1589,7 +1593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         awaiters.Add(Nothing)
                     End While
 
-                    awaiters(index) = TryCast(field.Type, Cci.ITypeReference)
+                    awaiters(index) = moduleBuilder.EncTranslateLocalVariableType(field.Type, diagnostics)
                 ElseIf Not field.SlotDebugInfo.Id.IsNone Then
                     Debug.Assert(index >= 0 AndAlso field.SlotDebugInfo.SynthesizedKind.IsLongLived())
 
@@ -1598,9 +1602,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hoistedVariables.Add(New EncHoistedLocalInfo())
                     End While
 
-                    hoistedVariables(index) = New EncHoistedLocalInfo(field.SlotDebugInfo, TryCast(field.Type, Cci.ITypeReference))
+                    hoistedVariables(index) = New EncHoistedLocalInfo(field.SlotDebugInfo, moduleBuilder.EncTranslateLocalVariableType(field.Type, diagnostics))
                 End If
             Next
+
+            ' Fill in empty slots for variables deleted during EnC that are not followed by an existing variable
+            If variableSlotAllocatorOpt IsNot Nothing Then
+                Dim previousAwaiterCount = variableSlotAllocatorOpt.PreviousAwaiterSlotCount
+                While awaiters.Count < previousAwaiterCount
+                    awaiters.Add(Nothing)
+                End While
+
+                Dim previousAwaiterSlotCount = variableSlotAllocatorOpt.PreviousHoistedLocalSlotCount
+                While hoistedVariables.Count < previousAwaiterSlotCount
+                    hoistedVariables.Add(New EncHoistedLocalInfo(True))
+                End While
+            End If
 
             hoistedVariableSlots = hoistedVariables.ToImmutableAndFree()
             awaiterSlots = awaiters.ToImmutableAndFree()
@@ -1830,7 +1847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim data = candidate.ObsoleteAttributeData
 
                     ' If we have a synthesized constructor then give an error saying that there is no non-obsolete
-                    ' base constructor. If we have a user-defined constructor then ask the user to explcitly call a
+                    ' base constructor. If we have a user-defined constructor then ask the user to explicitly call a
                     ' constructor so that they have a chance to call a non-obsolete base constructor.
                     If constructor.IsImplicitlyDeclared Then
                         ' Synthesized constructor.

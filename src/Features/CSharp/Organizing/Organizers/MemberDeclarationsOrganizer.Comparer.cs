@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                     return compare;
                 }
 
-                var xName = x.GetNameToken();
-                var yName = y.GetNameToken();
+                var xName = ShouldCompareByName(x) ? x.GetNameToken() : default(SyntaxToken);
+                var yName = ShouldCompareByName(y) ? y.GetNameToken() : default(SyntaxToken);
 
                 if ((compare = TokenComparer.NormalInstance.Compare(xName, yName)) != 0)
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 return x.GetArity() - y.GetArity();
             }
 
-            private Accessibility GetAccessibility(MemberDeclarationSyntax x)
+            private static Accessibility GetAccessibility(MemberDeclarationSyntax x)
             {
                 var xModifiers = x.GetModifiers();
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 }
             }
 
-            private OuterOrdering GetOuterOrdering(MemberDeclarationSyntax x)
+            private static OuterOrdering GetOuterOrdering(MemberDeclarationSyntax x)
             {
                 switch (x.Kind())
                 {
@@ -169,6 +169,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                         return OuterOrdering.Types;
                     default:
                         return OuterOrdering.Remaining;
+                }
+            }
+
+            private static bool ShouldCompareByName(MemberDeclarationSyntax x)
+            {
+                // Constructors, destructors, indexers and operators should not be sorted by name.
+                // Note:  Conversion operators should not be sorted by name either, but it's not
+                //        necessary to deal with that here, because GetNameToken cannot return a
+                //        name for them (there's only a NameSyntax, not a Token).
+                switch (x.Kind())
+                {
+                    case SyntaxKind.ConstructorDeclaration:
+                    case SyntaxKind.DestructorDeclaration:
+                    case SyntaxKind.IndexerDeclaration:
+                    case SyntaxKind.OperatorDeclaration:
+                        return false;
+                    default:
+                        return true;
                 }
             }
         }

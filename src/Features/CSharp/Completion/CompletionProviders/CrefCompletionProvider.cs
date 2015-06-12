@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, System.Threading.CancellationToken cancellationToken)
         {
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
                 return null;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // To get a Speculative SemanticModel (which is much faster), we need to 
             // walk up to the node the DocumentationTrivia is attached to.
             var parentNode = token.GetAncestor<DocumentationCommentTriviaSyntax>().ParentTrivia.Token.Parent;
-            var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(false);
 
             // cref ""|, ""|"", ""a|""
             if (token.IsKind(SyntaxKind.DoubleQuoteToken, SyntaxKind.SingleQuoteToken) && token.Parent.IsKind(SyntaxKind.XmlCrefAttribute))

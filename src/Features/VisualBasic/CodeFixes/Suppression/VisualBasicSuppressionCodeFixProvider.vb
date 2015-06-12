@@ -20,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, True, needsTrailingEndOfLine)
         End Function
 
-        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, needsLeadinEndOfLine As Boolean) As SyntaxTriviaList
+        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, needsLeadingEndOfLine As Boolean) As SyntaxTriviaList
             Dim errorCodes = GetErrorCodes(diagnostic)
             Dim pragmaDirective = SyntaxFactory.DisableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, needsLeadinEndOfLine, True)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, needsLeadingEndOfLine, True)
         End Function
 
         Private Shared Function GetErrorCodes(diagnostic As Diagnostic) As SeparatedSyntaxList(Of IdentifierNameSyntax)

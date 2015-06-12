@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return new IDELatestDiagnosticGetter(this, diagnosticIds, concurrent: projectId == null).GetProjectDiagnosticsAsync(solution, projectId, cancellationToken);
         }
 
-        private Task ReanalyzeAllDocumentsAsync(Project project, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
+        private Task ReanalyzeAllDocumentsAsync(Project project, DiagnosticAnalyzer analyzer, ImmutableHashSet<string> diagnosticIds, CancellationToken cancellationToken)
         {
-            return new ReanalysisDiagnosticGetter(this, diagnosticIds).ReanalyzeAllDocumentsAsync(project, cancellationToken);
+            return new ReanalysisDiagnosticGetter(this, analyzer, diagnosticIds).ReanalyzeAllDocumentsAsync(project, cancellationToken);
         }
 
         private abstract class DiagnosticsGetter
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             protected StateManager StateManager
             {
-                get { return this.Owner._stateManger; }
+                get { return this.Owner._stateManager; }
             }
 
             protected virtual bool ConcurrentDocumentComputation => false;
@@ -473,8 +473,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private class ReanalysisDiagnosticGetter : LatestDiagnosticsGetter
         {
-            public ReanalysisDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds) : base(owner, diagnosticIds)
+            private readonly DiagnosticAnalyzer _analyzer;
+
+            public ReanalysisDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, DiagnosticAnalyzer analyzer, ImmutableHashSet<string> diagnosticIds) : base(owner, diagnosticIds)
             {
+                _analyzer = analyzer;
             }
 
             public async Task ReanalyzeAllDocumentsAsync(Project project, CancellationToken cancellationToken)
@@ -500,10 +503,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 switch (stateType)
                 {
                     case StateType.Syntax:
-                        await GetSyntaxDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                        await GetSyntaxDiagnosticsAsync(analyzerDriver, _analyzer).ConfigureAwait(false);
                         break;
                     case StateType.Document:
-                        await GetSemanticDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                        await GetSemanticDiagnosticsAsync(analyzerDriver, _analyzer).ConfigureAwait(false);
                         break;
                     case StateType.Project:
                     default:

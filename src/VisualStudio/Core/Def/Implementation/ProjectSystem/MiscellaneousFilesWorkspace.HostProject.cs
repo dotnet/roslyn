@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -64,6 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public Microsoft.VisualStudio.Shell.Interop.IVsHierarchy Hierarchy => null;
 
             public Guid Guid => Guid.Empty;
+
+            public string ProjectType => Constants.vsProjectKindMisc;
 
             public Workspace Workspace => _workspace;
 

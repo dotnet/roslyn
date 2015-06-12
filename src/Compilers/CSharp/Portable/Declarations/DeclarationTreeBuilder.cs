@@ -462,8 +462,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PERF: The member names collection tends to be long-lived. Use a string array since
             // that uses less memory than a HashSet<string>.
-            string[] result = new string[set.Count];
-            set.CopyTo(result);
+            string[] result;
+            if (set.Count == 0)
+            {
+                result = SpecializedCollections.EmptyArray<string>();
+            }
+            else
+            {
+                result = new string[set.Count];
+                set.CopyTo(result);
+            }
+
             set.Free();
             return result;
         }

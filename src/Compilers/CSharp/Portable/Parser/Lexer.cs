@@ -893,6 +893,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void CheckFeatureAvailability(MessageID feature)
         {
+            if (feature.RequiredFeature() != null)
+            {
+                if (!this.Options.IsFeatureEnabled(feature))
+                {
+                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize());
+                }
+                return;
+            }
+
             LanguageVersion availableVersion = this.Options.LanguageVersion;
             var requiredVersion = feature.RequiredVersion();
             if (availableVersion >= requiredVersion) return;

@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
+using Microsoft.AnalyzerPowerPack;
+using Microsoft.AnalyzerPowerPack.Usage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.UnitTests;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.AnalyzerPowerPack.UnitTests
 {
     public partial class CA2235Tests : DiagnosticAnalyzerTestBase
     {
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static string CA2235Name = "CA2235";
-        internal static string CA2235Message = FxCopRulesResources.FieldIsOfNonSerializableType;
+        internal static string CA2235Message = AnalyzerPowerPackRulesResources.FieldIsOfNonSerializableType;
 
         private static DiagnosticResult GetCA2235CSharpResultAt(int line, int column, string fieldName, string containerName, string typeName)
         {

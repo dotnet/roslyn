@@ -30,7 +30,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
+    <Reference Include="..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
       <Private>False</Private>
     </Reference>
@@ -58,7 +58,9 @@
     <Compile Include="SymVariable.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.DiaSymReader.PortablePdb.UnitTests" />

@@ -109,7 +109,7 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
     <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackagesPath)\Microsoft.NetFX20.1.0.2-rc2\lib\net20</FrameworkPathOverride>
+    <FrameworkPathOverride>$(NuGetPackagesPath)\Microsoft.NetFX20.1.0.3\lib\net20</FrameworkPathOverride>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
