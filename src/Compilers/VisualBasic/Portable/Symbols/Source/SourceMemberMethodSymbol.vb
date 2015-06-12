@@ -743,6 +743,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     diagBag)
             End If
 
+            Select Case ContainingType.TypeKind
+                Case TypeKind.Interface, TypeKind.Structure, TypeKind.Enum, TypeKind.Delegate
+                    ' Handles clause is invalid in this context. 
+                    Return Nothing
+
+                Case TypeKind.Class, TypeKind.Module
+                    ' Valid context
+
+                Case Else
+                    Debug.Assert(False)
+            End Select
+
             Dim receiverOpt As BoundExpression = Nothing
 
             ' synthesize delegate creation (may involve relaxation)
