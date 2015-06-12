@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 return null;
             }
 
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var parentTrivia = token.GetAncestor<DocumentationCommentTriviaSyntax>();
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 return null;
             }
 
-            var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
 
             ISymbol declaredSymbol = null;
             var memberDeclaration = attachedToken.GetAncestor<MemberDeclarationSyntax>();
