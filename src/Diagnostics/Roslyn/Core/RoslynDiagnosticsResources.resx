@@ -267,4 +267,13 @@
   <data name="SymbolDeclaredEventRuleDescription" xml:space="preserve">
     <value>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of it's base types must generate a symbol declared event.</value>
   </data>
+  <data name="ExposedNoninstantiableTypeDescription" xml:space="preserve">
+    <value>When a base class is noninheritable because its constructor is internal, a derived class should not make it inheritable by having a public or protected constructor.</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
+    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeTitle" xml:space="preserve">
+    <value>Constructor make noninheritable base class inheritable</value>
+  </data>
 </root>
