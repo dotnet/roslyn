@@ -137,16 +137,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     // If this file is a metadata-from-source file, we want to force-collapse
                     if (isOpenMetadataAsSource)
                     {
-                        outliningManager.CollapseAll(new SnapshotSpan(wpfTextView.TextBuffer.CurrentSnapshot,
-                                                                      start: 0,
-                                                                      length: wpfTextView.TextBuffer.CurrentSnapshot.Length),
-                                                     c => c.Tag.IsImplementation);
+                        // Get our outlining tag source and force it to realize all the outlining regions
+                        var outliningTaggerProvider = this.Package.ComponentModel.GetService<OutliningTaggerProvider>();
+                        ProducerPopulatedTagSource<IOutliningRegionTag> tagSource;
+                        if (outliningTaggerProvider.TryRetrieveTagSource(wpfTextView, wpfTextView.TextBuffer, out tagSource))
+                        {
+                            tagSource.GetAccurateTagIntervalTreeForBuffer(wpfTextView.TextBuffer, System.Threading.CancellationToken.None);
+
+                            // Tell the editor's outlining manager to collapse the regions we just computed
+                            outliningManager.CollapseAll(new SnapshotSpan(wpfTextView.TextBuffer.CurrentSnapshot,
+                                                                          start: 0,
+                                                                          length: wpfTextView.TextBuffer.CurrentSnapshot.Length),
+                                                         c => c.Tag.IsImplementation);
+                        }
                     }
                     else
                     {
-                        // Set the initial outlining state by reading from the suo file, this operation requires
-                        // us to synchronously compute the outlining region tags.
-                        viewEx.PersistOutliningState();
+                        // Set the initial outlining state by reading from the suo file.
+                        // If necessary (when there is collapsed state persisted in the .suo file for this document), the editor
+                        // will call us back via IAccurateTagger<T>.GetAllTags to get all outlined regions. Otherwise, it will
+                        // call us back via ITagger<T>.GetTags.
+                        viewEx.PersistOutliningState(); // Sic. "Persist" actually means "De-serialize" here.
                     }
                 }
             }
