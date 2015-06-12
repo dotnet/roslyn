@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var returnTypeAccessibility = type.DetermineMinimalAccessibility();
 
-            return AccessibilityUtilities.Minimum(computedAccessbility, returnTypeAccessibility);
+            return AccessibilityUtilities.Minimum(computedAccessibility, returnTypeAccessibility);
         }
 
         protected IMethodSymbol CreateSet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
