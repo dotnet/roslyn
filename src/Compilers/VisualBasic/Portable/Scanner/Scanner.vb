@@ -2170,10 +2170,9 @@ FullWidthRepeat2:
             Return Decimal.TryParse(text, NumberStyles.AllowDecimalPoint Or NumberStyles.AllowExponent, CultureInfo.InvariantCulture, value)
         End Function
 
-        Private Function ScanIntLiteral(
-               ByRef ReturnValue As Integer,
-               ByRef Here As Integer
-           ) As Boolean
+        Private Function ScanIntLiteral(ByRef ReturnValue As Integer,
+                                          ByRef Here As Integer
+                                        ) As Boolean
             Debug.Assert(Here >= 0)
 
             If Not CanGet(Here) Then
