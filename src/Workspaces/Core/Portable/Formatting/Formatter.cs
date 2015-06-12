@@ -7,8 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// The annotation used to mark portions of a syntax tree to be formatted.
         /// </summary>
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation();
+        public static SyntaxAnnotation Annotation { get; } = new SyntaxAnnotation();
 
         /// <summary>
         /// Gets the formatting rules that would be applied if left unspecified.

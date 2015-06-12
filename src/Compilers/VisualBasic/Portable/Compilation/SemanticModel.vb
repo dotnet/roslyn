@@ -2734,7 +2734,7 @@ _Default:
         ''' <summary>
         ''' RaiseEvent situation is very special: 
         ''' 1) Unlike other syntaxes that take named arguments, RaiseEvent is a statement. 
-        ''' 2) RaiseEvent is essentially a wrapper aroung underlying call to the event rising method.
+        ''' 2) RaiseEvent is essentially a wrapper around underlying call to the event rising method.
         '''    Note that while event itself may have named parameters in its syntax, their names could be irrelevant
         '''    For the purpose of fetching named parameters, it is the target of the call that we are interested in.
         '''    

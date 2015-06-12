@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function NarrowIntegralResult(
                         sourceValue As Long,
                         sourceType As TypeSymbol,
-                        sesultType As TypeSymbol,
+                        resultType As TypeSymbol,
                         ByRef overflow As Boolean) As Long
 
             Debug.Assert(sourceType.IsIntegralType() OrElse sourceType.IsBooleanType() OrElse sourceType.IsCharType(),
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return NarrowIntegralResult(sourceValue,
                                         sourceType.GetConstantValueTypeDiscriminator(),
-                                        sesultType.GetConstantValueTypeDiscriminator(),
+                                        resultType.GetConstantValueTypeDiscriminator(),
                                         overflow)
         End Function
 

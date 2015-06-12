@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // By adding the `root.FullSpan.Contains()` check below, if we get similar crash reports in
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
-                            // and will prevent the crash from occuring.
+                            // and will prevent the crash from occurring.
                             DeclaredSymbolInfo declaredSymbolInfo;
                             if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out declaredSymbolInfo) &&
                                 root.FullSpan.Contains(declaredSymbolInfo.Span))

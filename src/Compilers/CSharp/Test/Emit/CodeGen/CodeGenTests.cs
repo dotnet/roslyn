@@ -6992,7 +6992,7 @@ class Program
         }
 
         [Fact]
-        public void EmitCallToOverridenToStringOnStruct()
+        public void EmitCallToOverriddenToStringOnStruct()
         {
             string source = @"
 using System;

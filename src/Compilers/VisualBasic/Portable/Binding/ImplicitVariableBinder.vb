@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Disallow additonal local variable declaration (make binder frozen)
+        ''' Disallow additional local variable declaration (make binder frozen)
         ''' and report delayed shadowing diagnostics.
         ''' </summary>
         ''' <remarks></remarks>

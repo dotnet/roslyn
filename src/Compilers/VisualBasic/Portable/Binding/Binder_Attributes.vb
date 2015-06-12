@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                ' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We will maintain comptability.
+                ' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We will maintain compatibility.
                 Return True
             Else
                 Return False

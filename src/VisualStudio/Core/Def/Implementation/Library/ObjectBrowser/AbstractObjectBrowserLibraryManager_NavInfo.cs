@@ -67,13 +67,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal IVsNavInfo GetReferenceNavInfo(MetadataReference reference)
         {
-            var portableExcutableReference = reference as PortableExecutableReference;
-            if (portableExcutableReference != null)
+            var portableExecutableReference = reference as PortableExecutableReference;
+            if (portableExecutableReference != null)
             {
                 return new NavInfo(
                     this.LibraryGuid,
                     this.SymbolToolLanguage,
-                    libraryName: portableExcutableReference.FilePath);
+                    libraryName: portableExecutableReference.FilePath);
             }
 
             var compilationReference = reference as CompilationReference;

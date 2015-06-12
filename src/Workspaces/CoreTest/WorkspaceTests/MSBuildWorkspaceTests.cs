@@ -2709,7 +2709,7 @@ class C { }";
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
                 var project = solution.Projects.First();
 
-                var mref = MetadataReference.CreateFromAssembly(typeof(System.Xaml.XamlObjectReader).Assembly);
+                var mref = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlObjectReader).Assembly.Location);
 
                 // add reference to System.Xaml
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
@@ -2776,7 +2776,7 @@ class C { }";
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(true, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
 
-                // remove reference MyAnalzyer.dll
+                // remove reference MyAnalyzer.dll
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveAnalyzerReference(aref).Solution);
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(false, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));

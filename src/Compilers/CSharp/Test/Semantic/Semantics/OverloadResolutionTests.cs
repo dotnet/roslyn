@@ -383,7 +383,7 @@ class P
         }
 
         [Fact]
-        public void ParametersImplicitlyConvertableToEachOther()
+        public void ParametersImplicitlyConvertibleToEachOther()
         {
             string source1 = @"
 using System;

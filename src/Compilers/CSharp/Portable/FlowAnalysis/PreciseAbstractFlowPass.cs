@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private PooledHashSet<BoundStatement> _labelsSeen;
 
         /// <summary>
-        /// If we are tracking exceptions, then by convention the first entry in the pending braches
+        /// If we are tracking exceptions, then by convention the first entry in the pending branches
         /// buffer contains a summary of the states that can arise from exceptions.
         /// </summary>
         private readonly bool _trackExceptions;

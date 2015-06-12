@@ -188,6 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override CharSet MarshallingCharSet
+        {
+            get
+            {
+                // We manually propagate the CharSet field of StructLayout attribute for fabricated structs implementing fixed buffers.
+                // See void AttrBind::EmitStructLayoutAttributeCharSet(AttributeNode *attr) in native codebase.
+                return _field.ContainingType.MarshallingCharSet;
+            }
+        }
         internal override FieldSymbol FixedElementField
         {
             get { return _internalField; }

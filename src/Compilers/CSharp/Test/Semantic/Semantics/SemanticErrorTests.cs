@@ -16665,7 +16665,7 @@ interface IInv<T> { }";
         /// -------------------------+----------------------+------------------------+--------------------
         /// Type Param Covariant     | Covariant            | Contravariant          | Invariant
         /// Type Param Contravariant | Contravariant        | Covariant              | Invariant
-        /// Type Param Invariant     | Error                | Error                  | Invarian
+        /// Type Param Invariant     | Error                | Error                  | Invariant
         /// </summary>
         [Fact]
         public void CS1961ERR_UnexpectedVariance_Generics()

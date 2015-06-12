@@ -3341,7 +3341,7 @@ End Class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda1()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3377,7 +3377,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda2()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3424,7 +3424,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda3()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3473,7 +3473,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda4()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda4()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3518,7 +3518,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda5()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda5()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3562,7 +3562,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda6()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda6()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">

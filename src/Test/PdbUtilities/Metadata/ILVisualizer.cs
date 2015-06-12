@@ -187,15 +187,19 @@ namespace Roslyn.Test.MetadataUtilities
 
         public void VisualizeHeader(StringBuilder sb, int codeSize, int maxStack, ImmutableArray<LocalInfo> locals)
         {
-            if (codeSize == 0)
+            if (codeSize >= 0 && maxStack >= 0)
             {
-                sb.AppendLine("  // Unrealized IL");
+                if (codeSize == 0)
+                {
+                    sb.AppendLine("  // Unrealized IL");
+                }
+                else
+                {
+                    sb.AppendLine(string.Format("  // Code size {0,8} (0x{0:x})", codeSize));
+                }
+
+                sb.AppendLine(string.Format("  .maxstack  {0}", maxStack));
             }
-            else
-            {
-                sb.AppendLine(string.Format("  // Code size {0,8} (0x{0:x})", codeSize));
-            }
-            sb.AppendLine(string.Format("  .maxstack  {0}", maxStack));
 
             int i = 0;
             foreach (var local in locals)

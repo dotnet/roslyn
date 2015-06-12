@@ -297,7 +297,7 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.Attribute(string name, System.Col
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.Attribute(string name, params Microsoft.CodeAnalysis.SyntaxNode[] attributeArguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AttributeArgument(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.ITypeSymbol type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CatchClause(Microsoft.CodeAnalysis.ITypeSymbol type, string identifer, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CatchClause(Microsoft.CodeAnalysis.ITypeSymbol type, string identifier, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CompilationUnit(params Microsoft.CodeAnalysis.SyntaxNode[] declarations) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConstructorDeclaration(Microsoft.CodeAnalysis.IMethodSymbol constructorMethod, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> baseConstructorArguments = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.ITypeSymbol type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -469,6 +469,8 @@ Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T d
 Microsoft.CodeAnalysis.Options.Option<T>.Type.get -> System.Type
 Microsoft.CodeAnalysis.Options.OptionKey
 Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool
+Microsoft.CodeAnalysis.Options.OptionKey.Language.get -> string
+Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Options.IOption
 Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void
 Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
@@ -1072,8 +1074,6 @@ override Microsoft.CodeAnalysis.VersionStamp.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.VersionStamp.GetHashCode() -> int
 override Microsoft.CodeAnalysis.VersionStamp.ToString() -> string
 override Microsoft.CodeAnalysis.WorkspaceDiagnostic.ToString() -> string
-readonly Microsoft.CodeAnalysis.Options.OptionKey.Language -> string
-readonly Microsoft.CodeAnalysis.Options.OptionKey.Option -> Microsoft.CodeAnalysis.Options.IOption
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpans(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpansAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Classification.ClassifiedSpan>>
 static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
@@ -1083,12 +1083,27 @@ static Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation.GetDescription(Micr
 static Microsoft.CodeAnalysis.CodeActions.RenameAnnotation.Create() -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.Create(string description) -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.CodeActions.WarningAnnotation.GetDescription(Microsoft.CodeAnalysis.SyntaxAnnotation annotation) -> string
+static Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders.BatchFixer.get -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
 static Microsoft.CodeAnalysis.DocumentId.CreateFromSerialized(Microsoft.CodeAnalysis.ProjectId projectId, System.Guid id, string debugName = null) -> Microsoft.CodeAnalysis.DocumentId
 static Microsoft.CodeAnalysis.DocumentId.CreateNewId(Microsoft.CodeAnalysis.ProjectId projectId, string debugName = null) -> Microsoft.CodeAnalysis.DocumentId
 static Microsoft.CodeAnalysis.DocumentId.operator !=(Microsoft.CodeAnalysis.DocumentId left, Microsoft.CodeAnalysis.DocumentId right) -> bool
 static Microsoft.CodeAnalysis.DocumentId.operator ==(Microsoft.CodeAnalysis.DocumentId left, Microsoft.CodeAnalysis.DocumentId right) -> bool
 static Microsoft.CodeAnalysis.DocumentInfo.Create(Microsoft.CodeAnalysis.DocumentId id, string name, System.Collections.Generic.IEnumerable<string> folders = null, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, Microsoft.CodeAnalysis.TextLoader loader = null, string filePath = null, bool isGenerated = false) -> Microsoft.CodeAnalysis.DocumentInfo
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Abstract.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Async.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Const.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.From(Microsoft.CodeAnalysis.ISymbol symbol) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.New.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.None.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Override.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Partial.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.ReadOnly.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Sealed.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Static.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Unsafe.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Virtual.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithEvents.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WriteOnly.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator !=(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right) -> bool
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator &(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.operator +(Microsoft.CodeAnalysis.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
@@ -1157,6 +1172,7 @@ static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsAsy
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDefinitionAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ISymbol>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSymbolAtPosition(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSymbolAtPositionAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ISymbol>
+static Microsoft.CodeAnalysis.Formatting.Formatter.Annotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.Formatting.Formatter.Format(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
 static Microsoft.CodeAnalysis.Formatting.Formatter.Format(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
 static Microsoft.CodeAnalysis.Formatting.Formatter.Format(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -1168,6 +1184,11 @@ static Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(Microsoft.CodeAna
 static Microsoft.CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>
 static Microsoft.CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>
 static Microsoft.CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>
+static Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentationSize.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<int>
+static Microsoft.CodeAnalysis.Formatting.FormattingOptions.NewLine.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
+static Microsoft.CodeAnalysis.Formatting.FormattingOptions.SmartIndent.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle>
+static Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<int>
+static Microsoft.CodeAnalysis.Formatting.FormattingOptions.UseTabs.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Host.Mef.MefHostServices.Create(System.Collections.Generic.IEnumerable<System.Reflection.Assembly> assemblies) -> Microsoft.CodeAnalysis.Host.Mef.MefHostServices
 static Microsoft.CodeAnalysis.Host.Mef.MefHostServices.Create(System.Composition.CompositionContext compositionContext) -> Microsoft.CodeAnalysis.Host.Mef.MefHostServices
 static Microsoft.CodeAnalysis.Host.Mef.MefHostServices.DefaultAssemblies.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Assembly>
@@ -1182,8 +1203,24 @@ static Microsoft.CodeAnalysis.ProjectId.operator ==(Microsoft.CodeAnalysis.Proje
 static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.ProjectInfo
 static Microsoft.CodeAnalysis.ProjectReference.operator !=(Microsoft.CodeAnalysis.ProjectReference left, Microsoft.CodeAnalysis.ProjectReference right) -> bool
 static Microsoft.CodeAnalysis.ProjectReference.operator ==(Microsoft.CodeAnalysis.ProjectReference left, Microsoft.CodeAnalysis.ProjectReference right) -> bool
+static Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.FilterOutOfScopeLocals.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Recommendations.Recommender.GetRecommendedSymbolsAtPosition(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
+static Microsoft.CodeAnalysis.Rename.RenameOptions.PreviewChanges.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Rename.RenameOptions.RenameInComments.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Rename.RenameOptions.RenameInStrings.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Rename.RenameOptions.RenameOverloads.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.ISymbol symbol, string newName, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.AllowSimplificationToBaseType.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.AllowSimplificationToGenericType.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferAliasToQualification.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferImplicitTypeInLocalDeclaration.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferImplicitTypeInference.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferOmittingModuleNamesInQualification.get -> Microsoft.CodeAnalysis.Options.Option<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMemberAccessWithThisOrMe.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.Annotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.Simplification.Simplifier.Expand(Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Workspace workspace, System.Func<Microsoft.CodeAnalysis.SyntaxNode, bool> expandInsideNode = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.Simplification.Simplifier.Expand<TNode>(TNode node, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Workspace workspace, System.Func<Microsoft.CodeAnalysis.SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> TNode
 static Microsoft.CodeAnalysis.Simplification.Simplifier.ExpandAsync(Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.Document document, System.Func<Microsoft.CodeAnalysis.SyntaxNode, bool> expandInsideNode = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.SyntaxToken>
@@ -1192,6 +1229,7 @@ static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.Co
 static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 static Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document document, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextSpan> spans, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Simplification.Simplifier.SpecialTypeAnnotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.SolutionId.CreateNewId(string debugName = null) -> Microsoft.CodeAnalysis.SolutionId
 static Microsoft.CodeAnalysis.SolutionId.operator !=(Microsoft.CodeAnalysis.SolutionId left, Microsoft.CodeAnalysis.SolutionId right) -> bool
 static Microsoft.CodeAnalysis.SolutionId.operator ==(Microsoft.CodeAnalysis.SolutionId left, Microsoft.CodeAnalysis.SolutionId right) -> bool
@@ -1200,50 +1238,12 @@ static Microsoft.CodeAnalysis.TextAndVersion.Create(Microsoft.CodeAnalysis.Text.
 static Microsoft.CodeAnalysis.TextLoader.From(Microsoft.CodeAnalysis.Text.SourceTextContainer container, Microsoft.CodeAnalysis.VersionStamp version, string filePath = null) -> Microsoft.CodeAnalysis.TextLoader
 static Microsoft.CodeAnalysis.TextLoader.From(Microsoft.CodeAnalysis.TextAndVersion textAndVersion) -> Microsoft.CodeAnalysis.TextLoader
 static Microsoft.CodeAnalysis.VersionStamp.Create() -> Microsoft.CodeAnalysis.VersionStamp
-static Microsoft.CodeAnalysis.VersionStamp.Create(System.DateTime utcIimeLastModified) -> Microsoft.CodeAnalysis.VersionStamp
+static Microsoft.CodeAnalysis.VersionStamp.Create(System.DateTime utcTimeLastModified) -> Microsoft.CodeAnalysis.VersionStamp
+static Microsoft.CodeAnalysis.VersionStamp.Default.get -> Microsoft.CodeAnalysis.VersionStamp
 static Microsoft.CodeAnalysis.VersionStamp.operator !=(Microsoft.CodeAnalysis.VersionStamp left, Microsoft.CodeAnalysis.VersionStamp right) -> bool
 static Microsoft.CodeAnalysis.VersionStamp.operator ==(Microsoft.CodeAnalysis.VersionStamp left, Microsoft.CodeAnalysis.VersionStamp right) -> bool
 static Microsoft.CodeAnalysis.Workspace.GetWorkspaceRegistration(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> Microsoft.CodeAnalysis.WorkspaceRegistration
 static Microsoft.CodeAnalysis.Workspace.TryGetWorkspace(Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer, out Microsoft.CodeAnalysis.Workspace workspace) -> bool
-static readonly Microsoft.CodeAnalysis.CodeFixes.WellKnownFixAllProviders.BatchFixer -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Abstract -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Async -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Const -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.New -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.None -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Override -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Partial -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.ReadOnly -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Sealed -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Static -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Unsafe -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Virtual -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithEvents -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WriteOnly -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-static readonly Microsoft.CodeAnalysis.Formatting.Formatter.Annotation -> Microsoft.CodeAnalysis.SyntaxAnnotation
-static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentationSize -> Microsoft.CodeAnalysis.Options.PerLanguageOption<int>
-static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.NewLine -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
-static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.SmartIndent -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle>
-static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize -> Microsoft.CodeAnalysis.Options.PerLanguageOption<int>
-static readonly Microsoft.CodeAnalysis.Formatting.FormattingOptions.UseTabs -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static readonly Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.FilterOutOfScopeLocals -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static readonly Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static readonly Microsoft.CodeAnalysis.Rename.RenameOptions.PreviewChanges -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Rename.RenameOptions.RenameInComments -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Rename.RenameOptions.RenameInStrings -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Rename.RenameOptions.RenameOverloads -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.AllowSimplificationToBaseType -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.AllowSimplificationToGenericType -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferAliasToQualification -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferImplicitTypeInLocalDeclaration -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferImplicitTypeInference -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.PreferOmittingModuleNamesInQualification -> Microsoft.CodeAnalysis.Options.Option<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMemberAccessWithThisOrMe -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static readonly Microsoft.CodeAnalysis.Simplification.Simplifier.Annotation -> Microsoft.CodeAnalysis.SyntaxAnnotation
-static readonly Microsoft.CodeAnalysis.Simplification.Simplifier.SpecialTypeAnnotation -> Microsoft.CodeAnalysis.SyntaxAnnotation
-static readonly Microsoft.CodeAnalysis.VersionStamp.Default -> Microsoft.CodeAnalysis.VersionStamp
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePreviewOperationsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.EquivalenceKey.get -> string

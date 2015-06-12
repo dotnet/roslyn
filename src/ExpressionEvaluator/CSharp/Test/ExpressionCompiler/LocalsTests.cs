@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"{
   // Code size       16 (0x10)
   .maxstack  1
-  IL_0000:  ldstr      ""2""
+  IL_0000:  ldstr      ""$2""
   IL_0005:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
   IL_000a:  unbox.any  ""bool""
   IL_000f:  ret

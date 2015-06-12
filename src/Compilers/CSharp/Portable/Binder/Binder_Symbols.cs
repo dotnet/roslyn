@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 //  SPEC:   If an attribute class is found both with and without Attribute suffix, an ambiguity 
                                 //  SPEC:   is present, and a compile-time error results.
 
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigousAttribute, originalSymbols,
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
                                     new object[] { where, first, second });
                             }
                             else

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         /// <summary>
-        /// Launch a process, and return Process object. The process continues to run asynchrously.
+        /// Launch a process, and return Process object. The process continues to run asynchronously.
         /// You cannot capture the output.
         /// </summary>
         public static Process StartProcess(string fileName, string arguments, string workingDirectory = null)

@@ -1891,7 +1891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' True if inside in binding arguments of constructor 
-        ''' call with {'Me'/'MyClass'/'MyBase'}.New(...) from anothir constructor
+        ''' call with {'Me'/'MyClass'/'MyBase'}.New(...) from another constructor
         ''' </summary>
         Protected Overridable ReadOnly Property IsInsideChainedConstructorCallArguments As Boolean
             Get

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         /// <summary>
         /// A value which can be used to identify this connection for logging purposes only.  It has 
-        /// no guarantee of uniqnuess.  
+        /// no guarantee of uniqueness.  
         /// </summary>
         string LoggingIdentifier
         {

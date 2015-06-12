@@ -2793,7 +2793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                       editMap As Dictionary(Of SyntaxNode, EditKind))
 
             ' For most nodes we ignore Insert and Delete edits if their parent was also inserted or deleted, respectively.
-            ' For ModifiedIdentifiers though we check the grandparent instead because variables can move accross 
+            ' For ModifiedIdentifiers though we check the grandparent instead because variables can move across 
             ' VariableDeclarators. Moving a variable from a VariableDeclarator that only has a single variable results in
             ' deletion of that declarator. We don't want to report that delete. Similarly for moving to a new VariableDeclarator.
 

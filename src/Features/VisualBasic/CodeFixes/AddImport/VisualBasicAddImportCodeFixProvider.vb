@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         Friend Const BC32042 = "BC32042"
 
         ''' <summary>
-        ''' Expression of type xxx is not querable
+        ''' Expression of type xxx is not queryable
         ''' </summary>
         Friend Const BC36593 = "BC36593"
 

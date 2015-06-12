@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // For spacing between the identifer and the conditional operator 
+            // For spacing between the identifier and the conditional operator 
             if (currentToken.IsKind(SyntaxKind.QuestionToken) && currentToken.Parent.Kind() == SyntaxKind.ConditionalAccessExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);

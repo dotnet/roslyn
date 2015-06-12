@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         };
 
         /// <summary>
-        /// Produces opcode for a jump that corresponds to given opearation and sense.
+        /// Produces opcode for a jump that corresponds to given operation and sense.
         /// Also produces a reverse opcode - opcode for the same condition with inverted sense.
         /// </summary>
         private static ILOpCode CodeForJump(BoundBinaryOperator op, bool sense, out ILOpCode revOpCode)

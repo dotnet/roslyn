@@ -159,10 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     var specAnalyzer = new SpeculationAnalyzer(node.Expression, newArgument.Expression, _semanticModel, _cancellationToken);
                     var speculativeSemanticModel = specAnalyzer.SpeculativeSemanticModel;
-                    var speculatedExpession = specAnalyzer.ReplacedExpression;
+                    var speculatedExpression = specAnalyzer.ReplacedExpression;
 
                     bool wasCastAdded;
-                    var newArgumentExpression = speculatedExpession.CastIfPossible(argumentType, speculatedExpession.SpanStart, speculativeSemanticModel, out wasCastAdded);
+                    var newArgumentExpression = speculatedExpression.CastIfPossible(argumentType, speculatedExpression.SpanStart, speculativeSemanticModel, out wasCastAdded);
                     if (wasCastAdded)
                     {
                         return newArgument.WithExpression(newArgumentExpression);

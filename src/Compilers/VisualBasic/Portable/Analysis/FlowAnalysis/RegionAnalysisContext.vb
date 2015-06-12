@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Construct context wiht Failed flag
+        ''' Construct context with Failed flag
         ''' </summary>
         Friend Sub New(compilation As VisualBasicCompilation)
             Me._compilation = compilation

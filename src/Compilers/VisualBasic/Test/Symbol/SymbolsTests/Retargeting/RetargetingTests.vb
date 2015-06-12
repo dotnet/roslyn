@@ -738,7 +738,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -1078,7 +1078,7 @@ Class NewClass_Using_Attribute
         End Class
 
 
-        Class New_InhertitedAttribute
+        Class New_InheritedAttribute
             Inherits ClassLibrary1.TestAttribute
         End Class
 
@@ -2584,7 +2584,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -2864,7 +2864,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 

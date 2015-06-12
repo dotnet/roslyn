@@ -2506,7 +2506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '''       RequireAtleastOneInitializer = false
         ''' 
         '''  While the grammar uses the nonterminal CollectionInitializer is modeled as an
-        '''  AnnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
+        '''  AnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
         ''' </remarks>
         ''' 
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
@@ -2636,9 +2636,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
-        ' TOO - davidsch - handle annonymous type initialization
-        ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
-
         ' /*********************************************************************
         ' *
         ' * Function:
@@ -2688,7 +2685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' We want to check for this and give a more informative error.
             If SyntaxFacts.IsSpecifier(identifierStart.Kind) Then
 
-                ' We don't want to look for specifiers if the errorneous declarator starts on a new line.
+                ' We don't want to look for specifiers if the erroneous declarator starts on a new line.
                 ' This is because we want to recover the error on the previous line and treat the line with the
                 ' specifier as a new statement
                 If identifierStartPrev IsNot Nothing AndAlso identifierStartPrev.IsEndOfLine Then
@@ -5484,7 +5481,7 @@ checkNullable:
 
         Private Shared Function StartsValidConditionalCompilationExpr(t As SyntaxToken) As Boolean
             Select Case (t.Kind)
-                ' Identifiers - note that only simple indentifiers are allowed.
+                ' Identifiers - note that only simple identifiers are allowed.
                 ' This check is done in ParseTerm.
 
                 ' Parenthesized expressions
@@ -5930,7 +5927,7 @@ checkNullable:
         '
 
         ' IdentifierAsKeyword returns the token type of a identifier token,
-        ' interpreting non-bracketed indentifiers as (non-reserved) keywords as appropriate.
+        ' interpreting non-bracketed identifiers as (non-reserved) keywords as appropriate.
 
         Private Shared Function TryIdentifierAsContextualKeyword(id As SyntaxToken, ByRef kind As SyntaxKind) As Boolean
             Debug.Assert(id IsNot Nothing)

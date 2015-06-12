@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ' We need to emit this function to compute the hash value into the compiler generated
     ' <PrivateImplementationDetails> class. 
     ' If we have at least one string type select case statement in a module that needs a
-    ' hash table based jump table, we generate a single public string hash sythesized method (SynthesizedStringSwitchHashMethod)
+    ' hash table based jump table, we generate a single public string hash synthesized method (SynthesizedStringSwitchHashMethod)
     ' that is shared across the module.
 
 

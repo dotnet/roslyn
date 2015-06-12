@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Method body or expression subjext to analysis.
+        /// Method body or expression subject to analysis.
         /// </summary>
         public SyntaxNode CodeBlock { get { return _codeBlock; } }
 

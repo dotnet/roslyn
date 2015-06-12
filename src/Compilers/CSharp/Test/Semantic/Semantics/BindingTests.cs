@@ -2258,7 +2258,7 @@ class C<T> : System.Attribute { }";
 
         [WorkItem(545869, "DevDiv")]
         [Fact]
-        public void TestSealedOverridenMembers()
+        public void TestSealedOverriddenMembers()
         {
             CompileAndVerify(
 @"using System;

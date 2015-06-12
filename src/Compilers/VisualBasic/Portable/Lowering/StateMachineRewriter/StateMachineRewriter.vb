@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 id = New LocalDebugId(syntaxOffset, ordinal)
 
                 Dim previousSlotIndex = -1
-                If SlotAllocatorOpt IsNot Nothing AndAlso SlotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(declaratorSyntax, DirectCast(fieldType, Cci.ITypeReference), local.SynthesizedKind, id, previousSlotIndex) Then
+                If SlotAllocatorOpt IsNot Nothing AndAlso SlotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(declaratorSyntax, F.CompilationState.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, Diagnostics), local.SynthesizedKind, id, previousSlotIndex) Then
                     slotIndex = previousSlotIndex
                 End If
             End If

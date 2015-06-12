@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// relative paths that appear in source code compiled by this script engine.
         /// </summary>
         /// <remarks>
-        /// If null relative paths won't be resolved and an error will be reported when the compiler encountrs such paths.
+        /// If null relative paths won't be resolved and an error will be reported when the compiler encounters such paths.
         /// The value can be changed at any point in time. However the new value doesn't affect already compiled submissions.
         /// The initial value is the current working directory if the current process, or null if not available.
         /// Changing the base directory doesn't affect the process current working directory used by <see cref="System.IO"/> APIs.

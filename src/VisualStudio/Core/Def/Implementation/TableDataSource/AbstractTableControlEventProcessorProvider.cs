@@ -14,11 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private class EventProcessor : TableControlEventProcessorBase
         {
-            public override void PreprocessNavigate(ITableEntryHandle entryHanle, TableEntryNavigateEventArgs e)
+            public override void PreprocessNavigate(ITableEntryHandle entryHandle, TableEntryNavigateEventArgs e)
             {
                 int index;
                 ITableEntriesSnapshot snapshot;
-                if (!entryHanle.TryGetSnapshot(out snapshot, out index))
+                if (!entryHandle.TryGetSnapshot(out snapshot, out index))
                 {
                     return;
                 }

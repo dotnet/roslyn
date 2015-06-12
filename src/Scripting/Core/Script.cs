@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <summary>
-        /// Creates a new verion of this script with the <see cref="ScriptBuilder"/> specified.
+        /// Creates a new version of this script with the <see cref="ScriptBuilder"/> specified.
         /// </summary>
         internal Script WithBuilder(ScriptBuilder builder)
         {
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (this.GlobalsType != null)
             {
-                var globalsTypeAssembly = MetadataReference.CreateFromAssembly(this.GlobalsType.Assembly);
+                var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(this.GlobalsType.Assembly);
                 if (!references.Contains(globalsTypeAssembly))
                 {
                     references = references.Add(globalsTypeAssembly);

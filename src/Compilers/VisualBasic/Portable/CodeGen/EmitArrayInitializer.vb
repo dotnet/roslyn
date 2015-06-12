@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         ''' <summary>
         ''' Produces a serialized blob of all constant initializers.
-        ''' Nonconstat initializers are matched with a zero of corresponding size.
+        ''' Nonconstant initializers are matched with a zero of corresponding size.
         ''' </summary>
         Private Function GetRawData(initializers As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Byte)
             ' the initial size is a guess.

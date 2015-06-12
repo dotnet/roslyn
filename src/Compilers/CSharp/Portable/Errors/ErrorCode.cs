@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCantBeRefOut = 1611,
         ERR_ReturnNotLValue = 1612,
         ERR_MissingCoClass = 1613,
-        ERR_AmbigousAttribute = 1614,
+        ERR_AmbiguousAttribute = 1614,
         ERR_BadArgExtraRef = 1615,
         WRN_CmdOptionConflictsSource = 1616,
         ERR_BadCompatMode = 1617,

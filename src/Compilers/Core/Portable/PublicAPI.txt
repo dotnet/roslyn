@@ -1702,7 +1702,7 @@ abstract Microsoft.CodeAnalysis.SyntaxNode.InsertTriviaInListCore(Microsoft.Code
 abstract Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentToCore(Microsoft.CodeAnalysis.SyntaxNode node, bool topLevel = false) -> bool
 abstract Microsoft.CodeAnalysis.SyntaxNode.KindText.get -> string
 abstract Microsoft.CodeAnalysis.SyntaxNode.Language.get -> string
-abstract Microsoft.CodeAnalysis.SyntaxNode.NormalizeWhitespaceCore(string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.SyntaxNode.NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.SyntaxNode.RemoveNodesCore(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> nodes, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.SyntaxNode.ReplaceCore<TNode>(System.Collections.Generic.IEnumerable<TNode> nodes = null, System.Func<TNode, TNode, Microsoft.CodeAnalysis.SyntaxNode> computeReplacementNode = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken> tokens = null, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken> computeReplacementToken = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia> trivia = null, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia> computeReplacementTrivia = null) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.SyntaxNode.ReplaceNodeInListCore(Microsoft.CodeAnalysis.SyntaxNode originalNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> replacementNodes) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -2116,7 +2116,8 @@ static Microsoft.CodeAnalysis.SyntaxNodeExtensions.InsertTokensAfter<TRoot>(this
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.InsertTokensBefore<TRoot>(this TRoot root, Microsoft.CodeAnalysis.SyntaxToken tokenInList, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken> newTokens) -> TRoot
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.InsertTriviaAfter<TRoot>(this TRoot root, Microsoft.CodeAnalysis.SyntaxTrivia trivia, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia> newTrivia) -> TRoot
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.InsertTriviaBefore<TRoot>(this TRoot root, Microsoft.CodeAnalysis.SyntaxTrivia trivia, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia> newTrivia) -> TRoot
-static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", bool elasticTrivia = false) -> TNode
+static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> TNode
+static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation, bool elasticTrivia) -> TNode
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.RemoveNode<TRoot>(this TRoot root, Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> TRoot
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.RemoveNodes<TRoot>(this TRoot root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> nodes, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> TRoot
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceNode<TRoot>(this TRoot root, Microsoft.CodeAnalysis.SyntaxNode oldNode, Microsoft.CodeAnalysis.SyntaxNode newNode) -> TRoot

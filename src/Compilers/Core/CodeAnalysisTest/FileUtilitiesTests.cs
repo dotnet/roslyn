@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 case PlatformID.Unix:
                     Assert.Equal("/", PathUtilities.GetPathRoot(@"/"));
                     Assert.Equal(@"/", PathUtilities.GetPathRoot(@"/x"));
-                    // Be permissive of either directory seperator, just
+                    // Be permissive of either directory separator, just
                     // like we are in other cases
                     Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\"));
                     Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\x"));

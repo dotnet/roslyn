@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
         {
             var tree = context.SemanticModel.SyntaxTree;
             var root = tree.GetRoot();
-            var unncessaryImports = GetUnnecessaryImports(context.SemanticModel, root);
-            if (unncessaryImports != null && unncessaryImports.Any())
+            var unnecessaryImports = GetUnnecessaryImports(context.SemanticModel, root);
+            if (unnecessaryImports != null && unnecessaryImports.Any())
             {
                 Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
-                var contiguousSpans = unncessaryImports.GetContiguousSpans(getLastTokenFunc);
+                var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
                 var diagnostics = CreateClassificationDiagnostics(contiguousSpans, tree).Concat(
-                        CreateFixableDiagnostics(unncessaryImports, tree));
+                        CreateFixableDiagnostics(unnecessaryImports, tree));
 
                 foreach (var diagnostic in diagnostics)
                 {

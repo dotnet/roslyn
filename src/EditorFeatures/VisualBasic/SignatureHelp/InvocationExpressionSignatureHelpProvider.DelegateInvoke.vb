@@ -49,14 +49,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
             Return displayParts
         End Function
 
-        Private Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentoFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpParameter)
+        Private Function GetDelegateInvokeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpParameter)
             Dim parameters = New List(Of SignatureHelpParameter)
             For Each parameter In invokeMethod.Parameters
                 cancellationToken.ThrowIfCancellationRequested()
                 parameters.Add(New SignatureHelpParameter(
                     parameter.Name,
                     isOptional:=False,
-                    documentationFactory:=parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentoFormattingService),
+                    documentationFactory:=parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     displayParts:=parameter.ToMinimalDisplayParts(semanticModel, position)))
             Next
 

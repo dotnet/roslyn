@@ -123,6 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             out IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap,
             out int awaiterSlotCount)
         {
+            // we are working with PE symbols
+            Debug.Assert(stateMachineType.ContainingAssembly is PEAssemblySymbol);
+
             var hoistedLocals = new Dictionary<EncHoistedLocalInfo, int>();
             var awaiters = new Dictionary<Cci.ITypeReference, int>();
             int maxAwaiterSlotIndex = -1;

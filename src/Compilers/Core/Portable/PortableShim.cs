@@ -43,6 +43,7 @@ namespace Roslyn.Utilities
             internal const string System_Runtime_Extensions = "System.Runtime.Extensions, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Threading_Thread = "System.Threading.Thread, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Xml_XPath_XDocument = "System.Xml.XPath.XDocument, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Reflection = "System.Reflection, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
         }
 
         private static class DesktopNames
@@ -433,6 +434,20 @@ namespace Roslyn.Utilities
                 var thread = Thread.CurrentThread.GetValue(null);
                 Thread.CurrentUICulture.SetValue(thread, cultureInfo);
             }
+        }
+
+        internal static class Assembly
+        {
+            private const string TypeName = "System.Reflection.Assembly";
+
+            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Reflection}",
+                desktopName: TypeName);
+
+            internal static readonly Func<System.Reflection.Assembly, string, bool, bool, Type> GetType_string_bool_bool = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod("GetType", typeof(string), typeof(bool), typeof(bool))
+                .CreateDelegate<Func<System.Reflection.Assembly, string, bool, bool, Type>>();
         }
     }
 }
