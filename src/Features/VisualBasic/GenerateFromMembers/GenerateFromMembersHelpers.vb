@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GenerateFromMembers
     Friend Class GenerateFromMembersHelpers
         Public Shared Async Function GetSelectedMembersAsync(
                 document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of IList(Of StatementSyntax))
-            Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Return tree.GetMembersInSpan(textSpan, cancellationToken)
         End Function
 

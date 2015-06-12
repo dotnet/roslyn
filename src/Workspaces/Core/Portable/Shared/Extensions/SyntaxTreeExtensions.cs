@@ -2,15 +2,13 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class CommonSyntaxTreeExtensions
+    internal static class SyntaxTreeExtensions
     {
         /// <summary>
         /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this

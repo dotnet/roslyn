@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken)
         {
-            var tree = document.GetCSharpSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true);
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))

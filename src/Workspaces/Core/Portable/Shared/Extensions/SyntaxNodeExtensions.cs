@@ -11,11 +11,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class CommonSyntaxNodeExtensions
+    internal static class SyntaxNodeExtensions
     {
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
         {
-            return CommonSyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
+            return SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
         }
 
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)

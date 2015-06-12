@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
@@ -44,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             CancellationToken cancellationToken)
         {
             var expression = SyntaxFactory.ParseExpression(expressionValue);
-            var root = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
             if (token.Kind() == SyntaxKind.CloseBraceToken && token.GetPreviousToken().Kind() != SyntaxKind.None)
             {
@@ -77,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             int position,
             CancellationToken cancellationToken)
         {
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return Do(tree, position, cancellationToken);
         }
 
