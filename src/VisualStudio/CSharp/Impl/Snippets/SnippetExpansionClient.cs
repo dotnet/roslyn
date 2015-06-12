@@ -103,9 +103,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var root = document.GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var newRoot = root.AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst);
+            var newRoot = ((CompilationUnitSyntax)root).AddUsingDirectives(newUsingDirectives, placeSystemNamespaceFirst);
             var newDocument = document.WithSyntaxRoot(newRoot);
 
             var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -117,7 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         private static IList<UsingDirectiveSyntax> GetUsingDirectivesToAdd(Document document, XElement snippetNode, XElement importsNode, CancellationToken cancellationToken)
         {
             var namespaceXmlName = XName.Get("Namespace", snippetNode.Name.NamespaceName);
-            var existingUsings = document.GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).Usings;
+            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var existingUsings = ((CompilationUnitSyntax)root).Usings;
             var newUsings = new List<UsingDirectiveSyntax>();
 
             foreach (var import in importsNode.Elements(XName.Get("Import", snippetNode.Name.NamespaceName)))

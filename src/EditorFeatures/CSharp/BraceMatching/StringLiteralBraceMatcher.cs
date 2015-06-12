@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
     {
         public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var root = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
             if (!token.ContainsDiagnostics)

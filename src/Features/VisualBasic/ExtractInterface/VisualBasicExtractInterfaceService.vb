@@ -4,9 +4,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ExtractInterface
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             typeDiscoveryRule As TypeDiscoveryRule,
             cancellationToken As CancellationToken) As SyntaxNode
 
-            Dim tree = document.GetVisualBasicSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
             Dim typeDeclaration = token.GetAncestor(Of TypeBlockSyntax)()
 
@@ -98,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             cancellationToken As CancellationToken) As String
 
             Dim documentWithTypeNode = solutionWithInterfaceDocument.GetDocument(invocationLocationDocument)
-            Dim typeDeclaration = GetVisualBasicSyntaxRootAsync(documentWithTypeNode, cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodes(Of TypeBlockSyntax)(typeNodeAnnotation).Single()
+            Dim typeDeclaration = documentWithTypeNode.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodes(Of TypeBlockSyntax)(typeNodeAnnotation).Single()
 
             Dim implementedInterfaceStatementSyntax = If(extractedInterfaceSymbol.TypeParameters.Any(),
                 SyntaxFactory.GenericName(
@@ -111,9 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Dim updatedTypeDeclaration = typeDeclaration.WithImplements(updatedImplementsList)
 
             Dim docId = solutionWithInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id
-            Dim updatedRoot = solutionWithInterfaceDocument.GetDocument(docId).GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).ReplaceNode(typeDeclaration, updatedTypeDeclaration)
+            Dim updatedRoot = solutionWithInterfaceDocument.GetDocument(docId).GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).ReplaceNode(typeDeclaration, updatedTypeDeclaration)
+            Dim updatedCompilationUnit = CType(updatedRoot, CompilationUnitSyntax)
 
-            docToRootMap.Add(docId, updatedRoot)
+            docToRootMap.Add(docId, updatedCompilationUnit)
 
             Return Formatter.Format(implementedInterfaceStatementSyntax, solutionWithInterfaceDocument.Workspace).ToFullString()
         End Function
@@ -138,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                     If docToRootMap.ContainsKey(candidateDocId) Then
                         currentRoot = docToRootMap(candidateDocId)
                     Else
-                        currentRoot = solutionWithInterfaceDocument.GetDocument(candidateDocId).GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                        currentRoot = CType(solutionWithInterfaceDocument.GetDocument(candidateDocId).GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), CompilationUnitSyntax)
                     End If
 
                     token = currentRoot.DescendantNodesAndTokensAndSelf().FirstOrDefault(Function(x) x.HasAnnotation(annotation))

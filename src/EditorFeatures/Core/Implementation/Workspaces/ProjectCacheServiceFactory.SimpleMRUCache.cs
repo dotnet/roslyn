@@ -40,32 +40,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 public void Touch(object instance)
                 {
                     var oldIndex = -1;
-                    var oldTime = Environment.TickCount;
+                    var oldTime = DateTime.UtcNow;
 
                     for (var i = 0; i < nodes.Length; i++)
                     {
                         if (instance == nodes[i].Data)
                         {
-                            nodes[i].LastTouchedInMS = Environment.TickCount;
+                            nodes[i].LastTouched = DateTime.UtcNow;
                             return;
                         }
 
-                        if (oldTime >= nodes[i].LastTouchedInMS)
+                        if (oldTime >= nodes[i].LastTouched)
                         {
-                            oldTime = nodes[i].LastTouchedInMS;
+                            oldTime = nodes[i].LastTouched;
                             oldIndex = i;
                         }
                     }
 
                     Contract.Requires(oldIndex >= 0);
-                    nodes[oldIndex] = new Node(instance, Environment.TickCount);
+                    nodes[oldIndex] = new Node(instance, DateTime.UtcNow);
                 }
 
-                public void ClearExpiredItems(int expirationTimeInMS)
+                public void ClearExpiredItems(DateTime expirationTime)
                 {
                     for (var i = 0; i < nodes.Length; i++)
                     {
-                        if (nodes[i].Data != null && nodes[i].LastTouchedInMS < expirationTimeInMS)
+                        if (nodes[i].Data != null && nodes[i].LastTouched < expirationTime)
                         {
                             nodes[i] = default(Node);
                         }
@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 private struct Node
                 {
                     public readonly object Data;
-                    public int LastTouchedInMS;
+                    public DateTime LastTouched;
 
-                    public Node(object data, int lastTouchedInMS)
+                    public Node(object data, DateTime lastTouched)
                     {
                         Data = data;
-                        LastTouchedInMS = lastTouchedInMS;
+                        LastTouched = lastTouched;
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
                 protected override Task ExecuteAsync()
                 {
-                    _owner.ClearExpiredImplicitCache(Environment.TickCount - BackOffTimeSpanInMS);
+                    _owner.ClearExpiredImplicitCache(DateTime.UtcNow - TimeSpan.FromMilliseconds(BackOffTimeSpanInMS));
 
                     return SpecializedTasks.EmptyTask;
                 }

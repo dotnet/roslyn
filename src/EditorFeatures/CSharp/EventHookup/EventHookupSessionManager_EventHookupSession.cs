@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         return null;
                     }
 
-                    var semanticModel = await document.GetCSharpSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                     var eventSymbol = GetEventSymbol(semanticModel, plusEqualsToken.Value, cancellationToken);
                     if (eventSymbol == null)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private async Task<SyntaxToken?> GetPlusEqualsTokenInsideAddAssignExpressionAsync(Document document, int position, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                var syntaxTree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
                 if (token.Kind() != SyntaxKind.PlusEqualsToken)

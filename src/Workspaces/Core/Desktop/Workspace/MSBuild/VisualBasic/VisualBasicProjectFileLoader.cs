@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             private void GetReferences(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, ProjectInstance executedProject, ref IEnumerable<MetadataReference> metadataReferences, ref IEnumerable<AnalyzerReference> analyzerReferences)
             {
-
                 // use command line parser to compute references using common logic
                 List<string> list = new List<string>();
                 if (compilerInputs.LibPaths != null && compilerInputs.LibPaths.Count<string>() > 0)
@@ -126,8 +125,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 // metadata references
                 foreach (var current in compilerInputs.References)
                 {
-                    string documentFilePath = base.GetDocumentFilePath(current);
-                    list.Add("/r:\"" + documentFilePath + "\"");
+                    if (!IsProjectReferenceOutputAssembly(current))
+                    {
+                        string documentFilePath = base.GetDocumentFilePath(current);
+                        list.Add("/r:\"" + documentFilePath + "\"");
+                    }
                 }
 
                 // analyzer references

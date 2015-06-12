@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SymbolAnalyzerDescription" xml:space="preserve">
+    <value>Do not declare members with same name as containing type.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="SymbolAnalyzerMessageFormat" xml:space="preserve">
+    <value>Type '{0}' has one or more members with the same name, considering renaming the type or the members.</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="SymbolAnalyzerTitle" xml:space="preserve">
+    <value>Do not declare members with same name as containing type</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="SyntaxNodeAnalyzerDescription" xml:space="preserve">
+    <value>Declare explicit type for local declarations.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="SyntaxNodeAnalyzerMessageFormat" xml:space="preserve">
+    <value>Local '{0}' is implicitly typed. Consider specifying its type explicitly in the declaration.</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="SyntaxNodeAnalyzerTitle" xml:space="preserve">
+    <value>Declare explicit type for local declarations</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="SemanticModelAnalyzerDescription" xml:space="preserve">
+    <value>Source file declaration diagnostic count.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="SemanticModelAnalyzerMessageFormat" xml:space="preserve">
+    <value>Source file '{0}' has '{1}' declaration diagnostic(s)</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="SemanticModelAnalyzerTitle" xml:space="preserve">
+    <value>Source file declaration diagnostics count</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="CompilationAnalyzerDescription" xml:space="preserve">
+    <value>Dont suppress analyzer diagnostics.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="CompilationAnalyzerMessageFormat" xml:space="preserve">
+    <value>Analyzer diagnostic '{0}' is suppressed, consider removing this compilation wide suppression.</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="CompilationAnalyzerTitle" xml:space="preserve">
+    <value>Dont suppress analyzer diagnostics</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="CodeBlockAnalyzerDescription" xml:space="preserve">
+    <value>Remove unnecessary methods.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="CodeBlockAnalyzerMessageFormat" xml:space="preserve">
+    <value>Method '{0}' is a non-virtual method with an empty body. Consider removing this method from your assembly.</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="CodeBlockAnalyzerTitle" xml:space="preserve">
+    <value>Remove unnecessary methods</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="SyntaxTreeAnalyzerDescription" xml:space="preserve">
+    <value>Do not suppress documentation comment diagnostics.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="SyntaxTreeAnalyzerMessageFormat" xml:space="preserve">
+    <value>Enable documentation comment diagnostics on source file '{0}'.</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="SyntaxTreeAnalyzerTitle" xml:space="preserve">
+    <value>Do not suppress documentation comment diagnostics</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="CodeBlockStartedAnalyzerDescription" xml:space="preserve">
+    <value>Remove unused parameters.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="CodeBlockStartedAnalyzerMessageFormat" xml:space="preserve">
+    <value>Parameter '{0}' is unused in the method '{1}'.</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="CodeBlockStartedAnalyzerTitle" xml:space="preserve">
+    <value>Remove unused parameters</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="CompilationStartedAnalyzerDescription" xml:space="preserve">
+    <value>Do not implement unsupported interface.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="CompilationStartedAnalyzerMessageFormat" xml:space="preserve">
+    <value>Type '{0}' implements interface '{1}', which is only meant for internal implementation and might change in future. You should avoid implementing this interface.</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="CompilationStartedAnalyzerTitle" xml:space="preserve">
+    <value>Do not implement unsupported interface</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="CompilationStartedAnalyzerWithCompilationWideAnalysisDescription" xml:space="preserve">
+    <value>Secure types must not implement interfaces with unsecure methods.</value>
+    <comment>An optional longer localizable description of the diagnostic.</comment>
+  </data>
+  <data name="CompilationStartedAnalyzerWithCompilationWideAnalysisMessageFormat" xml:space="preserve">
+    <value>Type '{0}' is a secure type as it implements interface '{1}', but it also implements interface '{2}' which has unsecure method(s).</value>
+    <comment>The format-able message the diagnostic displays.</comment>
+  </data>
+  <data name="CompilationStartedAnalyzerWithCompilationWideAnalysisTitle" xml:space="preserve">
+    <value>Secure types must not implement interfaces with unsecure methods</value>
+    <comment>The title of the diagnostic.</comment>
+  </data>
+</root>

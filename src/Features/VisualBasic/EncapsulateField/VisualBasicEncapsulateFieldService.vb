@@ -4,7 +4,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -55,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         End Function
 
         Protected Overrides Async Function GetFieldsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of IFieldSymbol))
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim fields = root.DescendantNodes(Function(n) n.Span.IntersectsWith(span)) _

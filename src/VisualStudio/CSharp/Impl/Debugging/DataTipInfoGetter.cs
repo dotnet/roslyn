@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
     {
         internal static async Task<DebugDataTipInfo> GetInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var root = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
             var expression = token.Parent as ExpressionSyntax;

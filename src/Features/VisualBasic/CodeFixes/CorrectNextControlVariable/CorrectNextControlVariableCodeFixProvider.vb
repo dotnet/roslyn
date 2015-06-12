@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
         End Property
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            Dim root = Await context.Document.GetVisualBasicSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
+            Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
 
             Dim node = root.FindNode(context.Span, getInnermostNodeForTie:=True)
             Dim nextStatement = node.FirstAncestorOrSelf(Of NextStatementSyntax)()

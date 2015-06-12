@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Options
@@ -54,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Class
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            Dim syntaxTree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position)
             If token.Kind = SyntaxKind.None Then
                 Return Nothing
@@ -65,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(False)
             Dim typeBlock = token.GetAncestor(Of TypeBlockSyntax)()
             If typeBlock Is Nothing OrElse Not typeBlock.IsKind(SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock, SyntaxKind.StructureBlock) Then
                 Return Nothing
