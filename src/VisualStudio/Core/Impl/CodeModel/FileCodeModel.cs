@@ -609,7 +609,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 scope == EnvDTE.vsCMElement.vsCMElementImplementsStmt ||
                 (scope == EnvDTE.vsCMElement.vsCMElementFunction && CodeModelService.IsAccessorNode(node)))
             {
-                // Attributes, imports, parameters, Option, Inherts and Implements
+                // Attributes, imports, parameters, Option, Inherits and Implements
                 // don't have node keys of their own and won't be included in our
                 // collection of elements. Delegate to the service to create these.
                 return CodeModelService.CreateInternalCodeElement(State, this, node);
@@ -709,7 +709,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var existingElement = _elementTable.TryGetValue(elementAndPath.Item1.NodeKey);
                             if (existingElement != null)
                             {
-                                elementAndPath.Item1.ReaquireNodeKey(elementAndPath.Item2, CancellationToken.None);
+                                elementAndPath.Item1.ReacquireNodeKey(elementAndPath.Item2, CancellationToken.None);
                             }
 
                             // make sure existing element doesn't go away (weak reference) in the middle of
@@ -820,7 +820,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // element didn't exist...
             if (element != null)
             {
-                ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element).ReaquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element).ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
             }
         }
     }

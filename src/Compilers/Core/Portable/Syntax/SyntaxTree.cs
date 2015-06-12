@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the location in terms of path, line and column for a given span.
         /// </summary>
         /// <param name="span">Span within the tree.</param>
-        /// <param name="cancellationToken">Cancallation token.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// The values are not affected by line mapping directives (<code>#line</code>).
@@ -197,14 +197,14 @@ namespace Microsoft.CodeAnalysis
         /// (<code>#line</code> in C# or <code>#ExternalSource</code> in VB). 
         /// </summary>
         /// <param name="span">Span within the tree.</param>
-        /// <param name="cancellationToken">Cancallation token.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
         /// If the location path is mapped the resulting path is the path specified in the corresponding <code>#line</code>,
         /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <code>#line</code> directive that preceeds it and that 
+        /// A location path is considered mapped if the first <code>#line</code> directive that precedes it and that 
         /// either specifies an explicit file path or is <code>#line default</code> exists and specifies an explicit path.
         /// </returns>
         public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));

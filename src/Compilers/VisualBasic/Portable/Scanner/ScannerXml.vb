@@ -925,8 +925,8 @@ ScanChars:
                             ' report unexpected <%= in a special way.
                             If NextAre(1,"%=") Then
                                 Dim errEmbedStart = XmlMakeAttributeDataToken(precedingTrivia, 3, "<%=")
-                                Dim errEmberinfo = ErrorFactory.ErrorInfo(ERRID.ERR_QuotedEmbeddedExpression)
-                                result = DirectCast(errEmbedStart.SetDiagnostics({errEmberinfo}), SyntaxToken)
+                                Dim errEmbedInfo = ErrorFactory.ErrorInfo(ERRID.ERR_QuotedEmbeddedExpression)
+                                result = DirectCast(errEmbedStart.SetDiagnostics({errEmbedInfo}), SyntaxToken)
                                 GoTo CleanUp
                             End If
 

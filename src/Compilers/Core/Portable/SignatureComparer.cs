@@ -236,12 +236,12 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         protected abstract TypeSymbol GetSZArrayElementType(TypeSymbol type);
 
         /// <summary>
-        /// Should only accept multi-dimansional arrays.
+        /// Should only accept multi-dimensional arrays.
         /// </summary>
         protected abstract bool MatchArrayRank(TypeSymbol type, int countOfDimensions);
 
         /// <summary>
-        /// Should only accept multi-dimansional arrays.
+        /// Should only accept multi-dimensional arrays.
         /// Should return null in case of error.
         /// </summary>
         protected abstract TypeSymbol GetArrayElementType(TypeSymbol type);

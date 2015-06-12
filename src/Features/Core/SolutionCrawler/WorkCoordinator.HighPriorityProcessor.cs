@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         this.UpdateLastAccessTime();
                         var added = _workItemQueue.AddOrReplace(item);
 
-                        Logger.Log(FunctionId.WorkCoordinator_ActivieFileEnqueue, s_enqueueLogger, Environment.TickCount, item.DocumentId, !added);
+                        Logger.Log(FunctionId.WorkCoordinator_ActiveFileEnqueue, s_enqueueLogger, Environment.TickCount, item.DocumentId, !added);
                         SolutionCrawlerLogger.LogActiveFileEnqueue(_processor._logAggregator);
                     }
 

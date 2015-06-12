@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2119,6 +2120,32 @@ public class Source
             c.VerifyDiagnostics(
                 // error CS0009: Metadata file 'NativeApp.exe' could not be opened -- PE image doesn't contain managed metadata.
                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"NativeApp.exe", CodeAnalysisResources.PEImageDoesntContainManagedMetadata));
+        }
+
+        [WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
+        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        public void EmptyReference1()
+        {
+            var source = "class C { public static void Main() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, new[] { AssemblyMetadata.CreateFromImage(new byte[0]).GetReference(display: "Empty.dll") });
+            c.VerifyDiagnostics(
+                Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"Empty.dll", CodeAnalysisResources.PEImageDoesntContainManagedMetadata));
+        }
+
+        [WorkItem(2992, "https://github.com/dotnet/roslyn/issues/2992")]
+        [ClrOnlyFact(ClrOnlyReason.Signing)]
+        public void MetadataDisposed()
+        {
+            var md = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib);
+            var compilation = CSharpCompilation.Create("test", references: new[] { md.GetReference() });
+
+            // Use the Compilation once to force lazy initialization of the underlying MetadataReader
+            compilation.GetTypeByMetadataName("System.Int32").GetMembers();
+
+            md.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => compilation.GetTypeByMetadataName("System.Int64").GetMembers());
         }
 
         [WorkItem(43)]

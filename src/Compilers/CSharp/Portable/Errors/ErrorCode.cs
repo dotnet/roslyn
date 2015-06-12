@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCantBeRefOut = 1611,
         ERR_ReturnNotLValue = 1612,
         ERR_MissingCoClass = 1613,
-        ERR_AmbigousAttribute = 1614,
+        ERR_AmbiguousAttribute = 1614,
         ERR_BadArgExtraRef = 1615,
         WRN_CmdOptionConflictsSource = 1616,
         ERR_BadCompatMode = 1617,
@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         ERR_AccessorListAndExpressionBody = 8056,
         ERR_BlockBodyAndExpressionBody = 8057,
-        // ERR_FeatureIsExperimental = 8058,
+        ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8060-8069
         ERR_SwitchFallOut = 8070,

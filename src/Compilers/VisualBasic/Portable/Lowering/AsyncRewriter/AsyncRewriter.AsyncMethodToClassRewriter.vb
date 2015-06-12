@@ -57,8 +57,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _typesNeedingClearingCache As New Dictionary(Of TypeSymbol, Boolean)
 
-            Private _enclosingSequencePointSyntax As VisualBasicSyntaxNode = Nothing
-
             Friend Sub New(method As MethodSymbol,
                            F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
@@ -97,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' to find the previous awaiter field.
                 If Not Me._awaiterFields.TryGetValue(awaiterType, result) Then
                     Dim slotIndex As Integer = -1
-                    If Me.SlotAllocatorOpt Is Nothing OrElse Not Me.SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(DirectCast(awaiterType, Cci.ITypeReference), slotIndex) Then
+                    If Me.SlotAllocatorOpt Is Nothing OrElse Not Me.SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.CompilationState.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), slotIndex) Then
                         slotIndex = _nextAwaiterId
                         _nextAwaiterId = _nextAwaiterId + 1
                     End If

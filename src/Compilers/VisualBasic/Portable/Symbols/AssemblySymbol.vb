@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 
         ''' <summary>
-        ''' Lookup a top level type within the assembly or one of the assemblies reeferenced by the primary module, 
+        ''' Lookup a top level type within the assembly or one of the assemblies referenced by the primary module, 
         ''' names are compared case-sensitively. In case of ambiguity, type from this assembly wins,
         ''' otherwise Nothing is returned.
         ''' </summary>

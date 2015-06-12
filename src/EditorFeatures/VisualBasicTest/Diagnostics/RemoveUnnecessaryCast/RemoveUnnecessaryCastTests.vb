@@ -2363,7 +2363,7 @@ End Class
         <WorkItem(544655)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToICloneableForDelegate()
-            ' Note: The cast below can be removed because delegates are implictly sealed.
+            ' Note: The cast below can be removed because delegates are implicitly sealed.
 
             Dim markup =
 <File>
@@ -2396,7 +2396,7 @@ End Class
         <WorkItem(545926)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToICloneableForArray()
-            ' Note: The cast below can be removed because arrays are implictly sealed.
+            ' Note: The cast below can be removed because arrays are implicitly sealed.
 
             Dim markup =
 <File>
@@ -2427,7 +2427,7 @@ End Class
         <WorkItem(529937)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToICloneableForArray2()
-            ' Note: The cast below can be removed because arrays are implictly sealed.
+            ' Note: The cast below can be removed because arrays are implicitly sealed.
 
             Dim markup =
 <File>
@@ -2456,7 +2456,7 @@ End Module
         <WorkItem(529897)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToIConvertibleForEnum()
-            ' Note: The cast below can be removed because enums are implictly sealed.
+            ' Note: The cast below can be removed because enums are implicitly sealed.
 
             Dim markup =
 <File>
@@ -2655,6 +2655,120 @@ End Class
 
 Class Derived2 : Inherits Base
 End Class
+</File>
+            TestMissing(markup)
+        End Sub
+
+        <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub DontRemoveCastToTypeParameterWithExceptionContraint()
+            Dim markup =
+<File>
+Imports System
+
+Class Program
+    Private Shared Sub RequiresCondition(Of TException As Exception)(condition As Boolean, messageOnFalseCondition As String)
+        If Not condition Then
+            Throw [|DirectCast(Activator.CreateInstance(GetType(TException), messageOnFalseCondition), TException)|]
+        End If
+    End Sub
+End Class
+</File>
+            TestMissing(markup)
+        End Sub
+
+        <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub DontRemoveCastToTypeParameterWithExceptionSubTypeContraint()
+            Dim markup =
+<File>
+Imports System
+
+Class Program
+    Private Shared Sub RequiresCondition(Of TException As ArgumentException)(condition As Boolean, messageOnFalseCondition As String)
+        If Not condition Then
+            Throw [|DirectCast(Activator.CreateInstance(GetType(TException), messageOnFalseCondition), TException)|]
+        End If
+    End Sub
+End Class
+</File>
+            TestMissing(markup)
+        End Sub
+
+        <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOn()
+            Dim markup =
+<File>
+Option Strict On
+
+Module Module1
+
+    Sub Main()
+        Dim red = ColorF.FromArgb(255, 255, 0, 0)
+        Dim c As Color = [|CType(red, Color)|]
+    End Sub
+
+End Module
+
+Public Structure ColorF
+    Public A, R, G, B As Single
+    Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF
+        Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)}
+    End Function
+    Public Shared Widening Operator CType(x As Color) As ColorF
+        Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255)
+    End Operator
+    Public Shared Narrowing Operator CType(x As ColorF) As Color
+        Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255))
+    End Operator
+End Structure
+
+Public Structure Color
+    Public A, R, G, B As Byte
+    Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color
+        Return New Color With {.A = a, .R = r, .G = g, .B = b}
+    End Function
+End Structure
+</File>
+            TestMissing(markup)
+        End Sub
+
+        <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOff()
+            Dim markup =
+<File>
+Option Strict Off
+
+Module Module1
+
+    Sub Main()
+        Dim red = ColorF.FromArgb(255, 255, 0, 0)
+        Dim c As Color = [|CType(red, Color)|]
+    End Sub
+
+End Module
+
+Public Structure ColorF
+    Public A, R, G, B As Single
+    Public Shared Function FromArgb(a As Double, r As Double, g As Double, b As Double) As ColorF
+        Return New ColorF With {.A = CSng(a), .R = CSng(r), .G = CSng(g), .B = CSng(b)}
+    End Function
+    Public Shared Widening Operator CType(x As Color) As ColorF
+        Return ColorF.FromArgb(x.A / 255, x.R / 255, x.G / 255, x.B / 255)
+    End Operator
+    Public Shared Narrowing Operator CType(x As ColorF) As Color
+        Return Color.FromArgb(CByte(x.A * 255), CByte(x.R * 255), CByte(x.G * 255), CByte(x.B * 255))
+    End Operator
+End Structure
+
+Public Structure Color
+    Public A, R, G, B As Byte
+    Public Shared Function FromArgb(a As Byte, r As Byte, g As Byte, b As Byte) As Color
+        Return New Color With {.A = a, .R = r, .G = g, .B = b}
+    End Function
+End Structure
 </File>
             TestMissing(markup)
         End Sub

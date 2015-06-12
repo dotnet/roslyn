@@ -18,8 +18,9 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of String),
                                                   Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                   Optional options As VisualBasicCompilationOptions = Nothing,
-                                                  Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
+                                                  Optional assemblyName As String = Nothing,
+                                                  Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.Create(If(assemblyName, "Test"), sourceTrees.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)), If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
     End Function
 
     Public Function CreateCompilationWithMscorlib(sourceTrees As IEnumerable(Of SyntaxTree),

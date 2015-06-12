@@ -19,21 +19,9 @@
 
   <!--This header contains the command ids for the menus provided by the shell. -->
   <Extern href="vsshlids.h"/>
-
-  <KeyBindings>
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSmartExecute" key1="VK_RETURN" mod1="Control" editor="guidInteractiveWindow" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidAbortExecution" key1="VK_CANCEL" mod1="Control" editor="guidInteractiveWindow" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidHistoryNext"  key1="VK_DOWN" mod1="Alt" editor="guidInteractiveWindow" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidHistoryPrevious" key1="VK_UP" mod1="Alt" editor="guidInteractiveWindow" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidBreakLine" key1="VK_RETURN" mod1="Shift" editor="guidInteractiveWindow" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSearchHistoryNext" key1="VK_DOWN" mod1="Control Alt" editor="guidInteractiveWindow" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSearchHistoryPrevious" key1="VK_UP" mod1="Control Alt" editor="guidInteractiveWindow" />
-
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="E" mod2="Control" key2="VK_RETURN"  />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="K" mod2="Control" key2="VK_RETURN" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="VK_RETURN" />
-    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory"  mod1="Control Shift" key1="VK_RETURN" />
-  </KeyBindings>
+  
+  <!--This vsct includes icon monikers provided by the shell. -->
+  <Include href="KnownImageIds.vsct"/>
 
   <!--The Commands section is where we the commands, menus and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
@@ -106,9 +94,10 @@
       <!-- 
             <Button guid="guidInteractiveWindowCmdSet" id="cmdidAbortExecution" priority="0x0300" type="Button">
               <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
-              <Icon guid="guidInteractiveToolbarImages" id="bmpCancelEval" />
+              <Icon guid="ImageCatalogGuid" id="Cancel" />
               <CommandFlag>DynamicVisibility</CommandFlag>
               <CommandFlag>DefaultInvisible</CommandFlag>
+              <CommandFlag>IconIsMoniker</CommandFlag>
               <Strings>
                     <CommandName>cmdidAbortExecution</CommandName>
                     <ButtonText>Cancel Execution</ButtonText>
@@ -117,7 +106,8 @@
 -->
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidReset" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
-        <Icon guid="guidInteractiveToolbarImages" id="bmpResetSession" />
+        <Icon guid="ImageCatalogGuid" id="Restart" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Reset</ButtonText>
         </Strings>
@@ -173,7 +163,8 @@
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuClearGroup"/>
-        <Icon guid="guidInteractiveToolbarImages" id="bmpClearScreen" />
+        <Icon guid="ImageCatalogGuid" id="ClearWindowContent" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Clear Screen</ButtonText>
         </Strings>
@@ -192,7 +183,8 @@
 
       <!--<Button guid="guidInteractiveWindowCmdSet" id="cmdidAbortExecution" priority="0x0300" type="Button">
                 <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
-                <Icon guid="guidInteractiveToolbarImages" id="bmpCancelEval" />
+                <Icon guid="ImageCatalogGuid" id="Cancel" />
+                <CommandFlag>IconIsMoniker</CommandFlag>
                 <Strings>
                     <CommandName>cmdidAbortExecution</CommandName>
                     <ButtonText>Cancel Execution</ButtonText>
@@ -219,25 +211,7 @@
         </Strings>
       </Button>
     </Buttons>
-
-    <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
-    <Bitmaps>
-      <!--  The bitmap id is defined in a way that is a little bit different from the others: 
-            the declaration starts with a guid for the bitmap strip, then there is the resource id of the 
-            bitmap strip containing the bitmaps and then there are the numeric ids of the elements used 
-            inside a button definition. An important aspect of this declaration is that the element id 
-            must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidInteractiveToolbarImages" href="Resources\InteractiveToolbarImages.png" usedList="bmpCancelEval, bmpResetSession, bmpClearScreen"/>
-    </Bitmaps>
-
   </Commands>
-
-  <UsedCommands>
-    <UsedCommand guid="guidVSStd97" id="cmdidCut"/>
-    <UsedCommand guid="guidVSStd97" id="cmdidCopy"/>
-    <UsedCommand guid="guidVSStd97" id="cmdidPaste"/>
-    <UsedCommand guid="guidVSStd97" id="cmdidClearPane"/>
-  </UsedCommands>
 
   <CommandPlacements>
     <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0100">
@@ -263,6 +237,28 @@
       <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuClearGroup"/>
     </CommandPlacement>
   </CommandPlacements>
+
+  <KeyBindings>
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSmartExecute" key1="VK_RETURN" mod1="Control" editor="guidInteractiveWindow" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidAbortExecution" key1="VK_CANCEL" mod1="Control" editor="guidInteractiveWindow" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidHistoryNext"  key1="VK_DOWN" mod1="Alt" editor="guidInteractiveWindow" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidHistoryPrevious" key1="VK_UP" mod1="Alt" editor="guidInteractiveWindow" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidBreakLine" key1="VK_RETURN" mod1="Shift" editor="guidInteractiveWindow" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSearchHistoryNext" key1="VK_DOWN" mod1="Control Alt" editor="guidInteractiveWindow" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidSearchHistoryPrevious" key1="VK_UP" mod1="Control Alt" editor="guidInteractiveWindow" />
+
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="E" mod2="Control" key2="VK_RETURN"  />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="K" mod2="Control" key2="VK_RETURN" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidExecuteInInteractiveWindow" editor="GUID_TextEditorFactory" mod1="Control" key1="VK_RETURN" />
+    <KeyBinding guid="guidInteractiveWindowCmdSet" id="cmdidCopyToInteractiveWindow" editor="GUID_TextEditorFactory"  mod1="Control Shift" key1="VK_RETURN" />
+  </KeyBindings>
+
+  <UsedCommands>
+    <UsedCommand guid="guidVSStd97" id="cmdidCut"/>
+    <UsedCommand guid="guidVSStd97" id="cmdidCopy"/>
+    <UsedCommand guid="guidVSStd97" id="cmdidPaste"/>
+    <UsedCommand guid="guidVSStd97" id="cmdidClearPane"/>
+  </UsedCommands>
 
   <Symbols>
     <!-- This is the package guid. -->
@@ -295,11 +291,6 @@
       <IDSymbol name="menuIdInteractiveToolbar" value="0x2000"/>
       <IDSymbol name="menuIdInteractiveContextMenu" value="0x2100" />
     </GuidSymbol>
-
-    <GuidSymbol name="guidInteractiveToolbarImages" value="{4611D077-0239-41E8-9AD0-85878C1050BC}" >
-      <IDSymbol name="bmpCancelEval" value="0x01" />
-      <IDSymbol name="bmpResetSession" value="0x02" />
-      <IDSymbol name="bmpClearScreen" value="0x03" />
-    </GuidSymbol>
   </Symbols>
+
 </CommandTable>

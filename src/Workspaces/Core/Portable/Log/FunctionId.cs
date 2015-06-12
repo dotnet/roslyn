@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Formatting_AggregateCreateFormattedRoot,
         Formatting_CreateTextChanges,
         Formatting_CreateFormattedRoot,
+        Formatting_Partitions,
 
         SmartIndentation_Start,
         SmartIndentation_OpenCurly,
@@ -286,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         SolutionExplorer_AnalyzerItemSource_GetItems,
         SolutionExplorer_DiagnosticItemSource_GetItems,
-        WorkCoordinator_ActivieFileEnqueue,
+        WorkCoordinator_ActiveFileEnqueue,
         SymbolFinder_FindDeclarationsAsync,
         SymbolFinder_Project_AddDeclarationsAsync,
         SymbolFinder_Assembly_AddDeclarationsAsync,
@@ -303,6 +304,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VirtualMemory_MemoryLow,
         Extension_Exception,
 
-        WorkCoordinator_WaitForHigherPriorityOperationsAsync,
+        WorkCoordinator_WaitForHigherPriorityOperationsAsync
     }
 }

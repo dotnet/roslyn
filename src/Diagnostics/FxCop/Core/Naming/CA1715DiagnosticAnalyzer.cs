@@ -3,30 +3,31 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
+namespace Microsoft.AnalyzerPowerPack.Naming
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1715DiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        internal const string RuleId = "CA1715";
+        public const string RuleId = "CA1715";
 
-        private static readonly LocalizableString s_localizableMessageAndTitleInterfaceRule = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceNamesShouldStartWithI), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        internal static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
+        private static readonly LocalizableString s_localizableMessageAndTitleInterfaceRule = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.InterfaceNamesShouldStartWithI), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        public static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
                                                                                       s_localizableMessageAndTitleInterfaceRule,
                                                                                       s_localizableMessageAndTitleInterfaceRule,
-                                                                                      FxCopDiagnosticCategory.Naming,
+                                                                                      AnalyzerPowerPackDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,
                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182243.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
-        private static readonly LocalizableString s_localizableMessageAndTitleTypeParameterRule = new LocalizableResourceString(nameof(FxCopRulesResources.TypeParameterNamesShouldStartWithT), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
+        private static readonly LocalizableString s_localizableMessageAndTitleTypeParameterRule = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.TypeParameterNamesShouldStartWithT), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        public static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
                                                                                       s_localizableMessageAndTitleTypeParameterRule,
                                                                                       s_localizableMessageAndTitleTypeParameterRule,
-                                                                                      FxCopDiagnosticCategory.Naming,
+                                                                                      AnalyzerPowerPackDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,
                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182243.aspx",

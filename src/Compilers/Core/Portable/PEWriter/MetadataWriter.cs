@@ -2512,7 +2512,7 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// Compares quality of assembly references to achieve unique rows in AssemblyRef table.
-        /// Metadata spec: "The AssemblyRef table shall contain no duplicates (where duplicate rows are deemd to 
+        /// Metadata spec: "The AssemblyRef table shall contain no duplicates (where duplicate rows are deemed to 
         /// be those having the same MajorVersion, MinorVersion, BuildNumber, RevisionNumber, PublicKeyOrToken, 
         /// Name, and Culture)".
         /// </summary>
@@ -4891,6 +4891,15 @@ namespace Microsoft.Cci
                 sb.Append(", Retargetable=Yes");
             }
 
+            if (assemblyReference.ContentType == AssemblyContentType.WindowsRuntime)
+            {
+                sb.Append(", ContentType=WindowsRuntime");
+            }
+            else
+            {
+                Debug.Assert(assemblyReference.ContentType == AssemblyContentType.Default);
+            }
+
             return pooled.ToStringAndFree();
         }
 
@@ -5223,7 +5232,7 @@ namespace Microsoft.Cci
         {
             ImmutableArray<LocalSlotDebugInfo> encLocalSlots;
 
-            // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
+            // Kickoff method of a state machine (async/iterator method) doesn't have any interesting locals,
             // so we use its EnC method debug info to store information about locals hoisted to the state machine.
             var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
             if (encSlotInfo.IsDefault)

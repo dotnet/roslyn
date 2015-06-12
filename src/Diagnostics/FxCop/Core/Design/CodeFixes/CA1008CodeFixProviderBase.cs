@@ -8,11 +8,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.Design
 {
     /// <summary>
     /// CA1008: Enums should have zero value
@@ -31,13 +32,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 switch (customTag)
                 {
                     case CA1008DiagnosticAnalyzer.RuleRenameCustomTag:
-                        return FxCopFixersResources.EnumsShouldZeroValueFlagsRenameCodeFix;
+                        return AnalyzerPowerPackFixersResources.EnumsShouldZeroValueFlagsRenameCodeFix;
 
                     case CA1008DiagnosticAnalyzer.RuleMultipleZeroCustomTag:
-                        return FxCopFixersResources.EnumsShouldZeroValueFlagsMultipleZeroCodeFix;
+                        return AnalyzerPowerPackFixersResources.EnumsShouldZeroValueFlagsMultipleZeroCodeFix;
 
                     case CA1008DiagnosticAnalyzer.RuleNoZeroCustomTag:
-                        return FxCopFixersResources.EnumsShouldZeroValueNotFlagsNoZeroValueCodeFix;
+                        return AnalyzerPowerPackFixersResources.EnumsShouldZeroValueNotFlagsNoZeroValueCodeFix;
                 }
             }
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private async Task<Document> GetUpdatedDocumentForRuleNameRenameAsync(Document document, IFieldSymbol field, CancellationToken cancellationToken)
         {
-            var newSolution = await Rename.Renamer.RenameSymbolAsync(document.Project.Solution, field, "None", null, cancellationToken).ConfigureAwait(false);
+            var newSolution = await CodeAnalysis.Rename.Renamer.RenameSymbolAsync(document.Project.Solution, field, "None", null, cancellationToken).ConfigureAwait(false);
             return newSolution.GetDocument(document.Id);
         }
 
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 {
                     if (makeNextFieldExplicit)
                     {
-                        await editor.EditOneDeclarationAsync(field, (e, d) => e.ReplaceNode(d, GetExplicitlyAssignedField(field, d, e.Generator)), cancellationToken);
+                        await editor.EditOneDeclarationAsync(field, (e, d) => e.ReplaceNode(d, GetExplicitlyAssignedField(field, d, e.Generator)), cancellationToken).ConfigureAwait(false);
                         makeNextFieldExplicit = false;
                     }
 
@@ -95,14 +96,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 }
                 else
                 {
-                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken); // removes the field declaration
+                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken).ConfigureAwait(false); // removes the field declaration
                     makeNextFieldExplicit = true;
                 }
             }
 
             if (needsNewZeroValuedNoneField)
             {
-                await editor.EditOneDeclarationAsync(enumType, (e, d) => e.InsertMembers(d, 0, new[] { e.Generator.EnumMember("None") }), cancellationToken);
+                await editor.EditOneDeclarationAsync(enumType, (e, d) => e.InsertMembers(d, 0, new[] { e.Generator.EnumMember("None") }), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -113,12 +114,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             {
                 if (CA1008DiagnosticAnalyzer.IsMemberNamedNone(field))
                 {
-                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken);
+                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken).ConfigureAwait(false);
                 }
             }
 
             // insert zero-valued member 'None' to top
-            await editor.EditOneDeclarationAsync(enumType, (e, d) => e.InsertMembers(d, 0, new[] { e.Generator.EnumMember("None") }), cancellationToken);
+            await editor.EditOneDeclarationAsync(enumType, (e, d) => e.InsertMembers(d, 0, new[] { e.Generator.EnumMember("None") }), cancellationToken).ConfigureAwait(false);
         }
 
         protected virtual SyntaxNode GetParentNodeOrSelfToFix(SyntaxNode nodeToFix)
@@ -150,11 +151,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         return await GetUpdatedDocumentForRuleNameRenameAsync(document, (IFieldSymbol)declaredSymbol, cancellationToken).ConfigureAwait(false);
 
                     case CA1008DiagnosticAnalyzer.RuleMultipleZeroCustomTag:
-                        await ApplyRuleNameMultipleZeroAsync(editor, (INamedTypeSymbol)declaredSymbol, cancellationToken);
+                        await ApplyRuleNameMultipleZeroAsync(editor, (INamedTypeSymbol)declaredSymbol, cancellationToken).ConfigureAwait(false);
                         return editor.GetChangedDocuments().First();
 
                     case CA1008DiagnosticAnalyzer.RuleNoZeroCustomTag:
-                        await ApplyRuleNameNoZeroValueAsync(editor, (INamedTypeSymbol)declaredSymbol, cancellationToken);
+                        await ApplyRuleNameNoZeroValueAsync(editor, (INamedTypeSymbol)declaredSymbol, cancellationToken).ConfigureAwait(false);
                         return editor.GetChangedDocuments().First();
                 }
             }

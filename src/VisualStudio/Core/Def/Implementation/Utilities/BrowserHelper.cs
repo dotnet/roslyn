@@ -1,14 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
     internal static class BrowserHelper
     {
-        private const string BingSearchString = "http://www.bing.com/search?form=VSHELP&q={0}";
+        /// <summary>
+        /// unique VS session id
+        /// </summary>
+        private static readonly string RequestId = Guid.NewGuid().ToString();
+
+        private const string BingSearchString = "http://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText={0}&mainLanguage={1}&projectType={2}&requestId={3}&clientId={4}&errorCode={5}";
 
         public static bool TryGetUri(string link, out Uri uri)
         {
@@ -28,44 +34,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return true;
         }
 
-        public static Uri CreateBingQueryUri(string errorCode, string title)
+        public static Uri CreateBingQueryUri(DiagnosticData diagnostic)
         {
-            if (string.IsNullOrWhiteSpace(title))
-            {
-                return new Uri(string.Format(BingSearchString, errorCode));
-            }
+            var errorCode = diagnostic.Id;
+            var title = diagnostic.ENUMessageForBingSearch;
 
-            return new Uri(string.Format(BingSearchString, errorCode + " " + title));
+            string language;
+            string projectType;
+            diagnostic.Workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out language, out projectType);
+
+            return CreateBingQueryUri(errorCode, title, language, projectType);
         }
 
-        public static void StartBrowser(IServiceProvider serviceProvider, Uri uri)
+        public static Uri CreateBingQueryUri(string errorCode, string title, string language, string projectType)
         {
-            if (!TryStartBrowser(serviceProvider, uri))
-            {
-                StartBrowser(uri);
-            }
+            errorCode = errorCode ?? string.Empty;
+            title = title ?? string.Empty;
+            language = language ?? string.Empty;
+            projectType = projectType ?? string.Empty;
+
+            var url = string.Format(BingSearchString, Uri.EscapeDataString(title), Uri.EscapeDataString(language), Uri.EscapeDataString(projectType), Uri.EscapeDataString(RequestId), Uri.EscapeDataString(string.Empty), Uri.EscapeDataString(errorCode));
+            return new Uri(url);
         }
 
-        private static bool TryStartBrowser(IServiceProvider serviceProvider, Uri uri)
+        public static void StartBrowser(Uri uri)
         {
-            var browserService = serviceProvider.GetService(typeof(SVsWebBrowsingService)) as IVsWebBrowsingService;
-            if (browserService == null)
-            {
-                return false;
-            }
-
-            return TryStartBrowser(browserService, uri);
-        }
-
-        private static bool TryStartBrowser(IVsWebBrowsingService service, Uri uri)
-        {
-            IVsWindowFrame unused;
-            return ErrorHandler.Succeeded(service.Navigate(uri.AbsoluteUri, 0, out unused));
-        }
-
-        private static void StartBrowser(Uri uri)
-        {
-            Process.Start(new ProcessStartInfo(uri.AbsoluteUri));
+            VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
         }
     }
 }

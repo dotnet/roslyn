@@ -35,7 +35,7 @@ namespace APISampleUnitTestsCS
                 "calc.dll",
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 syntaxTrees: new[] { tree },
-                references: new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) });
+                references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
 
             Assembly compiledAssembly;
             using (var stream = new MemoryStream())
@@ -65,7 +65,7 @@ namespace APISampleUnitTestsCS
             var compilation = CSharpCompilation
                 .Create("program.exe")
                 .AddSyntaxTrees(tree)
-                .AddReferences(MetadataReference.CreateFromAssembly(typeof(object).Assembly));
+                .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
 
             IEnumerable<Diagnostic> errorsAndWarnings = compilation.GetDiagnostics();
             Assert.AreEqual(1, errorsAndWarnings.Count());

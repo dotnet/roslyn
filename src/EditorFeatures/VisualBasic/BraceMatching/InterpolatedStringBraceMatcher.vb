@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
             Optional cancellationToken As CancellationToken = Nothing
         ) As Task(Of BraceMatchingResult?) Implements IBraceMatcher.FindBracesAsync
 
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim token = root.FindToken(position)
 
             If token.IsKind(SyntaxKind.DollarSignDoubleQuoteToken, SyntaxKind.DoubleQuoteToken) AndAlso

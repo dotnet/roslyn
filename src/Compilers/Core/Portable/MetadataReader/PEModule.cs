@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Roslyn.Utilities;
@@ -139,35 +140,65 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal unsafe MetadataReader MetadataReader
+        internal MetadataReader MetadataReader
         {
             get
             {
                 if (_lazyMetadataReader == null)
                 {
-                    MetadataReader newReader;
+                    InitializeMetadataReader();
+                }
 
-                    // PEModule is either created with metadata memory block or a PE reader.
-                    if (_metadataPointerOpt != IntPtr.Zero)
-                    {
-                        newReader = new MetadataReader((byte*)_metadataPointerOpt, _metadataSizeOpt, MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
-                    }
-                    else
-                    {
-                        Debug.Assert(_peReaderOpt != null);
-                        if (!_peReaderOpt.HasMetadata)
-                        {
-                            throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
-                        }
-
-                        newReader = _peReaderOpt.GetMetadataReader(MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyMetadataReader, newReader, null);
+                if (_isDisposed)
+                {
+                    // Without locking, which might be expensive, we can't guarantee that the underlying memory 
+                    // won't be accessed after the metadata object is disposed. However we can do a cheap check here that 
+                    // handles most cases.
+                    ThrowMetadataDisposed();
                 }
 
                 return _lazyMetadataReader;
             }
+        }
+
+        private unsafe void InitializeMetadataReader()
+        {
+            MetadataReader newReader;
+
+            // PEModule is either created with metadata memory block or a PE reader.
+            if (_metadataPointerOpt != IntPtr.Zero)
+            {
+                newReader = new MetadataReader((byte*)_metadataPointerOpt, _metadataSizeOpt, MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
+            }
+            else
+            {
+                Debug.Assert(_peReaderOpt != null);
+
+                // A workaround for https://github.com/dotnet/corefx/issues/1815    
+                bool hasMetadata;
+                try
+                {
+                    hasMetadata = _peReaderOpt.HasMetadata;
+                }
+                catch
+                {
+                    hasMetadata = false;
+                }
+
+                if (!hasMetadata)
+                {
+                    throw new BadImageFormatException(CodeAnalysisResources.PEImageDoesntContainManagedMetadata);
+                }
+
+                newReader = _peReaderOpt.GetMetadataReader(MetadataReaderOptions.ApplyWindowsRuntimeProjections, StringTableDecoder.Instance);
+            }
+
+            Interlocked.CompareExchange(ref _lazyMetadataReader, newReader, null);
+        }
+
+        private static void ThrowMetadataDisposed()
+        {
+            throw new ObjectDisposedException(nameof(ModuleMetadata));
         }
 
         #region Module level properties and methods
@@ -1207,7 +1238,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private bool TryExtractStringValueFromAttribute(CustomAttributeHandle handle, out string value)
+        internal bool TryExtractStringValueFromAttribute(CustomAttributeHandle handle, out string value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringValueExtractor);
         }

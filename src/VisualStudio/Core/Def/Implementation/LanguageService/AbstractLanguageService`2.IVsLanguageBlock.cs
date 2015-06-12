@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             ref TextSpan span)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            if (document == null || !document.SupportsSyntaxTree)
             {
                 return false;
             }
@@ -84,14 +84,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return false;
             }
 
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-            if (symbol == null)
-            {
-                return false;
-            }
-
-            description = symbol.ToMinimalDisplayString(semanticModel, position);
+            description = syntaxFactsService.GetDisplayName(node,
+                DisplayNameOptions.IncludeMemberKeyword |
+                DisplayNameOptions.IncludeParameters |
+                DisplayNameOptions.IncludeType |
+                DisplayNameOptions.IncludeTypeParameters);
             span = node.Span;
             return true;
         }

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
 
         protected override bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel model)
         {
-            var argList = (node.Parent as ObjectCreationExpressionSyntax)?.ArgumentList.Arguments;
+            var argList = (node.Parent as ObjectCreationExpressionSyntax)?.ArgumentList?.Arguments;
             if (!argList.HasValue)
             {
                 return false;

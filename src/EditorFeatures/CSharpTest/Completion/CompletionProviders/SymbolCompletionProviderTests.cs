@@ -7235,6 +7235,143 @@ class X
             VerifyItemExists(markup, "My");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersFromBaseOuterType()
+        {
+            var markup = @"abstract class Test
+{
+  private int _field;
+
+  public sealed class InnerTest : Test 
+  {
+    
+    public void SomeTest() 
+    {
+        $$
+    }
+  }
+}";
+            VerifyItemExists(markup, "_field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersFromBaseOuterType2()
+        {
+            var markup = @"class C<T>
+{
+    void M() { }
+    class N : C<int>
+    {
+        void Test()
+        {
+            $$ // M recommended and accessible
+        }
+
+        class NN
+        {
+            void Test2()
+            {
+                // M inaccessible and not recommended
+            }
+        }
+    }
+}";
+            VerifyItemExists(markup, "M");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersFromBaseOuterType3()
+        {
+            var markup = @"class C<T>
+{
+    void M() { }
+    class N : C<int>
+    {
+        void Test()
+        {
+            M(); // M recommended and accessible
+        }
+
+        class NN
+        {
+            void Test2()
+            {
+                $$ // M inaccessible and not recommended
+            }
+        }
+    }
+}";
+            VerifyItemIsAbsent(markup, "M");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersFromBaseOuterType4()
+        {
+            var markup = @"class C<T>
+{
+    void M() { }
+    class N : C<int>
+    {
+        void Test()
+        {
+            M(); // M recommended and accessible
+        }
+
+        class NN : N
+        {
+            void Test2()
+            {
+                $$ // M accessible and recommended.
+            }
+        }
+    }
+}";
+            VerifyItemExists(markup, "M");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersFromBaseOuterType5()
+        {
+            var markup = @"
+class D
+{
+    public void Q() { }
+}
+class C<T> : D
+{
+    class N
+    {
+        void Test()
+        {
+            $$
+        }
+    }
+}";
+            VerifyItemIsAbsent(markup, "Q");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InstanceMembersFromBaseOuterType6()
+        {
+            var markup = @"
+class Base<T>
+{
+    public int X;
+}
+
+class Derived : Base<int>
+{
+    class Nested
+    {
+        void Test()
+        {
+            $$
+        }
+    }
+}";
+            VerifyItemIsAbsent(markup, "X");
+        }
+
         [WorkItem(983367)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoTypeParametersDefinedInCrefs()
@@ -7300,7 +7437,7 @@ class Program
 
         [WorkItem(991466)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void DescriptionInAlaisedType()
+        public void DescriptionInAliasedType()
         {
             var markup = @"
 using IAlias = IFoo;

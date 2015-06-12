@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class SourceFileResolver : SourceReferenceResolver
     {
-        public static readonly SourceFileResolver Default = new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: null);
+        public static SourceFileResolver Default { get; } = new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
         private readonly string _baseDirectory;
         private readonly ImmutableArray<string> _searchPaths;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
             if (baseDirectory != null && PathUtilities.GetPathKind(baseDirectory) != PathKind.Absolute)
             {
-                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory");
+                throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(baseDirectory));
             }
 
             _baseDirectory = baseDirectory;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         public override Stream OpenRead(string resolvedPath)
         {
-            CompilerPathUtilities.RequireAbsolutePath(resolvedPath, "resolvedPath");
+            CompilerPathUtilities.RequireAbsolutePath(resolvedPath, nameof(resolvedPath));
             return FileUtilities.OpenRead(resolvedPath);
         }
 

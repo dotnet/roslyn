@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Determines if the Unicode character can be the starting character of a Visual Basic identifier.
         ''' </summary>
         ''' <param name="c">The Unicode character.</param>
-        ''' <returns>A boolean value set to True if character can be part of a valid start charcater in an identifier.</returns>
+        ''' <returns>A boolean value set to True if character can be part of a valid start character in an identifier.</returns>
         Public Shared Function IsIdentifierStartCharacter(
             c As Char
         ) As Boolean

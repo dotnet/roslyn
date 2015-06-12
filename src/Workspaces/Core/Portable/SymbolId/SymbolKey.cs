@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -225,8 +226,10 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0; i < refKinds.Length; i++)
             {
+                // The ref-out distinction is not interesting for SymbolKey because you can't overload
+                // based on the difference.
                 var parameter = parameters[i];
-                if (refKinds[i] != parameters[i].RefKind)
+                if (!SymbolEquivalenceComparer.AreRefKindsEquivalent(refKinds[i], parameter.RefKind, distinguishRefFromOut: false))
                 {
                     return false;
                 }

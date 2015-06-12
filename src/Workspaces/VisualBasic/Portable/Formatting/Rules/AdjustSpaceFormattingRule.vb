@@ -255,6 +255,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' * [member access dot without expression]
             If previousToken.Kind <> SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsMemberAccessDotWithoutExpression(currentToken) Then
+
+                ' label:     .X
+                If previousToken.Kind = SyntaxKind.ColonToken AndAlso TypeOf previousToken.Parent Is LabelStatementSyntax Then
+                    Return FormattingOperations.CreateAdjustSpacesOperation(1, AdjustSpacesOption.DynamicSpaceToIndentationIfOnSingleLine)
+                End If
+
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
@@ -303,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Case SyntaxKind.DotToken
                     Dim space = If(previousToken.Kind = SyntaxKind.CallKeyword OrElse
-                                   previousToken.Kind = SyntaxKind.KeyKeyword, 1, 0)
+                               previousToken.Kind = SyntaxKind.KeyKeyword, 1, 0)
                     Return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End Select
 

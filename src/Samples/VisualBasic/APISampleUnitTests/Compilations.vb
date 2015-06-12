@@ -28,8 +28,8 @@ End Module
             "calc.dll",
             options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
             syntaxTrees:={tree},
-            references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly),
-                        MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)})
+            references:={MetadataReference.CreateFromFile(GetType(Object).Assembly.Location),
+                        MetadataReference.CreateFromFile(GetType(CompilerServices.StandardModuleAttribute).Assembly.Location)})
 
         Dim compiledAssembly As Assembly
         Using stream = New MemoryStream()
@@ -58,8 +58,8 @@ End Module
         Dim comp = VisualBasicCompilation.Create(
             "program.exe",
             syntaxTrees:={tree},
-            references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly),
-                        MetadataReference.CreateFromAssembly(GetType(CompilerServices.StandardModuleAttribute).Assembly)})
+            references:={MetadataReference.CreateFromFile(GetType(Object).Assembly.Location),
+                        MetadataReference.CreateFromFile(GetType(CompilerServices.StandardModuleAttribute).Assembly.Location)})
 
         Dim errorsAndWarnings = comp.GetDiagnostics()
         Assert.AreEqual(1, errorsAndWarnings.Count())

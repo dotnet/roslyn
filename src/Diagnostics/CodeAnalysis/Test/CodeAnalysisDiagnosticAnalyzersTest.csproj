@@ -91,9 +91,12 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="FixAnalyzers\FixerWithFixAllAnalyzerTests.cs" />
     <Compile Include="InternalImplementationOnlyTests.cs" />
     <Compile Include="MetaAnalyzers\DoNotStorePerCompilationDataOntoFieldsRuleTests.cs" />
     <Compile Include="MetaAnalyzers\InvalidReportDiagnosticRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\StartActionWithOnlyEndActionRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\StartActionWithNoRegisteredActionsRuleTests.cs" />
     <Compile Include="MetaAnalyzers\InvalidSyntaxKindTypeArgumentRuleTests.cs" />
     <Compile Include="MetaAnalyzers\UnsupportedSymbolKindArgumentRuleTests.cs" />
     <Compile Include="MetaAnalyzers\MissingKindArgumentToRegisterActionRuleTests.cs" />

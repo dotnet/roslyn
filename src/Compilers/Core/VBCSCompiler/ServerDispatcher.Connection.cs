@@ -14,6 +14,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal partial class ServerDispatcher
     {
+        internal struct ConnectionData
+        {
+            public readonly CompletionReason CompletionReason;
+            public readonly TimeSpan? KeepAlive;
+
+            public ConnectionData(CompletionReason completionReason, TimeSpan? keepAlive = null)
+            {
+                CompletionReason = completionReason;
+                KeepAlive = keepAlive;
+            }
+        }
+
         internal enum CompletionReason
         {
             /// <summary>
@@ -52,9 +64,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 _handler = handler;
             }
 
-            public async Task<CompletionReason> ServeConnection(TaskCompletionSource<TimeSpan?> timeoutCompletionSource = null, CancellationToken cancellationToken = default(CancellationToken))
+            public async Task<ConnectionData> ServeConnection(CancellationToken cancellationToken = default(CancellationToken))
             {
-                timeoutCompletionSource = timeoutCompletionSource ?? new TaskCompletionSource<TimeSpan?>();
                 try
                 {
                     BuildRequest request;
@@ -67,10 +78,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     catch (Exception e)
                     {
                         LogException(e, "Error reading build request.");
-                        return CompletionReason.CompilationNotStarted;
+                        return new ConnectionData(CompletionReason.CompilationNotStarted);
                     }
 
-                    CheckForNewKeepAlive(request, timeoutCompletionSource);
+                    var keepAlive = CheckForNewKeepAlive(request);
 
                     // Kick off both the compilation and a task to monitor the pipe for closing.  
                     var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -105,15 +116,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     // Begin the tear down of the Task which didn't complete. 
                     buildCts.Cancel();
-                    return reason;
+                    return new ConnectionData(reason, keepAlive);
                 }
                 finally
                 {
                     _clientConnection.Close();
-
-                    // Ensure that the task is completed.  If the code previously added a real result this will
-                    // simply be a nop.
-                    timeoutCompletionSource.TrySetResult(null);
                 }
             }
 
@@ -121,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             /// Check the request arguments for a new keep alive time. If one is present,
             /// set the server timer to the new time.
             /// </summary>
-            private void CheckForNewKeepAlive(BuildRequest request, TaskCompletionSource<TimeSpan?> timeoutCompletionSource)
+            private TimeSpan? CheckForNewKeepAlive(BuildRequest request)
             {
                 TimeSpan? timeout = null;
                 foreach (var arg in request.Arguments)
@@ -140,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
 
-                timeoutCompletionSource.SetResult(timeout);
+                return timeout;
             }
 
             private Task<BuildResponse> ServeBuildRequest(BuildRequest request, CancellationToken cancellationToken)

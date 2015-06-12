@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 int localSignatureToken;
                 GetContextState(runtime, "C", out typeBlocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
                 GetContextState(runtime, "C.M", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
-                int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+                uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
 
                 // Compile expression with type context with all modules.
                 var context = EvaluationContext.CreateTypeContext(

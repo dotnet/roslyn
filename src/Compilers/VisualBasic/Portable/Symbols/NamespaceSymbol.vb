@@ -530,7 +530,7 @@ Done:
         End Sub
 
         ''' <summary>
-        ''' This method is overriden by RetargetingNamespaceSymbol and allows it to delegate majority of the work 
+        ''' This method is overridden by RetargetingNamespaceSymbol and allows it to delegate majority of the work 
         ''' to the underlying namespace symbol, but still retarget method symbols before they are added to the map
         ''' of extension methods.
         ''' </summary>

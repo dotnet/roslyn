@@ -563,8 +563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
-                    ' Good result from derived class shouldn't be overriden by an ambiguous result from the base class.
-                    ' Ambiguous result from derived class shouldn't be overriden by a good result from the base class.
+                    ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
+                    ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
             ElseIf other.Kind > Me.Kind Then
@@ -603,8 +603,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
-                    ' Good result from derived class shouldn't be overriden by an ambiguous result from the base class.
-                    ' Ambiguous result from derived class shouldn't be overriden by a good result from the base class.
+                    ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
+                    ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
             ElseIf other.Kind > Me.Kind Then
@@ -694,13 +694,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If otherLost Then
                         Return
                     End If
+
+                    ' As a special case, we allow conflicting enum members imported from
+                    ' metadata If they have the same value, and take the first
+                    If _symList.Count = 1 AndAlso ambiguous = 1 AndAlso AreEquivalentEnumConstants(_symList(0), other.Symbol) Then
+                        Return
+                    End If
                 End If
 
             ElseIf imported Then
                 Debug.Assert(Me.IsAmbiguous)
                 ' This function guarantees that accessibility of all ambiguous symbols,
                 ' even those dropped from the list by MergeAmbiguous is the same.
-                ' So, it is sufficient to test accesibility of the only symbol we have. 
+                ' So, it is sufficient to test Accessibility of the only symbol we have. 
                 Dim accessibilityCmp As Integer = CompareAccessibilityOfSymbolsConflictingInSameContainer(_symList(0), other.Symbol)
 
                 If accessibilityCmp < 0 Then
@@ -721,6 +727,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We were unable to resolve the ambiguity
             MergeAmbiguous(other, s_ambiguousInTypeError)
         End Sub
+
+        Private Function AreEquivalentEnumConstants(symbol1 As Symbol, symbol2 As Symbol) As Boolean
+            Debug.Assert(symbol1.ContainingType = symbol2.ContainingType)
+            If symbol1.Kind <> SymbolKind.Field OrElse symbol2.Kind <> SymbolKind.Field OrElse symbol1.ContainingType.TypeKind <> TypeKind.Enum Then
+                Return False
+            End If
+            Dim f1 = DirectCast(symbol1, FieldSymbol)
+            Dim f2 = DirectCast(symbol2, FieldSymbol)
+            Return f1.ConstantValue IsNot Nothing AndAlso f1.ConstantValue.Equals(f2.ConstantValue)
+        End Function
 
         ' Create a diagnostic for ambiguous names in the same type. This is typically not possible from source, only 
         ' from metadata.

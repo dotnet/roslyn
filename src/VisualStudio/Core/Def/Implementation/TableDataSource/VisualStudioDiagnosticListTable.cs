@@ -144,13 +144,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 SetStableState(errorSource.IsInProgress);
 
-                errorSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
                 errorSource.BuildStarted += OnBuildStarted;
             }
 
             private void OnBuildStarted(object sender, bool started)
             {
                 SetStableState(started);
+
+                if (!started)
+                {
+                    OnDataAddedOrChanged(this, _buildErrorSource.GetBuildErrors().Length);
+                }
             }
 
             private void SetStableState(bool started)
@@ -162,11 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string DisplayName => ServicesVSResources.BuildTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => IdentifierString;
-
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
-            {
-                OnDataAddedOrChanged(this, _buildErrorSource.GetBuildErrors().Length);
-            }
 
             protected void OnDataAddedOrChanged(object key, int itemCount)
             {
@@ -287,8 +286,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetProjectName(_factory._workspace, item.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
-                                content = GetProjectGuid(_factory._workspace, item.ProjectId);
-                                return ProjectGuid != Guid.Empty;
+                                var guid = GetProjectGuid(_factory._workspace, item.ProjectId);
+                                content = guid;
+                                return guid != Guid.Empty;
                             default:
                                 content = null;
                                 return false;

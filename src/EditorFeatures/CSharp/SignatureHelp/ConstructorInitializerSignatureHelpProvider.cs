@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.SignatureHelp;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
 {
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 return null;
             }
 
-            var semanticModel = await document.GetCSharpSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (within == null)
             {

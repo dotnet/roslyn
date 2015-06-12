@@ -690,7 +690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' we need to be handle cases when one maps to the other (and vice versa).
                     ' This is handled in GetCorresondingLambdaBody.
                     '
-                    ' On the other hand we don't want map accross lambda body boundaries.
+                    ' On the other hand we don't want map across lambda body boundaries.
                     ' Hence we use a label for ERVs in Items distinct from one for Keys of a GroupBy clause.
                     '
                     ' Node that the nodeOpt is Nothing only when comparing nodes for value equality.

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             this.Focus();
             textView.Caret.IsHidden = false;
-            ShouldReceiveKeyboardNavigation = true;
+            ShouldReceiveKeyboardNavigation = false;
         }
 
         private void ShowCaret()

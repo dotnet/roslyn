@@ -242,10 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         // NOTE: Dev11 does not add synthesized static constructors to this map,
                                         //       but adds synthesized instance constructors, Roslyn adds both
                                         var method = (MethodSymbol)member;
-                                        if (!method.IsDefaultValueTypeConstructor())
+                                        if (method.IsDefaultValueTypeConstructor() ||
+                                            method.IsPartialMethod() && (object)method.PartialImplementationPart == null)
                                         {
-                                            AddSymbolLocation(result, member);
+                                            break;
                                         }
+
+                                        AddSymbolLocation(result, member);
                                         break;
 
                                     case SymbolKind.Property:

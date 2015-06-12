@@ -1292,12 +1292,12 @@ lReportErrorOnTwoTokens:
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Dim overriden = Me.OverriddenMethod
+                Dim overridden = Me.OverriddenMethod
 
-                If overriden Is Nothing Then
+                If overridden Is Nothing Then
                     Return ImmutableArray(Of CustomModifier).Empty
                 Else
-                    Return overriden.ReturnTypeCustomModifiers
+                    Return overridden.ReturnTypeCustomModifiers
                 End If
             End Get
         End Property
@@ -1826,7 +1826,7 @@ lReportErrorOnTwoTokens:
         Public Overrides ReadOnly Property IsExternalMethod As Boolean
             Get
                 ' External methods are:
-                ' 1) Declare Subs and Declare Functions: IsExternalMethod overriden in SourceDeclareMethodSymbol
+                ' 1) Declare Subs and Declare Functions: IsExternalMethod overridden in SourceDeclareMethodSymbol
                 ' 2) methods marked by DllImportAttribute
                 ' 3) methods marked by MethodImplAttribute: Runtime and InternalCall methods should not have a body emitted
 

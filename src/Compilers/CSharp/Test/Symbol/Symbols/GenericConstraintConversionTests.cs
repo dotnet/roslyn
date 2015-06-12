@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -825,7 +825,7 @@ class B : A<int>
         /// <summary>
         /// 6.1.10
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void EmitImplicitConversions()
         {
             var source =
@@ -888,7 +888,7 @@ class C<T1, T2, T3, T4, T5, T6>
         /// <summary>
         /// 6.2.7
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void EmitExplicitConversions()
         {
             var source =

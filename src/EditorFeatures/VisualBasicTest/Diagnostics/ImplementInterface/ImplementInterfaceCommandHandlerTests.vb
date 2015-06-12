@@ -471,7 +471,7 @@ End Class
 
         <WorkItem(545867)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-        Public Sub TestMultipleImplemetationWithCaseDifference()
+        Public Sub TestMultipleImplementationWithCaseDifference()
             Dim code = <text>
 Interface IA
     Sub foo()

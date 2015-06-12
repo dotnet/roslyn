@@ -752,7 +752,7 @@ End Class
 Enum EI : AI : BI : End Enum
 Enum EB As Byte : AB : BB : End Enum
 
-Class ClazzWithEnumes
+Class ClazzWithEnums
     Public Const F1 = CType(CType(CType(CType(Nothing, EI), Object), Object), Object)
     Public Const F3 = CType(CType(CType(CType(Nothing, EB), Object), Object), Object)
 End Class
@@ -1410,9 +1410,8 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
 
         <Fact, WorkItem(1028, "https://github.com/dotnet/roslyn/issues/1028")>
         Public Sub WriteOfReadonlySharedMemberOfAnotherInstantiation01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
-   <compilation>
-       <file name="a.vb">
+            Dim source = <compilation>
+                             <file name="a.vb">
 Class Foo(Of T)
     Shared Sub New()
         Foo(Of Integer).X = 12
@@ -1424,16 +1423,20 @@ Class Foo(Of T)
     Public Shared ReadOnly X As Integer
     Public Shared ReadOnly Property Y As Integer = 0
 End Class
-        </file>
-   </compilation>, TestOptions.ReleaseDll)
+                             </file>
+                         </compilation>
 
-            CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
+            Dim standardCompilation = CompilationUtils.CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim strictCompilation = CompilationUtils.CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll,
+                                                                                   parseOptions:=TestOptions.Regular.WithStrictFeature())
+
+            CompilationUtils.AssertTheseDiagnostics(standardCompilation, <expected>
 BC30526: Property 'Y' is 'ReadOnly'.
         Foo(Of Integer).Y = 12
         ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation.WithStrictMode(), <expected>
+            CompilationUtils.AssertTheseDiagnostics(strictCompilation, <expected>
 BC30064: 'ReadOnly' variable cannot be the target of an assignment.
         Foo(Of Integer).X = 12
         ~~~~~~~~~~~~~~~~~
@@ -1489,7 +1492,7 @@ String
 
         Private Shared Function GetMember(sources As Xml.Linq.XElement, fieldName As String, Optional typeName As String = "C") As Symbol
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
-            Dim symbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers(typeName).Single.GetMembers(fieldName).Single(), symbol)
+            Dim symbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers(typeName).Single.GetMembers(fieldName).Single(), Symbol)
             Return symbol
         End Function
 

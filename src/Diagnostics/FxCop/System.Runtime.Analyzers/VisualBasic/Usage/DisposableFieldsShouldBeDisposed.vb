@@ -34,8 +34,8 @@ Namespace System.Runtime.Analyzers
                         If methodSymbol IsNot Nothing AndAlso
                             (methodSymbol.MetadataName = Dispose OrElse methodSymbol.ExplicitInterfaceImplementations.Any(Function(m) m.MetadataName = Dispose)) Then
 
-                            Dim recieverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type
-                            If (recieverType.Inherits(_disposableType)) Then
+                            Dim receiverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression).Type
+                            If (receiverType.Inherits(_disposableType)) Then
                                 Dim exp = RemoveParentheses(memberAccess.Expression)
                                 ' this can be simply x.Dispose() where x is the field.
                                 Dim fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(exp).Symbol, IFieldSymbol)

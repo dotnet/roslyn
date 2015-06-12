@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 
                         Assert.Equal(expectedText, actualText);
                     },
-                    (ClassifiableDeferredContent classifable) =>
+                    (ClassifiableDeferredContent classifiable) =>
                     {
-                        var actualContent = classifable.ClassifiableContent;
+                        var actualContent = classifiable.ClassifiableContent;
                         Assert.Equal(expectedText, actualContent.GetFullText());
                         ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
                     });

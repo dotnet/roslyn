@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' This class represents a simple customizable hash method to hash the string constants
     ''' corresponding to the case clause string constants.
     ''' If we have at least one string type select case statement in a module that needs a
-    ''' hash table based jump table, we generate a single public string hash sythesized
+    ''' hash table based jump table, we generate a single public string hash synthesized
     ''' method (SynthesizedStringSwitchHashMethod) that is shared across the module.
     ''' We must emit this function into the compiler generated PrivateImplementationDetails class.
     ''' </summary>

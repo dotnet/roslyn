@@ -636,8 +636,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxReplacer.InsertTriviaInList(Me, originalTrivia, newTrivia, insertBefore)
         End Function
 
-        Protected Overrides Function NormalizeWhitespaceCore(indentation As String, elasticTrivia As Boolean) As SyntaxNode
-            Return SyntaxNormalizer.Normalize(Me, indentation, elasticTrivia, useDefaultCasing:=False)
+        Protected Overrides Function NormalizeWhitespaceCore(indentation As String, eol As String, elasticTrivia As Boolean) As SyntaxNode
+            Return SyntaxNormalizer.Normalize(Me, indentation, eol, elasticTrivia, useDefaultCasing:=False)
         End Function
 #End Region
 

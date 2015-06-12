@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         ForEachArray = 6,
 
         /// <summary>
-        /// Local variables that store upper bound of multi-dimentional array, for each dimension (C#, VB?).
+        /// Local variables that store upper bound of multi-dimensional array, for each dimension (C#, VB?).
         /// </summary>
         ForEachArrayLimit = 7,
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
         /// The value assigned to the variable needs to be preserved when remapping the IL offset from old method body 
         /// to new method body during EnC. If the awaiter expression is contained in an active statement and the 
         /// containing MoveNext method changes the debugger finds the next sequence point that follows the await expression 
-        /// and transfers the execution to the new method version. This sequenec point is placed by the compiler at 
+        /// and transfers the execution to the new method version. This sequence point is placed by the compiler at 
         /// the immediately after the stloc instruction that stores the awaiter object to this variable.
         /// The subsequent ldloc then restores it in the new method version.
         /// 
@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis
 
         public static bool MustSurviveStateMachineSuspension(this SynthesizedLocalKind kind)
         {
-            // Conditional branch discriminator doens't need to be hoisted. 
-            // Its lifetime never spans accross await expression/yield statement.
+            // Conditional branch discriminator doesn't need to be hoisted. 
+            // Its lifetime never spans across await expression/yield statement.
             // This is true even in cases like:
             // 
             //   if (F(arg, await G())) { ... }

@@ -6801,7 +6801,7 @@ class MyDerived : MyClass
                 //         Foo<int>.Y = 2;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
                 );
-            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithStrictMode()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (5,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
                 //         Foo<int>.X = 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "Foo<int>.X").WithLocation(5, 9),
@@ -8052,6 +8052,34 @@ public class MemberInitializerTest
                 //     private Foo f = new Foo{i = i, s = s};
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "s").WithArguments("MemberInitializerTest.s").WithLocation(12, 40));
         }
+
+        [Fact]
+        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializerr()
+        {
+            CreateCompilationWithMscorlib(
+@"
+class TestClass
+{
+    int P1 { get; }
+
+    int y = (P1 = 123);
+    int y1 { get; } = (P1 = 123);
+
+    static void Main()
+    {
+    }
+}
+")
+            .VerifyDiagnostics(
+    // (6,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'TestClass.P1'
+    //     int y = (P1 = 123);
+    Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(6, 14),
+    // (7,24): error CS0236: A field initializer cannot reference the non-static field, method, or property 'TestClass.P1'
+    //     int y1 { get; } = (P1 = 123);
+    Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(7, 24)
+                );
+        }
+
 
         [Fact]
         public void CS0242ERR_VoidError()
@@ -16637,7 +16665,7 @@ interface IInv<T> { }";
         /// -------------------------+----------------------+------------------------+--------------------
         /// Type Param Covariant     | Covariant            | Contravariant          | Invariant
         /// Type Param Contravariant | Contravariant        | Covariant              | Invariant
-        /// Type Param Invariant     | Error                | Error                  | Invarian
+        /// Type Param Invariant     | Error                | Error                  | Invariant
         /// </summary>
         [Fact]
         public void CS1961ERR_UnexpectedVariance_Generics()
@@ -19361,7 +19389,7 @@ ftftftft";
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
             this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithStrictMode()).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]

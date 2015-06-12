@@ -1891,16 +1891,16 @@ ProduceBoundNode:
                     End If
                 Next
 
-                Dim diagnosticCoumpoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
+                Dim diagnosticCompoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
                 If delegateSymbol Is Nothing Then
                     ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
-                                                        New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
+                                                        New CompoundDiagnosticInfo(diagnosticCompoundInfos)))
                 Else
                     ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
                                                         CustomSymbolDisplayFormatter.DelegateSignature(delegateSymbol),
-                                                        New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
+                                                        New CompoundDiagnosticInfo(diagnosticCompoundInfos)))
                 End If
             End If
 
@@ -3021,7 +3021,7 @@ ProduceBoundNode:
 
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
-            Dim defaultConstantValue As ConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
+            Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
             If defaultConstantValue IsNot Nothing Then
 
                 If callerInfoOpt IsNot Nothing AndAlso

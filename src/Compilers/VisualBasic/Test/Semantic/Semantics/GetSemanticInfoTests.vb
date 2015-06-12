@@ -3962,7 +3962,7 @@ BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature com
 
         <WorkItem(541271, "DevDiv")>
         <Fact()>
-        Public Sub GetDiagnsoticsSubInsideAnInterfaceWithoutMscorlibRef()
+        Public Sub GetDiagnosticsSubInsideAnInterfaceWithoutMscorlibRef()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -3989,7 +3989,7 @@ BC30002: Type 'System.Void' is not defined.
 
         <WorkItem(541304, "DevDiv")>
         <Fact()>
-        Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart()
+        Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4023,7 +4023,7 @@ BC30201: Expression expected.
         End Sub
 
         <Fact()>
-        Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart2()
+        Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart2()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

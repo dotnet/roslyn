@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' recursively including those from nested namespaces. The row ids must be grouped by the 
         ''' fully-qualified namespace name in case-sensitive manner. There could be multiple groups 
         ''' for each fully-qualified namespace name. The groups must be sorted by their key in 
-        ''' case-insensensitive manner. Empty string must be used as namespace name for types 
+        ''' case-insensitive manner. Empty string must be used as namespace name for types 
         ''' immediately contained within Global namespace. Therefore, all types in THIS namespace, 
         ''' if any, must be in several first IGroupings.
         ''' </param>

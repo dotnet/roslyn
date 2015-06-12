@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             _waitIndicator.Wait(
                 title: EditorFeaturesResources.DocumentationComment,
-                message: EditorFeaturesResources.InsertingDocumentationCommen,
+                message: EditorFeaturesResources.InsertingDocumentationComment,
                 allowCancel: true,
                 action: w =>
                 {

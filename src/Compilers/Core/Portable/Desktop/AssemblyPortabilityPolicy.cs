@@ -7,7 +7,7 @@ using System.Xml;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Policy to be used when matching assembly reference to an assembly definition accross platforms.
+    /// Policy to be used when matching assembly reference to an assembly definition across platforms.
     /// </summary>
     internal struct AssemblyPortabilityPolicy : IEquatable<AssemblyPortabilityPolicy>
     {

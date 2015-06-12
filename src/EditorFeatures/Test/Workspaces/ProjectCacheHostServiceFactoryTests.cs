@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Putting cacheService.CreateStrongReference in a using statement
             // creates a temporary local that isn't collected in Debug builds
             // Wrapping it in a lambda allows it to get collected.
-            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService();
+            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService(null, int.MaxValue);
             var projectId = ProjectId.CreateNewId();
             var owner = new Owner();
             var instance = new ObjectReference();
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [Fact]
         public void TestImplicitCacheKeepsObjectAlive1()
         {
-            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService();
+            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService(null, int.MaxValue);
             var instance = new object();
             var weak = new WeakReference(instance);
             cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
@@ -112,6 +114,72 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CollectGarbage();
             Assert.True(weak.IsAlive);
             GC.KeepAlive(cacheService);
+        }
+
+        [Fact]
+        public void TestImplicitCacheMonitoring()
+        {
+            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService(null, 10, forceCleanup: true);
+            var weak = PutObjectInImplicitCache(cacheService);
+
+            var timeout = TimeSpan.FromSeconds(10);
+            var current = DateTime.UtcNow;
+            do
+            {
+                Thread.Sleep(100);
+                CollectGarbage();
+
+                if (DateTime.UtcNow - current > timeout)
+                {
+                    break;
+                }
+            }
+            while (weak.IsAlive);
+
+            Assert.False(weak.IsAlive);
+            GC.KeepAlive(cacheService);
+        }
+
+        private static WeakReference PutObjectInImplicitCache(ProjectCacheHostServiceFactory.ProjectCacheService cacheService)
+        {
+            var instance = new object();
+            var weak = new WeakReference(instance);
+
+            cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
+            instance = null;
+
+            return weak;
+        }
+
+        [Fact]
+        public void TestP2PReference()
+        {
+            var workspace = new AdhocWorkspace();
+
+            var project1 = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp);
+            var project2 = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Default, "proj2", "proj2", LanguageNames.CSharp, projectReferences: SpecializedCollections.SingletonEnumerable(new ProjectReference(project1.Id)));
+            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default, projects: new ProjectInfo[] { project1, project2 });
+
+            var solution = workspace.AddSolution(solutionInfo);
+
+            var instance = new object();
+            var weak = new WeakReference(instance);
+
+            var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService(workspace, int.MaxValue);
+            using (var cache = cacheService.EnableCaching(project2.Id))
+            {
+                cacheService.CacheObjectIfCachingEnabledForKey(project1.Id, (object)null, instance);
+                instance = null;
+                solution = null;
+
+                workspace.OnProjectRemoved(project1.Id);
+                workspace.OnProjectRemoved(project2.Id);
+            }
+
+            // make sure p2p reference doesnt go to implicit cache
+            CollectGarbage();
+            Assert.False(weak.IsAlive);
+
         }
 
         [Fact]
@@ -126,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weakFirst = new WeakReference(compilations[0]);
             var weakLast = new WeakReference(compilations[compilations.Count - 1]);
 
-            var cache = new ProjectCacheHostServiceFactory.ProjectCacheService();
+            var cache = new ProjectCacheHostServiceFactory.ProjectCacheService(null, int.MaxValue);
             for (int i = 0; i < ProjectCacheHostServiceFactory.ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
@@ -150,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weak3 = new WeakReference(comp3);
             var weak1 = new WeakReference(comp1);
 
-            var cache = new ProjectCacheHostServiceFactory.ProjectCacheService();
+            var cache = new ProjectCacheHostServiceFactory.ProjectCacheService(null, int.MaxValue);
             var key = ProjectId.CreateNewId();
             var owner = new object();
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp1);
@@ -177,9 +245,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static void CollectGarbage()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            for (var i = 0; i < 10; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
         }
     }
 }

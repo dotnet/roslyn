@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct VersionStamp : IEquatable<VersionStamp>, IObjectWritable
     {
+        public static VersionStamp Default => default(VersionStamp);
+
         private const int GlobalVersionMarker = -1;
         private const int InitialGlobalVersion = 10000;
 
@@ -67,9 +69,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new instance of a version stamp based on the specified DateTime.
         /// </summary>
-        public static VersionStamp Create(DateTime utcIimeLastModified)
+        public static VersionStamp Create(DateTime utcTimeLastModified)
         {
-            return new VersionStamp(utcIimeLastModified);
+            return new VersionStamp(utcTimeLastModified);
         }
 
         /// <summary>
@@ -232,8 +234,6 @@ namespace Microsoft.CodeAnalysis
 
             return globalVersion;
         }
-
-        public static readonly VersionStamp Default = default(VersionStamp);
 
         /// <summary>
         /// True if this VersionStamp is newer than the specified one.

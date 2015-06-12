@@ -364,7 +364,7 @@ End Class</text>.Value
             TestInMethod("Dim i As String() : Dim j = i([|Foo()|])", "System.Int32")
         End Sub
 
-        <Fact(Skip:="529480")>
+        <Fact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCollectionInitializer1()
@@ -372,13 +372,13 @@ End Class</text>.Value
 
 Class C
   Sub M()
-    Dim l = New List(Of Integer)() { [|Foo()|] }
+    Dim l = New List(Of Integer)() From { [|Foo()|] }
   End Sub
 End Class</text>.Value
-            Test(text, "Integer")
+            Test(text, "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact(Skip:="529480")>
+        <Fact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCollectionInitializer2()
@@ -387,13 +387,13 @@ Imports System.Collections.Generic
 
 Class C
   Sub M()
-    Dim l = New Dictionary(Of Integer, String)() { { [|Foo()|], String.Empty } }
+    Dim l = New Dictionary(Of Integer, String)() From  { { [|Foo()|], String.Empty } }
   End Sub
 End Class</text>.Value
-            Test(text, "Integer")
+            Test(text, "System.Int32", testPosition:=False)
         End Sub
 
-        <Fact(Skip:="529480")>
+        <Fact>
         <WorkItem(529480)>
         <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         Public Sub TestCollectionInitializer3()
@@ -402,10 +402,86 @@ Imports System.Collections.Generic
 
 Class C
   Sub M()
-    Dim l = new Dictionary(Of Integer, String)() { { 0, [|Foo()|] } }
+    Dim l = new Dictionary(Of Integer, String)() From { { 0, [|Foo()|] } }
   End Sub
 End Class</text>.Value
-            Test(text, "String")
+            Test(text, "System.String", testPosition:=False)
+        End Sub
+
+        <Fact>
+        <WorkItem(529480)>
+        <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Sub TestCustomCollectionInitializerAddMethod1()
+            Dim text = <text>
+Class C
+    Implements System.Collections.IEnumerable
+
+    Sub M()
+        Dim x = New C From {[|a|]}
+    End Sub
+
+    Sub Add(i As Integer)
+    End Sub
+
+    Sub Add(s As String, b As Boolean)
+    End Sub
+
+    Public Function GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
+        Throw New NotImplementedException()
+    End Function
+End Class
+                       </text>.Value
+            Test(text, "System.Int32", testPosition:=False)
+        End Sub
+
+        <Fact>
+        <WorkItem(529480)>
+        <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Sub TestCustomCollectionInitializerAddMethod2()
+            Dim text = <text>
+Class C
+    Implements System.Collections.IEnumerable
+
+    Sub M()
+        Dim x = New C From {{"test", [|b|]}}
+    End Sub
+
+    Sub Add(i As Integer)
+    End Sub
+
+    Sub Add(s As String, b As Boolean)
+    End Sub
+
+    Public Function GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
+        Throw New NotImplementedException()
+    End Function
+End Class</text>.Value
+            Test(text, "System.Boolean", testPosition:=False)
+        End Sub
+
+        <Fact>
+        <WorkItem(529480)>
+        <Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Sub TestCustomCollectionInitializerAddMethod3()
+            Dim text = <text>
+Class C
+    Implements System.Collections.IEnumerable
+
+    Sub M()
+        Dim x = New C From {{[|s|], True}}
+    End Sub
+
+    Sub Add(i As Integer)
+    End Sub
+
+    Sub Add(s As String, b As Boolean)
+    End Sub
+
+    Public Function GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
+        Throw New NotImplementedException()
+    End Function
+End Class</text>.Value
+            Test(text, "System.String", testPosition:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>

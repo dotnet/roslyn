@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim insertionText = GetInsertionText(name, symbol, isAfterDot, isWithinAsyncMethod)
-            Dim displayText = GetDiplayText(name, symbol)
+            Dim displayText = GetDisplayText(name, symbol)
 
             If symbol.GetArity() > 0 Then
                 Const UnicodeEllipsis = ChrW(&H2026)
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
-        Public Function GetDiplayText(name As String, symbol As ISymbol) As String
+        Public Function GetDisplayText(name As String, symbol As ISymbol) As String
             If symbol.IsConstructor() Then
                 name = "New"
             ElseIf symbol.GetArity() > 0 Then

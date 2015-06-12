@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 {
                     get
                     {
-                        return PredefinedBuildTools.Compiler;
+                        return PredefinedBuildTools.Live;
                     }
                 }
 

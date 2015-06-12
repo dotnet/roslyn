@@ -9,11 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+namespace Microsoft.AnalyzerPowerPack.Usage
 {
     /// <summary>
     /// CA2229: Implement serialization constructors.
@@ -37,17 +38,17 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
             var diagnostic = context.Diagnostics.Single();
 
-            // There was no constructor and so the diagnostic was on the type. Generate a serlialization ctor.
+            // There was no constructor and so the diagnostic was on the type. Generate a serialization ctor.
             if (symbol.Kind == SymbolKind.NamedType)
             {
-                context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.ImplementSerializationConstructor,
+                context.RegisterCodeFix(new MyCodeAction(AnalyzerPowerPackFixersResources.ImplementSerializationConstructor,
                      async ct => await GenerateConstructor(context.Document, node, symbol, ct).ConfigureAwait(false)),
                 diagnostic);
             }
             // There is a serialization constructor but with incorrect accessibility. Set that right.
             else if (symbol.Kind == SymbolKind.Method)
             {
-                context.RegisterCodeFix(new MyCodeAction(FxCopFixersResources.ImplementSerializationConstructor,
+                context.RegisterCodeFix(new MyCodeAction(AnalyzerPowerPackFixersResources.ImplementSerializationConstructor,
                      async ct => await SetAccessibility(context.Document, node, symbol, ct).ConfigureAwait(false)),
                 diagnostic);
             }
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                                     statements: new[] { throwStatement });
 
                 docEditor.AddMember(declaration, ctorDecl);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             return editor.GetChangedDocuments().First();
         }
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             {
                 var newAccessibility = methodSymbol.ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
                 docEditor.SetAccessibility(declaration, newAccessibility);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             return editor.GetChangedDocuments().First();
         }

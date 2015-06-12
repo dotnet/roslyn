@@ -138,7 +138,7 @@ interface I2
 }
 interface I3 : I1, I2
 {
-    // testing ambigous
+    // testing ambiguous
     int Test(string arg = nameof(M), string arg2 = ""N"" /* nameof(N) */);
 }
 ";

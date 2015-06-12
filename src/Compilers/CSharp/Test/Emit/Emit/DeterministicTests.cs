@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var compilation = CreateCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithFeatures(ImmutableArray.Create("deterministic")));
+                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe),
+                parseOptions: TestOptions.Regular.WithDeterministicFeature());
 
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, emitters: TestEmitters.CCI, validator: (a, eo) =>
@@ -35,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         private ImmutableArray<byte> EmitDeterministic(string source, Platform platform, bool debug)
         {
             var options = (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithPlatform(platform);
-            options = options.WithFeatures((new[] { "dEtErmInIstIc" }).AsImmutable()); // expect case-insensitivity
 
-            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options);
+            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options,
+                parseOptions: TestOptions.Regular.WithFeature("dEtErmInIstIc", "true")); // expect case-insensitivity
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             return compilation.EmitToArray();
         }
 
-        [Fact(Skip = "926"), WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
+        [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
         public void Simple()
         {
             var source =
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             AssertEx.Equal(result3, result4);
         }
 
-        [Fact(Skip = "926"), WorkItem(926)]
+        [Fact, WorkItem(926)]
         public void CompareAllBytesEmitted_Debug()
         {
             var source =
@@ -114,11 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void TestWriteOnlyStream()
         {
-            var tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }");
+            var tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }",
+                TestOptions.Regular.WithDeterministicFeature());
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
-                                                       new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) },
-                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithFeatures((new[] { "deterministic" }).AsImmutable()));
+                                                       new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
+                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
         }

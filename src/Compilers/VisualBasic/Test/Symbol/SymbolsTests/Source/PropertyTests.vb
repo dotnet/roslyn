@@ -642,7 +642,7 @@ End Class
 
         ' Set method must specify type if property type is not Object.
         <Fact>
-        Public Sub SetParameterExplictTypeForNonObjectProperty()
+        Public Sub SetParameterExplicitTypeForNonObjectProperty()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="c.vb">
@@ -8003,7 +8003,7 @@ End Class
         ''' (i.e., set_ for dll, put_ for winmdobj)
         ''' </summary>
         <Fact()>
-        Public Sub WinRtPropertyAccesorNameConflict()
+        Public Sub WinRtPropertyAccessorNameConflict()
             Dim libSrc =
                 <compilation>
                     <file name="c.vb">

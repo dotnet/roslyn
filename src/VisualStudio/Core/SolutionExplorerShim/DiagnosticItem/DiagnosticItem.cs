@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -87,9 +88,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             if (!string.IsNullOrWhiteSpace(Descriptor.Id))
             {
+                string language;
+                string projectType;
+                _analyzerItem.AnalyzersFolder.Workspace.GetLanguageAndProjectType(_analyzerItem.AnalyzersFolder.ProjectId, out language, out projectType);
+
                 // we use message format here since we don't have actual instance of diagnostic here. 
                 // (which means we do not have a message)
-                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo));
+                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo), language, projectType);
             }
 
             return null;
@@ -143,101 +148,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             var ruleSetDocument = XDocument.Load(pathToRuleSet);
 
-            var newAction = ConvertReportDiagnosticToAction(value);
-
-            var analyzerID = _analyzerItem.AnalyzerReference.Display;
-            var rules = FindOrCreateRulesElement(ruleSetDocument, analyzerID);
-            var rule = FindOrCreateRuleElement(rules, _descriptor.Id);
-
-            if (value == ReportDiagnostic.Default)
-            {
-                // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
-                // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
-                // severity (so far as the 'current' ruleset file is concerened - the rule's effective severity
-                // could still be decided by other factors such as project settings or a base ruleset file).
-                rule.Remove();
-            }
-            else
-            {
-                rule.Attribute("Action").Value = newAction;
-            }
-
-            var allMatchingRules = ruleSetDocument.Root
-                                       .Descendants("Rule")
-                                       .Where(r => r.Attribute("Id").Value.Equals(_descriptor.Id));
-
-            foreach (var matchingRule in allMatchingRules)
-            {
-                if (value == ReportDiagnostic.Default)
-                {
-                    // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
-                    // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
-                    // severity (so far as the 'current' ruleset file is concerened - the rule's effective severity
-                    // could still be decided by other factors such as project settings or a base ruleset file).
-                    matchingRule.Remove();
-                }
-                else
-                {
-                    matchingRule.Attribute("Action").Value = newAction;
-                }
-            }
+            ruleSetDocument.SetSeverity(_analyzerItem.AnalyzerReference.Display, _descriptor.Id, value);
 
             ruleSetDocument.Save(pathToRuleSet);
-        }
-
-        private XElement FindOrCreateRuleElement(XElement rules, string id)
-        {
-            var ruleElement = rules
-                              .Elements("Rule")
-                              .FirstOrDefault(r => r.Attribute("Id").Value.Equals(id));
-
-            if (ruleElement == null)
-            {
-                ruleElement = new XElement("Rule",
-                                    new XAttribute("Id", id),
-                                    new XAttribute("Action", "Warning"));
-                rules.Add(ruleElement);
-            }
-
-            return ruleElement;
-        }
-
-        private XElement FindOrCreateRulesElement(XDocument ruleSetDocument, string analyzerID)
-        {
-            var rulesElement = ruleSetDocument.Root
-                               .Elements("Rules")
-                               .FirstOrDefault(r => r.Attribute("AnalyzerId").Value.Equals(analyzerID));
-
-            if (rulesElement == null)
-            {
-                rulesElement = new XElement("Rules",
-                                    new XAttribute("AnalyzerId", analyzerID),
-                                    new XAttribute("RuleNamespace", analyzerID));
-                ruleSetDocument.Root.Add(rulesElement);
-            }
-
-            return rulesElement;
-        }
-
-        private static string ConvertReportDiagnosticToAction(ReportDiagnostic value)
-        {
-            switch (value)
-            {
-                case ReportDiagnostic.Default:
-                    return "Default";
-                case ReportDiagnostic.Error:
-                    return "Error";
-                case ReportDiagnostic.Warn:
-                    return "Warning";
-                case ReportDiagnostic.Info:
-                    return "Info";
-                case ReportDiagnostic.Hidden:
-                    return "Hidden";
-                case ReportDiagnostic.Suppress:
-                    return "None";
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
         }
     }
 }

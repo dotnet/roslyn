@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
         /// <returns>True on success, false if a compilation error occurred or the compilation doesn't contain any code or declarations.</returns>
         /// <remarks>
         /// Reflection.Emit doesn't support all metadata constructs. If an unsupported construct is
-        /// encountered a metadata writer that procudes uncollectible code is used instead. This is
+        /// encountered a metadata writer that produces uncollectible code is used instead. This is
         /// indicated by 
         /// <see cref="ReflectionEmitResult.IsUncollectible"/> flag on the result. 
         /// 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
         /// REPL). All the snippets can be compiled into a single module as long as the types being
         /// emitted have unique names. Reusing a single module/assembly reduces memory overhead. On
         /// the other hand, collectible assemblies are units of collection. Defining too many
-        /// unrelated types in a single assemly might prevent the unused types to be collected. 
+        /// unrelated types in a single assembly might prevent the unused types to be collected. 
         /// 
         /// No need to provide a name override when using Reflection.Emit, since the assembly already
         /// exists.

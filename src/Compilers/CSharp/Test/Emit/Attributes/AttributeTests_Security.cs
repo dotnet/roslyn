@@ -1434,21 +1434,21 @@ public class MyClass
             string source = @"
 using System.Security.Permissions;
 
-[PermissionSetAttribute(SecurityAction.Deny, File = @""NonExistantFile.xml"")]
+[PermissionSetAttribute(SecurityAction.Deny, File = @""NonExistentFile.xml"")]
 [PermissionSetAttribute(SecurityAction.Deny, File = null)]
 public class MyClass 
 {
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
-                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistantFile.xml")]
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                 // (5,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
-                // (4,46): error CS7056: Unable to resolve file path 'NonExistantFile.xml' specified for the named argument 'File' for PermissionSet attribute
-                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistantFile.xml")]
-                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, @"File = @""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File").WithLocation(4, 46),
+                // (4,46): error CS7056: Unable to resolve file path 'NonExistentFile.xml' specified for the named argument 'File' for PermissionSet attribute
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
+                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, @"File = @""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(4, 46),
                 // (5,46): error CS7056: Unable to resolve file path '<null>' specified for the named argument 'File' for PermissionSet attribute
                 // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
                 Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, "File = null").WithArguments("<null>", "File").WithLocation(5, 46));

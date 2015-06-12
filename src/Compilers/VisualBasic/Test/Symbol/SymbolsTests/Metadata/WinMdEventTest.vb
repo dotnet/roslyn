@@ -211,7 +211,7 @@ End Class
                     _eventLibRef},
                 options:=TestOptions.ReleaseModule).EmitToImageReference()
 
-            Dim verifer = CompileAndVerifyOnWin8Only(
+            Dim verifier = CompileAndVerifyOnWin8Only(
                 src,
                 allReferences:={
                     MscorlibRef_v4_0_30316_17626,
@@ -220,7 +220,7 @@ End Class
                     _eventLibRef,
                     dynamicCommonRef},
                 emitters:=TestEmitters.RefEmitBug)
-            verifer.VerifyIL("C.Main", <![CDATA[
+            verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
   .maxstack  4

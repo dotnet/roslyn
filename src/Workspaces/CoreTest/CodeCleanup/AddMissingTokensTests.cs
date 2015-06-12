@@ -2655,7 +2655,7 @@ Class Test
 
         ' Without End Function
         Dim last = Async Function() As Task(Of Integer)    ' Trailing
-        End Function
+                   End Function
 End Class";
 
             Verify(code, expected);
@@ -2723,7 +2723,7 @@ Class Test
 
         ' Without End Function
         Dim last = Iterator Function() As IEnumerable(Of Integer)    ' Trailing
-        End Function
+                   End Function
 End Class";
 
             Verify(code, expected);

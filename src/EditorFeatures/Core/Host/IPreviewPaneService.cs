@@ -6,6 +6,8 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 {
     internal interface IPreviewPaneService : IWorkspaceService
     {
-        object GetPreviewPane(Diagnostic diagnostic, object previewContent);
+        // TODO: we should move this API to use DiagnosticData not Diagnostic. but it required too much changes so for now,
+        //       I created an issue https://github.com/dotnet/roslyn/issues/3111 and making this API to accept bunch of extra information.
+        object GetPreviewPane(Diagnostic diagnostic, string language, string projectType, object previewContent);
     }
 }

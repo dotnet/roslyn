@@ -187,7 +187,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<GenericNameSyntax>(_g.GenericName("x", _g.IdentifierName("y")), "x<y>");
             VerifySyntax<GenericNameSyntax>(_g.GenericName("x", _g.IdentifierName("y"), _g.IdentifierName("z")), "x<y, z>");
 
-            // convert identifer name into generic name
+            // convert identifier name into generic name
             VerifySyntax<GenericNameSyntax>(_g.WithTypeArguments(_g.IdentifierName("x"), _g.IdentifierName("y")), "x<y>");
 
             // convert qualified name into qualified generic name
@@ -1299,7 +1299,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 _g.AddAttributes(
                     _g.ParameterDeclaration("p", _g.IdentifierName("t")),
                     _g.Attribute("a")),
-                "[a]\r\nt p");
+                "[a] t p");
 
             VerifySyntax<CompilationUnitSyntax>(
                 _g.AddAttributes(

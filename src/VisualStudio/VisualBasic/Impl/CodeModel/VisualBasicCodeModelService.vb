@@ -460,7 +460,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         ''' as immediate children. For example, a namespace would return the namespaces And types within.
         ''' However, if <paramref name="recursive"/> Is true, members with the namespaces And types would
         ''' also be returned.</param>
-        ''' <param name="logicalFields">If true, field declarations are broken into their respecitive declarators.
+        ''' <param name="logicalFields">If true, field declarations are broken into their respective declarators.
         ''' For example, the field "Dim x, y As Integer" would return two nodes, one for x And one for y in place
         ''' of the field.</param>
         ''' <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
@@ -520,6 +520,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End Get
         End Property
 
+        ''' <summary>
+        ''' Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement(Of T)(SyntaxNode)"/>
+        ''' </summary>
         Public Overloads Overrides Function CreateInternalCodeElement(
             state As CodeModelState,
             fileCodeModel As FileCodeModel,
@@ -4124,13 +4127,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function GetExternalTypeExtenderNames() As String()
-            Return {ExtenderNames.ExtenalLocation}
+            Return {ExtenderNames.ExternalLocation}
         End Function
 
         Public Overrides Function GetExternalTypeExtender(name As String, externalLocation As String) As Object
             Debug.Assert(externalLocation IsNot Nothing)
 
-            If StringComparer.OrdinalIgnoreCase.Equals(name, ExtenderNames.ExtenalLocation) Then
+            If StringComparer.OrdinalIgnoreCase.Equals(name, ExtenderNames.ExternalLocation) Then
                 Return CodeTypeLocationExtender.Create(externalLocation)
             End If
 

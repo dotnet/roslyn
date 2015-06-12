@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns the Type character for a given syntax token.  This returns type character for Indentifiers or Integer, Floating Point or Decimal Literals.
+        ''' Returns the Type character for a given syntax token.  This returns type character for Identifiers or Integer, Floating Point or Decimal Literals.
         ''' Examples: Dim a$   or Dim l1 = 1L
         ''' </summary>
         ''' <param name="token">The source SyntaxToken.</param>
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Gets the DirectiveTriviaSyntax items for a specified SytaxNode with optional filtering.
+        ''' Gets the DirectiveTriviaSyntax items for a specified SyntaxNode with optional filtering.
         ''' </summary>
         ''' <param name="node">The source SyntaxNode.</param>
         ''' <param name="filter">The optional DirectiveTrivia Syntax filter predicate.</param>
@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Gets the root CompilationUnitSytax for a specified SyntaxTree.
+        ''' Gets the root CompilationUnitSyntax for a specified SyntaxTree.
         ''' </summary>
         ''' <param name="tree">The source SyntaxTree.</param>
         ''' <returns>A CompilationUnitSyntax.</returns>
@@ -648,7 +648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionStrict property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>The OptionStrict object for the semantic model instance OptionStrict property, otherise Null if semantic model is Null. </returns>
+        ''' <returns>The OptionStrict object for the semantic model instance OptionStrict property, otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionStrict(semanticModel As SemanticModel) As OptionStrict
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionInfer property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>A boolean values, for the semantic model instance OptionInfer property. otherise Null if semantic model is Null. </returns>
+        ''' <returns>A boolean values, for the semantic model instance OptionInfer property. otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionInfer(semanticModel As SemanticModel) As Boolean
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionExplicit property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>A boolean values, for the semantic model instance OptionExplicit property. otherise Null if semantic model is Null. </returns>
+        ''' <returns>A boolean values, for the semantic model instance OptionExplicit property. otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionExplicit(semanticModel As SemanticModel) As Boolean
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -693,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionCompareText property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>A boolean values, for the semantic model instance OptionCompareText property. otherise Null if semantic model is Null. </returns>
+        ''' <returns>A boolean values, for the semantic model instance OptionCompareText property. otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionCompareText(semanticModel As SemanticModel) As Boolean
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -840,7 +840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the corresponding PropertySymbol for a specified FieldInitializerSyntax.
         ''' </summary>
         ''' <param name="semanticModel">A source semantic model.</param>
-        ''' <param name="fieldInitializerSyntax">A fieldInitizerSyntax object.</param>
+        ''' <param name="fieldInitializerSyntax">A FieldInitializerSyntax object.</param>
         ''' <param name="cancellationToken">A cancellation token.</param>
         ''' <returns>A PropertySymbol. Null if semantic model is null.</returns>
         <Extension>

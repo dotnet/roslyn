@@ -164,6 +164,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true);
             }
 
+            public void VerifyLocalSignature(
+                string qualifiedMethodName,
+                string expectedSignature,
+                [CallerLineNumber]int callerLine = 0,
+                [CallerFilePath]string callerPath = null)
+            {
+                var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
+                string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            }
+
             private CompilationVerifier VerifyILImpl(
                 string qualifiedMethodName,
                 string expectedIL,

@@ -481,7 +481,7 @@ namespace Roslyn.Utilities
             using (TakeLock(CancellationToken.None))
             {
                 // Now try to remove it. It's possible that requests may already be null. You could
-                // imagine that cancellation was requested, but before we could aquire the lock
+                // imagine that cancellation was requested, but before we could acquire the lock
                 // here the computation completed and the entire CompleteWithTask synchronized
                 // block ran. In that case, the requests collection may already be null, or it
                 // (even scarier!) may have been replaced with another collection because another

@@ -38,8 +38,8 @@
       <Name>Workspaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\SystemRuntimeAnalyzers.csproj">
-      <Project>{d8762a0a-3832-47be-bcf6-8b1060be6b28}</Project>
-      <Name>CodeAnalysisDiagnosticAnalyzers</Name>
+      <Project>{baa0fee4-93c8-46f0-bb36-53a6053776c8}</Project>
+      <Name>SystemRuntimeAnalyzers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

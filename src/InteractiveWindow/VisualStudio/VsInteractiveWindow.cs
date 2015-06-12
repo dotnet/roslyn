@@ -4,6 +4,7 @@
 // #define DUMP_COMMANDS
 
 using System;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio;
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     /// VsInteractiveWindowEditorsFactoryService which handles all of the mapping of VS commands to API calls
     /// on the interactive window.
     /// </summary>
+    [Guid(Guids.InteractiveToolWindowIdString)]
     internal sealed class VsInteractiveWindow : ToolWindowPane, IVsFindTarget, IOleCommandTarget, IVsInteractiveWindow
     {
         private readonly IComponentModel _componentModel;
@@ -72,7 +74,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     out frame
                 )
             );
-
+            var guid = GetType().GUID;
+            ErrorHandler.ThrowOnFailure(frame.SetGuidProperty((int)__VSFPROPID.VSFPROPID_CmdUIGuid, ref guid));
             this.Frame = frame;
         }
 
