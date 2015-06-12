@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 
 Imports System.Text
@@ -94,7 +94,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _curPage = p
             Return p
         End Function
-
+        ''' <summary>
+        ''' Peep at the next index position, if it is reachable pass the char back
+        ''' </summary>
+        ''' <param name="ch">(Passback) the character at that location if possible.
+        ''' If not the contents are left unaffected.
+        ''' NOTE: This is different behaviour to the Try methods that always return a value.
+        ''' </param>
+        ''' <returns>Returns True if it possible to peek at, otherwise returns False.</returns>
+        Friend Function Peep(ByRef ch As Char) As Boolean
+            ' CanGet()
+            If _lineBufferOffset >= _bufferLen Then
+                Return False
+            End If
+            ' Peek()
+            Dim page = _curPage
+            Dim position = _lineBufferOffset
+            ch = page._arr(position And s_PAGE_MASK)
+            If page._pageStart <> (position And s_NOT_PAGE_MASK) Then
+                page = GetPage(position)
+                ch = page._arr(position And s_PAGE_MASK)
+            End If
+            Return True
+        End Function
         ' PERF CRITICAL
         Private Function Peek(skip As Integer) As Char
             Debug.Assert(CanGet(skip))

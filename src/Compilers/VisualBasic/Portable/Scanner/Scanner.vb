@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 
 Option Compare Binary
@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly _sbPooled As PooledStringBuilder = PooledStringBuilder.GetInstance
         ''' <summary>
-        ''' DO NOT USE DIRECTLY. 
-        ''' USE GetScratch() 
+        ''' DO NOT USE DIRECTLY.
+        ''' USE GetScratch()
         ''' </summary>
         Private ReadOnly _sb As StringBuilder = _sbPooled.Builder
         Private ReadOnly _triviaListPool As New SyntaxListPool
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetScratch() As StringBuilder
             ' the normal pattern is that we clean scratch after use.
-            ' hitting this assert very likely indicates that you 
+            ' hitting this assert very likely indicates that you
             ' did not release scratch content or worse trying to use
             ' scratch in two places at a time.
             Debug.Assert(_sb.Length = 0, "trying to use dirty buffer?")
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetNextToken(Optional allowLeadingMultilineTrivia As Boolean = False) As SyntaxToken
-            ' Use quick token scanning to see if we can scan a token quickly. 
+            ' Use quick token scanning to see if we can scan a token quickly.
             Dim quickToken = QuickScanToken(allowLeadingMultilineTrivia)
 
             If quickToken.Succeeded Then
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Gets a chunk of text as a DisabledCode node.
         ''' </summary>
         ''' <param name="span">The range of text.</param>
-        ''' <returns>The DisabledCode node.</returns> 
+        ''' <returns>The DisabledCode node.</returns>
         Friend Function GetDisabledTextAt(span As TextSpan) As SyntaxTrivia
             If span.Start >= 0 AndAlso span.End <= _bufferLen Then
                 Return SyntaxFactory.DisabledTextTrivia(GetTextNotInterned(span.Start, span.Length))
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Accept a CR/LF pair or either in isolation as a newline.
         ''' Make it a statement separator
-        ''' </summary>        
+        ''' </summary>
         Private Function ScanNewlineAsStatementTerminator(startCharacter As Char, precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             If _lineBufferOffset < _endOfTerminatorTrivia Then
                 Dim width = LengthOfLineBreak(startCharacter)
@@ -830,7 +830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             '   3. colon followed by new line -> colon terminator + new line terminator
             '   4. new line followed by new line -> new line terminator + new line terminator
 
-            ' Case 3 is required to parse single line if's and numeric labels. 
+            ' Case 3 is required to parse single line if's and numeric labels.
             ' Case 4 is required to limit explicit line continuations to single new line
 
             If CanGet() Then
@@ -995,8 +995,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #End Region
 
-        ' at this point it is very likely that we are located at 
-        ' the beginning of a token        
+        ' at this point it is very likely that we are located at
+        ' the beginning of a token
         Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
 
             If Not CanGet() Then
@@ -1232,7 +1232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Nothing
         End Function
 
-        ' REVIEW: Is there a better way to reuse this logic? 
+        ' REVIEW: Is there a better way to reuse this logic?
         Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
             Select Case ch
                 Case CARRIAGE_RETURN, LINE_FEED
@@ -1465,7 +1465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanRightAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
-            Debug.Assert(CanGet)  ' > 
+            Debug.Assert(CanGet)  ' >
             Debug.Assert(Peek() = ">"c OrElse Peek() = FULLWIDTH_GREATER_THAN_SIGN)
 
             Dim length As Integer = 1
@@ -1492,7 +1492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanLeftAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean, scanTrailingTrivia As ScanTriviaFunc) As SyntaxToken
-            Debug.Assert(CanGet)  ' < 
+            Debug.Assert(CanGet)  ' <
             Debug.Assert(Peek() = "<"c OrElse Peek() = FULLWIDTH_LESS_THAN_SIGN)
 
             Dim length As Integer = 1
@@ -1568,10 +1568,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim c = spelling(0)
             If SyntaxFacts.IsIdentifierStartCharacter(c) Then
-                '  SPEC: ... Visual Basic identifiers conform to the Unicode Standard Annex 15 with one 
-                '  SPEC:     exception: identifiers may begin with an underscore (connector) character. 
-                '  SPEC:     If an identifier begins with an underscore, it must contain at least one other 
-                '  SPEC:     valid identifier character to disambiguate it from a line continuation. 
+                '  SPEC: ... Visual Basic identifiers conform to the Unicode Standard Annex 15 with one
+                '  SPEC:     exception: identifiers may begin with an underscore (connector) character.
+                '  SPEC:     If an identifier begins with an underscore, it must contain at least one other
+                '  SPEC:     valid identifier character to disambiguate it from a line continuation.
                 If IsConnectorPunctuation(c) AndAlso spellingLength = 1 Then
                     Return False
                 End If
@@ -2103,7 +2103,7 @@ FullWidthRepeat2:
                 End If
 
             Else
-                ' // Copy the text of the literal to deal with fullwidth 
+                ' // Copy the text of the literal to deal with fullwidth
                 Dim scratch = GetScratch()
                 For i = 0 To literalWithoutTypeChar - 1
                     Dim curCh = Peek(i)
@@ -2170,10 +2170,9 @@ FullWidthRepeat2:
             Return Decimal.TryParse(text, NumberStyles.AllowDecimalPoint Or NumberStyles.AllowExponent, CultureInfo.InvariantCulture, value)
         End Function
 
-        Private Function ScanIntLiteral(
-               ByRef ReturnValue As Integer,
-               ByRef Here As Integer
-           ) As Boolean
+        Private Function ScanIntLiteral(ByRef ReturnValue As Integer,
+                                          ByRef Here As Integer
+                                        ) As Boolean
             Debug.Assert(Here >= 0)
 
             If Not CanGet(Here) Then
@@ -2215,18 +2214,10 @@ FullWidthRepeat2:
             Debug.Assert(IsHash(Peek()))
 
             Dim Here As Integer = 1 'skip #
-            Dim FirstValue As Integer
-            Dim YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue As Integer
-            Dim HaveDateValue As Boolean = False
-            Dim HaveYearValue As Boolean = False
-            Dim HaveTimeValue As Boolean = False
-            Dim HaveMinuteValue As Boolean = False
-            Dim HaveSecondValue As Boolean = False
-            Dim HaveAM As Boolean = False
-            Dim HavePM As Boolean = False
+            Dim FirstValue, YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue As Integer
+            Dim HaveDateValue, HaveYearValue, HaveTimeValue, HaveMinuteValue, HaveSecondValue, HaveAM, HavePM As Boolean
             Dim DateIsInvalid As Boolean = False
             Dim YearIsTwoDigits As Boolean = False
-            Dim DaysToMonth As Integer() = Nothing
 
             ' // Unfortunately, we can't fall back on OLE Automation's date parsing because
             ' // they don't have the same range as the URT's DateTime class
@@ -2237,79 +2228,48 @@ FullWidthRepeat2:
             Dim FirstValueStart As Integer = Here
 
             ' // The first thing has to be an integer, although it's not clear what it is yet
-            If Not ScanIntLiteral(FirstValue, Here) Then
-                Return Nothing
-
-            End If
-
+            If Not ScanIntLiteral(FirstValue, Here) Then Return Nothing
             ' // If we see a /, then it's a date
+            Dim c As Char
 
-            If CanGet(Here) AndAlso IsDateSeparatorCharacter(Peek(Here)) Then
+            If Peep(Here, c) AndAlso IsDateSeparatorCharacter(c) Then
                 Dim FirstDateSeparator As Integer = Here
 
                 ' // We've got a date
                 HaveDateValue = True
                 Here += 1
 
-                ' Is the first value a year? 
+                ' Is the first value a year?
                 ' It is a year if it consists of exactly 4 digits.
                 ' Condition below uses 5 because we already skipped the separator.
                 If Here - FirstValueStart = 5 Then
                     HaveYearValue = True
                     YearValue = FirstValue
-
                     ' // We have to have a month value
-                    If Not ScanIntLiteral(MonthValue, Here) Then
-                        GoTo baddate
-                    End If
-
+                    If Not ScanIntLiteral(MonthValue, Here) Then GoTo baddate
                     ' Do we have a day value?
-                    If CanGet(Here) AndAlso IsDateSeparatorCharacter(Peek(Here)) Then
+                    If Peep(Here, c) AndAlso IsDateSeparatorCharacter(c) Then
                         ' // Check to see they used a consistent separator
-
-                        If Peek(Here) <> Peek(FirstDateSeparator) Then
-                            GoTo baddate
-                        End If
-
+                        If c <> Peek(FirstDateSeparator) Then GoTo baddate
                         ' // Yes.
                         Here += 1
-
-                        If Not ScanIntLiteral(DayValue, Here) Then
-                            GoTo baddate
-                        End If
+                        If Not ScanIntLiteral(DayValue, Here) Then GoTo baddate
                     End If
                 Else
                     ' First value is month
                     MonthValue = FirstValue
-
                     ' // We have to have a day value
-
-                    If Not ScanIntLiteral(DayValue, Here) Then
-                        GoTo baddate
-                    End If
-
+                    If Not ScanIntLiteral(DayValue, Here) Then GoTo baddate
                     ' // Do we have a year value?
-
-                    If CanGet(Here) AndAlso IsDateSeparatorCharacter(Peek(Here)) Then
+                    If Peep(Here, c) AndAlso IsDateSeparatorCharacter(c) Then
                         ' // Check to see they used a consistent separator
-
-                        If Peek(Here) <> Peek(FirstDateSeparator) Then
-                            GoTo baddate
-                        End If
-
+                        If c <> Peek(FirstDateSeparator) Then GoTo baddate
                         ' // Yes.
                         HaveYearValue = True
                         Here += 1
-
                         Dim YearStart As Integer = Here
-
-                        If Not ScanIntLiteral(YearValue, Here) Then
-                            GoTo baddate
-                        End If
-
-                        If (Here - YearStart) = 2 Then
-                            YearIsTwoDigits = True
-                        End If
+                        If Not ScanIntLiteral(YearValue, Here) Then GoTo baddate
+                        If (Here - YearStart) = 2 Then YearIsTwoDigits = True
                     End If
                 End If
 
@@ -2332,28 +2292,18 @@ FullWidthRepeat2:
 
             If HaveTimeValue Then
                 ' // Do we see a :?
-
-                If CanGet(Here) AndAlso IsColon(Peek(Here)) Then
+                If Peep(Here, c) AndAlso IsColon(c) Then
                     Here += 1
-
                     ' // Now let's get the minute value
-
-                    If Not ScanIntLiteral(MinuteValue, Here) Then
-                        GoTo baddate
-                    End If
-
+                    If Not ScanIntLiteral(MinuteValue, Here) Then GoTo baddate
                     HaveMinuteValue = True
 
                     ' // Do we have a second value?
-
-                    If CanGet(Here) AndAlso IsColon(Peek(Here)) Then
+                    If Peep(Here, c) AndAlso IsColon(c) Then
                         ' // Yes.
                         HaveSecondValue = True
                         Here += 1
-
-                        If Not ScanIntLiteral(SecondValue, Here) Then
-                            GoTo baddate
-                        End If
+                        If Not ScanIntLiteral(SecondValue, Here) Then GoTo baddate
                     End If
                 End If
 
@@ -2361,27 +2311,17 @@ FullWidthRepeat2:
 
                 ' // Check AM/PM
 
-                If CanGet(Here) Then
-                    If Peek(Here) = "A"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
-                        Peek(Here) = "a"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_A Then
-
+                If Peep(Here, c) Then
+                    If c.IsFrom("A"c, FULLWIDTH_LATIN_CAPITAL_LETTER_A, "a"c, FULLWIDTH_LATIN_SMALL_LETTER_A) Then
                         HaveAM = True
                         Here += 1
-
-                    ElseIf Peek(Here) = "P"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
-                           Peek(Here) = "p"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_P Then
-
+                    ElseIf c.IsFrom("P"c, FULLWIDTH_LATIN_CAPITAL_LETTER_P, "p"c, FULLWIDTH_LATIN_SMALL_LETTER_P) Then
                         HavePM = True
                         Here += 1
-
                     End If
-
-                    If CanGet(Here) AndAlso (HaveAM OrElse HavePM) Then
-                        If Peek(Here) = "M"c OrElse Peek(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
-                           Peek(Here) = "m"c OrElse Peek(Here) = FULLWIDTH_LATIN_SMALL_LETTER_M Then
-
+                    If Peep(Here, c) AndAlso (HaveAM OrElse HavePM) Then
+                        If c.IsFrom("M"c, FULLWIDTH_LATIN_CAPITAL_LETTER_M, "m"c, FULLWIDTH_LATIN_SMALL_LETTER_M) Then
                             Here = GetWhitespaceLength(Here + 1)
-
                         Else
                             GoTo baddate
                         End If
@@ -2390,126 +2330,21 @@ FullWidthRepeat2:
 
                 ' // If there's no minute/second value and no AM/PM, it's invalid
 
-                If Not HaveMinuteValue AndAlso Not HaveAM AndAlso Not HavePM Then
-                    GoTo baddate
-                End If
+                If Not HaveMinuteValue AndAlso Not HaveAM AndAlso Not HavePM Then GoTo baddate
             End If
-
-            If Not CanGet(Here) OrElse Not IsHash(Peek(Here)) Then
-                GoTo baddate
-            End If
-
+            If Not Peep(Here, c) OrElse Not IsHash(c) Then GoTo baddate
             Here += 1
-
-            ' // OK, now we've got all the values, let's see if we've got a valid date
-            If HaveDateValue Then
-                If MonthValue < 1 OrElse MonthValue > 12 Then
-                    DateIsInvalid = True
-                End If
-
-                ' // We'll check Days in a moment...
-
-                If Not HaveYearValue Then
-                    DateIsInvalid = True
-                    YearValue = 1
-                End If
-
-                ' // Check if not a leap year
-
-                If Not ((YearValue Mod 4 = 0) AndAlso (Not (YearValue Mod 100 = 0) OrElse (YearValue Mod 400 = 0))) Then
-                    DaysToMonth = DaysToMonth365
-                Else
-                    DaysToMonth = DaysToMonth366
-                End If
-
-                If DayValue < 1 OrElse
-                   (Not DateIsInvalid AndAlso DayValue > DaysToMonth(MonthValue) - DaysToMonth(MonthValue - 1)) Then
-
-                    DateIsInvalid = True
-                End If
-
-                If YearIsTwoDigits Then
-                    DateIsInvalid = True
-                End If
-
-                If YearValue < 1 OrElse YearValue > 9999 Then
-                    DateIsInvalid = True
-                End If
-
-            Else
-                MonthValue = 1
-                DayValue = 1
-                YearValue = 1
-                DaysToMonth = DaysToMonth365
-            End If
-
-            If HaveTimeValue Then
-                If HaveAM OrElse HavePM Then
-                    ' // 12-hour value
-
-                    If HourValue < 1 OrElse HourValue > 12 Then
-                        DateIsInvalid = True
-                    End If
-
-                    If HaveAM Then
-                        HourValue = HourValue Mod 12
-                    ElseIf HavePM Then
-                        HourValue = HourValue + 12
-
-                        If HourValue = 24 Then
-                            HourValue = 12
-                        End If
-                    End If
-
-                Else
-                    If HourValue < 0 OrElse HourValue > 23 Then
-                        DateIsInvalid = True
-                    End If
-                End If
-
-                If HaveMinuteValue Then
-                    If MinuteValue < 0 OrElse MinuteValue > 59 Then
-                        DateIsInvalid = True
-                    End If
-                Else
-                    MinuteValue = 0
-                End If
-
-                If HaveSecondValue Then
-                    If SecondValue < 0 OrElse SecondValue > 59 Then
-                        DateIsInvalid = True
-                    End If
-                Else
-                    SecondValue = 0
-                End If
-            Else
-                HourValue = 0
-                MinuteValue = 0
-                SecondValue = 0
-            End If
-
-            ' // Ok, we've got a valid value. Now make into an i8.
-
-            If Not DateIsInvalid Then
-                Dim DateTimeValue As New DateTime(YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue)
-                Return MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
-            Else
-                Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
-            End If
+            Return Validate_Date(precedingTrivia, Here, HaveSecondValue, HaveMinuteValue, HaveDateValue, HaveYearValue, HaveTimeValue,
+                                 YearIsTwoDigits, HaveAM, HavePM, MonthValue, YearValue, DayValue, HourValue, MinuteValue, SecondValue)
 
 baddate:
             ' // If we can find a closing #, then assume it's a malformed date,
             ' // otherwise, it's not a date
-
-            While CanGet(Here)
-                Dim ch As Char = Peek(Here)
-                If IsHash(ch) OrElse IsNewLine(ch) Then
-                    Exit While
-                End If
+            While Peep(Here, c) AndAlso Not (IsHash(c) OrElse IsNewLine(c))
                 Here += 1
             End While
 
-            If Not CanGet(Here) OrElse IsNewLine(Peek(Here)) Then
+            If Not Peep(Here, c) OrElse IsNewLine(c) Then
                 ' // No closing #
                 Return Nothing
             Else
@@ -2519,6 +2354,99 @@ baddate:
             End If
         End Function
 
+        Function Validate_Date(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode),
+                               here As Integer,
+                               HaveSecondValue As Boolean,
+                               HaveMinuteValue As Boolean,
+                               HaveDateValue As Boolean,
+                               HaveYearValue As Boolean,
+                               HaveTimeValue As Boolean,
+                               YearIsTwoDigits As Boolean,
+                               HaveAm As Boolean,
+                               HavePm As Boolean,
+                               MonthValue As Integer,
+                               YearValue As Integer,
+                               DayValue As Integer,
+                               HourValue As Integer,
+                               MinuteValue As Integer,
+                               SecondValue As Integer
+                               ) As SyntaxToken
+
+            Dim DaysToMonth As Integer() = Nothing
+
+            ' // OK, now we've got all the values, let's see if we've got a valid date
+            If HaveDateValue Then
+                If MonthValue < 1 OrElse MonthValue > 12 Then GoTo InvalidDate
+                ' // We'll check Days in a moment...
+                If Not HaveYearValue Then GoTo InvalidDate
+                ' // Check if not a leap year
+                If Not ((YearValue Mod 4 = 0) AndAlso (Not (YearValue Mod 100 = 0) OrElse (YearValue Mod 400 = 0))) Then
+                    DaysToMonth = DaysToMonth365
+                Else
+                    DaysToMonth = DaysToMonth366
+                End If
+                If DayValue < 1 OrElse (DayValue > DaysToMonth(MonthValue) - DaysToMonth(MonthValue - 1)) Then GoTo InvalidDate
+                If YearIsTwoDigits Then GoTo InvalidDate
+                If YearValue < 1 OrElse YearValue > 9999 Then GoTo InvalidDate
+            Else
+                MonthValue = 1
+                DayValue = 1
+                YearValue = 1
+                DaysToMonth = DaysToMonth365
+            End If
+
+            If Not Validate_Time(HaveTimeValue, HaveAm, HavePm, HourValue, HaveMinuteValue, MinuteValue, HaveSecondValue, SecondValue) Then GoTo InvalidDate
+
+            ' // Ok, we've got a valid value. Now make into an i8.
+
+            Dim DateTimeValue As New DateTime(YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue)
+            Return MakeDateLiteralToken(precedingTrivia, DateTimeValue, here)
+InvalidDate:
+            Return MakeBadToken(precedingTrivia, here, ERRID.ERR_InvalidDate)
+
+
+        End Function
+
+        Function Validate_Time(HaveTimeValue As Boolean,
+                          HaveAm As Boolean,
+                          HavePm As Boolean,
+                    ByRef HourValue As Integer,
+                          HaveMinuteValue As Boolean,
+                    ByRef MinuteValue As Integer,
+                          HaveSecondValue As Boolean,
+                    ByRef SecondValue As Integer) As Boolean
+            If HaveTimeValue Then
+                If HaveAm OrElse HavePm Then
+                    ' // 12-hour value
+                    If HourValue < 1 OrElse HourValue > 12 Then Return False
+                    If HaveAm Then
+                        HourValue = HourValue Mod 12
+                    ElseIf HavePm Then
+                        HourValue = HourValue + 12
+                        If HourValue = 24 Then HourValue = 12
+                    End If
+                Else
+                    If HourValue < 0 OrElse HourValue > 23 Then Return False
+                End If
+
+                If HaveMinuteValue Then
+                    If MinuteValue < 0 OrElse MinuteValue > 59 Then Return False
+                Else
+                    MinuteValue = 0
+                End If
+
+                If HaveSecondValue Then
+                    If SecondValue < 0 OrElse SecondValue > 59 Then Return False
+                Else
+                    SecondValue = 0
+                End If
+            Else
+                HourValue = 0
+                MinuteValue = 0
+                SecondValue = 0
+            End If
+            Return True
+        End Function
         Private Function ScanStringLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGet)
             Debug.Assert(IsDoubleQuote(Peek))
@@ -2598,7 +2526,7 @@ baddate:
             ' CC has trouble to prove this after the loop
             Debug.Assert(CanGet(length - 1))
 
-            '// The literal does not have an explicit termination.      
+            '// The literal does not have an explicit termination.
             ' DIFFERENT: here in IDE we used to report string token marked as unterminated
 
             Dim sp = GetTextNotInterned(length)
