@@ -163,7 +163,7 @@ EndClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void CA1052NoDiagnosticForNonStaticClassWithOperatorOverloadCSharp()
+        public void CA1052NoDiagnosticForNonStaticClassWithUserDefinedOperatorCSharp()
         {
             VerifyCSharp(@"
 public class C7
@@ -177,7 +177,7 @@ public class C7
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void CA1052NoDiagnosticForNonStaticClassWithOperatorOverloadBasic()
+        public void CA1052NoDiagnosticForNonStaticClassWithUserDefinedOperatorBasic()
         {
             VerifyBasic(@"
 Public Class B7
@@ -189,7 +189,7 @@ End Class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void CA1052NoDiagnosticForNonStaticClassWithStaticMethodAndOperatorOverloadCSharp()
+        public void CA1052NoDiagnosticForNonStaticClassWithStaticMethodAndUserDefinedOperatorCSharp()
         {
             VerifyCSharp(@"
 public class C8
@@ -205,7 +205,7 @@ public class C8
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void CA1052NoDiagnosticForNonStaticClassWithSharedMethodAndOperatorOverloadBasic()
+        public void CA1052NoDiagnosticForNonStaticClassWithSharedMethodAndUserDefinedOperatorBasic()
         {
             VerifyBasic(@"
 Public Class B8
@@ -515,6 +515,27 @@ public enum E20
 Public Enum EB20
     Unknown = 0
 End Enum
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1052NoDiagnosticOnClassWithOnlyDefaultConstructorCSharp()
+        {
+            VerifyCSharp(@"
+public class C21
+{
+    public C21() { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1052NoDiagnosticOnClassWithOnlyDefaultConstructorBasic()
+        {
+            VerifyBasic(@"
+Public Class B21
+    Public Sub New()
+    End Sub
 ");
         }
     }
