@@ -39,6 +39,16 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             description: RoslynDiagnosticsResources.RemoveDeletedApiDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        internal static readonly DiagnosticDescriptor ExposedNoninstantiableType = new DiagnosticDescriptor(
+            id: RoslynDiagnosticIds.ExposedNoninstantiableTypeRuleId,
+            title: RoslynDiagnosticsResources.ExposedNoninstantiableTypeTitle,
+            messageFormat: RoslynDiagnosticsResources.ExposedNoninstantiableTypeMessage,
+            category: "ApiDesign",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: RoslynDiagnosticsResources.ExposedNoninstantiableTypeDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
@@ -97,6 +107,23 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 HashSet<string> examinedPublicTypes = new HashSet<string>();
                 object lockObj = new object();
 
+                Dictionary<ITypeSymbol, bool> typeCanBeExtendedPubliclyMap = new Dictionary<ITypeSymbol, bool>();
+                Func<ITypeSymbol, bool> typeCanBeExtendedPublicly = type =>
+                {
+                    bool result;
+                    if (typeCanBeExtendedPubliclyMap.TryGetValue(type, out result)) return result;
+
+                    // a type can be extended publicly if (1) it isn't sealed, and (2) it has some constructor that is
+                    // not internal, private or protected&internal
+                    result = !type.IsSealed &&
+                        type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
+                            m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
+                        );
+
+                    typeCanBeExtendedPubliclyMap.Add(type, result);
+                    return result;
+                };
+
                 compilationContext.RegisterSymbolAction(symbolContext =>
                 {
                     var symbol = symbolContext.Symbol;
@@ -108,15 +135,15 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                         return;
                     }
 
-                    if (!IsPublicOrPublicProtected(symbol))
-                    {
-                        return;
-                    }
-
-                    string publicApiName = GetPublicApiName(symbol);
-
                     lock (lockObj)
                     {
+                        if (!IsPublicApi(symbol, typeCanBeExtendedPublicly))
+                        {
+                            return;
+                        }
+
+                        string publicApiName = GetPublicApiName(symbol);
+
                         examinedPublicTypes.Add(publicApiName);
 
                         if (!declaredPublicSymbols.Contains(publicApiName))
@@ -131,6 +158,21 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                             {
                                 symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
                             }
+                        }
+
+                        // Check if a public API is a constructor that makes this class instantiable, even though the base class
+                        // is not instantiable. That API pattern is not allowed, because it causes protected members of
+                        // the base class, which are not considered public APIs, to be exposed to subclasses of this class.
+                        if ((symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor &&
+                            symbol.ContainingType.TypeKind == TypeKind.Class &&
+                            !symbol.ContainingType.IsSealed &&
+                            symbol.ContainingType.BaseType != null &&
+                            IsPublicApi(symbol.ContainingType.BaseType, typeCanBeExtendedPublicly) &&
+                            !typeCanBeExtendedPublicly(symbol.ContainingType.BaseType))
+                        {
+                            var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+                            var propertyBag = ImmutableDictionary<string, string>.Empty;
+                            symbolContext.ReportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, symbol.Locations[0], propertyBag, errorMessageName));
                         }
                     }
                 },
@@ -231,32 +273,23 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return publicSymbols;
         }
 
-        private static bool IsPublic(ISymbol symbol)
+        private static bool IsPublicApi(ISymbol symbol, Func<ITypeSymbol, bool> typeCanBeExtendedPublicly)
         {
-            if (symbol.DeclaredAccessibility == Accessibility.Public)
+            switch (symbol.DeclaredAccessibility)
             {
-                return symbol.ContainingType == null || IsPublic(symbol.ContainingType);
+                case Accessibility.Public:
+                    return symbol.ContainingType == null || IsPublicApi(symbol.ContainingType, typeCanBeExtendedPublicly);
+                case Accessibility.Protected:
+                case Accessibility.ProtectedOrInternal:
+                    // Protected symbols must have parent types (that is, top-level protected
+                    // symbols are not allowed.
+                    return
+                        symbol.ContainingType != null &&
+                        IsPublicApi(symbol.ContainingType, typeCanBeExtendedPublicly) &&
+                        typeCanBeExtendedPublicly(symbol.ContainingType);
+                default:
+                    return false;
             }
-
-            return false;
-        }
-
-        private static bool IsPublicOrPublicProtected(ISymbol symbol)
-        {
-            if (symbol.DeclaredAccessibility == Accessibility.Public)
-            {
-                return symbol.ContainingType == null || IsPublic(symbol.ContainingType);
-            }
-
-            if (symbol.DeclaredAccessibility == Accessibility.Protected ||
-                symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
-            {
-                // Protected symbols must have parent types (that is, top-level protected
-                // symbols are not allowed.
-                return symbol.ContainingType != null && IsPublicOrPublicProtected(symbol.ContainingType);
-            }
-
-            return false;
         }
 
         private static AdditionalText TryGetPublicApiSpec(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken)

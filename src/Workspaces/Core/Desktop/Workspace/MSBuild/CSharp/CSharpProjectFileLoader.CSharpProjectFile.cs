@@ -155,18 +155,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var mr in compilerInputs.References)
                 {
-                    var filePath = GetDocumentFilePath(mr);
+                    if (!IsProjectReferenceOutputAssembly(mr))
+                    {
+                        var filePath = GetDocumentFilePath(mr);
 
-                    var aliases = GetAliases(mr);
-                    if (aliases.IsDefaultOrEmpty)
-                    {
-                        args.Add("/r:\"" + filePath + "\"");
-                    }
-                    else
-                    {
-                        foreach (var alias in aliases)
+                        var aliases = GetAliases(mr);
+                        if (aliases.IsDefaultOrEmpty)
                         {
-                            args.Add("/r:" + alias + "=\"" + filePath + "\"");
+                            args.Add("/r:\"" + filePath + "\"");
+                        }
+                        else
+                        {
+                            foreach (var alias in aliases)
+                            {
+                                args.Add("/r:" + alias + "=\"" + filePath + "\"");
+                            }
                         }
                     }
                 }
