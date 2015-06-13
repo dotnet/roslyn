@@ -496,5 +496,26 @@ End Class
 ",
                 BasicResult(2, 14, "B19"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1052NoDiagnosticAnEnumCSharp()
+        {
+            VerifyCSharp(@"
+public enum E20
+{
+    Unknown = 0
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1052NoDiagnosticAnEnumBasic()
+        {
+            VerifyBasic(@"
+Public Enum EB20
+    Unknown = 0
+End Enum
+");
+        }
     }
 }
