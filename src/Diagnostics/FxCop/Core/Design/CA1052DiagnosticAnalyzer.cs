@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -54,34 +56,91 @@ namespace Microsoft.AnalyzerPowerPack.Design
 
     internal static class CA1052Extensions
     {
+        /// <summary>
+        /// Returns a value indicating whether the specified symbol is a static
+        /// holder type.
+        /// </summary>
+        /// <param name="symbol">
+        /// The symbol being examined.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <paramref name="symbol"/> is a static holder type;
+        /// otherwise <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        /// A symbol is a static holder type if it is a class with at least one
+        /// "qualifying member" (<see cref="IsQualifyingMember(ISymbol)"/>) and no
+        /// "disqualifying members" (<see cref="IsDisqualifyingMember(ISymbol)"/>).
+        /// </remarks>
         internal static bool IsStaticHolderType(this INamedTypeSymbol symbol)
         {
+            if (!symbol.IsReferenceType)
+            {
+                return false;
+            }
+
             List<ISymbol> declaredMembers = symbol.GetMembers()
                 .Where(m => !m.IsImplicitlyDeclared)
                 .ToList();
 
-            // Don't consider a class with no declared members to be a static holder class.
-            if (declaredMembers.Count == 0)
-            {
-                return false;
-            }
+            List<ISymbol> qualifyingMembers = declaredMembers
+                .Where(IsQualifyingMember)
+                .ToList();
 
             List<ISymbol> disqualifyingMembers = declaredMembers
                 .Where(IsDisqualifyingMember)
                 .ToList();
 
-            return disqualifyingMembers.Count == 0;
+            return qualifyingMembers.Count > 0 && disqualifyingMembers.Count == 0;
         }
 
-        // Disqualify the class from being a static holder class if it has any of the
-        // following:
-        //     - Any operator overload method (because, even though they are declared
-        //       static, they take instances as parameters, so presumably the author
-        //       of the class intends for it to be instantiated).
-        //     - Any declared instance member other than a default constructor.
+        /// <summary>
+        /// Returns a value indicating whether the specified symbol qualifies as a
+        /// member of a static holder class.
+        /// </summary>
+        /// <param name="member">
+        /// The member being examined.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <paramref name="member"/> qualifies as a member of
+        /// a static holder class; otherwise <c>false</c>.
+        /// </returns>
+        private static bool IsQualifyingMember(ISymbol member)
+        {
+            // A type member *does* qualify as a member of a static holder class,
+            // because even though it is *not* static, it is nevertheless not
+            // per-instance.
+            if (member.IsType())
+            {
+                return true;
+            }
+
+            // An user-defined operator method is not a valid member of a static holder
+            // class, because even though it is static, it takes instances as
+            // parameters, so presumably the author of the class intended for it to be
+            // instantiated.
+            if (member.IsUserDefinedOperator())
+            {
+                return false;
+            }
+
+            return member.IsStatic;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the presence of the specified symbol
+        /// disqualifies a class from being considered a static holder class.
+        /// </summary>
+        /// <param name="member">
+        /// The member being examined.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the presence of <paramref name="member"/> disqualifies the
+        /// current type as a static holder class; otherwise <c>false</c>.
+        /// </returns>
         private static bool IsDisqualifyingMember(ISymbol member)
         {
-            // An operator overload method disqualifies a class from being considered
+            // An user-defined operator method disqualifies a class from being considered
             // a static holder, because even though it is static, it takes instances as
             // parameters, so presumably the author of the class intended for it to be
             // instantiated.
