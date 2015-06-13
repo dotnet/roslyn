@@ -15,13 +15,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Design
 
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=CA1052DiagnosticAnalyzer.DiagnosticId), [Shared]>
     Public Class CA1052BasicCodeFixProvider
         Inherits CodeFixProvider
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId)
+                Return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId)
             End Get
         End Property
 

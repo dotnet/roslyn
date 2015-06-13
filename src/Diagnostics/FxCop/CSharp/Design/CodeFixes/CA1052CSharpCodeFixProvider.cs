@@ -14,12 +14,12 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.AnalyzerPowerPack.CSharp.Design
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = CA1052DiagnosticAnalyzer.DiagnosticId), Shared]
     public class CA1052CSharpCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId); }
+            get { return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
