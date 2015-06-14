@@ -1015,8 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 default:
-                    Debug.Assert(false, "bad BindValueKind");
-                    goto case BindValueKind.Assignment;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.Assignment:
                     return ErrorCode.ERR_AssgReadonlyLocal;
@@ -1042,8 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
                 default:
-                    Debug.Assert(false, "bad BindValueKind");
-                    goto case BindValueKind.Assignment;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -1600,9 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     eventSyntax = syntax;
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected syntax: " + syntax.Kind());
-                    eventSyntax = syntax;
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
 
             BoundEventAccess eventAccess = (BoundEventAccess)expr;

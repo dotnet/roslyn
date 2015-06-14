@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -90,8 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CandidateReason.None;
 
                 default:
-                    Debug.Assert(false, "Unknown or unexpected LookupResultKind.");
-                    return CandidateReason.NotReferencable;  // most generic one.
+                    throw ExceptionUtilities.UnexpectedValue(resultKind);
             }
         }
 

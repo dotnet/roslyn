@@ -829,8 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     default:
                         // there are no other kinds of labels
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind);
                 }
             }
 

@@ -74,8 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                 case SymbolKind.RangeVariable:
                 case SymbolKind.Preprocessing:
-                    Debug.Assert(false, "Unsupported symbol kind " + symbol.Kind);
-                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }

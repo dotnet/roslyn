@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                Debug.Assert(false, "Unexpected type: " + type);
+                throw ExceptionUtilities.UnexpectedValue(type);
             }
         }
 

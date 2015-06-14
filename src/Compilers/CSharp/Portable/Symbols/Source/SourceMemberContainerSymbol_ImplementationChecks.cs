@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -354,8 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 default:
-                    Debug.Assert(false, "Unexpected named type kind " + this.TypeKind);
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(this.TypeKind);
             }
 
             foreach (var member in this.GetMembersUnordered())
@@ -919,8 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
                 default:
-                    Debug.Assert(false, $"Unexpected accessibility {hidingMember.DeclaredAccessibility}");
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(hidingMember.DeclaredAccessibility);
             }
             return false;
         }

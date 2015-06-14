@@ -1395,12 +1395,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             BasePropertyDeclarationSyntax propertyDecl = (BasePropertyDeclarationSyntax)syntax;
                             aliasQualifierOpt = propertyDecl.ExplicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
                             break;
-                        case SyntaxKind.EventFieldDeclaration:
-                            Debug.Assert(false, "Field-like events are never explicit interface implementations");
-                            break;
+                        case SyntaxKind.EventFieldDeclaration: // Field-like events are never explicit interface implementations
                         default:
-                            Debug.Assert(false, "Unexpected syntax kind " + syntax.Kind());
-                            break;
+                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                     }
                 }
             }

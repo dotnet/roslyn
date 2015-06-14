@@ -650,9 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return member.IsStatic ? 0 : Cci.CallingConvention.HasThis;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return (member.IsStatic ? 0 : Cci.CallingConvention.HasThis) |
-                        (member.GetMemberArity() > 0 ? Cci.CallingConvention.Generic : 0);
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
