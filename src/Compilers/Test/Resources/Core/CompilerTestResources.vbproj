@@ -401,6 +401,8 @@
     <None Include="packages.config" />
     <None Include="SymbolsTests\netModule\hash_module.cs" />
     <None Include="SymbolsTests\NoPia\MissingPIAAttributes.dll" />
+    <None Include="WinRt\WImpl.il" />
+    <None Include="WinRt\WImpl.winmd" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Analyzers\AnalyzerTests.resx">
