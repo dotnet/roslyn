@@ -448,6 +448,207 @@ End Class
                      Item("CancelKeyPress", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589)>
+        Public Sub WithEventsField_EventsFromInheritedInterfaces()
+            AssertItemsAre(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Interface I1
+    Event I1Event(sender As Object, e As EventArgs)
+End Interface
+
+Interface I2
+    Event I2Event(sender As Object, e As EventArgs)
+End Interface
+
+Interface I3
+    Inherits I1, I2
+    Event I3Event(sender As Object, e As EventArgs)
+End Interface
+
+Class Test
+    WithEvents i3 As I3
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("I1", Glyph.InterfaceInternal, bolded:=True, children:={
+                     Item("I1Event", Glyph.EventPublic, bolded:=True)}),
+                Item("I2", Glyph.InterfaceInternal, bolded:=True, children:={
+                     Item("I2Event", Glyph.EventPublic, bolded:=True)}),
+                Item("I3", Glyph.InterfaceInternal, bolded:=True, children:={
+                     Item("I3Event", Glyph.EventPublic, bolded:=True)}),
+                Item("Test", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
+                Item("i3", Glyph.FieldPrivate, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("I1Event", Glyph.EventPublic, hasNavigationSymbolId:=False),
+                     Item("I2Event", Glyph.EventPublic, hasNavigationSymbolId:=False),
+                     Item("I3Event", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        Public Sub DoNotIncludeShadowedEvents()
+            AssertItemsAre(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class B
+    Event E(sender As Object, e As EventArgs)
+End Class
+
+Class C
+    Inherits B
+
+    Shadows Event E(sender As Object, e As EventArgs)
+End Class
+
+Class Test
+    WithEvents c As C
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("B", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
+                     Item("E", Glyph.EventPublic, bolded:=True)}),
+                Item(String.Format(VBEditorResources.Events, "B"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}),
+                Item("C", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
+                     Item("E", Glyph.EventPublic, bolded:=True)}),
+                Item(String.Format(VBEditorResources.Events, "C"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}), ' Only one E under the "(C Events)" node
+                Item("Test", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
+                Item("c", Glyph.FieldPrivate, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)})) ' Only one E for WithEvents handling
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        Public Sub EventList_EnsureInternalEventsInEventListAndInInheritedEventList()
+            AssertItemsAre(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Event E()
+End Class
+
+Class D
+    Inherits C
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
+                     Item("E", Glyph.EventPublic, bolded:=True)}),
+                Item(String.Format(VBEditorResources.Events, "C"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}),
+                Item("D", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
+                Item(String.Format(VBEditorResources.Events, "D"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
+
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        Public Sub EventList_EnsurePrivateEventsInEventListButNotInInheritedEventList()
+            AssertItemsAre(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Private Event E()
+End Class
+
+Class D
+    Inherits C
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
+                     Item("E", Glyph.EventPrivate, bolded:=True)}),
+                Item(String.Format(VBEditorResources.Events, "C"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E", Glyph.EventPrivate, hasNavigationSymbolId:=False)}),
+                Item("D", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        Public Sub EventList_TestAccessibilityThroughNestedAndDerivedTypes()
+            AssertItemsAre(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Public Event E0()
+    Protected Event E1()
+    Private Event E2()
+
+    Class N1
+        Class N2
+            Inherits C
+
+        End Class
+    End Class
+End Class
+
+Class D2
+    Inherits C
+
+End Class
+
+Class T
+    WithEvents c As C
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
+                     Item("E0", Glyph.EventPublic, bolded:=True),
+                     Item("E1", Glyph.EventProtected, bolded:=True),
+                     Item("E2", Glyph.EventPrivate, bolded:=True)}),
+                Item(String.Format(VBEditorResources.Events, "C"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False),
+                     Item("E1", Glyph.EventProtected, hasNavigationSymbolId:=False),
+                     Item("E2", Glyph.EventPrivate, hasNavigationSymbolId:=False)}),
+                Item("D2", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
+                Item(String.Format(VBEditorResources.Events, "D2"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False),
+                     Item("E1", Glyph.EventProtected, hasNavigationSymbolId:=False)}),
+                Item("N1 (C)", Glyph.ClassPublic, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
+                Item("N2 (C.N1)", Glyph.ClassPublic, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
+                Item(String.Format(VBEditorResources.Events, "N2"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False),
+                     Item("E1", Glyph.EventProtected, hasNavigationSymbolId:=False),
+                     Item("E2", Glyph.EventPrivate, hasNavigationSymbolId:=False)}),
+                Item("T", Glyph.ClassInternal, bolded:=True, children:={
+                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
+                Item("c", Glyph.FieldPrivate, hasNavigationSymbolId:=False, indent:=1, children:={
+                     Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub GenerateEventHandler()
             AssertGeneratedResultIs(

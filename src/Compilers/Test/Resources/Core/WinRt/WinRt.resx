@@ -147,4 +147,7 @@
   <data name="WinMDPrefixing_dump" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>WinMDPrefixing.ildump;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="WImpl" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>WImpl.winmd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

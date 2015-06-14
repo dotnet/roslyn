@@ -1027,6 +1027,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _assembly.DeclaresTheObjectClass;
                     }
                 }
+
+                public override Compilation SourceCompilation => null;
             }
 
             private sealed class AssemblyDataForCompilation : AssemblyDataForMetadataOrCompilation
@@ -1130,6 +1132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _compilation.DeclaresTheObjectClass;
                     }
                 }
+
+                public override Compilation SourceCompilation => _compilation;
             }
 
             /// <summary>
