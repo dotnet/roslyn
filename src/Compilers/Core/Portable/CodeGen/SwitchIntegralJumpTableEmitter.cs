@@ -449,8 +449,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return ILOpCode.Ble_un;
 
                 default:
-                    Debug.Assert(false, "Unhandled branch opcode for switch emitter");
-                    return ILOpCode.Nop;
+                    throw ExceptionUtilities.UnexpectedValue(branchCode);
             }
         }
 

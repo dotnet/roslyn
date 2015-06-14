@@ -2621,8 +2621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         types.AddSeparator((SyntaxToken)p);
                         break;
                     default:
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(p.Kind);
                 }
             }
 
