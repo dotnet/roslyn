@@ -2967,7 +2967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetStateMachineSuspensionPoints(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
-            ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
+            ' In VB declaration and body are reprsented by teh same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
                 Return SyntaxUtilities.GetAwaitExpressions(body)
             Else

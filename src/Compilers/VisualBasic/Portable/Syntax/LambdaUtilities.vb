@@ -571,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' All variables of any non-starting From/Aggregate clause are lambdas.
-            ' The first variable of each Aggregate clause represents the lambda containing the query nested into the aggregate clause.
+            ' The first variable of each Aggregate clause represents teh lambda contaiing the query nested into the aggregate clause.
             Return True
         End Function
 
