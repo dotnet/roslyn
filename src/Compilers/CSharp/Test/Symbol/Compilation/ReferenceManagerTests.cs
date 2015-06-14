@@ -24,6 +24,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
 
         [ClrOnlyFact(ClrOnlyReason.Signing)]
+        public void WinRtCompilationReferences()
+        {
+            var ifaceDef = CreateCompilationWithMscorlib(
+@"
+public interface ITest
+{
+}", options: TestOptions.DebugWinMD, assemblyName: "ITest");
+
+            ifaceDef.VerifyDiagnostics();
+            var ifaceImageRef = ifaceDef.EmitToImageReference();
+
+            var wimpl = AssemblyMetadata.CreateFromImage(TestResources.WinRt.WImpl).GetReference(display: "WImpl");
+
+            var implDef2 = CreateCompilationWithMscorlib(
+@"
+public class C
+{
+    public static void Main()
+    {
+        ITest test = new WImpl();
+    }
+}", references: new MetadataReference[] { ifaceDef.ToMetadataReference(), wimpl },
+    options: TestOptions.DebugExe);
+
+            implDef2.VerifyDiagnostics();
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void VersionUnification_SymbolUsed()
         {
             // Identity: C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         public static TextBlock ToTextBlock(this IEnumerable<SymbolDisplayPart> parts, ClassificationTypeMap typeMap)
         {
-            var result = new TextBlock() { TextWrapping = TextWrapping.Wrap};
+            var result = new TextBlock() { TextWrapping = TextWrapping.Wrap };
 
             var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
             result.SetDefaultTextProperties(formatMap);
