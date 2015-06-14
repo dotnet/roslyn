@@ -538,5 +538,41 @@ Public Class B21
     End Sub
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1052NoDiagnosticForNestedPrivateNonStaticClassWithPublicDefaultConstructorAndStaticMethodCSharp()
+        {
+            VerifyCSharp(@"
+public class C22
+{
+    public void Moo() { }
+
+    private class C22Inner
+    {
+        public C22Inner() { }
+        public static void Foo() { }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void CA1052NoDiagnosticForNestedPrivateNonStaticClassWithPublicDefaultConstructorAndSharedMethodBasic()
+        {
+            VerifyBasic(@"
+Public Class B22
+    Public Sub Moo()
+    End Sub
+
+    Private Class B22Inner
+        Public Sub New()
+        End Sub
+
+        Public Shared Sub Foo()
+        End Sub
+    End Class
+End Class
+");
+        }
     }
 }
