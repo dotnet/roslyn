@@ -88,15 +88,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
 
         Private Sub AdjustSpanForErrorCase(span As SnapshotSpan, text As String)
             Dim snapshot = span.Snapshot
-            Dim trimedText = text.Trim()
+            Dim trimmedText = text.Trim()
 
-            If trimedText.Length = 0 Then
+            If trimmedText.Length = 0 Then
                 ' all whitespace, make tracking span to stick to end
                 Me._trackingSpan = snapshot.CreateTrackingSpan(span.End.Position, 0, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
             Else
                 ' something like punctuation is there
                 ' make tracking span to stick after the punctuation
-                Dim position = span.Start.Position + text.IndexOf(trimedText, StringComparison.Ordinal) + trimedText.Length
+                Dim position = span.Start.Position + text.IndexOf(trimmedText, StringComparison.Ordinal) + trimmedText.Length
                 Me._trackingSpan = snapshot.CreateTrackingSpan(position, 0, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
             End If
         End Sub
