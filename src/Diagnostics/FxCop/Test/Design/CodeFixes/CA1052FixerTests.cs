@@ -33,7 +33,7 @@ namespace Microsoft.AnalyzerPowerPack.UnitTests.Design.CodeFixes
             return new CA1052DiagnosticAnalyzer();
         }
 
-        [Fact(Skip = "NYI"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1052FixesSealedClassWithOnlyStaticDeclaredMembersCSharp()
         {
             const string Code = @"

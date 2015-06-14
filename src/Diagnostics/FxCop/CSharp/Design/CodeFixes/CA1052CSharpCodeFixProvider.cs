@@ -17,15 +17,11 @@ namespace Microsoft.AnalyzerPowerPack.CSharp.Design
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = CA1052DiagnosticAnalyzer.DiagnosticId), Shared]
     public class CA1052CSharpCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds =>
+            ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId);
 
-        public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return WellKnownFixAllProviders.BatchFixer;
-        }
+        public sealed override FixAllProvider GetFixAllProvider() =>
+            WellKnownFixAllProviders.BatchFixer;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,15 +35,25 @@ namespace Microsoft.AnalyzerPowerPack.CSharp.Design
             if (classDeclaration != null)
             {
                 var title = string.Format(AnalyzerPowerPackRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text);
-                var codeAction = new MyCodeAction(title, ct => AddStaticKeyword(document, root, classDeclaration));
+                var codeAction = new MyCodeAction(title, ct => MakeClassStatic(document, root, classDeclaration));
                 context.RegisterCodeFix(codeAction, context.Diagnostics);
             }
         }
 
-        private Task<Document> AddStaticKeyword(Document document, SyntaxNode root, ClassDeclarationSyntax classDeclaration)
+        private Task<Document> MakeClassStatic(Document document, SyntaxNode root, ClassDeclarationSyntax classDeclaration)
         {
-            var staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
-            var newDeclaration = classDeclaration.AddModifiers(staticKeyword);
+
+            SyntaxTokenList modifiers = classDeclaration.Modifiers;
+            int sealedIndex = modifiers.IndexOf(SyntaxKind.SealedKeyword);
+            if (sealedIndex != -1)
+            {
+                modifiers = modifiers.RemoveAt(sealedIndex);
+            }
+
+            SyntaxToken staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
+            modifiers = modifiers.Add(staticKeyword);
+
+            var newDeclaration = classDeclaration.WithModifiers(modifiers);
             var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
