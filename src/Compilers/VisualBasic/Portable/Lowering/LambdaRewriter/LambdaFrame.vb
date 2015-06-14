@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
             Get
-                ' This method contains user code from the lambda.
+                ' This method contains user code from the lamda
                 Return True
             End Get
         End Property
