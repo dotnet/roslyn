@@ -81,6 +81,7 @@
     <Compile Include="Design\CodeFixes\CA1033FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1008FixerTests.cs" />
     <Compile Include="Design\CodeFixes\CA1012FixerTests.cs" />
+    <Compile Include="Design\CodeFixes\CA1052FixerTests.cs" />
     <Compile Include="HardeningAnalyzer\HardeningAnalyzerTests.cs" />
     <Compile Include="Naming\CA1708Tests.cs" />
     <Compile Include="Naming\CA1715Tests.cs" />
