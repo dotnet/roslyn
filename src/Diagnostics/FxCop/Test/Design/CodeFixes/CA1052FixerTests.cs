@@ -136,7 +136,7 @@ public static class C
             VerifyCSharpFix(Code, FixedCode);
         }
 
-        [Fact(Skip = "NYI"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1052FixesNestedPublicNonStaticClassWithPublicDefaultConstructorAndStaticMethodCSharp()
         {
             const string Code = @"
@@ -207,7 +207,7 @@ public static class C
             VerifyCSharpFix(Code, FixedCode);
         }
 
-        [Fact(Skip = "NYI"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1052FixesNestedPublicClassInOtherwiseEmptyNonStaticClassCSharp()
         {
             const string Code = @"
@@ -222,7 +222,7 @@ public class C
             const string FixedCode = @"
 public static class C
 {
-    public static class CInner
+    public class CInner
     {
     }
 }
