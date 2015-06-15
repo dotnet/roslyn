@@ -17,16 +17,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class AnalyzerDependencyChecker
     {
         private readonly HashSet<string> _analyzerFilePaths;
-        private readonly List<IAssemblyWhiteList> _assemblyWhiteLists;
+        private readonly List<IIgnorableAssemblyList> _ignorableAssemblyLists;
         private readonly IBindingRedirectionService _bindingRedirectionService;
 
-        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<IAssemblyWhiteList> assemblyWhiteLists, IBindingRedirectionService bindingRedirectionService = null)
+        public AnalyzerDependencyChecker(IEnumerable<string> analyzerFilePaths, IEnumerable<IIgnorableAssemblyList> ignorableAssemblyLists, IBindingRedirectionService bindingRedirectionService = null)
         {
             Debug.Assert(analyzerFilePaths != null);
-            Debug.Assert(assemblyWhiteLists != null);
+            Debug.Assert(ignorableAssemblyLists != null);
 
             _analyzerFilePaths = new HashSet<string>(analyzerFilePaths, StringComparer.OrdinalIgnoreCase);
-            _assemblyWhiteLists = assemblyWhiteLists.ToList();
+            _ignorableAssemblyLists = ignorableAssemblyLists.ToList();
             _bindingRedirectionService = bindingRedirectionService;
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            _assemblyWhiteLists.Add(new AssemblyIdentityWhiteList(analyzerInfos.Select(info => info.Identity)));
+            _ignorableAssemblyLists.Add(new IgnorableAssemblyIdentityList(analyzerInfos.Select(info => info.Identity)));
 
             // First check for analyzers with the same identity but different
             // contents (that is, different MVIDs).
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         ? _bindingRedirectionService.ApplyBindingRedirects(reference)
                         : reference;
 
-                    if (!_assemblyWhiteLists.Any(whiteList => whiteList.Includes(redirectedReference)))
+                    if (!_ignorableAssemblyLists.Any(ignorableAssemblyList => ignorableAssemblyList.Includes(redirectedReference)))
                     {
                         builder.Add(new MissingAnalyzerDependency(
                             analyzerInfo.Path,
