@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
             // In this case we create new label symbol on the fly, and an error is reported by parser
-            var symbol = result.Symbols.Count != 0 ?
+            var symbol = result.Symbols.Count > 0 && result.IsMultiViable ?
                 (LabelSymbol)result.Symbols.First() :
                 new SourceLabelSymbol((MethodSymbol)ContainingMemberOrLambda, node.Identifier);
 

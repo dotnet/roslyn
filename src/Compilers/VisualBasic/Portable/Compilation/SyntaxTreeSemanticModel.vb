@@ -758,13 +758,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim methodSym = DirectCast(implementingMember, SourceMemberMethodSymbol)
 
                     Dim diagbag = DiagnosticBag.GetInstance()
-                    Dim boundClause = methodSym.BindSingleHandlesClause(handlesClause,
-                                                                        binder,
-                                                                        diagbag,
-                                                                        eventSymbolBuilder,
-                                                                        containerSymbolBuilder,
-                                                                        propertySymbolBuilder,
-                                                                        resultKind)
+                    methodSym.BindSingleHandlesClause(handlesClause,
+                                                      binder,
+                                                      diagbag,
+                                                      eventSymbolBuilder,
+                                                      containerSymbolBuilder,
+                                                      propertySymbolBuilder,
+                                                      resultKind)
 
                     diagbag.Free()
                 End If
